@@ -48,15 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicSyntaxNode.CloneNodeAsRoot(node, Me)
         End Function
 
-        Public Overrides Function GetTextAsync(Optional cancellationToken As System.Threading.CancellationToken = Nothing) As Task(Of SourceText)
-            Dim text As SourceText = Nothing
-            If Me.TryGetText(text) Then
-                Return Task.FromResult(text)
-            Else
-                Return Task.Factory.StartNew(Function() Me.GetText(cancellationToken), cancellationToken) ' TODO: Do we need to use ExceptionFilter.ExecuteWithErrorReporting here?
-            End If
-        End Function
-
         ''' <summary>
         ''' Gets the root node of the syntax tree. 
         ''' </summary>
@@ -142,22 +133,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim node As InternalSyntax.CompilationUnitSyntax
-            Dim reparseCount As Integer
             Using scanner
-                Dim parser As New InternalSyntax.Parser(scanner)
+                Dim parser As New Parser(scanner)
 
                 Dim parsedTree = TryCast(Me, ParsedSyntaxTree)
-                reparseCount = If(parsedTree IsNot Nothing, parsedTree.ReparseCount, 0)
                 node = parser.ParseCompilationUnit()
             End Using
 
             Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
-            Dim tree = New ParsedSyntaxTree(
-                newText,
-                Me.FilePath,
-                root,
-                Options,
-                reparseCount + 1)
+            Dim tree = New ParsedSyntaxTree(newText, newText.Encoding, Me.FilePath, Options, root, isMyTemplate:=False)
 
             tree.VerifySource(changes)
             Return tree
@@ -169,9 +153,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Create a new syntax tree from a syntax node.
         ''' </summary>
-        Public Shared Function Create(root As SyntaxNode, Optional path As String = "", Optional options As ParseOptions = Nothing) As SyntaxTree
-            Dim vbOptions = DirectCast(options, VisualBasicParseOptions)
-            Return New ParsedSyntaxTree(sourceText:=Nothing, path:=path, syntaxRoot:=DirectCast(root, VisualBasicSyntaxNode), options:=If(vbOptions, VisualBasicParseOptions.Default), reparseCnt:=0)
+        Public Shared Function Create(root As VisualBasicSyntaxNode,
+                                      Optional options As VisualBasicParseOptions = Nothing,
+                                      Optional path As String = "",
+                                      Optional encoding As Encoding = Nothing) As SyntaxTree
+            If root Is Nothing Then
+                Throw New ArgumentNullException("root")
+            End If
+
+            Return New ParsedSyntaxTree(
+                textOpt:=Nothing,
+                encodingOpt:=encoding,
+                path:=path,
+                options:=If(options, VisualBasicParseOptions.Default),
+                syntaxRoot:=root,
+                isMyTemplate:=False)
         End Function
 
         ''' <summary>
@@ -181,39 +177,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' NOTE: This method is only intended to be used from <see cref="P:SyntaxNode.SyntaxTree"/> property.
         ''' NOTE: Do not use this method elsewhere, instead use <see cref="M:SyntaxTree.Create"/> method for creating a syntax tree.
         ''' </summary>
-        Friend Shared Function CreateWithoutClone(root As VisualBasicSyntaxNode, Optional path As String = "", Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
-            Return New ParsedSyntaxTree(sourceText:=Nothing, path:=path, syntaxRoot:=root, options:=If(options, VisualBasicParseOptions.Default), reparseCnt:=0, cloneRoot:=False)
+        Friend Shared Function CreateWithoutClone(root As VisualBasicSyntaxNode) As SyntaxTree
+            Debug.Assert(root IsNot Nothing)
+
+            Return New ParsedSyntaxTree(
+                textOpt:=Nothing,
+                path:="",
+                encodingOpt:=Nothing,
+                options:=VisualBasicParseOptions.Default,
+                syntaxRoot:=root,
+                isMyTemplate:=False,
+                cloneRoot:=False)
         End Function
 
         Public Shared Function ParseText(text As String,
-                                         Optional path As String = "",
                                          Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional path As String = "",
+                                         Optional encoding As Encoding = Nothing,
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
-            Return ParseText(text, False, path, options, cancellationToken)
+            Return ParseText(text, False, options, path, encoding, cancellationToken)
         End Function
 
         Friend Shared Function ParseText(text As String,
                                          isMyTemplate As Boolean,
-                                         Optional path As String = "",
                                          Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional path As String = "",
+                                         Optional encoding As Encoding = Nothing,
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
-            Return ParseText(SourceText.From(text), isMyTemplate, path, options, cancellationToken)
+            Return ParseText(SourceText.From(text, encoding), isMyTemplate, options, path, cancellationToken)
         End Function
 
         ''' <summary>
         ''' Produce a syntax tree by parsing the source text.
         ''' </summary>
         Public Shared Function ParseText(text As SourceText,
-                                         Optional path As String = "",
                                          Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional path As String = "",
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
-            Return ParseText(text, False, path, options, cancellationToken)
+            Return ParseText(text, False, options, path, cancellationToken)
         End Function
 
         Friend Shared Function ParseText(text As SourceText,
                                          isMyTemplate As Boolean,
-                                         Optional path As String = "",
                                          Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional path As String = "",
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
 
             If text Is Nothing Then
@@ -233,9 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Using
 
                 Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
-                Dim tree = If(isMyTemplate,
-                              New MyTemplateSyntaxTree(text, path, root, options, 0),
-                              New ParsedSyntaxTree(text, path, root, options, 0))
+                Dim tree = New ParsedSyntaxTree(text, text.Encoding, path, options, root, isMyTemplate)
 
                 tree.VerifySource()
                 Return tree
@@ -249,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If String.IsNullOrEmpty(path) Then Throw New ArgumentException("path")
 
             Using data As New FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Return ParseText(New EncodedStringText(data, encodingOpt:=Nothing), path, options, cancellationToken)
+                Return ParseText(EncodedStringText.Create(data), options, path, cancellationToken)
             End Using
         End Function
 

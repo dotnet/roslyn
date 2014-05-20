@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -624,7 +626,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text1 = "public class A {}";
             var text2 = "public class B {}";
 
-            var file = Temp.CreateFile().WriteAllText(text1);
+            var file = Temp.CreateFile().WriteAllText(text1, Encoding.UTF8);
 
             // create a solution that evicts from the cache immediately.
             var sol = CreateNotKeptAliveSolution();
@@ -633,7 +635,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             sol = sol.AddProject(pid, "foo", "foo.dll", LanguageNames.CSharp)
-                     .AddDocument(did, "x", new FileTextLoader(file.Path));
+                     .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8));
 
             var observedText = GetObservedText(sol, did, text1);
 
@@ -737,11 +739,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            var file = Temp.CreateFile().WriteAllText(text);
+            var file = Temp.CreateFile().WriteAllText(text, Encoding.UTF8);
 
             var sol = CreateSolution()
                         .AddProject(pid, "foo", "foo.dll", LanguageNames.CSharp)
-                        .AddDocument(did, "x", new FileTextLoader(file.Path));
+                        .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8));
 
             var doc = sol.GetDocument(did);
 
@@ -801,11 +803,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            var file = Temp.CreateFile().WriteAllText(text);
+            var file = Temp.CreateFile().WriteAllText(text, Encoding.UTF8);
 
             var sol = CreateSolution()
                         .AddProject(pid, "foo", "foo.dll", LanguageNames.CSharp)
-                        .AddDocument(did, "x", new FileTextLoader(file.Path));
+                        .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8));
 
             var doc = sol.GetDocument(did);
             var docTree = doc.GetSyntaxTreeAsync().Result;
@@ -1035,6 +1037,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRecoverableSyntaxTree(sol, did);
         }
 
+        private static bool IsReparsedTree(SyntaxTree tree)
+        {
+            var csharpRecoverable = tree as CSharpSyntaxTreeFactoryServiceFactory.CSharpSyntaxTreeFactoryService.RecoverableSyntaxTree;
+            if (csharpRecoverable != null)
+            {
+                return csharpRecoverable.IsReparsed;
+            }
+
+            var vbRecoverable = tree as VisualBasicSyntaxTreeFactoryServiceFactory.VisualBasicSyntaxTreeFactoryService.RecoverableSyntaxTree;
+            if (vbRecoverable != null)
+            {
+                return vbRecoverable.IsReparsed;
+            }
+
+            return false;
+        }
+
         private void TestRecoverableSyntaxTree(Solution sol, DocumentId did)
         {
             // get it async and wait for it to get GC'd
@@ -1045,7 +1064,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // access the tree & root again (recover it)
             var tree = doc.GetSyntaxTreeAsync().Result;
-            Assert.Equal(true, tree.GetType().Name.Contains("Reparsed"));
+            Assert.True(IsReparsedTree(tree));
 
             // this should cause reparsing
             var root = tree.GetRoot();
@@ -1063,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // access the tree & root again (recovert it)
             var tree2 = doc2.GetSyntaxTreeAsync().Result;
-            Assert.Equal(true, tree2.GetType().Name.Contains("Serialized"));
+            Assert.False(IsReparsedTree(tree2));
 
             // this should cause deserialization
             var root2 = tree2.GetRoot();
@@ -1225,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             DocumentId did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "foo", "foo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new FileTextLoader("doesnotexist.cs"));
+                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
 
             var doc = solution.GetDocument(did);
             var text = doc.GetTextAsync().Result;
@@ -1256,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             DocumentId did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "foo", "foo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new FileTextLoader("doesnotexist.cs"));
+                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
 
             var doc = solution.GetDocument(did);
             var text = doc.GetTextAsync().Result;

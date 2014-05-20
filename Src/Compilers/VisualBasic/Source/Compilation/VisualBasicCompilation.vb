@@ -2191,29 +2191,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' start generating PDB checksums if we need to emit PDBs
                 If generateDebugInfo AndAlso moduleBeingBuilt IsNot Nothing Then
-                    ' Add debug documents for all trees with distinct paths.
-                    For Each tree In Me.SyntaxTrees
-                        Dim path As String = tree.FilePath
-                        If Not String.IsNullOrEmpty(path) Then
-                            ' compilation does not guarantee that all trees will have distinct paths.
-                            ' Do not attempt adding a document for a particular path if we already added one.
-                            Dim normalizedPath = moduleBeingBuilt.NormalizeDebugDocumentPath(path, basePath:=Nothing)
-                            Dim existingDoc = moduleBeingBuilt.TryGetDebugDocumentForNormalizedPath(normalizedPath)
-                            If existingDoc Is Nothing Then
-                                moduleBeingBuilt.AddDebugDocument(MakeDebugSourceDocumentForTree(normalizedPath, tree))
-                            End If
-                        End If
-                    Next
-
-                    ' Add debug documents for all directives. 
-                    ' If there are clashes with already processed directives, report warnings.
-                    ' If there are clashes with debug documents that came from actual trees, ignore the directive.
-                    For Each tree In Me.SyntaxTrees
-                        AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnostics)
-                    Next
+                    If Not StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics) Then
+                        Return False
+                    End If
                 End If
 
-                ' EDMAURER perform initial bind of method bodies in spite of earlier errors. This is the same
+                ' Perform initial bind of method bodies in spite of earlier errors. This is the same
                 ' behavior as when calling GetDiagnostics()
 
                 ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
@@ -2250,6 +2233,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cancellationToken.ThrowIfCancellationRequested()
 
             ' TODO (tomat): XML doc comments diagnostics
+            Return True
+        End Function
+
+        Private Function StartSourceChecksumCalculation(moduleBeingBuilt As PEModuleBuilder, diagnostics As DiagnosticBag) As Boolean
+            ' Check that all syntax trees are debuggable
+            Dim allTreesDebuggable = True
+            For Each tree In Me.SyntaxTrees
+                If Not String.IsNullOrEmpty(tree.FilePath) AndAlso tree.GetText().Encoding Is Nothing Then
+                    diagnostics.Add(ERRID.ERR_EncodinglessSyntaxTree, tree.GetRoot().GetLocation())
+                    allTreesDebuggable = False
+                End If
+            Next
+
+            If Not allTreesDebuggable Then
+                Return False
+            End If
+
+            ' Add debug documents for all trees with distinct paths.
+            For Each tree In Me.SyntaxTrees
+                If Not String.IsNullOrEmpty(tree.FilePath) Then
+                    ' compilation does not guarantee that all trees will have distinct paths.
+                    ' Do not attempt adding a document for a particular path if we already added one.
+                    Dim normalizedPath = moduleBeingBuilt.NormalizeDebugDocumentPath(tree.FilePath, basePath:=Nothing)
+                    Dim existingDoc = moduleBeingBuilt.TryGetDebugDocumentForNormalizedPath(normalizedPath)
+                    If existingDoc Is Nothing Then
+                        moduleBeingBuilt.AddDebugDocument(MakeDebugSourceDocumentForTree(normalizedPath, tree))
+                    End If
+                End If
+            Next
+
+            ' Add debug documents for all directives. 
+            ' If there are clashes with already processed directives, report warnings.
+            ' If there are clashes with debug documents that came from actual trees, ignore the directive.
+            For Each tree In Me.SyntaxTrees
+                AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnostics)
+            Next
+
             Return True
         End Function
 

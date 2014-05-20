@@ -3233,6 +3233,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot emit debug information for a syntax tree without encoding..
+        '''</summary>
+        Friend ReadOnly Property ERR_EncodinglessSyntaxTree() As String
+            Get
+                Return ResourceManager.GetString("ERR_EncodinglessSyntaxTree", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;End Class&apos; must be preceded by a matching &apos;Class&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_EndClassNoClass() As String
@@ -10127,7 +10136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to {0} &apos;{1}&apos; conflicts with a VB Core Runtime {2} &apos;{3}&apos;..
+        '''  Looks up a localized string similar to {0} &apos;{1}&apos; conflicts with a Visual Basic Runtime {2} &apos;{3}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_TypeClashesWithVbCoreType4() As String
             Get

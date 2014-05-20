@@ -79,26 +79,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestChangedTextWithMultipleOverlappingChanges()
         {
             var text = SourceText.From("Hello World");
-
-            Assert.Throws<InvalidOperationException>(() =>
+            var changes = new[]
             {
-                text.WithChanges(
-                    new TextChange(new TextSpan(0, 5), "Halo"),
-                    new TextChange(new TextSpan(3, 5), "Universe"));
-            });
+                new TextChange(new TextSpan(0, 5), "Halo"),
+                new TextChange(new TextSpan(3, 5), "Universe")
+            };
+
+            Assert.Throws<ArgumentException>(() => text.WithChanges(changes));
         }
 
         [Fact]
         public void TestChangedTextWithMultipleUnorderedChanges()
         {
             var text = SourceText.From("Hello World");
-
-            Assert.Throws<InvalidOperationException>(() =>
+            var changes = new[]
             {
-                text.WithChanges(
-                    new TextChange(new TextSpan(6, 7), "Universe"),
-                    new TextChange(new TextSpan(0, 5), "Halo"));
-            });
+                new TextChange(new TextSpan(6, 7), "Universe"),
+                new TextChange(new TextSpan(0, 5), "Halo")
+            };
+
+            Assert.Throws<ArgumentException>(() => text.WithChanges(changes));
         }
 
         [Fact]
@@ -129,14 +129,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestChangedTextWithReplaceBeforeInsertSamePosition()
         {
             var text = SourceText.From("Hello World");
+            var changes = new[]
+            {
+                new TextChange(new TextSpan(6, 2), "Vu"),
+                new TextChange(new TextSpan(6, 0), "Super ")
+            };
 
             // this causes overlap
-            Assert.Throws<InvalidOperationException>(() =>
-            {
-                text.WithChanges(
-                    new TextChange(new TextSpan(6, 2), "Vu"),
-                    new TextChange(new TextSpan(6, 0), "Super "));
-            });
+            Assert.Throws<ArgumentException>(() => text.WithChanges(changes));
         }
 
         [Fact]

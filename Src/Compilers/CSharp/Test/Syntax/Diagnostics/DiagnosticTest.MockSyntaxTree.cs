@@ -59,6 +59,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 throw new NotImplementedException();
             }
 
+            public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override SyntaxTree WithFilePath(string path)
+            {
+                throw new NotImplementedException();
+            }
+
             public override bool HasCompilationUnitRoot
             {
                 get { throw new NotImplementedException(); }

@@ -1157,8 +1157,8 @@ End Class
             string projectName = "TestProject";
 
             var syntaxTree = language == LanguageNames.CSharp ?
-                CSharpSyntaxTree.ParseText(source, fileName) :
-                VisualBasicSyntaxTree.ParseText(source, fileName);
+                CSharpSyntaxTree.ParseText(source, path: fileName) :
+                VisualBasicSyntaxTree.ParseText(source, path: fileName);
 
             if (language == LanguageNames.CSharp)
             {

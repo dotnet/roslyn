@@ -3445,6 +3445,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot emit debug information for a source text without encoding..
+        /// </summary>
+        internal static string ERR_EncodinglessSyntaxTree {
+            get {
+                return ResourceManager.GetString("ERR_EncodinglessSyntaxTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to #endif directive expected.
         /// </summary>
         internal static string ERR_EndifDirectiveExpected {

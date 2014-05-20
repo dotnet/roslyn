@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             byte[] buffer = GetBytes(Encoding.Unicode, source);
             using (var stream = new MemoryStream(buffer, 0, buffer.Length, writable: false, publiclyVisible: true))
             {
-                return new EncodedStringText(stream, encodingOpt: null);
+                return EncodedStringText.Create(stream);
             }
         }
     }

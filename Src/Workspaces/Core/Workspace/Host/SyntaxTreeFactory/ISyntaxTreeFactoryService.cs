@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Host
         ParseOptions GetDefaultParseOptions();
 
         // new tree from root node
-        SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, SyntaxNode node);
+        SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, SyntaxNode node, Encoding encoding);
 
         // new tree from text
         SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);

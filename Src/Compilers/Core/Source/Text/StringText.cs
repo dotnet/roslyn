@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -12,18 +13,23 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Implementation of SourceText based on a <see cref="T:System.String"/> input
     /// </summary>
-    internal partial class StringText : SourceText
+    internal sealed partial class StringText : SourceText
     {
         private readonly string source;
-        private ImmutableArray<byte> sha1Checksum;
+        private readonly Encoding encodingOpt;
 
-        internal StringText(string source, ImmutableArray<byte> sha1Checksum)
+        internal StringText(string source, Encoding encodingOpt, ImmutableArray<byte> sha1Checksum = default(ImmutableArray<byte>))
+            : base(sha1Checksum)
         {
             Debug.Assert(source != null);
-            Debug.Assert(sha1Checksum.Length == 0 || sha1Checksum.Length == Hash.Sha1HashSize);
 
             this.source = source;
-            this.sha1Checksum = sha1Checksum;
+            this.encodingOpt = encodingOpt;
+        }
+
+        public override Encoding Encoding
+        {
+            get { return encodingOpt; }
         }
 
         /// <summary>
@@ -31,10 +37,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public string Source
         {
-            get
-            {
-                return source;
-            }
+            get { return source; }
         }
 
         /// <summary>
@@ -89,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Text
             this.Source.CopyTo(sourceIndex, destination, destinationIndex, count);
         }
 
-        public override void Write(TextWriter textWriter, TextSpan span)
+        public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (span.Start == 0 && span.End == this.Length)
             {
@@ -97,13 +100,8 @@ namespace Microsoft.CodeAnalysis.Text
             }
             else
             {
-                base.Write(textWriter, span);
+                base.Write(textWriter, span, cancellationToken);
             }
-        }
-
-        protected override ImmutableArray<byte> GetSha1ChecksumImpl()
-        {
-            return this.sha1Checksum;
         }
     }
 }

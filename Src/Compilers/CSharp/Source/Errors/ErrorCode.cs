@@ -1283,6 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AutoPropertyInitializerInInterface = 8053,
 
         ERR_InitializerInStructWithoutExplicitConstructor = 8054,
+        ERR_EncodinglessSyntaxTree = 8055,
 
         // Values in the range 10000-14000 are used for "Code Analysis" issues previously reported by FXCop
         WRN_CA2000_DisposeObjectsBeforeLosingScope1 = 10000,

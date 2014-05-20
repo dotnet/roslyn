@@ -684,7 +684,7 @@ Class Test
     End Sub
 End Class
 </literal>.Value
-            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(text), "", VisualBasicParseOptions.Default)
+            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(text), VisualBasicParseOptions.Default, "")
             Dim comp As VisualBasicCompilation = VisualBasicCompilation.Create("Test", {tree}, {mscorlibRef, module1Ref})
 
             Dim globalNS = comp.SourceModule.GlobalNamespace

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Text
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Public Class VBParser : Implements IParser
@@ -10,7 +11,7 @@ Public Class VBParser : Implements IParser
     End Sub
 
     Public Function Parse(code As String) As SyntaxTree Implements IParser.Parse
-        Dim tree = VisualBasicSyntaxTree.ParseText(code, "", m_Options)
+        Dim tree = VisualBasicSyntaxTree.ParseText(code, m_Options, "", Encoding.UTF8)
         Return tree
     End Function
 End Class

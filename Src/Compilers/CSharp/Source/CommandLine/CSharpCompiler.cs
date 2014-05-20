@@ -192,7 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return compilation;
         }
 
-        private SyntaxTree ParseFile(TextWriter consoleOutput,
+        private SyntaxTree ParseFile(
+            TextWriter consoleOutput,
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
             ref bool hadErrors,
@@ -222,9 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommandLineSourceFile file)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
-                                content,
-                                file.Path,
-                                file.IsScript ? scriptParseOptions : parseOptions);
+                content,
+                file.IsScript ? scriptParseOptions : parseOptions,
+                file.Path);
 
             // prepopulate line tables.
             // we will need line tables anyways and it is better to not wait until we are in emit

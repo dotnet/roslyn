@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -74,12 +75,23 @@ namespace Microsoft.CodeAnalysis
         /// Gets the text of the source document.
         /// </summary>
         public abstract SourceText GetText(CancellationToken cancellationToken = default(CancellationToken));
-
+        
         /// <summary>
         /// Gets the text of the source document asynchronously.
         /// </summary>
-        public abstract Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default(CancellationToken));
-
+        public virtual Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            SourceText text;
+            if (this.TryGetText(out text))
+            {
+                return Task.FromResult(text);
+            }
+            else
+            {
+                return Task.Factory.StartNew(() => this.GetText(cancellationToken), cancellationToken);
+            }
+        }
+       
         /// <summary>
         /// Gets the root of the syntax tree if it is available.
         /// </summary>
@@ -307,8 +319,18 @@ namespace Microsoft.CodeAnalysis
                 this.lazySha1Checksum = checksum;
             }
 
-            Debug.Assert(!checksum.IsDefault || this.GetText().Length == 0);
+            Debug.Assert(!checksum.IsDefault);
             return checksum;
         }
+
+        /// <summary>
+        /// Returns a new tree whose root and options are as specified and other properties are copied from the current tree.
+        /// </summary>
+        public abstract SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options);
+
+        /// <summary>
+        /// Returns a new tree whose <see cref="FilePath"/> is the specified node and other properties are copied from the current tree.
+        /// </summary>
+        public abstract SyntaxTree WithFilePath(string path);
     }
 }

@@ -4,28 +4,36 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.Text
 {
     /// <summary>
-    /// An SourceText that is a composite of a sequence of ITexts
+    /// A composite of a sequence of <see cref="SourceText"/>s.
     /// </summary>
-    internal class CompositeText : SourceText
+    internal sealed class CompositeText : SourceText
     {
         private readonly ImmutableArray<SourceText> texts;
         private readonly int length;
 
         public CompositeText(ImmutableArray<SourceText> texts)
         {
-            Debug.Assert(!texts.IsDefault);
-            //Debug.Assert(!texts.OfType<CompositeText>().Any());
+            Debug.Assert(!texts.IsDefaultOrEmpty);
+            Debug.Assert(texts.All(t => texts.First().Encoding == t.Encoding));
+
             this.texts = texts;
             int len = 0;
             foreach (var text in texts)
             {
                 len += text.Length;
             }
+
             this.length = len;
+        }
+
+        public override Encoding Encoding
+        {
+            get { return texts[0].Encoding; }
         }
 
         public override int Length
@@ -71,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Text
             if (newTexts.Count == 0)
             {
                 newTexts.Free();
-                return SourceText.From(string.Empty);
+                return SourceText.From(string.Empty, this.Encoding);
             }
             else if (newTexts.Count == 1)
             {
@@ -115,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <param name="destinationIndex"></param>
         /// <param name="count"></param>
         /// <returns>True if should bother to proceed with copying.</returns>
-        protected bool CheckCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
+        private bool CheckCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             if (destination == null)
                 throw new ArgumentNullException("destination");

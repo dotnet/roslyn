@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 metadataOnly: metadataOnly,
                 testData: testData);
 
-            Assert.True(emitResult.Success, "Diagnostics: " + string.Join(", ", emitResult.Diagnostics.Select(d => d.ToString())));
+            Assert.True(emitResult.Success, "Diagnostics:\r\n" + string.Join("\r\n, ", emitResult.Diagnostics.Select(d => d.ToString())));
 
             if (expectedWarnings != null)
             {

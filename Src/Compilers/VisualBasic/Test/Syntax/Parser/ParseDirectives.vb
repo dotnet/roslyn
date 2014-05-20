@@ -1228,7 +1228,7 @@ End Module]]>,
                           New KeyValuePair(Of String, Object)("Ide", True),
                           New KeyValuePair(Of String, Object)("DeBuG", Nothing)})
 
-        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(text), "", options)
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(text), options, "")
 
         Dim tk = tree.GetRoot().FindToken(text.IndexOf("class c2"))
         Assert.Equal(SyntaxKind.ClassKeyword, tk.VisualBasicKind)

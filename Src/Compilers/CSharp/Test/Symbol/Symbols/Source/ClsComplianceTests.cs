@@ -3164,8 +3164,8 @@ namespace N{0}
 }}
 ";
 
-            var tree1 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 1), "a.cs");
-            var tree2 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 2), "b.cs");
+            var tree1 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 1), path: "a.cs");
+            var tree2 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 2), path: "b.cs");
             var comp = CreateCompilationWithMscorlib(new[] { tree1, tree2 });
 
             comp.VerifyDiagnostics(

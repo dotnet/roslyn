@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
                     writer.Write(source.Value)
                     writer.Flush()
                     stream.Position = 0
-                    Dim text = New EncodedStringText(stream, encodingOpt:=Nothing)
-                    tree = VisualBasicSyntaxTree.ParseText(text, filePath)
+                    Dim text = EncodedStringText.Create(stream, defaultEncoding:=Nothing)
+                    tree = VisualBasicSyntaxTree.ParseText(text, path:=filePath)
                 End Using
             End Using
 

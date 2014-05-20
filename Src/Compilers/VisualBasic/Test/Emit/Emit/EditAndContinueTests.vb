@@ -1083,7 +1083,7 @@ End Class
         <Fact>
         Public Sub PreserveLocalSlots()
             Dim sources0 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 Class A(Of T)
 End Class
 Class B
@@ -1109,7 +1109,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim sources1 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 Class A(Of T)
 End Class
 Class B
@@ -1135,7 +1135,7 @@ End Class
                            </compilation>
 
             Dim sources2 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 Class A(Of T)
 End Class
 Class B
@@ -1160,7 +1160,7 @@ End Class
                            </compilation>
 
             Dim sources3 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 Class A(Of T)
 End Class
 Class B
@@ -1236,19 +1236,16 @@ End Class
             diff1.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <?xml version="1.0" encoding="utf-16"?>
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method token="0x6000004">
             <sequencepoints total="7">
-                <entry il_offset="0x0" start_row="8" start_column="5" end_row="8" end_column="30" file_ref="1"/>
-                <entry il_offset="0x1" start_row="9" start_column="13" end_row="9" end_column="25" file_ref="1"/>
-                <entry il_offset="0x7" start_row="10" start_column="13" end_row="10" end_column="31" file_ref="1"/>
-                <entry il_offset="0xd" start_row="11" start_column="13" end_row="11" end_column="30" file_ref="1"/>
-                <entry il_offset="0x14" start_row="12" start_column="9" end_row="12" end_column="13" file_ref="1"/>
-                <entry il_offset="0x21" start_row="13" start_column="9" end_row="13" end_column="13" file_ref="1"/>
-                <entry il_offset="0x28" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="8" start_column="5" end_row="8" end_column="30" file_ref="0"/>
+                <entry il_offset="0x1" start_row="9" start_column="13" end_row="9" end_column="25" file_ref="0"/>
+                <entry il_offset="0x7" start_row="10" start_column="13" end_row="10" end_column="31" file_ref="0"/>
+                <entry il_offset="0xd" start_row="11" start_column="13" end_row="11" end_column="30" file_ref="0"/>
+                <entry il_offset="0x14" start_row="12" start_column="9" end_row="12" end_column="13" file_ref="0"/>
+                <entry il_offset="0x21" start_row="13" start_column="9" end_row="13" end_column="13" file_ref="0"/>
+                <entry il_offset="0x28" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="z" il_index="3" il_start="0x0" il_end="0x29" attributes="0"/>
@@ -1294,18 +1291,15 @@ End Class
             diff2.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <?xml version="1.0" encoding="utf-16"?>
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method token="0x6000004">
             <sequencepoints total="6">
-                <entry il_offset="0x0" start_row="8" start_column="5" end_row="8" end_column="30" file_ref="1"/>
-                <entry il_offset="0x1" start_row="9" start_column="13" end_row="9" end_column="30" file_ref="1"/>
-                <entry il_offset="0x8" start_row="10" start_column="13" end_row="10" end_column="25" file_ref="1"/>
-                <entry il_offset="0xe" start_row="11" start_column="9" end_row="11" end_column="13" file_ref="1"/>
-                <entry il_offset="0x1b" start_row="12" start_column="9" end_row="12" end_column="13" file_ref="1"/>
-                <entry il_offset="0x22" start_row="13" start_column="5" end_row="13" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="8" start_column="5" end_row="8" end_column="30" file_ref="0"/>
+                <entry il_offset="0x1" start_row="9" start_column="13" end_row="9" end_column="30" file_ref="0"/>
+                <entry il_offset="0x8" start_row="10" start_column="13" end_row="10" end_column="25" file_ref="0"/>
+                <entry il_offset="0xe" start_row="11" start_column="9" end_row="11" end_column="13" file_ref="0"/>
+                <entry il_offset="0x1b" start_row="12" start_column="9" end_row="12" end_column="13" file_ref="0"/>
+                <entry il_offset="0x22" start_row="13" start_column="5" end_row="13" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="5" il_start="0x0" il_end="0x23" attributes="0"/>
@@ -1357,18 +1351,15 @@ End Class
             diff3.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <?xml version="1.0" encoding="utf-16"?>
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method token="0x6000005">
             <sequencepoints total="6">
-                <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="19" file_ref="1"/>
-                <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="30" file_ref="1"/>
-                <entry il_offset="0x7" start_row="16" start_column="13" end_row="16" end_column="30" file_ref="1"/>
-                <entry il_offset="0xd" start_row="17" start_column="9" end_row="17" end_column="13" file_ref="1"/>
-                <entry il_offset="0x19" start_row="18" start_column="9" end_row="18" end_column="13" file_ref="1"/>
-                <entry il_offset="0x25" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="19" file_ref="0"/>
+                <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="30" file_ref="0"/>
+                <entry il_offset="0x7" start_row="16" start_column="13" end_row="16" end_column="30" file_ref="0"/>
+                <entry il_offset="0xd" start_row="17" start_column="9" end_row="17" end_column="13" file_ref="0"/>
+                <entry il_offset="0x19" start_row="18" start_column="9" end_row="18" end_column="13" file_ref="0"/>
+                <entry il_offset="0x25" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="c" il_index="2" il_start="0x0" il_end="0x26" attributes="0"/>
@@ -1390,13 +1381,13 @@ End Class
         <Fact()>
         Public Sub PreserveLocalSlots_NewMethod()
             Dim sources0 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 Class C
 End Class
 ]]></file>
                            </compilation>
             Dim sources1 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 Class C
     Shared Sub M()
         Dim a = New Object()
@@ -1407,7 +1398,7 @@ End Class
                            </compilation>
 
             Dim sources2 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 Class C
     Shared Sub M()
         Dim a = 1
@@ -1451,16 +1442,13 @@ End Class
             diff2.VerifyPdb({&H06000002UI},
 <?xml version="1.0" encoding="utf-16"?>
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method token="0x6000002">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="19" file_ref="1"/>
-                <entry il_offset="0x1" start_row="3" start_column="13" end_row="3" end_column="18" file_ref="1"/>
-                <entry il_offset="0x3" start_row="4" start_column="13" end_row="4" end_column="29" file_ref="1"/>
-                <entry il_offset="0x9" start_row="5" start_column="5" end_row="5" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="19" file_ref="0"/>
+                <entry il_offset="0x1" start_row="3" start_column="13" end_row="3" end_column="18" file_ref="0"/>
+                <entry il_offset="0x3" start_row="4" start_column="13" end_row="4" end_column="29" file_ref="0"/>
+                <entry il_offset="0x9" start_row="5" start_column="5" end_row="5" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="a" il_index="2" il_start="0x0" il_end="0xa" attributes="0"/>
@@ -1485,7 +1473,7 @@ End Class
         <Fact>
         Public Sub PreserveLocalTypes()
             Dim sources0 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 Class C
     Shared Sub Main()
         Dim x = True
@@ -1496,7 +1484,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim sources1 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 Class C
     Shared Sub Main()
         Dim x = "A"
@@ -1543,7 +1531,7 @@ End Class
         <Fact>
         Public Sub PreserveLocalSlotsReferences()
             Dim sources0 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 
 Class A(Of T)
 End Class
@@ -1620,7 +1608,7 @@ End Class
         <Fact>
         Public Sub PreserveLocalSlotsUsing()
             Dim sources0 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 
 Class A(Of T)
 End Class
@@ -1736,7 +1724,7 @@ End Class
         <Fact>
         Public Sub PreserveLocalSlotsWithByRef()
             Dim sources0 = <compilation>
-                               <file name="a.vb"><![CDATA[
+                               <file><![CDATA[
 
 Class A(Of T)
 End Class

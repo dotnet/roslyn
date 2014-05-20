@@ -2,7 +2,6 @@
 
 using System.IO;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -51,6 +50,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             cancellationToken.ThrowIfCancellationRequested();
             return textReader.ReadToEnd();
+        }
+
+        public override void Close()
+        {
+            textReader.Close();
         }
     }
 }

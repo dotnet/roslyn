@@ -176,7 +176,7 @@
     <Compile Include="PDB\PDBExternalSourceDirectiveTests.vb" />
     <Compile Include="PDB\PDBVariableInitializerTests.vb" />
     <Compile Include="PDB\PDBIteratorTests.vb" />
-    <Compile Include="PDB\PDBLoopStatementTests.vb" />
+    <Compile Include="PDB\PDBForEachTests.vb" />
     <Compile Include="PDB\PDBNamespaceScopes.vb" />
     <Compile Include="PDB\PDBObjectInitializerTests.vb" />
     <Compile Include="PDB\PDBSyncLockTests.vb" />

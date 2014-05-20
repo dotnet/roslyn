@@ -98,7 +98,7 @@ Module ParserTestUtilities
     End Function
 
     Public Function Parse(source As String, fileName As String, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
-        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source), fileName, options:=If(options, VisualBasicParseOptions.Default))
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
         Dim root = tree.GetRoot()
         ' Verify FullText
         Assert.Equal(source, root.ToFullString)
@@ -520,6 +520,14 @@ Public Module VerificationHelpers
         End Property
 
         Public Overrides Function WithChangedText(newText As SourceText) As SyntaxTree
+            Throw New NotImplementedException()
+        End Function
+
+        Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
+            Throw New NotImplementedException()
+        End Function
+
+        Public Overrides Function WithFilePath(path As String) As SyntaxTree
             Throw New NotImplementedException()
         End Function
     End Class

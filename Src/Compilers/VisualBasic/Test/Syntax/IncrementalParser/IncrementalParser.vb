@@ -1687,7 +1687,7 @@ End Class
         Assert.True(oldRoot2.ContainsAnnotations, "Should contain annotations.")
         Assert.Equal(text, oldRoot2.ToFullString())
 
-        Dim oldTree2 = VisualBasicSyntaxTree.Create(oldRoot2, tempTree2.FilePath, tempTree2.Options)
+        Dim oldTree2 = VisualBasicSyntaxTree.Create(DirectCast(oldRoot2, VisualBasicSyntaxNode), DirectCast(tempTree2.Options, VisualBasicParseOptions), tempTree2.FilePath, Encoding.UTF8)
         Dim newTree2 = oldTree2.WithInsertAt(text.Length, " ")
 
         Dim oldClassC2 = extractGreenClassC(oldTree2)

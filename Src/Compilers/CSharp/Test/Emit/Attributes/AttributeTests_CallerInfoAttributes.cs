@@ -1426,10 +1426,10 @@ partial class A
             var compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, @"C:\filename"),
-                    SyntaxFactory.ParseSyntaxTree(source2, @"a\b\..\c\d"),
-                    SyntaxFactory.ParseSyntaxTree(source3, @"*"),
-                    SyntaxFactory.ParseSyntaxTree(source4, @"       "),
+                    SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename"),
+                    SyntaxFactory.ParseSyntaxTree(source2, path: @"a\b\..\c\d"),
+                    SyntaxFactory.ParseSyntaxTree(source3, path: @"*"),
+                    SyntaxFactory.ParseSyntaxTree(source4, path: @"       "),
                 },
                 new[] { SystemRef },
                 TestOptions.Exe.WithSourceReferenceResolver(SourceFileResolver.Default));
@@ -1485,11 +1485,11 @@ partial class A { static void Main5() { Log(); } }
             var compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, @"C:\filename"),
-                    SyntaxFactory.ParseSyntaxTree(source2, @"a\b\..\c\d.cs"),
-                    SyntaxFactory.ParseSyntaxTree(source3, @"*"),
-                    SyntaxFactory.ParseSyntaxTree(source4, @"C:\x.cs"),
-                    SyntaxFactory.ParseSyntaxTree(source5, @"C:\x.cs"),
+                    SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename"),
+                    SyntaxFactory.ParseSyntaxTree(source2, path: @"a\b\..\c\d.cs"),
+                    SyntaxFactory.ParseSyntaxTree(source3, path: @"*"),
+                    SyntaxFactory.ParseSyntaxTree(source4, path: @"C:\x.cs"),
+                    SyntaxFactory.ParseSyntaxTree(source5, path: @"C:\x.cs"),
                 },
                 new[] { SystemRef },
                 TestOptions.Exe.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\A\B")));
@@ -2359,7 +2359,7 @@ query path : C:\filename
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, @"C:\filename") }, 
+                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename") }, 
                 new[] { SystemCoreRef }, 
                 TestOptions.Exe);
 
@@ -2410,7 +2410,7 @@ C:\filename
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, @"C:\filename") }, 
+                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename") }, 
                 compOptions: TestOptions.Exe);
             
             compilation.VerifyDiagnostics(
@@ -2480,7 +2480,7 @@ class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(source, @"C:\filename") }).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename") }).VerifyDiagnostics(
                 // C:\filename(7,38): error CS4018: CallerFilePathAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //     static void M1([CallerLineNumber,CallerFilePath,CallerMemberName] int i = 0) { Console.WriteLine(); }
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithArguments("string", "int"),

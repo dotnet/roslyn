@@ -1000,7 +1000,7 @@ class C1
             Assert.Equal(true, options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
 
             var compilation = project.GetCompilationAsync().Result;
-            var metadataBytes = EmitToArray(compilation);
+            var metadataBytes = compilation.EmitToArray();
             var mtref = new MetadataImageReference(metadataBytes);
             var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
@@ -1021,7 +1021,7 @@ class C1
             Assert.Equal(false, options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
 
             var compilation = project.GetCompilationAsync().Result;
-            var metadataBytes = EmitToArray(compilation);
+            var metadataBytes = compilation.EmitToArray();
             var mtref = new MetadataImageReference(metadataBytes);
             var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
@@ -1043,7 +1043,7 @@ class C1
             Assert.Equal(true, options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
 
             var compilation = project.GetCompilationAsync().Result;
-            var metadataBytes = EmitToArray(compilation);
+            var metadataBytes = compilation.EmitToArray();
             var mtref = new MetadataImageReference(metadataBytes);
             var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
@@ -1064,7 +1064,7 @@ class C1
             Assert.Equal(false, options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
 
             var compilation = project.GetCompilationAsync().Result;
-            var metadataBytes = EmitToArray(compilation);
+            var metadataBytes = compilation.EmitToArray();
             var mtref = new MetadataImageReference(metadataBytes);
             var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);

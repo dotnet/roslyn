@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
                 using (var data = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     normalizedFilePath = data.Name;
-                    return new EncodedStringText(data, encoding);
+                    return EncodedStringText.Create(data, encoding);
                 }
             }
             catch (Exception e)

@@ -303,14 +303,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static ImmutableArray<byte> EmitToArray(Compilation compilation)
-        {
-            var stream = new MemoryStream();
-            var result = compilation.Emit(stream);
-            stream.Position = 0;
-            return stream.ToImmutable();
-        }
-
         private int GetMethodInsertionPoint(VB.Syntax.ClassBlockSyntax cb)
         {
             if (cb.Implements.Count > 0)

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -401,6 +402,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var docFileInfos = projectFileInfo.Documents.ToImmutableArrayOrEmpty();
                 CheckDocuments(docFileInfos, projectFilePath, projectId);
 
+                // TODO: is htere a way how to specify encoding to msbuild? csc.exe has /codepage command line option.
+                // For now use auto-detection. (bug 941489).
+                Encoding defaultEncoding = null;
+
                 var docs = new List<DocumentInfo>();
                 foreach (var docFileInfo in docFileInfos)
                 {
@@ -409,8 +414,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         Path.GetFileName(docFileInfo.LogicalPath),
                         GetDocumentFolders(docFileInfo.LogicalPath),
                         projectFile.GetSourceCodeKind(docFileInfo.FilePath),
-                        new FileTextLoader(docFileInfo.FilePath),
+                        new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
                         docFileInfo.FilePath,
+                        defaultEncoding,
                         docFileInfo.IsGenerated));
                 }
 
@@ -697,8 +703,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var relativePath = folders != null ? Path.Combine(Path.Combine(folders.ToArray()), fileName) : fileName;
             var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(project.FilePath));
+            var encoding = (text != null) ? text.Encoding : Encoding.UTF8;
 
-            var documentInfo = DocumentInfo.Create(documentId, fileName, folders, sourceCodeKind, new FileTextLoader(fullPath), fullPath, isGenerated: false);
+            var documentInfo = DocumentInfo.Create(documentId, fileName, folders, sourceCodeKind, new FileTextLoader(fullPath, encoding), fullPath, encoding, isGenerated: false);
 
             // add document to project file
             this.applyChangesProjectFile.AddDocument(relativePath);
@@ -707,7 +714,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.OnDocumentAdded(documentInfo);
 
             // save text to disk
-            this.SaveDocumentText(documentId, fullPath, text);
+            if (text != null)
+            {
+                this.SaveDocumentText(documentId, fullPath, text);
+            }
         }
 
         private void SaveDocumentText(DocumentId id, string fullPath, SourceText newText)
@@ -720,12 +730,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     Directory.CreateDirectory(dir);
                 }
 
-                using (var writer = new StreamWriter(fullPath))
+                using (var writer = new StreamWriter(fullPath, append: false, encoding: newText.Encoding ?? Encoding.UTF8))
                 {
                     newText.Write(writer);
                 }
             }
-            catch (System.IO.IOException exception)
+            catch (IOException exception)
             {
                 this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.FileAccessFailure, exception.Message, id));
             }

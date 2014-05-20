@@ -1,16 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.IO;
-using System.Runtime.CompilerServices;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -18,7 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class CSharpSyntaxTreeFactoryServiceFactory
     {
-        private partial class CSharpSyntaxTreeFactoryService
+        // internal for testing
+        internal partial class CSharpSyntaxTreeFactoryService
         {
             /// <summary>
             /// Represents a syntax tree that only has a weak reference to its 
@@ -26,14 +22,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// the underlying full tree to stay alive.  Think of it more as a 
             /// key that can be used to identify a tree rather than the tree itself.
             /// </summary>
-            internal abstract class RecoverableSyntaxTree : CSharpSyntaxTree, IRecoverableSyntaxTree<CompilationUnitSyntax>
+            internal sealed class RecoverableSyntaxTree : CSharpSyntaxTree, IRecoverableSyntaxTree<CompilationUnitSyntax>
             {
-                private readonly AbstractRecoverableSyntaxRoot<CompilationUnitSyntax> recoverableRoot;
+                private readonly RecoverableSyntaxRoot<CompilationUnitSyntax> recoverableRoot;
 
-                public RecoverableSyntaxTree(AbstractRecoverableSyntaxRoot<CompilationUnitSyntax> recoverableRoot)
+                private RecoverableSyntaxTree(RecoverableSyntaxRoot<CompilationUnitSyntax> recoverableRoot)
                 {
+                    Debug.Assert(recoverableRoot != null);
                     this.recoverableRoot = recoverableRoot;
-                    this.recoverableRoot.SetContainingTree(this);
+                }
+
+                internal static SyntaxTree CreateRecoverableTree(AbstractSyntaxTreeFactoryService service, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, CompilationUnitSyntax root, bool reparse)
+                {
+                    var recoverableRoot = CachedRecoverableSyntaxRoot<CompilationUnitSyntax>.Create(service, filePath, options, text, root, reparse);
+                    var recoverableTree = new RecoverableSyntaxTree(recoverableRoot);
+                    recoverableRoot.SetContainingTree(recoverableTree);
+                    return recoverableTree;
                 }
 
                 public override string FilePath
@@ -125,29 +129,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return CloneNodeAsRoot(root);
                 }
-            }
 
-            internal class SerializedSyntaxTree : RecoverableSyntaxTree
-            {
-                public SerializedSyntaxTree(
-                    CSharpSyntaxTreeFactoryService service,
-                    string fileName,
-                    CSharpParseOptions options,
-                    ValueSource<TextAndVersion> text,
-                    CompilationUnitSyntax root) : base(new SerializedSyntaxRoot<CompilationUnitSyntax>(service, fileName, options, text, root))
+                public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
                 {
+                    CompilationUnitSyntax oldRoot;
+                    if (ReferenceEquals(recoverableRoot.Options, options) && this.TryGetRoot(out oldRoot) && ReferenceEquals(root, oldRoot))
+                    {
+                        return this;
+                    }
+
+                    return new RecoverableSyntaxTree(recoverableRoot.WithRootAndOptions((CompilationUnitSyntax)root, options));
                 }
-            }
 
-            internal class ReparsedSyntaxTree : RecoverableSyntaxTree
-            {
-                public ReparsedSyntaxTree(
-                    CSharpSyntaxTreeFactoryService service,
-                    string fileName,
-                    CSharpParseOptions options,
-                    ValueSource<TextAndVersion> text,
-                    CompilationUnitSyntax root) : base(new ReparsedSyntaxRoot<CompilationUnitSyntax>(service, fileName, options, text, root))
+                public override SyntaxTree WithFilePath(string path)
                 {
+                    if (path == recoverableRoot.FilePath)
+                    {
+                        return this;
+                    }
+
+                    return new RecoverableSyntaxTree(recoverableRoot.WithFilePath(path));
+                }
+
+                internal bool IsReparsed
+                {
+                    get { return this.recoverableRoot.IsReparsed; }
                 }
             }
         }

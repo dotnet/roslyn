@@ -3,66 +3,31 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.Text
 {
-    internal class ChangedText : SourceText
+    internal sealed class ChangedText : SourceText
     {
         private readonly SourceText oldText;
         private readonly SourceText newText;
         private readonly ImmutableArray<TextChangeRange> changes;
 
-        public ChangedText(SourceText oldText, IEnumerable<TextChange> changes)
+        public ChangedText(SourceText oldText, ImmutableArray<TextChangeRange> changeRanges, ImmutableArray<SourceText> segments)
         {
-            if (oldText == null)
-            {
-                throw new ArgumentNullException("text");
-            }
-
-            if (changes == null)
-            {
-                throw new ArgumentNullException("changes");
-            }
-
-            var segments = ArrayBuilder<SourceText>.GetInstance();
-            var changeRanges = ArrayBuilder<TextChangeRange>.GetInstance();
-            int position = 0;
-
-            foreach (var change in changes)
-            {
-                // there can be no overlapping changes
-                if (change.Span.Start < position)
-                {
-                    throw new InvalidOperationException("The changes must be ordered and not overlapping.");
-                }
-
-                // if we've skipped a range, add
-                if (change.Span.Start > position)
-                {
-                    var subText = oldText.GetSubText(new TextSpan(position, change.Span.Start - position));
-                    CompositeText.AddSegments(segments, subText);
-                }
-
-                if (!string.IsNullOrEmpty(change.NewText))
-                {
-                    var segment = SourceText.From(change.NewText);
-                    CompositeText.AddSegments(segments, segment);
-                }
-
-                position = change.Span.End;
-
-                changeRanges.Add(new TextChangeRange(change.Span, change.NewText != null ? change.NewText.Length : 0));
-            }
-
-            if (position < oldText.Length)
-            {
-                var subText = oldText.GetSubText(new TextSpan(position, oldText.Length - position));
-                CompositeText.AddSegments(segments, subText);
-            }
+            Debug.Assert(oldText != null);
+            Debug.Assert(!changeRanges.IsDefault);
+            Debug.Assert(!segments.IsDefault);
 
             this.oldText = oldText;
-            this.newText = new CompositeText(segments.ToImmutableAndFree());
-            this.changes = changeRanges.ToImmutableAndFree();
+            this.newText = segments.IsEmpty ? new StringText("", oldText.Encoding) : (SourceText)new CompositeText(segments);
+            this.changes = changeRanges;
+        }
+
+        public override Encoding Encoding
+        {
+            get { return oldText.Encoding; }
         }
 
         public SourceText OldText
@@ -112,24 +77,24 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentNullException("oldText");
             }
 
-            if (this.oldText == oldText)
+            if (ReferenceEquals(this.oldText, oldText))
             {
                 // check whether the bases are same one
                 return this.changes;
             }
-            else if (this.oldText.GetChangeRanges(oldText).Count == 0)
+
+            if (this.oldText.GetChangeRanges(oldText).Count == 0)
             {
                 // okay, the bases are different, but the contents might be same.
                 return this.changes;
             }
-            else if (this == oldText)
+
+            if (this == oldText)
             {
                 return TextChangeRange.NoChanges;
             }
-            else
-            {
-                return ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), newText.Length));
-            }
+
+            return ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), newText.Length));
         }
     }
 }

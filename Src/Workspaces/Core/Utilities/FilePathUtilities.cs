@@ -34,6 +34,19 @@ namespace Roslyn.Utilities
             return path;
         }
 
+        internal static void RequireAbsolutePath(string path, string argumentName)
+        {
+            if (path == null)
+            {
+                throw new ArgumentNullException(argumentName);
+            }
+
+            if (!PathUtilities.IsAbsolute(path))
+            {
+                throw new ArgumentException(WorkspacesResources.AbsolutePathExpected, argumentName);
+            }
+        }
+
         public static bool TryGetReferenceFilePath(string filePath, out string referenceFilePath)
         {
             // TODO(DustinCa): This is a workaround and we'll need to update this to handle getting the

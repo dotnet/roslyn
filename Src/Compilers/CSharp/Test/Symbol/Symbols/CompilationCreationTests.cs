@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = string.Format("public partial class {0} {{ }}", className);
             var path = string.Format("{0}.cs", className);
-            return SyntaxFactory.ParseSyntaxTree(text, path);
+            return SyntaxFactory.ParseSyntaxTree(text, path: path);
         }
 
         private static void CheckCompilationSyntaxTrees(CSharpCompilation compilation, params SyntaxTree[] expectedSyntaxTrees)
@@ -2799,7 +2800,7 @@ class C : Metadata.ICSPropImpl { }";
                 {
                     SyntaxFactory.ParseSyntaxTree(@"
 #r "".\" + fileName + @"""
-", Path.Combine(dir, "a.csx"), options: TestOptions.Script),
+", path: Path.Combine(dir, "a.csx"), options: TestOptions.Script),
                 };
 
                 var compilation = CSharpCompilation.Create(
@@ -2818,7 +2819,7 @@ class C : Metadata.ICSPropImpl { }";
         public void CompilationWithReferenceDirective_NoResolver()
         {
             var compilation = CSharpCompilation.Create("foo",
-                new[] { SyntaxFactory.ParseSyntaxTree(@"#r ""bar""", "a.csx", TestOptions.Script) },
+                new[] { SyntaxFactory.ParseSyntaxTree(@"#r ""bar""", TestOptions.Script, "a.csx", Encoding.UTF8) },
                 new[] { MscorlibRef },
                 TestOptions.Dll.WithMetadataReferenceResolver(null));
 
@@ -2841,7 +2842,7 @@ class C : Metadata.ICSPropImpl { }";
                 {
                     SyntaxFactory.ParseSyntaxTree(@"
 #r ""..\" + fileName + @"""
-", Path.Combine(dir, "a.csx"), options: TestOptions.Script),
+", path: Path.Combine(dir, "a.csx"), options: TestOptions.Script),
                 };
 
                 var compilation = CSharpCompilation.Create("foo",
@@ -2870,7 +2871,7 @@ class C : Metadata.ICSPropImpl { }";
                 {
                     SyntaxFactory.ParseSyntaxTree(@"
 #r ""\" + unrooted + @"""
-", Path.Combine(dir, "a.csx"), options: TestOptions.Script),
+", path: Path.Combine(dir, "a.csx"), options: TestOptions.Script),
                 };
 
                 var compilation = CSharpCompilation.Create(

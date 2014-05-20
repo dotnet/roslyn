@@ -430,7 +430,7 @@ End Sub
 Async Function F()
     Return Await(T)             ' Yes
 End Function]]>.Value,
-    options:=VisualBasicParseOptions.Default.WithKind(mode))
+                options:=VisualBasicParseOptions.Default.WithKind(mode))
 
             Dim awaitExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax).ToArray()
 

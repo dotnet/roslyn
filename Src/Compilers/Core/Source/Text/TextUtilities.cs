@@ -11,21 +11,6 @@ namespace Microsoft.CodeAnalysis.Text
     /// </summary>
     internal static class TextUtilities
     {
-        /// <summary>
-        /// Create a new SourceText instance from a function that writes to a TextWriter
-        /// </summary>
-        internal static SourceText Create(Action<TextWriter> writer)
-        {
-            if (writer == null)
-            {
-                throw new ArgumentNullException("writer");
-            }
-
-            var builder = new StringBuilder();
-            writer(new StringWriter(builder));
-            return new StringBuilderText(builder);
-        }
-
         // Note: a small amount of this below logic is also inlined into SourceText.ParseLineBreaks
         // for performance reasons.
         internal static int GetLengthOfLineBreak(SourceText text, int index)

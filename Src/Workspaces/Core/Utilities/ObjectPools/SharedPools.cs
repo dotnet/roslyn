@@ -53,21 +53,11 @@ namespace Roslyn.Utilities
             new ObjectPool<HashSet<string>>(() => new HashSet<string>(StringComparer.Ordinal), 20);
 
         /// <summary>
-        /// Used to reduce the # of temporary char[]s created to satisfy serialization and
-        /// other I/O requests
-        /// </summary>
-        public static readonly ObjectPool<char[]> CharArray = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
-
-        /// <summary>
         /// Used to reduce the # of temporary byte[]s created to satisfy serialization and
         /// other I/O requests
         /// </summary>
         public static readonly ObjectPool<byte[]> ByteArray = new ObjectPool<byte[]>(() => new byte[ByteBufferSize], ByteBufferCount);
-
-        // pooled memory : 32KB* 5 = 160KB
-        private const int CharBufferSize = 32 * 1024;
-        private const int CharBufferCount = 5;
-
+        
         /// pooled memory : 4K * 512 = 4MB
         public const int ByteBufferSize = 4 * 1024;
         private const int ByteBufferCount = 512;

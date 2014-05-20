@@ -1858,10 +1858,10 @@ End Module
 "
             Dim compilation = CreateCompilationWithReferences(
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, "C:\filename"),
-                    SyntaxFactory.ParseSyntaxTree(source2, "a\b\..\c\d"),
-                    SyntaxFactory.ParseSyntaxTree(source3, "*"),
-                    SyntaxFactory.ParseSyntaxTree(source4, "       ")
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename"),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d"),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*"),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="       ")
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
                 Options.OptionsExe.WithSourceReferenceResolver(SourceFileResolver.Default))
@@ -1938,11 +1938,11 @@ End Module
 
             Dim compilation = CreateCompilationWithReferences(
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, "C:\filename"),
-                    SyntaxFactory.ParseSyntaxTree(source2, "a\b\..\c\d.vb"),
-                    SyntaxFactory.ParseSyntaxTree(source3, "*"),
-                    SyntaxFactory.ParseSyntaxTree(source4, "C:\x.vb"),
-                    SyntaxFactory.ParseSyntaxTree(source5, "C:\x.vb")
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename"),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb"),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*"),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb"),
+                    SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb")
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
                 Options.OptionsExe.WithSourceReferenceResolver(New SourceFileResolver({}, baseDirectory:="C:\A\B")))

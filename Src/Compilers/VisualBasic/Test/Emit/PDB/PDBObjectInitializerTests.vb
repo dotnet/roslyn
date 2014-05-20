@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
         Public Sub ObjectInitializerAsRefTypeEquals()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -36,16 +36,13 @@ End Class
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
                                <methods>
                                    <method containingType="C1" name="Main" parameterNames="">
                                        <sequencepoints total="3">
-                                           <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="29" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="78" file_ref="1"/>
-                                           <entry il_offset="0x19" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="29" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="78" file_ref="0"/>
+                                           <entry il_offset="0x19" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <local name="inst" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
@@ -67,7 +64,7 @@ End Class
         Public Sub ObjectInitializerAsNewRefType()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -95,16 +92,13 @@ End Class
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
                                <methods>
                                    <method containingType="C1" name="Main" parameterNames="">
                                        <sequencepoints total="3">
-                                           <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="29" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="68" file_ref="1"/>
-                                           <entry il_offset="0x19" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="29" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="68" file_ref="0"/>
+                                           <entry il_offset="0x19" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <local name="inst" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
@@ -126,7 +120,7 @@ End Class
         Public Sub ObjectInitializerNested()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -153,16 +147,13 @@ End Class
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
                                <methods>
                                    <method containingType="C1" name="Main" parameterNames="">
                                        <sequencepoints total="3">
-                                           <entry il_offset="0x0" start_row="13" start_column="5" end_row="13" end_column="29" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="14" start_column="13" end_row="14" end_column="90" file_ref="1"/>
-                                           <entry il_offset="0x1d" start_row="15" start_column="5" end_row="15" end_column="12" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="13" start_column="5" end_row="13" end_column="29" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="14" start_column="13" end_row="14" end_column="90" file_ref="0"/>
+                                           <entry il_offset="0x1d" start_row="15" start_column="5" end_row="15" end_column="12" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <local name="inst" il_index="0" il_start="0x0" il_end="0x1e" attributes="0"/>
@@ -184,7 +175,7 @@ End Class
         Public Sub ObjectInitializerAsNewRefTypeMultipleVariables()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -212,17 +203,14 @@ End Class
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
                                <methods>
                                    <method containingType="C1" name="Main" parameterNames="">
                                        <sequencepoints total="4">
-                                           <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="29" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="18" file_ref="1"/>
-                                           <entry il_offset="0x19" start_row="15" start_column="20" end_row="15" end_column="25" file_ref="1"/>
-                                           <entry il_offset="0x31" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="29" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="18" file_ref="0"/>
+                                           <entry il_offset="0x19" start_row="15" start_column="20" end_row="15" end_column="25" file_ref="0"/>
+                                           <entry il_offset="0x31" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <local name="inst1" il_index="0" il_start="0x0" il_end="0x32" attributes="0"/>

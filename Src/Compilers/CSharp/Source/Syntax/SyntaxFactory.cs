@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -1031,9 +1032,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Create a new syntax tree from a syntax node.
         /// </summary>
-        public static SyntaxTree SyntaxTree(SyntaxNode root, string path = "", ParseOptions options = null)
+        public static SyntaxTree SyntaxTree(SyntaxNode root, ParseOptions options = null, string path = "", Encoding encoding = null)
         {
-            return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, path, (CSharpParseOptions)options);
+            return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, path, encoding);
         }
 
         /// <summary>
@@ -1041,11 +1042,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SyntaxTree ParseSyntaxTree(
             string text,
-            string path = "",
             ParseOptions options = null,
+            string path = "",
+            Encoding encoding = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ParseSyntaxTree(SourceText.From(text), path, (CSharpParseOptions)options, cancellationToken);
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, cancellationToken);
         }
 
         /// <summary>
@@ -1053,11 +1055,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
-            string path = "",
             ParseOptions options = null,
+            string path = "",
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return CSharpSyntaxTree.ParseText(text, path, (CSharpParseOptions)options, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, cancellationToken);
         }
 
         /// <summary>
@@ -1073,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static SyntaxTriviaList ParseLeadingTrivia(string text, CSharpParseOptions options, int offset = 0)
         {
-            using (var lexer = new InternalSyntax.Lexer(MakeIText(text, offset), options))
+            using (var lexer = new InternalSyntax.Lexer(MakeSourceText(text, offset), options))
             {
                 return lexer.LexSyntaxLeadingTrivia();
             }
@@ -1084,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SyntaxTriviaList ParseTrailingTrivia(string text, int offset = 0)
         {
-            using (var lexer = new InternalSyntax.Lexer(MakeIText(text, offset), CSharpParseOptions.Default))
+            using (var lexer = new InternalSyntax.Lexer(MakeSourceText(text, offset), CSharpParseOptions.Default))
             {
                 return lexer.LexSyntaxTrailingTrivia();
             }
@@ -1121,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="offset">Optional offset into text.</param>
         public static SyntaxToken ParseToken(string text, int offset = 0)
         {
-            using (var lexer = new InternalSyntax.Lexer(MakeIText(text, offset), CSharpParseOptions.Default))
+            using (var lexer = new InternalSyntax.Lexer(MakeSourceText(text, offset), CSharpParseOptions.Default))
             {
                 return new SyntaxToken(lexer.Lex(InternalSyntax.LexerMode.Syntax));
             }
@@ -1136,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="options">Parse options.</param>
         public static IEnumerable<SyntaxToken> ParseTokens(string text, int offset = 0, int initialTokenPosition = 0, CSharpParseOptions options = null)
         {
-            using (var lexer = new InternalSyntax.Lexer(MakeIText(text, offset), options ?? CSharpParseOptions.Default))
+            using (var lexer = new InternalSyntax.Lexer(MakeSourceText(text, offset), options ?? CSharpParseOptions.Default))
             {
                 var position = initialTokenPosition;
                 while (true)
@@ -1350,16 +1352,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Helper method for wrapping a string in an SourceText.
         /// </summary>
-        private static SourceText MakeIText(string text, int offset)
+        private static SourceText MakeSourceText(string text, int offset)
         {
-            return SourceText.From(text).GetSubText(offset);
+            return SourceText.From(text, Encoding.UTF8).GetSubText(offset);
         }
 
         private static InternalSyntax.Lexer MakeLexer(string text, int offset, CSharpParseOptions options = null)
         {
-
             return new InternalSyntax.Lexer(
-                text: MakeIText(text, offset),
+                text: MakeSourceText(text, offset),
                 options: options ?? CSharpParseOptions.Default);
         }
 

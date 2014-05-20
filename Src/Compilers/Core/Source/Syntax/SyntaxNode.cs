@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -355,17 +356,24 @@ namespace Microsoft.CodeAnalysis
         public abstract string ToFullString();
 
         /// <summary>
-        /// Writes the full text of this node to the specified TextWriter.
+        /// Writes the full text of this node to the specified <see cref="TextWriter"/>.
         /// </summary>
-        public abstract void WriteTo(System.IO.TextWriter writer);
+        public abstract void WriteTo(TextWriter writer);
 
         /// <summary>
-        /// Gets the full text of this node as an new SourceText instance.
+        /// Gets the full text of this node as an new <see cref="SourceText"/> instance.
         /// </summary>
-        /// <returns></returns>
-        public SourceText GetText()
+        /// <param name="encoding">
+        /// Encoding of the file that the text was read from or is going to be saved to.
+        /// <c>null</c> if the encoding is unspecified.
+        /// If the encoding is not specified the <see cref="SourceText"/> isn't debuggable.
+        /// If an encoding-less <see cref="SourceText"/> is written to a file a <see cref="Encoding.UTF8"/> shall be used as a default.
+        /// </param>
+        public SourceText GetText(Encoding encoding = null)
         {
-            return TextUtilities.Create(this.WriteTo);
+            var builder = new StringBuilder();
+            this.WriteTo(new StringWriter(builder));
+            return new StringBuilderText(builder, encoding);
         }
 
         /// <summary>

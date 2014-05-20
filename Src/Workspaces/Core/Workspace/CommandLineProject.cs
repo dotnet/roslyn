@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis
                    name: name,
                    folders: folders,
                    sourceCodeKind: fileArg.IsScript ? SourceCodeKind.Script : SourceCodeKind.Regular,
-                   loader: new FileTextLoader(absolutePath),
+                   loader: new FileTextLoader(absolutePath, commandLineArguments.Encoding),
                    filePath: absolutePath);
 
                 docs.Add(doc);

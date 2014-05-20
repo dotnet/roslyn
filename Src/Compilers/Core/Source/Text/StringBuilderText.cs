@@ -1,14 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
+using System.Diagnostics;
 using System.Text;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -22,14 +16,19 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private readonly StringBuilder builder;
 
-        public StringBuilderText(StringBuilder builder)
+        private readonly Encoding encodingOpt;
+
+        public StringBuilderText(StringBuilder builder, Encoding encodingOpt)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException("builder");
-            }
+            Debug.Assert(builder != null);
 
             this.builder = builder;
+            this.encodingOpt = encodingOpt;
+        }
+
+        public override Encoding Encoding
+        {
+            get { return encodingOpt; }
         }
 
         /// <summary>

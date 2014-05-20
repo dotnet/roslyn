@@ -54,8 +54,8 @@ End Class
             Dim expected =
     <symbols>
         <files>
-            <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-            <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+            <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=" 1, 41, D1, CA, DD, B0,  B, 39, BE, 3C, 3D, 69, AA, 18, B3, 7A, F5, 65, C5, DD, "/>
+            <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="FE, FF, 3A, FC, 5E, 54, 7C, 6D, 96, 86,  5, B8, B6, FD, FC, 5F, 81, 51, AE, FA, "/>
         </files>
         <entryPoint declaringType="C1" methodName="Main" parameterNames="args"/>
         <methods>
@@ -84,7 +84,7 @@ End Class
         Public Sub AutoProperty1()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Interface I
     Property P As Integer
 End Interface
@@ -118,7 +118,7 @@ End Class
         Public Sub AutoProperty2()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Interface I
     Property P As Object
 End Interface
@@ -152,7 +152,7 @@ End Class
         Public Sub AutoPropertyAsNew()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Interface I
     Property P As Integer
 End Interface
@@ -186,7 +186,7 @@ End Class
         Public Sub ArrayInitializedField()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Class C
     Dim F(1), G(2) As Integer
 End Class
@@ -218,7 +218,7 @@ End Class
         Public Sub ArrayInitializedLocal()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Class C
     Sub M
         Dim F(1), G(2) As Integer
@@ -253,7 +253,7 @@ End Class
         Public Sub FieldAsNewMultiInitializer()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Class C
     Dim F, G As New C()
 End Class
@@ -285,7 +285,7 @@ End Class
         Public Sub LocalAsNewMultiInitializer()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Class C
     Sub M
          Dim F, G As New C()
@@ -320,7 +320,7 @@ End Class
         Public Sub FieldAsNewSingleInitializer()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Class C
     Dim F As New C()
 End Class
@@ -348,7 +348,7 @@ End Class
         Public Sub LocalAsNewSingleInitializer()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Class C
     Sub M
         Dim F As New C()
@@ -379,7 +379,7 @@ End Class
         Public Sub FieldInitializer()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Class C
     Dim F = 1
 End Class
@@ -407,7 +407,7 @@ End Class
         Public Sub LocalInitializer()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Class C
     Sub M
         Dim F = 1

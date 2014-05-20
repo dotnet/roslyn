@@ -3,7 +3,7 @@
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
-    Public Class ForEachTests
+    Public Class PDBForEachTests
         Inherits BasicTestBase
 
 #Region "For Each Loop"
@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
         Public Sub ForEachOverOneDimensionalArray()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Strict On
 
 Imports System
@@ -38,24 +38,21 @@ Imports System
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
                                <methods>
                                    <method containingType="C1" name="Main" parameterNames="">
                                        <sequencepoints total="11">
-                                           <entry il_offset="0x0" start_row="6" start_column="13" end_row="6" end_column="37" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="7" start_column="21" end_row="7" end_column="57" file_ref="1"/>
-                                           <entry il_offset="0x8" start_row="8" start_column="17" end_row="8" end_column="28" file_ref="1"/>
-                                           <entry il_offset="0xd" start_row="9" start_column="17" end_row="9" end_column="28" file_ref="1"/>
-                                           <entry il_offset="0x12" start_row="11" start_column="17" end_row="11" end_column="51" file_ref="1"/>
-                                           <entry il_offset="0x16" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                           <entry il_offset="0x1c" start_row="12" start_column="21" end_row="12" end_column="47" file_ref="1"/>
-                                           <entry il_offset="0x23" start_row="13" start_column="17" end_row="13" end_column="21" file_ref="1"/>
-                                           <entry il_offset="0x24" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                           <entry il_offset="0x28" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                           <entry il_offset="0x34" start_row="14" start_column="13" end_row="14" end_column="20" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="6" start_column="13" end_row="6" end_column="37" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="7" start_column="21" end_row="7" end_column="57" file_ref="0"/>
+                                           <entry il_offset="0x8" start_row="8" start_column="17" end_row="8" end_column="28" file_ref="0"/>
+                                           <entry il_offset="0xd" start_row="9" start_column="17" end_row="9" end_column="28" file_ref="0"/>
+                                           <entry il_offset="0x12" start_row="11" start_column="17" end_row="11" end_column="51" file_ref="0"/>
+                                           <entry il_offset="0x16" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                           <entry il_offset="0x1c" start_row="12" start_column="21" end_row="12" end_column="47" file_ref="0"/>
+                                           <entry il_offset="0x23" start_row="13" start_column="17" end_row="13" end_column="21" file_ref="0"/>
+                                           <entry il_offset="0x24" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                           <entry il_offset="0x28" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                           <entry il_offset="0x34" start_row="14" start_column="13" end_row="14" end_column="20" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <local name="arr" il_index="0" il_start="0x0" il_end="0x35" attributes="0"/>
@@ -86,7 +83,7 @@ Imports System
         Public Sub ForEachOverString()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Strict On
 
 Imports System
@@ -111,22 +108,19 @@ End Class
 
             Dim expected =
                 <symbols>
-                    <files>
-                        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                    </files>
                     <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
                     <methods>
                         <method containingType="C1" name="Main" parameterNames="">
                             <sequencepoints total="9">
-                                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="29" file_ref="1"/>
-                                <entry il_offset="0x1" start_row="7" start_column="13" end_row="7" end_column="36" file_ref="1"/>
-                                <entry il_offset="0x7" start_row="9" start_column="9" end_row="9" end_column="40" file_ref="1"/>
-                                <entry il_offset="0xb" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                <entry il_offset="0x15" start_row="10" start_column="13" end_row="10" end_column="39" file_ref="1"/>
-                                <entry il_offset="0x1c" start_row="11" start_column="9" end_row="11" end_column="13" file_ref="1"/>
-                                <entry il_offset="0x1d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                <entry il_offset="0x21" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                <entry il_offset="0x30" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="1"/>
+                                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="29" file_ref="0"/>
+                                <entry il_offset="0x1" start_row="7" start_column="13" end_row="7" end_column="36" file_ref="0"/>
+                                <entry il_offset="0x7" start_row="9" start_column="9" end_row="9" end_column="40" file_ref="0"/>
+                                <entry il_offset="0xb" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                <entry il_offset="0x15" start_row="10" start_column="13" end_row="10" end_column="39" file_ref="0"/>
+                                <entry il_offset="0x1c" start_row="11" start_column="9" end_row="11" end_column="13" file_ref="0"/>
+                                <entry il_offset="0x1d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                <entry il_offset="0x21" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                <entry il_offset="0x30" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="0"/>
                             </sequencepoints>
                             <locals>
                                 <local name="str" il_index="0" il_start="0x0" il_end="0x31" attributes="0"/>
@@ -157,7 +151,7 @@ End Class
         Public Sub ForEachIEnumerableWithNoTryCatch()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Infer On
 
 Class C
@@ -196,20 +190,17 @@ End Structure
             Dim actual = PDBTests.GetPdbXml(compilation, "C.Main")
 
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <entryPoint declaringType="C" methodName="Main" parameterNames=""/>
                                <methods>
                                    <method containingType="C" name="Main" parameterNames="">
                                        <sequencepoints total="7">
-                                           <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="29" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="5" start_column="9" end_row="5" end_column="39" file_ref="1"/>
-                                           <entry il_offset="0xc" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                           <entry il_offset="0x16" start_row="6" start_column="13" end_row="6" end_column="40" file_ref="1"/>
-                                           <entry il_offset="0x1d" start_row="7" start_column="9" end_row="7" end_column="13" file_ref="1"/>
-                                           <entry il_offset="0x1e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                           <entry il_offset="0x29" start_row="8" start_column="5" end_row="8" end_column="12" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="29" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="5" start_column="9" end_row="5" end_column="39" file_ref="0"/>
+                                           <entry il_offset="0xc" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                           <entry il_offset="0x16" start_row="6" start_column="13" end_row="6" end_column="40" file_ref="0"/>
+                                           <entry il_offset="0x1d" start_row="7" start_column="9" end_row="7" end_column="13" file_ref="0"/>
+                                           <entry il_offset="0x1e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                           <entry il_offset="0x29" start_row="8" start_column="5" end_row="8" end_column="12" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <local name="VB$ForEachEnumerator" il_index="0" il_start="0x1" il_end="0x28" attributes="1"/>
@@ -235,7 +226,7 @@ End Structure
         Public Sub ForEachIEnumerableWithTryCatchImplementIDisposable()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Infer On
 
 Imports System.Collections.Generic
@@ -272,21 +263,18 @@ End Class
             Dim actual = PDBTests.GetPdbXml(compilation, "C.Main")
 
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <entryPoint declaringType="C" methodName="Main" parameterNames=""/>
                                <methods>
                                    <method containingType="C" name="Main" parameterNames="">
                                        <sequencepoints total="8">
-                                           <entry il_offset="0x0" start_row="7" start_column="5" end_row="7" end_column="29" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="8" start_column="9" end_row="8" end_column="54" file_ref="1"/>
-                                           <entry il_offset="0x1d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                           <entry il_offset="0x26" start_row="9" start_column="13" end_row="9" end_column="33" file_ref="1"/>
-                                           <entry il_offset="0x2d" start_row="10" start_column="9" end_row="10" end_column="13" file_ref="1"/>
-                                           <entry il_offset="0x2e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                           <entry il_offset="0x3a" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                           <entry il_offset="0x4a" start_row="11" start_column="5" end_row="11" end_column="12" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="7" start_column="5" end_row="7" end_column="29" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="8" start_column="9" end_row="8" end_column="54" file_ref="0"/>
+                                           <entry il_offset="0x1d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                           <entry il_offset="0x26" start_row="9" start_column="13" end_row="9" end_column="33" file_ref="0"/>
+                                           <entry il_offset="0x2d" start_row="10" start_column="9" end_row="10" end_column="13" file_ref="0"/>
+                                           <entry il_offset="0x2e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                           <entry il_offset="0x3a" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                           <entry il_offset="0x4a" start_row="11" start_column="5" end_row="11" end_column="12" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <local name="VB$ForEachEnumerator" il_index="0" il_start="0x1" il_end="0x49" attributes="1"/>
@@ -314,7 +302,7 @@ End Class
         Public Sub ForEachIEnumerableWithTryCatchPossiblyImplementIDisposable()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Infer On
 
 Class C
@@ -346,21 +334,18 @@ End Class
             Dim actual = PDBTests.GetPdbXml(compilation, "C.Main")
 
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <entryPoint declaringType="C" methodName="Main" parameterNames=""/>
                                <methods>
                                    <method containingType="C" name="Main" parameterNames="">
                                        <sequencepoints total="8">
-                                           <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="29" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="5" start_column="9" end_row="5" end_column="39" file_ref="1"/>
-                                           <entry il_offset="0xc" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                           <entry il_offset="0x1a" start_row="6" start_column="13" end_row="6" end_column="40" file_ref="1"/>
-                                           <entry il_offset="0x26" start_row="7" start_column="9" end_row="7" end_column="13" file_ref="1"/>
-                                           <entry il_offset="0x27" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                           <entry il_offset="0x33" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                           <entry il_offset="0x4d" start_row="8" start_column="5" end_row="8" end_column="12" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="29" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="5" start_column="9" end_row="5" end_column="39" file_ref="0"/>
+                                           <entry il_offset="0xc" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                           <entry il_offset="0x1a" start_row="6" start_column="13" end_row="6" end_column="40" file_ref="0"/>
+                                           <entry il_offset="0x26" start_row="7" start_column="9" end_row="7" end_column="13" file_ref="0"/>
+                                           <entry il_offset="0x27" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                           <entry il_offset="0x33" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                                           <entry il_offset="0x4d" start_row="8" start_column="5" end_row="8" end_column="12" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <local name="VB$ForEachEnumerator" il_index="0" il_start="0x1" il_end="0x4c" attributes="1"/>
@@ -391,7 +376,7 @@ End Class
         Public Sub ForLoop01()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Strict On
 Imports System
 
@@ -416,20 +401,17 @@ End Module
             Dim actual = PDBTests.GetPdbXml(compilation, "M1.Main")
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="M1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="M1" name="Main" parameterNames="">
             <sequencepoints total="7">
-                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="22" file_ref="1"/>
-                <entry il_offset="0x8" start_row="8" start_column="9" end_row="8" end_column="23" file_ref="1"/>
-                <entry il_offset="0xa" start_row="9" start_column="13" end_row="9" end_column="26" file_ref="1"/>
-                <entry il_offset="0xe" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x13" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x1e" start_row="11" start_column="5" end_row="11" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="22" file_ref="0"/>
+                <entry il_offset="0x8" start_row="8" start_column="9" end_row="8" end_column="23" file_ref="0"/>
+                <entry il_offset="0xa" start_row="9" start_column="13" end_row="9" end_column="26" file_ref="0"/>
+                <entry il_offset="0xe" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x13" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x1e" start_row="11" start_column="5" end_row="11" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="myFArr" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
@@ -457,7 +439,7 @@ End Module
         Public Sub ForLoop02()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Strict On
 Imports System
 
@@ -479,18 +461,15 @@ End Module
 
             Dim actual = PDBTests.GetPdbXml(compilation, "M1.Main")
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <entryPoint declaringType="M1" methodName="Main" parameterNames=""/>
                                <methods>
                                    <method containingType="M1" name="Main" parameterNames="">
                                        <sequencepoints total="5">
-                                           <entry il_offset="0x0" start_row="5" start_column="3" end_row="5" end_column="13" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="6" start_column="5" end_row="6" end_column="36" file_ref="1"/>
-                                           <entry il_offset="0x24" start_row="7" start_column="5" end_row="7" end_column="31" file_ref="1"/>
-                                           <entry il_offset="0x2f" start_row="8" start_column="5" end_row="8" end_column="9" file_ref="1"/>
-                                           <entry il_offset="0x3c" start_row="9" start_column="4" end_row="9" end_column="11" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="5" start_column="3" end_row="5" end_column="13" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="6" start_column="5" end_row="6" end_column="36" file_ref="0"/>
+                                           <entry il_offset="0x24" start_row="7" start_column="5" end_row="7" end_column="31" file_ref="0"/>
+                                           <entry il_offset="0x2f" start_row="8" start_column="5" end_row="8" end_column="9" file_ref="0"/>
+                                           <entry il_offset="0x3c" start_row="9" start_column="4" end_row="9" end_column="11" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <local name="VB$LoopObject" il_index="0" il_start="0x1" il_end="0x3b" attributes="1"/>

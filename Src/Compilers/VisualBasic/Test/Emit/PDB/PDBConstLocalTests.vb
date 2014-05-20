@@ -5,13 +5,14 @@ Imports System.Xml.Linq
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
-    Partial Public Class PDBTests
+    Public Class PDBConstLocalTests
         Inherits BasicTestBase
 
         <Fact()>
         Public Sub TestSimpleLocalConstants()
-            Dim source = <compilation>
-                             <file name="a.vb">
+            Dim source =
+<compilation>
+    <file>
 Imports System                                 
 Public Class C
     Public Sub M()
@@ -20,8 +21,8 @@ Public Class C
         Console.WriteLine(x + y)
     end sub
 end class
-</file>
-                         </compilation>
+    </file>
+</compilation>
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                 source,
                 OptionsDll.WithOptimizations(False))
@@ -30,15 +31,12 @@ end class
 
             Dim actual As XElement = GetPdbXml(compilation, "C.M")
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <methods>
                                    <method containingType="C" name="M" parameterNames="">
                                        <sequencepoints total="3">
-                                           <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="19" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="33" file_ref="1"/>
-                                           <entry il_offset="0x8" start_row="7" start_column="5" end_row="7" end_column="12" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="19" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="33" file_ref="0"/>
+                                           <entry il_offset="0x8" start_row="7" start_column="5" end_row="7" end_column="12" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <constant name="x" value="1" type="Int32"/>
@@ -60,7 +58,7 @@ end class
         Public Sub TestLambdaLocalConstants()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Imports System                                 
 Public Class C
     Public Sub M(a as action)
@@ -83,15 +81,12 @@ end class
 
             Dim actual As XElement = GetPdbXml(compilation)
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <methods>
                                    <method containingType="C" name="M" parameterNames="a">
                                        <sequencepoints total="3">
-                                           <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="30" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="5" start_column="9" end_row="11" end_column="11" file_ref="1"/>
-                                           <entry il_offset="0x28" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="30" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="5" start_column="9" end_row="11" end_column="11" file_ref="0"/>
+                                           <entry il_offset="0x28" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <constant name="x" value="1" type="Int32"/>
@@ -104,9 +99,9 @@ end class
                                    </method>
                                    <method containingType="C" name="_Lambda$__1" parameterNames="">
                                        <sequencepoints total="3">
-                                           <entry il_offset="0x0" start_row="6" start_column="13" end_row="6" end_column="18" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="9" start_column="17" end_row="9" end_column="45" file_ref="1"/>
-                                           <entry il_offset="0x8" start_row="10" start_column="13" end_row="10" end_column="20" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="6" start_column="13" end_row="6" end_column="18" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="9" start_column="17" end_row="9" end_column="45" file_ref="0"/>
+                                           <entry il_offset="0x8" start_row="10" start_column="13" end_row="10" end_column="20" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <constant name="y" value="2" type="Int32"/>
@@ -154,7 +149,7 @@ class C
         <Fact()>
         Public Sub TestLocalConstantsTypes()
             Dim source = <compilation>
-                             <file name="a.vb">
+                             <file>
 Imports System                                    
 Public Class C
     Sub M()
@@ -186,14 +181,11 @@ End Class
             invariantStr = invariantStr.Replace("1,79769313486232E+308", "1.79769313486232E+308")
             invariantStr = invariantStr.Replace("value=""1,5""", "value=""1.5""")
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <methods>
                                    <method containingType="C" name="M" parameterNames="">
                                        <sequencepoints total="2">
-                                           <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="12" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="10" start_column="5" end_row="10" end_column="12" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="12" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="10" start_column="5" end_row="10" end_column="12" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <constant name="o" value="0" type="Int32"/>

@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis
         {
             var textSource = info.TextLoader != null
                 ? CreateRecoverableText(info.TextLoader, info.Id, services)
-                : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty), VersionStamp.Default, info.FilePath));
+                : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath));
 
             var treeSource = CreateLazyFullyParsedTree(
                 textSource,
@@ -118,10 +120,10 @@ namespace Microsoft.CodeAnalysis
                 // if load text is failed due to a cancellation, make sure we propagate it out to the caller
                 throw;
             }
-            catch (Exception e)
+            catch (IOException e)
             {
                 services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.FileAccessFailure, e.Message, documentId));
-                return TextAndVersion.Create(SourceText.From(string.Empty), VersionStamp.Default, documentId.GetDebuggerDisplay());
+                return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
             }
         }
 
@@ -395,7 +397,7 @@ namespace Microsoft.CodeAnalysis
                 treeSource: newTreeSource);
         }
 
-        public DocumentState UpdateTree(SyntaxNode newRoot, PreservationMode mode)
+        internal DocumentState UpdateTree(SyntaxNode newRoot, PreservationMode mode)
         {
             if (newRoot == null)
             {
@@ -406,7 +408,7 @@ namespace Microsoft.CodeAnalysis
             var newTreeVersion = GetNewTreeVersionForUpdatedTree(newRoot, newTextVersion, mode);
 
             var syntaxTreeFactory = this.languageServices.GetService<ISyntaxTreeFactoryService>();
-
+            
             var result = CreateRecoverableTextAndTree(newRoot, newTextVersion, newTreeVersion, this.info, this.options, syntaxTreeFactory, mode);
 
             return new DocumentState(
@@ -441,12 +443,13 @@ namespace Microsoft.CodeAnalysis
             DocumentInfo info, ParseOptions options, ISyntaxTreeFactoryService factory, PreservationMode mode)
         {
             string filePath = info.FilePath;
+            Encoding encoding = info.DefaultEncoding;
             AsyncLazy<TreeAndVersion> lazyTree = null;
 
             // this captures the lazyTree local
             var lazyText = new AsyncLazy<TextAndVersion>(
-                c => GetTextAndVersionAsync(lazyTree, textVersion, filePath, c),
-                c => GetTextAndVersion(lazyTree, textVersion, filePath, c),
+                c => GetTextAndVersionAsync(lazyTree, textVersion, encoding, filePath, c),
+                c => GetTextAndVersion(lazyTree, textVersion, encoding, filePath, c),
                 cacheResult: false);
 
             // this should be only called when we do forking, since there is no cheap way to figure out what has been changed,
@@ -454,7 +457,7 @@ namespace Microsoft.CodeAnalysis
             if (mode == PreservationMode.PreserveIdentity)
             {
                 lazyTree = new AsyncLazy<TreeAndVersion>(
-                    TreeAndVersion.Create(factory.CreateSyntaxTree(GetSyntaxTreeFilePath(info), options, newRoot), treeVersion));
+                    TreeAndVersion.Create(factory.CreateSyntaxTree(GetSyntaxTreeFilePath(info), options, newRoot, encoding), treeVersion)); 
             }
             else
             {
@@ -466,20 +469,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static TextAndVersion GetTextAndVersion(
-            ValueSource<TreeAndVersion> newTreeSource, VersionStamp version, string filePath, CancellationToken cancellationToken)
+            ValueSource<TreeAndVersion> newTreeSource, VersionStamp version, Encoding encoding, string filePath, CancellationToken cancellationToken)
         {
             var treeAndVersion = newTreeSource.GetValue(cancellationToken);
-            var text = treeAndVersion.Tree.GetRoot(cancellationToken).GetText();
+            var text = treeAndVersion.Tree.GetRoot(cancellationToken).GetText(encoding);
             return TextAndVersion.Create(text, version, filePath);
         }
 
         private static async Task<TextAndVersion> GetTextAndVersionAsync(
-            ValueSource<TreeAndVersion> newTreeSource, VersionStamp version, string filePath, CancellationToken cancellationToken)
+            ValueSource<TreeAndVersion> newTreeSource, VersionStamp version, Encoding encoding, string filePath, CancellationToken cancellationToken)
         {
             var treeAndVersion = await newTreeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             var root = await treeAndVersion.Tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            return TextAndVersion.Create(root.GetText(), version, filePath);
+            return TextAndVersion.Create(root.GetText(encoding), version, filePath);
         }
 
         public bool TryGetText(out SourceText text)

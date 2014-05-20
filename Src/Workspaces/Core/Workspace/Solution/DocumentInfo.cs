@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -38,9 +39,13 @@ namespace Microsoft.CodeAnalysis
         public string FilePath { get; private set; }
 
         /// <summary>
-        /// The text of the document and its version.
+        /// Specifies an encoding to be used if the actual encoding of the file 
+        /// can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
+        /// If <c>null</c> auto-detect heristics are used to determine the encoding. 
+        /// If these heristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
+        /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
         /// </summary>
-        public TextAndVersion TextAndVersion { get; private set; }
+        public Encoding DefaultEncoding { get; private set; }
 
         /// <summary>
         /// A loader that can retrieve the document text.
@@ -62,6 +67,7 @@ namespace Microsoft.CodeAnalysis
             SourceCodeKind sourceCodeKind,
             TextLoader loader,
             string filePath,
+            Encoding defaultEncoding,
             bool isGenerated)
         {
             if (id == null)
@@ -80,6 +86,7 @@ namespace Microsoft.CodeAnalysis
             this.SourceCodeKind = sourceCodeKind;
             this.TextLoader = loader;
             this.FilePath = filePath;
+            this.DefaultEncoding = defaultEncoding;
         }
 
         public static DocumentInfo Create(
@@ -89,9 +96,10 @@ namespace Microsoft.CodeAnalysis
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             TextLoader loader = null,
             string filePath = null,
+            Encoding defaultEncoding = null,
             bool isGenerated = false)
         {
-            return new DocumentInfo(id, name, folders, sourceCodeKind, loader, filePath, isGenerated);
+            return new DocumentInfo(id, name, folders, sourceCodeKind, loader, filePath, defaultEncoding, isGenerated);
         }
 
         private DocumentInfo With(
@@ -101,7 +109,8 @@ namespace Microsoft.CodeAnalysis
             Optional<SourceCodeKind> sourceCodeKind = default(Optional<SourceCodeKind>),
             Optional<TextAndVersion> textAndVersion = default(Optional<TextAndVersion>),
             Optional<TextLoader> loader = default(Optional<TextLoader>),
-            Optional<string> filePath = default(Optional<string>))
+            Optional<string> filePath = default(Optional<string>),
+            Optional<Encoding> defaultEncoding = default(Optional<Encoding>))
         {
             var newId = id ?? this.Id;
             var newName = name ?? this.Name;
@@ -109,18 +118,20 @@ namespace Microsoft.CodeAnalysis
             var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : this.SourceCodeKind;
             var newLoader = loader.HasValue ? loader.Value : this.TextLoader;
             var newFilePath = filePath.HasValue ? filePath.Value : this.FilePath;
+            var newEncoding = defaultEncoding.HasValue ? defaultEncoding.Value : this.DefaultEncoding;
 
             if (newId == this.Id &&
                 newName == this.Name &&
                 newFolders == this.Folders &&
                 newSourceCodeKind == this.SourceCodeKind &&
                 newLoader == this.TextLoader &&
-                newFilePath == this.FilePath)
+                newFilePath == this.FilePath &&
+                newEncoding == this.DefaultEncoding)
             {
                 return this;
             }
 
-            return new DocumentInfo(newId, newName, newFolders, newSourceCodeKind, newLoader, newFilePath, this.IsGenerated);
+            return new DocumentInfo(newId, newName, newFolders, newSourceCodeKind, newLoader, newFilePath, newEncoding, this.IsGenerated);
         }
 
         public DocumentInfo WithFolders(IEnumerable<string> folders)

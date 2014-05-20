@@ -149,6 +149,7 @@
     <Compile Include="StringTableTests.cs" />
     <Compile Include="StrongNameProviderTests.cs" />
     <Compile Include="Text\EncodedStringTextTests.cs" />
+    <Compile Include="Text\SourceTextTests.cs" />
     <Compile Include="Text\StringText_LineTest.cs" />
     <Compile Include="Text\StringTextTest.cs" />
     <Compile Include="Text\StringTextTest_BigEndianUnicode.cs" />

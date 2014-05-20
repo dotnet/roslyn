@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using System.Collections.Immutable;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -50,19 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected T CloneNodeAsRoot<T>(T node) where T : CSharpSyntaxNode
         {
             return CSharpSyntaxNode.CloneNodeAsRoot(node, this);
-        }
-
-        public override Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            SourceText text;
-            if (this.TryGetText(out text))
-            {
-                return Task.FromResult(text);
-            }
-            else
-            {
-                return Task.Factory.StartNew(() => this.GetText(cancellationToken), cancellationToken); // TODO: Should we use ExceptionFilter.ExecuteWithErrorReporting here?
-            }
         }
 
         /// <summary>
@@ -309,16 +297,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Create a new syntax tree from a syntax node.
         /// </summary>
-        public static SyntaxTree Create(CSharpSyntaxNode root, string path = "", CSharpParseOptions options = null)
+        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions options = null, string path = "", Encoding encoding = null)
         {
-            if (root == null) throw new ArgumentNullException("root");
+            if (root == null)
+            {
+                throw new ArgumentNullException("root");
+            }
 
-            options = options ?? CSharpParseOptions.Default;
             var directives = root.Kind == SyntaxKind.CompilationUnit ?
                 ((CompilationUnitSyntax)root).GetConditionalDirectivesStack() :
                 InternalSyntax.DirectiveStack.Empty;
 
-            return new ParsedSyntaxTree(source: null, path: path, options: options, root: root, directives: directives);
+            return new ParsedSyntaxTree(
+                textOpt: null,
+                encodingOpt: encoding, 
+                path: path,
+                root: root,
+                options: options ?? CSharpParseOptions.Default, 
+                directives: directives);
         }
 
         /// <summary>
@@ -328,11 +324,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: This method is only intended to be used from <see cref="P:CSharpSyntaxNode.SyntaxTree"/> property.
         /// NOTE: Do not use this method elsewhere, instead use <see cref="M:SyntaxTree.Create"/> method for creating a syntax tree.
         /// </summary>
-        internal static SyntaxTree CreateWithoutClone(CSharpSyntaxNode root, string path = "")
+        internal static SyntaxTree CreateWithoutClone(CSharpSyntaxNode root)
         {
             Debug.Assert(root != null);
 
-            return new ParsedSyntaxTree(source: null, path: path, options: CSharpParseOptions.Default, root: root, directives: InternalSyntax.DirectiveStack.Empty, cloneRoot: false);
+            return new ParsedSyntaxTree(
+                textOpt: null,
+                path: "", 
+                encodingOpt: null,
+                options: CSharpParseOptions.Default,
+                root: root, 
+                directives: InternalSyntax.DirectiveStack.Empty, 
+                cloneRoot: false);
         }
 
         /// <summary>
@@ -340,11 +343,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SyntaxTree ParseText(
             string text,
-            string path = "",
             CSharpParseOptions options = null,
+            string path = "",
+            Encoding encoding = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ParseText(SourceText.From(text), path, options, cancellationToken);
+            return ParseText(SourceText.From(text, encoding), options, path, cancellationToken);
         }
 
         /// <summary>
@@ -352,8 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SyntaxTree ParseText(
             SourceText text,
-            string path = "",
             CSharpParseOptions options = null,
+            string path = "",
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (text == null)
@@ -370,12 +374,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 options = options ?? CSharpParseOptions.Default;
 
-                using (var lexer = new Syntax.InternalSyntax.Lexer(text, options))
+                using (var lexer = new InternalSyntax.Lexer(text, options))
                 {
-                    using (var parser = new Syntax.InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, cancellationToken: cancellationToken))
+                    using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, cancellationToken: cancellationToken))
                     {
                         var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
-                        var tree = new ParsedSyntaxTree(text, path, options, compilationUnit, parser.Directives);
+                        var tree = new ParsedSyntaxTree(text, text.Encoding, path, options, compilationUnit, parser.Directives);
                         tree.VerifySource();
                         return tree;
                     }
@@ -395,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             using (var data = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                return ParseText(new EncodedStringText(data, encodingOpt: null), path, options, cancellationToken);
+                return ParseText(EncodedStringText.Create(data), options, path, cancellationToken);
             }
         }
 
@@ -454,11 +458,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             using (var lexer = new InternalSyntax.Lexer(newText, this.Options))
             {
-                CSharp.CSharpSyntaxNode oldRoot = oldTree != null ? oldTree.GetRoot() : null;
+                CSharpSyntaxNode oldRoot = oldTree != null ? oldTree.GetRoot() : null;
                 using (var parser = new InternalSyntax.LanguageParser(lexer, oldRoot, changes))
                 {
                     var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
-                    var tree = new ParsedSyntaxTree(newText, this.FilePath, this.Options, compilationUnit, parser.Directives);
+                    var tree = new ParsedSyntaxTree(newText, newText.Encoding, this.FilePath, this.Options, compilationUnit, parser.Directives);
                     tree.VerifySource(changes);
                     return tree;
                 }

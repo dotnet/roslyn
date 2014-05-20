@@ -78,20 +78,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
-
-        [Fact(Skip = "658140"), WorkItem(658140, "DevDiv")]
-        public void ParseFileOnBinaryFile()
-        {
-            // This is doing the same thing as ParseFile, but using a MemoryStream
-            // instead of FileStream (because I don't want to write a file to disk).
-            using (var data = new MemoryStream(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib))
-            {
-                SyntaxTree tree  = null;
-
-                Assert.DoesNotThrow(() => tree = SyntaxFactory.ParseSyntaxTree(new EncodedStringText(data, encodingOpt: null)));
-
-                tree.GetDiagnostics().VerifyErrorCodes(Diagnostic(ErrorCode.ERR_BinaryFile));
-            }
-        }
     }
 }

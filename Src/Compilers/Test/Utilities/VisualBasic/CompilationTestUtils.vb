@@ -479,7 +479,7 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' </param>
     Public Function CreateParseTree(programElement As XElement) As SyntaxTree
-        Return VisualBasicSyntaxTree.ParseText(FilterString(programElement.Value), If(programElement.@name, ""))
+        Return VisualBasicSyntaxTree.ParseText(FilterString(programElement.Value), path:=If(programElement.@name, ""), encoding:=Encoding.UTF8)
     End Function
 
     ''' <summary>
@@ -498,10 +498,8 @@ Friend Module CompilationUtils
         Dim spans As IList(Of TextSpan) = Nothing
         MarkupTestFile.GetSpans(codeWithMarker, codeWithoutMarker, spans)
 
-        Dim checksum = If(programElement.@checksum = "default", Hash.ComputeSha1(Encoding.UTF8.GetBytes(codeWithoutMarker)), Nothing)
-
-        Dim text = SourceText.From(codeWithoutMarker, checksum)
-        Return New Tuple(Of SyntaxTree, IList(Of TextSpan))(VisualBasicSyntaxTree.ParseText(text, If(programElement.@name, ""), parseOptions), spans)
+        Dim text = SourceText.From(codeWithoutMarker, Encoding.UTF8)
+        Return New Tuple(Of SyntaxTree, IList(Of TextSpan))(VisualBasicSyntaxTree.ParseText(text, parseOptions, If(programElement.@name, "")), spans)
     End Function
 
     ' Find a node inside a tree.

@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Adds a document to the workspace.
         /// </summary>
-        public DocumentId AddDocument(ProjectId projectId, string name, string text)
+        public DocumentId AddDocument(ProjectId projectId, string name, SourceText text)
         {
             if (projectId == null)
             {
@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             var id = DocumentId.CreateNewId(projectId);
+            var loader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));
 
-            this.AddDocument(
-                DocumentInfo.Create(id, name, loader: TextLoader.From(TextAndVersion.Create(SourceText.From(text), VersionStamp.Create()))));
+            this.AddDocument(DocumentInfo.Create(id, name, loader: loader));
 
             return id;
         }

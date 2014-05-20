@@ -2879,7 +2879,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-            <![CDATA[
+                <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "DefaultInstanceTest1.Factory")> _
@@ -2940,7 +2940,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-            <![CDATA[
+                <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory.MyTests")> _
@@ -3021,7 +3021,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-            <![CDATA[
+                <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory.MyTests")> _
@@ -3117,7 +3117,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-            <![CDATA[
+                <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory.+MyTests")> _
@@ -3179,7 +3179,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-            <![CDATA[
+                <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory.MyTests.DefaultInstanceTest1 : System.Console.WriteLine()")> _
@@ -3245,7 +3245,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-            <![CDATA[
+                <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory")> _
@@ -3314,7 +3314,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-            <![CDATA[
+                <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory")> _

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
         Public Sub TwoMethodsOnlyOneWithMapping()
             Dim source =
 <compilation>
-    <file name="a.vb" checksum="default">
+    <file name="a.vb">
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -45,7 +45,7 @@ End Class
 
             Dim expected = <symbols>
                                <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="DF, AE, 30, 1B, 67, A9, A3, 3D,  6, 9F, C1, B3, 2A, A0, 80, E3,  4, 7F, 4B, 91, "/>
+                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="70, 82, DD, 9A, 57, B3, BE, 57, 7E, E8, B4, AE, B8, 1E, 1B, 75, 38, 9D, 13, C9, "/>
                                    <file id="2" name="C:\abc\def.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
                                </files>
                                <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
@@ -91,7 +91,7 @@ End Class
         Public Sub TwoMethodsOnlyOneWithMultipleMappingsAndRewriting()
             Dim source =
 <compilation>
-    <file name="a.vb" checksum="default">
+    <file name="a.vb">
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -140,7 +140,7 @@ End Class
 
             Dim expected = <symbols>
                                <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="65, 76,  F, 5A, AF, 25, A8, AC, 3D, A0, 45, 59, 8A, 29, 21, 21, 87, 2C, 94, 5D, "/>
+                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="DB, A9, 94, EF, BC, DF, 10, C9, 60,  F, C0, C4, 9F, E4, 77, F9, 37, CF, E1, CE, "/>
                                    <file id="2" name="C:\abc\def.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
                                    <file id="3" name="C:\abc\def2.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
                                </files>
@@ -214,7 +214,7 @@ End Class
         Public Sub EmptyExternalSourceWillBeIgnored()
             Dim source =
 <compilation>
-    <file name="a.vb" checksum="default">
+    <file name="a.vb">
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -248,7 +248,7 @@ End Class
 
             Dim expected = <symbols>
                                <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="1B, 27, 83, 49, 73,  B, CD,  B,  9, B1, DC, C7, FB,  F, 3C,  7, 43, 55, D3, C4, "/>
+                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="EE, 47, B3, F6, 59, FA,  D, E8, DF, B2, 26, 6A, 7D, 82, D3, 52, 3E,  C, 36, E1, "/>
                                </files>
                                <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
                                <methods>
@@ -291,7 +291,7 @@ End Class
         Public Sub MultipleEmptyExternalSourceWillBeIgnored()
             Dim source =
 <compilation>
-    <file name="a.vb" checksum="default">
+    <file name="a.vb">
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -331,7 +331,7 @@ End Class
 
             Dim expected = <symbols>
                                <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="39, CD,  4, 94, 17, A3, 40,  D, F3, DB, 40, FF, FA, DE, 1E, 1A, 36, 20, 83, 3B, "/>
+                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="B9, 85, 76, 74, 1E, E7, 27, 25, F7, 8A, CB, A2, B1, 9C, A4, CD, FD, 49, 8C, B7, "/>
                                </files>
                                <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
                                <methods>
@@ -374,7 +374,7 @@ End Class
         Public Sub MultipleEmptyExternalSourceWithNonEmptyExternalSource()
             Dim source =
 <compilation>
-    <file name="a.vb" checksum="default">
+    <file name="a.vb">
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -415,7 +415,7 @@ End Class
 
             Dim expected = <symbols>
                                <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="C5, D5, A4, 4F, E0, 43, 7E, F3, 89, 89, ED, 89, AF, A7, 11, EA, 74, 89, 10, 53, "/>
+                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="B6, 80, 9E, 65, 43, 38,  0, C1, 35, 7F, AE, D0, 60, F2, 24, 44, A8, 11, C2, 63, "/>
                                </files>
                                <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
                                <methods>
@@ -458,7 +458,7 @@ End Class
         Public Sub MultipleEmptyExternalSourceWithNonEmptyExternalSourceFollowedByEmptyExternalSource()
             Dim source =
 <compilation>
-    <file name="a.vb" checksum="default">
+    <file name="a.vb">
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -502,7 +502,7 @@ End Class
 
             Dim expected = <symbols>
                                <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=" 4, E4, 78, D6, 3B, E1, 9E, 8B, 4C, A7, 1B, 19, F5, 4A, 58, D2, 88, 6C, 1B, 2B, "/>
+                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="73,  5, 84, 40, AC, E0, 15, 63, CC, FE, BD, 9A, 99, 23, AA, BD, 24, 40, 24, 44, "/>
                                </files>
                                <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
                                <methods>
@@ -546,7 +546,7 @@ End Class
         Public Sub TestPartialClassFieldInitializersWithExternalSource()
             Dim source =
 <compilation>
-    <file name="C:\Abc\ACTUAL.vb" checksum="default">
+    <file name="C:\Abc\ACTUAL.vb">
         
 #ExternalSource("C:\abc\def1.vb", 41)
 
@@ -612,7 +612,7 @@ End Class
 
             Dim expected = <symbols>
                                <files>
-                                   <file id="1" name="C:\Abc\ACTUAL.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="CA, ED, BA, 1B, AA, CF, 42, AE, 41, 3E, A1, 8E, A7, 99, 4C, 68, CF, D7, 60,  A, "/>
+                                   <file id="1" name="C:\Abc\ACTUAL.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="27, 52, E9, 85, 5A, AC, 31,  5, A5, 6F, 70, 40, 55, 3A, 9C, 43, D2,  7,  D, 4B, "/>
                                    <file id="2" name="C:\abc\def1.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
                                    <file id="3" name="C:\abc\def2.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a799" checkSum="12, 34, "/>
                                </files>
@@ -781,7 +781,7 @@ End Module
         Public Sub OverflowLineNumbers()
             Dim source =
     <compilation>
-        <file name="a.vb" checksum="default">
+        <file name="a.vb">
 Option Strict On
 
 Imports System
@@ -829,7 +829,7 @@ End Module
 
             Dim expected = <symbols>
                                <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="69, 72,  D, 99, 17, F1, 6D, 62, 6F, 8B, A1, 6B, CF,  D, 1D, 18, 36, 5A, D9, 8E, "/>
+                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="D2, FF,  5, F8, B7, A2, 25, B0, 96, D9, 97, 2F,  5, F8, F0, B5, 81, 8D, 98, 1D, "/>
                                    <file id="2" name="C:\abc\def.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
                                </files>
                                <entryPoint declaringType="Program" methodName="Main" parameterNames=""/>
@@ -864,7 +864,7 @@ End Module
         Public Sub RelativePathForExternalSource()
             Dim source =
 <compilation>
-    <file name="C:\Folder1\Folder2\Test1.vb" checksum="default">
+    <file name="C:\Folder1\Folder2\Test1.vb">
 #ExternalChecksum("..\Test2.vb","{406ea660-64cf-4c82-b6f0-42d48172a799}","DB788882721B2B27C90579D5FE2A0418")
 
 Class Test1
@@ -885,7 +885,7 @@ End Class
 
             Dim expected = <symbols>
                                <files>
-                                   <file id="1" name="C:\Folder1\Folder2\Test1.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="D6, 39, 82, D1, FD, 90,  9, A2, F7, 70, AA, 5F, 46, 2C, B1, 7C, 59, 55, AC, 80, "/>
+                                   <file id="1" name="C:\Folder1\Folder2\Test1.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="B9, 49, 3D, 62, 89, 9B, B2, 2F, B6, 72, 90, A1, 2D,  1, 11, 89, B4, C2, 83, B4, "/>
                                    <file id="2" name="C:\Folder1\Test2.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a799" checkSum="DB, 78, 88, 82, 72, 1B, 2B, 27, C9,  5, 79, D5, FE, 2A,  4, 18, "/>
                                </files>
                                <methods>

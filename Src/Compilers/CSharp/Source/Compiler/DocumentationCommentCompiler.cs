@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     writer = new StreamWriter(
                         stream: xmlDocStream,
                         encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false),
-                        bufferSize: 0x400, // Default, found in ildasm.
+                        bufferSize: 0x400, // Default.
                         leaveOpen: true); // Don't close caller's stream.
                 }
 

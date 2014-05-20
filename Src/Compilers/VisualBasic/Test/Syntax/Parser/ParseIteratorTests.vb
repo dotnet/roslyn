@@ -411,7 +411,7 @@ Iterator Function F()
     Dim i = Yield T + Yield (T)             ' No, No
     Return Yield T                          ' No
 End Function]]>.Value,
-    options:=VisualBasicParseOptions.Default.WithKind(mode))
+                options:=VisualBasicParseOptions.Default.WithKind(mode))
 
             Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
 

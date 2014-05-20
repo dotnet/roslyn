@@ -4520,4 +4520,7 @@
   <data name="ERR_CantUseRequiredAttribute" xml:space="preserve">
     <value>The RequiredAttribute attribute is not permitted on Visual Basic types.</value>
   </data>
+  <data name="ERR_EncodinglessSyntaxTree" xml:space="preserve">
+    <value>Cannot emit debug information for a source text without encoding.</value>
+  </data>
 </root>

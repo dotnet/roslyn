@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -13,27 +14,63 @@ namespace Microsoft.CodeAnalysis
     public class FileTextLoader : TextLoader
     {
         private readonly string path;
+        private readonly Encoding defaultEncoding;
 
-        public FileTextLoader(string path)
+        /// <summary>
+        /// Creates a content loader for specified file.
+        /// </summary>
+        /// <param name="path">An absolute file path.</param>
+        /// <param name="defaultEncoding">
+        /// Specifies an encoding to be used if the actual encoding can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
+        /// If not specified auto-detect heristics are used to determine the encoding. If these heristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
+        /// Note that if the stream starts with Byte Order Mark the value of <paramref name="defaultEncoding"/> is ignored.
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="path"/> is not an absolute path.</exception>
+        public FileTextLoader(string path, Encoding defaultEncoding)
         {
+            FilePathUtilities.RequireAbsolutePath(path, "path");
+
             this.path = path;
+            this.defaultEncoding = defaultEncoding;
+        }
+
+        /// <summary>
+        /// Absolute path of the file.
+        /// </summary>
+        public string Path
+        {
+            get { return path; }
+        }
+
+        /// <summary>
+        /// Specifies an encoding to be used if the actual encoding of the file 
+        /// can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
+        /// If <c>null</c> auto-detect heristics are used to determine the encoding. 
+        /// If these heristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
+        /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
+        /// </summary>
+        public Encoding DefaultEncoding
+        {
+            get { return defaultEncoding; }
         }
 
         protected virtual SourceText CreateText(Stream stream, Workspace workspace)
         {
             var factory = workspace.Services.GetService<ITextFactoryService>();
-            return factory.CreateText(stream);
+            return factory.CreateText(stream, defaultEncoding);
         }
 
+        /// <exception cref="IOException"></exception>
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
-            DateTime prevLastWriteTime = File.GetLastWriteTimeUtc(this.path);
+            DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(this.path);
 
             // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
             // Allowing other theads/processes to write or delete the file is essential for scenarios such as
             // Rename refactoring where File.Replace API is invoked for updating the modified file. 
             TextAndVersion textAndVersion;
-            using (var stream = File.Open(this.path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            using (var stream = FileUtilities.OpenRead(this.path))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
                 var memoryStream = await this.ReadStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -49,7 +86,7 @@ namespace Microsoft.CodeAnalysis
             // I am letting it to return what we have read so far. and hopefully, file change event let us re-read this file.
             // (* but again, there is still a chance where file change event happens even before writing has finished which ends up
             //    let us stay in corrupted state)
-            DateTime newLastWriteTime = File.GetLastWriteTimeUtc(this.path);
+            DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(this.path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
                 // TODO: remove this once we know how often this can happen.

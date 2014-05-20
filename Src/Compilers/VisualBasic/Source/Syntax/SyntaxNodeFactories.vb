@@ -6,6 +6,7 @@
 '-----------------------------------------------------------------------------------------------------------
 
 Imports System.Threading
+Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -25,10 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function SyntaxTree(
             root As SyntaxNode,
+            Optional options As ParseOptions = Nothing,
             Optional path As String = "",
-            Optional options As ParseOptions = Nothing) As SyntaxTree
+            Optional encoding As Encoding = Nothing) As SyntaxTree
 
-            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), path, DirectCast(options, VisualBasicParseOptions))
+            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), path, encoding)
         End Function
 
         ''' <summary>
@@ -36,11 +38,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function ParseSyntaxTree(
             text As String,
-            Optional path As String = "",
             Optional options As ParseOptions = Nothing,
+            Optional path As String = "",
+            Optional encoding As Encoding = Nothing,
             Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
 
-            Return ParseSyntaxTree(SourceText.From(text), path, options, cancellationToken)
+            Return ParseSyntaxTree(SourceText.From(text, encoding), options, path, cancellationToken)
         End Function
 
         ''' <summary>
@@ -48,11 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function ParseSyntaxTree(
             text As SourceText,
-            Optional path As String = "",
             Optional options As ParseOptions = Nothing,
+            Optional path As String = "",
             Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
 
-            Return VisualBasicSyntaxTree.ParseText(text, path, DirectCast(options, VisualBasicParseOptions), cancellationToken)
+            Return VisualBasicSyntaxTree.ParseText(text, DirectCast(options, VisualBasicParseOptions), path, cancellationToken)
         End Function
 
         ''' <summary>
@@ -61,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseLeadingTrivia(text As String, Optional offset As Integer = 0) As SyntaxTriviaList
-            Dim s = New InternalSyntax.Scanner(MakeIText(text, offset), VisualBasicParseOptions.Default)
+            Dim s = New InternalSyntax.Scanner(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
             Using s
                 Return New SyntaxTriviaList(Nothing, s.ScanMultilineTrivia().Node, 0, 0)
             End Using
@@ -73,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseTrailingTrivia(text As String, Optional offset As Integer = 0) As SyntaxTriviaList
-            Dim s = New InternalSyntax.Scanner(MakeIText(text, offset), VisualBasicParseOptions.Default)
+            Dim s = New InternalSyntax.Scanner(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
             Using s
                 Return New SyntaxTriviaList(Nothing, s.ScanMultilineTrivia().Node, 0, 0)
             End Using
@@ -86,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="offset">The starting offset in the string</param>
         ''' <param name="startStatement">Scan using rules for the start of a statement</param>
         Public Shared Function ParseToken(text As String, Optional offset As Integer = 0, Optional startStatement As Boolean = False) As SyntaxToken
-            Dim s = New InternalSyntax.Scanner(MakeIText(text, offset), VisualBasicParseOptions.Default)
+            Dim s = New InternalSyntax.Scanner(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
             Using s
                 Dim state = If(startStatement,
                                InternalSyntax.ScannerState.VBAllowLeadingMultilineTrivia,
@@ -107,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     Optional initialTokenPosition As Integer = 0,
                                                     Optional options As VisualBasicParseOptions = Nothing) As IEnumerable(Of SyntaxToken)
 
-            Using parser = New InternalSyntax.Parser(MakeIText(text, offset), If(options, VisualBasicParseOptions.Default))
+            Using parser = New InternalSyntax.Parser(MakeSourceText(text, offset), If(options, VisualBasicParseOptions.Default))
                 Dim state = InternalSyntax.ScannerState.VBAllowLeadingMultilineTrivia
                 Dim curTk As InternalSyntax.SyntaxToken
 
@@ -132,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseName(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As NameSyntax
-            Using p = New InternalSyntax.Parser(MakeIText(text, offset), VisualBasicParseOptions.Default)
+            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 ' "allow everything" arguments
                 Dim node = p.ParseName(
@@ -153,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseTypeName(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As TypeSyntax
-            Using p = New InternalSyntax.Parser(MakeIText(text, offset), VisualBasicParseOptions.Default)
+            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseGeneralType()
                 Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), TypeSyntax)
@@ -166,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseExpression(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As ExpressionSyntax
-            Using p = New InternalSyntax.Parser(MakeIText(text, offset), VisualBasicParseOptions.Default)
+            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseExpression()
                 Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), ExpressionSyntax)
@@ -179,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseExecutableStatement(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As StatementSyntax
-            Using p = New InternalSyntax.Parser(MakeIText(text, offset), VisualBasicParseOptions.Default)
+            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 Dim node = p.ParseExecutableStatement()
                 Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), StatementSyntax)
             End Using
@@ -191,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseCompilationUnit(text As String, Optional offset As Integer = 0, Optional options As VisualBasicParseOptions = Nothing) As CompilationUnitSyntax
-            Using p = New InternalSyntax.Parser(MakeIText(text, offset), If(options, VisualBasicParseOptions.Default))
+            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), If(options, VisualBasicParseOptions.Default))
                 Return DirectCast(p.ParseCompilationUnit().CreateRed(Nothing, 0), CompilationUnitSyntax)
             End Using
         End Function
@@ -202,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseParameterList(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As ParameterListSyntax
-            Using p = New InternalSyntax.Parser(MakeIText(text, offset), VisualBasicParseOptions.Default)
+            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseParameterList()
                 Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), ParameterListSyntax)
@@ -215,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseArgumentList(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As ArgumentListSyntax
-            Using p = New InternalSyntax.Parser(MakeIText(text, offset), VisualBasicParseOptions.Default)
+            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseParenthesizedArguments()
                 Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), ArgumentListSyntax)
@@ -225,8 +228,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Helper method for wrapping a string and offset in an SourceText.
         ''' </summary>
-        Friend Shared Function MakeIText(text As String, offset As Integer) As SourceText
-            Return SourceText.From(text).GetSubText(offset)
+        Friend Shared Function MakeSourceText(text As String, offset As Integer) As SourceText
+            Return SourceText.From(text, Encoding.UTF8).GetSubText(offset)
         End Function
 
         ''' <summary>
@@ -235,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''  used internally from code handling documentation comment includes.
         ''' </summary>
         Friend Shared Function ParseDocCommentAttributeAsStandAloneEntity(text As String, parentElementName As String) As BaseXmlAttributeSyntax
-            Using scanner As New InternalSyntax.Scanner(SyntaxFactory.MakeIText(text, 0), VisualBasicParseOptions.Default) ' NOTE: Default options should be enough
+            Using scanner As New InternalSyntax.Scanner(MakeSourceText(text, 0), VisualBasicParseOptions.Default) ' NOTE: Default options should be enough
                 scanner.ForceScanningXmlDocMode()
 
                 Dim parser = New InternalSyntax.Parser(scanner)

@@ -1,11 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.ObjectModel
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class VisualBasicSyntaxTree
@@ -17,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Sub New()
                 _node = Me.CloneNodeAsRoot(SyntaxFactory.ParseCompilationUnit(String.Empty))
             End Sub
+
+            Public Overrides Function ToString() As String
+                Return String.Empty
+            End Function
 
             Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
                 Return SourceText.From(String.Empty)
@@ -67,6 +68,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End Get
             End Property
+
+            Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
+                Return SyntaxFactory.SyntaxTree(root, options:=options, path:=FilePath, encoding:=Nothing)
+            End Function
+
+            Public Overrides Function WithFilePath(path As String) As SyntaxTree
+                Return SyntaxFactory.SyntaxTree(_node, options:=Me.Options, path:=path, encoding:=Nothing)
+            End Function
         End Class
     End Class
 End Namespace

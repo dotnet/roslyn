@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var options = this.GetOptions(defines);
             var itext = SourceText.From(text);
-            return SyntaxFactory.ParseSyntaxTree(itext, "", options);
+            return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
 
         [Fact]
@@ -2539,7 +2539,7 @@ class D { }
                 Assert.True(oldRoot.ContainsAnnotations, "Should contain annotations.");
                 Assert.Equal(text, oldRoot.ToFullString());
 
-                var oldTree = SyntaxFactory.SyntaxTree(oldRoot, tempTree.FilePath, tempTree.Options);
+                var oldTree = SyntaxFactory.SyntaxTree(oldRoot, options: tempTree.Options, path: tempTree.FilePath);
                 var newTree = oldTree.WithInsertAt(text.Length, " ");
 
 

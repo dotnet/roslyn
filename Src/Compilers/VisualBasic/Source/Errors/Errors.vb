@@ -1653,6 +1653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_MetadataReferencesNotSupported = 37233
         ERR_PlatformDoesntSupport = 37234
         ERR_CantUseRequiredAttribute = 37235
+        ERR_EncodinglessSyntaxTree = 37236
 
         ERR_LastPlusOne
 

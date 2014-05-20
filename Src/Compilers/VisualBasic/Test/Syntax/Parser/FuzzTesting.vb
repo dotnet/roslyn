@@ -754,7 +754,7 @@ End Select
             Dim tree As SyntaxTree = Nothing
 
             Assert.DoesNotThrow(Sub()
-                                    tree = VisualBasicSyntaxTree.ParseText(New EncodedStringText(data, encodingOpt:=Nothing))
+                                    tree = VisualBasicSyntaxTree.ParseText(EncodedStringText.Create(data))
                                 End Sub)
 
             tree.GetDiagnostics().VerifyErrorCodes(Diagnostic(ERRID.ERR_BinaryFile))

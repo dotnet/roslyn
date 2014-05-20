@@ -76,14 +76,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var options = this.GetOptions(defines);
             var itext = SourceText.From(text);
-            return SyntaxFactory.ParseSyntaxTree(itext, "", options).GetCompilationUnitRoot();
+            return SyntaxFactory.ParseSyntaxTree(itext, options).GetCompilationUnitRoot();
         }
 
         private SyntaxTree ParseTree(string text, params string[] defines)
         {
             var options = this.GetOptions(defines);
             var itext = SourceText.From(text);
-            return SyntaxFactory.ParseSyntaxTree(itext, "", options);
+            return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
 
         private void TestRoundTripping(CompilationUnitSyntax node, string text, bool disallowErrors = true)
@@ -2953,7 +2953,7 @@ class A { }
         private void CheckDiagnosticStringFileName(string compilationFileName, string lineDirective, string expectedErrorStringFileName)
         {
             var text = lineDirective + "#error ERROR\r\n";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, compilationFileName);
+            var tree = SyntaxFactory.ParseSyntaxTree(text, path: compilationFileName);
             TestRoundTripping(tree.GetCompilationUnitRoot(), text, false);
             var error = tree.GetDiagnostics().Single();
             Assert.Equal((int)ErrorCode.ERR_ErrorDirective, error.Code);

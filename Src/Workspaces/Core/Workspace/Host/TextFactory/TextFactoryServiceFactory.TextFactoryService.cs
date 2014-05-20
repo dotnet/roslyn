@@ -3,7 +3,6 @@
 using System.IO;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -12,16 +11,10 @@ namespace Microsoft.CodeAnalysis.Host
     {
         public class TextFactoryService : ITextFactoryService
         {
-            public SourceText CreateText(Stream stream, CancellationToken cancellationToken)
+            public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                return new EncodedStringText(stream, encodingOpt: null);
-            }
-
-            public SourceText CreateText(Stream stream, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return new EncodedStringText(stream, encoding);
+                return EncodedStringText.Create(stream, defaultEncoding);
             }
         }
     }

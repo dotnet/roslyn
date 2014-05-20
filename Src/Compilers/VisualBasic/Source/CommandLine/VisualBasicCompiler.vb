@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(content, file.Path, If(file.IsScript, scriptParseOptions, parseOptions))
+            Dim tree = VisualBasicSyntaxTree.ParseText(content, If(file.IsScript, scriptParseOptions, parseOptions), file.Path)
 
             ' prepopulate line tables.
             ' we will need line tables anyways and it is better to Not wait until we are in emit

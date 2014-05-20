@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Instrumentation;
@@ -61,10 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns a non-null SyntaxTree that owns this node.
-        /// If this node was created with an explicit non-null SyntaxTree, returns that tree.
-        /// Otherwise, if this node has a non-null parent, then returns the parent's SyntaxTree.
-        /// Otherwise, returns a newly created SyntaxTree rooted at this node, preserving this node's reference identity.
+        /// Returns a non-null <see cref="SyntaxTree"/> that owns this node.
+        /// If this node was created with an explicit non-null <see cref="SyntaxTree"/>, returns that tree.
+        /// Otherwise, if this node has a non-null parent, then returns the parent's <see cref="SyntaxTree"/>.
+        /// Otherwise, returns a newly created <see cref="SyntaxTree"/> rooted at this node, preserving this node's reference identity.
         /// </summary>
         internal new SyntaxTree SyntaxTree
         {
@@ -72,9 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (this._syntaxTree == null)
                 {
-                    var tree = Parent != null ?
-                        Parent.SyntaxTree :
-                        CSharpSyntaxTree.CreateWithoutClone(this);
+                    var tree = (Parent != null) ? Parent.SyntaxTree : CSharpSyntaxTree.CreateWithoutClone(this);
 
                     Debug.Assert(tree != null);
                     Interlocked.CompareExchange(ref this._syntaxTree, tree, null);

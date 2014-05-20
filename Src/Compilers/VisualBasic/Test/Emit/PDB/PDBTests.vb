@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
         Public Sub TestBasic()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Class C1
     Sub Method()
         System.Console.WriteLine("Hello, world.")
@@ -33,15 +33,12 @@ End Class
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="C1" name="Method" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="17" file_ref="1"/>
-                <entry il_offset="0x1" start_row="3" start_column="9" end_row="3" end_column="50" file_ref="1"/>
-                <entry il_offset="0xc" start_row="4" start_column="5" end_row="4" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="17" file_ref="0"/>
+                <entry il_offset="0x1" start_row="3" start_column="9" end_row="3" end_column="50" file_ref="0"/>
+                <entry il_offset="0xc" start_row="4" start_column="5" end_row="4" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xd">
@@ -58,7 +55,7 @@ End Class
         Public Sub TryCatchFinally()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Option Strict On
 Imports System
 
@@ -97,35 +94,32 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="M1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="M1" name="Main" parameterNames="">
             <sequencepoints total="22">
-                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="22" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="1"/>
-                <entry il_offset="0x3" start_row="7" start_column="9" end_row="7" end_column="12" file_ref="1"/>
-                <entry il_offset="0x4" start_row="8" start_column="17" end_row="8" end_column="34" file_ref="1"/>
-                <entry il_offset="0xa" start_row="9" start_column="1" end_row="9" end_column="8" file_ref="1"/>
-                <entry il_offset="0xb" start_row="10" start_column="1" end_row="10" end_column="8" file_ref="1"/>
-                <entry il_offset="0xc" start_row="11" start_column="13" end_row="11" end_column="26" file_ref="1"/>
-                <entry il_offset="0x14" start_row="12" start_column="17" end_row="12" end_column="38" file_ref="1"/>
-                <entry il_offset="0x1a" start_row="13" start_column="13" end_row="13" end_column="19" file_ref="1"/>
-                <entry il_offset="0x1d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x24" start_row="14" start_column="9" end_row="14" end_column="30" file_ref="1"/>
-                <entry il_offset="0x25" start_row="15" start_column="17" end_row="15" end_column="34" file_ref="1"/>
-                <entry il_offset="0x2c" start_row="16" start_column="13" end_row="16" end_column="33" file_ref="1"/>
-                <entry il_offset="0x33" start_row="17" start_column="13" end_row="17" end_column="18" file_ref="1"/>
-                <entry il_offset="0x35" start_row="18" start_column="13" end_row="18" end_column="24" file_ref="1"/>
-                <entry il_offset="0x3c" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x3e" start_row="19" start_column="9" end_row="19" end_column="16" file_ref="1"/>
-                <entry il_offset="0x3f" start_row="20" start_column="17" end_row="20" end_column="34" file_ref="1"/>
-                <entry il_offset="0x46" start_row="21" start_column="13" end_row="21" end_column="33" file_ref="1"/>
-                <entry il_offset="0x4e" start_row="22" start_column="9" end_row="22" end_column="16" file_ref="1"/>
-                <entry il_offset="0x4f" start_row="24" start_column="9" end_row="24" end_column="29" file_ref="1"/>
-                <entry il_offset="0x56" start_row="26" start_column="5" end_row="26" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="22" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
+                <entry il_offset="0x3" start_row="7" start_column="9" end_row="7" end_column="12" file_ref="0"/>
+                <entry il_offset="0x4" start_row="8" start_column="17" end_row="8" end_column="34" file_ref="0"/>
+                <entry il_offset="0xa" start_row="9" start_column="1" end_row="9" end_column="8" file_ref="0"/>
+                <entry il_offset="0xb" start_row="10" start_column="1" end_row="10" end_column="8" file_ref="0"/>
+                <entry il_offset="0xc" start_row="11" start_column="13" end_row="11" end_column="26" file_ref="0"/>
+                <entry il_offset="0x14" start_row="12" start_column="17" end_row="12" end_column="38" file_ref="0"/>
+                <entry il_offset="0x1a" start_row="13" start_column="13" end_row="13" end_column="19" file_ref="0"/>
+                <entry il_offset="0x1d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x24" start_row="14" start_column="9" end_row="14" end_column="30" file_ref="0"/>
+                <entry il_offset="0x25" start_row="15" start_column="17" end_row="15" end_column="34" file_ref="0"/>
+                <entry il_offset="0x2c" start_row="16" start_column="13" end_row="16" end_column="33" file_ref="0"/>
+                <entry il_offset="0x33" start_row="17" start_column="13" end_row="17" end_column="18" file_ref="0"/>
+                <entry il_offset="0x35" start_row="18" start_column="13" end_row="18" end_column="24" file_ref="0"/>
+                <entry il_offset="0x3c" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x3e" start_row="19" start_column="9" end_row="19" end_column="16" file_ref="0"/>
+                <entry il_offset="0x3f" start_row="20" start_column="17" end_row="20" end_column="34" file_ref="0"/>
+                <entry il_offset="0x46" start_row="21" start_column="13" end_row="21" end_column="33" file_ref="0"/>
+                <entry il_offset="0x4e" start_row="22" start_column="9" end_row="22" end_column="16" file_ref="0"/>
+                <entry il_offset="0x4f" start_row="24" start_column="9" end_row="24" end_column="29" file_ref="0"/>
+                <entry il_offset="0x56" start_row="26" start_column="5" end_row="26" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x57" attributes="0"/>
@@ -161,7 +155,7 @@ End Module
         Public Sub TryCatchWhen()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Option Strict On
 Imports System
 
@@ -198,34 +192,31 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="M1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="M1" name="Main" parameterNames="">
             <sequencepoints total="21">
-                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="22" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="1"/>
-                <entry il_offset="0x3" start_row="7" start_column="9" end_row="7" end_column="12" file_ref="1"/>
-                <entry il_offset="0x4" start_row="8" start_column="17" end_row="8" end_column="34" file_ref="1"/>
-                <entry il_offset="0xa" start_row="9" start_column="1" end_row="9" end_column="8" file_ref="1"/>
-                <entry il_offset="0xb" start_row="10" start_column="1" end_row="10" end_column="8" file_ref="1"/>
-                <entry il_offset="0xc" start_row="11" start_column="13" end_row="11" end_column="22" file_ref="1"/>
-                <entry il_offset="0x12" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x25" start_row="12" start_column="9" end_row="12" end_column="60" file_ref="1"/>
-                <entry il_offset="0x33" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x34" start_row="13" start_column="17" end_row="13" end_column="34" file_ref="1"/>
-                <entry il_offset="0x3a" start_row="14" start_column="13" end_row="14" end_column="33" file_ref="1"/>
-                <entry il_offset="0x41" start_row="15" start_column="13" end_row="15" end_column="18" file_ref="1"/>
-                <entry il_offset="0x43" start_row="16" start_column="13" end_row="16" end_column="24" file_ref="1"/>
-                <entry il_offset="0x4a" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x4c" start_row="17" start_column="9" end_row="17" end_column="16" file_ref="1"/>
-                <entry il_offset="0x4d" start_row="18" start_column="17" end_row="18" end_column="34" file_ref="1"/>
-                <entry il_offset="0x54" start_row="19" start_column="13" end_row="19" end_column="33" file_ref="1"/>
-                <entry il_offset="0x5c" start_row="20" start_column="9" end_row="20" end_column="16" file_ref="1"/>
-                <entry il_offset="0x5d" start_row="22" start_column="9" end_row="22" end_column="29" file_ref="1"/>
-                <entry il_offset="0x64" start_row="24" start_column="5" end_row="24" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="22" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
+                <entry il_offset="0x3" start_row="7" start_column="9" end_row="7" end_column="12" file_ref="0"/>
+                <entry il_offset="0x4" start_row="8" start_column="17" end_row="8" end_column="34" file_ref="0"/>
+                <entry il_offset="0xa" start_row="9" start_column="1" end_row="9" end_column="8" file_ref="0"/>
+                <entry il_offset="0xb" start_row="10" start_column="1" end_row="10" end_column="8" file_ref="0"/>
+                <entry il_offset="0xc" start_row="11" start_column="13" end_row="11" end_column="22" file_ref="0"/>
+                <entry il_offset="0x12" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x25" start_row="12" start_column="9" end_row="12" end_column="60" file_ref="0"/>
+                <entry il_offset="0x33" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x34" start_row="13" start_column="17" end_row="13" end_column="34" file_ref="0"/>
+                <entry il_offset="0x3a" start_row="14" start_column="13" end_row="14" end_column="33" file_ref="0"/>
+                <entry il_offset="0x41" start_row="15" start_column="13" end_row="15" end_column="18" file_ref="0"/>
+                <entry il_offset="0x43" start_row="16" start_column="13" end_row="16" end_column="24" file_ref="0"/>
+                <entry il_offset="0x4a" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x4c" start_row="17" start_column="9" end_row="17" end_column="16" file_ref="0"/>
+                <entry il_offset="0x4d" start_row="18" start_column="17" end_row="18" end_column="34" file_ref="0"/>
+                <entry il_offset="0x54" start_row="19" start_column="13" end_row="19" end_column="33" file_ref="0"/>
+                <entry il_offset="0x5c" start_row="20" start_column="9" end_row="20" end_column="16" file_ref="0"/>
+                <entry il_offset="0x5d" start_row="22" start_column="9" end_row="22" end_column="29" file_ref="0"/>
+                <entry il_offset="0x64" start_row="24" start_column="5" end_row="24" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x65" attributes="0"/>
@@ -261,7 +252,7 @@ End Module
         Public Sub TestBasic1()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Option Strict On
 
 Module Module1
@@ -284,21 +275,18 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="8">
-                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="5" start_column="13" end_row="5" end_column="29" file_ref="1"/>
-                <entry il_offset="0x3" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x5" start_row="7" start_column="17" end_row="7" end_column="37" file_ref="1"/>
-                <entry il_offset="0x9" start_row="8" start_column="13" end_row="8" end_column="18" file_ref="1"/>
-                <entry il_offset="0xb" start_row="9" start_column="9" end_row="9" end_column="13" file_ref="1"/>
-                <entry il_offset="0xc" start_row="6" start_column="9" end_row="6" end_column="26" file_ref="1"/>
-                <entry il_offset="0x17" start_row="10" start_column="5" end_row="10" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="5" start_column="13" end_row="5" end_column="29" file_ref="0"/>
+                <entry il_offset="0x3" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x5" start_row="7" start_column="17" end_row="7" end_column="37" file_ref="0"/>
+                <entry il_offset="0x9" start_row="8" start_column="13" end_row="8" end_column="18" file_ref="0"/>
+                <entry il_offset="0xb" start_row="9" start_column="9" end_row="9" end_column="13" file_ref="0"/>
+                <entry il_offset="0xc" start_row="6" start_column="9" end_row="6" end_column="26" file_ref="0"/>
+                <entry il_offset="0x17" start_row="10" start_column="5" end_row="10" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x18" attributes="0"/>
@@ -322,7 +310,7 @@ End Module
         Public Sub TestBasicCtor()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Class C1
     Sub New()
         System.Console.WriteLine("Hello, world.")
@@ -337,15 +325,12 @@ End Class
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="C1" name=".ctor" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="14" file_ref="1"/>
-                <entry il_offset="0x7" start_row="3" start_column="9" end_row="3" end_column="50" file_ref="1"/>
-                <entry il_offset="0x12" start_row="4" start_column="5" end_row="4" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="14" file_ref="0"/>
+                <entry il_offset="0x7" start_row="3" start_column="9" end_row="3" end_column="50" file_ref="0"/>
+                <entry il_offset="0x12" start_row="4" start_column="5" end_row="4" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x13">
@@ -362,7 +347,7 @@ End Class
         Public Sub TestLabels()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Class C1
     Sub New()
         label1:
@@ -381,17 +366,14 @@ End Class
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="C1" name=".ctor" parameterNames="">
             <sequencepoints total="5">
-                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="14" file_ref="1"/>
-                <entry il_offset="0x7" start_row="3" start_column="9" end_row="3" end_column="16" file_ref="1"/>
-                <entry il_offset="0x8" start_row="4" start_column="9" end_row="4" end_column="16" file_ref="1"/>
-                <entry il_offset="0x9" start_row="5" start_column="9" end_row="5" end_column="16" file_ref="1"/>
-                <entry il_offset="0xa" start_row="7" start_column="9" end_row="7" end_column="20" file_ref="1"/>
+                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="14" file_ref="0"/>
+                <entry il_offset="0x7" start_row="3" start_column="9" end_row="3" end_column="16" file_ref="0"/>
+                <entry il_offset="0x8" start_row="4" start_column="9" end_row="4" end_column="16" file_ref="0"/>
+                <entry il_offset="0x9" start_row="5" start_column="9" end_row="5" end_column="16" file_ref="0"/>
+                <entry il_offset="0xa" start_row="7" start_column="9" end_row="7" end_column="20" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xc">
@@ -408,7 +390,7 @@ End Class
         Public Sub TestIfThenAndBlocks()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Module Module1
@@ -448,49 +430,46 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
             <sequencepoints total="36">
-                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="1"/>
-                <entry il_offset="0x3" start_row="6" start_column="31" end_row="6" end_column="49" file_ref="1"/>
-                <entry il_offset="0xb" start_row="8" start_column="9" end_row="8" end_column="23" file_ref="1"/>
-                <entry il_offset="0x17" start_row="8" start_column="28" end_row="8" end_column="46" file_ref="1"/>
-                <entry il_offset="0x1d" start_row="8" start_column="49" end_row="8" end_column="69" file_ref="1"/>
-                <entry il_offset="0x26" start_row="8" start_column="70" end_row="8" end_column="74" file_ref="1"/>
-                <entry il_offset="0x27" start_row="8" start_column="75" end_row="8" end_column="99" file_ref="1"/>
-                <entry il_offset="0x32" start_row="8" start_column="102" end_row="8" end_column="127" file_ref="1"/>
-                <entry il_offset="0x3d" start_row="9" start_column="9" end_row="9" end_column="23" file_ref="1"/>
-                <entry il_offset="0x49" start_row="9" start_column="24" end_row="9" end_column="47" file_ref="1"/>
-                <entry il_offset="0x54" start_row="9" start_column="50" end_row="9" end_column="74" file_ref="1"/>
-                <entry il_offset="0x61" start_row="9" start_column="75" end_row="9" end_column="79" file_ref="1"/>
-                <entry il_offset="0x62" start_row="9" start_column="84" end_row="9" end_column="103" file_ref="1"/>
-                <entry il_offset="0x69" start_row="9" start_column="106" end_row="9" end_column="126" file_ref="1"/>
-                <entry il_offset="0x71" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x73" start_row="12" start_column="13" end_row="12" end_column="26" file_ref="1"/>
-                <entry il_offset="0x7e" start_row="13" start_column="17" end_row="13" end_column="40" file_ref="1"/>
-                <entry il_offset="0x89" start_row="23" start_column="13" end_row="23" end_column="19" file_ref="1"/>
-                <entry il_offset="0x8c" start_row="14" start_column="13" end_row="14" end_column="30" file_ref="1"/>
-                <entry il_offset="0x97" start_row="15" start_column="21" end_row="15" end_column="40" file_ref="1"/>
-                <entry il_offset="0x9e" start_row="16" start_column="17" end_row="16" end_column="38" file_ref="1"/>
-                <entry il_offset="0xa6" start_row="23" start_column="13" end_row="23" end_column="19" file_ref="1"/>
-                <entry il_offset="0xa9" start_row="17" start_column="13" end_row="17" end_column="30" file_ref="1"/>
-                <entry il_offset="0xb4" start_row="18" start_column="21" end_row="18" end_column="40" file_ref="1"/>
-                <entry il_offset="0xbb" start_row="19" start_column="17" end_row="19" end_column="38" file_ref="1"/>
-                <entry il_offset="0xc3" start_row="23" start_column="13" end_row="23" end_column="19" file_ref="1"/>
-                <entry il_offset="0xc6" start_row="20" start_column="13" end_row="20" end_column="17" file_ref="1"/>
-                <entry il_offset="0xc7" start_row="21" start_column="21" end_row="21" end_column="42" file_ref="1"/>
-                <entry il_offset="0xce" start_row="22" start_column="17" end_row="22" end_column="38" file_ref="1"/>
-                <entry il_offset="0xd6" start_row="23" start_column="13" end_row="23" end_column="19" file_ref="1"/>
-                <entry il_offset="0xd7" start_row="25" start_column="17" end_row="25" end_column="40" file_ref="1"/>
-                <entry il_offset="0xdc" start_row="26" start_column="13" end_row="26" end_column="21" file_ref="1"/>
-                <entry il_offset="0xdf" start_row="27" start_column="9" end_row="27" end_column="13" file_ref="1"/>
-                <entry il_offset="0xe0" start_row="11" start_column="9" end_row="11" end_column="23" file_ref="1"/>
-                <entry il_offset="0xe8" start_row="29" start_column="5" end_row="29" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
+                <entry il_offset="0x3" start_row="6" start_column="31" end_row="6" end_column="49" file_ref="0"/>
+                <entry il_offset="0xb" start_row="8" start_column="9" end_row="8" end_column="23" file_ref="0"/>
+                <entry il_offset="0x17" start_row="8" start_column="28" end_row="8" end_column="46" file_ref="0"/>
+                <entry il_offset="0x1d" start_row="8" start_column="49" end_row="8" end_column="69" file_ref="0"/>
+                <entry il_offset="0x26" start_row="8" start_column="70" end_row="8" end_column="74" file_ref="0"/>
+                <entry il_offset="0x27" start_row="8" start_column="75" end_row="8" end_column="99" file_ref="0"/>
+                <entry il_offset="0x32" start_row="8" start_column="102" end_row="8" end_column="127" file_ref="0"/>
+                <entry il_offset="0x3d" start_row="9" start_column="9" end_row="9" end_column="23" file_ref="0"/>
+                <entry il_offset="0x49" start_row="9" start_column="24" end_row="9" end_column="47" file_ref="0"/>
+                <entry il_offset="0x54" start_row="9" start_column="50" end_row="9" end_column="74" file_ref="0"/>
+                <entry il_offset="0x61" start_row="9" start_column="75" end_row="9" end_column="79" file_ref="0"/>
+                <entry il_offset="0x62" start_row="9" start_column="84" end_row="9" end_column="103" file_ref="0"/>
+                <entry il_offset="0x69" start_row="9" start_column="106" end_row="9" end_column="126" file_ref="0"/>
+                <entry il_offset="0x71" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x73" start_row="12" start_column="13" end_row="12" end_column="26" file_ref="0"/>
+                <entry il_offset="0x7e" start_row="13" start_column="17" end_row="13" end_column="40" file_ref="0"/>
+                <entry il_offset="0x89" start_row="23" start_column="13" end_row="23" end_column="19" file_ref="0"/>
+                <entry il_offset="0x8c" start_row="14" start_column="13" end_row="14" end_column="30" file_ref="0"/>
+                <entry il_offset="0x97" start_row="15" start_column="21" end_row="15" end_column="40" file_ref="0"/>
+                <entry il_offset="0x9e" start_row="16" start_column="17" end_row="16" end_column="38" file_ref="0"/>
+                <entry il_offset="0xa6" start_row="23" start_column="13" end_row="23" end_column="19" file_ref="0"/>
+                <entry il_offset="0xa9" start_row="17" start_column="13" end_row="17" end_column="30" file_ref="0"/>
+                <entry il_offset="0xb4" start_row="18" start_column="21" end_row="18" end_column="40" file_ref="0"/>
+                <entry il_offset="0xbb" start_row="19" start_column="17" end_row="19" end_column="38" file_ref="0"/>
+                <entry il_offset="0xc3" start_row="23" start_column="13" end_row="23" end_column="19" file_ref="0"/>
+                <entry il_offset="0xc6" start_row="20" start_column="13" end_row="20" end_column="17" file_ref="0"/>
+                <entry il_offset="0xc7" start_row="21" start_column="21" end_row="21" end_column="42" file_ref="0"/>
+                <entry il_offset="0xce" start_row="22" start_column="17" end_row="22" end_column="38" file_ref="0"/>
+                <entry il_offset="0xd6" start_row="23" start_column="13" end_row="23" end_column="19" file_ref="0"/>
+                <entry il_offset="0xd7" start_row="25" start_column="17" end_row="25" end_column="40" file_ref="0"/>
+                <entry il_offset="0xdc" start_row="26" start_column="13" end_row="26" end_column="21" file_ref="0"/>
+                <entry il_offset="0xdf" start_row="27" start_column="9" end_row="27" end_column="13" file_ref="0"/>
+                <entry il_offset="0xe0" start_row="11" start_column="9" end_row="11" end_column="23" file_ref="0"/>
+                <entry il_offset="0xe8" start_row="29" start_column="5" end_row="29" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0xe9" attributes="0"/>
@@ -537,7 +516,7 @@ End Module
         Public Sub TestTopConditionDoLoop()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Module Module1
@@ -573,36 +552,33 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
             <sequencepoints total="23">
-                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="1"/>
-                <entry il_offset="0x3" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x5" start_row="8" start_column="13" end_row="8" end_column="26" file_ref="1"/>
-                <entry il_offset="0x10" start_row="9" start_column="17" end_row="9" end_column="40" file_ref="1"/>
-                <entry il_offset="0x1b" start_row="19" start_column="13" end_row="19" end_column="19" file_ref="1"/>
-                <entry il_offset="0x1e" start_row="10" start_column="13" end_row="10" end_column="30" file_ref="1"/>
-                <entry il_offset="0x29" start_row="11" start_column="21" end_row="11" end_column="40" file_ref="1"/>
-                <entry il_offset="0x2f" start_row="12" start_column="17" end_row="12" end_column="38" file_ref="1"/>
-                <entry il_offset="0x36" start_row="19" start_column="13" end_row="19" end_column="19" file_ref="1"/>
-                <entry il_offset="0x39" start_row="13" start_column="13" end_row="13" end_column="30" file_ref="1"/>
-                <entry il_offset="0x44" start_row="14" start_column="21" end_row="14" end_column="40" file_ref="1"/>
-                <entry il_offset="0x4b" start_row="15" start_column="17" end_row="15" end_column="38" file_ref="1"/>
-                <entry il_offset="0x53" start_row="19" start_column="13" end_row="19" end_column="19" file_ref="1"/>
-                <entry il_offset="0x56" start_row="16" start_column="13" end_row="16" end_column="17" file_ref="1"/>
-                <entry il_offset="0x57" start_row="17" start_column="21" end_row="17" end_column="42" file_ref="1"/>
-                <entry il_offset="0x5e" start_row="18" start_column="17" end_row="18" end_column="38" file_ref="1"/>
-                <entry il_offset="0x66" start_row="19" start_column="13" end_row="19" end_column="19" file_ref="1"/>
-                <entry il_offset="0x67" start_row="21" start_column="17" end_row="21" end_column="40" file_ref="1"/>
-                <entry il_offset="0x6b" start_row="22" start_column="13" end_row="22" end_column="21" file_ref="1"/>
-                <entry il_offset="0x6d" start_row="23" start_column="9" end_row="23" end_column="13" file_ref="1"/>
-                <entry il_offset="0x6e" start_row="7" start_column="9" end_row="7" end_column="23" file_ref="1"/>
-                <entry il_offset="0x76" start_row="25" start_column="5" end_row="25" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
+                <entry il_offset="0x3" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x5" start_row="8" start_column="13" end_row="8" end_column="26" file_ref="0"/>
+                <entry il_offset="0x10" start_row="9" start_column="17" end_row="9" end_column="40" file_ref="0"/>
+                <entry il_offset="0x1b" start_row="19" start_column="13" end_row="19" end_column="19" file_ref="0"/>
+                <entry il_offset="0x1e" start_row="10" start_column="13" end_row="10" end_column="30" file_ref="0"/>
+                <entry il_offset="0x29" start_row="11" start_column="21" end_row="11" end_column="40" file_ref="0"/>
+                <entry il_offset="0x2f" start_row="12" start_column="17" end_row="12" end_column="38" file_ref="0"/>
+                <entry il_offset="0x36" start_row="19" start_column="13" end_row="19" end_column="19" file_ref="0"/>
+                <entry il_offset="0x39" start_row="13" start_column="13" end_row="13" end_column="30" file_ref="0"/>
+                <entry il_offset="0x44" start_row="14" start_column="21" end_row="14" end_column="40" file_ref="0"/>
+                <entry il_offset="0x4b" start_row="15" start_column="17" end_row="15" end_column="38" file_ref="0"/>
+                <entry il_offset="0x53" start_row="19" start_column="13" end_row="19" end_column="19" file_ref="0"/>
+                <entry il_offset="0x56" start_row="16" start_column="13" end_row="16" end_column="17" file_ref="0"/>
+                <entry il_offset="0x57" start_row="17" start_column="21" end_row="17" end_column="42" file_ref="0"/>
+                <entry il_offset="0x5e" start_row="18" start_column="17" end_row="18" end_column="38" file_ref="0"/>
+                <entry il_offset="0x66" start_row="19" start_column="13" end_row="19" end_column="19" file_ref="0"/>
+                <entry il_offset="0x67" start_row="21" start_column="17" end_row="21" end_column="40" file_ref="0"/>
+                <entry il_offset="0x6b" start_row="22" start_column="13" end_row="22" end_column="21" file_ref="0"/>
+                <entry il_offset="0x6d" start_row="23" start_column="9" end_row="23" end_column="13" file_ref="0"/>
+                <entry il_offset="0x6e" start_row="7" start_column="9" end_row="7" end_column="23" file_ref="0"/>
+                <entry il_offset="0x76" start_row="25" start_column="5" end_row="25" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x77" attributes="0"/>
@@ -639,7 +615,7 @@ End Module
         Public Sub TestBottomConditionDoLoop()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Module Module1
@@ -678,35 +654,32 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
             <sequencepoints total="22">
-                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="1"/>
-                <entry il_offset="0x3" start_row="8" start_column="9" end_row="8" end_column="11" file_ref="1"/>
-                <entry il_offset="0x4" start_row="9" start_column="13" end_row="9" end_column="26" file_ref="1"/>
-                <entry il_offset="0xf" start_row="10" start_column="17" end_row="10" end_column="40" file_ref="1"/>
-                <entry il_offset="0x1a" start_row="20" start_column="13" end_row="20" end_column="19" file_ref="1"/>
-                <entry il_offset="0x1d" start_row="11" start_column="13" end_row="11" end_column="30" file_ref="1"/>
-                <entry il_offset="0x28" start_row="12" start_column="21" end_row="12" end_column="40" file_ref="1"/>
-                <entry il_offset="0x2e" start_row="13" start_column="17" end_row="13" end_column="38" file_ref="1"/>
-                <entry il_offset="0x35" start_row="20" start_column="13" end_row="20" end_column="19" file_ref="1"/>
-                <entry il_offset="0x38" start_row="14" start_column="13" end_row="14" end_column="30" file_ref="1"/>
-                <entry il_offset="0x43" start_row="15" start_column="21" end_row="15" end_column="40" file_ref="1"/>
-                <entry il_offset="0x4a" start_row="16" start_column="17" end_row="16" end_column="38" file_ref="1"/>
-                <entry il_offset="0x52" start_row="20" start_column="13" end_row="20" end_column="19" file_ref="1"/>
-                <entry il_offset="0x55" start_row="17" start_column="13" end_row="17" end_column="17" file_ref="1"/>
-                <entry il_offset="0x56" start_row="18" start_column="21" end_row="18" end_column="42" file_ref="1"/>
-                <entry il_offset="0x5d" start_row="19" start_column="17" end_row="19" end_column="38" file_ref="1"/>
-                <entry il_offset="0x65" start_row="20" start_column="13" end_row="20" end_column="19" file_ref="1"/>
-                <entry il_offset="0x66" start_row="22" start_column="17" end_row="22" end_column="40" file_ref="1"/>
-                <entry il_offset="0x6a" start_row="23" start_column="13" end_row="23" end_column="21" file_ref="1"/>
-                <entry il_offset="0x6c" start_row="24" start_column="9" end_row="24" end_column="25" file_ref="1"/>
-                <entry il_offset="0x75" start_row="26" start_column="5" end_row="26" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
+                <entry il_offset="0x3" start_row="8" start_column="9" end_row="8" end_column="11" file_ref="0"/>
+                <entry il_offset="0x4" start_row="9" start_column="13" end_row="9" end_column="26" file_ref="0"/>
+                <entry il_offset="0xf" start_row="10" start_column="17" end_row="10" end_column="40" file_ref="0"/>
+                <entry il_offset="0x1a" start_row="20" start_column="13" end_row="20" end_column="19" file_ref="0"/>
+                <entry il_offset="0x1d" start_row="11" start_column="13" end_row="11" end_column="30" file_ref="0"/>
+                <entry il_offset="0x28" start_row="12" start_column="21" end_row="12" end_column="40" file_ref="0"/>
+                <entry il_offset="0x2e" start_row="13" start_column="17" end_row="13" end_column="38" file_ref="0"/>
+                <entry il_offset="0x35" start_row="20" start_column="13" end_row="20" end_column="19" file_ref="0"/>
+                <entry il_offset="0x38" start_row="14" start_column="13" end_row="14" end_column="30" file_ref="0"/>
+                <entry il_offset="0x43" start_row="15" start_column="21" end_row="15" end_column="40" file_ref="0"/>
+                <entry il_offset="0x4a" start_row="16" start_column="17" end_row="16" end_column="38" file_ref="0"/>
+                <entry il_offset="0x52" start_row="20" start_column="13" end_row="20" end_column="19" file_ref="0"/>
+                <entry il_offset="0x55" start_row="17" start_column="13" end_row="17" end_column="17" file_ref="0"/>
+                <entry il_offset="0x56" start_row="18" start_column="21" end_row="18" end_column="42" file_ref="0"/>
+                <entry il_offset="0x5d" start_row="19" start_column="17" end_row="19" end_column="38" file_ref="0"/>
+                <entry il_offset="0x65" start_row="20" start_column="13" end_row="20" end_column="19" file_ref="0"/>
+                <entry il_offset="0x66" start_row="22" start_column="17" end_row="22" end_column="40" file_ref="0"/>
+                <entry il_offset="0x6a" start_row="23" start_column="13" end_row="23" end_column="21" file_ref="0"/>
+                <entry il_offset="0x6c" start_row="24" start_column="9" end_row="24" end_column="25" file_ref="0"/>
+                <entry il_offset="0x75" start_row="26" start_column="5" end_row="26" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x76" attributes="0"/>
@@ -743,7 +716,7 @@ End Module
         Public Sub TestAsync()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Option Strict Off
 Imports System
 Imports System.Threading
@@ -780,13 +753,10 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="F" parameterNames="a">
             <sequencepoints total="1">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3f">
@@ -799,20 +769,17 @@ GetPdbXml(compilation, "Module1.F"))
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_0_F" name="MoveNext" parameterNames="">
             <sequencepoints total="8">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xa" start_row="12" start_column="9" end_row="12" end_column="25" file_ref="1"/>
-                <entry il_offset="0x6c" start_row="13" start_column="9" end_row="13" end_column="17" file_ref="1"/>
-                <entry il_offset="0x70" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x78" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x94" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="1"/>
-                <entry il_offset="0x9e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xa" start_row="12" start_column="9" end_row="12" end_column="25" file_ref="0"/>
+                <entry il_offset="0x6c" start_row="13" start_column="9" end_row="13" end_column="17" file_ref="0"/>
+                <entry il_offset="0x70" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x78" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x94" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="0"/>
+                <entry il_offset="0x9e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0xab" attributes="1"/>
@@ -837,13 +804,10 @@ GetPdbXml(compilation, "Module1.F"))
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Test" parameterNames="">
             <sequencepoints total="1">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x37">
@@ -856,23 +820,20 @@ GetPdbXml(compilation, "Module1.Test"))
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_Test" name="MoveNext" parameterNames="">
             <sequencepoints total="11">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x31" start_row="17" start_column="9" end_row="23" end_column="34" file_ref="1"/>
-                <entry il_offset="0xa2" start_row="17" start_column="9" end_row="23" end_column="34" file_ref="1"/>
-                <entry il_offset="0x190" start_row="17" start_column="9" end_row="23" end_column="34" file_ref="1"/>
-                <entry il_offset="0x2dd" start_row="17" start_column="9" end_row="23" end_column="34" file_ref="1"/>
-                <entry il_offset="0x433" start_row="24" start_column="5" end_row="24" end_column="17" file_ref="1"/>
-                <entry il_offset="0x435" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x43d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x459" start_row="24" start_column="5" end_row="24" end_column="17" file_ref="1"/>
-                <entry il_offset="0x463" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x31" start_row="17" start_column="9" end_row="23" end_column="34" file_ref="0"/>
+                <entry il_offset="0xa2" start_row="17" start_column="9" end_row="23" end_column="34" file_ref="0"/>
+                <entry il_offset="0x190" start_row="17" start_column="9" end_row="23" end_column="34" file_ref="0"/>
+                <entry il_offset="0x2dd" start_row="17" start_column="9" end_row="23" end_column="34" file_ref="0"/>
+                <entry il_offset="0x433" start_row="24" start_column="5" end_row="24" end_column="17" file_ref="0"/>
+                <entry il_offset="0x435" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x43d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x459" start_row="24" start_column="5" end_row="24" end_column="17" file_ref="0"/>
+                <entry il_offset="0x463" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x46f" attributes="1"/>
@@ -903,13 +864,10 @@ GetPdbXml(compilation, "Module1.Test"))
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="S" parameterNames="">
             <sequencepoints total="1">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2b">
@@ -922,20 +880,17 @@ GetPdbXml(compilation, "Module1.S"))
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_2_S" name="MoveNext" parameterNames="">
             <sequencepoints total="8">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xa" start_row="27" start_column="9" end_row="27" end_column="25" file_ref="1"/>
-                <entry il_offset="0x6c" start_row="28" start_column="5" end_row="28" end_column="12" file_ref="1"/>
-                <entry il_offset="0x6e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x75" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x90" start_row="28" start_column="5" end_row="28" end_column="12" file_ref="1"/>
-                <entry il_offset="0x9a" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xa" start_row="27" start_column="9" end_row="27" end_column="25" file_ref="0"/>
+                <entry il_offset="0x6c" start_row="28" start_column="5" end_row="28" end_column="12" file_ref="0"/>
+                <entry il_offset="0x6e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x75" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x90" start_row="28" start_column="5" end_row="28" end_column="12" file_ref="0"/>
+                <entry il_offset="0x9a" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xa6" attributes="1"/>
@@ -961,7 +916,7 @@ GetPdbXml(compilation, "Module1+VB$StateMachine_2_S.MoveNext"))
         Public Sub TestInfiniteLoop()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Module Module1
@@ -987,19 +942,16 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
             <sequencepoints total="6">
-                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="1"/>
-                <entry il_offset="0x3" start_row="8" start_column="9" end_row="8" end_column="11" file_ref="1"/>
-                <entry il_offset="0x4" start_row="9" start_column="17" end_row="9" end_column="40" file_ref="1"/>
-                <entry il_offset="0x8" start_row="10" start_column="13" end_row="10" end_column="21" file_ref="1"/>
-                <entry il_offset="0xa" start_row="11" start_column="9" end_row="11" end_column="13" file_ref="1"/>
+                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
+                <entry il_offset="0x3" start_row="8" start_column="9" end_row="8" end_column="11" file_ref="0"/>
+                <entry il_offset="0x4" start_row="9" start_column="17" end_row="9" end_column="40" file_ref="0"/>
+                <entry il_offset="0x8" start_row="10" start_column="13" end_row="10" end_column="21" file_ref="0"/>
+                <entry il_offset="0xa" start_row="11" start_column="9" end_row="11" end_column="13" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0xd" attributes="0"/>
@@ -1025,7 +977,7 @@ End Module
         Public Sub ExtraSequencePointForEndIf()
             Dim source =
 <compilation>
-    <file name="vbrepro.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Public Module MyMod
@@ -1046,26 +998,23 @@ End Module
                     source,
                     OptionsExe.WithOptimizations(False))
 
-            ' By Design (better than Dev10): <entry il_offset="0x19" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="1"/>
+            ' By Design (better than Dev10): <entry il_offset="0x19" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="0"/>
             Dim actual = GetPdbXml(compilation, "MyMod.Main")
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="vbrepro.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="MyMod" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="MyMod" name="Main" parameterNames="args">
             <sequencepoints total="8">
-                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="38" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="37" file_ref="1"/>
-                <entry il_offset="0x9" start_row="7" start_column="13" end_row="7" end_column="38" file_ref="1"/>
-                <entry il_offset="0x14" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x17" start_row="8" start_column="9" end_row="8" end_column="13" file_ref="1"/>
-                <entry il_offset="0x18" start_row="9" start_column="13" end_row="9" end_column="38" file_ref="1"/>
-                <entry il_offset="0x23" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x24" start_row="11" start_column="5" end_row="11" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="38" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="37" file_ref="0"/>
+                <entry il_offset="0x9" start_row="7" start_column="13" end_row="7" end_column="38" file_ref="0"/>
+                <entry il_offset="0x14" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x17" start_row="8" start_column="9" end_row="8" end_column="13" file_ref="0"/>
+                <entry il_offset="0x18" start_row="9" start_column="13" end_row="9" end_column="38" file_ref="0"/>
+                <entry il_offset="0x23" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x24" start_row="11" start_column="5" end_row="11" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x25">
@@ -1084,7 +1033,7 @@ End Module
         Public Sub MissingSequencePointForOptimizedIfThen()
             Dim source =
 <compilation>
-    <file name="vbrepro.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Public Module MyMod
@@ -1116,25 +1065,22 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="vbrepro.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="MyMod" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="MyMod" name="Main" parameterNames="">
             <sequencepoints total="12">
-                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="22" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="31" file_ref="1"/>
-                <entry il_offset="0xc" start_row="8" start_column="9" end_row="8" end_column="28" file_ref="1"/>
-                <entry il_offset="0x14" start_row="9" start_column="13" end_row="9" end_column="35" file_ref="1"/>
-                <entry il_offset="0x1f" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x20" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x21" start_row="12" start_column="9" end_row="12" end_column="29" file_ref="1"/>
-                <entry il_offset="0x29" start_row="13" start_column="13" end_row="13" end_column="36" file_ref="1"/>
-                <entry il_offset="0x34" start_row="14" start_column="9" end_row="14" end_column="15" file_ref="1"/>
-                <entry il_offset="0x35" start_row="14" start_column="9" end_row="14" end_column="15" file_ref="1"/>
-                <entry il_offset="0x36" start_row="16" start_column="9" end_row="16" end_column="31" file_ref="1"/>
-                <entry il_offset="0x41" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="22" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="31" file_ref="0"/>
+                <entry il_offset="0xc" start_row="8" start_column="9" end_row="8" end_column="28" file_ref="0"/>
+                <entry il_offset="0x14" start_row="9" start_column="13" end_row="9" end_column="35" file_ref="0"/>
+                <entry il_offset="0x1f" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x20" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x21" start_row="12" start_column="9" end_row="12" end_column="29" file_ref="0"/>
+                <entry il_offset="0x29" start_row="13" start_column="13" end_row="13" end_column="36" file_ref="0"/>
+                <entry il_offset="0x34" start_row="14" start_column="9" end_row="14" end_column="15" file_ref="0"/>
+                <entry il_offset="0x35" start_row="14" start_column="9" end_row="14" end_column="15" file_ref="0"/>
+                <entry il_offset="0x36" start_row="16" start_column="9" end_row="16" end_column="31" file_ref="0"/>
+                <entry il_offset="0x41" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x42">
@@ -1152,7 +1098,7 @@ End Module
         Public Sub MissingSequencePointForTrivialIfThen()
             Dim source =
 <compilation>
-    <file name="vbrepro.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Module Module1
@@ -1197,32 +1143,29 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="vbrepro.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="19">
-                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="8" start_column="9" end_row="8" end_column="24" file_ref="1"/>
-                <entry il_offset="0x9" start_row="9" start_column="17" end_row="9" end_column="38" file_ref="1"/>
-                <entry il_offset="0xf" start_row="10" start_column="13" end_row="10" end_column="20" file_ref="1"/>
-                <entry il_offset="0x16" start_row="11" start_column="9" end_row="11" end_column="15" file_ref="1"/>
-                <entry il_offset="0x17" start_row="11" start_column="9" end_row="11" end_column="15" file_ref="1"/>
-                <entry il_offset="0x18" start_row="14" start_column="9" end_row="14" end_column="24" file_ref="1"/>
-                <entry il_offset="0x20" start_row="14" start_column="25" end_row="14" end_column="38" file_ref="1"/>
-                <entry il_offset="0x2b" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x2c" start_row="16" start_column="9" end_row="16" end_column="12" file_ref="1"/>
-                <entry il_offset="0x2f" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x36" start_row="17" start_column="9" end_row="17" end_column="30" file_ref="1"/>
-                <entry il_offset="0x3e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x40" start_row="18" start_column="9" end_row="18" end_column="16" file_ref="1"/>
-                <entry il_offset="0x41" start_row="20" start_column="13" end_row="20" end_column="28" file_ref="1"/>
-                <entry il_offset="0x49" start_row="20" start_column="29" end_row="20" end_column="42" file_ref="1"/>
-                <entry il_offset="0x54" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x55" start_row="21" start_column="9" end_row="21" end_column="16" file_ref="1"/>
-                <entry il_offset="0x56" start_row="23" start_column="5" end_row="23" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="8" start_column="9" end_row="8" end_column="24" file_ref="0"/>
+                <entry il_offset="0x9" start_row="9" start_column="17" end_row="9" end_column="38" file_ref="0"/>
+                <entry il_offset="0xf" start_row="10" start_column="13" end_row="10" end_column="20" file_ref="0"/>
+                <entry il_offset="0x16" start_row="11" start_column="9" end_row="11" end_column="15" file_ref="0"/>
+                <entry il_offset="0x17" start_row="11" start_column="9" end_row="11" end_column="15" file_ref="0"/>
+                <entry il_offset="0x18" start_row="14" start_column="9" end_row="14" end_column="24" file_ref="0"/>
+                <entry il_offset="0x20" start_row="14" start_column="25" end_row="14" end_column="38" file_ref="0"/>
+                <entry il_offset="0x2b" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x2c" start_row="16" start_column="9" end_row="16" end_column="12" file_ref="0"/>
+                <entry il_offset="0x2f" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x36" start_row="17" start_column="9" end_row="17" end_column="30" file_ref="0"/>
+                <entry il_offset="0x3e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x40" start_row="18" start_column="9" end_row="18" end_column="16" file_ref="0"/>
+                <entry il_offset="0x41" start_row="20" start_column="13" end_row="20" end_column="28" file_ref="0"/>
+                <entry il_offset="0x49" start_row="20" start_column="29" end_row="20" end_column="42" file_ref="0"/>
+                <entry il_offset="0x54" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x55" start_row="21" start_column="9" end_row="21" end_column="16" file_ref="0"/>
+                <entry il_offset="0x56" start_row="23" start_column="5" end_row="23" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="1" il_start="0x9" il_end="0x16" attributes="0"/>
@@ -1250,7 +1193,7 @@ End Module
         Public Sub MissingEndWhileSequencePoint()
             Dim source =
 <compilation>
-    <file name="vbrepro.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 
@@ -1298,45 +1241,42 @@ End Module
             ' start_row="33"
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="vbrepro.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="MyMod" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="MyMod" name="Main" parameterNames="args">
             <sequencepoints total="32">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="31" file_ref="1"/>
-                <entry il_offset="0x1" start_row="8" start_column="9" end_row="8" end_column="15" file_ref="1"/>
-                <entry il_offset="0x5" start_row="9" start_column="9" end_row="9" end_column="15" file_ref="1"/>
-                <entry il_offset="0x9" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0xd" start_row="11" start_column="9" end_row="11" end_column="14" file_ref="1"/>
-                <entry il_offset="0xf" start_row="12" start_column="9" end_row="12" end_column="14" file_ref="1"/>
-                <entry il_offset="0x12" start_row="13" start_column="9" end_row="13" end_column="14" file_ref="1"/>
-                <entry il_offset="0x15" start_row="14" start_column="13" end_row="14" end_column="32" file_ref="1"/>
-                <entry il_offset="0x19" start_row="15" start_column="9" end_row="15" end_column="11" file_ref="1"/>
-                <entry il_offset="0x1a" start_row="16" start_column="13" end_row="16" end_column="44" file_ref="1"/>
-                <entry il_offset="0x2b" start_row="17" start_column="13" end_row="17" end_column="22" file_ref="1"/>
-                <entry il_offset="0x43" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x48" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x4d" start_row="20" start_column="21" end_row="20" end_column="30" file_ref="1"/>
-                <entry il_offset="0x54" start_row="21" start_column="21" end_row="21" end_column="49" file_ref="1"/>
-                <entry il_offset="0x66" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x68" start_row="23" start_column="25" end_row="23" end_column="53" file_ref="1"/>
-                <entry il_offset="0x79" start_row="24" start_column="25" end_row="24" end_column="27" file_ref="1"/>
-                <entry il_offset="0x7a" start_row="25" start_column="29" end_row="25" end_column="57" file_ref="1"/>
-                <entry il_offset="0x8c" start_row="26" start_column="29" end_row="26" end_column="38" file_ref="1"/>
-                <entry il_offset="0x93" start_row="27" start_column="25" end_row="27" end_column="47" file_ref="1"/>
-                <entry il_offset="0xaf" start_row="28" start_column="25" end_row="28" end_column="34" file_ref="1"/>
-                <entry il_offset="0xc7" start_row="29" start_column="21" end_row="29" end_column="25" file_ref="1"/>
-                <entry il_offset="0xc8" start_row="22" start_column="21" end_row="22" end_column="41" file_ref="1"/>
-                <entry il_offset="0xe0" start_row="30" start_column="17" end_row="30" end_column="21" file_ref="1"/>
-                <entry il_offset="0xe1" start_row="19" start_column="17" end_row="19" end_column="46" file_ref="1"/>
-                <entry il_offset="0xf8" start_row="31" start_column="17" end_row="31" end_column="26" file_ref="1"/>
-                <entry il_offset="0x110" start_row="32" start_column="17" end_row="32" end_column="46" file_ref="1"/>
-                <entry il_offset="0x121" start_row="33" start_column="13" end_row="33" end_column="22" file_ref="1"/>
-                <entry il_offset="0x122" start_row="18" start_column="13" end_row="18" end_column="26" file_ref="1"/>
-                <entry il_offset="0x13f" start_row="34" start_column="9" end_row="34" end_column="28" file_ref="1"/>
-                <entry il_offset="0x15f" start_row="35" start_column="5" end_row="35" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="31" file_ref="0"/>
+                <entry il_offset="0x1" start_row="8" start_column="9" end_row="8" end_column="15" file_ref="0"/>
+                <entry il_offset="0x5" start_row="9" start_column="9" end_row="9" end_column="15" file_ref="0"/>
+                <entry il_offset="0x9" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0xd" start_row="11" start_column="9" end_row="11" end_column="14" file_ref="0"/>
+                <entry il_offset="0xf" start_row="12" start_column="9" end_row="12" end_column="14" file_ref="0"/>
+                <entry il_offset="0x12" start_row="13" start_column="9" end_row="13" end_column="14" file_ref="0"/>
+                <entry il_offset="0x15" start_row="14" start_column="13" end_row="14" end_column="32" file_ref="0"/>
+                <entry il_offset="0x19" start_row="15" start_column="9" end_row="15" end_column="11" file_ref="0"/>
+                <entry il_offset="0x1a" start_row="16" start_column="13" end_row="16" end_column="44" file_ref="0"/>
+                <entry il_offset="0x2b" start_row="17" start_column="13" end_row="17" end_column="22" file_ref="0"/>
+                <entry il_offset="0x43" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x48" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x4d" start_row="20" start_column="21" end_row="20" end_column="30" file_ref="0"/>
+                <entry il_offset="0x54" start_row="21" start_column="21" end_row="21" end_column="49" file_ref="0"/>
+                <entry il_offset="0x66" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x68" start_row="23" start_column="25" end_row="23" end_column="53" file_ref="0"/>
+                <entry il_offset="0x79" start_row="24" start_column="25" end_row="24" end_column="27" file_ref="0"/>
+                <entry il_offset="0x7a" start_row="25" start_column="29" end_row="25" end_column="57" file_ref="0"/>
+                <entry il_offset="0x8c" start_row="26" start_column="29" end_row="26" end_column="38" file_ref="0"/>
+                <entry il_offset="0x93" start_row="27" start_column="25" end_row="27" end_column="47" file_ref="0"/>
+                <entry il_offset="0xaf" start_row="28" start_column="25" end_row="28" end_column="34" file_ref="0"/>
+                <entry il_offset="0xc7" start_row="29" start_column="21" end_row="29" end_column="25" file_ref="0"/>
+                <entry il_offset="0xc8" start_row="22" start_column="21" end_row="22" end_column="41" file_ref="0"/>
+                <entry il_offset="0xe0" start_row="30" start_column="17" end_row="30" end_column="21" file_ref="0"/>
+                <entry il_offset="0xe1" start_row="19" start_column="17" end_row="19" end_column="46" file_ref="0"/>
+                <entry il_offset="0xf8" start_row="31" start_column="17" end_row="31" end_column="26" file_ref="0"/>
+                <entry il_offset="0x110" start_row="32" start_column="17" end_row="32" end_column="46" file_ref="0"/>
+                <entry il_offset="0x121" start_row="33" start_column="13" end_row="33" end_column="22" file_ref="0"/>
+                <entry il_offset="0x122" start_row="18" start_column="13" end_row="18" end_column="26" file_ref="0"/>
+                <entry il_offset="0x13f" start_row="34" start_column="9" end_row="34" end_column="28" file_ref="0"/>
+                <entry il_offset="0x15f" start_row="35" start_column="5" end_row="35" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x160" attributes="0"/>
@@ -1368,7 +1308,7 @@ End Module
         Public Sub LambdaMethod()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Module M1
@@ -1416,20 +1356,17 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="M1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="M1+C1`1+_Closure$__2`2" name="_Lambda$__4" parameterNames="lifted, notLifted">
             <sequencepoints total="7">
-                <entry il_offset="0x0" start_row="16" start_column="17" end_row="16" end_column="61" file_ref="1"/>
-                <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x15" start_row="17" start_column="25" end_row="17" end_column="60" file_ref="1"/>
-                <entry il_offset="0x1e" start_row="18" start_column="21" end_row="18" end_column="43" file_ref="1"/>
-                <entry il_offset="0x25" start_row="20" start_column="25" end_row="24" end_column="32" file_ref="1"/>
-                <entry il_offset="0x32" start_row="26" start_column="21" end_row="26" end_column="33" file_ref="1"/>
-                <entry il_offset="0x3f" start_row="27" start_column="17" end_row="27" end_column="24" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="17" end_row="16" end_column="61" file_ref="0"/>
+                <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x15" start_row="17" start_column="25" end_row="17" end_column="60" file_ref="0"/>
+                <entry il_offset="0x1e" start_row="18" start_column="21" end_row="18" end_column="43" file_ref="0"/>
+                <entry il_offset="0x25" start_row="20" start_column="25" end_row="24" end_column="32" file_ref="0"/>
+                <entry il_offset="0x32" start_row="26" start_column="21" end_row="26" end_column="33" file_ref="0"/>
+                <entry il_offset="0x3f" start_row="27" start_column="17" end_row="27" end_column="24" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="$VB$Closure_5" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
@@ -1453,7 +1390,7 @@ End Module
         Public Sub TestImplicitLocals()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Option Explicit Off
 Option Strict On
 Imports System
@@ -1482,25 +1419,22 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="12">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="20" file_ref="1"/>
-                <entry il_offset="0x7" start_row="8" start_column="13" end_row="8" end_column="34" file_ref="1"/>
-                <entry il_offset="0xd" start_row="9" start_column="9" end_row="9" end_column="15" file_ref="1"/>
-                <entry il_offset="0xf" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x11" start_row="11" start_column="13" end_row="11" end_column="48" file_ref="1"/>
-                <entry il_offset="0x23" start_row="12" start_column="13" end_row="12" end_column="33" file_ref="1"/>
-                <entry il_offset="0x2a" start_row="13" start_column="13" end_row="13" end_column="26" file_ref="1"/>
-                <entry il_offset="0x30" start_row="14" start_column="13" end_row="14" end_column="23" file_ref="1"/>
-                <entry il_offset="0x34" start_row="15" start_column="9" end_row="15" end_column="18" file_ref="1"/>
-                <entry il_offset="0x35" start_row="10" start_column="9" end_row="10" end_column="20" file_ref="1"/>
-                <entry il_offset="0x3f" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="20" file_ref="0"/>
+                <entry il_offset="0x7" start_row="8" start_column="13" end_row="8" end_column="34" file_ref="0"/>
+                <entry il_offset="0xd" start_row="9" start_column="9" end_row="9" end_column="15" file_ref="0"/>
+                <entry il_offset="0xf" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x11" start_row="11" start_column="13" end_row="11" end_column="48" file_ref="0"/>
+                <entry il_offset="0x23" start_row="12" start_column="13" end_row="12" end_column="33" file_ref="0"/>
+                <entry il_offset="0x2a" start_row="13" start_column="13" end_row="13" end_column="26" file_ref="0"/>
+                <entry il_offset="0x30" start_row="14" start_column="13" end_row="14" end_column="23" file_ref="0"/>
+                <entry il_offset="0x34" start_row="15" start_column="9" end_row="15" end_column="18" file_ref="0"/>
+                <entry il_offset="0x35" start_row="10" start_column="9" end_row="10" end_column="20" file_ref="0"/>
+                <entry il_offset="0x3f" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
@@ -1527,7 +1461,7 @@ End Module
         Public Sub AddRemoveHandler()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Module Module1
@@ -1554,20 +1488,17 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
             <sequencepoints total="7">
-                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x1" start_row="5" start_column="13" end_row="6" end_column="74" file_ref="1"/>
-                <entry il_offset="0x22" start_row="8" start_column="13" end_row="8" end_column="45" file_ref="1"/>
-                <entry il_offset="0x2d" start_row="10" start_column="9" end_row="10" end_column="41" file_ref="1"/>
-                <entry il_offset="0x35" start_row="11" start_column="9" end_row="11" end_column="44" file_ref="1"/>
-                <entry il_offset="0x3d" start_row="13" start_column="9" end_row="13" end_column="28" file_ref="1"/>
-                <entry il_offset="0x44" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x1" start_row="5" start_column="13" end_row="6" end_column="74" file_ref="0"/>
+                <entry il_offset="0x22" start_row="8" start_column="13" end_row="8" end_column="45" file_ref="0"/>
+                <entry il_offset="0x2d" start_row="10" start_column="9" end_row="10" end_column="41" file_ref="0"/>
+                <entry il_offset="0x35" start_row="11" start_column="9" end_row="11" end_column="44" file_ref="0"/>
+                <entry il_offset="0x3d" start_row="13" start_column="9" end_row="13" end_column="28" file_ref="0"/>
+                <entry il_offset="0x44" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="del" il_index="0" il_start="0x0" il_end="0x45" attributes="0"/>
@@ -1590,7 +1521,7 @@ End Module
         Public Sub SelectCase_NoCaseBlocks()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module Module1
     Sub Main()
@@ -1608,18 +1539,15 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="5">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="1"/>
-                <entry il_offset="0x4" start_row="6" start_column="9" end_row="6" end_column="19" file_ref="1"/>
-                <entry il_offset="0x5" start_row="7" start_column="5" end_row="7" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="0"/>
+                <entry il_offset="0x4" start_row="6" start_column="9" end_row="6" end_column="19" file_ref="0"/>
+                <entry il_offset="0x5" start_row="7" start_column="5" end_row="7" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="num" il_index="0" il_start="0x0" il_end="0x6" attributes="0"/>
@@ -1643,7 +1571,7 @@ End Module
         Public Sub SelectCase_SingleCaseStatement()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module Module1
     Sub Main()
@@ -1666,22 +1594,19 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="9">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="1"/>
-                <entry il_offset="0xa" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="1"/>
-                <entry il_offset="0xd" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="9" start_column="9" end_row="9" end_column="24" file_ref="1"/>
-                <entry il_offset="0x11" start_row="10" start_column="13" end_row="10" end_column="22" file_ref="1"/>
-                <entry il_offset="0x14" start_row="11" start_column="9" end_row="11" end_column="19" file_ref="1"/>
-                <entry il_offset="0x15" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="0"/>
+                <entry il_offset="0xa" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="0"/>
+                <entry il_offset="0xd" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="9" start_column="9" end_row="9" end_column="24" file_ref="0"/>
+                <entry il_offset="0x11" start_row="10" start_column="13" end_row="10" end_column="22" file_ref="0"/>
+                <entry il_offset="0x14" start_row="11" start_column="9" end_row="11" end_column="19" file_ref="0"/>
+                <entry il_offset="0x15" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="num" il_index="0" il_start="0x0" il_end="0x16" attributes="0"/>
@@ -1705,7 +1630,7 @@ End Module
         Public Sub SelectCase_OnlyCaseStatements()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module Module1
     Sub Main()
@@ -1727,22 +1652,19 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="9">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="1"/>
-                <entry il_offset="0x6" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="1"/>
-                <entry il_offset="0x13" start_row="7" start_column="13" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0x20" start_row="8" start_column="13" end_row="8" end_column="27" file_ref="1"/>
-                <entry il_offset="0x37" start_row="9" start_column="13" end_row="9" end_column="22" file_ref="1"/>
-                <entry il_offset="0x38" start_row="10" start_column="9" end_row="10" end_column="19" file_ref="1"/>
-                <entry il_offset="0x39" start_row="11" start_column="5" end_row="11" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="0"/>
+                <entry il_offset="0x6" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="0"/>
+                <entry il_offset="0x13" start_row="7" start_column="13" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0x20" start_row="8" start_column="13" end_row="8" end_column="27" file_ref="0"/>
+                <entry il_offset="0x37" start_row="9" start_column="13" end_row="9" end_column="22" file_ref="0"/>
+                <entry il_offset="0x38" start_row="10" start_column="9" end_row="10" end_column="19" file_ref="0"/>
+                <entry il_offset="0x39" start_row="11" start_column="5" end_row="11" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="num" il_index="0" il_start="0x0" il_end="0x3a" attributes="0"/>
@@ -1766,7 +1688,7 @@ End Module
         Public Sub SelectCase_SwitchTable()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module Module1
     Sub Main()
@@ -1791,25 +1713,22 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="12">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="1"/>
-                <entry il_offset="0x30" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="1"/>
-                <entry il_offset="0x31" start_row="7" start_column="17" end_row="7" end_column="39" file_ref="1"/>
-                <entry il_offset="0x3e" start_row="8" start_column="13" end_row="8" end_column="19" file_ref="1"/>
-                <entry il_offset="0x3f" start_row="9" start_column="17" end_row="9" end_column="39" file_ref="1"/>
-                <entry il_offset="0x4c" start_row="10" start_column="13" end_row="10" end_column="42" file_ref="1"/>
-                <entry il_offset="0x4f" start_row="11" start_column="13" end_row="11" end_column="22" file_ref="1"/>
-                <entry il_offset="0x50" start_row="12" start_column="17" end_row="12" end_column="42" file_ref="1"/>
-                <entry il_offset="0x5d" start_row="13" start_column="9" end_row="13" end_column="19" file_ref="1"/>
-                <entry il_offset="0x5e" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="0"/>
+                <entry il_offset="0x30" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="0"/>
+                <entry il_offset="0x31" start_row="7" start_column="17" end_row="7" end_column="39" file_ref="0"/>
+                <entry il_offset="0x3e" start_row="8" start_column="13" end_row="8" end_column="19" file_ref="0"/>
+                <entry il_offset="0x3f" start_row="9" start_column="17" end_row="9" end_column="39" file_ref="0"/>
+                <entry il_offset="0x4c" start_row="10" start_column="13" end_row="10" end_column="42" file_ref="0"/>
+                <entry il_offset="0x4f" start_row="11" start_column="13" end_row="11" end_column="22" file_ref="0"/>
+                <entry il_offset="0x50" start_row="12" start_column="17" end_row="12" end_column="42" file_ref="0"/>
+                <entry il_offset="0x5d" start_row="13" start_column="9" end_row="13" end_column="19" file_ref="0"/>
+                <entry il_offset="0x5e" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="num" il_index="0" il_start="0x0" il_end="0x5f" attributes="0"/>
@@ -1833,7 +1752,7 @@ End Module
         Public Sub SelectCase_SwitchTable_TempUsed()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module Module1
     Sub Main()
@@ -1859,26 +1778,23 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="13">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="28" file_ref="1"/>
-                <entry il_offset="0x34" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="1"/>
-                <entry il_offset="0x35" start_row="7" start_column="17" end_row="7" end_column="38" file_ref="1"/>
-                <entry il_offset="0x42" start_row="8" start_column="13" end_row="8" end_column="19" file_ref="1"/>
-                <entry il_offset="0x43" start_row="9" start_column="17" end_row="9" end_column="39" file_ref="1"/>
-                <entry il_offset="0x50" start_row="10" start_column="13" end_row="10" end_column="42" file_ref="1"/>
-                <entry il_offset="0x51" start_row="11" start_column="17" end_row="11" end_column="39" file_ref="1"/>
-                <entry il_offset="0x5e" start_row="12" start_column="13" end_row="12" end_column="22" file_ref="1"/>
-                <entry il_offset="0x5f" start_row="13" start_column="17" end_row="13" end_column="42" file_ref="1"/>
-                <entry il_offset="0x6c" start_row="14" start_column="9" end_row="14" end_column="19" file_ref="1"/>
-                <entry il_offset="0x6d" start_row="15" start_column="5" end_row="15" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="28" file_ref="0"/>
+                <entry il_offset="0x34" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="0"/>
+                <entry il_offset="0x35" start_row="7" start_column="17" end_row="7" end_column="38" file_ref="0"/>
+                <entry il_offset="0x42" start_row="8" start_column="13" end_row="8" end_column="19" file_ref="0"/>
+                <entry il_offset="0x43" start_row="9" start_column="17" end_row="9" end_column="39" file_ref="0"/>
+                <entry il_offset="0x50" start_row="10" start_column="13" end_row="10" end_column="42" file_ref="0"/>
+                <entry il_offset="0x51" start_row="11" start_column="17" end_row="11" end_column="39" file_ref="0"/>
+                <entry il_offset="0x5e" start_row="12" start_column="13" end_row="12" end_column="22" file_ref="0"/>
+                <entry il_offset="0x5f" start_row="13" start_column="17" end_row="13" end_column="42" file_ref="0"/>
+                <entry il_offset="0x6c" start_row="14" start_column="9" end_row="14" end_column="19" file_ref="0"/>
+                <entry il_offset="0x6d" start_row="15" start_column="5" end_row="15" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="num" il_index="0" il_start="0x0" il_end="0x6e" attributes="0"/>
@@ -1902,7 +1818,7 @@ End Module
         Public Sub SelectCase_IfList()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module Module1
     Sub Main()
@@ -1927,24 +1843,21 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="11">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="1"/>
-                <entry il_offset="0x6" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="1"/>
-                <entry il_offset="0x11" start_row="7" start_column="17" end_row="7" end_column="39" file_ref="1"/>
-                <entry il_offset="0x1e" start_row="8" start_column="13" end_row="8" end_column="19" file_ref="1"/>
-                <entry il_offset="0x29" start_row="9" start_column="17" end_row="9" end_column="39" file_ref="1"/>
-                <entry il_offset="0x36" start_row="10" start_column="13" end_row="10" end_column="31" file_ref="1"/>
-                <entry il_offset="0x4a" start_row="12" start_column="17" end_row="12" end_column="42" file_ref="1"/>
-                <entry il_offset="0x55" start_row="13" start_column="9" end_row="13" end_column="19" file_ref="1"/>
-                <entry il_offset="0x56" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="0"/>
+                <entry il_offset="0x6" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="0"/>
+                <entry il_offset="0x11" start_row="7" start_column="17" end_row="7" end_column="39" file_ref="0"/>
+                <entry il_offset="0x1e" start_row="8" start_column="13" end_row="8" end_column="19" file_ref="0"/>
+                <entry il_offset="0x29" start_row="9" start_column="17" end_row="9" end_column="39" file_ref="0"/>
+                <entry il_offset="0x36" start_row="10" start_column="13" end_row="10" end_column="31" file_ref="0"/>
+                <entry il_offset="0x4a" start_row="12" start_column="17" end_row="12" end_column="42" file_ref="0"/>
+                <entry il_offset="0x55" start_row="13" start_column="9" end_row="13" end_column="19" file_ref="0"/>
+                <entry il_offset="0x56" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="num" il_index="0" il_start="0x0" il_end="0x57" attributes="0"/>
@@ -1968,7 +1881,7 @@ End Module
         Public Sub SelectCase_IfList_TempUsed()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module Module1
     Sub Main()
@@ -1994,25 +1907,22 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="12">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="28" file_ref="1"/>
-                <entry il_offset="0x8" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="1"/>
-                <entry il_offset="0x13" start_row="7" start_column="17" end_row="7" end_column="38" file_ref="1"/>
-                <entry il_offset="0x20" start_row="8" start_column="13" end_row="8" end_column="19" file_ref="1"/>
-                <entry il_offset="0x2b" start_row="9" start_column="17" end_row="9" end_column="39" file_ref="1"/>
-                <entry il_offset="0x38" start_row="10" start_column="13" end_row="10" end_column="31" file_ref="1"/>
-                <entry il_offset="0x4a" start_row="11" start_column="17" end_row="11" end_column="39" file_ref="1"/>
-                <entry il_offset="0x57" start_row="13" start_column="17" end_row="13" end_column="42" file_ref="1"/>
-                <entry il_offset="0x62" start_row="14" start_column="9" end_row="14" end_column="19" file_ref="1"/>
-                <entry il_offset="0x63" start_row="15" start_column="5" end_row="15" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x3" start_row="5" start_column="9" end_row="5" end_column="28" file_ref="0"/>
+                <entry il_offset="0x8" start_row="6" start_column="13" end_row="6" end_column="19" file_ref="0"/>
+                <entry il_offset="0x13" start_row="7" start_column="17" end_row="7" end_column="38" file_ref="0"/>
+                <entry il_offset="0x20" start_row="8" start_column="13" end_row="8" end_column="19" file_ref="0"/>
+                <entry il_offset="0x2b" start_row="9" start_column="17" end_row="9" end_column="39" file_ref="0"/>
+                <entry il_offset="0x38" start_row="10" start_column="13" end_row="10" end_column="31" file_ref="0"/>
+                <entry il_offset="0x4a" start_row="11" start_column="17" end_row="11" end_column="39" file_ref="0"/>
+                <entry il_offset="0x57" start_row="13" start_column="17" end_row="13" end_column="42" file_ref="0"/>
+                <entry il_offset="0x62" start_row="14" start_column="9" end_row="14" end_column="19" file_ref="0"/>
+                <entry il_offset="0x63" start_row="15" start_column="5" end_row="15" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="num" il_index="0" il_start="0x0" il_end="0x64" attributes="0"/>
@@ -2036,7 +1946,7 @@ End Module
         Public Sub SelectCase_String_SwitchTable_Hash()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module Module1
     Sub Main()
@@ -2061,25 +1971,22 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="12">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="33" file_ref="1"/>
-                <entry il_offset="0x7" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="1"/>
-                <entry il_offset="0x135" start_row="6" start_column="13" end_row="6" end_column="22" file_ref="1"/>
-                <entry il_offset="0x136" start_row="7" start_column="17" end_row="7" end_column="40" file_ref="1"/>
-                <entry il_offset="0x143" start_row="8" start_column="13" end_row="8" end_column="22" file_ref="1"/>
-                <entry il_offset="0x144" start_row="9" start_column="17" end_row="9" end_column="40" file_ref="1"/>
-                <entry il_offset="0x151" start_row="10" start_column="13" end_row="10" end_column="58" file_ref="1"/>
-                <entry il_offset="0x154" start_row="11" start_column="13" end_row="11" end_column="22" file_ref="1"/>
-                <entry il_offset="0x155" start_row="12" start_column="17" end_row="12" end_column="42" file_ref="1"/>
-                <entry il_offset="0x162" start_row="13" start_column="9" end_row="13" end_column="19" file_ref="1"/>
-                <entry il_offset="0x163" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="33" file_ref="0"/>
+                <entry il_offset="0x7" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="0"/>
+                <entry il_offset="0x135" start_row="6" start_column="13" end_row="6" end_column="22" file_ref="0"/>
+                <entry il_offset="0x136" start_row="7" start_column="17" end_row="7" end_column="40" file_ref="0"/>
+                <entry il_offset="0x143" start_row="8" start_column="13" end_row="8" end_column="22" file_ref="0"/>
+                <entry il_offset="0x144" start_row="9" start_column="17" end_row="9" end_column="40" file_ref="0"/>
+                <entry il_offset="0x151" start_row="10" start_column="13" end_row="10" end_column="58" file_ref="0"/>
+                <entry il_offset="0x154" start_row="11" start_column="13" end_row="11" end_column="22" file_ref="0"/>
+                <entry il_offset="0x155" start_row="12" start_column="17" end_row="12" end_column="42" file_ref="0"/>
+                <entry il_offset="0x162" start_row="13" start_column="9" end_row="13" end_column="19" file_ref="0"/>
+                <entry il_offset="0x163" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="str" il_index="0" il_start="0x0" il_end="0x164" attributes="0"/>
@@ -2103,7 +2010,7 @@ End Module
         Public Sub SelectCase_String_SwitchTable_NonHash()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module Module1
     Sub Main()
@@ -2127,24 +2034,21 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="11">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="33" file_ref="1"/>
-                <entry il_offset="0x7" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="1"/>
-                <entry il_offset="0x34" start_row="6" start_column="13" end_row="6" end_column="22" file_ref="1"/>
-                <entry il_offset="0x35" start_row="7" start_column="17" end_row="7" end_column="40" file_ref="1"/>
-                <entry il_offset="0x42" start_row="8" start_column="13" end_row="8" end_column="22" file_ref="1"/>
-                <entry il_offset="0x45" start_row="9" start_column="13" end_row="9" end_column="22" file_ref="1"/>
-                <entry il_offset="0x46" start_row="10" start_column="17" end_row="10" end_column="40" file_ref="1"/>
-                <entry il_offset="0x53" start_row="11" start_column="13" end_row="11" end_column="22" file_ref="1"/>
-                <entry il_offset="0x56" start_row="12" start_column="9" end_row="12" end_column="19" file_ref="1"/>
-                <entry il_offset="0x57" start_row="13" start_column="5" end_row="13" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="33" file_ref="0"/>
+                <entry il_offset="0x7" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="0"/>
+                <entry il_offset="0x34" start_row="6" start_column="13" end_row="6" end_column="22" file_ref="0"/>
+                <entry il_offset="0x35" start_row="7" start_column="17" end_row="7" end_column="40" file_ref="0"/>
+                <entry il_offset="0x42" start_row="8" start_column="13" end_row="8" end_column="22" file_ref="0"/>
+                <entry il_offset="0x45" start_row="9" start_column="13" end_row="9" end_column="22" file_ref="0"/>
+                <entry il_offset="0x46" start_row="10" start_column="17" end_row="10" end_column="40" file_ref="0"/>
+                <entry il_offset="0x53" start_row="11" start_column="13" end_row="11" end_column="22" file_ref="0"/>
+                <entry il_offset="0x56" start_row="12" start_column="9" end_row="12" end_column="19" file_ref="0"/>
+                <entry il_offset="0x57" start_row="13" start_column="5" end_row="13" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="str" il_index="0" il_start="0x0" il_end="0x58" attributes="0"/>
@@ -2168,7 +2072,7 @@ End Module
         Public Sub SelectCase_String_IfList()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module Module1
     Sub Main()
@@ -2191,23 +2095,20 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="10">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="33" file_ref="1"/>
-                <entry il_offset="0x7" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="1"/>
-                <entry il_offset="0xa" start_row="6" start_column="13" end_row="6" end_column="22" file_ref="1"/>
-                <entry il_offset="0x1d" start_row="7" start_column="17" end_row="7" end_column="40" file_ref="1"/>
-                <entry il_offset="0x2a" start_row="8" start_column="13" end_row="8" end_column="36" file_ref="1"/>
-                <entry il_offset="0x54" start_row="9" start_column="13" end_row="9" end_column="22" file_ref="1"/>
-                <entry il_offset="0x67" start_row="10" start_column="17" end_row="10" end_column="40" file_ref="1"/>
-                <entry il_offset="0x72" start_row="11" start_column="9" end_row="11" end_column="19" file_ref="1"/>
-                <entry il_offset="0x73" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="13" end_row="4" end_column="33" file_ref="0"/>
+                <entry il_offset="0x7" start_row="5" start_column="9" end_row="5" end_column="24" file_ref="0"/>
+                <entry il_offset="0xa" start_row="6" start_column="13" end_row="6" end_column="22" file_ref="0"/>
+                <entry il_offset="0x1d" start_row="7" start_column="17" end_row="7" end_column="40" file_ref="0"/>
+                <entry il_offset="0x2a" start_row="8" start_column="13" end_row="8" end_column="36" file_ref="0"/>
+                <entry il_offset="0x54" start_row="9" start_column="13" end_row="9" end_column="22" file_ref="0"/>
+                <entry il_offset="0x67" start_row="10" start_column="17" end_row="10" end_column="40" file_ref="0"/>
+                <entry il_offset="0x72" start_row="11" start_column="9" end_row="11" end_column="19" file_ref="0"/>
+                <entry il_offset="0x73" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="str" il_index="0" il_start="0x0" il_end="0x74" attributes="0"/>
@@ -2231,7 +2132,7 @@ End Module
         Public Sub DontEmit_AnonymousType_NoKeys()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Class C1
     Sub Method()
         Dim o = New With { .a = 1 }
@@ -2246,15 +2147,12 @@ End Class
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="C1" name="Method" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="17" file_ref="1"/>
-                <entry il_offset="0x1" start_row="3" start_column="13" end_row="3" end_column="36" file_ref="1"/>
-                <entry il_offset="0x8" start_row="4" start_column="5" end_row="4" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="17" file_ref="0"/>
+                <entry il_offset="0x1" start_row="3" start_column="13" end_row="3" end_column="36" file_ref="0"/>
+                <entry il_offset="0x8" start_row="4" start_column="5" end_row="4" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
@@ -2274,7 +2172,7 @@ End Class
         Public Sub DontEmit_AnonymousType_WithKeys()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Class C1
     Sub Method()
         Dim o = New With { Key .a = 1 }
@@ -2289,15 +2187,12 @@ End Class
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="C1" name="Method" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="17" file_ref="1"/>
-                <entry il_offset="0x1" start_row="3" start_column="13" end_row="3" end_column="40" file_ref="1"/>
-                <entry il_offset="0x8" start_row="4" start_column="5" end_row="4" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="17" file_ref="0"/>
+                <entry il_offset="0x1" start_row="3" start_column="13" end_row="3" end_column="40" file_ref="0"/>
+                <entry il_offset="0x8" start_row="4" start_column="5" end_row="4" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
@@ -2318,7 +2213,7 @@ End Class
         Public Sub Bug727419()
             Dim source =
 <compilation>
-    <file name="vbrepro.vb"><![CDATA[
+    <file><![CDATA[
 Option Strict Off
 Option Explicit Off
 Imports System
@@ -2364,25 +2259,22 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="vbrepro.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="Variety" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="FooDerived" name="ComputeMatrix" parameterNames="rank">
             <sequencepoints total="12">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="52" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="15" end_row="14" end_column="22" file_ref="1"/>
-                <entry il_offset="0xa" start_row="15" start_column="15" end_row="15" end_column="25" file_ref="1"/>
-                <entry il_offset="0x14" start_row="18" start_column="9" end_row="18" end_column="18" file_ref="1"/>
-                <entry il_offset="0x17" start_row="19" start_column="9" end_row="19" end_column="30" file_ref="1"/>
-                <entry il_offset="0x1e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x20" start_row="20" start_column="13" end_row="20" end_column="21" file_ref="1"/>
-                <entry il_offset="0x25" start_row="21" start_column="13" end_row="21" end_column="34" file_ref="1"/>
-                <entry il_offset="0x3f" start_row="22" start_column="13" end_row="22" end_column="29" file_ref="1"/>
-                <entry il_offset="0x46" start_row="23" start_column="9" end_row="23" end_column="15" file_ref="1"/>
-                <entry il_offset="0x4a" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x58" start_row="24" start_column="5" end_row="24" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="52" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="15" end_row="14" end_column="22" file_ref="0"/>
+                <entry il_offset="0xa" start_row="15" start_column="15" end_row="15" end_column="25" file_ref="0"/>
+                <entry il_offset="0x14" start_row="18" start_column="9" end_row="18" end_column="18" file_ref="0"/>
+                <entry il_offset="0x17" start_row="19" start_column="9" end_row="19" end_column="30" file_ref="0"/>
+                <entry il_offset="0x1e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x20" start_row="20" start_column="13" end_row="20" end_column="21" file_ref="0"/>
+                <entry il_offset="0x25" start_row="21" start_column="13" end_row="21" end_column="34" file_ref="0"/>
+                <entry il_offset="0x3f" start_row="22" start_column="13" end_row="22" end_column="29" file_ref="0"/>
+                <entry il_offset="0x46" start_row="23" start_column="9" end_row="23" end_column="15" file_ref="0"/>
+                <entry il_offset="0x4a" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x58" start_row="24" start_column="5" end_row="24" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="I" il_index="0" il_start="0x0" il_end="0x59" attributes="0"/>
@@ -2418,7 +2310,7 @@ End Module
         Public Sub Bug722627()
             Dim source =
 <compilation>
-    <file name="vbrepro.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Friend Module SubMod
     Sub Main()
@@ -2441,21 +2333,18 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="vbrepro.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <entryPoint declaringType="SubMod" methodName="Main" parameterNames=""/>
     <methods>
         <method containingType="SubMod" name="Main" parameterNames="">
             <sequencepoints total="8">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="1" end_row="4" end_column="4" file_ref="1"/>
-                <entry il_offset="0x2" start_row="5" start_column="9" end_row="5" end_column="16" file_ref="1"/>
-                <entry il_offset="0x4" start_row="6" start_column="1" end_row="6" end_column="4" file_ref="1"/>
-                <entry il_offset="0x5" start_row="7" start_column="9" end_row="7" end_column="17" file_ref="1"/>
-                <entry il_offset="0x7" start_row="8" start_column="1" end_row="8" end_column="4" file_ref="1"/>
-                <entry il_offset="0x8" start_row="9" start_column="9" end_row="9" end_column="16" file_ref="1"/>
-                <entry il_offset="0xa" start_row="10" start_column="5" end_row="10" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="1" end_row="4" end_column="4" file_ref="0"/>
+                <entry il_offset="0x2" start_row="5" start_column="9" end_row="5" end_column="16" file_ref="0"/>
+                <entry il_offset="0x4" start_row="6" start_column="1" end_row="6" end_column="4" file_ref="0"/>
+                <entry il_offset="0x5" start_row="7" start_column="9" end_row="7" end_column="17" file_ref="0"/>
+                <entry il_offset="0x7" start_row="8" start_column="1" end_row="8" end_column="4" file_ref="0"/>
+                <entry il_offset="0x8" start_row="9" start_column="9" end_row="9" end_column="16" file_ref="0"/>
+                <entry il_offset="0xa" start_row="10" start_column="5" end_row="10" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xb">
@@ -2475,7 +2364,7 @@ End Module
         Public Sub DontIncludeMethodAttributesInSeqPoint()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module M1
     Sub Main()
@@ -2496,15 +2385,12 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="M1" name="Main" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="9" end_row="4" end_column="12" file_ref="1"/>
-                <entry il_offset="0x7" start_row="5" start_column="5" end_row="5" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="9" end_row="4" end_column="12" file_ref="0"/>
+                <entry il_offset="0x7" start_row="5" start_column="5" end_row="5" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x8">
@@ -2514,8 +2400,8 @@ End Module
         </method>
         <method containingType="M1" name="S" parameterNames="">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="9" start_column="5" end_row="9" end_column="19" file_ref="1"/>
-                <entry il_offset="0x1" start_row="11" start_column="5" end_row="11" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="9" start_column="5" end_row="9" end_column="19" file_ref="0"/>
+                <entry il_offset="0x1" start_row="11" start_column="5" end_row="11" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -2533,7 +2419,7 @@ End Module
         Public Sub DontShowOperatorNameCTypeInLocals()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Module Module1
@@ -2563,16 +2449,13 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="17" start_column="5" end_row="17" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="18" start_column="13" end_row="18" end_column="30" file_ref="1"/>
-                <entry il_offset="0x4" start_row="19" start_column="13" end_row="19" end_column="25" file_ref="1"/>
-                <entry il_offset="0xb" start_row="20" start_column="5" end_row="20" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="17" start_column="5" end_row="17" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="18" start_column="13" end_row="18" end_column="30" file_ref="0"/>
+                <entry il_offset="0x4" start_row="19" start_column="13" end_row="19" end_column="25" file_ref="0"/>
+                <entry il_offset="0xb" start_row="20" start_column="5" end_row="20" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
@@ -2587,9 +2470,9 @@ End Module
         </method>
         <method containingType="Module1+B2" name="op_Implicit" parameterNames="x">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="12" start_column="9" end_row="12" end_column="59" file_ref="1"/>
-                <entry il_offset="0x1" start_row="13" start_column="13" end_row="13" end_column="29" file_ref="1"/>
-                <entry il_offset="0xa" start_row="14" start_column="9" end_row="14" end_column="21" file_ref="1"/>
+                <entry il_offset="0x0" start_row="12" start_column="9" end_row="12" end_column="59" file_ref="0"/>
+                <entry il_offset="0x1" start_row="13" start_column="13" end_row="13" end_column="29" file_ref="0"/>
+                <entry il_offset="0xa" start_row="14" start_column="9" end_row="14" end_column="21" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="VB$op_Implicit" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
@@ -2601,9 +2484,9 @@ End Module
         </method>
         <method containingType="Module1+B2" name=".ctor" parameterNames="x">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="8" start_column="9" end_row="8" end_column="37" file_ref="1"/>
-                <entry il_offset="0x7" start_row="9" start_column="13" end_row="9" end_column="18" file_ref="1"/>
-                <entry il_offset="0xe" start_row="10" start_column="9" end_row="10" end_column="16" file_ref="1"/>
+                <entry il_offset="0x0" start_row="8" start_column="9" end_row="8" end_column="37" file_ref="0"/>
+                <entry il_offset="0x7" start_row="9" start_column="13" end_row="9" end_column="18" file_ref="0"/>
+                <entry il_offset="0xe" start_row="10" start_column="9" end_row="10" end_column="16" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xf">
@@ -2622,7 +2505,7 @@ End Module
         Public Sub TestLambdaNameStability()
             Dim source =
             <compilation>
-                <file name="a.vb">
+                <file>
 Imports System 
 Public Class C
     Public Sub M(a as action)
@@ -2648,7 +2531,7 @@ end class
         Public Sub TestFunctionValueLocalOfLambdas()
             Dim source =
             <compilation>
-                <file name="a.vb">
+                <file>
 Module Module1
 
     Sub Main()
@@ -2665,17 +2548,14 @@ End Module
             Dim actual As XElement = GetPdbXml(compilation, "Module1._Lambda$__1")
 
             Dim expected = <symbols>
-                               <files>
-                                   <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                               </files>
                                <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
                                <methods>
                                    <method containingType="Module1" name="_Lambda$__1" parameterNames="">
                                        <sequencepoints total="4">
-                                           <entry il_offset="0x0" start_row="5" start_column="17" end_row="5" end_column="27" file_ref="1"/>
-                                           <entry il_offset="0x1" start_row="6" start_column="25" end_row="6" end_column="31" file_ref="1"/>
-                                           <entry il_offset="0x4" start_row="7" start_column="21" end_row="7" end_column="29" file_ref="1"/>
-                                           <entry il_offset="0x8" start_row="8" start_column="12" end_row="8" end_column="24" file_ref="1"/>
+                                           <entry il_offset="0x0" start_row="5" start_column="17" end_row="5" end_column="27" file_ref="0"/>
+                                           <entry il_offset="0x1" start_row="6" start_column="25" end_row="6" end_column="31" file_ref="0"/>
+                                           <entry il_offset="0x4" start_row="7" start_column="21" end_row="7" end_column="29" file_ref="0"/>
+                                           <entry il_offset="0x8" start_row="8" start_column="12" end_row="8" end_column="24" file_ref="0"/>
                                        </sequencepoints>
                                        <locals>
                                            <local name="_Lambda$__1" il_index="0" il_start="0x0" il_end="0xa" attributes="0"/>
@@ -2698,7 +2578,7 @@ End Module
         Public Sub Bug760994()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Class CLAZZ
@@ -2729,16 +2609,13 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="CLAZZ" name=".ctor" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="8" start_column="5" end_row="8" end_column="21" file_ref="1"/>
-                <entry il_offset="0x1a" start_row="4" start_column="12" end_row="4" end_column="31" file_ref="1"/>
-                <entry il_offset="0x21" start_row="6" start_column="12" end_row="6" end_column="31" file_ref="1"/>
-                <entry il_offset="0x28" start_row="10" start_column="5" end_row="10" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="8" start_column="5" end_row="8" end_column="21" file_ref="0"/>
+                <entry il_offset="0x1a" start_row="4" start_column="12" end_row="4" end_column="31" file_ref="0"/>
+                <entry il_offset="0x21" start_row="6" start_column="12" end_row="6" end_column="31" file_ref="0"/>
+                <entry il_offset="0x28" start_row="10" start_column="5" end_row="10" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x29">
@@ -2758,7 +2635,7 @@ End Module
 
             Dim source =
             <compilation>
-                <file name="a.vb">
+                <file>
 Imports System
 
 Module Module1
@@ -2804,7 +2681,7 @@ End Module
         Public Sub NoDebugInfoForEmbeddedSymbols()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Imports Microsoft.VisualBasic.Strings
 
 Public Class C
@@ -2826,15 +2703,12 @@ End Class
 
             Dim expected =
                <symbols>
-                   <files>
-                       <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-                   </files>
                    <methods>
                        <method containingType="C" name="F" parameterNames="z">
                            <sequencepoints total="3">
-                               <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="51" file_ref="1"/>
-                               <entry il_offset="0x1" start_row="5" start_column="9" end_row="5" end_column="23" file_ref="1"/>
-                               <entry il_offset="0xa" start_row="6" start_column="5" end_row="6" end_column="17" file_ref="1"/>
+                               <entry il_offset="0x0" start_row="4" start_column="5" end_row="4" end_column="51" file_ref="0"/>
+                               <entry il_offset="0x1" start_row="5" start_column="9" end_row="5" end_column="23" file_ref="0"/>
+                               <entry il_offset="0xa" start_row="6" start_column="5" end_row="6" end_column="17" file_ref="0"/>
                            </sequencepoints>
                            <locals>
                                <local name="F" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
@@ -2856,7 +2730,7 @@ End Class
         Public Sub Bug797482()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 
 Module Module1
@@ -2878,16 +2752,13 @@ End Module
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="MakeIncrementer" parameterNames="n">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="7" start_column="5" end_row="7" end_column="72" file_ref="1"/>
-                <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="9" end_row="10" end_column="21" file_ref="1"/>
-                <entry il_offset="0x1d" start_row="11" start_column="5" end_row="11" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="7" start_column="5" end_row="7" end_column="72" file_ref="0"/>
+                <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="9" end_row="10" end_column="21" file_ref="0"/>
+                <entry il_offset="0x1d" start_row="11" start_column="5" end_row="11" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="$VB$Closure_2" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
@@ -2915,7 +2786,7 @@ End Module
         Public Sub DefaultConstructorWithInitializer()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Class C
     Private o As Object = New Object()
 End Class
@@ -2924,14 +2795,11 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib(source, OptionsDll.WithOptimizations(False))
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="C" name=".ctor" parameterNames="">
             <sequencepoints total="2">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x6" start_row="2" start_column="13" end_row="2" end_column="39" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x6" start_row="2" start_column="13" end_row="2" end_column="39" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x17">
@@ -2952,7 +2820,7 @@ GetPdbXml(compilation, "C..ctor"))
         Public Sub SequencePointAtOffset0()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System
 Module M
     Private Fn As Func(Of Object, Integer) = Function(x)
@@ -2966,13 +2834,10 @@ End Module
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptimizations(False))
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="M" name=".cctor" parameterNames="">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="3" start_column="13" end_row="7" end_column="21" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="13" end_row="7" end_column="21" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x12">
@@ -2982,11 +2847,11 @@ End Module
         </method>
         <method containingType="M" name="_Lambda$__2" parameterNames="x">
             <sequencepoints total="5">
-                <entry il_offset="0x0" start_row="3" start_column="46" end_row="3" end_column="57" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="17" end_row="4" end_column="62" file_ref="1"/>
-                <entry il_offset="0x22" start_row="5" start_column="17" end_row="5" end_column="112" file_ref="1"/>
-                <entry il_offset="0x43" start_row="6" start_column="13" end_row="6" end_column="33" file_ref="1"/>
-                <entry il_offset="0x53" start_row="7" start_column="9" end_row="7" end_column="21" file_ref="1"/>
+                <entry il_offset="0x0" start_row="3" start_column="46" end_row="3" end_column="57" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="17" end_row="4" end_column="62" file_ref="0"/>
+                <entry il_offset="0x22" start_row="5" start_column="17" end_row="5" end_column="112" file_ref="0"/>
+                <entry il_offset="0x43" start_row="6" start_column="13" end_row="6" end_column="33" file_ref="0"/>
+                <entry il_offset="0x53" start_row="7" start_column="9" end_row="7" end_column="21" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="_Lambda$__2" il_index="0" il_start="0x0" il_end="0x55" attributes="0"/>
@@ -3002,8 +2867,8 @@ End Module
         </method>
         <method containingType="M" name="_Lambda$__3" parameterNames="o">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="4" start_column="49" end_row="4" end_column="60" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="61" end_row="4" end_column="62" file_ref="1"/>
+                <entry il_offset="0x0" start_row="4" start_column="49" end_row="4" end_column="60" file_ref="0"/>
+                <entry il_offset="0x1" start_row="4" start_column="61" end_row="4" end_column="62" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="_Lambda$__3" il_index="0" il_start="0x0" il_end="0x7" attributes="0"/>
@@ -3015,9 +2880,9 @@ End Module
         </method>
         <method containingType="M" name="_Lambda$__5" parameterNames="h">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="5" start_column="84" end_row="5" end_column="95" file_ref="1"/>
-                <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xe" start_row="5" start_column="96" end_row="5" end_column="112" file_ref="1"/>
+                <entry il_offset="0x0" start_row="5" start_column="84" end_row="5" end_column="95" file_ref="0"/>
+                <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xe" start_row="5" start_column="96" end_row="5" end_column="112" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="$VB$Closure_6" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
@@ -3031,8 +2896,8 @@ End Module
         </method>
         <method containingType="M+_Closure$__1" name="_Lambda$__7" parameterNames="y">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="5" start_column="96" end_row="5" end_column="107" file_ref="1"/>
-                <entry il_offset="0x1" start_row="5" start_column="108" end_row="5" end_column="112" file_ref="1"/>
+                <entry il_offset="0x0" start_row="5" start_column="96" end_row="5" end_column="107" file_ref="0"/>
+                <entry il_offset="0x1" start_row="5" start_column="108" end_row="5" end_column="112" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="_Lambda$__7" il_index="0" il_start="0x0" il_end="0x17" attributes="0"/>
@@ -3052,7 +2917,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections.Generic
 Imports System.Linq
 
@@ -3085,15 +2950,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="25" file_ref="1"/>
-                <entry il_offset="0x15" start_row="7" start_column="5" end_row="7" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="25" file_ref="0"/>
+                <entry il_offset="0x15" start_row="7" start_column="5" end_row="7" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x17" attributes="0"/>
@@ -3107,12 +2969,12 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="6">
-                <entry il_offset="0x0" start_row="9" start_column="5" end_row="9" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="12" start_column="13" end_row="15" end_column="64" file_ref="1"/>
-                <entry il_offset="0x91" start_row="17" start_column="9" end_row="17" end_column="20" file_ref="1"/>
-                <entry il_offset="0x98" start_row="19" start_column="13" end_row="20" end_column="38" file_ref="1"/>
-                <entry il_offset="0xe8" start_row="22" start_column="9" end_row="22" end_column="21" file_ref="1"/>
-                <entry il_offset="0xef" start_row="23" start_column="5" end_row="23" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="9" start_column="5" end_row="9" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="12" start_column="13" end_row="15" end_column="64" file_ref="0"/>
+                <entry il_offset="0x91" start_row="17" start_column="9" end_row="17" end_column="20" file_ref="0"/>
+                <entry il_offset="0x98" start_row="19" start_column="13" end_row="20" end_column="38" file_ref="0"/>
+                <entry il_offset="0xe8" start_row="22" start_column="9" end_row="22" end_column="21" file_ref="0"/>
+                <entry il_offset="0xef" start_row="23" start_column="5" end_row="23" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0xf0" attributes="0"/>
@@ -3126,7 +2988,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="x">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="13" start_column="26" end_row="13" end_column="27" file_ref="1"/>
+                <entry il_offset="0x0" start_row="13" start_column="26" end_row="13" end_column="27" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -3135,7 +2997,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="x">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="60" end_row="14" end_column="67" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="60" end_row="14" end_column="67" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x4">
@@ -3144,8 +3006,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="x">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="14" start_column="27" end_row="14" end_column="33" file_ref="1"/>
-                <entry il_offset="0x4" start_row="14" start_column="39" end_row="14" end_column="46" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="27" end_row="14" end_column="33" file_ref="0"/>
+                <entry il_offset="0x4" start_row="14" start_column="39" end_row="14" end_column="46" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xe">
@@ -3154,9 +3016,9 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__7" parameterNames="evenOdd, $VB$ItAnonymous">
             <sequencepoints total="3">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x1" start_row="15" start_column="30" end_row="15" end_column="44" file_ref="1"/>
-                <entry il_offset="0x27" start_row="15" start_column="50" end_row="15" end_column="64" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x1" start_row="15" start_column="30" end_row="15" end_column="44" file_ref="0"/>
+                <entry il_offset="0x27" start_row="15" start_column="50" end_row="15" end_column="64" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x53">
@@ -3165,7 +3027,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__8" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="34" end_row="15" end_column="43" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="34" end_row="15" end_column="43" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xd">
@@ -3174,7 +3036,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__10" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="54" end_row="15" end_column="63" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="54" end_row="15" end_column="63" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xd">
@@ -3183,7 +3045,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__13" parameterNames="x">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="19" start_column="25" end_row="19" end_column="32" file_ref="1"/>
+                <entry il_offset="0x0" start_row="19" start_column="25" end_row="19" end_column="32" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -3192,7 +3054,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__15" parameterNames="x">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="20" start_column="26" end_row="20" end_column="27" file_ref="1"/>
+                <entry il_offset="0x0" start_row="20" start_column="26" end_row="20" end_column="27" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -3209,7 +3071,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_01()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3235,15 +3097,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -3258,10 +3117,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="14" end_column="37" file_ref="1"/>
-                <entry il_offset="0x2c" start_row="15" start_column="9" end_row="15" end_column="36" file_ref="1"/>
-                <entry il_offset="0x38" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="14" end_column="37" file_ref="0"/>
+                <entry il_offset="0x2c" start_row="15" start_column="9" end_row="15" end_column="36" file_ref="0"/>
+                <entry il_offset="0x38" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x39" attributes="0"/>
@@ -3283,7 +3142,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_02()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3309,15 +3168,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -3332,10 +3188,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="14" end_column="74" file_ref="1"/>
-                <entry il_offset="0x71" start_row="15" start_column="9" end_row="15" end_column="35" file_ref="1"/>
-                <entry il_offset="0x7d" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="14" end_column="74" file_ref="0"/>
+                <entry il_offset="0x71" start_row="15" start_column="9" end_row="15" end_column="35" file_ref="0"/>
+                <entry il_offset="0x7d" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x7e" attributes="0"/>
@@ -3349,7 +3205,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="28" end_row="14" end_column="35" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="28" end_row="14" end_column="35" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -3358,7 +3214,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="68" end_row="14" end_column="74" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="68" end_row="14" end_column="74" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2b">
@@ -3367,7 +3223,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__4" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="57" end_row="14" end_column="64" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="57" end_row="14" end_column="64" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -3384,7 +3240,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_03()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3411,15 +3267,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -3434,10 +3287,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="42" file_ref="1"/>
-                <entry il_offset="0x2c" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="1"/>
-                <entry il_offset="0x38" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="42" file_ref="0"/>
+                <entry il_offset="0x2c" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="0"/>
+                <entry il_offset="0x38" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x39" attributes="0"/>
@@ -3451,8 +3304,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="2">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x1" start_row="15" start_column="29" end_row="15" end_column="42" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x1" start_row="15" start_column="29" end_row="15" end_column="42" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xa">
@@ -3469,7 +3322,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_04()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3496,15 +3349,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -3519,10 +3369,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="85" file_ref="1"/>
-                <entry il_offset="0x51" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="1"/>
-                <entry il_offset="0x5d" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="85" file_ref="0"/>
+                <entry il_offset="0x51" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="0"/>
+                <entry il_offset="0x5d" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x5e" attributes="0"/>
@@ -3536,8 +3386,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="2">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x1" start_row="15" start_column="37" end_row="15" end_column="50" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x1" start_row="15" start_column="37" end_row="15" end_column="50" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xb">
@@ -3546,8 +3396,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="$VB$It">
             <sequencepoints total="2">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xc" start_row="15" start_column="64" end_row="15" end_column="85" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xc" start_row="15" start_column="64" end_row="15" end_column="85" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x20">
@@ -3564,7 +3414,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_05()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3591,15 +3441,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -3614,10 +3461,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="45" file_ref="1"/>
-                <entry il_offset="0x2c" start_row="16" start_column="9" end_row="16" end_column="36" file_ref="1"/>
-                <entry il_offset="0x38" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="45" file_ref="0"/>
+                <entry il_offset="0x2c" start_row="16" start_column="9" end_row="16" end_column="36" file_ref="0"/>
+                <entry il_offset="0x38" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x39" attributes="0"/>
@@ -3631,7 +3478,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="32" end_row="15" end_column="45" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="32" end_row="15" end_column="45" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x4">
@@ -3648,7 +3495,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_06()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3675,15 +3522,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -3698,10 +3542,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="33" file_ref="1"/>
-                <entry il_offset="0x2c" start_row="16" start_column="9" end_row="16" end_column="36" file_ref="1"/>
-                <entry il_offset="0x38" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="33" file_ref="0"/>
+                <entry il_offset="0x2c" start_row="16" start_column="9" end_row="16" end_column="36" file_ref="0"/>
+                <entry il_offset="0x38" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x39" attributes="0"/>
@@ -3715,7 +3559,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="33" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="33" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x4">
@@ -3732,7 +3576,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_07()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3759,15 +3603,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -3782,10 +3623,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="72" file_ref="1"/>
-                <entry il_offset="0x2c" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="1"/>
-                <entry il_offset="0x38" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="72" file_ref="0"/>
+                <entry il_offset="0x2c" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="0"/>
+                <entry il_offset="0x38" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x39" attributes="0"/>
@@ -3799,8 +3640,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="15" start_column="32" end_row="15" end_column="45" file_ref="1"/>
-                <entry il_offset="0x3" start_row="15" start_column="59" end_row="15" end_column="72" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="32" end_row="15" end_column="45" file_ref="0"/>
+                <entry il_offset="0x3" start_row="15" start_column="59" end_row="15" end_column="72" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x15">
@@ -3817,7 +3658,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_08()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3844,15 +3685,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -3867,10 +3705,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="67" file_ref="1"/>
-                <entry il_offset="0x96" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="1"/>
-                <entry il_offset="0xa2" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="67" file_ref="0"/>
+                <entry il_offset="0x96" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="0"/>
+                <entry il_offset="0xa2" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0xa3" attributes="0"/>
@@ -3884,7 +3722,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="53" end_row="14" end_column="60" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="53" end_row="14" end_column="60" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -3893,7 +3731,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="41" end_row="15" end_column="50" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="41" end_row="15" end_column="50" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -3902,7 +3740,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="58" end_row="15" end_column="67" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="58" end_row="15" end_column="67" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -3919,7 +3757,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_09()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3948,15 +3786,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -3971,10 +3806,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="106" file_ref="1"/>
-                <entry il_offset="0xdb" start_row="18" start_column="9" end_row="18" end_column="35" file_ref="1"/>
-                <entry il_offset="0xe7" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="106" file_ref="0"/>
+                <entry il_offset="0xdb" start_row="18" start_column="9" end_row="18" end_column="35" file_ref="0"/>
+                <entry il_offset="0xe7" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0xe8" attributes="0"/>
@@ -3988,7 +3823,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="63" end_row="16" end_column="72" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="63" end_row="16" end_column="72" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -3997,7 +3832,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="rangeVar3">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="46" end_row="16" end_column="55" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="46" end_row="16" end_column="55" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -4006,8 +3841,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__7" parameterNames="rangeVar1">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="17" start_column="41" end_row="17" end_column="50" file_ref="1"/>
-                <entry il_offset="0x1" start_row="17" start_column="93" end_row="17" end_column="106" file_ref="1"/>
+                <entry il_offset="0x0" start_row="17" start_column="41" end_row="17" end_column="50" file_ref="0"/>
+                <entry il_offset="0x1" start_row="17" start_column="93" end_row="17" end_column="106" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xa">
@@ -4016,8 +3851,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__9" parameterNames="$VB$It">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="17" start_column="58" end_row="17" end_column="67" file_ref="1"/>
-                <entry il_offset="0x6" start_row="17" start_column="72" end_row="17" end_column="85" file_ref="1"/>
+                <entry il_offset="0x0" start_row="17" start_column="58" end_row="17" end_column="67" file_ref="0"/>
+                <entry il_offset="0x6" start_row="17" start_column="72" end_row="17" end_column="85" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x14">
@@ -4034,7 +3869,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_10()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -4062,15 +3897,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -4085,10 +3917,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="48" file_ref="1"/>
-                <entry il_offset="0x96" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="1"/>
-                <entry il_offset="0xa2" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="48" file_ref="0"/>
+                <entry il_offset="0x96" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="0"/>
+                <entry il_offset="0xa2" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0xa3" attributes="0"/>
@@ -4102,7 +3934,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="59" end_row="14" end_column="66" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="59" end_row="14" end_column="66" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -4111,7 +3943,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="41" end_row="15" end_column="50" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="41" end_row="15" end_column="50" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -4120,7 +3952,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="58" end_row="15" end_column="67" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="58" end_row="15" end_column="67" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -4137,7 +3969,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_11()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -4168,15 +4000,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -4191,10 +4020,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="19" end_column="57" file_ref="1"/>
-                <entry il_offset="0x125" start_row="20" start_column="9" end_row="20" end_column="35" file_ref="1"/>
-                <entry il_offset="0x131" start_row="21" start_column="5" end_row="21" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="19" end_column="57" file_ref="0"/>
+                <entry il_offset="0x125" start_row="20" start_column="9" end_row="20" end_column="35" file_ref="0"/>
+                <entry il_offset="0x131" start_row="21" start_column="5" end_row="21" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x132" attributes="0"/>
@@ -4208,7 +4037,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="59" end_row="14" end_column="66" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="59" end_row="14" end_column="66" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -4217,7 +4046,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="rangeVar3">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="63" end_row="15" end_column="70" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="63" end_row="15" end_column="70" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -4226,7 +4055,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="69" end_row="16" end_column="78" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="69" end_row="16" end_column="78" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -4235,7 +4064,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__7" parameterNames="rangeVar3">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="52" end_row="16" end_column="61" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="52" end_row="16" end_column="61" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -4244,8 +4073,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__9" parameterNames="rangeVar2, $VB$ItAnonymous">
             <sequencepoints total="2">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x1" start_row="17" start_column="47" end_row="17" end_column="61" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x1" start_row="17" start_column="47" end_row="17" end_column="61" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2d">
@@ -4254,7 +4083,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__10" parameterNames="rangeVar3">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="17" start_column="51" end_row="17" end_column="60" file_ref="1"/>
+                <entry il_offset="0x0" start_row="17" start_column="51" end_row="17" end_column="60" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -4263,7 +4092,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__13" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="18" start_column="41" end_row="18" end_column="50" file_ref="1"/>
+                <entry il_offset="0x0" start_row="18" start_column="41" end_row="18" end_column="50" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -4272,7 +4101,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__15" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="18" start_column="58" end_row="18" end_column="67" file_ref="1"/>
+                <entry il_offset="0x0" start_row="18" start_column="58" end_row="18" end_column="67" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x7">
@@ -4281,8 +4110,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__17" parameterNames="rangeVar1, $VB$ItAnonymous">
             <sequencepoints total="2">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x1" start_row="19" start_column="43" end_row="19" end_column="57" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x1" start_row="19" start_column="43" end_row="19" end_column="57" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2d">
@@ -4291,7 +4120,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__18" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="19" start_column="47" end_row="19" end_column="56" file_ref="1"/>
+                <entry il_offset="0x0" start_row="19" start_column="47" end_row="19" end_column="56" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x7">
@@ -4308,7 +4137,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_12()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -4336,15 +4165,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -4359,10 +4185,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="79" file_ref="1"/>
-                <entry il_offset="0x71" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="1"/>
-                <entry il_offset="0x7d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="79" file_ref="0"/>
+                <entry il_offset="0x71" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="0"/>
+                <entry il_offset="0x7d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x7e" attributes="0"/>
@@ -4376,8 +4202,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="15" start_column="41" end_row="15" end_column="50" file_ref="1"/>
-                <entry il_offset="0x1" start_row="15" start_column="93" end_row="15" end_column="106" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="41" end_row="15" end_column="50" file_ref="0"/>
+                <entry il_offset="0x1" start_row="15" start_column="93" end_row="15" end_column="106" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xa">
@@ -4386,8 +4212,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="rangeVar2">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="15" start_column="58" end_row="15" end_column="67" file_ref="1"/>
-                <entry il_offset="0x1" start_row="15" start_column="72" end_row="15" end_column="85" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="58" end_row="15" end_column="67" file_ref="0"/>
+                <entry il_offset="0x1" start_row="15" start_column="72" end_row="15" end_column="85" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xa">
@@ -4396,9 +4222,9 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="rangeVar1, $VB$ItAnonymous">
             <sequencepoints total="3">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x2" start_row="16" start_column="56" end_row="16" end_column="70" file_ref="1"/>
-                <entry il_offset="0x28" start_row="16" start_column="72" end_row="16" end_column="79" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x2" start_row="16" start_column="56" end_row="16" end_column="70" file_ref="0"/>
+                <entry il_offset="0x28" start_row="16" start_column="72" end_row="16" end_column="79" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x34">
@@ -4407,7 +4233,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__6" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="60" end_row="16" end_column="69" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="60" end_row="16" end_column="69" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -4424,7 +4250,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_13()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -4451,15 +4277,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -4474,10 +4297,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="73" file_ref="1"/>
-                <entry il_offset="0x71" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="1"/>
-                <entry il_offset="0x7d" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="73" file_ref="0"/>
+                <entry il_offset="0x71" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="0"/>
+                <entry il_offset="0x7d" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x7e" attributes="0"/>
@@ -4491,7 +4314,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x6">
@@ -4500,7 +4323,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="19" end_row="15" end_column="73" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="19" end_row="15" end_column="73" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x22">
@@ -4517,7 +4340,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_14()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -4544,15 +4367,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -4567,10 +4387,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="78" file_ref="1"/>
-                <entry il_offset="0x71" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="1"/>
-                <entry il_offset="0x7d" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="78" file_ref="0"/>
+                <entry il_offset="0x71" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="0"/>
+                <entry il_offset="0x7d" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x7e" attributes="0"/>
@@ -4584,7 +4404,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x6">
@@ -4593,7 +4413,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="24" end_row="15" end_column="78" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="24" end_row="15" end_column="78" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x22">
@@ -4610,7 +4430,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_15()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -4637,15 +4457,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -4660,10 +4477,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="78" file_ref="1"/>
-                <entry il_offset="0x71" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="1"/>
-                <entry il_offset="0x7d" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="78" file_ref="0"/>
+                <entry il_offset="0x71" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="0"/>
+                <entry il_offset="0x7d" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x7e" attributes="0"/>
@@ -4677,7 +4494,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x6">
@@ -4686,7 +4503,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="24" end_row="15" end_column="78" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="24" end_row="15" end_column="78" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x22">
@@ -4703,7 +4520,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_16()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -4730,15 +4547,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -4753,10 +4567,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="19" file_ref="1"/>
-                <entry il_offset="0xd" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="1"/>
-                <entry il_offset="0x19" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="19" file_ref="0"/>
+                <entry il_offset="0xd" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="0"/>
+                <entry il_offset="0x19" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
@@ -4778,7 +4592,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_17()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -4805,15 +4619,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -4828,10 +4639,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="19" file_ref="1"/>
-                <entry il_offset="0xd" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="1"/>
-                <entry il_offset="0x19" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="15" end_column="19" file_ref="0"/>
+                <entry il_offset="0xd" start_row="16" start_column="9" end_row="16" end_column="35" file_ref="0"/>
+                <entry il_offset="0x19" start_row="17" start_column="5" end_row="17" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
@@ -4853,7 +4664,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_18()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -4881,15 +4692,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -4904,10 +4712,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="23" file_ref="1"/>
-                <entry il_offset="0x91" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="1"/>
-                <entry il_offset="0x9d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="23" file_ref="0"/>
+                <entry il_offset="0x91" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="0"/>
+                <entry il_offset="0x9d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x9e" attributes="0"/>
@@ -4921,7 +4729,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x6">
@@ -4930,7 +4738,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="22" end_row="15" end_column="31" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="22" end_row="15" end_column="31" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x7">
@@ -4947,7 +4755,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_19()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -4975,15 +4783,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -4998,10 +4803,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="32" file_ref="1"/>
-                <entry il_offset="0x91" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="1"/>
-                <entry il_offset="0x9d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="32" file_ref="0"/>
+                <entry il_offset="0x91" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="0"/>
+                <entry il_offset="0x9d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x9e" attributes="0"/>
@@ -5015,7 +4820,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x6">
@@ -5024,7 +4829,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="34" end_row="15" end_column="47" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="34" end_row="15" end_column="47" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x9">
@@ -5033,8 +4838,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__7" parameterNames="rangeVar2, $VB$ItAnonymous">
             <sequencepoints total="2">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x1" start_row="16" start_column="18" end_row="16" end_column="32" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x1" start_row="16" start_column="18" end_row="16" end_column="32" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2d">
@@ -5043,7 +4848,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__8" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="22" end_row="16" end_column="31" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="22" end_row="16" end_column="31" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x7">
@@ -5060,7 +4865,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_20()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -5088,15 +4893,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -5111,10 +4913,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="54" file_ref="1"/>
-                <entry il_offset="0x91" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="1"/>
-                <entry il_offset="0x9d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="54" file_ref="0"/>
+                <entry il_offset="0x91" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="0"/>
+                <entry il_offset="0x9d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x9e" attributes="0"/>
@@ -5128,7 +4930,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="1"/>
+                <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x6">
@@ -5137,8 +4939,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="$VB$It">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="15" start_column="34" end_row="15" end_column="47" file_ref="1"/>
-                <entry il_offset="0x8" start_row="15" start_column="61" end_row="15" end_column="74" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="34" end_row="15" end_column="47" file_ref="0"/>
+                <entry il_offset="0x8" start_row="15" start_column="61" end_row="15" end_column="74" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x1f">
@@ -5147,9 +4949,9 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__7" parameterNames="$VB$It, $VB$ItAnonymous">
             <sequencepoints total="3">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xd" start_row="16" start_column="31" end_row="16" end_column="45" file_ref="1"/>
-                <entry il_offset="0x33" start_row="16" start_column="47" end_row="16" end_column="54" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xd" start_row="16" start_column="31" end_row="16" end_column="45" file_ref="0"/>
+                <entry il_offset="0x33" start_row="16" start_column="47" end_row="16" end_column="54" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3f">
@@ -5158,7 +4960,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__8" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="35" end_row="16" end_column="44" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="35" end_row="16" end_column="44" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x7">
@@ -5175,7 +4977,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_21()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -5203,15 +5005,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -5226,10 +5025,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="36" file_ref="1"/>
-                <entry il_offset="0x2c" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="1"/>
-                <entry il_offset="0x38" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="36" file_ref="0"/>
+                <entry il_offset="0x2c" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="0"/>
+                <entry il_offset="0x38" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x39" attributes="0"/>
@@ -5243,7 +5042,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="13" end_row="16" end_column="36" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="13" end_row="16" end_column="36" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x56">
@@ -5252,7 +5051,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__2" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -5261,7 +5060,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__4" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="22" end_row="16" end_column="35" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="22" end_row="16" end_column="35" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xd">
@@ -5278,7 +5077,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_22()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -5306,15 +5105,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -5329,10 +5125,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="50" file_ref="1"/>
-                <entry il_offset="0x2c" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="1"/>
-                <entry il_offset="0x38" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="50" file_ref="0"/>
+                <entry il_offset="0x2c" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="0"/>
+                <entry il_offset="0x38" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x39" attributes="0"/>
@@ -5346,7 +5142,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="13" end_row="16" end_column="50" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="13" end_row="16" end_column="50" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x9b">
@@ -5355,7 +5151,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__2" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -5364,7 +5160,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__4" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="65" end_row="15" end_column="71" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="65" end_row="15" end_column="71" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x6">
@@ -5373,7 +5169,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__8" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="49" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="49" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xf">
@@ -5390,7 +5186,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_23()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -5419,15 +5215,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -5442,10 +5235,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="36" file_ref="1"/>
-                <entry il_offset="0x51" start_row="18" start_column="9" end_row="18" end_column="35" file_ref="1"/>
-                <entry il_offset="0x5d" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="36" file_ref="0"/>
+                <entry il_offset="0x51" start_row="18" start_column="9" end_row="18" end_column="35" file_ref="0"/>
+                <entry il_offset="0x5d" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x5e" attributes="0"/>
@@ -5459,7 +5252,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -5468,7 +5261,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="$VB$ItAnonymous">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="13" end_row="17" end_column="36" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="13" end_row="17" end_column="36" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x50">
@@ -5477,7 +5270,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__4" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="33" end_row="16" end_column="40" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="33" end_row="16" end_column="40" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -5486,7 +5279,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__6" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="17" start_column="22" end_row="17" end_column="35" file_ref="1"/>
+                <entry il_offset="0x0" start_row="17" start_column="22" end_row="17" end_column="35" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xd">
@@ -5503,7 +5296,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_24()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -5531,15 +5324,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -5554,10 +5344,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="47" file_ref="1"/>
-                <entry il_offset="0x51" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="1"/>
-                <entry il_offset="0x5d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="47" file_ref="0"/>
+                <entry il_offset="0x51" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="0"/>
+                <entry il_offset="0x5d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x5e" attributes="0"/>
@@ -5571,7 +5361,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="13" end_row="15" end_column="42" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="13" end_row="15" end_column="42" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xc">
@@ -5580,9 +5370,9 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="$VB$It">
             <sequencepoints total="3">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x6" start_row="16" start_column="24" end_row="16" end_column="38" file_ref="1"/>
-                <entry il_offset="0x31" start_row="16" start_column="40" end_row="16" end_column="47" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x6" start_row="16" start_column="24" end_row="16" end_column="38" file_ref="0"/>
+                <entry il_offset="0x31" start_row="16" start_column="40" end_row="16" end_column="47" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x42">
@@ -5591,7 +5381,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__4" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="37" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="37" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -5608,7 +5398,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_25()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -5636,15 +5426,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -5659,10 +5446,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="47" file_ref="1"/>
-                <entry il_offset="0x51" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="1"/>
-                <entry il_offset="0x5d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="47" file_ref="0"/>
+                <entry il_offset="0x51" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="0"/>
+                <entry il_offset="0x5d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x5e" attributes="0"/>
@@ -5676,7 +5463,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="13" end_row="15" end_column="71" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="13" end_row="15" end_column="71" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x76">
@@ -5685,7 +5472,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__2" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -5694,7 +5481,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__4" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="65" end_row="15" end_column="71" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="65" end_row="15" end_column="71" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x6">
@@ -5703,9 +5490,9 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__9" parameterNames="$VB$It">
             <sequencepoints total="3">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x6" start_row="16" start_column="24" end_row="16" end_column="38" file_ref="1"/>
-                <entry il_offset="0x31" start_row="16" start_column="40" end_row="16" end_column="47" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x6" start_row="16" start_column="24" end_row="16" end_column="38" file_ref="0"/>
+                <entry il_offset="0x31" start_row="16" start_column="40" end_row="16" end_column="47" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x42">
@@ -5714,7 +5501,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__10" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="37" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="37" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x7">
@@ -5731,7 +5518,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_26()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -5759,15 +5546,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -5782,10 +5566,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="47" file_ref="1"/>
-                <entry il_offset="0x51" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="1"/>
-                <entry il_offset="0x5d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="16" end_column="47" file_ref="0"/>
+                <entry il_offset="0x51" start_row="17" start_column="9" end_row="17" end_column="35" file_ref="0"/>
+                <entry il_offset="0x5d" start_row="18" start_column="5" end_row="18" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x5e" attributes="0"/>
@@ -5799,7 +5583,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="13" end_row="15" end_column="105" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="13" end_row="15" end_column="105" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x9b">
@@ -5808,7 +5592,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__2" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -5817,7 +5601,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__4" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="79" end_row="15" end_column="88" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="79" end_row="15" end_column="88" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -5826,7 +5610,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__6" parameterNames="rangeVar3">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="96" end_row="15" end_column="105" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="96" end_row="15" end_column="105" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -5835,9 +5619,9 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__11" parameterNames="$VB$It">
             <sequencepoints total="3">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x6" start_row="16" start_column="24" end_row="16" end_column="38" file_ref="1"/>
-                <entry il_offset="0x31" start_row="16" start_column="40" end_row="16" end_column="47" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x6" start_row="16" start_column="24" end_row="16" end_column="38" file_ref="0"/>
+                <entry il_offset="0x31" start_row="16" start_column="40" end_row="16" end_column="47" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x42">
@@ -5846,7 +5630,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__12" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="37" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="37" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x7">
@@ -5863,7 +5647,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_27()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -5892,15 +5676,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -5915,10 +5696,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="47" file_ref="1"/>
-                <entry il_offset="0x76" start_row="18" start_column="9" end_row="18" end_column="35" file_ref="1"/>
-                <entry il_offset="0x82" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="47" file_ref="0"/>
+                <entry il_offset="0x76" start_row="18" start_column="9" end_row="18" end_column="35" file_ref="0"/>
+                <entry il_offset="0x82" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x83" attributes="0"/>
@@ -5932,7 +5713,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -5941,7 +5722,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="$VB$ItAnonymous">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="13" end_row="16" end_column="42" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="13" end_row="16" end_column="42" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x6">
@@ -5950,8 +5731,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__5" parameterNames="$VB$Group">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="17" start_column="24" end_row="17" end_column="38" file_ref="1"/>
-                <entry il_offset="0x26" start_row="17" start_column="40" end_row="17" end_column="47" file_ref="1"/>
+                <entry il_offset="0x0" start_row="17" start_column="24" end_row="17" end_column="38" file_ref="0"/>
+                <entry il_offset="0x26" start_row="17" start_column="40" end_row="17" end_column="47" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x32">
@@ -5960,7 +5741,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__6" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="17" start_column="28" end_row="17" end_column="37" file_ref="1"/>
+                <entry il_offset="0x0" start_row="17" start_column="28" end_row="17" end_column="37" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -5977,7 +5758,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_28()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -6006,15 +5787,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6029,10 +5807,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="47" file_ref="1"/>
-                <entry il_offset="0x76" start_row="18" start_column="9" end_row="18" end_column="35" file_ref="1"/>
-                <entry il_offset="0x82" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="47" file_ref="0"/>
+                <entry il_offset="0x76" start_row="18" start_column="9" end_row="18" end_column="35" file_ref="0"/>
+                <entry il_offset="0x82" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x83" attributes="0"/>
@@ -6046,7 +5824,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -6055,7 +5833,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="$VB$ItAnonymous">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="13" end_row="16" end_column="71" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="13" end_row="16" end_column="71" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x70">
@@ -6064,7 +5842,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__4" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="33" end_row="16" end_column="40" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="33" end_row="16" end_column="40" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -6073,7 +5851,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__6" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="65" end_row="16" end_column="71" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="65" end_row="16" end_column="71" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x6">
@@ -6082,8 +5860,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__11" parameterNames="$VB$Group">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="17" start_column="24" end_row="17" end_column="38" file_ref="1"/>
-                <entry il_offset="0x26" start_row="17" start_column="40" end_row="17" end_column="47" file_ref="1"/>
+                <entry il_offset="0x0" start_row="17" start_column="24" end_row="17" end_column="38" file_ref="0"/>
+                <entry il_offset="0x26" start_row="17" start_column="40" end_row="17" end_column="47" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x32">
@@ -6092,7 +5870,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__12" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="17" start_column="28" end_row="17" end_column="37" file_ref="1"/>
+                <entry il_offset="0x0" start_row="17" start_column="28" end_row="17" end_column="37" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x7">
@@ -6109,7 +5887,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_29()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -6138,15 +5916,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6161,10 +5936,10 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="47" file_ref="1"/>
-                <entry il_offset="0x76" start_row="18" start_column="9" end_row="18" end_column="35" file_ref="1"/>
-                <entry il_offset="0x82" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="14" start_column="9" end_row="17" end_column="47" file_ref="0"/>
+                <entry il_offset="0x76" start_row="18" start_column="9" end_row="18" end_column="35" file_ref="0"/>
+                <entry il_offset="0x82" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x83" attributes="0"/>
@@ -6178,7 +5953,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="1"/>
+                <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -6187,7 +5962,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="$VB$ItAnonymous">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="13" end_row="16" end_column="105" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="13" end_row="16" end_column="105" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x95">
@@ -6196,7 +5971,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__4" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="33" end_row="16" end_column="40" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="33" end_row="16" end_column="40" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -6205,7 +5980,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__6" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="79" end_row="16" end_column="88" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="79" end_row="16" end_column="88" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
@@ -6214,7 +5989,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__8" parameterNames="rangeVar3">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="16" start_column="96" end_row="16" end_column="105" file_ref="1"/>
+                <entry il_offset="0x0" start_row="16" start_column="96" end_row="16" end_column="105" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -6223,8 +5998,8 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__13" parameterNames="$VB$Group">
             <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="17" start_column="24" end_row="17" end_column="38" file_ref="1"/>
-                <entry il_offset="0x26" start_row="17" start_column="40" end_row="17" end_column="47" file_ref="1"/>
+                <entry il_offset="0x0" start_row="17" start_column="24" end_row="17" end_column="38" file_ref="0"/>
+                <entry il_offset="0x26" start_row="17" start_column="40" end_row="17" end_column="47" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x32">
@@ -6233,7 +6008,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__14" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="17" start_column="28" end_row="17" end_column="37" file_ref="1"/>
+                <entry il_offset="0x0" start_row="17" start_column="28" end_row="17" end_column="37" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x7">
@@ -6250,7 +6025,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_30()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -6274,15 +6049,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6297,9 +6069,9 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="12" start_column="9" end_row="13" end_column="36" file_ref="1"/>
-                <entry il_offset="0x56" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="12" start_column="9" end_row="13" end_column="36" file_ref="0"/>
+                <entry il_offset="0x56" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x57" attributes="0"/>
@@ -6311,7 +6083,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="12" start_column="33" end_row="12" end_column="40" file_ref="1"/>
+                <entry il_offset="0x0" start_row="12" start_column="33" end_row="12" end_column="40" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -6320,7 +6092,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__3" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="13" start_column="22" end_row="13" end_column="35" file_ref="1"/>
+                <entry il_offset="0x0" start_row="13" start_column="22" end_row="13" end_column="35" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xd">
@@ -6337,7 +6109,7 @@ GetPdbXml(compilation))
         Public Sub SequencePointsInAQuery_31()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Linq
@@ -6361,15 +6133,12 @@ End Module
 
             AssertXmlEqual(
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Nums" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="1"/>
-                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="47" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="19" file_ref="0"/>
+                <entry il_offset="0xe" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6384,9 +6153,9 @@ End Module
         </method>
         <method containingType="Module1" name="Main" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="12" start_column="9" end_row="13" end_column="47" file_ref="1"/>
-                <entry il_offset="0x7e" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="15" file_ref="0"/>
+                <entry il_offset="0x1" start_row="12" start_column="9" end_row="13" end_column="47" file_ref="0"/>
+                <entry il_offset="0x7e" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x7f" attributes="0"/>
@@ -6398,7 +6167,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__1" parameterNames="rangeVar1">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="12" start_column="65" end_row="12" end_column="71" file_ref="1"/>
+                <entry il_offset="0x0" start_row="12" start_column="65" end_row="12" end_column="71" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2b">
@@ -6407,7 +6176,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__2" parameterNames="rangeVar2">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="12" start_column="54" end_row="12" end_column="61" file_ref="1"/>
+                <entry il_offset="0x0" start_row="12" start_column="54" end_row="12" end_column="61" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x3">
@@ -6416,7 +6185,7 @@ End Module
         </method>
         <method containingType="Module1" name="_Lambda$__7" parameterNames="$VB$It">
             <sequencepoints total="1">
-                <entry il_offset="0x0" start_row="13" start_column="28" end_row="13" end_column="37" file_ref="1"/>
+                <entry il_offset="0x0" start_row="13" start_column="28" end_row="13" end_column="37" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x7">
@@ -6434,7 +6203,7 @@ GetPdbXml(compilation))
         Public Sub RaiseEvent001()
             Dim source =
 <compilation>
-    <file name="a.vb"><![CDATA[
+    <file><![CDATA[
 Public Class IntervalUpdate
     Public Shared Sub Update()
         RaiseEvent IntervalEllapsed()
@@ -6460,15 +6229,12 @@ End Class
 
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="IntervalUpdate" name="Update" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="31" file_ref="1"/>
-                <entry il_offset="0x1" start_row="3" start_column="9" end_row="3" end_column="38" file_ref="1"/>
-                <entry il_offset="0x15" start_row="4" start_column="5" end_row="4" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="31" file_ref="0"/>
+                <entry il_offset="0x1" start_row="3" start_column="9" end_row="3" end_column="38" file_ref="0"/>
+                <entry il_offset="0x15" start_row="4" start_column="5" end_row="4" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x16">
@@ -6477,9 +6243,9 @@ End Class
         </method>
         <method containingType="IntervalUpdate" name="Main" parameterNames="">
             <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="22" file_ref="1"/>
-                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="17" file_ref="1"/>
-                <entry il_offset="0x7" start_row="8" start_column="5" end_row="8" end_column="12" file_ref="1"/>
+                <entry il_offset="0x0" start_row="6" start_column="5" end_row="6" end_column="22" file_ref="0"/>
+                <entry il_offset="0x1" start_row="7" start_column="9" end_row="7" end_column="17" file_ref="0"/>
+                <entry il_offset="0x7" start_row="8" start_column="5" end_row="8" end_column="12" file_ref="0"/>
             </sequencepoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x8">
@@ -6496,7 +6262,7 @@ End Class
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Imports System
 Imports System.Threading.Tasks
 
@@ -6525,25 +6291,22 @@ End Class
             ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_2$1".
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="C+VB$StateMachine_0_Async_Lambda_Hoisted" name="MoveNext" parameterNames="">
             <sequencepoints total="13">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xa" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x15" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="1"/>
-                <entry il_offset="0x21" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="1"/>
-                <entry il_offset="0x2d" start_row="11" start_column="9" end_row="11" end_column="55" file_ref="1"/>
-                <entry il_offset="0xb3" start_row="12" start_column="9" end_row="12" end_column="21" file_ref="1"/>
-                <entry il_offset="0xc4" start_row="13" start_column="9" end_row="13" end_column="21" file_ref="1"/>
-                <entry il_offset="0xd5" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="1"/>
-                <entry il_offset="0xd7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xde" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xf9" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="1"/>
-                <entry il_offset="0x103" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xa" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x15" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
+                <entry il_offset="0x21" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="0"/>
+                <entry il_offset="0x2d" start_row="11" start_column="9" end_row="11" end_column="55" file_ref="0"/>
+                <entry il_offset="0xb3" start_row="12" start_column="9" end_row="12" end_column="21" file_ref="0"/>
+                <entry il_offset="0xc4" start_row="13" start_column="9" end_row="13" end_column="21" file_ref="0"/>
+                <entry il_offset="0xd5" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="0"/>
+                <entry il_offset="0xd7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xde" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xf9" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="0"/>
+                <entry il_offset="0x103" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x10f" attributes="1"/>
@@ -6574,7 +6337,7 @@ End Class
         Public Sub LocalCapturedAndNotHoisted()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Imports System
 Imports System.Threading.Tasks
 
@@ -6601,23 +6364,20 @@ End Class
             ' Goal: We're looking for the single-mangled name "$VB$Closure_2".
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="C+VB$StateMachine_0_Async_Lambda_NotHoisted" name="MoveNext" parameterNames="">
             <sequencepoints total="11">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xa" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x10" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="1"/>
-                <entry il_offset="0x17" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="1"/>
-                <entry il_offset="0x1e" start_row="11" start_column="9" end_row="11" end_column="55" file_ref="1"/>
-                <entry il_offset="0x97" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="1"/>
-                <entry il_offset="0x99" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xa1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xbd" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="1"/>
-                <entry il_offset="0xc7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xa" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x10" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
+                <entry il_offset="0x17" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="0"/>
+                <entry il_offset="0x1e" start_row="11" start_column="9" end_row="11" end_column="55" file_ref="0"/>
+                <entry il_offset="0x97" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
+                <entry il_offset="0x99" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xa1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xbd" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
+                <entry il_offset="0xc7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xd3" attributes="1"/>
@@ -6648,7 +6408,7 @@ End Class
         Public Sub LocalHoistedAndNotCapture()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Imports System
 Imports System.Threading.Tasks
 
@@ -6675,24 +6435,21 @@ End Class
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$1" and "$VB$ResumableLocal_y$2".
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="C+VB$StateMachine_0_Async_NoLambda_Hoisted" name="MoveNext" parameterNames="">
             <sequencepoints total="12">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xa" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="1"/>
-                <entry il_offset="0x11" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="1"/>
-                <entry il_offset="0x18" start_row="9" start_column="9" end_row="9" end_column="55" file_ref="1"/>
-                <entry il_offset="0x91" start_row="10" start_column="9" end_row="10" end_column="21" file_ref="1"/>
-                <entry il_offset="0x9d" start_row="11" start_column="9" end_row="11" end_column="21" file_ref="1"/>
-                <entry il_offset="0xa9" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="1"/>
-                <entry il_offset="0xab" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xb2" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xcd" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="1"/>
-                <entry il_offset="0xd7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xa" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
+                <entry il_offset="0x11" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="0"/>
+                <entry il_offset="0x18" start_row="9" start_column="9" end_row="9" end_column="55" file_ref="0"/>
+                <entry il_offset="0x91" start_row="10" start_column="9" end_row="10" end_column="21" file_ref="0"/>
+                <entry il_offset="0x9d" start_row="11" start_column="9" end_row="11" end_column="21" file_ref="0"/>
+                <entry il_offset="0xa9" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
+                <entry il_offset="0xab" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xb2" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xcd" start_row="12" start_column="5" end_row="12" end_column="17" file_ref="0"/>
+                <entry il_offset="0xd7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xe3" attributes="1"/>
@@ -6725,7 +6482,7 @@ End Class
         Public Sub LocalNotHoistedAndNotCaptured()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file>
 Imports System
 Imports System.Threading.Tasks
 
@@ -6750,22 +6507,19 @@ End Class
             ' Goal: We're looking for the unmangled names "x" and "y".
             Dim expected =
 <symbols>
-    <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-    </files>
     <methods>
         <method containingType="C+VB$StateMachine_0_Async_NoLambda_NotHoisted" name="MoveNext" parameterNames="">
             <sequencepoints total="10">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xa" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="1"/>
-                <entry il_offset="0xc" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="1"/>
-                <entry il_offset="0xe" start_row="9" start_column="9" end_row="9" end_column="55" file_ref="1"/>
-                <entry il_offset="0x7e" start_row="10" start_column="5" end_row="10" end_column="17" file_ref="1"/>
-                <entry il_offset="0x80" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x88" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xa4" start_row="10" start_column="5" end_row="10" end_column="17" file_ref="1"/>
-                <entry il_offset="0xae" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xa" start_row="6" start_column="13" end_row="6" end_column="29" file_ref="0"/>
+                <entry il_offset="0xc" start_row="7" start_column="13" end_row="7" end_column="29" file_ref="0"/>
+                <entry il_offset="0xe" start_row="9" start_column="9" end_row="9" end_column="55" file_ref="0"/>
+                <entry il_offset="0x7e" start_row="10" start_column="5" end_row="10" end_column="17" file_ref="0"/>
+                <entry il_offset="0x80" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x88" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0xa4" start_row="10" start_column="5" end_row="10" end_column="17" file_ref="0"/>
+                <entry il_offset="0xae" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
             <locals>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xba" attributes="1"/>

@@ -426,6 +426,16 @@ public class B
             {
                 return underlyingTree.WithChangedText(newText);
             }
+
+            public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override SyntaxTree WithFilePath(string path)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

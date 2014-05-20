@@ -343,19 +343,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options = TestOptions.Regular;
             }
 
-            var stringText = StringText.From(text);
-            return SyntaxFactory.ParseSyntaxTree(stringText, filename, options);
-        }
-
-        public static SyntaxTree ParseWithChecksum(string text, string filename = "", CSharpParseOptions options = null)
-        {
-            if ((object)options == null)
-            {
-                options = TestOptions.Regular;
-            }
-
-            var stringText = StringText.From(text, Hash.ComputeSha1(Encoding.UTF8.GetBytes(text)));
-            return SyntaxFactory.ParseSyntaxTree(stringText, filename, options);
+            var stringText = StringText.From(text, Encoding.UTF8);
+            return SyntaxFactory.ParseSyntaxTree(stringText, options, filename);
         }
 
         public static SyntaxTree[] Parse(IEnumerable<string> sources)

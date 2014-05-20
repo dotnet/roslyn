@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestGetSourceLocationInFile()
             Dim sampleProgram = "Class X" + vbCrLf + "Public x As Integer" + vbCrLf + "End Class" + vbCrLf
-            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, "c:\\foo.vb")
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\\foo.vb")
 
             Dim xSpan As New TextSpan(sampleProgram.IndexOf("x As"), 1)
             Dim xToEndClassSpan As New TextSpan(xSpan.Start, sampleProgram.IndexOf("End Class") - xSpan.Start + 3)
@@ -105,7 +105,7 @@ public a as integer
 #End If
 End Class
 "
-            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, "c:\foo.vb")
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\foo.vb")
 
             AssertMappedSpanEqual(tree, "ports Sy", "c:\foo.vb", 0, 2, 0, 10, hasMappedPath:=False)
             AssertMappedSpanEqual(tree, "x as", "banana.vb", 19, 7, 19, 11, hasMappedPath:=True)
@@ -125,7 +125,7 @@ public x as integer
 public y as integer
 End Class
 </value>.Value
-            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, "c:\foo.vb")
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\foo.vb")
 
             AssertMappedSpanEqual(tree, "ports Sy", "c:\foo.vb", 0, 2, 0, 10, hasMappedPath:=False)
             AssertMappedSpanEqual(tree, "x as", "c:\foo.vb", 2, 7, 2, 11, hasMappedPath:=False)
@@ -139,8 +139,8 @@ Class X
 End Class
 "
             Dim resolver = New TestSourceResolver()
-            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, ""), "Class X", "", 1, 0, 1, 7, hasMappedPath:=False)
-            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, "    "), "Class X", "    ", 1, 0, 1, 7, hasMappedPath:=False)
+            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path:=""), "Class X", "", 1, 0, 1, 7, hasMappedPath:=False)
+            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path:="    "), "Class X", "    ", 1, 0, 1, 7, hasMappedPath:=False)
         End Sub
 
 

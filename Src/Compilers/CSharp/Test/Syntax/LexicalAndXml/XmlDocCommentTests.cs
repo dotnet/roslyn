@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var options = this.GetOptions(defines);
             var itext = SourceText.From(text);
-            return SyntaxFactory.ParseSyntaxTree(itext, "", options);
+            return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
 
         [Fact]

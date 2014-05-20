@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (oldText != newText)
                 {
-                    if (oldText.HasSameText(newText))
+                    if (oldText.ContentEquals(newText))
                     {
                         // if the supplied text is the same as the previous text, then add with same version
                         var version = oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);

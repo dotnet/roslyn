@@ -1,23 +1,15 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.IO
-Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class VisualBasicSyntaxTreeFactoryServiceFactory
 
-        Partial Private Class VisualBasicSyntaxTreeFactoryService
+        Partial Friend Class VisualBasicSyntaxTreeFactoryService
 
             ''' <summary>
             ''' Represents a syntax tree that only has a weak reference to its 
@@ -25,16 +17,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' the underlying full tree to stay alive.  Think of it more as a 
             ''' key that can be used to identify a tree rather than the tree itself.
             ''' </summary>
-            Friend MustInherit Class RecoverableSyntaxTree
+            Friend NotInheritable Class RecoverableSyntaxTree
                 Inherits VisualBasicSyntaxTree
                 Implements IRecoverableSyntaxTree(Of CompilationUnitSyntax)
 
-                Private ReadOnly _recoverableRoot As AbstractRecoverableSyntaxRoot(Of CompilationUnitSyntax)
+                Private ReadOnly _recoverableRoot As RecoverableSyntaxRoot(Of CompilationUnitSyntax)
 
-                Public Sub New(recoverableRoot As AbstractRecoverableSyntaxRoot(Of CompilationUnitSyntax))
+                Private Sub New(recoverableRoot As RecoverableSyntaxRoot(Of CompilationUnitSyntax))
+                    Debug.Assert(recoverableRoot IsNot Nothing)
                     _recoverableRoot = recoverableRoot
-                    _recoverableRoot.SetContainingTree(Me)
                 End Sub
+
+                Friend Shared Function CreateRecoverableTree(service As AbstractSyntaxTreeFactoryService, filePath As String, options As ParseOptions, text As ValueSource(Of TextAndVersion), root As CompilationUnitSyntax, reparse As Boolean) As SyntaxTree
+                    Dim recoverableRoot = CachedRecoverableSyntaxRoot(Of CompilationUnitSyntax).Create(service, filePath, options, text, root, reparse)
+                    Dim recoverableTree = New RecoverableSyntaxTree(recoverableRoot)
+                    recoverableRoot.SetContainingTree(recoverableTree)
+                    Return recoverableTree
+                End Function
 
                 Public Overrides ReadOnly Property FilePath As String
                     Get
@@ -54,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Public Overrides Function TryGetText(ByRef text As Microsoft.CodeAnalysis.Text.SourceText) As Boolean
+                Public Overrides Function TryGetText(ByRef text As SourceText) As Boolean
                     Return _recoverableRoot.TryGetText(text)
                 End Function
 
@@ -106,22 +105,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private Function IRecoverableSyntaxTree_CloneNodeAsRoot(root As CompilationUnitSyntax) As CompilationUnitSyntax Implements IRecoverableSyntaxTree(Of CompilationUnitSyntax).CloneNodeAsRoot
                     Return CloneNodeAsRoot(root)
                 End Function
-            End Class
 
-            Friend Class SerializedSyntaxTree
-                Inherits RecoverableSyntaxTree
+                Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
+                    Dim oldRoot As CompilationUnitSyntax = Nothing
+                    If _recoverableRoot.Options Is options AndAlso TryGetRoot(oldRoot) AndAlso root Is oldRoot Then
+                        Return Me
+                    End If
 
-                Public Sub New(service As VisualBasicSyntaxTreeFactoryService, filePath As String, options As ParseOptions, text As ValueSource(Of TextAndVersion), root As CompilationUnitSyntax)
-                    MyBase.New(New SerializedSyntaxRoot(Of CompilationUnitSyntax)(service, filePath, options, text, root))
-                End Sub
-            End Class
+                    Return New RecoverableSyntaxTree(_recoverableRoot.WithRootAndOptions(DirectCast(root, CompilationUnitSyntax), options))
+                End Function
 
-            Friend Class ReparsedSyntaxTree
-                Inherits RecoverableSyntaxTree
+                Public Overrides Function WithFilePath(path As String) As SyntaxTree
+                    If String.Equals(path, _recoverableRoot.FilePath) Then
+                        Return Me
+                    End If
 
-                Public Sub New(service As VisualBasicSyntaxTreeFactoryService, filePath As String, options As ParseOptions, text As ValueSource(Of TextAndVersion), root As CompilationUnitSyntax)
-                    MyBase.New(New ReparsedSyntaxRoot(Of CompilationUnitSyntax)(service, filePath, options, text, root))
-                End Sub
+                    Return New RecoverableSyntaxTree(_recoverableRoot.WithFilePath(path))
+                End Function
+
+                Public ReadOnly Property IsReparsed As Boolean
+                    Get
+                        Return _recoverableRoot.IsReparsed
+                    End Get
+                End Property
             End Class
         End Class
     End Class

@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Roslyn.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -22,47 +21,97 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private readonly string source;
 
-        /// <summary>
-        /// Sha1 checksum of the underlying stream.
-        /// </summary>
-        private ImmutableArray<byte> sha1Checksum;
+        private readonly Encoding encoding;
 
-        /// <summary>
-        /// Underlying string which is the source of this SourceText instance
-        /// </summary>
-        public string Source
+        private EncodedStringText(string source, Encoding encoding)
         {
-            get
-            {
-                return source;
-            }
+            Debug.Assert(source != null);
+            Debug.Assert(encoding != null);
+            this.source = source;
+            this.encoding = encoding;
         }
 
         /// <summary>
         /// Initializes an instance of <see cref="T:StringText"/> with provided bytes.
         /// </summary>
         /// <param name="stream"></param>
-        /// <param name="encodingOpt">
-        /// Automatically detected, if not specified: BigEndianUnicode, Unicode, UTF8
-        /// (with or without byte order mark). Windows-1252 will be used as a fallback.
-        /// This method will throw an InvalidDataException if the stream appears to be a binary file and 
-        /// a DecoderFallbackException if it can't be decoded.
+        /// <param name="defaultEncoding">
+        /// Specifies an encoding to be used if the actual encoding can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
+        /// If not specified auto-detect heristics are used to determine the encoding. If these heristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
+        /// Note that if the stream starts with Byte Order Mark the value of <paramref name="defaultEncoding"/> is ignored.
         /// </param>
-        public EncodedStringText(Stream stream, Encoding encodingOpt)
+        /// <exception cref="InvalidDataException">
+        /// The stream content can't be decoded using the specified <paramref name="defaultEncoding"/>, or
+        /// <paramref name="defaultEncoding"/> is null and the stream appears to be a binary file.
+        /// </exception>
+        /// <exception cref="IOException">An IO error occured while reading from the stream.</exception>
+        internal static EncodedStringText Create(Stream stream, Encoding defaultEncoding = null)
         {
             Debug.Assert(stream != null);
             Debug.Assert(stream.CanRead && stream.CanSeek);
 
-            if (encodingOpt == null)
+            bool detectEncoding = defaultEncoding == null;
+            string text;
+            Encoding preambleEncoding;
+            Encoding actualEncoding;
+            if (detectEncoding)
             {
-                this.source = DetectEncodingAndDecode(stream);
+                preambleEncoding = TryReadByteOrderMark(stream);
+
+                if (preambleEncoding == null)
+                {
+                    // If we didn't find a recognized byte order mark, check to see if the file contents are valid UTF-8
+                    // with no byte order mark.  Detecting UTF-8 with no byte order mark implicitly decodes the entire stream
+                    // to check each byte, so we won't decode again unless we've already detected some other encoding or
+                    // this is not valid UTF-8.
+
+                    var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+                    try
+                    {
+                        // If we successfully decode the content of the stream as UTF8 it is likely not binary,
+                        // so we don't need to check that.
+                        text = Decode(stream, utf8NoBom, out actualEncoding);
+                        return new EncodedStringText(text, actualEncoding);
+                    }
+                    catch (DecoderFallbackException)
+                    {
+                        // fall back to default encoding
+                    }
+                }
             }
             else
             {
-                this.source = Decode(stream, encodingOpt);
+                preambleEncoding = null;
             }
 
-            this.sha1Checksum = Hash.ComputeSha1(stream);
+            try
+            {
+                text = Decode(stream, preambleEncoding ?? defaultEncoding ?? Encoding.Default, out actualEncoding);
+            }
+            catch (DecoderFallbackException e)
+            {
+                throw new InvalidDataException(e.Message);
+            }
+
+            if (detectEncoding && IsBinary(text))
+            {
+                throw new InvalidDataException();
+            }
+
+            return new EncodedStringText(text, actualEncoding);
+        }
+
+        public override Encoding Encoding
+        {
+            get { return this.encoding; }
+        }
+
+        /// <summary>
+        /// Underlying string which is the source of this SourceText instance
+        /// </summary>
+        public string Source
+        {
+            get { return source; }
         }
 
         /// <summary>
@@ -117,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Text
             this.Source.CopyTo(sourceIndex, destination, destinationIndex, count);
         }
 
-        public override void Write(TextWriter textWriter, TextSpan span)
+        public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (span.Start == 0 && span.End == this.Length)
             {
@@ -125,77 +174,30 @@ namespace Microsoft.CodeAnalysis.Text
             }
             else
             {
-                base.Write(textWriter, span);
+                base.Write(textWriter, span, cancellationToken);
             }
-        }
-
-        protected override ImmutableArray<byte> GetSha1ChecksumImpl()
-        {
-            return this.sha1Checksum;
         }
 
         #region Encoding Detection
 
         /// <summary>
-        /// The following encodings will be automatically detected: 
-        /// BigEndianUnicode, Unicode, UTF8 (with or without byte order mark).
-        /// The default windows codepage will be used as a fallback. If the 
-        /// default windows codepage is 1252 (Western European), we will try to
-        /// detect if the stream is binary encoded. Does not close the stream 
-        /// after decoding.
-        /// </summary>
-        /// <exception cref="InvalidDataException">If a binary file is 
-        /// detected.</exception>
-        /// <exception cref="DecoderFallbackException">If the detected 
-        /// encoding can't decode the stream.</exception>
-        internal static string DetectEncodingAndDecode(Stream data)
-        {
-            Encoding encoding = TryReadByteOrderMark(data);
-
-            // If we didn't find a recognized byte order mark, check to see if the file contents are valid UTF-8
-            // with no byte order mark.  Detecting UTF-8 with no byte order mark implicitly decodes the entire array
-            // to check each byte, so we won't decode again unless we've already detected some other encoding or
-            // this is not valid UTF-8
-            string text = null;
-            if (encoding != null || !TryDecodeUtf8NoByteOrderMark(data, out text))
-            {
-                if (encoding == null)
-                {
-                    encoding = Encoding.Default;
-                }
-
-                text = DecodeIfNotBinary(data, encoding);
-            }
-
-            return text;
-        }
-
-        /// <summary>
-        /// Decodes the file using the supplied <paramref name="encoding"/> if and only 
-        /// if the file fails the heuristic for detecting a binary file. The heuristic checks
+        /// The heuristic checks
         /// for occurrence of two consecutive NUL (U+0000) characters in the stream, which are 
         /// highly unlikely to appear in a text file. Since the heuristic is applied after 
         /// the text has been decoded, it can be used with any encoding.
-        /// Does not close the stream when finished.
         /// </summary>
-        /// <param name="data">Data stream</param>
-        /// <param name="encoding">Encoding to use for decode</param>
-        /// <exception cref="InvalidDataException">If the stream is binary encoded</exception>
-        /// <returns>Decoded stream as a text string</returns>
-        internal static string DecodeIfNotBinary(Stream data, Encoding encoding)
+        internal static bool IsBinary(string text)
         {
-            var text = Decode(data, encoding);
-
             bool wasLastCharNul = text.Length > 0 ? text[0] == '\0' : false;
             for (int i = 1; i < text.Length; i++)
             {
                 if (wasLastCharNul & (wasLastCharNul = text[i] == '\0'))
                 {
-                    throw new InvalidDataException();
+                    return true;
                 }
             }
 
-            return text;
+            return false;
         }
 
         /// <summary>
@@ -203,12 +205,11 @@ namespace Microsoft.CodeAnalysis.Text
         /// close the stream afterwards.
         /// </summary>
         /// <param name="data">Data stream</param>
-        /// <param name="encoding">Encoding to use for decode</param>
-        /// <exception cref="DecoderFallbackException">If the given 
-        /// encoding is set to use <see cref="DecoderExceptionFallback"/>
-        /// as its fallback decoder.</exception>
+        /// <param name="encoding">Default encoding to use for decoding.</param>
+        /// <param name="actualEncoding">Actual encoding used to read the text.</param>
+        /// <exception cref="DecoderFallbackException">If the given encoding is set to use <see cref="DecoderExceptionFallback"/> as its fallback decoder.</exception>
         /// <returns>Decoded stream as a text string</returns>
-        internal static string Decode(Stream data, Encoding encoding)
+        internal static string Decode(Stream data, Encoding encoding, out Encoding actualEncoding)
         {
             data.Seek(0, SeekOrigin.Begin);
 
@@ -216,6 +217,7 @@ namespace Microsoft.CodeAnalysis.Text
             var memoryMappedViewStream = data as MemoryMappedViewStream;
             if (memoryMappedViewStream != null && encoding == Encoding.Unicode)
             {
+                actualEncoding = encoding;
                 return ReadUnicodeStringFromMemoryMappedViewStream(memoryMappedViewStream);
             }
 
@@ -223,13 +225,16 @@ namespace Microsoft.CodeAnalysis.Text
 
             // PERF: If the input is a MemoryStream, we may be able to save an allocation
             var memoryStream = data as MemoryStream;
-            if (memoryStream != null && TryDecodeMemoryStream(memoryStream, encoding, decodedText: out text))
+            if (memoryStream != null && TryDecodeMemoryStream(memoryStream, encoding, out actualEncoding, out text))
             {
                 return text;
             }
 
             // No using block so we don't close the stream
-            return new StreamReader(data, encoding).ReadToEnd();
+            var reader = new StreamReader(data, encoding);
+            text = reader.ReadToEnd();
+            actualEncoding = reader.CurrentEncoding;
+            return text;
         }
 
         /// <summary>
@@ -287,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         /// <exception cref="DecoderFallbackException">If the given encoding is set to use <see cref="DecoderExceptionFallback"/> 
         /// as its fallback decoder.</exception>
-        private static bool TryDecodeMemoryStream(MemoryStream data, Encoding encoding, out string decodedText)
+        private static bool TryDecodeMemoryStream(MemoryStream data, Encoding encoding, out Encoding actualEncoding, out string decodedText)
         {
             Debug.Assert(data.Position == 0);
 
@@ -299,42 +304,15 @@ namespace Microsoft.CodeAnalysis.Text
             catch (UnauthorizedAccessException)
             {
                 decodedText = null;
+                actualEncoding = null;
                 return false;
             }
 
-            Encoding actualEncoding = TryReadByteOrderMark(data) ?? encoding;
+            actualEncoding = TryReadByteOrderMark(data) ?? encoding;
             int preambleSize = (int)data.Position;
 
             decodedText = actualEncoding.GetString(buffer, preambleSize, (int)data.Length - preambleSize);
             return true;
-        }
-
-        /// <summary>
-        /// Assume that the input is UTF8 encoded with no byte order mark (BOM)
-        /// </summary>
-        private static bool TryDecodeUtf8NoByteOrderMark(Stream data, out string text)
-        {
-            data.Seek(0, SeekOrigin.Begin);
-
-            var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
-            // PERF: If the input is a MemoryStream, we may be able to save an allocation
-            var memoryStream = data as MemoryStream;
-            try
-            {
-                if (memoryStream == null || !TryDecodeMemoryStream(memoryStream, encoding, out text))
-                {
-                    // We aren't using a 'using' block here because we don't want to automatically close the stream
-                    text = new StreamReader(data, encoding).ReadToEnd();
-                }
-
-                return true;
-            }
-            catch (DecoderFallbackException)
-            {
-                text = null;
-                return false;
-            }
         }
 
         private static bool StartsWith(byte[] bytes, byte[] prefix)

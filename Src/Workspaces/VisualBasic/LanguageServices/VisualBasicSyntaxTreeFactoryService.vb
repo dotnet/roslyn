@@ -1,10 +1,10 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
+Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicSyntaxTreeFactoryService(provider)
         End Function
 
-        Partial Private Class VisualBasicSyntaxTreeFactoryService
+        Partial Friend Class VisualBasicSyntaxTreeFactoryService
             Inherits AbstractSyntaxTreeFactoryService
 
             Public Sub New(languageServices As HostLanguageServices)
@@ -32,25 +32,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
-                Return SyntaxFactory.ParseSyntaxTree(text, fileName, DirectCast(options, ParseOptions), cancellationToken)
+                Return SyntaxFactory.ParseSyntaxTree(text, options, fileName, cancellationToken)
             End Function
 
-            Public Overloads Overrides Function CreateSyntaxTree(fileName As String, options As ParseOptions, node As SyntaxNode) As SyntaxTree
+            Public Overloads Overrides Function CreateSyntaxTree(fileName As String, options As ParseOptions, node As SyntaxNode, encoding As Encoding) As SyntaxTree
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
-                Return SyntaxFactory.SyntaxTree(node, fileName, DirectCast(options, ParseOptions))
+                Return SyntaxFactory.SyntaxTree(node, options, fileName, encoding)
             End Function
 
-            Public Overrides Function CreateRecoverableTree(filePath As String, options As ParseOptions, text As ValueSource(Of TextAndVersion), root As SyntaxNode, reparse As Boolean) As SyntaxTree
-                If options Is Nothing Then
-                    options = GetDefaultParseOptions()
-                End If
-                If reparse Then
-                    Return New ReparsedSyntaxTree(Me, filePath, DirectCast(options, ParseOptions), text, DirectCast(root, CompilationUnitSyntax))
-                Else
-                    Return New SerializedSyntaxTree(Me, filePath, DirectCast(options, ParseOptions), text, DirectCast(root, CompilationUnitSyntax))
-                End If
+            Public Overrides Function CreateRecoverableTree(filePath As String, optionsOpt As ParseOptions, text As ValueSource(Of TextAndVersion), root As SyntaxNode, reparse As Boolean) As SyntaxTree
+                Return RecoverableSyntaxTree.CreateRecoverableTree(Me, filePath, If(optionsOpt, GetDefaultParseOptions()), text, DirectCast(root, CompilationUnitSyntax), reparse)
             End Function
 
             Public Overrides Function DeserializeNodeFrom(stream As Stream, cancellationToken As CancellationToken) As SyntaxNode

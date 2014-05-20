@@ -1,14 +1,21 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class SyntaxFactoryTests
+
+        <Fact>
+        Public Sub SyntaxTreeFactory()
+            Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit(), encoding:=Nothing)
+            Assert.Null(tree.GetText().Encoding)
+        End Sub
+
+        <Fact>
+        Public Sub SyntaxTreeFromNode()
+            Assert.Null(SyntaxFactory.CompilationUnit().SyntaxTree.GetText().Encoding)
+        End Sub
 
         <Fact>
         <WorkItem(720708, "DevDiv")>

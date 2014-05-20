@@ -2413,36 +2413,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // start generating PDB checksums if we need to emit PDBs
                 if (generateDebugInfo && moduleBeingBuilt != null)
                 {
-                    // Add debug documents for all trees with distinct paths.
-                    foreach (var tree in this.syntaxTrees)
+                    if (!StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
                     {
-                        var path = tree.FilePath;
-                        if (!string.IsNullOrEmpty(path))
-                        {
-                            // compilation does not guarantee that all trees will have distinct paths.
-                            // Do not attempt adding a document for a particular path if we already added one.
-                            string normalizedPath = moduleBeingBuilt.NormalizeDebugDocumentPath(path, basePath: null);
-                            var existingDoc = moduleBeingBuilt.TryGetDebugDocumentForNormalizedPath(normalizedPath);
-                            if (existingDoc == null)
-                            {
-                                moduleBeingBuilt.AddDebugDocument(MakeDebugSourceDocumentForTree(normalizedPath, tree));
-                            }
-                        }
-                    }
-
-                    // Add debug documents for all pragmas. 
-                    // If there are clashes with already processed directives, report warnings.
-                    // If there are clashes with debug documents that came from actual trees, ignore the pragma.
-                    foreach (var tree in this.syntaxTrees)
-                    {
-                        AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnostics);
+                        return false;
                     }
                 }
 
-                // EDMAURER perform initial bind of method bodies in spite of earlier errors. This is the same
+                // Perform initial bind of method bodies in spite of earlier errors. This is the same
                 // behavior as when calling GetDiagnostics()
 
                 // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
@@ -2492,6 +2471,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(false, "Should never produce an error");
                 return false;
+            }
+
+            return true;
+        }
+
+        // TODO: consider unifying with VB
+        private bool StartSourceChecksumCalculation(PEModuleBuilder moduleBeingBuilt, DiagnosticBag diagnostics)
+        {
+            // Check that all syntax trees are debuggable:
+            bool allTreesDebuggable = true;
+            foreach (var tree in this.syntaxTrees)
+            {
+                if (!string.IsNullOrEmpty(tree.FilePath) && tree.GetText().Encoding == null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_EncodinglessSyntaxTree, tree.GetRoot().GetLocation());
+                    allTreesDebuggable = false;
+                }
+            }
+
+            if (!allTreesDebuggable)
+            {
+                return false;
+            }
+
+            // Add debug documents for all trees with distinct paths.
+            foreach (var tree in this.syntaxTrees)
+            {
+                if (!string.IsNullOrEmpty(tree.FilePath))
+                {
+                    // compilation does not guarantee that all trees will have distinct paths.
+                    // Do not attempt adding a document for a particular path if we already added one.
+                    string normalizedPath = moduleBeingBuilt.NormalizeDebugDocumentPath(tree.FilePath, basePath: null);
+                    var existingDoc = moduleBeingBuilt.TryGetDebugDocumentForNormalizedPath(normalizedPath);
+                    if (existingDoc == null)
+                    {
+                        moduleBeingBuilt.AddDebugDocument(MakeDebugSourceDocumentForTree(normalizedPath, tree));
+                    }
+                }
+            }
+
+            // Add debug documents for all pragmas. 
+            // If there are clashes with already processed directives, report warnings.
+            // If there are clashes with debug documents that came from actual trees, ignore the pragma.
+            foreach (var tree in this.syntaxTrees)
+            {
+                AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnostics);
             }
 
             return true;

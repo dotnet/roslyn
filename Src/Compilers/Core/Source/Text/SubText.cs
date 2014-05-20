@@ -1,21 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
     /// <summary>
     /// An SourceText that represents a subrange of another SourceText.
     /// </summary>
-    internal class SubText : SourceText
+    internal sealed class SubText : SourceText
     {
         private readonly SourceText text;
         private readonly TextSpan span;
@@ -37,6 +30,11 @@ namespace Microsoft.CodeAnalysis.Text
 
             this.text = text;
             this.span = span;
+        }
+
+        public override Encoding Encoding
+        {
+            get { return text.Encoding; }
         }
 
         public SourceText UnderlyingText

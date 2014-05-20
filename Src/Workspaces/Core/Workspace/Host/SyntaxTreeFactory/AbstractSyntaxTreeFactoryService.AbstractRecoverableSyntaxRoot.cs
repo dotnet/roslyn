@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -10,16 +12,140 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal abstract partial class AbstractSyntaxTreeFactoryService
     {
+        internal abstract class RecoverableSyntaxRoot<TRoot>
+            where TRoot : SyntaxNode
+        {
+            // information needed to either recreate tree or feed into wrapping tree
+            internal readonly AbstractSyntaxTreeFactoryService Service;
+            internal readonly string FilePath;
+            internal readonly ParseOptions Options;
+
+            protected readonly ValueSource<TextAndVersion> TextSource;
+
+            protected RecoverableSyntaxRoot(
+                AbstractSyntaxTreeFactoryService service,
+                string filePath,
+                ParseOptions options,
+                ValueSource<TextAndVersion> textSource)
+            {
+                Debug.Assert(service != null);
+                Debug.Assert(filePath != null);
+                Debug.Assert(options != null);
+                Debug.Assert(textSource != null);
+
+                this.Service = service;
+                this.FilePath = filePath;
+                this.Options = options;
+                this.TextSource = textSource;
+            }
+
+            internal RecoverableSyntaxRoot<TRoot> WithRootAndOptions(TRoot root, ParseOptions options)
+            {
+                return new ReplacedSyntaxRoot<TRoot>(
+                    this.Service,
+                    this.FilePath,
+                    options,
+                    this.TextSource,
+                    root);
+            }
+
+            internal abstract RecoverableSyntaxRoot<TRoot> WithFilePath(string path);
+
+            public bool TryGetText(out SourceText text)
+            {
+                TextAndVersion textAndVersion;
+                if (this.TextSource.TryGetValue(out textAndVersion))
+                {
+                    text = textAndVersion.Text;
+                    return true;
+                }
+                else
+                {
+                    text = null;
+                    return false;
+                }
+            }
+
+            public SourceText GetText(CancellationToken cancellationToken)
+            {
+                return TextSource.GetValue(cancellationToken).Text;
+            }
+
+            public async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
+            {
+                var textAndVersion = await this.TextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return textAndVersion.Text;
+            }
+
+            public abstract bool IsReparsed { get; }
+            public abstract int Length { get; }
+            public abstract bool TryGetRoot(out TRoot root);
+            public abstract TRoot GetRoot(CancellationToken cancellationToken);
+            public abstract Task<TRoot> GetRootAsync(CancellationToken cancellationToken);
+        }
+
+        private sealed class ReplacedSyntaxRoot<TRoot> : RecoverableSyntaxRoot<TRoot>
+            where TRoot : SyntaxNode
+        {
+            private readonly TRoot root;
+
+            internal ReplacedSyntaxRoot(
+                AbstractSyntaxTreeFactoryService service,
+                string filePath,
+                ParseOptions options,
+                ValueSource<TextAndVersion> textSource,
+                TRoot root) 
+                : base(service, filePath, options, textSource)
+            {
+                Debug.Assert(root != null);
+                this.root = root;
+            }
+
+            public override bool IsReparsed
+            {
+                get { return false; }
+            }
+
+            public override int Length
+            {
+                get { return root.FullSpan.Length; }
+            }
+
+            internal override RecoverableSyntaxRoot<TRoot> WithFilePath(string path)
+            {
+                return new ReplacedSyntaxRoot<TRoot>(
+                    this.Service,
+                    path,
+                    this.Options,
+                    this.TextSource,
+                    this.root);
+            }
+
+            public override bool TryGetRoot(out TRoot root)
+            {
+                root = this.root;
+                return true;
+            }
+
+            public override TRoot GetRoot(CancellationToken cancellationToken)
+            {
+                return this.root;
+            }
+
+            public override Task<TRoot> GetRootAsync(CancellationToken cancellationToken)
+            {
+                return Task.FromResult(this.root);
+            }
+        }
+
         /// <summary>
         /// Represents all the state used by a language-specific recoverable syntax tree
         /// </summary>
-        internal abstract class AbstractRecoverableSyntaxRoot<TRoot> where TRoot : SyntaxNode
+        internal abstract class CachedRecoverableSyntaxRoot<TRoot> : RecoverableSyntaxRoot<TRoot>
+            where TRoot : SyntaxNode
         {
-            // information needed to either recreate tree or feed into wrapping tree
-            private readonly AbstractSyntaxTreeFactoryService service;
-            private readonly string filePath;
-            private readonly ParseOptions options;
-            private readonly ValueSource<TextAndVersion> textSource;
+            // actual holder of the root
+            protected ValueSource<TRoot> rootSource;
             private readonly int length;
 
             // root cache
@@ -36,34 +162,40 @@ namespace Microsoft.CodeAnalysis.Host
             // isSaved make sure it gets serialized only once
             private bool isSaved;
 
-            // actual holder of the root
-            private ValueSource<TRoot> rootSource;
-
-            public AbstractRecoverableSyntaxRoot(
+            protected CachedRecoverableSyntaxRoot(
                 AbstractSyntaxTreeFactoryService service,
                 string filePath,
                 ParseOptions options,
-                ValueSource<TextAndVersion> text,
-                TRoot root)
+                ValueSource<TextAndVersion> textSource,
+                ValueSource<TRoot> rootSource,
+                int length)
+                : base(service, filePath, options, textSource)
             {
-                System.Diagnostics.Debug.Assert(service != null);
-                System.Diagnostics.Debug.Assert(filePath != null);
-                System.Diagnostics.Debug.Assert(options != null);
-                System.Diagnostics.Debug.Assert(text != null);
-                System.Diagnostics.Debug.Assert(root != null);
+                this.rootSource = rootSource;
+                this.length = length;
+                this.syntaxTreeCache = service.languageServices.WorkspaceServices.GetService<ISyntaxTreeCacheService>();
+                this.evictAction = new WeakAction<CachedRecoverableSyntaxRoot<TRoot>, SyntaxNode>(this, (r, d) => r.OnEvicted(d));
+            }
 
-                this.service = service;
-                this.filePath = filePath;
-                this.options = options;
-                this.textSource = text;
-                this.length = root.FullSpan.Length;
+            public static CachedRecoverableSyntaxRoot<TRoot> Create(
+                AbstractSyntaxTreeFactoryService service, 
+                string filePath, 
+                ParseOptions options,
+                ValueSource<TextAndVersion> text,
+                TRoot root, 
+                bool reparse)
+            {
+                var rootSource = new ConstantValueSource<TRoot>(root);
+                int length = root.FullSpan.Length;
 
-                this.syntaxTreeCache = WorkspaceServices.GetService<ISyntaxTreeCacheService>();
-                System.Diagnostics.Debug.Assert(this.syntaxTreeCache != null);
-
-                this.evictAction = new WeakAction<AbstractRecoverableSyntaxRoot<TRoot>, SyntaxNode>(this, (r, d) => r.OnEvicted(d));
-
-                this.rootSource = new ConstantValueSource<TRoot>(root);
+                if (reparse)
+                {
+                    return new ReparsedSyntaxRoot<TRoot>(service, filePath, options, text, rootSource, length);
+                }
+                else
+                {
+                    return new SerializedSyntaxRoot<TRoot>(service, filePath, options, text, rootSource, length);
+                }
             }
 
             /// <summary>
@@ -78,29 +210,22 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 this.containingTree = containingTree;
                 this.rootSource = new ConstantValueSource<TRoot>(containingTree.CloneNodeAsRoot(this.rootSource.GetValue()));
-                this.TickleCache(this.rootSource.GetValue());
+                this.OnRootAccessed(this.rootSource.GetValue());
             }
 
             protected abstract Task<TRoot> RecoverRootAsync(CancellationToken cancellationToken);
             protected abstract TRoot RecoverRoot(CancellationToken cancellationToken);
             protected abstract Task SaveRootAsync(SyntaxTree tree, TRoot root, CancellationToken cancellationToken);
 
-            private TRoot TickleCache(TRoot root)
+            private void OnRootAccessed(TRoot root)
             {
                 // put the tree in the cache and manipulate root node retention when evicted.
                 this.syntaxTreeCache.AddOrAccess(root, this.evictAction);
-
-                return root;
             }
 
             protected HostWorkspaceServices WorkspaceServices
             {
-                get { return this.service.languageServices.WorkspaceServices; }
-            }
-
-            protected ISyntaxTreeFactoryService Service
-            {
-                get { return this.service; }
+                get { return this.Service.languageServices.WorkspaceServices; }
             }
 
             protected ISyntaxTreeStorageService SyntaxTreeStorageService
@@ -113,87 +238,47 @@ namespace Microsoft.CodeAnalysis.Host
                 get { return WorkspaceServices.GetService<ITemporaryStorageService>(); }
             }
 
-            public string FilePath
+            public sealed override int Length
             {
-                get
-                {
-                    return this.filePath;
-                }
+                get { return length; }
             }
 
-            public ParseOptions Options
-            {
-                get
-                {
-                    return this.options;
-                }
-            }
-
-            public int Length
-            {
-                get { return this.length; }
-            }
-
-            public bool TryGetText(out SourceText text)
-            {
-                TextAndVersion textAndVersion;
-                if (this.textSource.TryGetValue(out textAndVersion))
-                {
-                    text = textAndVersion.Text;
-                    return true;
-                }
-                else
-                {
-                    text = null;
-                    return false;
-                }
-            }
-
-            public SourceText GetText(CancellationToken cancellationToken)
-            {
-                return textSource.GetValue(cancellationToken).Text;
-            }
-
-            public async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
-            {
-                var textAndVersion = await this.textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                return textAndVersion.Text;
-            }
-
-            public bool TryGetRoot(out TRoot root)
+            public sealed override bool TryGetRoot(out TRoot root)
             {
                 if (this.rootSource.TryGetValue(out root))
                 {
-                    this.TickleCache(root);
+                    this.OnRootAccessed(root);
                     return true;
                 }
 
                 return false;
             }
 
-            public TRoot GetRoot(CancellationToken cancellationToken)
+            public sealed override TRoot GetRoot(CancellationToken cancellationToken)
             {
-                TRoot node;
-                if (!this.rootSource.TryGetValue(out node))
+                TRoot root;
+                if (!this.rootSource.TryGetValue(out root))
                 {
-                    node = GetAsyncLazyRoot().GetValue(cancellationToken);
+                    root = GetAsyncLazyRoot().GetValue(cancellationToken);
                 }
 
-                return this.TickleCache(node);
+                this.OnRootAccessed(root);
+                return root;
             }
 
-            public async Task<TRoot> GetRootAsync(CancellationToken cancellationToken)
+            public sealed override async Task<TRoot> GetRootAsync(CancellationToken cancellationToken)
             {
-                TRoot node;
-                if (!this.rootSource.TryGetValue(out node))
+                TRoot root;
+                if (!this.rootSource.TryGetValue(out root))
                 {
-                    node = await GetAsyncLazyRoot().GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    root = await GetAsyncLazyRoot().GetValueAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                return this.TickleCache(node);
+                this.OnRootAccessed(root);
+                return root;
             }
 
-            private static readonly Func<AbstractRecoverableSyntaxRoot<TRoot>, AsyncLazy<TRoot>> rootFactory =
+            private static readonly Func<CachedRecoverableSyntaxRoot<TRoot>, AsyncLazy<TRoot>> rootFactory =
                 a => new AsyncLazy<TRoot>(c => a.RestoreRootAsync(c), c => a.RestoreRoot(c), cacheResult: false);
 
             private AsyncLazy<TRoot> GetAsyncLazyRoot()
@@ -303,17 +388,35 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        // a recoverable syntax tree that recovers its nodes from a serialized temporary storage
-        internal class SerializedSyntaxRoot<TRoot> : AbstractRecoverableSyntaxRoot<TRoot> where TRoot : SyntaxNode
+        // a recoverable syntax root that recovers its nodes from a serialized temporary storage
+        private sealed class SerializedSyntaxRoot<TRoot> : CachedRecoverableSyntaxRoot<TRoot> 
+            where TRoot : SyntaxNode
         {
-            public SerializedSyntaxRoot(
+            internal SerializedSyntaxRoot(
                 AbstractSyntaxTreeFactoryService service,
-                string fileName,
+                string filePath,
                 ParseOptions options,
-                ValueSource<TextAndVersion> text,
-                TRoot root)
-                : base(service, fileName, options, text, root)
+                ValueSource<TextAndVersion> textSource,
+                ValueSource<TRoot> rootSource,
+                int length)
+                : base(service, filePath, options, textSource, rootSource, length)
             {
+            }
+
+            public override bool IsReparsed
+            {
+                get { return false; }
+            }
+
+            internal override RecoverableSyntaxRoot<TRoot> WithFilePath(string path)
+            {
+                return new SerializedSyntaxRoot<TRoot>(
+                    this.Service,
+                    path,
+                    this.Options,
+                    this.TextSource,
+                    this.rootSource,
+                    this.Length);
             }
 
             protected override Task SaveRootAsync(SyntaxTree tree, TRoot root, CancellationToken cancellationToken)
@@ -327,28 +430,44 @@ namespace Microsoft.CodeAnalysis.Host
 
             protected override Task<TRoot> RecoverRootAsync(CancellationToken cancellationToken)
             {
-                Contract.Fail("we shouldn't reach here");
-                return SpecializedTasks.Default<TRoot>();
+                throw Contract.Unreachable;
             }
 
             protected override TRoot RecoverRoot(CancellationToken cancellationToken)
             {
-                Contract.Fail("we shouldn't reach here");
-                return default(TRoot);
+                throw Contract.Unreachable;
             }
         }
 
-        // a recoverable syntax tree that recovers its nodes by reparsing the text
-        internal class ReparsedSyntaxRoot<TRoot> : AbstractRecoverableSyntaxRoot<TRoot> where TRoot : SyntaxNode
+        // a recoverable syntax root that recovers its nodes by reparsing the text
+        private sealed class ReparsedSyntaxRoot<TRoot> : CachedRecoverableSyntaxRoot<TRoot>
+            where TRoot : SyntaxNode
         {
-            public ReparsedSyntaxRoot(
+            internal ReparsedSyntaxRoot(
                 AbstractSyntaxTreeFactoryService service,
-                string fileName,
+                string filePath,
                 ParseOptions options,
-                ValueSource<TextAndVersion> text,
-                TRoot root)
-                : base(service, fileName, options, text, root)
+                ValueSource<TextAndVersion> textSource,
+                ValueSource<TRoot> rootSource,
+                int length)
+                : base(service, filePath, options, textSource, rootSource, length)
             {
+            }
+
+            public override bool IsReparsed
+            {
+                get { return true; }
+            }
+
+            internal override RecoverableSyntaxRoot<TRoot> WithFilePath(string path)
+            {
+                return new ReparsedSyntaxRoot<TRoot>(
+                    this.Service,
+                    path,
+                    this.Options,
+                    this.TextSource,
+                    this.rootSource,
+                    this.Length);
             }
 
             protected override Task SaveRootAsync(SyntaxTree tree, TRoot root, CancellationToken cancellationToken)

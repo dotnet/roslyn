@@ -104,24 +104,15 @@ namespace Microsoft.CodeAnalysis.Host
                         var size = Encoding.Unicode.GetMaxByteCount(text.Length);
                         memoryMappedInfo = service.memoryMappedFileManager.CreateViewInfo(size);
 
-                        var buffer = SharedPools.CharArray.Allocate();
                         using (var stream = memoryMappedInfo.CreateWritableStream())
                         {
                             // PERF: Don't call text.Write(writer) directly since it can cause multiple large string
                             // allocations from String.Substring.  Instead use one of our pooled char[] buffers.
                             using (var writer = new StreamWriter(stream, Encoding.Unicode))
                             {
-                                for (int index = 0; index < text.Length; index += buffer.Length)
-                                {
-                                    cancellationToken.ThrowIfCancellationRequested();
-                                    var count = Math.Min(buffer.Length, text.Length - index);
-                                    text.CopyTo(index, buffer, 0, count);
-                                    writer.Write(buffer, 0, count);
-                                }
+                                text.Write(writer, cancellationToken);
                             }
                         }
-
-                        SharedPools.CharArray.Free(buffer);
                     }
                 }
 

@@ -4671,7 +4671,7 @@ BC31042: 'Sub New' cannot implement interface members.
         Dim code = <![CDATA[
     Protected Property p As New
     ]]>.Value
-        VisualBasicSyntaxTree.ParseText(code, "", opt)
+        VisualBasicSyntaxTree.ParseText(code, options:=opt, path:="")
     End Sub
 
     <WorkItem(541284, "DevDiv")>

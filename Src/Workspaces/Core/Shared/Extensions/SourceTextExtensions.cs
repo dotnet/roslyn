@@ -100,57 +100,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        /// <summary>
-        /// Determine if this SourceText has the same text as another SourceText.
-        /// </summary>
-        public static bool HasSameText(this SourceText text, SourceText otherText)
-        {
-            if (text == null || otherText == null)
-            {
-                return text == otherText;
-            }
-
-            if (text == otherText)
-            {
-                return true;
-            }
-
-            if (text.Length != otherText.Length)
-            {
-                return false;
-            }
-
-            var buffer1 = SharedPools.CharArray.Allocate();
-            var buffer2 = SharedPools.CharArray.Allocate();
-            try
-            {
-                int position = 0;
-                while (position < text.Length)
-                {
-                    int n = Math.Min(text.Length - position, buffer1.Length);
-                    text.CopyTo(position, buffer1, 0, n);
-                    otherText.CopyTo(position, buffer2, 0, n);
-
-                    for (int i = 0; i < n; i++)
-                    {
-                        if (buffer1[i] != buffer2[i])
-                        {
-                            return false;
-                        }
-                    }
-
-                    position += n;
-                }
-
-                return true;
-            }
-            finally
-            {
-                SharedPools.CharArray.Free(buffer2);
-                SharedPools.CharArray.Free(buffer1);
-            }
-        }
-
         public static TextChangeRange GetEncompassingTextChangeRange(this SourceText newText, SourceText oldText)
         {
             var ranges = newText.GetChangeRanges(oldText);

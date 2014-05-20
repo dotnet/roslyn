@@ -41,9 +41,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromString()
         {
-            var data = SourceText.From("foo");
+            var data = SourceText.From("foo", Encoding.UTF8);
             Assert.Equal(1, data.Lines.Count);
             Assert.Equal(3, data.Lines[0].Span.Length);
+        }
+
+        [Fact]
+        public void FromString_DefaultEncoding()
+        {
+            var data = SourceText.From("foo");
+            Assert.Null(data.Encoding);
         }
 
         [Fact]
@@ -57,25 +64,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromString_Errors()
         {
-            Assert.Throws<ArgumentNullException>(() => SourceText.From((string)null));
-
-            // invalid SHA1 hash
-            Assert.Throws<ArgumentException>(() => SourceText.From("abc", ImmutableArray.Create<byte>()));
-            Assert.Throws<ArgumentException>(() => SourceText.From("abc", ImmutableArray.Create<byte>(1, 3)));
+            Assert.Throws<ArgumentNullException>(() => SourceText.From((string)null, Encoding.UTF8));
         }
 
         [Fact]
         public void FromStream_Errors()
         {
-            Assert.Throws<ArgumentNullException>(() => SourceText.From((Stream)null));
-            Assert.Throws<ArgumentException>(() => SourceText.From(new TestStream(canRead: false, canSeek: true)));
-            Assert.Throws<ArgumentException>(() => SourceText.From(new TestStream(canRead: true, canSeek: false)));
+            Assert.Throws<ArgumentNullException>(() => SourceText.From((Stream)null, Encoding.UTF8));
+            Assert.Throws<ArgumentException>(() => SourceText.From(new TestStream(canRead: false, canSeek: true), Encoding.UTF8));
+            Assert.Throws<ArgumentException>(() => SourceText.From(new TestStream(canRead: true, canSeek: false), Encoding.UTF8));
         }
 
         [Fact]
         public void Indexer1()
         {
-            var data = SourceText.From(String.Empty);
+            var data = SourceText.From(string.Empty, Encoding.UTF8);
             Assert.Throws(
                 typeof(IndexOutOfRangeException),
                 () => { var value = data[-1]; });
@@ -213,24 +216,11 @@ bar baz";
         }
 
         [Fact]
-        public void CheckSum_Unspecified1()
+        public void CheckSum_Utf8_BOM()
         {
-            var data = SourceText.From("The quick brown fox jumps over the lazy dog");
+            var data = SourceText.From("The quick brown fox jumps over the lazy dog", Encoding.UTF8);
             var checksum = data.GetSha1Checksum();
-            Assert.True(checksum.IsEmpty);
-        }
-
-        [Fact]
-        public void CheckSum_Explicit()
-        {
-            var hash = ImmutableArray.Create<byte>(
-                0x01, 0x02, 0x03, 0x04, 0x05,
-                0x01, 0x02, 0x03, 0x04, 0x05,
-                0x01, 0x02, 0x03, 0x04, 0x05,
-                0x01, 0x02, 0x03, 0x04, 0x05);
-
-            var source = SourceText.From("foo", hash);
-            AssertEx.Equal(hash, source.GetSha1Checksum());
+            Assert.Equal("88d3ed78 9b0bae8b ced8e348 91133516 b79ba9fb", ChecksumToHexQuads(checksum));
         }
 
         [Fact]

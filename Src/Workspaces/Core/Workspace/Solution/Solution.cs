@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1050,7 +1051,6 @@ namespace Microsoft.CodeAnalysis
             return this.ForkProject(this.GetProjectState(projectId).WithAnalyzerReferences(analyzerReferences));
         }
 
-        [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
         private Solution AddDocument(DocumentState state)
         {
             if (state == null)
@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the corresponding project updated to include a new
         /// document instance defined by its name and text.
         /// </summary>
-        public Solution AddDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string> folders = null, string filePath = null)
+        public Solution AddDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string> folders = null, string filePath = null, bool isGenerated = false)
         {
             if (documentId == null)
             {
@@ -1110,7 +1110,8 @@ namespace Microsoft.CodeAnalysis
                 folders: folders,
                 sourceCodeKind: project.ParseOptions.Kind,
                 loader: loader,
-                filePath: filePath);
+                filePath: filePath,
+                isGenerated: isGenerated);
 
             var doc = DocumentState.Create(
                 info,
@@ -1125,7 +1126,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project updated to include a new document with
         /// the arguments specified.
         /// </summary>
-        public Solution AddDocument(DocumentId documentId, string name, TextLoader loader, IEnumerable<string> folders = null, string filePath = null)
+        public Solution AddDocument(DocumentId documentId, string name, TextLoader loader, IEnumerable<string> folders = null)
         {
             if (documentId == null)
             {
@@ -1173,7 +1174,12 @@ namespace Microsoft.CodeAnalysis
 
             var project = this.GetProjectState(documentInfo.Id.ProjectId);
 
-            var doc = DocumentState.Create(documentInfo, project.ParseOptions, project.LanguageServices, this.solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind);
+            var doc = DocumentState.Create(
+                documentInfo, 
+                project.ParseOptions, 
+                project.LanguageServices, 
+                this.solutionServices).UpdateSourceCodeKind(documentInfo.SourceCodeKind);
+
             return this.AddDocument(doc);
         }
 

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 #line 20 ""d:\banana.cs""
 int x; 
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "c:\\foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
 
             TextSpan xSpan = new TextSpan(sampleProgram.IndexOf("x;"), 2);
             TextSpan xToCloseBraceSpan = new TextSpan(xSpan.Start, sampleProgram.IndexOf("}") - xSpan.Start + 1);
@@ -131,7 +131,7 @@ int a;
 }";
             var resolver = new TestSourceResolver();
 
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "foo.cs");
 
             AssertMappedSpanEqual(syntaxTree, "ing Sy", "foo.cs", 0, 2, 0, 8, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, "class X", "foo.cs", 1, 0, 1, 7, hasMappedPath: false);
@@ -162,7 +162,7 @@ int v;
 }";
             var resolver = new TestSourceResolver();
 
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "c:\\foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
 
             AssertMappedSpanEqual(syntaxTree, "int x;", "c:\\foo.cs", 19, 0, 19, 6, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, "int y;", "c:\\foo.cs", 21, 0, 21, 6, hasMappedPath: false);
@@ -180,8 +180,8 @@ class X {}
 ";
             var resolver = new TestSourceResolver();
 
-            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, ""), "class X {}", "", 19, 0, 19, 10, hasMappedPath: false);
-            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, "   "), "class X {}", "   ", 19, 0, 19, 10, hasMappedPath: false);
+            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path: ""), "class X {}", "", 19, 0, 19, 10, hasMappedPath: false);
+            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "   "), "class X {}", "   ", 19, 0, 19, 10, hasMappedPath: false);
         }
 
         [Fact]
@@ -195,7 +195,7 @@ class X {
 #line 20 ""seconddirective""
     int s; 
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "filename.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "filename.cs");
 
             AssertMappedSpanEqual(syntaxTree, "int q", "filename.cs", 2, 4, 2, 9, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, "int r", "filename.cs", 4, 4, 4, 9, hasMappedPath: false); // invalid #line args
@@ -209,7 +209,7 @@ class X {
 class X {
 int x; 
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "c:\\foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
 
             AssertMappedSpanEqual(syntaxTree, "ing Sy", "c:\\foo.cs", 0, 2, 0, 8, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, "class X", "c:\\foo.cs", 1, 0, 1, 7, hasMappedPath: false);
@@ -232,7 +232,7 @@ class Program
         int x
 }
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "c:\\foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
             // verify missing semicolon diagnostic is on the same line
             var diags = syntaxTree.GetDiagnostics();
             Assert.Equal(1, diags.Count());
@@ -252,7 +252,7 @@ class Program
         int x // dummy comment
 }
 }";
-            syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "c:\\foo.cs");
+            syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
             diags = syntaxTree.GetDiagnostics();
             diag = diags.First();
             flps = diag.Location.GetLineSpan();
@@ -272,7 +272,7 @@ multiline
 comment*/ 
 }
 }";
-            syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "c:\\foo.cs");
+            syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
             diags = syntaxTree.GetDiagnostics();
             diag = diags.First();
             flps = diag.Location.GetLineSpan();
@@ -295,7 +295,7 @@ class Program
         string 2131;
     }
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "c:\\foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
             var diags = syntaxTree.GetDiagnostics();
             // verify missing identifier diagnostic has the correct span
             Assert.NotEmpty(diags);
@@ -317,7 +317,7 @@ class C
 {
     int[] array = new int[
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "c:\\foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
             var diags = syntaxTree.GetDiagnostics();
             Assert.NotEmpty(diags);
             foreach (var diag in diags)
@@ -377,7 +377,7 @@ class Program
         ct
     }
 }";
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "c:\\foo.cs");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
             var token = syntaxTree.GetCompilationUnitRoot().FindToken(sampleProgram.IndexOf("ct"));
 
             // Get the diagnostics from the ExpressionStatement Syntax node which is the current token's Parent's Parent

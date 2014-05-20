@@ -2214,7 +2214,7 @@ End Class
         Private Shared Function CreateSyntaxTree(className As String) As SyntaxTree
             Dim text = String.Format("Public Partial Class {0}{1}End Class", className, Environment.NewLine)
             Dim path = String.Format("{0}.vb", className)
-            Return VisualBasicSyntaxTree.ParseText(text, path)
+            Return VisualBasicSyntaxTree.ParseText(text, path:=path)
         End Function
 
         Private Shared Sub CheckCompilationSyntaxTrees(compilation As VisualBasicCompilation, ParamArray expectedSyntaxTrees As SyntaxTree())

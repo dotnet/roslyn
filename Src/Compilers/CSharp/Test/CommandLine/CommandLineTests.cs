@@ -5955,7 +5955,7 @@ public class C { }
         [Fact]
         public void ErrorLineEnd()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("class C public { }", "foo");
+            var tree = SyntaxFactory.ParseSyntaxTree("class C public { }", path: "foo");
 
             var comp = new MockCSharpCompiler(null, baseDirectory, new[] { "/errorendlocation" });
             var loc = new SourceLocation(tree.GetCompilationUnitRoot().FindToken(6));
@@ -5985,7 +5985,7 @@ public class C { }
 #line 10 "".."" //relative path
 using System*
 ";
-            var syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "filename.cs");
+            var syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "filename.cs");
             var comp = new MockCSharpCompiler(null, baseDirectory, new string[] { });
             var text = comp.DiagnosticFormatter.Format(syntaxTree.GetDiagnostics().First());
             //Pull off the last segment of the current directory.
@@ -5997,7 +5997,7 @@ using System*
 #line 10 "".>"" //invalid path character
 using System*
 ";
-            syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "filename.cs");
+            syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "filename.cs");
             text = comp.DiagnosticFormatter.Format(syntaxTree.GetDiagnostics().First());
             Assert.True(text.StartsWith(".>"));
 
@@ -6005,7 +6005,7 @@ using System*
 #line 10 ""http://foo.bar/baz.aspx"" //URI
 using System*
 ";
-            syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "filename.cs");
+            syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "filename.cs");
             text = comp.DiagnosticFormatter.Format(syntaxTree.GetDiagnostics().First());
             Assert.True(text.StartsWith("http://foo.bar/baz.aspx"));
         }

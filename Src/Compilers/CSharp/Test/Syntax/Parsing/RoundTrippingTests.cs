@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static void ParseAndRoundTripping(string text, CSharpParseOptions options, int errorCount = 0, int memberCount = 0)
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), "", options);
+            var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), options);
             var toText = tree.GetCompilationUnitRoot().ToFullString();
 
             Assert.Equal(text, toText);
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void CharMaxValue()
         {
             string text = "abc" + char.MaxValue + "def";
-            var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), "");
+            var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), path: "");
             var toText = tree.GetCompilationUnitRoot().ToFullString();
             Assert.Equal(text, toText);
         }
@@ -1574,7 +1574,7 @@ class A
             CSharpParseOptions options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp2);
 
             var itext = SourceText.From(text);
-            var tree = SyntaxFactory.ParseSyntaxTree(itext, "", options);
+            var tree = SyntaxFactory.ParseSyntaxTree(itext, options, "");
             var newTest = tree.GetCompilationUnitRoot().ToFullString();
             Assert.Equal(text, newTest);
         }

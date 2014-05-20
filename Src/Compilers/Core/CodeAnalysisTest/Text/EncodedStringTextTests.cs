@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             using (var stream = new MemoryStream(buffer, 0, bytes.Length, writable: true, publiclyVisible: true))
             {
-                return new EncodedStringText(stream, readEncodingOpt);
+                return EncodedStringText.Create(stream, readEncodingOpt);
             }
         }
 
@@ -101,70 +101,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void DecodeIfNotBinary()
+        public void IsBinary()
         {
+            Assert.False(EncodedStringText.IsBinary(""));
+
+            Assert.False(EncodedStringText.IsBinary("\0abc"));
+            Assert.False(EncodedStringText.IsBinary("a\0bc"));
+            Assert.False(EncodedStringText.IsBinary("abc\0"));
+            Assert.False(EncodedStringText.IsBinary("a\0b\0c"));
+
+            Assert.True(EncodedStringText.IsBinary("\0\0abc"));
+            Assert.True(EncodedStringText.IsBinary("a\0\0bc"));
+            Assert.True(EncodedStringText.IsBinary("abc\0\0"));
+
             var encoding = Encoding.GetEncoding(1252);
-            var bytes = new byte[] { 0x81, 0x8D, 0x8F, 0x90, 0x9D };
-
-            using (var stream = new MemoryStream(bytes))
-            {
-                Assert.Equal("\x81\x8D\x8F\x90\x9D", EncodedStringText.DecodeIfNotBinary(stream, encoding));
-                Assert.True(stream.CanRead);
-            }
-
-            var text = "abc def baz aeiouy äëïöüû";
-            bytes = encoding.GetBytesWithPreamble(text);
-            using (var stream = new MemoryStream(bytes))
-            {
-                Assert.Equal(text, EncodedStringText.DecodeIfNotBinary(stream, encoding));
-                Assert.True(stream.CanRead);
-            }
-
-            // Test binary detection with a real binary
-            using (var stream = new MemoryStream(ProprietaryTestResources.NetFX.v4_0_30319.System))
-            {
-                Assert.Throws(typeof(InvalidDataException), () => EncodedStringText.DecodeIfNotBinary(stream, encoding));
-                Assert.True(stream.CanRead);
-            }
-
-            // Large file decode
-            text = new String('x', 1024 * 1024);
-            bytes = encoding.GetBytesWithPreamble(text);
-            using (var stream = new MemoryStream(bytes))
-            {
-                Assert.Equal(text, EncodedStringText.DecodeIfNotBinary(stream, encoding));
-                Assert.True(stream.CanRead);
-            }
-        }
-
-        [Fact]
-        public void DecodeIfNotBinary_NulCharacters()
-        {
-            Action<string, Encoding, bool> verify = (text, encoding, shallThrow) =>
-            {
-                using (var stream = new MemoryStream(encoding.GetBytes(text)))
-                {
-                    if (shallThrow)
-                    {
-                        Assert.Throws(typeof(InvalidDataException), () => EncodedStringText.DecodeIfNotBinary(stream, encoding));
-                    }
-                    else
-                    {
-                        Assert.Equal(text, EncodedStringText.DecodeIfNotBinary(stream, encoding));
-                        Assert.True(stream.CanRead);
-                    }
-                }
-            };
-
-            verify("", Encoding.BigEndianUnicode, false);
-            verify("\0abc", Encoding.GetEncoding(437), false);
-            verify("a\0bc", Encoding.UTF8, false);
-            verify("abc\0", Encoding.GetEncoding(1252), false);
-            verify("a\0b\0c", Encoding.UTF32, false);
-
-            verify("\0\0abc", Encoding.Unicode, true);
-            verify("a\0\0bc", Encoding.ASCII, true);
-            verify("abc\0\0", Encoding.Default, true);
+            Assert.False(EncodedStringText.IsBinary(encoding.GetString(new byte[] { 0x81, 0x8D, 0x8F, 0x90, 0x9D })));
+            Assert.False(EncodedStringText.IsBinary("abc def baz aeiouy äëïöüû"));
+            Assert.True(EncodedStringText.IsBinary(encoding.GetString(ProprietaryTestResources.NetFX.v4_0_30319.System)));
         }
 
         [Fact]
@@ -177,14 +130,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Encoding.Default should not decode to UTF-8
             using (var stream = new MemoryStream(bytes))
             {
-                Assert.Throws(typeof(DecoderFallbackException), () => EncodedStringText.Decode(stream, utf8));
+                Assert.Throws(typeof(DecoderFallbackException), () =>
+                {
+                    Encoding actualEncoding;
+                    EncodedStringText.Decode(stream, utf8, out actualEncoding);
+                });
+
                 Assert.True(stream.CanRead);
             }
 
             // Detect encoding should correctly pick Encoding.Default
             using (var stream = new MemoryStream(bytes))
             {
-                Assert.Equal(text, EncodedStringText.DetectEncodingAndDecode(stream));
+                var sourceText = EncodedStringText.Create(stream);
+                Assert.Equal(text, sourceText.ToString());
+                Assert.Equal(Encoding.Default, sourceText.Encoding);
                 Assert.True(stream.CanRead);
             }
         }
@@ -199,7 +159,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Detect encoding should correctly pick UTF-8
             using (var stream = new MemoryStream(bytes))
             {
-                Assert.Equal(text, EncodedStringText.DetectEncodingAndDecode(stream));
+                var sourceText = EncodedStringText.Create(stream);
+                Assert.Equal(text, sourceText.ToString());
+                Assert.Equal(Encoding.UTF8.EncodingName, sourceText.Encoding.EncodingName);
                 Assert.True(stream.CanRead);
             }
         }
@@ -227,10 +189,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    string actualText;
-
-                    actualText = EncodedStringText.DetectEncodingAndDecode(stream);
-                    Assert.Equal(expectedText, actualText);
+                    var sourceText = EncodedStringText.Create(stream);
+                    Assert.Equal(expectedText, sourceText.ToString());
                 }
             });
         }

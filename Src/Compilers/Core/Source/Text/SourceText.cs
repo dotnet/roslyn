@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,37 +17,45 @@ namespace Microsoft.CodeAnalysis.Text
     /// </summary>
     public abstract class SourceText
     {
-        private SourceTextContainer container;
-        private LineInfo lineInfo;
+        private const int CharBufferSize = 32 * 1024;
+        private const int CharBufferCount = 5;
 
-        protected SourceText(SourceTextContainer container = null)
+        private static readonly ObjectPool<char[]> CharArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
+
+        private SourceTextContainer lazyContainer;
+        private LineInfo lazyLineInfo;
+        private ImmutableArray<byte> lazySha1Checksum;
+
+        protected SourceText(ImmutableArray<byte> sha1Checksum = default(ImmutableArray<byte>), SourceTextContainer container = null)
         {
-            this.container = container;
+            if (!sha1Checksum.IsDefault && sha1Checksum.Length != Hash.Sha1HashSize)
+            {
+                throw new ArgumentException(CodeAnalysisResources.InvalidSHA1Hash, "sha1Checksum");
+            }
+
+            this.lazySha1Checksum = sha1Checksum;
+            this.lazyContainer = container;
         }
 
         /// <summary>
         /// Constructs a <see cref="SourceText"/> from text in a string.
         /// </summary>
         /// <param name="text">Text.</param>
-        /// <param name="checksum">
-        /// SHA1 checksum of the binary representation of the text. 
-        /// Used by the compiler to produce debug information for the corresponding document.
-        /// The document won't be debuggable if checksum is not specified.
+        /// <param name="encoding">
+        /// Encoding of the file that the <paramref name="text"/> was read from or is going to be saved to.
+        /// <c>null</c> if the encoding is unspecified.
+        /// If the encoding is not specified the resulting <see cref="SourceText"/> isn't debuggable.
+        /// If an encoding-less <see cref="SourceText"/> is written to a file a <see cref="Encoding.UTF8"/> shall be used as a default.
         /// </param>
         /// <exception cref="ArgumentNullException"><paramref name="text"/> is null.</exception>
-        public static SourceText From(string text, ImmutableArray<byte> checksum = default(ImmutableArray<byte>))
+        public static SourceText From(string text, Encoding encoding = null)
         {
             if (text == null)
             {
                 throw new ArgumentNullException("text");
             }
 
-            if (!checksum.IsDefault && checksum.Length != Hash.Sha1HashSize)
-            {
-                throw new ArgumentException(CodeAnalysisResources.InvalidSHA1Hash, "checksum");
-            }
-
-            return new StringText(text, checksum.IsDefault ? ImmutableArray.Create<byte>() : checksum);
+            return new StringText(text, encoding);
         }
 
         /// <summary>
@@ -54,16 +63,13 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         /// <param name="stream">Stream.</param>
         /// <param name="encoding">
-        /// Data encoding to use unless the stream starts with Byte Order Mark specifying the encoding.
-        /// UTF8 if not specified.</param>
+        /// Data encoding to use if the stream doesn't start with Byte Order Mark specifying the encoding.
+        /// <see cref="Encoding.UTF8"/> if not specified.
+        /// </param>
         /// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="stream"/> doesn't support reading or seeking.</exception>
         /// <exception cref="IOException">An I/O error occurs.</exception>
-        /// <remarks>
-        /// Reads from the beginning of the stream. Leaves the stream open.
-        /// Attaches SHA1 checksum of the binary content to the <see cref="SourceText"/>. 
-        /// This information is used by the compiler to produce debug information for the document.
-        /// </remarks>
+        /// <remarks>Reads from the beginning of the stream. Leaves the stream open.</remarks>
         public static SourceText From(Stream stream, Encoding encoding = null)
         {
             if (stream == null)
@@ -76,17 +82,29 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, "stream");
             }
 
-            // TODO: optimize for FileStream (bug 895371)
+            encoding = encoding ?? Encoding.UTF8;
+
+            // TODO: unify encoding detection with EncodedStringText
 
             stream.Seek(0, SeekOrigin.Begin);
             string text;
-            using (var reader = new StreamReader(stream, encoding ?? Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
+            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
             {
                 text = reader.ReadToEnd();
             }
 
-            return new StringText(text, Hash.ComputeSha1(stream));
+            return new StringText(text, encoding, Hash.ComputeSha1(stream));
         }
+
+        /// <summary>
+        /// Encoding of the file that the text was read from or is going to be saved to.
+        /// <c>null</c> if the encoding is unspecified.
+        /// </summary>
+        /// <remarks>
+        /// If the encoding is not specified the source isn't debuggable.
+        /// If an encoding-less <see cref="SourceText"/> is written to a file a <see cref="Encoding.UTF8"/> shall be used as a default.
+        /// </remarks>
+        public abstract Encoding Encoding { get; }
 
         /// <summary>
         /// The length of the text in characters.
@@ -114,12 +132,12 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                if (this.container == null)
+                if (this.lazyContainer == null)
                 {
-                    Interlocked.CompareExchange(ref this.container, new StaticContainer(this), null);
+                    Interlocked.CompareExchange(ref this.lazyContainer, new StaticContainer(this), null);
                 }
 
-                return this.container;
+                return this.lazyContainer;
             }
         }
 
@@ -141,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Text
             int spanLength = span.Length;
             if (spanLength == 0)
             {
-                return SourceText.From(string.Empty);
+                return SourceText.From(string.Empty, this.Encoding);
             }
             else if (spanLength == this.Length && span.Start == 0)
             {
@@ -176,47 +194,57 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Write this <see cref="SourceText"/> to a text writer.
         /// </summary>
-        public void Write(TextWriter textWriter)
+        public void Write(TextWriter textWriter, CancellationToken cancellationToken = default(CancellationToken))
         {
-            this.Write(textWriter, new TextSpan(0, this.Length));
+            this.Write(textWriter, new TextSpan(0, this.Length), cancellationToken);
         }
 
         /// <summary>
         /// Write a span of text to a text writer.
         /// </summary>
-        /// <param name="writer"></param>
-        /// <param name="span"></param>
-        public virtual void Write(TextWriter writer, TextSpan span)
+        public virtual void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSubSpan(span);
 
-            // TODO: get this char[] from a pool?
-            var buffer = new char[1024];
-            int offset = Math.Min(this.Length, span.Start);
-            int length = Math.Min(this.Length, span.End) - offset;
-            while (offset < length)
+            var buffer = CharArrayPool.Allocate();
+            try
             {
-                int count = Math.Min(buffer.Length, length - offset);
-                this.CopyTo(offset, buffer, 0, count);
-                writer.Write(buffer, 0, count);
-                offset += count;
+                int offset = Math.Min(this.Length, span.Start);
+                int length = Math.Min(this.Length, span.End) - offset;
+                while (offset < length)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    int count = Math.Min(buffer.Length, length - offset);
+                    this.CopyTo(offset, buffer, 0, count);
+                    writer.Write(buffer, 0, count);
+                    offset += count;
+                }
+            }
+            finally
+            {
+                CharArrayPool.Free(buffer);
             }
         }
 
         internal ImmutableArray<byte> GetSha1Checksum()
         {
-            return GetSha1ChecksumImpl();
-        }
+            if (this.lazySha1Checksum.IsDefault)
+            {
+                // we shouldn't be asking for a checksum of encoding-less source text:
+                Debug.Assert(this.Encoding != null);
 
-        /// <summary>
-        /// Computes SHA1 hash of the text binary representation.
-        /// </summary>
-        /// <remarks>
-        /// Returns <see cref="ImmutableArray{T}.Empty"/> if the binary representation is not available.
-        /// </remarks>
-        protected virtual ImmutableArray<byte> GetSha1ChecksumImpl()
-        {
-            return ImmutableArray<byte>.Empty;
+                var stream = new MemoryStream();
+                using (var writer = new StreamWriter(stream, this.Encoding))
+                {
+                    this.Write(writer);
+                    writer.Flush();
+                    stream.Seek(0, SeekOrigin.Begin);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref lazySha1Checksum, Hash.ComputeSha1(stream), default(ImmutableArray<byte>));
+                }
+            }
+
+            return this.lazySha1Checksum;
         }
 
         /// <summary>
@@ -271,7 +299,43 @@ namespace Microsoft.CodeAnalysis.Text
                 return this;
             }
 
-            return new ChangedText(this, changes);
+            var segments = ArrayBuilder<SourceText>.GetInstance();
+            var changeRanges = ArrayBuilder<TextChangeRange>.GetInstance();
+            int position = 0;
+
+            foreach (var change in changes)
+            {
+                // there can be no overlapping changes
+                if (change.Span.Start < position)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.ChangesMustBeOrderedAndNotOverlapping, "changes");
+                }
+
+                // if we've skipped a range, add
+                if (change.Span.Start > position)
+                {
+                    var subText = this.GetSubText(new TextSpan(position, change.Span.Start - position));
+                    CompositeText.AddSegments(segments, subText);
+                }
+
+                if (!string.IsNullOrEmpty(change.NewText))
+                {
+                    var segment = SourceText.From(change.NewText, this.Encoding);
+                    CompositeText.AddSegments(segments, segment);
+                }
+
+                position = change.Span.End;
+
+                changeRanges.Add(new TextChangeRange(change.Span, change.NewText != null ? change.NewText.Length : 0));
+            }
+
+            if (position < this.Length)
+            {
+                var subText = this.GetSubText(new TextSpan(position, this.Length - position));
+                CompositeText.AddSegments(segments, subText);
+            }
+
+            return new ChangedText(this, changeRanges.ToImmutableAndFree(), segments.ToImmutableAndFree());
         }
 
         /// <summary>
@@ -367,13 +431,13 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                if (this.lineInfo == null)
+                if (this.lazyLineInfo == null)
                 {
                     var info = new LineInfo(this, this.ParseLineStarts());
-                    System.Threading.Interlocked.CompareExchange(ref this.lineInfo, info, null);
+                    Interlocked.CompareExchange(ref this.lazyLineInfo, info, null);
                 }
 
-                return this.lineInfo;
+                return this.lazyLineInfo;
             }
         }
 
@@ -520,6 +584,78 @@ namespace Microsoft.CodeAnalysis.Text
             arrayBuilder.Add(position);
 
             return arrayBuilder.ToArrayAndFree();
+        }
+
+        /// <summary>
+        /// Compares the content with content of another <see cref="SourceText"/>.
+        /// </summary>
+        public bool ContentEquals(SourceText other)
+        {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            // Checksum may be provided by a subclass, which is thus responsible for passing us a true SHA1 hash.
+            ImmutableArray<byte> leftChecksum = this.lazySha1Checksum;
+            ImmutableArray<byte> rightChecksum = other.lazySha1Checksum;
+            if (!leftChecksum.IsDefault && !rightChecksum.IsDefault && this.Encoding == other.Encoding)
+            {
+                return leftChecksum.SequenceEqual(rightChecksum);
+            }
+
+            return ContentEqualsImpl(other);
+        }
+
+        /// <summary>
+        /// Implements equality comparison of the content of two different instances of <see cref="SourceText"/>.
+        /// </summary>
+        protected virtual bool ContentEqualsImpl(SourceText other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (this.Length != other.Length)
+            {
+                return false;
+            }
+
+            var buffer1 = CharArrayPool.Allocate();
+            var buffer2 = CharArrayPool.Allocate();
+            try
+            {
+                int position = 0;
+                while (position < this.Length)
+                {
+                    int n = Math.Min(this.Length - position, buffer1.Length);
+                    this.CopyTo(position, buffer1, 0, n);
+                    other.CopyTo(position, buffer2, 0, n);
+
+                    for (int i = 0; i < n; i++)
+                    {
+                        if (buffer1[i] != buffer2[i])
+                        {
+                            return false;
+                        }
+                    }
+
+                    position += n;
+                }
+
+                return true;
+            }
+            finally
+            {
+                CharArrayPool.Free(buffer2);
+                CharArrayPool.Free(buffer1);
+            }
         }
 
         #endregion
