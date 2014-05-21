@@ -59,6 +59,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         public ImmutableArray<string> ExceptionTypes { get; private set; }
 
+        /// <summary>
+        /// The item named named in the %lt;completionlist&gt; tag's cref attribute.
+        /// Null if the tag or cref attribute didn't exist.
+        /// </summary>
+        public string CompletionListCref { get; private set; }
+
         private DocumentationComment()
         {
             ParameterNames = ImmutableArray.Create<string>();
@@ -147,6 +153,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                                     exceptionTextBuilders[type].Add(exceptionText);
                                 }
+                            }
+                            else if (XmlNames.ElementEquals(localName, XmlNames.CompletionListElementName))
+                            {
+                                string cref = reader.GetAttribute(XmlNames.CrefAttributeName);
+                                if (!string.IsNullOrWhiteSpace(cref))
+                                {
+                                    comment.CompletionListCref = cref;
+                                }
+
+                                reader.ReadInnerXml();
                             }
                             else
                             {

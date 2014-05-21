@@ -11,6 +11,7 @@ namespace Roslyn.Utilities
     {
         public const string CElementName = "c";
         public const string CodeElementName = "code";
+        public const string CompletionListElementName = "completionlist";
         public const string ExampleElementName = "example";
         public const string ExceptionElementName = "exception";
         public const string IncludeElementName = "include";
