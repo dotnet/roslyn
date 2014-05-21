@@ -13,6 +13,10 @@
   <!-- Every time this file changes, be sure to change the Validate method for the corresponding object in the code -->
 
   <xs:element name="RuleSet" type="TRuleSet">
+    <xs:unique name="UniqueRuleName">
+      <xs:selector xpath="Rules/Rule" />
+      <xs:field xpath="@Id" />
+    </xs:unique>
   </xs:element>
 
   <xs:complexType name="TLocalization">
@@ -67,12 +71,7 @@
       <xs:element name="IncludeAll" type="TIncludeAll" minOccurs="0" maxOccurs="1" />
       <xs:choice minOccurs="0" maxOccurs="unbounded">
         <xs:element name="Include" type="TInclude" minOccurs="0" maxOccurs="unbounded" />
-        <xs:element name="Rules" type="TRules" minOccurs="0" maxOccurs="unbounded">
-          <xs:unique name="UniqueRuleName">
-            <xs:selector xpath="Rule" />
-            <xs:field xpath="@Id" />
-          </xs:unique>
-        </xs:element>
+        <xs:element name="Rules" type="TRules" minOccurs="0" maxOccurs="unbounded" />
       </xs:choice>
     </xs:sequence>
     <xs:attribute name="Name" type="TNonEmptyString" use="required" />

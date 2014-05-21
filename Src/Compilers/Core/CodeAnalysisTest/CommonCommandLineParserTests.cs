@@ -104,6 +104,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestRuleSetParsingDuplicateRule2()
+        {
+            string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <IncludeAll Action=""Warning"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1012"" Action=""Error"" />
+    <Rule Id=""CA1014"" Action=""None"" />
+  </Rules>
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1012"" Action=""Warning"" />
+    <Rule Id=""CA1013"" Action=""None"" />
+  </Rules>
+</RuleSet>";
+
+            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
+            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "There is a duplicate key sequence 'CA1012' for the 'UniqueRuleName' key or unique identity constraint."), locMessage: locMessage);
+        }
+
+        [Fact]
         public void TestRuleSetParsingDuplicateRuleSet()
         {
             string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -974,5 +994,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: include1.Path, actual: includePaths[1]);
             Assert.Equal(expected: include2.Path, actual: includePaths[2]);
         }
+
+        
     }
 }
