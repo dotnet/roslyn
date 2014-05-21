@@ -132,8 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement expressionStatement = new BoundExpressionStatement(expressionSyntax, tempAssignment);
             if (this.generateDebugInfo)
             {
-                // NOTE: unlike in the assignment case, the sequence point is on the using keyword, not the expression.
-                expressionStatement = new BoundSequencePointWithSpan(usingSyntax, expressionStatement, usingSyntax.UsingKeyword.Span);
+                expressionStatement = AddSequencePoint(usingSyntax, expressionStatement);
             }
 
             BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);

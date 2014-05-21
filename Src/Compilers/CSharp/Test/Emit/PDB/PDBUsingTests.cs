@@ -2,8 +2,10 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Xml;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -21,8 +23,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 compOptions: TestOptions.Dll);
         }
 
+        private static void TestSequencePoints(string markup, CSharpCompilationOptions compilationOptions, string methodName = "")
+        {
+            int? position;
+            TextSpan? expectedSpan;
+            string source;
+            MarkupTestFile.GetPositionAndSpan(markup, out source, out position, out expectedSpan);
+            var pdb = GetPdbXml(source, compilationOptions, methodName);
+            bool hasBreakpoint = CheckIfSpanWithinSequencePoints(expectedSpan.Value, source, pdb);
+
+            Assert.True(hasBreakpoint);
+        }
+
+        private static bool CheckIfSpanWithinSequencePoints(TextSpan span, string source, string pdb)
+        {
+            // calculate row and column from span
+            var text = SourceText.From(source);
+            var startLine = text.Lines.GetLineFromPosition(span.Start);
+            var startRow = startLine.LineNumber + 1;
+            var startColumn = span.Start - startLine.Start + 1;
+
+            var endLine = text.Lines.GetLineFromPosition(span.End);
+            var endRow = endLine.LineNumber + 1;
+            var endColumn = span.End - endLine.Start + 1;
+
+            var doc = new XmlDocument();
+            doc.LoadXml(pdb);
+
+            foreach (XmlNode entry in doc.GetElementsByTagName("sequencepoints"))
+            {
+                foreach (XmlElement item in entry.ChildNodes)
+                {
+                    if (startRow.ToString() == item.GetAttribute("start_row") &&
+                        startColumn.ToString() == item.GetAttribute("start_column") &&
+                        endRow.ToString() == item.GetAttribute("end_row") &&
+                        endColumn.ToString() == item.GetAttribute("end_column"))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         #endregion
-        
+
         [Fact]
         public void TestUsings()
         {
@@ -1569,7 +1615,7 @@ public class Test : IDisposable
       </customDebugInfo>
       <sequencepoints total=""6"">
         <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""14"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""27"" file_ref=""0"" />
         <entry il_offset=""0x7"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0x8"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0xb"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -1776,6 +1822,47 @@ class D
 </symbols>";
 
             AssertXmlEqual(expectedXml, GetPdbXml(comp, "D.Main"));
+        }
+
+        [Fact]
+        public void UsingExpression()
+        {
+            TestSequencePoints(
+@"using System;
+
+public class Test : IDisposable
+{
+    static void Main()
+    {
+        [|using (new Test())|]
+        {
+        }
+    }
+
+    public void Dispose() { }
+
+}", TestOptions.Exe, "Test.Main");
+        }
+
+        [Fact]
+        public void UsingVariable()
+        {
+            TestSequencePoints(
+@"using System;
+
+public class Test : IDisposable
+{
+    static void Main()
+    {
+        var x = new Test();
+        [|using (x)|]
+        {
+        }
+    }
+
+    public void Dispose() { }
+
+}", TestOptions.Exe, "Test.Main");
         }
     }
 }

@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         #region PDB Validation
 
-        public string GetPdbXml(string source, CSharpCompilationOptions compilationOptions, string methodName = "", IEnumerable<MetadataReference> references = null)
+        public static string GetPdbXml(string source, CSharpCompilationOptions compilationOptions, string methodName = "", IEnumerable<MetadataReference> references = null)
         {
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.

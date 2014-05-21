@@ -32,6 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        internal static BoundStatement AddSequencePoint(UsingStatementSyntax usingSyntax, BoundStatement rewrittenStatement)
+        {
+            int start = usingSyntax.Span.Start;
+            int end = usingSyntax.CloseParenToken.Span.End;
+            TextSpan span = TextSpan.FromBounds(start, end);
+            return new BoundSequencePointWithSpan(usingSyntax, rewrittenStatement, span);
+        }
+
         internal static void GetBreakpointSpan(VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
         {
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
