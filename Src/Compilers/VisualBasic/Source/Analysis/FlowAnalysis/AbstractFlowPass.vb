@@ -988,7 +988,7 @@ lUnsplitAndFinish:
         ''' the default visitor reports that the construct for the node is not implemented in the compiler.
         ''' </summary>
         Public Overrides Function DefaultVisit(node As BoundNode) As BoundNode
-            Return Unimplemented(node, "node kind '" & node.Kind & "' for flow analysis")
+            Return Unimplemented(node, "flow analysis")
         End Function
 
         Protected Enum ReadWriteContext

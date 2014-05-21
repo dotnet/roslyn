@@ -129,18 +129,23 @@ namespace Microsoft.CodeAnalysis
         /// <returns>If the items's length is 0, this will return an empty immutable array</returns>
         public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this ImmutableArray<TItem> items, Func<TItem, TResult> map)
         {
-            if (items.Length == 0)
+            switch (items.Length)
             {
-                return ImmutableArray<TResult>.Empty;
-            }
+                case 0:
+                    return ImmutableArray<TResult>.Empty;
 
-            var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
-            for (int i = 0; i < items.Length; i++)
-            {
-                builder.Add(map(items[i]));
-            }
+                case 1:
+                    return ImmutableArray.Create(map(items[0]));
 
-            return builder.ToImmutableAndFree();
+                default:
+                    var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
+                    for (int i = 0; i < items.Length; i++)
+                    {
+                        builder.Add(map(items[i]));
+                    }
+
+                    return builder.ToImmutableAndFree();
+            }
         }
 
         /// <summary>
@@ -155,18 +160,23 @@ namespace Microsoft.CodeAnalysis
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
         public static ImmutableArray<TResult> SelectAsArray<TItem, TArg, TResult>(this ImmutableArray<TItem> items, Func<TItem, TArg, TResult> map, TArg arg)
         {
-            if (items.Length == 0)
+            switch (items.Length)
             {
-                return ImmutableArray<TResult>.Empty;
-            }
+                case 0:
+                    return ImmutableArray<TResult>.Empty;
 
-            var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
-            foreach (var e in items)
-            {
-                builder.Add(map(e, arg));
-            }
+                case 1:
+                    return ImmutableArray.Create(map(items[0], arg));
 
-            return builder.ToImmutableAndFree();
+                default:
+                    var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
+                    foreach (var e in items)
+                    {
+                        builder.Add(map(e, arg));
+                    }
+
+                    return builder.ToImmutableAndFree();
+            }
         }
 
         /// <summary>
@@ -181,18 +191,23 @@ namespace Microsoft.CodeAnalysis
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
         public static ImmutableArray<TResult> SelectAsArray<TItem, TArg, TResult>(this ImmutableArray<TItem> items, Func<TItem, int, TArg, TResult> map, TArg arg)
         {
-            if (items.Length == 0)
+            switch (items.Length)
             {
-                return ImmutableArray<TResult>.Empty;
-            }
+                case 0:
+                    return ImmutableArray<TResult>.Empty;
 
-            var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
-            for (int i = 0; i < items.Length; i++)
-            {
-                builder.Add(map(items[i], i, arg));
-            }
+                case 1:
+                    return ImmutableArray.Create(map(items[0], 0, arg));
 
-            return builder.ToImmutableAndFree();
+                default:
+                    var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
+                    for (int i = 0; i < items.Length; i++)
+                    {
+                        builder.Add(map(items[i], i, arg));
+                    }
+
+                    return builder.ToImmutableAndFree();
+            }
         }
 
         /// <summary>

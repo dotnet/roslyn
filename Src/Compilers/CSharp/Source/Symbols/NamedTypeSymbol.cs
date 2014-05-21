@@ -442,34 +442,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                string arityString = null;
-
-                if (MangleName)
-                {
-                    Debug.Assert(Arity > 0);
-                    // Avoid a string allocation for common cases
-                    if (Arity <= 9)
-                    {
-                        arityString = stringsOneToNine[Arity - 1];
-                    }
-                    else
-                    {
-                        arityString = Arity.ToString();
-                    }
-                }
-
-                string suffixedName = Name;
-
-                if (arityString != null)
-                {
-                    suffixedName = suffixedName + MetadataHelpers.GenericTypeNameManglingString + arityString;
-                }
-
-                return suffixedName;
+                return MangleName ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity) : Name;
             }
         }
-
-        private static readonly string[] stringsOneToNine = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 
         /// <summary>
         /// Should the name returned by Name property be mangled with [`arity] suffix in order to get metadata name.

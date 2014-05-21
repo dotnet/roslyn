@@ -144,12 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Therefore it is a good practice to avoid type names with dots.
                 Debug.Assert(Me.IsErrorType OrElse Not (TypeOf Me Is SourceNamedTypeSymbol) OrElse Not Name.Contains("."), "type name contains dots: " + Name)
 
-                If Not MangleName Then
-                    Return Name
-                Else
-                    Debug.Assert(Arity > 0)
-                    Return Name + MetadataHelpers.GenericTypeNameManglingChar + Arity.ToString()
-                End If
+                Return If(MangleName, MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity), Name)
             End Get
         End Property
 

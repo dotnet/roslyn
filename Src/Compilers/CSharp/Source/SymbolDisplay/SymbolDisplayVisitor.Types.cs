@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(symbol.Arity > 0);
                     builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, null,
-                        MetadataHelpers.GenericTypeNameManglingString + symbol.Arity.ToString()));
+                        MetadataHelpers.GetAritySuffix(symbol.Arity)));
                 }
             }
             else if (symbol.Arity > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))

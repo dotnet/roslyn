@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         public const char DotDelimiter = '.';
         public const string DotDelimiterString = ".";
         public const char GenericTypeNameManglingChar = '`';
-        public const string GenericTypeNameManglingString = "`";
+        private const string GenericTypeNameManglingString = "`";
         public const int MaxStringLengthForParamSize = 22;
         public const int MaxStringLengthForIntToStringConversion = 22;
         public const string SystemString = "System";
@@ -413,6 +413,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        private static readonly string[] aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
+
+        internal static string GetAritySuffix(int arity)
+        {
+            Debug.Assert(arity > 0);
+            return (arity <= 9) ? aritySuffixesOneToNine[arity - 1] : string.Concat(GenericTypeNameManglingString, arity.ToString(CultureInfo.InvariantCulture));
+        }
+
+        internal static string ComposeAritySuffixedMetadataName(string name, int arity)
+        {
+            return name + GetAritySuffix(arity);
+        }
 
         internal static int InferTypeArityFromMetadataName(string emittedTypeName)
         {

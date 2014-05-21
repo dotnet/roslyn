@@ -1959,7 +1959,7 @@ namespace Microsoft.Cci
                 return unmangledName;
             }
 
-            return unmangledName + MetadataHelpers.GenericTypeNameManglingString + namedType.GenericParameterCount;
+            return MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount);
         }
 
         private static string GetMangledAndEscapedName(INamedTypeReference namedType)
@@ -1978,8 +1978,7 @@ namespace Microsoft.Cci
 
             if (namedType.MangleName && namedType.GenericParameterCount > 0)
             {
-                mangledName.Append('`');
-                mangledName.Append(namedType.GenericParameterCount);
+                mangledName.Append(MetadataHelpers.GetAritySuffix(namedType.GenericParameterCount));
             }
 
             return mangledName.ToString();

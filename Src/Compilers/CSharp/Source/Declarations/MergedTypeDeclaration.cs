@@ -37,14 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                ArrayBuilder<SyntaxReference> builder = ArrayBuilder<SyntaxReference>.GetInstance();
-
-                for (int i = 0; i < this.declarations.Length; ++i)
-                {
-                    builder.Add(this.declarations[i].SyntaxReference);
-                }
-
-                return builder.ToImmutableAndFree();
+                return declarations.SelectAsArray(r => r.SyntaxReference);
             }
         }
 

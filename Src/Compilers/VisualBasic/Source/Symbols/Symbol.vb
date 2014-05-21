@@ -325,6 +325,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Helper for implementing DeclaringSyntaxNodes for derived classes that store SyntaxReferences. 
         ''' </summary>
         Friend Shared Function GetDeclaringSyntaxReferenceHelper(references As ImmutableArray(Of SyntaxReference)) As ImmutableArray(Of SyntaxReference)
+
+            ' Optimize for the very common case of just one reference
+            If references.Length = 1 Then
+                Return GetDeclaringSyntaxReferenceHelper(references(0))
+            End If
+
             Dim builder As ArrayBuilder(Of SyntaxReference) = ArrayBuilder(Of SyntaxReference).GetInstance()
             For Each reference In references
                 Dim tree = reference.SyntaxTree
