@@ -102,6 +102,13 @@ namespace Microsoft.Cci
             {
                 possiblyDuplicateMethodBodies = new Dictionary<byte[], uint>(ByteSequenceComparer.Instance);
             }
+
+            // Add zero-th entry to heaps. 
+            // Delta metadata requires these to avoid nil generation-relative handles, 
+            // which are technically viable but confusing.
+            this.blobWriter.WriteByte(0);
+            this.stringWriter.WriteByte(0);
+            this.userStringWriter.WriteByte(0);
         }
 
         private readonly int numTypeDefsEstimate;
@@ -930,11 +937,6 @@ namespace Microsoft.Cci
             uint result = this.MetadataHeaderSize;
             result += Aligned(this.ComputeSizeOfMetadataTablesStream(), 4);
             result += Aligned(this.stringWriter.BaseStream.Length, 4);
-            if (this.userStringWriter.BaseStream.Length == 1)
-            {
-                this.GetUserStringToken(" ");
-            }
-
             result += Aligned(this.userStringWriter.BaseStream.Length, 4);
             result += Aligned(this.guidWriter.BaseStream.Length, 4);
             result += Aligned(this.blobWriter.BaseStream.Length, 4);

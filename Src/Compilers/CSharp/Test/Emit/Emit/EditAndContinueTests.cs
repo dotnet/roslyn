@@ -26,6 +26,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class EditAndContinueTests : EmitMetadataTestBase
     {
         [Fact]
+        public void DeltaHeapsStartWithEmptyItem()
+        {
+            var source0 =
+@"class C
+{
+    static string F() { return null; }
+}";
+            var source1 =
+@"class C
+{
+    static string F() { return ""a""; }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, compOptions: TestOptions.UnoptimizedDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.UnoptimizedDll);
+
+            var bytes0 = compilation0.EmitToArray(debug: true);
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var reader0 = md0.MetadataReader;
+
+                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+                var diff1 = compilation1.EmitDifference(
+                    EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
+
+                using (var md1 = diff1.GetMetadata())
+                {
+                    var reader1 = md1.Reader;
+
+                    var s = MetadataTokens.StringHandle(0);
+                    Assert.Equal(reader1.GetString(s), "");
+
+                    var b = MetadataTokens.BlobHandle(0);
+                    Assert.Equal(0, reader1.GetBytes(b).Length);
+
+                    var us = MetadataTokens.UserStringHandle(0);
+                    Assert.Equal(reader1.GetUserString(us), "");
+                }
+            }
+        }
+
+        [Fact]
         public void ModifyMethod()
         {
             var source0 =

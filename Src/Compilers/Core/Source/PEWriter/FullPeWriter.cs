@@ -65,13 +65,6 @@ namespace Microsoft.Cci
             this.typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this);
             this.typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this));
             this.standAloneSignatureIndex = new HeapOrReferenceIndex<uint>(this);
-
-            // Add zero-th entry for indexed tables in full metadata. (For delta
-            // metadata, the indexed tables will be concatenated with the full
-            // metadata by the CLR, so the zero-th entries are not needed.)
-            this.blobWriter.WriteByte(0);
-            this.stringWriter.WriteByte(0);
-            this.userStringWriter.WriteByte(0);
         }
 
         protected override ushort Generation
