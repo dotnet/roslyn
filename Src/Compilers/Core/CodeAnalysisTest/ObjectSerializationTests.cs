@@ -295,6 +295,49 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(instance.Y, instance2.Y);
         }
 
+        [Fact]
+        public void TestObjectMapLimits()
+        {
+            using (var stream = new MemoryStream())
+            {
+                var instances = new List<WritableClass>();
+
+                // We need enough items to exercise all sizes of ObjectRef
+                for(int i = 0; i < ushort.MaxValue + 1; i++)
+                {
+                    instances.Add(new WritableClass(i, i.ToString()));
+                }
+
+                var writer = new ObjectWriter(stream);
+                // Write each instance twice. The second time around, they'll become ObjectRefs
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    foreach (var instance in instances)
+                    {
+                        writer.WriteValue(instance);
+                    }
+                }
+
+                var binder = writer.Binder;
+                writer.Dispose();
+
+                stream.Position = 0;
+                using(var reader = new ObjectReader(stream, binder: binder))
+                {
+                    for (int pass = 0; pass < 2; pass++)
+                    {
+                        foreach (var instance in instances)
+                        {
+                            var obj = (WritableClass)reader.ReadValue();
+                            Assert.NotNull(obj);
+                            Assert.Equal(obj.X, instance.X);
+                            Assert.Equal(obj.Y, instance.Y);
+                        }
+                    }
+                }
+            }
+        }
+
         private class WritableClass : IObjectWritable, IObjectReadable
         {
             internal readonly int X;

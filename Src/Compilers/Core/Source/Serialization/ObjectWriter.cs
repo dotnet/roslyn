@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -210,6 +211,7 @@ namespace Roslyn.Utilities
                 int id;
                 if (dataMap.TryGetId(value, out id))
                 {
+                    Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
                     {
                         writer.Write((byte)DataKind.StringRef_B);
@@ -455,6 +457,7 @@ namespace Roslyn.Utilities
             int id;
             if (dataMap.TryGetId(type, out id))
             {
+                Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
                 {
                     writer.Write((byte)DataKind.TypeRef_B);
@@ -463,7 +466,7 @@ namespace Roslyn.Utilities
                 else if (id <= ushort.MaxValue)
                 {
                     writer.Write((byte)DataKind.TypeRef_S);
-                    writer.Write((short)id);
+                    writer.Write((ushort)id);
                 }
                 else
                 {
@@ -501,6 +504,7 @@ namespace Roslyn.Utilities
             int id;
             if (dataMap.TryGetId(instance, out id))
             {
+                Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
                 {
                     writer.Write((byte)DataKind.ObjectRef_B);
