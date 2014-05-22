@@ -168,6 +168,42 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return updatedMethod.RenameParameters(parameterNames);
         }
 
+        public static IMethodSymbol RemoveAttributeFromParameters(
+            this IMethodSymbol method, INamedTypeSymbol attributeType,
+            IList<SyntaxNode> statements = null, IList<SyntaxNode> handlesExpressions = null)
+        {
+            if (attributeType == null)
+            {
+                return method;
+            }
+
+            var someParameterHasAttribute = method.Parameters
+                .Where(m => m.GetAttributes().Where(a => a.AttributeClass.Equals(attributeType)).Any())
+                .Any();
+            if (!someParameterHasAttribute)
+            {
+                return method;
+            }
+
+            return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                method.ContainingType,
+                method.GetAttributes(),
+                method.DeclaredAccessibility,
+                method.GetSymbolModifiers(),
+                method.ReturnType,
+                method.ExplicitInterfaceImplementations.FirstOrDefault(),
+                method.Name,
+                method.TypeParameters,
+                method.Parameters.Select(p =>
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(
+                        p.GetAttributes().Where(a => !a.AttributeClass.Equals(attributeType)).ToList(),
+                        p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
+                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)).ToList(),
+                statements,
+                handlesExpressions,
+                method.GetReturnTypeAttributes());
+        }
+
         public static bool? IsMoreSpecificThan(this IMethodSymbol method1, IMethodSymbol method2)
         {
             var p1 = method1.Parameters;

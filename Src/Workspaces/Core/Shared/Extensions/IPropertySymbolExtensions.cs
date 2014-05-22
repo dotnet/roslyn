@@ -33,5 +33,39 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.SetMethod,
                 property.IsIndexer);
         }
+
+        public static IPropertySymbol RemoveAttributeFromParameters(
+            this IPropertySymbol property, INamedTypeSymbol attributeType)
+        {
+            if (attributeType == null)
+            {
+                return property;
+            }
+
+            var someParameterHasAttribute = property.Parameters
+                .Where(p => p.GetAttributes().Where(a => a.AttributeClass.Equals(attributeType)).Any())
+                .Any();
+            if (!someParameterHasAttribute)
+            {
+                return property;
+            }
+
+            return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                property.ContainingType,
+                property.GetAttributes(),
+                property.DeclaredAccessibility,
+                property.GetSymbolModifiers(),
+                property.Type,
+                property.ExplicitInterfaceImplementations.FirstOrDefault(),
+                property.Name,
+                property.Parameters.Select(p =>
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(
+                        p.GetAttributes().Where(a => !a.AttributeClass.Equals(attributeType)).ToList(),
+                        p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
+                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)).ToList(),
+                property.GetMethod,
+                property.SetMethod,
+                property.IsIndexer);
+        }
     }
 }

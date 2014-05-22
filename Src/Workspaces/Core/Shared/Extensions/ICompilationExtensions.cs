@@ -85,5 +85,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.CoClassAttribute");
         }
+
+        public static INamedTypeSymbol ComAliasNameAttributeType(this Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.ComAliasNameAttribute");
+        }
     }
 }
