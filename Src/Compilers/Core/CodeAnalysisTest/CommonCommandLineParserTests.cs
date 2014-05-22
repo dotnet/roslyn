@@ -354,7 +354,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ruleSet.Includes.First().IncludePath, "foo.ruleset");
         }
 
-        [Fact]
+        [WorkItem(156)]
+        [Fact(Skip = "156")]
         public void TestRuleSetInclude1()
         {
             string source = @"<?xml version=""1.0"" encoding=""utf-8""?>

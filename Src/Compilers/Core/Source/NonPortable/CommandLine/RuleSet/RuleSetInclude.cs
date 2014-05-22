@@ -59,8 +59,12 @@ namespace Microsoft.CodeAnalysis
             }
             catch (ArgumentException e)
             { ex = e; }
-            catch (FileNotFoundException e)
-            { ex = e; }
+            catch (FileNotFoundException)
+            {
+                // The compiler uses the same rule set files as FxCop, but doesn't have all of
+                // the same logic for resolving included files. For the moment, just ignore any
+                // includes we can't resolve.
+            }
             catch (IOException e)
             { ex = e; }
             catch (UriFormatException e)
