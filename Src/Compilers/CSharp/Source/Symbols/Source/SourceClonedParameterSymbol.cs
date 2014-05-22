@@ -110,14 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return originalParam.GetAttributes();
         }
 
-        internal override FieldSymbol PrimaryConstructorParameterBackingField
-        {
-            get
-            {
-                return null;
-            }
-        }
-
         public sealed override string Name
         {
             get { return originalParam.Name; }

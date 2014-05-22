@@ -143,13 +143,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
-
-        internal override FieldSymbol PrimaryConstructorParameterBackingField
-        {
-            get
-            {
-                return null;
-            }
-        }
     }
 }

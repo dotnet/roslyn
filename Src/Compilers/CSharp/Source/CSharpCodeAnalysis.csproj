@@ -651,7 +651,6 @@
     <Compile Include="Symbols\Source\SourceNamespaceSymbol_Completion.cs" />
     <Compile Include="Symbols\Source\SourceParameterSymbol.cs" />
     <Compile Include="Symbols\Source\SourceParameterSymbolBase.cs" />
-    <Compile Include="Symbols\Source\SourcePrimaryConstructorParameterSymbolWithBackingField.cs" />
     <Compile Include="Symbols\Source\SourcePropertyAccessorSymbol.cs" />
     <Compile Include="Symbols\Source\SourcePropertySymbol.cs" />
     <Compile Include="Symbols\Source\SourceSimpleParameterSymbol.cs" />

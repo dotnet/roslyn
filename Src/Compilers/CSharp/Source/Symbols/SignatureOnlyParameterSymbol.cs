@@ -82,8 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
 
-        internal override FieldSymbol PrimaryConstructorParameterBackingField { get { throw ExceptionUtilities.Unreachable; } }
-
         #endregion Not used by MethodSignatureComparer
 
     }

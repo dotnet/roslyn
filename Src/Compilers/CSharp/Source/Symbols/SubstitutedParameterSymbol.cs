@@ -62,14 +62,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
-
-        internal override FieldSymbol PrimaryConstructorParameterBackingField
-        {
-            get
-            {
-                FieldSymbol underlying = this.underlyingParameter.PrimaryConstructorParameterBackingField;
-                return ((object)underlying == null) ? null : (FieldSymbol)underlying.SymbolAsMember(ContainingType);
-            }
-        }
     }
 }

@@ -1105,10 +1105,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BinderFlags flags = outer.Flags | BinderFlags.FieldInitializer;
 
-            var withPrimaryConstructor =
-                outer.WithPrimaryConstructorParametersIfNecessary(propertySymbol.ContainingType, shadowBackingFields: true);
+            if (!propertySymbol.IsStatic)
+            {
+                outer = outer.WithPrimaryConstructorParametersIfNecessary(propertySymbol.ContainingType);
+            }
 
-            return new LocalScopeBinder(withPrimaryConstructor.WithAdditionalFlagsAndContainingMemberOrLambda(
+            return new LocalScopeBinder(outer.WithAdditionalFlagsAndContainingMemberOrLambda(
                 flags, propertySymbol));
         }
 
@@ -1123,7 +1125,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 flags |= BinderFlags.FieldInitializer;
             }
 
-            return new LocalScopeBinder(outer.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType, shadowBackingFields: true)).WithAdditionalFlagsAndContainingMemberOrLambda(flags, fieldSymbol);
+            if (!fieldSymbol.IsStatic)
+            {
+                outer = outer.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType);
+            }
+
+            return new LocalScopeBinder(outer).WithAdditionalFlagsAndContainingMemberOrLambda(flags, fieldSymbol);
         }
 
         private static bool IsMemberDeclaration(CSharpSyntaxNode node)

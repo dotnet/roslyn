@@ -261,8 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // UNDONE: The binding and conversion has to be executed in a checked context.
 
-            var scopeBinder = new ScopedExpressionBinder(this.WithPrimaryConstructorParametersIfNecessary(containingSymbol.ContainingType, shadowBackingFields: false).
-                                                                WithContainingMemberOrLambda(containingSymbol),
+            var scopeBinder = new ScopedExpressionBinder(this.WithContainingMemberOrLambda(containingSymbol),
                                                          defaultValueSyntax.Value);
             valueBeforeConversion = scopeBinder.WithAdditionalFlags(BinderFlags.ParameterDefaultValue).BindValue(defaultValueSyntax.Value, diagnostics, BindValueKind.RValue);
 
@@ -1197,59 +1196,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
-                        var paramMethod = parameter.ContainingSymbol as SourceMethodSymbol;
-                        bool isPrimaryCtorParameter = ((object)paramMethod != null && paramMethod.IsPrimaryCtor);
-                        Symbol containingMember;
 
-                        if (isPrimaryCtorParameter && (object)(containingMember = this.ContainingMember()) != paramMethod)
-                        {
-                            if (this.InConstructorInitializer)
-                            {
-                                // SPEC:
-                                // An instance constructor initializer cannot access the parameters to a primary constructor. 
-                                Error(diagnostics, ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, node);
-                            }
-                            else if (!this.InFieldInitializer)
-                            {
-                                Debug.Assert(!this.InConstructorInitializer);
-
-                                // SPEC:
-                                // Parameters can only be accessed in instance variable initializers and arguments to the base constructor
-                                Error(diagnostics, ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, node);
-                            }
-                            else if (containingMember.IsStatic)
-                            {
-                                Debug.Assert(this.InFieldInitializer);
-                                // SPEC:
-                                // Parameters can only be accessed in instance variable initializers and arguments to the base constructor
-
-                                // We already complained if the type is static, let's not complain more in that case.
-                                if (!this.ContainingMemberOrLambda.ContainingType.IsStatic)
-                                {
-                                    Error(diagnostics, ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, node);
-                                }
-                            }
-                            else if ((object)containingMember != (object)this.ContainingMemberOrLambda && (this.InConstructorInitializer || this.InFieldInitializer))
-                            {
-                                Debug.Assert(this.InFieldInitializer);
-                                // SPEC:
-                                // we should simply disallow reference to the parameters inside anonymous functions that occur in field and property initializers, as well as in base arguments.
-                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, node, parameter.Name);
-                            }
-                        }
-                        else if ((object)parameter.ContainingSymbol != (object)this.ContainingMemberOrLambda)
+                        if ((object)parameter.ContainingSymbol != (object)this.ContainingMemberOrLambda && this.ContainingMemberOrLambda.Kind == SymbolKind.Method)
                         {
                             // Captured in a lambda.
-                            if (isPrimaryCtorParameter && this.InConstructorInitializer)
+                            if (parameter.RefKind != RefKind.None)
                             {
-                                // SPEC:
-                                // we should simply disallow reference to the parameters inside anonymous functions that occur in field and property initializers, as well as in base arguments.
-                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, node, parameter.Name);
+                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
                             }
-                            else if (parameter.RefKind != RefKind.None)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
-                        }
                         }
 
                         return new BoundParameter(node, parameter, hasErrors: isError);

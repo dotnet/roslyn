@@ -416,14 +416,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (ParameterEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
-        internal override FieldSymbol PrimaryConstructorParameterBackingField
-        {
-            get
-            {
-                return null;
-            }
-        }
-
         /// <summary>
         /// Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
         /// </summary>

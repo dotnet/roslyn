@@ -132,20 +132,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     SourceMethodSymbol method = null;
 
-                    if (usage == NodeUsage.MethodBody)
-                    {
-                        method = GetMethodSymbol(methodDecl, resultBinder);
-                        resultBinder = resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType, shadowBackingFields: false);
-                    }
-
                     if (usage != NodeUsage.Normal && methodDecl.TypeParameterList != null)
                     {
-                        method = method ?? GetMethodSymbol(methodDecl, resultBinder);
+                        method = GetMethodSymbol(methodDecl, resultBinder);
                         resultBinder = new WithMethodTypeParametersBinder(method, resultBinder);
                     }
 
                     if (usage == NodeUsage.MethodBody)
                     {
+                        method = method ?? GetMethodSymbol(methodDecl, resultBinder);
                         resultBinder = new InMethodBinder(method, resultBinder);
                     }
 
@@ -184,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(method.Arity == 0, "Generic Ctor, What to do?");
                             Debug.Assert(!method.IsPrimaryCtor);
 
-                            resultBinder = new InMethodBinder(method, resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType, shadowBackingFields: false));
+                            resultBinder = new InMethodBinder(method, resultBinder);
                         }
                     }
 
@@ -324,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if ((object)accessor != null)
                         {
-                            resultBinder = new InMethodBinder(accessor, resultBinder.WithPrimaryConstructorParametersIfNecessary(accessor.ContainingType, shadowBackingFields: false));
+                            resultBinder = new InMethodBinder(accessor, resultBinder);
                         }
                     }
 
@@ -354,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol method = GetMethodSymbol(parent, resultBinder);
                     if ((object)method != null && inBody)
                     {
-                        resultBinder = new InMethodBinder(method, resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType, shadowBackingFields: false));
+                        resultBinder = new InMethodBinder(method, resultBinder);
                     }
 
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);

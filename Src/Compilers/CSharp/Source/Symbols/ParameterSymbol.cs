@@ -398,8 +398,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool HasByRefBeforeCustomModifiers { get; }
 
-        internal abstract FieldSymbol PrimaryConstructorParameterBackingField { get; }
-
         #region IParameterSymbol Members
 
         ITypeSymbol IParameterSymbol.Type

@@ -1190,7 +1190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckMemberNameConflicts(diagnostics);
             CheckSpecialMemberErrors(diagnostics);
             CheckTypeParameterNameConflicts(diagnostics);
-            CheckPrimaryCtorParameterNameConflicts(diagnostics);
             CheckAccessorNameConflicts(diagnostics);
 
             bool unused = KnownCircularStruct;
@@ -1270,16 +1269,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         symbol.IsIndexer())
                     {
                         continue;
-                    }
-
-                    if (symbol.Kind == SymbolKind.Field)
-                    {
-                        var field = (FieldSymbol)symbol;
-                        if ((object)field.AssociatedSymbol != null && field.AssociatedSymbol.Kind == SymbolKind.Parameter)
-                        {
-                            Debug.Assert((object)((ParameterSymbol)field.AssociatedSymbol).PrimaryConstructorParameterBackingField == (object)symbol);
-                            continue;
-                        }
                     }
 
                     // We detect the first category of conflict by running down the list of members
@@ -1523,27 +1512,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (Locations.Length == 1 || IsPartial)
                 {
-                if (membersByName.ContainsKey(indexerName))
-                {
-                    // The name of the indexer is reserved - it can only be used by other indexers.
-                    Debug.Assert(!membersByName[indexerName].Any(SymbolExtensions.IsIndexer));
-                        diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, indexer.Locations[0], this, indexerName);
-                    }
-                    else
+                    if (membersByName.ContainsKey(indexerName))
                     {
-                        var primaryCtor = PrimaryCtor;
-
-                        if ((object)primaryCtor != null)
-                        {
-                            foreach (var p in primaryCtor.Parameters)
-                            {
-                                if (p.Name.Equals(indexerName))
-                                {
+                        // The name of the indexer is reserved - it can only be used by other indexers.
+                        Debug.Assert(!membersByName[indexerName].Any(SymbolExtensions.IsIndexer));
                         diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, indexer.Locations[0], this, indexerName);
-                                    break;
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -1588,9 +1561,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var tp in TypeParameters)
                 {
                     if ((object)primaryCtor != null)
-            {
+                    {
                         foreach (var dup in primaryCtor.Parameters)
-                {
+                        {
                             if (dup.Name.Equals(tp.Name))
                             {
                                 diagnostics.Add(ErrorCode.ERR_PrimaryCtorParameterSameNameAsTypeParam, dup.Locations[0], this, tp.Name);
@@ -1603,28 +1576,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, dup.Locations[0], this, tp.Name);
                     }
-                }
-            }
-        }
-
-        private void CheckPrimaryCtorParameterNameConflicts(DiagnosticBag diagnostics)
-        {
-                    if (Locations.Length == 1 || IsPartial)
-            {
-                var primaryCtor = this.PrimaryCtor;
-
-                if ((object)primaryCtor != null)
-                {
-                    foreach (var p in primaryCtor.Parameters)
-                    {
-                        foreach (var dup in GetMembers(p.Name))
-                        {
-                            if ((object)dup != (object)p.PrimaryConstructorParameterBackingField)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, dup.Locations[0], this, p.Name);
-                }
-            }
-        }
                 }
             }
         }
@@ -2794,15 +2745,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)result.PrimaryCtor == null)
                 {
                     result.PrimaryCtor = constructor;
-
-                    foreach (ParameterSymbol param in constructor.Parameters)
-                    {
-                        FieldSymbol backingField = param.PrimaryConstructorParameterBackingField;
-                        if ((object)backingField != null)
-                        {
-                            result.NonTypeNonIndexerMembers.Add(backingField);
-                        } 
-                    }
                 }
                 else
                 {

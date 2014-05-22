@@ -168,13 +168,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return builder.ToImmutableAndFree();
         }
-
-        internal override FieldSymbol PrimaryConstructorParameterBackingField
-        {
-            get
-            {
-                return null;
-            }
-        }
     }
 }

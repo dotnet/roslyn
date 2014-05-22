@@ -939,11 +939,7 @@ class Derived2(int T)
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            comp.VerifyDiagnostics(
-    // (9,10): error CS0102: The type 'Derived2' already contains a definition for 'T'
-    //     void T(){}
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "T").WithArguments("Derived2", "T")
-                );
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -969,17 +965,7 @@ class Derived2(int Item, int get_Item, int set_Item)
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            comp.VerifyDiagnostics(
-    // (13,16): error CS0102: The type 'Derived2' already contains a definition for 'Item'
-    //     public int this[int x] 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("Derived2", "Item"),
-    // (15,9): error CS0102: The type 'Derived2' already contains a definition for 'get_Item'
-    //         get { return 0; } 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "get").WithArguments("Derived2", "get_Item"),
-    // (16,9): error CS0102: The type 'Derived2' already contains a definition for 'set_Item'
-    //         set {}
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "set").WithArguments("Derived2", "set_Item")
-                );
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -995,14 +981,7 @@ class Derived2(int Item, int get_Item, int set_Item)
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            comp.VerifyDiagnostics(
-    // (4,16): error CS0102: The type 'Derived2' already contains a definition for 'Item'
-    //     public int this[int x] 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("Derived2", "Item"),
-    // (6,9): error CS0102: The type 'Derived2' already contains a definition for 'get_Item'
-    //         get { return 0; } 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "get").WithArguments("Derived2", "get_Item")
-                );
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -1018,14 +997,7 @@ class Derived2(int Item, int get_Item, int set_Item)
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            comp.VerifyDiagnostics(
-    // (4,16): error CS0102: The type 'Derived2' already contains a definition for 'Item'
-    //     public int this[int x] 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("Derived2", "Item"),
-    // (6,9): error CS0102: The type 'Derived2' already contains a definition for 'set_Item'
-    //         set {} 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "set").WithArguments("Derived2", "set_Item")
-                );
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -1067,29 +1039,7 @@ class Derived4(int Item3, int get_Item3, int set_Item3)
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            comp.VerifyDiagnostics(
-    // (13,16): error CS0102: The type 'Derived2' already contains a definition for 'Item1'
-    //     public int Item1
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Item1").WithArguments("Derived2", "Item1"),
-    // (15,9): error CS0102: The type 'Derived2' already contains a definition for 'get_Item1'
-    //         get { return 0; } 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "get").WithArguments("Derived2", "get_Item1"),
-    // (16,9): error CS0102: The type 'Derived2' already contains a definition for 'set_Item1'
-    //         set {}
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "set").WithArguments("Derived2", "set_Item1"),
-    // (30,16): error CS0102: The type 'Derived4' already contains a definition for 'Item3'
-    //     public int Item3 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Item3").WithArguments("Derived4", "Item3"),
-    // (32,9): error CS0102: The type 'Derived4' already contains a definition for 'get_Item3'
-    //         get { return 0; } 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "get").WithArguments("Derived4", "get_Item3"),
-    // (22,16): error CS0102: The type 'Derived3' already contains a definition for 'Item2'
-    //     public int Item2
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Item2").WithArguments("Derived3", "Item2"),
-    // (24,9): error CS0102: The type 'Derived3' already contains a definition for 'set_Item2'
-    //         set {}
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "set").WithArguments("Derived3", "set_Item2")
-                );
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -1108,15 +1058,6 @@ class Derived2(int Item1, int add_Item1, int remove_Item1)
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (9,32): error CS0102: The type 'Derived2' already contains a definition for 'Item1'
-    //     public event System.Action Item1; 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Item1").WithArguments("Derived2", "Item1"),
-    // (9,32): error CS0102: The type 'Derived2' already contains a definition for 'add_Item1'
-    //     public event System.Action Item1; 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Item1").WithArguments("Derived2", "add_Item1"),
-    // (9,32): error CS0102: The type 'Derived2' already contains a definition for 'remove_Item1'
-    //     public event System.Action Item1; 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Item1").WithArguments("Derived2", "remove_Item1"),
     // (9,32): warning CS0067: The event 'Derived2.Item1' is never used
     //     public event System.Action Item1; 
     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Item1").WithArguments("Derived2.Item1"),
@@ -1149,17 +1090,7 @@ class Derived2(int Item1, int add_Item1, int remove_Item1)
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            comp.VerifyDiagnostics(
-    // (13,32): error CS0102: The type 'Derived2' already contains a definition for 'Item1'
-    //     public event System.Action Item1 
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Item1").WithArguments("Derived2", "Item1"),
-    // (15,9): error CS0102: The type 'Derived2' already contains a definition for 'add_Item1'
-    //         add{}
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "add").WithArguments("Derived2", "add_Item1"),
-    // (16,9): error CS0102: The type 'Derived2' already contains a definition for 'remove_Item1'
-    //         remove{}
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "remove").WithArguments("Derived2", "remove_Item1")
-                );
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -1179,11 +1110,7 @@ class Derived2(int Item1)
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            comp.VerifyDiagnostics(
-    // (10,11): error CS0102: The type 'Derived2' already contains a definition for 'Item1'
-    //     class Item1
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Item1").WithArguments("Derived2", "Item1")
-                );
+            CompileAndVerify(comp);
         }
 
         [Fact]
@@ -1266,45 +1193,45 @@ class Derived(int p0, int p1 = Base.f0, int p2 = 0, int p3 = 0, int p4 = 0, int 
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (61,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    // (61,24): error CS0103: The name 'p12' does not exist in the current context
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p12").WithLocation(61, 24),
-    // (61,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p12").WithArguments("p12").WithLocation(61, 24),
+    // (61,20): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x").WithLocation(61, 24),
-    // (14,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("?", "int").WithLocation(61, 20),
+    // (14,34): error CS0103: The name 'p1' does not exist in the current context
     //         System.Console.WriteLine(p1);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1").WithLocation(14, 34),
-    // (19,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
-    //         System.Console.WriteLine(p3);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3").WithLocation(19, 34),
-    // (17,22): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(14, 34),
+    // (17,22): error CS0103: The name 'p2' does not exist in the current context
     //     Derived() : this(p2)
-    Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p2").WithLocation(17, 22),
-    // (26,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(17, 22),
+    // (19,34): error CS0103: The name 'p3' does not exist in the current context
+    //         System.Console.WriteLine(p3);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p3").WithArguments("p3").WithLocation(19, 34),
+    // (26,22): error CS0103: The name 'p5' does not exist in the current context
     //         get { return p5; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5").WithLocation(26, 22),
-    // (29,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p5").WithArguments("p5").WithLocation(26, 22),
+    // (29,38): error CS0103: The name 'p6' does not exist in the current context
     //             System.Console.WriteLine(p6);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6").WithLocation(29, 38),
-    // (35,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p6").WithArguments("p6").WithLocation(29, 38),
+    // (35,22): error CS0103: The name 'p7' does not exist in the current context
     //         get { return p7; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7").WithLocation(35, 22),
-    // (38,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p7").WithArguments("p7").WithLocation(35, 22),
+    // (38,38): error CS0103: The name 'p8' does not exist in the current context
     //             System.Console.WriteLine(p8);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p8").WithLocation(38, 38),
-    // (46,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p8").WithArguments("p8").WithLocation(38, 38),
+    // (46,38): error CS0103: The name 'p9' does not exist in the current context
     //             System.Console.WriteLine(p9);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p9").WithLocation(46, 38),
-    // (50,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p9").WithArguments("p9").WithLocation(46, 38),
+    // (50,38): error CS0103: The name 'p10' does not exist in the current context
     //             System.Console.WriteLine(p10);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p10").WithLocation(50, 38),
-    // (67,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p10").WithArguments("p10").WithLocation(50, 38),
+    // (67,16): error CS0103: The name 'p13' does not exist in the current context
     //         return p13;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p13").WithLocation(67, 16),
-    // (72,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p13").WithArguments("p13").WithLocation(67, 16),
+    // (72,16): error CS0103: The name 'p14' does not exist in the current context
     //         return p14;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p14").WithLocation(72, 16)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p14").WithArguments("p14").WithLocation(72, 16)
                 );
 
             SyntaxTree tree = comp.SyntaxTrees.Single();
@@ -1322,7 +1249,20 @@ class Derived(int p0, int p1 = Base.f0, int p2 = 0, int p3 = 0, int p4 = 0, int 
             foreach (var n in parameterRefs)
             {
                 symInfo = semanticModel.GetSymbolInfo(n);
-                Assert.Equal(SymbolKind.Parameter, symInfo.Symbol.Kind);
+
+                switch (n.Identifier.ValueText)
+                {
+                    case "p0":
+                    case "p4":
+                    case "p11":
+                        Assert.Equal(SymbolKind.Parameter, symInfo.Symbol.Kind);
+                        break;
+
+                    default:
+                        Assert.Null(symInfo.Symbol);
+                        break;
+                }
+
             }
 
             var classDecls = (from node in tree.GetRoot().DescendantNodes()
@@ -1429,45 +1369,48 @@ struct Derived(int p1, int p2 = Base.f0, int p3 = 0, int p4 = 0, int p5 = 0, int
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (61,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    // (61,24): error CS0103: The name 'p12' does not exist in the current context
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p12").WithLocation(61, 24),
-    // (61,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p12").WithArguments("p12").WithLocation(61, 24),
+    // (61,20): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x").WithLocation(61, 24),
-    // (14,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("?", "int").WithLocation(61, 20),
+    // (14,34): error CS0103: The name 'p1' does not exist in the current context
     //         System.Console.WriteLine(p1);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1").WithLocation(14, 34),
-    // (19,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(14, 34),
+    // (17,28): error CS0103: The name 'p2' does not exist in the current context
+    //     Derived(long x) : this(p2)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(17, 28),
+    // (19,34): error CS0103: The name 'p3' does not exist in the current context
     //         System.Console.WriteLine(p3);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3").WithLocation(19, 34),
-    // (17,28): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p3").WithArguments("p3").WithLocation(19, 34),
+    // (17,21): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
     //     Derived(long x) : this(p2)
-    Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p2").WithLocation(17, 28),
-    // (26,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_UseDefViolationThis, ": this(p2)").WithArguments("this").WithLocation(17, 21),
+    // (26,22): error CS0103: The name 'p5' does not exist in the current context
     //         get { return p5; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5").WithLocation(26, 22),
-    // (29,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p5").WithArguments("p5").WithLocation(26, 22),
+    // (29,38): error CS0103: The name 'p6' does not exist in the current context
     //             System.Console.WriteLine(p6);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6").WithLocation(29, 38),
-    // (35,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p6").WithArguments("p6").WithLocation(29, 38),
+    // (35,22): error CS0103: The name 'p7' does not exist in the current context
     //         get { return p7; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7").WithLocation(35, 22),
-    // (38,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p7").WithArguments("p7").WithLocation(35, 22),
+    // (38,38): error CS0103: The name 'p8' does not exist in the current context
     //             System.Console.WriteLine(p8);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p8").WithLocation(38, 38),
-    // (46,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p8").WithArguments("p8").WithLocation(38, 38),
+    // (46,38): error CS0103: The name 'p9' does not exist in the current context
     //             System.Console.WriteLine(p9);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p9").WithLocation(46, 38),
-    // (50,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p9").WithArguments("p9").WithLocation(46, 38),
+    // (50,38): error CS0103: The name 'p10' does not exist in the current context
     //             System.Console.WriteLine(p10);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p10").WithLocation(50, 38),
-    // (67,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p10").WithArguments("p10").WithLocation(50, 38),
+    // (67,16): error CS0103: The name 'p13' does not exist in the current context
     //         return p13;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p13").WithLocation(67, 16),
-    // (72,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p13").WithArguments("p13").WithLocation(67, 16),
+    // (72,16): error CS0103: The name 'p14' does not exist in the current context
     //         return p14;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p14").WithLocation(72, 16)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p14").WithArguments("p14").WithLocation(72, 16)
                 );
 
             SyntaxTree tree = comp.SyntaxTrees.Single();
@@ -1485,294 +1428,16 @@ struct Derived(int p1, int p2 = Base.f0, int p3 = 0, int p4 = 0, int p5 = 0, int
             foreach (var n in parameterRefs)
             {
                 symInfo = semanticModel.GetSymbolInfo(n);
-                Assert.Equal(SymbolKind.Parameter, symInfo.Symbol.Kind);
-            }
 
-            var structDecl = (from node in tree.GetRoot().DescendantNodes()
-                              where node.CSharpKind() == SyntaxKind.StructDeclaration
-                              select (StructDeclarationSyntax)node).Single();
-
-            Assert.Equal("Derived", structDecl.Identifier.ValueText);
-            var declaredCtor = semanticModel.GetDeclaredConstructorSymbol(structDecl);
-            Assert.Equal("Derived..ctor(System.Int32 p1, [System.Int32 p2 = 1], [System.Int32 p3 = 0], [System.Int32 p4 = 0], [System.Int32 p5 = 0], [System.Int32 p6 = 0], [System.Int32 p7 = 0], [System.Int32 p8 = 0], [System.Int32 p9 = 0], [System.Int32 p10 = 0], [System.Int32 p11 = 0], [System.Int32 p12 = 0], [System.Int32 p13 = 0], [System.Int32 p14 = 0])",
-                declaredCtor.ToTestDisplayString());
-            Assert.Same(declaredCtor, CSharpExtensions.GetDeclaredConstructorSymbol((CodeAnalysis.SemanticModel)semanticModel, structDecl));
-
-            var p1 = structDecl.ParameterList.Parameters[1];
-
-            Assert.Equal("[System.Int32 p2 = 1]", semanticModel.GetDeclaredSymbol(p1).ToTestDisplayString());
-
-            symInfo = semanticModel.GetSymbolInfo(p1.Default.Value);
-            Assert.Equal("System.Int32 Base.f0", symInfo.Symbol.ToTestDisplayString());
-        }
-
-        [Fact]
-        public void ParameterVisibility_03()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Base
-{
-    public Base(int x)
-    {}
-
-    public const int f0 = 1;
-}
-class Derived(private int p0, private int p1 = Base.f0, private int p2 = 0, private int p3 = 0, private int p4 = 0, private int p5 = 0, private int p6 = 0, private int p7 = 0, private int p8 = 0, private int p9 = 0, private int p10 = 0, private int p11 = 0, private int p12 = 0, private int p13 = 0, private int p14 = 0)
-    : Base(p0)
-{
-    void Test1()
-    {
-        System.Console.WriteLine(p1);
-    }
-
-    Derived() : this(p2)
-    {
-        System.Console.WriteLine(p3);
-    }
-
-    private int x = p4;
-
-    public int Item1 
-    { 
-        get { return p5; } 
-        set 
-        { 
-            System.Console.WriteLine(p6);
-        }
-    }
-
-    public int this[int x] 
-    { 
-        get { return p7; } 
-        set 
-        { 
-            System.Console.WriteLine(p8);
-        }
-    }
-
-    public event System.Action E1 
-    { 
-        add 
-        { 
-            System.Console.WriteLine(p9);
-        }
-        remove 
-        { 
-            System.Console.WriteLine(p10);
-        }
-    }
-
-    static System.Action GetAction(int x)
-    {
-        return null;
-    }
-
-    public event System.Action E2 = GetAction(p11);
-
-    void Test2(int x = p12)
-    {
-    }
-
-    public static int operator + (Derived x)
-    {
-        return p13;
-    }
-
-    public static explicit operator int (Derived x)
-    {
-        return p14;
-    }
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-    // (61,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
-    //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x").WithLocation(61, 24),
-    // (17,22): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p2'
-    //     Derived() : this(p2)
-    Diagnostic(ErrorCode.ERR_ObjectRequired, "p2").WithArguments("Derived.p2").WithLocation(17, 22),
-    // (67,16): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p13'
-    //         return p13;
-    Diagnostic(ErrorCode.ERR_ObjectRequired, "p13").WithArguments("Derived.p13").WithLocation(67, 16),
-    // (72,16): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p14'
-    //         return p14;
-    Diagnostic(ErrorCode.ERR_ObjectRequired, "p14").WithArguments("Derived.p14").WithLocation(72, 16)
-                );
-
-            SyntaxTree tree = comp.SyntaxTrees.Single();
-            SemanticModel semanticModel = comp.GetSemanticModel(tree);
-
-            var parameterRefs = (from node in tree.GetRoot().DescendantNodes()
-                                 where node.CSharpKind() == SyntaxKind.IdentifierName
-                                 select (IdentifierNameSyntax)node).
-                         Where(node => node.Identifier.ValueText.StartsWith("p")).ToArray();
-
-            Assert.Equal(15, parameterRefs.Length);
-
-            SymbolInfo symInfo;
-
-            foreach (var n in parameterRefs)
-            {
-                symInfo = semanticModel.GetSymbolInfo(n);
-
-                switch (symInfo.Symbol.Name)
-                {
-                    case "p0":
-                    case "p4":
-                    case "p11":
-                        Assert.Equal(SymbolKind.Parameter, symInfo.Symbol.Kind);
-                        break;
-                    default:
-                        Assert.Equal(SymbolKind.Field, symInfo.Symbol.Kind);
-                        break;
-                }
-            }
-
-            var classDecls = (from node in tree.GetRoot().DescendantNodes()
-                              where node.CSharpKind() == SyntaxKind.ClassDeclaration
-                              select (ClassDeclarationSyntax)node).ToArray();
-
-            Assert.Equal(2, classDecls.Length);
-
-            Assert.Equal("Base", classDecls[0].Identifier.ValueText);
-            Assert.Null(semanticModel.GetDeclaredConstructorSymbol(classDecls[0]));
-            Assert.Null(CSharpExtensions.GetDeclaredConstructorSymbol((CodeAnalysis.SemanticModel)semanticModel, classDecls[0]));
-
-            Assert.Equal("Derived", classDecls[1].Identifier.ValueText);
-            var declaredCtor = semanticModel.GetDeclaredConstructorSymbol(classDecls[1]);
-            Assert.Equal("Derived..ctor(System.Int32 p0, [System.Int32 p1 = 1], [System.Int32 p2 = 0], [System.Int32 p3 = 0], [System.Int32 p4 = 0], [System.Int32 p5 = 0], [System.Int32 p6 = 0], [System.Int32 p7 = 0], [System.Int32 p8 = 0], [System.Int32 p9 = 0], [System.Int32 p10 = 0], [System.Int32 p11 = 0], [System.Int32 p12 = 0], [System.Int32 p13 = 0], [System.Int32 p14 = 0])",
-                declaredCtor.ToTestDisplayString());
-            Assert.Same(declaredCtor, CSharpExtensions.GetDeclaredConstructorSymbol((CodeAnalysis.SemanticModel)semanticModel, classDecls[1]));
-
-            var p1 = classDecls[1].ParameterList.Parameters[1];
-
-            Assert.Equal("[System.Int32 p1 = 1]", semanticModel.GetDeclaredSymbol(p1).ToTestDisplayString());
-
-            symInfo = semanticModel.GetSymbolInfo(p1.Default.Value);
-            Assert.Equal("System.Int32 Base.f0", symInfo.Symbol.ToTestDisplayString());
-        }
-
-        [Fact]
-        public void ParameterVisibility_04()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Base
-{
-    public Base(int x)
-    {}
-
-    public const int f0 = 1;
-}
-
-struct Derived(private int p1, private int p2 = Base.f0, private int p3 = 0, private int p4 = 0, private int p5 = 0, private int p6 = 0, private int p7 = 0, private int p8 = 0, private int p9 = 0, private int p10 = 0, private int p11 = 0, private int p12 = 0, private int p13 = 0, private int p14 = 0)
-{
-    void Test1()
-    {
-        System.Console.WriteLine(p1);
-    }
-
-    Derived(long x) : this(p2)
-    {
-        System.Console.WriteLine(p3);
-    }
-
-    private int x = p4;
-
-    public int Item1 
-    { 
-        get { return p5; } 
-        set 
-        { 
-            System.Console.WriteLine(p6);
-        }
-    }
-
-    public int this[int x] 
-    { 
-        get { return p7; } 
-        set 
-        { 
-            System.Console.WriteLine(p8);
-        }
-    }
-
-    public event System.Action E1 
-    { 
-        add 
-        { 
-            System.Console.WriteLine(p9);
-        }
-        remove 
-        { 
-            System.Console.WriteLine(p10);
-        }
-    }
-
-    static System.Action GetAction(int x)
-    {
-        return null;
-    }
-
-    public event System.Action E2 = GetAction(p11);
-
-    void Test2(int x = p12)
-    {
-    }
-
-    public static int operator + (Derived x)
-    {
-        return p13;
-    }
-
-    public static explicit operator int (Derived x)
-    {
-        return p14;
-    }
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-    // (61,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
-    //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x").WithLocation(61, 24),
-    // (17,28): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p2'
-    //     Derived(long x) : this(p2)
-    Diagnostic(ErrorCode.ERR_ObjectRequired, "p2").WithArguments("Derived.p2").WithLocation(17, 28),
-    // (17,28): error CS0170: Use of possibly unassigned field 'p2'
-    //     Derived(long x) : this(p2)
-    Diagnostic(ErrorCode.ERR_UseDefViolationField, "p2").WithArguments("p2").WithLocation(17, 28),
-    // (67,16): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p13'
-    //         return p13;
-    Diagnostic(ErrorCode.ERR_ObjectRequired, "p13").WithArguments("Derived.p13").WithLocation(67, 16),
-    // (72,16): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p14'
-    //         return p14;
-    Diagnostic(ErrorCode.ERR_ObjectRequired, "p14").WithArguments("Derived.p14").WithLocation(72, 16));
-
-            SyntaxTree tree = comp.SyntaxTrees.Single();
-            SemanticModel semanticModel = comp.GetSemanticModel(tree);
-
-            var parameterRefs = (from node in tree.GetRoot().DescendantNodes()
-                                 where node.CSharpKind() == SyntaxKind.IdentifierName
-                                 select (IdentifierNameSyntax)node).
-                         Where(node => node.Identifier.ValueText.StartsWith("p")).ToArray();
-
-            Assert.Equal(14, parameterRefs.Length);
-
-            SymbolInfo symInfo;
-
-            foreach (var n in parameterRefs)
-            {
-                symInfo = semanticModel.GetSymbolInfo(n);
-
-                switch (symInfo.Symbol.Name)
+                switch (n.Identifier.ValueText)
                 {
                     case "p4":
                     case "p11":
                         Assert.Equal(SymbolKind.Parameter, symInfo.Symbol.Kind);
                         break;
+
                     default:
-                        Assert.Equal(SymbolKind.Field, symInfo.Symbol.Kind);
+                        Assert.Null(symInfo.Symbol);
                         break;
                 }
             }
@@ -1831,16 +1496,16 @@ struct Derived4(int p4)
             comp.VerifyDiagnostics(
     // (4,25): error CS0514: 'Derived1': static constructor cannot have an explicit 'this' or 'base' constructor call
     //     static Derived1() : this(p1,0)
-    Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("Derived1"),
+    Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("Derived1").WithLocation(4, 25),
     // (18,25): error CS0514: 'Derived3': static constructor cannot have an explicit 'this' or 'base' constructor call
     //     static Derived3() : this(p3,0)
-    Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("Derived3"),
-    // (26,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("Derived3").WithLocation(18, 25),
+    // (26,34): error CS0103: The name 'p4' does not exist in the current context
     //         System.Console.WriteLine(p4);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p4"),
-    // (12,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p4").WithArguments("p4").WithLocation(26, 34),
+    // (12,34): error CS0103: The name 'p2' does not exist in the current context
     //         System.Console.WriteLine(p2);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p2")
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(12, 34)
                 );
         }
 
@@ -1888,27 +1553,27 @@ class Derived(int p1, int p2 = 0, int p3 = 0, int p4 = 0, int p5 = 0, int p6 = 0
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (9,28): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    // (9,28): error CS0103: The name 'p2' does not exist in the current context
     //     private static int x = p2;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p2"),
-    // (37,54): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(9, 28),
+    // (37,54): error CS0103: The name 'p7' does not exist in the current context
     //     public static event System.Action E2 = GetAction(p7);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7"),
-    // (6,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p7").WithArguments("p7").WithLocation(37, 54),
+    // (6,34): error CS0103: The name 'p1' does not exist in the current context
     //         System.Console.WriteLine(p1);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1"),
-    // (13,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(6, 34),
+    // (13,22): error CS0103: The name 'p3' does not exist in the current context
     //         get { return p3; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3"),
-    // (16,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p3").WithArguments("p3").WithLocation(13, 22),
+    // (16,38): error CS0103: The name 'p4' does not exist in the current context
     //             System.Console.WriteLine(p4);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p4"),
-    // (24,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p4").WithArguments("p4").WithLocation(16, 38),
+    // (24,38): error CS0103: The name 'p5' does not exist in the current context
     //             System.Console.WriteLine(p5);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5"),
-    // (28,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p5").WithArguments("p5").WithLocation(24, 38),
+    // (28,38): error CS0103: The name 'p6' does not exist in the current context
     //             System.Console.WriteLine(p6);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6")
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p6").WithArguments("p6").WithLocation(28, 38)
                 );
         }
 
@@ -1956,27 +1621,27 @@ struct Derived(int p1, int p2 = 0, int p3 = 0, int p4 = 0, int p5 = 0, int p6 = 
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (9,28): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    // (9,28): error CS0103: The name 'p2' does not exist in the current context
     //     private static int x = p2;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p2"),
-    // (37,54): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(9, 28),
+    // (37,54): error CS0103: The name 'p7' does not exist in the current context
     //     public static event System.Action E2 = GetAction(p7);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7"),
-    // (6,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p7").WithArguments("p7").WithLocation(37, 54),
+    // (6,34): error CS0103: The name 'p1' does not exist in the current context
     //         System.Console.WriteLine(p1);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1"),
-    // (13,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(6, 34),
+    // (13,22): error CS0103: The name 'p3' does not exist in the current context
     //         get { return p3; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3"),
-    // (16,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p3").WithArguments("p3").WithLocation(13, 22),
+    // (16,38): error CS0103: The name 'p4' does not exist in the current context
     //             System.Console.WriteLine(p4);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p4"),
-    // (24,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p4").WithArguments("p4").WithLocation(16, 38),
+    // (24,38): error CS0103: The name 'p5' does not exist in the current context
     //             System.Console.WriteLine(p5);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5"),
-    // (28,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p5").WithArguments("p5").WithLocation(24, 38),
+    // (28,38): error CS0103: The name 'p6' does not exist in the current context
     //             System.Console.WriteLine(p6);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6")
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p6").WithArguments("p6").WithLocation(28, 38)
                 );
         }
 
@@ -2057,66 +1722,66 @@ class Derived(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref in
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (58,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    // (58,24): error CS0103: The name 'p12' does not exist in the current context
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p12"),
-    // (58,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p12").WithArguments("p12").WithLocation(58, 24),
+    // (58,20): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x"),
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("?", "int").WithLocation(58, 20),
     // (56,47): error CS0269: Use of unassigned out parameter 'p11'
     //     public event System.Action E2 = GetAction(p11);
-    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "p11").WithArguments("p11"),
+    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "p11").WithArguments("p11").WithLocation(56, 47),
     // (6,14): error CS0177: The out parameter 'p9' must be assigned to before control leaves the current method
     // class Derived(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p9"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p9").WithLocation(6, 14),
     // (6,14): error CS0177: The out parameter 'p10' must be assigned to before control leaves the current method
     // class Derived(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p10"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p10").WithLocation(6, 14),
     // (6,14): error CS0177: The out parameter 'p11' must be assigned to before control leaves the current method
     // class Derived(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p11"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p11").WithLocation(6, 14),
     // (6,14): error CS0177: The out parameter 'p12' must be assigned to before control leaves the current method
     // class Derived(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p12"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p12").WithLocation(6, 14),
     // (6,14): error CS0177: The out parameter 'p13' must be assigned to before control leaves the current method
     // class Derived(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p13"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p13").WithLocation(6, 14),
     // (6,14): error CS0177: The out parameter 'p14' must be assigned to before control leaves the current method
     // class Derived(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p14"),
-    // (11,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p14").WithLocation(6, 14),
+    // (11,34): error CS0103: The name 'p1' does not exist in the current context
     //         System.Console.WriteLine(p1);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1"),
-    // (16,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(11, 34),
+    // (14,20): error CS0103: The name 'p2' does not exist in the current context
+    //         : this(ref p2, ref x1, ref x2, ref x3, ref x4, ref x5, ref x6, ref x7, ref x8, out x9, out x10, out x11, out x12, out x13, out x14)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(14, 20),
+    // (16,34): error CS0103: The name 'p3' does not exist in the current context
     //         System.Console.WriteLine(p3);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3"),
-    // (14,22): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
-    //     Derived() : this(p2)
-    Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p2"),
-    // (23,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p3").WithArguments("p3").WithLocation(16, 34),
+    // (23,22): error CS0103: The name 'p5' does not exist in the current context
     //         get { return p5; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5"),
-    // (26,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p5").WithArguments("p5").WithLocation(23, 22),
+    // (26,38): error CS0103: The name 'p6' does not exist in the current context
     //             System.Console.WriteLine(p6);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6"),
-    // (32,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p6").WithArguments("p6").WithLocation(26, 38),
+    // (32,22): error CS0103: The name 'p7' does not exist in the current context
     //         get { return p7; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7"),
-    // (35,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p7").WithArguments("p7").WithLocation(32, 22),
+    // (35,38): error CS0103: The name 'p8' does not exist in the current context
     //             System.Console.WriteLine(p8);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p8"),
-    // (43,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p8").WithArguments("p8").WithLocation(35, 38),
+    // (43,38): error CS0103: The name 'p9' does not exist in the current context
     //             System.Console.WriteLine(p9);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p9"),
-    // (47,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p9").WithArguments("p9").WithLocation(43, 38),
+    // (47,38): error CS0103: The name 'p10' does not exist in the current context
     //             System.Console.WriteLine(p10);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p10"),
-    // (64,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p10").WithArguments("p10").WithLocation(47, 38),
+    // (64,16): error CS0103: The name 'p13' does not exist in the current context
     //         return p13;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p13"),
-    // (69,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p13").WithArguments("p13").WithLocation(64, 16),
+    // (69,16): error CS0103: The name 'p14' does not exist in the current context
     //         return p14;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p14")
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p14").WithArguments("p14").WithLocation(69, 16)
                 );
         }
 
@@ -2192,74 +1857,75 @@ struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref i
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (53,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    // (53,24): error CS0103: The name 'p12' does not exist in the current context
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p12"),
-    // (53,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p12").WithArguments("p12").WithLocation(53, 24),
+    // (53,20): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x"),
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("?", "int").WithLocation(53, 20),
     // (51,47): error CS0269: Use of unassigned out parameter 'p11'
     //     public event System.Action E2 = GetAction(p11);
-    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "p11").WithArguments("p11"),
+    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "p11").WithArguments("p11").WithLocation(51, 47),
     // (2,15): error CS0177: The out parameter 'p7' must be assigned to before control leaves the current method
     // struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p7"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p7").WithLocation(2, 15),
     // (2,15): error CS0177: The out parameter 'p8' must be assigned to before control leaves the current method
     // struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p8"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p8").WithLocation(2, 15),
     // (2,15): error CS0177: The out parameter 'p9' must be assigned to before control leaves the current method
     // struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p9"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p9").WithLocation(2, 15),
     // (2,15): error CS0177: The out parameter 'p10' must be assigned to before control leaves the current method
     // struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p10"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p10").WithLocation(2, 15),
     // (2,15): error CS0177: The out parameter 'p11' must be assigned to before control leaves the current method
     // struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p11"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p11").WithLocation(2, 15),
     // (2,15): error CS0177: The out parameter 'p12' must be assigned to before control leaves the current method
     // struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p12"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p12").WithLocation(2, 15),
     // (2,15): error CS0177: The out parameter 'p13' must be assigned to before control leaves the current method
     // struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p13"),
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p13").WithLocation(2, 15),
     // (2,15): error CS0177: The out parameter 'p14' must be assigned to before control leaves the current method
     // struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p14"),
-    // (6,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p14").WithLocation(2, 15),
+    // (6,34): error CS0103: The name 'p1' does not exist in the current context
     //         System.Console.WriteLine(p1);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1"),
-    // (11,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(6, 34),
+    // (9,17): error CS0103: The name 'p2' does not exist in the current context
+    //      : this(ref p2, ref x1, ref x2, ref x3, ref x4, ref x5, out x6, out x7, out x8, out x9, out x10, out x11, out x12, out x13)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(9, 17),
+    // (11,34): error CS0103: The name 'p3' does not exist in the current context
     //         System.Console.WriteLine(p3);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3"),
-    // (9,28): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
-    //     Derived(long x) : this(p2)
-    Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p2"),
-    // (59,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
-    //         return p13;
-    // (18,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p3").WithArguments("p3").WithLocation(11, 34),
+    // (9,6): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
+    //      : this(ref p2, ref x1, ref x2, ref x3, ref x4, ref x5, out x6, out x7, out x8, out x9, out x10, out x11, out x12, out x13)
+    Diagnostic(ErrorCode.ERR_UseDefViolationThis, ": this(ref p2, ref x1, ref x2, ref x3, ref x4, ref x5, out x6, out x7, out x8, out x9, out x10, out x11, out x12, out x13)").WithArguments("this").WithLocation(9, 6),
+    // (18,22): error CS0103: The name 'p5' does not exist in the current context
     //         get { return p5; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5"),
-    // (21,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p5").WithArguments("p5").WithLocation(18, 22),
+    // (21,38): error CS0103: The name 'p6' does not exist in the current context
     //             System.Console.WriteLine(p6);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6"),
-    // (27,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p6").WithArguments("p6").WithLocation(21, 38),
+    // (27,22): error CS0103: The name 'p7' does not exist in the current context
     //         get { return p7; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7"),
-    // (30,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p7").WithArguments("p7").WithLocation(27, 22),
+    // (30,38): error CS0103: The name 'p8' does not exist in the current context
     //             System.Console.WriteLine(p8);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p8"),
-    // (38,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p8").WithArguments("p8").WithLocation(30, 38),
+    // (38,38): error CS0103: The name 'p9' does not exist in the current context
     //             System.Console.WriteLine(p9);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p9"),
-    // (42,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p9").WithArguments("p9").WithLocation(38, 38),
+    // (42,38): error CS0103: The name 'p10' does not exist in the current context
     //             System.Console.WriteLine(p10);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p10"),
-    // (59,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p10").WithArguments("p10").WithLocation(42, 38),
+    // (59,16): error CS0103: The name 'p13' does not exist in the current context
     //         return p13;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p13"),
-    // (64,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p13").WithArguments("p13").WithLocation(59, 16),
+    // (64,16): error CS0103: The name 'p14' does not exist in the current context
     //         return p14;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p14")
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p14").WithArguments("p14").WithLocation(64, 16)
                 );
         }
 
@@ -2403,49 +2069,222 @@ class Derived(int p0, out int p1, ref int p2, int p3, out int p4, ref int p5, in
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (15,31): error CS9008: Cannot use primary constructor parameter 'p3' inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor.
-    //     System.Func<int> f1 = ()=>p3;
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, "p3").WithArguments("p3"),
-    // (16,31): error CS9008: Cannot use primary constructor parameter 'p4' inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor.
+    // (16,31): error CS1628: Cannot use ref or out parameter 'p4' inside an anonymous method, lambda expression, or query expression
     //     System.Func<int> f2 = ()=>p4;
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, "p4").WithArguments("p4"),
-    // (17,31): error CS9008: Cannot use primary constructor parameter 'p5' inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "p4").WithArguments("p4").WithLocation(16, 31),
+    // (17,31): error CS1628: Cannot use ref or out parameter 'p5' inside an anonymous method, lambda expression, or query expression
     //     System.Func<int> f3 = ()=>p5;
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, "p5").WithArguments("p5"),
-    // (19,37): error CS9008: Cannot use primary constructor parameter 'p6' inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor.
-    //     event System.Func<int> e1 = ()=>p6;
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, "p6").WithArguments("p6"),
-    // (20,37): error CS9008: Cannot use primary constructor parameter 'p7' inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "p5").WithArguments("p5").WithLocation(17, 31),
+    // (20,37): error CS1628: Cannot use ref or out parameter 'p7' inside an anonymous method, lambda expression, or query expression
     //     event System.Func<int> e2 = ()=>p7;
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, "p7").WithArguments("p7"),
-    // (21,37): error CS9008: Cannot use primary constructor parameter 'p8' inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "p7").WithArguments("p7").WithLocation(20, 37),
+    // (21,37): error CS1628: Cannot use ref or out parameter 'p8' inside an anonymous method, lambda expression, or query expression
     //     event System.Func<int> e3 = ()=>p8;
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, "p8").WithArguments("p8"),
-    // (13,40): error CS9008: Cannot use primary constructor parameter 'p0' inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "p8").WithArguments("p8").WithLocation(21, 37),
+    // (13,48): error CS1628: Cannot use ref or out parameter 'p1' inside an anonymous method, lambda expression, or query expression
     //     : Base(out p1, out p4, out p7, ()=>p0, ()=>p1, ()=>p2)
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, "p0").WithArguments("p0"),
-    // (13,48): error CS9008: Cannot use primary constructor parameter 'p1' inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "p1").WithArguments("p1").WithLocation(13, 48),
+    // (13,56): error CS1628: Cannot use ref or out parameter 'p2' inside an anonymous method, lambda expression, or query expression
     //     : Base(out p1, out p4, out p7, ()=>p0, ()=>p1, ()=>p2)
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, "p1").WithArguments("p1"),
-    // (13,56): error CS9008: Cannot use primary constructor parameter 'p2' inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor.
-    //     : Base(out p1, out p4, out p7, ()=>p0, ()=>p1, ()=>p2)
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, "p2").WithArguments("p2"),
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "p2").WithArguments("p2").WithLocation(13, 56),
     // (16,31): error CS0269: Use of unassigned out parameter 'p4'
     //     System.Func<int> f2 = ()=>p4;
-    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "p4").WithArguments("p4"),
+    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "p4").WithArguments("p4").WithLocation(16, 31),
     // (20,37): error CS0269: Use of unassigned out parameter 'p7'
     //     event System.Func<int> e2 = ()=>p7;
-    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "p7").WithArguments("p7"),
+    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "p7").WithArguments("p7").WithLocation(20, 37),
     // (13,48): error CS0269: Use of unassigned out parameter 'p1'
     //     : Base(out p1, out p4, out p7, ()=>p0, ()=>p1, ()=>p2)
-    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "p1").WithArguments("p1"),
+    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "p1").WithArguments("p1").WithLocation(13, 48),
     // (27,17): error CS1628: Cannot use ref or out parameter 'x1' inside an anonymous method, lambda expression, or query expression
     //         x = ()=>x1;
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x1").WithArguments("x1"),
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x1").WithArguments("x1").WithLocation(27, 17),
     // (28,17): error CS1628: Cannot use ref or out parameter 'x2' inside an anonymous method, lambda expression, or query expression
     //         x = ()=>x2;
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x2").WithArguments("x2")
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x2").WithArguments("x2").WithLocation(28, 17)
                 );
+        }
+
+        [Fact]
+        public void CapturingOfParameters_02()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(System.Func<int> u)
+    {
+        System.Console.WriteLine(u());
+    }
+}
+
+class Derived(int p0)
+    : Base(()=>p0)
+{
+
+    public static void Main()
+    {
+        var d = new Derived(156);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput:"156");
+        }
+
+        [Fact]
+        public void CapturingOfParameters_03()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base(System.Func<int> u)
+{
+    public System.Func<int> x0 = u;
+}
+
+class Derived(int p0)
+    : Base(()=>p0)
+{
+    int x1 = p0++;
+    
+    public static void Main()
+    {
+        var d = new Derived(156);
+        System.Console.WriteLine(""{0} {1}"", d.x0(), d.x1);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "157 156");
+        }
+
+        [Fact]
+        public void CapturingOfParameters_04()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base(System.Func<int> u, int v)
+{
+    public System.Func<int> x0 = u;
+    public int x1 = v;
+}
+
+class Derived(int p0)
+    : Base(()=>p0, p0++)
+{
+    public static void Main()
+    {
+        var d = new Derived(156);
+        System.Console.WriteLine(""{0} {1}"", d.x0(), d.x1);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "157 156");
+        }
+
+        [Fact]
+        public void CapturingOfParameters_05()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived(int p0)
+{
+    System.Func<int> f1 = ()=>p0;
+
+    public static void Main()
+    {
+        var d = new Derived(156);
+        System.Console.WriteLine(d.f1());
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "156");
+        }
+
+        [Fact]
+        public void CapturingOfParameters_06()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived(int p0)
+{
+    System.Func<int> f1 = ()=>p0;
+    int f2 = p0++;
+
+    public static void Main()
+    {
+        var d = new Derived(156);
+        System.Console.WriteLine(""{0} {1}"", d.f1(), d.f2);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "157 156");
+        }
+
+        [Fact]
+        public void CapturingOfParameters_07()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base(int u)
+{
+    public int x0 = u;
+}
+
+class Derived(int p0) : Base(p0++)
+{
+    System.Func<int> f1 = ()=>p0;
+
+    public static void Main()
+    {
+        var d = new Derived(156);
+        System.Console.WriteLine(""{0} {1}"", d.f1(), d.x0);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "157 156");
+        }
+
+        [Fact]
+        public void CapturingOfParameters_08()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived(int p0)
+{
+    System.Func<int> f1 = ()=>p0++;
+    event System.Func<int> e1 = ()=>p0++;
+
+    public static void Main()
+    {
+        var d = new Derived(156);
+        System.Console.WriteLine(""{0} {1} {2}"", d.f1(), d.e1(), d.f1());
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "156 157 158");
+        }
+
+        [Fact]
+        public void CapturingOfParameters_09()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base(System.Func<int> u)
+{
+    public System.Func<int> x0 = u;
+}
+
+class Derived(int p0) : Base(()=>p0++)
+{
+    System.Func<int> f1 = ()=>p0++;
+
+    public static void Main()
+    {
+        var d = new Derived(156);
+        System.Console.WriteLine(""{0} {1} {2}"", d.f1(), d.x0(), d.f1());
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "156 157 158");
         }
 
         [Fact]
@@ -2464,9 +2303,9 @@ class Derived1(int p1, int p2)
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (6,18): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    // (6,18): error CS0103: The name 'p1' does not exist in the current context
     //         int x1 = p1;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1").WithLocation(6, 18),
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(6, 18),
     // (7,18): error CS0103: The name 'p2' does not exist in the current context
     //         int x2 = p2<int>(0);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "p2<int>").WithArguments("p2").WithLocation(7, 18)
@@ -2477,21 +2316,18 @@ class Derived1(int p1, int p2)
         public void GenericName_02()
         {
             var comp = CreateCompilationWithMscorlib(@"
-class Derived1(private int p1, private int p2)
+class Derived1(int p1, int p2)
 {
-    void Test()
-    {
-        int x1 = p1;
-        int x2 = p2<int>(0);
-    }
+    int x1 = p1;
+    int x2 = p2<int>(0);
 }
 
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (7,18): error CS0307: The field 'Derived1.p2' cannot be used with type arguments
-    //         int x2 = p2<int>(0);
-    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "p2<int>").WithArguments("Derived1.p2", "field").WithLocation(7, 18)
+    // (5,14): error CS0103: The name 'p2' does not exist in the current context
+    //     int x2 = p2<int>(0);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p2<int>").WithArguments("p2").WithLocation(5, 14)
                 );
         }
 
@@ -2522,15 +2358,15 @@ class Derived1(ref int p1, ref int p2, ref int p3, ref int p4)
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (20,30): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    // (20,30): error CS0103: The name 'p4' does not exist in the current context
     //     static int f2 = Test(ref p4);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p4"),
-    // (4,33): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p4").WithArguments("p4").WithLocation(20, 30),
+    // (4,33): error CS0103: The name 'p1' does not exist in the current context
     //     Derived1(int p5) : this(ref p1, ref p5, ref p5, ref p5)
-    Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p1"),
-    // (15,18): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(4, 33),
+    // (15,18): error CS0103: The name 'p2' does not exist in the current context
     //         Test(ref p2);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p2")
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(15, 18)
                 );
         }
 
@@ -2546,8 +2382,12 @@ class Base
     }
 }
 
-class Derived(int x, int y, private int z, int u, private int v, private int w) : Base(x)
+class Derived(int x, int y, int z, int u, int v, int w) : Base(x)
 {
+    private int z = z;
+    private int v = v;
+    private int w = w;
+
     public int V
     {
         get 
@@ -2682,18 +2522,19 @@ class Program
 ", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (16,20): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    // (16,20): error CS0103: The name 'v' does not exist in the current context
     //             return v;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "v").WithLocation(16, 20),
-    // (26,20): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "v").WithArguments("v").WithLocation(16, 20),
+    // (26,20): error CS0103: The name 'z' does not exist in the current context
     //             return z;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "z").WithLocation(26, 20),
-    // (36,20): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(26, 20),
+    // (36,20): error CS0103: The name 'w' does not exist in the current context
     //             return w;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(36, 20),
-    // (40,13): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "w").WithArguments("w").WithLocation(36, 20),
+    // (40,13): error CS0103: The name 'w' does not exist in the current context
     //             w = value;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(40, 13)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "w").WithArguments("w").WithLocation(40, 13)
+
                 );
         }
 
@@ -2701,8 +2542,11 @@ class Program
         public void Emit_02()
         {
             var comp = CreateCompilationWithMscorlib(@"
-struct Derived(int x, int y, int z, int u, private int v, private int w)
+struct Derived(int x, int y, int z, int u, int v, int w)
 {
+    private int v = v;
+    private int w = w;
+
     public int V()
     {
         return v;
@@ -2792,121 +2636,17 @@ class Program
 ", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (6,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    // (6,16): error CS0103: The name 'v' does not exist in the current context
     //         return v;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "v").WithLocation(6, 16),
-    // (13,20): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "v").WithArguments("v").WithLocation(6, 16),
+    // (13,20): error CS0103: The name 'w' does not exist in the current context
     //             return w;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(13, 20),
-    // (17,13): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "w").WithArguments("w").WithLocation(13, 20),
+    // (17,13): error CS0103: The name 'w' does not exist in the current context
     //             w = value;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(17, 13)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "w").WithArguments("w").WithLocation(17, 13)
+
                 );
-        }
-
-        [Fact]
-        public void Emit_03()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-static class Derived(int x, int y, int z, int u, private int v, int w)
-{
-    public static int V()
-    {
-        return v;
-    }
-
-    public static int W
-    {
-        get 
-        {
-            System.Func<int> a = ()=>w;
-            return w;
-        }
-        set
-        {
-            w = value;
-        }
-    }
-}
-", compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyEmitDiagnostics(
-    // (2,62): error CS0708: 'Derived.v': cannot declare instance members in a static class
-    // static class Derived(int x, int y, int z, int u, private int v, int w)
-    Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "v").WithArguments("Derived.v").WithLocation(2, 62),
-    // (2,21): error CS0710: Static classes cannot have instance constructors
-    // static class Derived(int x, int y, int z, int u, int v, int w)
-    Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "(int x, int y, int z, int u, private int v, int w)").WithLocation(2, 21),
-    // (6,16): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.v'
-    //         return v;
-    Diagnostic(ErrorCode.ERR_ObjectRequired, "v").WithArguments("Derived.v").WithLocation(6, 16),
-    // (13,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
-    //             System.Func<int> a = ()=>w;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(13, 38),
-    // (14,20): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
-    //             return w;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(14, 20),
-    // (18,13): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
-    //             w = value;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(18, 13)
-                );
-        }
-
-        [Fact]
-        public void Emit_04()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Derived(private int v)
-{
-    public  System.Func<int> GetV
-    {
-        get 
-        {
-            return ()=>v;
-        }
-    }
-
-    public  System.Action<int> SetV
-    {
-        get 
-        {
-            return (int x)=> v=x;
-        }
-    }
-}
-
-class Program
-{
-    public static void Main()
-    {
-        var d = new Derived(1);
-
-        var g = d.GetV;
-        System.Console.WriteLine(g());
-        var s = d.SetV;
-        s(2);
-        System.Console.WriteLine(g());
-        System.Console.WriteLine(d.GetV());
-        d.SetV(3);
-        System.Console.WriteLine(g());
-    }
-}
-", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            System.Action<ModuleSymbol> validator = delegate (ModuleSymbol m)
-            {
-                var derived = m.GlobalNamespace.GetTypeMember("Derived");
-                var f = derived.GetMember<FieldSymbol>("v");
-                Assert.False(f.IsStatic);
-                Assert.False(f.IsReadOnly);
-                Assert.Equal(Accessibility.Private, f.DeclaredAccessibility);
-            };
-
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"1
-2
-2
-3", sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2941,12 +2681,12 @@ class Program
 ", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyEmitDiagnostics(
-    // (8,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    // (8,24): error CS0103: The name 'v' does not exist in the current context
     //             return ()=>v;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "v").WithLocation(8, 24),
-    // (16,30): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "v").WithArguments("v").WithLocation(8, 24),
+    // (16,30): error CS0103: The name 'v' does not exist in the current context
     //             return (int x)=> v=x;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "v").WithLocation(16, 30)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "v").WithArguments("v").WithLocation(16, 30)
                 );
         }
 
@@ -3309,7 +3049,6 @@ class Derived([ParameterAttribute] int v)
             var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
             Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMembers(parameter.Name).Length);
-            Assert.Null(parameter.PrimaryConstructorParameterBackingField);
 
             var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
             {
@@ -3337,7 +3076,6 @@ class Derived([param: ParameterAttribute] int v)
 
             var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
             Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
-            Assert.Null(parameter.PrimaryConstructorParameterBackingField);
 
             var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
             {
@@ -3347,74 +3085,6 @@ class Derived([param: ParameterAttribute] int v)
                 var ctor = derived.GetMember<MethodSymbol>(".ctor");
                 Assert.Equal("ParameterAttribute", ctor.Parameters[0].GetAttributes().Single().ToString());
             });
-        }
-
-        [Fact]
-        public void FieldAttributes_03()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-[System.AttributeUsage(System.AttributeTargets.Parameter)]
-public class ParameterAttribute : System.Attribute
-{
-}
-
-class Derived([ParameterAttribute] private int v)
-{
-    public int V { get { return v; } }
-}
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
-            Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
-            Assert.Same(parameter.PrimaryConstructorParameterBackingField, comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>("v"));
-            Assert.Same(parameter, parameter.PrimaryConstructorParameterBackingField.AssociatedSymbol);
-
-            System.Action<ModuleSymbol> validator = delegate (ModuleSymbol m)
-            {
-                var derived = m.GlobalNamespace.GetTypeMember("Derived");
-
-                var ctor = derived.GetMember<MethodSymbol>(".ctor");
-                Assert.Equal("ParameterAttribute", ctor.Parameters[0].GetAttributes().Single().ToString());
-
-                var v = derived.GetMember<FieldSymbol>("v");
-                Assert.Equal(0, v.GetAttributes().Length);
-            };
-
-            var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator);
-        }
-
-        [Fact]
-        public void FieldAttributes_04()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-[System.AttributeUsage(System.AttributeTargets.Parameter)]
-public class ParameterAttribute : System.Attribute
-{
-}
-
-class Derived([param: ParameterAttribute] private int v)
-{
-    public int V { get { return v; } }
-}
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
-            Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
-            Assert.Same(parameter.PrimaryConstructorParameterBackingField, comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>("v"));
-            Assert.Same(parameter, parameter.PrimaryConstructorParameterBackingField.AssociatedSymbol);
-
-            System.Action<ModuleSymbol> validator = delegate (ModuleSymbol m)
-            {
-                var derived = m.GlobalNamespace.GetTypeMember("Derived");
-
-                var ctor = derived.GetMember<MethodSymbol>(".ctor");
-                Assert.Equal("ParameterAttribute", ctor.Parameters[0].GetAttributes().Single().ToString());
-
-                var v = derived.GetMember<FieldSymbol>("v");
-                Assert.Equal(0, v.GetAttributes().Length);
-            };
-
-            var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -3434,66 +3104,11 @@ class Derived([field: ParameterAttribute] int v)
             var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
             Assert.Equal(0, parameter.GetAttributes().Length);
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMembers(parameter.Name).Length);
-            Assert.Null(parameter.PrimaryConstructorParameterBackingField);
 
             comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
     // (7,16): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
     // class Derived([field: ParameterAttribute] int v)
     Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(7, 16)
-                );
-        }
-
-        [Fact]
-        public void FieldAttributes_05_2()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-[System.AttributeUsage(System.AttributeTargets.Parameter)]
-public class ParameterAttribute : System.Attribute
-{
-}
-
-class Derived([field: ParameterAttribute] private int v)
-{
-}
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
-            Assert.Equal(0, parameter.GetAttributes().Length);
-
-            var field = comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>("v");
-            Assert.Equal("ParameterAttribute", field.GetAttributes().Single().ToString());
-
-            Assert.Same(parameter.PrimaryConstructorParameterBackingField, field);
-            Assert.Same(parameter, parameter.PrimaryConstructorParameterBackingField.AssociatedSymbol);
-
-            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
-    // (7,23): error CS0592: Attribute 'ParameterAttribute' is not valid on this declaration type. It is only valid on 'parameter' declarations.
-    // class Derived([field: ParameterAttribute] int v)
-    Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ParameterAttribute").WithArguments("ParameterAttribute", "parameter")
-                );
-        }
-
-        [Fact]
-        public void FieldAttributes_06()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-using System.Runtime.InteropServices;
-
-[System.AttributeUsage(System.AttributeTargets.Field)]
-public class FieldAttribute : System.Attribute
-{
-}
-
-[StructLayout(LayoutKind.Explicit)]
-struct Derived([field: FieldAttribute] private int v)
-{
-}
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
-    // (10,44): error CS0625: 'Derived.v': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
-    // struct Derived([field: FieldAttribute] int v)
-    Diagnostic(ErrorCode.ERR_MissingStructOffset, "v").WithArguments("Derived.v")
                 );
         }
 
@@ -3514,7 +3129,6 @@ class Derived([field: FieldAttribute] int v)
             var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
             Assert.Equal(0, parameter.GetAttributes().Length);
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMembers(parameter.Name).Length);
-            Assert.Null(parameter.PrimaryConstructorParameterBackingField);
 
             comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
     // (7,16): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
@@ -3530,43 +3144,6 @@ class Derived([field: FieldAttribute] int v)
                 Assert.Equal(0, ctor.Parameters[0].GetAttributes().Length);
 
                 Assert.Equal(0, derived.GetMembers("v").Length);
-            });
-        }
-
-        [Fact]
-        public void FieldAttributes_07_02()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-[System.AttributeUsage(System.AttributeTargets.Field)]
-public class FieldAttribute : System.Attribute
-{
-}
-
-class Derived([field: FieldAttribute] private int v)
-{
-}
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
-            Assert.Equal(0, parameter.GetAttributes().Length);
-
-            var field = comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>(parameter.Name);
-            Assert.Equal("FieldAttribute", field.GetAttributes().Single().ToString());
-            Assert.Same(parameter.PrimaryConstructorParameterBackingField,  field);
-            Assert.Same(parameter, parameter.PrimaryConstructorParameterBackingField.AssociatedSymbol);
-
-            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
-                );
-
-            var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
-            {
-                var derived = m.GlobalNamespace.GetTypeMember("Derived");
-
-                var ctor = derived.GetMember<MethodSymbol>(".ctor");
-                Assert.Equal(0, ctor.Parameters[0].GetAttributes().Length);
-
-                var v = derived.GetMember<FieldSymbol>("v");
-                Assert.Equal("FieldAttribute", v.GetAttributes().Single().ToString());
             });
         }
 
@@ -3588,140 +3165,11 @@ class Derived([field: FieldAttribute] int v)
             var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
             Assert.Equal(0, parameter.GetAttributes().Length);
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMembers(parameter.Name).Length);
-            Assert.Null(parameter.PrimaryConstructorParameterBackingField);
 
             comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
     // (7,16): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
     // class Derived([field: FieldAttribute] int v)
     Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(7, 16)
-                );
-        }
-
-        [Fact]
-        public void FieldAttributes_08_2()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-[System.AttributeUsage(System.AttributeTargets.Field)]
-public class FieldAttribute : System.Attribute
-{
-}
-
-class Derived([field: FieldAttribute] private int v)
-{
-    public int V { get { return v; } }
-}
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
-            Assert.Equal(0, parameter.GetAttributes().Length);
-
-            var field = comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>(parameter.Name);
-            Assert.Equal("FieldAttribute", field.GetAttributes().Single().ToString());
-
-            Assert.Same(parameter.PrimaryConstructorParameterBackingField, field);
-            Assert.Same(parameter, parameter.PrimaryConstructorParameterBackingField.AssociatedSymbol);
-
-            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
-                );
-
-            var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
-            {
-                var derived = m.GlobalNamespace.GetTypeMember("Derived");
-
-                var ctor = derived.GetMember<MethodSymbol>(".ctor");
-                Assert.Equal(0, ctor.Parameters[0].GetAttributes().Length);
-
-                var v = derived.GetMember<FieldSymbol>("v");
-                Assert.Equal("FieldAttribute", v.GetAttributes().Single().ToString());
-            });
-        }
-
-        [Fact]
-        public void FieldAttributes_09()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-[System.AttributeUsage(System.AttributeTargets.Field)]
-public class FieldAttribute : System.Attribute
-{
-}
-
-[System.AttributeUsage(System.AttributeTargets.Parameter)]
-public class ParameterAttribute : System.Attribute
-{
-}
-
-class Derived([field: FieldAttribute][ParameterAttribute] private int v, int w)
-{
-    public int V { get { return v; } }
-}
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
-            Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
-            Assert.Equal("FieldAttribute", comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>(parameter.Name).GetAttributes().Single().ToString());
-
-            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
-                );
-
-            var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
-            {
-                var derived = m.GlobalNamespace.GetTypeMember("Derived");
-
-                var ctor = derived.GetMember<MethodSymbol>(".ctor");
-                Assert.Equal("ParameterAttribute", ctor.Parameters[0].GetAttributes().Single().ToString());
-
-                var v = derived.GetMember<FieldSymbol>("v");
-                Assert.Equal("FieldAttribute", v.GetAttributes().Single().ToString());
-
-                Assert.Equal(1, derived.GetMembers().OfType<FieldSymbol>().Count());
-            });
-        }
-
-        [Fact]
-        public void FieldAttributes_10()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-using System.Runtime.InteropServices;
-
-[StructLayout(LayoutKind.Explicit)]
-struct Derived(private int v)
-{
-    public int V { get { return v; } }
-}
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
-    // (5,28): error CS0625: 'Derived.v': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
-    // struct Derived(private int v)
-    Diagnostic(ErrorCode.ERR_MissingStructOffset, "v").WithArguments("Derived.v").WithLocation(5, 28)
-                );
-       }
-
-        [Fact]
-        public void FieldAttributes_11()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-[System.AttributeUsage(System.AttributeTargets.Parameter)]
-public class ParameterAttribute : System.Attribute
-{
-}
-
-partial class Derived(string x)
-{
-}
-
-partial class Derived([field: ParameterAttribute] private int v)
-{
-}
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
-    // (11,22): error CS9001: Only one part of a partial type can declare primary constructor parameters.
-    // partial class Derived([field: ParameterAttribute] private int v)
-    Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "([field: ParameterAttribute] private int v)").WithLocation(11, 22),
-    // (11,31): error CS0592: Attribute 'ParameterAttribute' is not valid on this declaration type. It is only valid on 'parameter' declarations.
-    // partial class Derived([field: ParameterAttribute] private int v)
-    Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ParameterAttribute").WithArguments("ParameterAttribute", "parameter").WithLocation(11, 31)
                 );
         }
 
@@ -3735,260 +3183,25 @@ class Test(private int v)
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
+    // (2,12): error CS1026: ) expected
+    // class Test(private int v)
+    Diagnostic(ErrorCode.ERR_CloseParenExpected, "private").WithLocation(2, 12),
+    // (2,12): error CS1514: { expected
+    // class Test(private int v)
+    Diagnostic(ErrorCode.ERR_LbraceExpected, "private").WithLocation(2, 12),
+    // (2,12): error CS1513: } expected
+    // class Test(private int v)
+    Diagnostic(ErrorCode.ERR_RbraceExpected, "private").WithLocation(2, 12),
+    // (2,25): error CS1002: ; expected
+    // class Test(private int v)
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 25),
+    // (2,25): error CS1022: Type or namespace definition, or end-of-file expected
+    // class Test(private int v)
+    Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 25),
+    // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+    // }
+    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
                 );
-
-            var field = comp.GetTypeByMetadataName("Test").GetMember<SourceFieldSymbol>("v");
-
-            Assert.True(field.IsImplicitlyDeclared);
-            Assert.False(field.IsStatic);
-            Assert.Equal(Accessibility.Private, field.DeclaredAccessibility);
-            Assert.False(field.IsVolatile);
-            Assert.False(field.IsNew);
-            Assert.True(field.CustomModifiers.IsEmpty);
-        }
-
-        [Fact]
-        public void ParameterWithFields_02()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Test(static static int v)
-{
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-    // (2,12): error CS9010: A parameter cannot have static modifier.
-    // class Test(static static int v)
-    Diagnostic(ErrorCode.ERR_StaticParamMod, "static").WithLocation(2, 12)
-                );
-
-            var field = comp.GetTypeByMetadataName("Test").GetMember<FieldSymbol>("v");
-            Assert.True(field.IsStatic);
-            Assert.Equal(Accessibility.Private, field.DeclaredAccessibility);
-        }
-
-        [Fact]
-        public void ParameterWithFields_03()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Test(readonly int v)
-{
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-    // (2,12): error CS9011: A parameter must either have an accessibility modifier or must not have any field modifiers.
-    // class Test(readonly int v)
-    Diagnostic(ErrorCode.ERR_ParamMissingAccessMod, "readonly").WithLocation(2, 12)
-                );
-
-            Assert.True(comp.GetTypeByMetadataName("Test").GetMember<FieldSymbol>("v").IsReadOnly);
-        }
-
-        [Fact]
-        public void ParameterWithFields_04()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Test(static readonly new int v)
-{
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-    // (2,12): error CS9010: A parameter cannot have static modifier.
-    // class Test(static readonly new int v)
-    Diagnostic(ErrorCode.ERR_StaticParamMod, "static").WithLocation(2, 12),
-    // (2,19): error CS9011: A parameter must either have an accessibility modifier or must not have any field modifiers.
-    // class Test(static readonly new int v)
-    Diagnostic(ErrorCode.ERR_ParamMissingAccessMod, "readonly").WithLocation(2, 19),
-    // (2,36): warning CS0109: The member 'Test.v' does not hide an inherited member. The new keyword is not required.
-    // class Test(static readonly new int v)
-    Diagnostic(ErrorCode.WRN_NewNotRequired, "v").WithArguments("Test.v").WithLocation(2, 36)
-                );
-        }
-
-        [Fact]
-        public void ParameterWithFields_05()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Test(private int v)
-{
-    void v(){}
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-    // (4,10): error CS0102: The type 'Test' already contains a definition for 'v'
-    //     void v(){}
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "v").WithArguments("Test", "v").WithLocation(4, 10)
-                );
-        }
-
-
-        [Fact]
-        public void ParameterWithFields_06()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-static class Test(public int v)
-{
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-    // (2,30): error CS0708: 'Test.v': cannot declare instance members in a static class
-    // static class Test(public int v)
-    Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "v").WithArguments("Test.v").WithLocation(2, 30),
-    // (2,18): error CS0710: Static classes cannot have instance constructors
-    // static class Test(public int v)
-    Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "(public int v)").WithLocation(2, 18)
-                );
-
-            var field = comp.GetTypeByMetadataName("Test").GetMember<FieldSymbol>("v");
-            Assert.False(field.IsStatic);
-            Assert.Equal(Accessibility.Public, field.DeclaredAccessibility);
-        }
-
-        [Fact]
-        public void ParameterWithFields_07()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Test(protected volatile int v)
-{
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-                );
-
-            var field = comp.GetTypeByMetadataName("Test").GetMember<FieldSymbol>("v");
-
-            Assert.Equal(Accessibility.Protected, field.DeclaredAccessibility);
-            Assert.True(field.IsVolatile);
-            Assert.Equal(1, field.CustomModifiers.Length);
-            Assert.False(field.CustomModifiers[0].IsOptional);
-            Assert.Equal("System.Runtime.CompilerServices.IsVolatile", field.CustomModifiers[0].Modifier.ToTestDisplayString());
-        }
-
-        [Fact]
-        public void ParameterWithFields_08()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Base
-{
-    protected int v = 0;
-}
-
-class Test(protected new int v) : Base
-{
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-                );
-
-            var field = comp.GetTypeByMetadataName("Test").GetMember<SourceFieldSymbol>("v");
-            Assert.True(field.IsNew);
-        }
-
-        [Fact]
-        public void ParameterWithFields_09()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Test(protected ref int v) 
-{
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-    // (2,12): error CS9012: A ref or out parameter cannot have any field modifiers.
-    // class Test(protected ref int v) 
-    Diagnostic(ErrorCode.ERR_RefOutParameterWithFieldModifier, "protected").WithLocation(2, 12)
-                );
-        }
-
-        [Fact]
-        public void ParameterWithFields_10()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Test(protected out int v) 
-{
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-    // (2,12): error CS9012: A ref or out parameter cannot have any field modifiers.
-    // class Test(protected out int v) 
-    Diagnostic(ErrorCode.ERR_RefOutParameterWithFieldModifier, "protected").WithLocation(2, 12),
-    // (2,11): error CS0177: The out parameter 'v' must be assigned to before control leaves the current method
-    // class Test(protected out int v) 
-    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(protected out int v)").WithArguments("v").WithLocation(2, 11)
-                );
-        }
-
-        [Fact]
-        public void ParameterWithFields_11()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-class Test(readonly ref int v) 
-{
-}
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-    // (2,12): error CS9012: A ref or out parameter cannot have any field modifiers.
-    // class Test(readonly ref int v) 
-    Diagnostic(ErrorCode.ERR_RefOutParameterWithFieldModifier, "readonly").WithLocation(2, 12)
-                );
-        }
-
-        [Fact]
-        public void ParameterWithFields_12()
-        {
-            var comp1 = CreateCompilation(new[] { Parse(@"
-class Derived(private int v)
-{
-}
-", options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)) }, new[] { MscorlibRef_v20 }, compOptions: TestOptions.Dll);
-
-            var derived = comp1.GetTypeByMetadataName("Derived");
-            var parameter = derived.GetMember<MethodSymbol>(".ctor").Parameters[0];
-            var field = derived.GetMember<FieldSymbol>(parameter.Name);
-
-            Assert.Same(parameter.PrimaryConstructorParameterBackingField, field);
-            Assert.Same(parameter, field.AssociatedSymbol);
-
-            var comp2 = CreateCompilation(@"", new[] { MscorlibRef, new CSharpCompilationReference(comp1) }, compOptions: TestOptions.Dll);
-
-            derived = comp2.GetTypeByMetadataName("Derived");
-            parameter = derived.GetMember<MethodSymbol>(".ctor").Parameters[0];
-            field = derived.GetMember<FieldSymbol>(parameter.Name);
-            Assert.Same(parameter.PrimaryConstructorParameterBackingField, field);
-            Assert.Same(parameter, field.AssociatedSymbol);
-
-            var comp3 = CreateCompilation(@"", new[] { MscorlibRef, new CSharpCompilationReference(comp1) }, compOptions: TestOptions.Dll);
-
-            derived = comp3.GetTypeByMetadataName("Derived");
-            field = derived.GetMember<FieldSymbol>(parameter.Name);
-            parameter = derived.GetMember<MethodSymbol>(".ctor").Parameters[0];
-            Assert.Same(parameter, field.AssociatedSymbol);
-            Assert.Same(parameter.PrimaryConstructorParameterBackingField, field);
-        }
-
-        [Fact]
-        public void ParameterWithFields_13()
-        {
-            var comp1 = CreateCompilationWithMscorlib(@"
-class Derived<T>(private int v)
-{
-}
-", compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            var derived = comp1.GetTypeByMetadataName("Derived`1").Construct(comp1.GetSpecialType(SpecialType.System_Int32));
-            var parameter = derived.GetMember<MethodSymbol>(".ctor").Parameters[0];
-            var field = derived.GetMember<FieldSymbol>(parameter.Name);
-
-            Assert.Equal(parameter.PrimaryConstructorParameterBackingField, field);
-            Assert.Equal(parameter, field.AssociatedSymbol);
         }
 
         [Fact, WorkItem(4)]
@@ -4046,27 +3259,6 @@ partial class Derived() : IDisposable(2)
     // (13,22): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Base.Base(int)'
     // partial class Derived() : IDisposable(2)
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "()").WithArguments("x", "Base.Base(int)").WithLocation(13, 22)
-                );
-        }
-
-        [Fact]
-        public void CycleInAStruct()
-        {
-            var comp = CreateCompilationWithMscorlib(@"
-struct S(private S x)
-{
-    void Foo()
-    {
-        var y = x;
-    }
-
-    static void Main() { }
-}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-
-            comp.VerifyDiagnostics(
-    // (2,20): error CS0523: Struct member 'S.x' of type 'S' causes a cycle in the struct layout
-    // struct S(private S x)
-    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S.x", "S").WithLocation(2, 20)
                 );
         }
 

@@ -1683,9 +1683,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            internal override Binder WithPrimaryConstructorParametersIfNecessary(NamedTypeSymbol containingType, bool shadowBackingFields)
+            internal override Binder WithPrimaryConstructorParametersIfNecessary(NamedTypeSymbol containingType)
             {
-                Binder result = base.WithPrimaryConstructorParametersIfNecessary(containingType, shadowBackingFields);
+                Binder result = base.WithPrimaryConstructorParametersIfNecessary(containingType);
 
                 if (result != this)
                 {

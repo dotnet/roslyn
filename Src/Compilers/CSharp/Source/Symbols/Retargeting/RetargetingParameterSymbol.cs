@@ -236,20 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { return underlyingParameter.HasByRefBeforeCustomModifiers; }
         }
 
-        internal sealed override FieldSymbol PrimaryConstructorParameterBackingField
-        {
-            get
-            {
-                FieldSymbol backingField = underlyingParameter.PrimaryConstructorParameterBackingField;
-
-                if ((object)backingField != null)
-                {
-                    return this.RetargetingModule.RetargetingTranslator.Retarget(backingField);
-                }
-
-                return null;
-            }
-        }
         #endregion
     }
 

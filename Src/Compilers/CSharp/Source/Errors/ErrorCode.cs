@@ -1264,13 +1264,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InstanceCtorMustHaveThisInitializer = 8037,
         ERR_PrimaryCtorParameterSameNameAsTypeParam = 8038,
         ERR_PrimaryCtorParameterSameNameAsContainingType = 8039,
-        ERR_PrimaryCtorParameterInConstructorInitializer = 8040,
-        ERR_InvalidUseOfPrimaryConstructorParameter = 8041,
-        ERR_AnonDelegateCantUsePrimaryConstructorParameter = 8042,
+        // available = 8040
+        // available = 8041
+        // available = 8042
         ERR_InstanceCtorCannotHaveDefaultThisInitializer = 8043,
-        ERR_StaticParamMod = 8044,
-        ERR_ParamMissingAccessMod = 8045,
-        ERR_RefOutParameterWithFieldModifier = 8046,
+
+        // available = 8044,
+        // available = 8045,
+        // available = 8046,
 
         ERR_DeclarationExpressionOutsideOfAMethodBody = 8047,
         ERR_VariableUsedInTheSameArgumentList = 8048,

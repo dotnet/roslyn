@@ -581,14 +581,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override FieldSymbol PrimaryConstructorParameterBackingField
-        {
-            get
-            {
-                return null;
-            }
-        }
-
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             if (this.lazyCustomAttributes.IsDefault)

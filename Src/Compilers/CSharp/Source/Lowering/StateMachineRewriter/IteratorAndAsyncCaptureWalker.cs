@@ -119,11 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MakeSlot(parameter);
         }
 
-        protected override void EnterPrimaryConstructorParameter(ParameterSymbol parameter)
-        {
-            // Do nothing, they are already fields.
-        }
-
         protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
         {
             if (symbol is LocalSymbol || symbol is ParameterSymbol)

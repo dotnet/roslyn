@@ -6235,7 +6235,7 @@ partial class Test1() : Base(int x = 10)
                 );
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void InitializationScope_16()
         {
             var text = @"
@@ -6254,10 +6254,13 @@ partial class Test1(int x)
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             compilation.VerifyDiagnostics(
+    // (11,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //     public int x1 = (int x = 1);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 26)
                 );
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void InitializationScope_17()
         {
             var text = @"
@@ -6279,7 +6282,7 @@ partial class Test1(int x)
                 );
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void InitializationScope_18()
         {
             var text = @"
@@ -6298,10 +6301,13 @@ partial class Test1(int x)
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             compilation.VerifyDiagnostics(
+    // (11,20): error CS0133: The expression being assigned to 'Test1.x1' must be constant
+    //     const int x1 = (int x = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int x = 1)").WithArguments("Test1.x1").WithLocation(11, 20)
                 );
         }
 
-        [Fact(Skip ="TODO")]
+        [Fact]
         public void InitializationScope_19()
         {
             var text = @"
@@ -6320,6 +6326,9 @@ partial class Test1(int x)
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             compilation.VerifyDiagnostics(
+    // (11,24): error CS0133: The expression being assigned to 'Test1.x1' must be constant
+    //     const decimal x1 = (int x = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int x = 1)").WithArguments("Test1.x1").WithLocation(11, 24)
                 );
         }
 

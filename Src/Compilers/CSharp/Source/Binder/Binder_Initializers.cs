@@ -141,10 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         parentBinder = new LocalScopeBinder(parentBinder).WithAdditionalFlagsAndContainingMemberOrLambda(parentBinder.Flags | BinderFlags.FieldInitializer, fieldSymbol);
 
-                        if (!fieldSymbol.IsConst)
+                        if (!fieldSymbol.IsConst && !fieldSymbol.IsStatic)
                         {
-                            // TODO: Spec issue - should primary constructor parameters be in scope for static field initializers?
-                            parentBinder = parentBinder.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType, shadowBackingFields: true);
+                            parentBinder = parentBinder.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType);
                         }
 
                         infos.Add(new FieldInitializerInfo(initializer, parentBinder, initializerNode));

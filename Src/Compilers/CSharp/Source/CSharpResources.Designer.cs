@@ -376,15 +376,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use primary constructor parameter &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor..
-        /// </summary>
-        internal static string ERR_AnonDelegateCantUsePrimaryConstructorParameter {
-            get {
-                return ResourceManager.GetString("ERR_AnonDelegateCantUsePrimaryConstructorParameter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Foreach cannot operate on a &apos;{0}&apos;. Did you intend to invoke the &apos;{0}&apos;?.
         /// </summary>
         internal static string ERR_AnonMethGrpInForEach {
@@ -5110,15 +5101,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor..
-        /// </summary>
-        internal static string ERR_InvalidUseOfPrimaryConstructorParameter {
-            get {
-                return ResourceManager.GetString("ERR_InvalidUseOfPrimaryConstructorParameter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The specified version string does not conform to the required format - major[.minor[.build[.revision]]].
         /// </summary>
         internal static string ERR_InvalidVersionFormat {
@@ -6550,15 +6532,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A parameter must either have an accessibility modifier or must not have any field modifiers..
-        /// </summary>
-        internal static string ERR_ParamMissingAccessMod {
-            get {
-                return ResourceManager.GetString("ERR_ParamMissingAccessMod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The params parameter cannot be declared as ref or out.
         /// </summary>
         internal static string ERR_ParamsCantBeRefOut {
@@ -6861,15 +6834,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PredefinedTypeNotFound {
             get {
                 return ResourceManager.GetString("ERR_PredefinedTypeNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Constructor initializer cannot access the parameters to a primary constructor..
-        /// </summary>
-        internal static string ERR_PrimaryCtorParameterInConstructorInitializer {
-            get {
-                return ResourceManager.GetString("ERR_PrimaryCtorParameterInConstructorInitializer", resourceCulture);
             }
         }
         
@@ -7212,15 +7176,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefOutDefaultValue {
             get {
                 return ResourceManager.GetString("ERR_RefOutDefaultValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A ref or out parameter cannot have any field modifiers..
-        /// </summary>
-        internal static string ERR_RefOutParameterWithFieldModifier {
-            get {
-                return ResourceManager.GetString("ERR_RefOutParameterWithFieldModifier", resourceCulture);
             }
         }
         
@@ -7716,15 +7671,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_StaticNotVirtual {
             get {
                 return ResourceManager.GetString("ERR_StaticNotVirtual", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A parameter cannot have static modifier..
-        /// </summary>
-        internal static string ERR_StaticParamMod {
-            get {
-                return ResourceManager.GetString("ERR_StaticParamMod", resourceCulture);
             }
         }
         

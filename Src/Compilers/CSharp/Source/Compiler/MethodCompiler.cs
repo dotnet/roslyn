@@ -1403,29 +1403,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statements.Add(constructorInitializer);
             }
 
-            if ((object)sourceMethod != null && sourceMethod.IsPrimaryCtor && (object)((SourceMemberContainerTypeSymbol)sourceMethod.ContainingType).PrimaryCtor == (object)sourceMethod)
-            {
-                Debug.Assert(method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType());
-                Debug.Assert(body == null);
-
-                if (sourceMethod.ParameterCount > 0)
-                {
-                    var factory = new SyntheticBoundNodeFactory(sourceMethod, sourceMethod.SyntaxNode, compilationState, diagnostics);
-                    factory.CurrentMethod = sourceMethod;
-
-                    foreach (var parameter in sourceMethod.Parameters)
-                    {
-                        FieldSymbol field = parameter.PrimaryConstructorParameterBackingField;
-
-                        if ((object)field != null)
-                        {
-                            statements.Add(factory.Assignment(factory.Field(factory.This(), field),
-                                                                   factory.Parameter(parameter)));
-                        }
-                    }
-                }
-            }
-
             if (body != null)
             {
                 statements.Add(body);

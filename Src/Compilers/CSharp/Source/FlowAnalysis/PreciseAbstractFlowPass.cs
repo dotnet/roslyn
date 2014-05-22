@@ -383,33 +383,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// If we are not in primary constructor and primary constructor parameters are in scope,
-        /// return them. Returns an empty array otherwise.
-        /// </summary>
-        protected ImmutableArray<ParameterSymbol> PrimaryConstructorParameters
-        {
-            get
-            {
-                if ((object)member != null)
-                {
-                    var container = (member.Kind == SymbolKind.NamedType ? member : member.ContainingType) as SourceMemberContainerTypeSymbol;
-
-                    if ((object)container != null && (object)container.PrimaryCtor != null && (object)container.PrimaryCtor != (object)member)
-                    {
-                        var sourceMethod = member as SourceMethodSymbol;
-
-                        if ((object)sourceMethod == null || !sourceMethod.IsPrimaryCtor)
-                        {
-                            return container.PrimaryCtor.Parameters;
-                        }
-                    }
-                }
-
-                return ImmutableArray<ParameterSymbol>.Empty;
-            }
-        }
-
-        /// <summary>
         /// If a method is currently being analyzed returns its 'this' parameter, returns null
         /// otherwise.
         /// </summary>

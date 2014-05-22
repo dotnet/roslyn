@@ -50,38 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     identifier.Parent.GetLocation());
             }
 
-            var sourceMethod = owner as SourceMethodSymbol;
-            if ((object)sourceMethod != null && sourceMethod.IsPrimaryCtor)
-            {
-                foreach (SyntaxToken modToken in syntax.Modifiers)
-                {
-                    switch (modToken.CSharpKind())
-                    {
-                        case SyntaxKind.NewKeyword:
-                        case SyntaxKind.PublicKeyword:
-                        case SyntaxKind.ProtectedKeyword:
-                        case SyntaxKind.InternalKeyword:
-                        case SyntaxKind.PrivateKeyword:
-                        case SyntaxKind.StaticKeyword:
-                        case SyntaxKind.ReadOnlyKeyword:
-                        case SyntaxKind.VolatileKeyword:
-
-                            return new SourcePrimaryConstructorParameterSymbolWithBackingField(
-                                            owner,
-                                            ordinal,
-                                            parameterType,
-                                            refKind,
-                                            name,
-                                            locations,
-                                            syntax,
-                                            ConstantValue.Unset,
-                                            isParams,
-                                            isExtensionMethodThis,
-                                            diagnostics);
-                    }
-                }
-            }
-
             if (!isParams &&
                 !isExtensionMethodThis &&
                 (syntax.Default == null) &&
