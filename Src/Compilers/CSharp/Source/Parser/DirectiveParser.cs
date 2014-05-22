@@ -398,7 +398,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 {
                                     string value = (string)id.Value;
                                     var messageProvider = MessageProvider.Instance;
-                                    if (value.StartsWith(messageProvider.CodePrefix))
+                                    if (string.IsNullOrWhiteSpace(value))
+                                    {
+                                        id = this.AddError(id, ErrorCode.WRN_BadWarningNumber, value);
+                                    }
+                                    else if (value.StartsWith(messageProvider.CodePrefix))
                                     {
                                         // For diagnostic IDs of the form "CS[0-9]*", verify the error code is that of a warning
                                         int compilerWarningNumber;

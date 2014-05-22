@@ -363,4 +363,7 @@
   <data name="ChangesMustBeOrderedAndNotOverlapping" xml:space="preserve">
     <value>The changes must be ordered and not overlapping.</value>
   </data>
+  <data name="DiagnosticIdCantBeNullOrWhitespace" xml:space="preserve">
+    <value>A DiagnosticDescriptor must have an Id that is neiter null nor an empty string nor a string that only contains white space.</value>
+  </data>
 </root>

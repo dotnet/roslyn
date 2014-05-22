@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
         public DiagnosticDescriptor(string id, string description, string messageFormat, string category, DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, params string[] customTags)
         {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException(CodeAnalysisResources.DiagnosticIdCantBeNullOrWhitespace, "id");
+            }
+
             this.Id = id;
             this.Description = description;
             this.Category = category;

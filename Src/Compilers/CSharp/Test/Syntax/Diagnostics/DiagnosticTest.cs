@@ -1519,6 +1519,36 @@ public class C
                 Diagnostic(ErrorCode.WRN_StringOrNumericLiteralExpected, ","));
         }
 
+        [WorkItem(913567)]
+        [Fact]
+        public void PragmaWarningWithErrors_EmptyStrings()
+        {
+            var text = @"
+public class C
+{
+    public static void Main()
+    {
+#pragma warning disable """"
+#pragma warning restore """"
+#pragma warning disable ""  ""
+#pragma warning restore """ + "\t" + @"""
+    }
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+// (6,25): warning CS1691: '' is not a valid warning number
+// #pragma warning disable ""
+Diagnostic(ErrorCode.WRN_BadWarningNumber, "\"\"").WithArguments("").WithLocation(6, 25),
+// (7,25): warning CS1691: '' is not a valid warning number
+// #pragma warning restore ""
+Diagnostic(ErrorCode.WRN_BadWarningNumber, "\"\"").WithArguments("").WithLocation(7, 25),
+// (8,25): warning CS1691: '  ' is not a valid warning number
+// #pragma warning disable "  "
+Diagnostic(ErrorCode.WRN_BadWarningNumber, "\"  \"").WithArguments("  ").WithLocation(8, 25),
+// (9,25): warning CS1691: '{tab}' is not a valid warning number
+// #pragma warning restore "{tab}"
+Diagnostic(ErrorCode.WRN_BadWarningNumber, "\"\t\"").WithArguments("\t").WithLocation(9, 25));
+        }
+
         [WorkItem(546814, "DevDiv")]
         [Fact]
         public void PragmaWarningAlign_0()
