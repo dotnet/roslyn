@@ -483,7 +483,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         {
                             var newMetadataName = symbol.ToDisplayString(metadataSymbolDisplayFormat);
                             var oldMetadataName = conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].Name;
-                            if (newLocation.IsInSource ||
+                            if (newLocation == null ||
+                                newLocation.IsInSource ||
                                 !HeuristicMetadataNameEquivalenceCheck(
                                     oldMetadataName,
                                     newMetadataName,
