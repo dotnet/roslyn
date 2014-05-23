@@ -1287,6 +1287,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CA2000_DisposeObjectsBeforeLosingScope1 = 10000,
         WRN_CA2000_DisposeObjectsBeforeLosingScope2 = 10001,
 
-        WRN_CA2202_DoNotDisposeObjectsMultipleTimes = 10002
+        WRN_CA2202_DoNotDisposeObjectsMultipleTimes = 10002,
+
+        ERR_SwitchFallOut = 14001
     }
 }

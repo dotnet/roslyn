@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             labelsUsed.Add(label);
         }
 
-        public override BoundNode VisitSwitchSection(BoundSwitchSection node)
+        public override BoundNode VisitSwitchSection(BoundSwitchSection node, bool lastSection)
         {
             base.VisitSwitchSection(node);
 
@@ -308,7 +308,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node.BoundSwitchLabels.Any());
 
                 var boundLabel = node.BoundSwitchLabels.Last();
-                Diagnostics.Add(ErrorCode.ERR_SwitchFallThrough, new SourceLocation(boundLabel.Syntax), boundLabel.Label.Name);
+                if (lastSection)
+                {
+                    Diagnostics.Add(ErrorCode.ERR_SwitchFallOut, new SourceLocation(boundLabel.Syntax), boundLabel.Label.Name);
+                }
+                else
+                {
+                    Diagnostics.Add(ErrorCode.ERR_SwitchFallThrough, new SourceLocation(boundLabel.Syntax), boundLabel.Label.Name);
+                }
+
                 this.State.Reported = true;
             }
 

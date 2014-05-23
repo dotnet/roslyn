@@ -1806,6 +1806,131 @@ struct A
 
         #endregion
 
+
+        #region "Control Flow analysis: CS14001 Switch fall out error tests"
+        [Fact]
+        public void CS14001_SwitchFallThroughOut_DefaultLabel()
+        {
+            var text = @"using System;
+class Test
+{
+	public static void DoTest(int i)
+	{
+		switch (i)
+		{
+			case 1:
+				Console.WriteLine(i);
+				break;
+			case 2:
+				Console.WriteLine(i);
+				break;
+            default:                        // CS14001
+                Console.WriteLine(i);
+		}
+	}
+
+	public static int Main()
+    {
+		return 1;
+	}
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (14,13): error CS14001: Control cannot fall out of switch from final case label ('default')
+                //             default:                        // CS14001
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default:").WithLocation(14, 13));
+        }
+
+        [Fact]
+        public void CS14001_SwitchFallOutError()
+        {
+            var text = @"
+namespace Test
+{
+
+    public class Program
+    {
+        static int Main()
+        {
+            int? i = 10;
+            switch ((int)i)
+            {
+                case 10:
+                    i++;
+                    break;
+                case 11:
+                    ;
+            }
+            return -1;
+        }
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (15,17): error CS14001: Control cannot fall out of switch from final case label ('case 11')
+                //                 case 11:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 11:").WithArguments("case 11:").WithLocation(15, 17));
+        }
+
+        [Fact]
+        public void CS14001_ErrorsInMultipleSwitchStmtsAreReported()
+        {
+            var text = @"
+namespace Test
+{
+
+    public class Program
+    {
+        static int Main()
+        {
+            int? i = 10;
+            switch ((int)i)
+            {
+                case 10:
+                    i++;
+                    break;
+                case 11:
+                    ;
+            }
+
+            int j = 5;
+            goto LDone;
+        LDone:
+            switch (j)
+            {
+                case 5:
+            }
+
+            int? k = 10;
+            switch ((int)k)
+            {
+                case 10:
+                    break;
+                default:
+                    ;
+            }
+
+            return -1;
+        }
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (15,17): error CS14001: Control cannot fall out of switch from final case label ('case 11:')
+                //                 case 11:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 11:").WithArguments("case 11:").WithLocation(15, 17),
+                // (24,17): error CS14001: Control cannot fall out of switch from final case label ('case 5:')
+                //                 case 5:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:").WithLocation(24, 17),
+                // (32,17): error CS14001: Control cannot fall out of switch from final case label ('default:')
+                //                 default:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default:").WithLocation(32, 17));
+        }
+
+        #endregion
         # region "Control Flow analysis: CS0163 Switch fall through error tests"
 
         [Fact]
@@ -1843,74 +1968,6 @@ class Test
         }
 
         [Fact]
-        public void CS0163_SwitchFallThroughError_LastCaseLabel()
-        {
-            var text = @"using System;
-class Test
-{
-	public static void DoTest(int i)
-	{
-		switch (i)
-		{
-			case 1:
-				Console.WriteLine(i);
-				break;
-            default:
-                Console.WriteLine(i);
-				break;
-			case 2:                         // CS0163
-				Console.WriteLine(i);
-		}
-	}
-
-	public static int Main()
-    {
-		return 1;
-	}
-}
-";
-
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (14,4): error CS0163: Control cannot fall through from one case label ('case 2:') to another
-                // 			case 2:                         // CS0163
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 2:").WithArguments("case 2:").WithLocation(14, 4));
-        }
-
-        [Fact]
-        public void CS0163_SwitchFallThroughError_DefaultLabel()
-        {
-            var text = @"using System;
-class Test
-{
-	public static void DoTest(int i)
-	{
-		switch (i)
-		{
-			case 1:
-				Console.WriteLine(i);
-				break;
-			case 2:
-				Console.WriteLine(i);
-				break;
-            default:                        // CS0163
-                Console.WriteLine(i);
-		}
-	}
-
-	public static int Main()
-    {
-		return 1;
-	}
-}
-";
-
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (14,13): error CS0163: Control cannot fall through from one case label ('default:') to another
-                //             default:                        // CS0163
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "default:").WithArguments("default:").WithLocation(14, 13));
-        }
-
-        [Fact]
         public void CS0163_ErrorsInMultipleSwitchStmtsAreReported()
         {
             var text = @"
@@ -1925,6 +1982,9 @@ namespace Test
             switch ((int)i)
             {
                 case 10:
+                    ;
+                default:
+                    break;
             }
 
             int j = 5;
@@ -1933,6 +1993,9 @@ namespace Test
             switch (j)
             {
                 case 5:
+                    ;
+                case 7:
+                    break;
             }
 
             int? k = 10;
@@ -1940,6 +2003,8 @@ namespace Test
             {
                 case 10:
                     ;
+                case 11:
+                    break;
             }
             
             return -1;
@@ -1952,12 +2017,12 @@ namespace Test
                 // (12,17): error CS0163: Control cannot fall through from one case label ('case 10:') to another
                 //                 case 10:
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 10:").WithArguments("case 10:").WithLocation(12, 17),
-                // (20,17): error CS0163: Control cannot fall through from one case label ('case 5:') to another
+                // (23,17): error CS0163: Control cannot fall through from one case label ('case 5:') to another
                 //                 case 5:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 5:").WithArguments("case 5:").WithLocation(20, 17),
-                // (26,17): error CS0163: Control cannot fall through from one case label ('case 10:') to another
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 5:").WithArguments("case 5:").WithLocation(23, 17),
+                // (32,17): error CS0163: Control cannot fall through from one case label ('case 10:') to another
                 //                 case 10:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 10:").WithArguments("case 10:").WithLocation(26, 17));
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 10:").WithArguments("case 10:").WithLocation(32, 17));
         }
 
         #endregion
@@ -2117,7 +2182,7 @@ class SwitchTest
         }
     }
 }";
-            // CONSIDER:    Native compiler doesn't generate CS0163, we may want to do the same.
+            // CONSIDER:    Native compiler doesn't generate CS14001, we may want to do the same.
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (8,18): error CS0118: 'System' is a namespace but is used like a variable
@@ -2126,9 +2191,9 @@ class SwitchTest
                 // (11,22): error CS0159: No such label 'System' within the scope of the goto statement
                 //                 goto System;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "System").WithArguments("System"),
-                // (10,13): error CS0163: Control cannot fall through from one case label ('case 5:') to another
+                // (10,13): error CS14001: Control cannot fall out of switch from final case label ('case 5:')
                 //             case 5:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 5:").WithArguments("case 5:"));
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:"));
         }
 
         [Fact]
