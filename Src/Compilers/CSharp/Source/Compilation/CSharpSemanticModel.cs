@@ -2627,6 +2627,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract IMethodSymbol GetDeclaredSymbol(AccessorDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given a syntax node that declares an expression body, get the corresponding symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares an expression body.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract IMethodSymbol GetDeclaredSymbol(ArrowExpressionClauseSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Given a variable declarator syntax, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
@@ -4613,9 +4621,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SyntaxKind.PropertyDeclaration:
+                    {
+                        var t = (PropertyDeclarationSyntax)node;
+                        if (t.AccessorList != null)
+                        {
+                            foreach (var decl in t.AccessorList.Accessors) DeclarationsInSpanCore(decl, span, builder);
+                        }
+                        if (t.ExpressionBody != null)
+                        {
+                            builder.Add(new DeclarationInSpan(t, t.ExpressionBody.Expression));
+                        }
+                        if (t.Initializer != null)
+                        {
+                            builder.Add(new DeclarationInSpan(t, t.Initializer.Value));
+                        }
+                        builder.Add(new DeclarationInSpan(node, null));
+                        return;
+                    }
+
                 case SyntaxKind.IndexerDeclaration:
                     {
-                        var t = (BasePropertyDeclarationSyntax)node;
+                        var t = (IndexerDeclarationSyntax)node;
                         foreach (var decl in t.AccessorList.Accessors) DeclarationsInSpanCore(decl, span, builder);
                         builder.Add(new DeclarationInSpan(node, null));
                         return;

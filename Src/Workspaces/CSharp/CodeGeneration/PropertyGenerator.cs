@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
+            var accessorList = GenerateAccessorList(property, destination, options);
+
             return AddCleanupAnnotationsTo(
                 AddAnnotationsTo(property, SyntaxFactory.PropertyDeclaration(
                     attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
@@ -109,7 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     type: property.Type.GenerateTypeSyntax(),
                     explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                     identifier: property.Name.ToIdentifierToken(),
-                    accessorList: GenerateAccessorList(property, destination, options),
+                    accessorList: accessorList,
+                    expressionBody: default(ArrowExpressionClauseSyntax),
                     initializer: initializer)));
         }
 
@@ -122,7 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 GenerateAccessorDeclaration(property, property.SetMethod, SyntaxKind.SetAccessorDeclaration, destination, options),
             };
 
-            return SyntaxFactory.AccessorList(accessors.WhereNotNull().ToSyntaxList());
+            return accessors[0] == null && accessors[1] == null 
+                ? null
+                : SyntaxFactory.AccessorList(accessors.WhereNotNull().ToSyntaxList());
         }
 
         private static AccessorDeclarationSyntax GenerateAccessorDeclaration(

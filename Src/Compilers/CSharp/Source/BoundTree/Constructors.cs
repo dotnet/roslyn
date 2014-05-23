@@ -442,10 +442,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundBlock
     {
+        public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, BoundStatement statement)
+        {
+            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, 
+                ImmutableArray.Create(statement)) { WasCompilerGenerated = true };
+        }
+
         public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, params BoundStatement[] statements)
         {
             Debug.Assert(statements.Length > 0);
-            return new BoundBlock(syntax, default(ImmutableArray<LocalSymbol>), statements.AsImmutableOrNull());
+            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty,
+                statements.AsImmutableOrNull()) { WasCompilerGenerated = true };
         }
     }
 

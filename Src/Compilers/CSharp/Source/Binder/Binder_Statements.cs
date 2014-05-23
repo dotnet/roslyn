@@ -3204,10 +3204,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal BoundBlock WrapExpressionLambdaBody(ImmutableArray<LocalSymbol> locals, BoundExpression expression, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        /// <summary>
+        /// Wrap a given expression e into a block as either { e; } or { return e; } 
+        /// Shared between lambda and expression-bodied method binding.
+        /// </summary>
+        internal BoundBlock CreateBlockFromExpression(ImmutableArray<LocalSymbol> locals,
+            BoundExpression expression, CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
-            var returnType = this.GetCurrentReturnType();
+            var returnType = GetCurrentReturnType();
             BoundStatement statement;
+            var syntax = expression.Syntax;
 
             if ((object)returnType != null)
             {
@@ -3222,37 +3228,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_IllegalStatement, node);
                         errors = true;
                     }
-                    var expressionStatement = new BoundExpressionStatement(expression.Syntax, expression, errors);
+
+                    // Don't mark compiler generated so that the rewriter generates sequence points
+                    var expressionStatement = new BoundExpressionStatement(syntax, expression, errors);
+
                     CheckForUnobservedAwaitable(expressionStatement, diagnostics);
                     statement = expressionStatement;
                 }
                 else
                 {
                     expression = CreateReturnConversion(node, diagnostics, expression, returnType);
-                    statement = new BoundReturnStatement(expression.Syntax, expression) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
                 }
             }
             else if ((object)expression.Type != null && expression.Type.SpecialType == SpecialType.System_Void)
             {
-                statement = new BoundExpressionStatement(expression.Syntax, expression) { WasCompilerGenerated = true };
+                statement = new BoundExpressionStatement(syntax, expression) { WasCompilerGenerated = true };
             }
             else
             {
-                statement = new BoundReturnStatement(expression.Syntax, expression) { WasCompilerGenerated = true };
+                statement = new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
             }
 
             // Need to attach the tree for when we generate sequence points.
-            var block = new BoundBlock(node, locals, ImmutableArray.Create<BoundStatement>(statement)) { WasCompilerGenerated = true };
-            return block;
+            return new BoundBlock(node, locals, ImmutableArray.Create(statement)) { WasCompilerGenerated = true };
         }
 
-        // Takes a lambda of the form (a,b)=>M(a, b) and binds it either as
-        // { return M(a,b); } or { M(a,b); }.
-        public BoundBlock BindExpressionLambdaBody(ExpressionSyntax body, DiagnosticBag diagnostics)
+        /// <summary>
+        /// Bind a lambda expression or an expression-bodied member with
+        /// expression e and binds it either as { return e;} or { e; }.
+        /// </summary>
+        public BoundBlock BindExpressionBodyAsBlock(ExpressionSyntax body, DiagnosticBag diagnostics)
         {
             var expressionBinder = new ScopedExpressionBinder(this, body);
             BoundExpression expression = expressionBinder.BindValue(body, diagnostics, BindValueKind.RValue);
-            return WrapExpressionLambdaBody(expressionBinder.Locals, expression, body, diagnostics);
+            return CreateBlockFromExpression(expressionBinder.Locals, expression, body, diagnostics);
         }
 
         internal virtual ImmutableArray<LocalSymbol> Locals

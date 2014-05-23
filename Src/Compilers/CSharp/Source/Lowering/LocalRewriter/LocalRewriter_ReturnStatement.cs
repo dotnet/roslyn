@@ -11,16 +11,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundStatement rewritten = (BoundStatement)base.VisitReturnStatement(node);
 
-            // NOTE: we will apply sequence points to synthesized return statements if they are contained in lambdas and have expressions.
-            // We do this to ensure that expression lambdas have sequence points, as in Dev10.
+            // NOTE: we will apply sequence points to synthesized return 
+            // statements if they are contained in lambdas and have expressions
+            // or if they are expression-bodied properties.
+            // We do this to ensure that expression lambdas and expression-bodied
+            // properties have sequence points.
             if (this.generateDebugInfo &&
-                (!rewritten.WasCompilerGenerated || (node.ExpressionOpt != null && this.factory.CurrentMethod is LambdaSymbol)))
+                (!rewritten.WasCompilerGenerated || 
+                 (node.ExpressionOpt != null && IsLambdaOrExpressionBodiedMember)))
             {
                 // We're not calling AddSequencePoint since it ignores compiler-generated nodes.
                 return new BoundSequencePoint(rewritten.Syntax, rewritten);
             }
 
             return rewritten;
+        }
+
+        private bool IsLambdaOrExpressionBodiedMember
+        {
+            get
+            {
+                if (this.factory.CurrentMethod is LambdaSymbol)
+                {
+                    return true;
+                }
+                var property = this.factory.CurrentMethod as SourcePropertyAccessorSymbol;
+                return property != null
+                    && property.HasExpressionBody;
+            }
         }
     }
 }

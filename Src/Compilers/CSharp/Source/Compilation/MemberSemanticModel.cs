@@ -485,6 +485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override IMethodSymbol GetDeclaredSymbol(ArrowExpressionClauseSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Can't define another member inside member.
+            return null;
+        }
+
         public override ISymbol GetDeclaredSymbol(VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
@@ -1498,7 +1504,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             !(node is QueryClauseSyntax) &&
                             !(node is OrderingSyntax) &&
                             !(node is JoinIntoClauseSyntax) &&
-                            !(node is QueryContinuationSyntax))
+                            !(node is QueryContinuationSyntax) &&
+                            !(node is ArrowExpressionClauseSyntax))
                         {
                             return GetBindableSyntaxNode(parent);
                         }

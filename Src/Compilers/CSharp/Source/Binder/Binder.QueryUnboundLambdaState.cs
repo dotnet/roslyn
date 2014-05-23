@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(castTypeSyntax != null);
                 // We transform the expression from "expr" to "expr.Cast<castTypeOpt>()".
                 expression = lambdaBodyBinder.MakeQueryInvocation(body, expression, "Cast", castTypeSyntax, castType, diagnostics);
-                return lambdaBodyBinder.WrapExpressionLambdaBody(expressionBinder.Locals, expression, body, diagnostics);
+                return lambdaBodyBinder.CreateBlockFromExpression(expressionBinder.Locals, expression, body, diagnostics);
             })
             { }
 
             public QueryUnboundLambdaState(UnboundLambda unbound, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax body)
                 : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                return lambdaBodyBinder.BindExpressionLambdaBody(body, diagnostics);
+                return lambdaBodyBinder.BindExpressionBodyAsBlock(body, diagnostics);
             })
             { }
 

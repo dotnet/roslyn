@@ -20,6 +20,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private const char KeyPositionMarker = '`';
 
+        [Fact(Skip = "951522")]
+        public void PrimaryConstructorParameterScopeInInitializers()
+        {
+            var text = @"
+class C(int i)
+`{
+    int F =` i`;
+    int P { get; } =` i`;
+`}";
+            var expectedNames = MakeExpectedSymbols(
+                Add( //Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( //C
+                    "System.Int32 C.x",
+                    "System.Int32 C.P { get; }",
+                    "void C.M()",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "void System.Object.Finalize()",
+                    "System.String System.Object.ToString()",
+                    "System.Type System.Object.GetType()"),
+                Add( //C.F
+                    "System.Int32 i"),
+                Pop,
+                Add( //C.P
+                    "System.Int32 i"),
+                Pop,
+                Pop);
+            TestLookupNames(text, expectedNames, experimental: true);
+        }
+
+        [Fact]
+        public void ExpressionBodiedProp()
+        {
+            var text = @"
+class C(int i)
+`{
+    int P => 10;
+    void M() { }
+`}";
+            var expectedNames = MakeExpectedSymbols(
+                Add( //Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( //C
+                    "System.Int32 C.P { get; }",
+                    "void C.M()",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "void System.Object.Finalize()",
+                    "System.String System.Object.ToString()",
+                    "System.Type System.Object.GetType()"),
+                Pop);
+
+            TestLookupNames(text, expectedNames, experimental: true);
+        }
+
         [Fact]
         public void TestNonGenericTypes()
         {
@@ -1473,6 +1539,7 @@ class Derived : Base<int>
             TestLookupNames(text, expectedNames);
         }
 
+
         /// <summary>
         /// Given a program, calls LookupNames at each character position and verifies the results.
         /// 
@@ -1485,10 +1552,10 @@ class Derived : Base<int>
         /// For each region of the program, a list of expected names must be provided.  This method
         /// will assert if any region contains different names than expected.
         /// </summary>
-        private static void TestLookupNames(string text, string[][] expectedNames)
+        private static void TestLookupNames(string text, string[][] expectedNames, bool experimental = false)
         {
             int[] keyPositions;
-            var model = GetModelAndKeyPositions(text, out keyPositions);
+            var model = GetModelAndKeyPositions(text, out keyPositions, experimental);
 
             // There should be one more list of expectedNames than there are backticks.
             // Number of key positions = number of backticks + 2 (start and end)
@@ -1512,7 +1579,7 @@ class Derived : Base<int>
         /// Strip the backticks out of "markedText" and record their positions.
         /// Return a SemanticModel for the compiled text.
         /// </summary>
-        private static SemanticModel GetModelAndKeyPositions(string markedText, out int[] keyPositions)
+        private static SemanticModel GetModelAndKeyPositions(string markedText, out int[] keyPositions, bool experimental = false)
         {
             ArrayBuilder<int> keyPositionBuilder = ArrayBuilder<int>.GetInstance();
             StringBuilder textBuilder = new StringBuilder();
@@ -1536,8 +1603,11 @@ class Derived : Base<int>
             keyPositionBuilder.Add(position); //automatically add end-of-file
 
             keyPositions = keyPositionBuilder.ToArrayAndFree();
+            var text = textBuilder.ToString();
 
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(textBuilder.ToString());
+            var compilation = experimental
+                ? CreateExperimentalCompilationWithMscorlib45(text)
+                : CreateCompilationWithMscorlibAndDocumentationComments(text);
             var tree = compilation.SyntaxTrees[0];
             return compilation.GetSemanticModel(tree);
         }

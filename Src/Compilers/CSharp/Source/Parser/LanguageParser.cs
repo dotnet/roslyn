@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 try
                 {
                     bool shouldHaveName = false;
-                tryAgain:
+                    tryAgain:
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
                         if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -2392,7 +2392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return syntaxFactory.IncompleteMember(attributes, modifiers.ToTokenList(), type);
                 }
 
-            parse_member_name:;
+                parse_member_name:;
                 // Check here for operators
                 // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
                 if (IsOperatorKeyword())
@@ -2473,14 +2473,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     return this.ParseIndexerDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                 }
-                else if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    return this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
-                }
                 else
                 {
-                    // treat anything else as a method.
-                    return this.ParseMethodDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
+                    switch (this.CurrentToken.Kind)
+                    {
+                        case SyntaxKind.OpenBraceToken:
+                            return this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
+                        case SyntaxKind.EqualsGreaterThanToken:
+                            if (this.Options.LanguageVersion == LanguageVersion.Experimental)
+                            {
+                                return this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
+                            }
+                            goto default;
+                            
+                        default:
+                            // treat anything else as a method.
+                            return this.ParseMethodDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
+                    }
                 }
             }
             finally
@@ -2578,12 +2587,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var kind = this.PeekToken(1).Kind;
             switch (kind)
             {
-                case SyntaxKind.DotToken:           // Foo.     explicit
-                case SyntaxKind.ColonColonToken:    // Foo::    explicit
-                case SyntaxKind.LessThanToken:      // Foo<     explicit or generic method
-                case SyntaxKind.OpenBraceToken:     // Foo {    property
+                case SyntaxKind.DotToken:                   // Foo.     explicit
+                case SyntaxKind.ColonColonToken:    		// Foo::    explicit
+                case SyntaxKind.LessThanToken:      		// Foo<     explicit or generic method
+                case SyntaxKind.OpenBraceToken:     		// Foo {    property
                     return false;
-                case SyntaxKind.OpenParenToken:     // Foo(     method
+                case SyntaxKind.EqualsGreaterThanToken:     // Foo =>   property
+                    return this.Options.LanguageVersion != LanguageVersion.Experimental;
+                case SyntaxKind.OpenParenToken:             // Foo(     method
                     return isEvent;
                 default:
                     return true;
@@ -3093,18 +3104,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 identifier = this.AddError(identifier, ErrorCode.ERR_UnexpectedGenericName);
             }
 
-            var accessorList = this.ParseAccessorList(isEvent: false);
+            // We know we are parsing a property because we have seen either an
+            // open brace or an arrow token
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken ||
+                         this.CurrentToken.Kind == SyntaxKind.OpenBraceToken);
 
-            EqualsValueClauseSyntax initializer = null;
-            SyntaxToken semicolon = null;
-            // Check if we have an initializer
-            if (SyntaxKind.EqualsToken == this.CurrentToken.Kind
-                && this.Options.LanguageVersion == LanguageVersion.Experimental)
+            AccessorListSyntax accessorList = null;
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
-                var equals = this.EatToken(SyntaxKind.EqualsToken);
-                var value = this.ParseExpression();
+                accessorList = this.ParseAccessorList(isEvent: false);
+            }
 
-                initializer = syntaxFactory.EqualsValueClause(equals, value);
+            ArrowExpressionClauseSyntax expressionBody = null;
+            EqualsValueClauseSyntax initializer = null;
+            if (this.Options.LanguageVersion == LanguageVersion.Experimental)
+            {
+                // Check for expression body
+                if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
+                {
+                    expressionBody = this.ParseArrowValueClause();
+                }
+                // Check if we have an initializer
+                else if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                {
+                    var equals = this.EatToken(SyntaxKind.EqualsToken);
+                    var value = this.ParseExpression();
+
+                    initializer = syntaxFactory.EqualsValueClause(equals, value);
+                }
+            }
+
+            SyntaxToken semicolon = null;
+            if (expressionBody != null || initializer != null)
+            {
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
 
@@ -3115,10 +3147,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 explicitInterfaceOpt,
                 identifier,
                 accessorList,
+                expressionBody,
                 initializer,
                 semicolon);
 
-            decl = EatUnexpectedTrailingSemicolon(decl);
+            // If no initializer or expression body is specified there
+            // should be no semicolon
+            if (expressionBody == null && initializer == null)
+            {
+                decl = this.EatUnexpectedTrailingSemicolon(decl);
+            }
 
             return decl;
         }
@@ -3165,6 +3203,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
             return syntaxFactory.AccessorList(openBrace, accessors, closeBrace);
+        }
+
+        private ArrowExpressionClauseSyntax ParseArrowValueClause()
+        {
+            var arrowToken = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
+            return syntaxFactory.ArrowExpressionClause(arrowToken, this.ParseExpression());
         }
 
         private PostSkipAction SkipBadAccessorListTokens(ref SyntaxToken openBrace, SyntaxListBuilder<AccessorDeclarationSyntax> list, ErrorCode error)
@@ -7610,12 +7654,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (Options.LanguageVersion != LanguageVersion.Experimental)
             {
-                bool condition1 = st == ScanTypeFlags.MustBeType && this.CurrentToken.Kind != SyntaxKind.DotToken;
-                bool condition2 = st != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
-                bool condition3 = st == ScanTypeFlags.NonGenericTypeOrExpression || this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
+            bool condition1 = st == ScanTypeFlags.MustBeType && this.CurrentToken.Kind != SyntaxKind.DotToken;
+            bool condition2 = st != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
+            bool condition3 = st == ScanTypeFlags.NonGenericTypeOrExpression || this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
 
-                return condition1 || (condition2 && condition3);
-            }
+            return condition1 || (condition2 && condition3);
+        }
 
             SyntaxKind nextTokenKind;
 
@@ -8156,7 +8200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private ExpressionSyntax ParseTerm(uint precedence, bool contextRequiresVariable)
-        {
+            {
             ExpressionSyntax expr = null;
 
             var tk = this.CurrentToken.Kind;

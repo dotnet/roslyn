@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var baseProp = (Syntax.InternalSyntax.BasePropertyDeclarationSyntax)member;
                     bool hasAttributes = baseProp.AttributeLists.Any();
 
-                    if (!hasAttributes)
+                    if (!hasAttributes && baseProp.AccessorList != null)
                     {
                         foreach (var accessor in baseProp.AccessorList.Accessors)
                         {

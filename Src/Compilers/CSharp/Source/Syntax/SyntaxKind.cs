@@ -508,6 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Parameter,
         TypeParameterList,
         TypeParameter,
-        IncompleteMember
+        IncompleteMember,
+        ArrowExpressionClause
     }
 }

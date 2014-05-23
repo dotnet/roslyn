@@ -1095,6 +1095,7 @@ class C
     }
 }
 ";
+
             string actual = GetPdbXml(text, TestOptions.Dll);
             string expected = @"
 <symbols>
@@ -4659,6 +4660,47 @@ public class C
 </symbols>";
             AssertXmlEqual(expected, actual);
         }
+
+        [Fact]
+        public void ExpressionBodiedProperty()
+        {
+            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+class C
+{
+    public int P => M();
+    public int M()
+    {
+        return 2;
+    }
+}");
+            comp.VerifyDiagnostics();
+
+            var expected = @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""get_P"" parameterNames="""">
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""4"" start_column=""21"" end_row=""4"" end_column=""24"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"" >
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""18"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>";
+            var actual = GetPdbXml(comp);
+            AssertXmlEqual(expected, actual);
+        }
+
 
         [Fact]
         public void SymWriterErrors()

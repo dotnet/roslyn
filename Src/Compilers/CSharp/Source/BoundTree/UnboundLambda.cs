@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.IsExpressionLambda)
             {
-                return lambdaBodyBinder.BindExpressionLambdaBody((ExpressionSyntax)this.Body, diagnostics);
+                return lambdaBodyBinder.BindExpressionBodyAsBlock((ExpressionSyntax)this.Body, diagnostics);
             }
             else
             {

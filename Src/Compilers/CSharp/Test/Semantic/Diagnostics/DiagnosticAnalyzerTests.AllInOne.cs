@@ -51,6 +51,8 @@ public class C
         }
 
         // AllInOne does not include experimental features.
+#region Experimental Features
+
         [Fact]
         public void DiagnosticAnalyzerConditionalAccess()
         {
@@ -66,6 +68,18 @@ public class C
 ";
             CreateExperimentalCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
         }
+
+        [Fact]
+        public void DiagnosticAnalyzerExpressionBodiedProperty()
+        {
+            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+public class C
+{
+    public int P => 10;
+}").VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
+        }
+
+#endregion
 
         [Fact]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()

@@ -834,9 +834,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.PropertyDeclaration:
                         {
                             var propertyDecl = (PropertyDeclarationSyntax)memberDecl;
-                            return (propertyDecl.Initializer != null) ?
-                                    GetOrAddModelIfContains(propertyDecl.Initializer, span) :
-                                    null;
+                            MemberSemanticModel result = null;
+
+                            if (propertyDecl.Initializer != null)
+                            {
+                                result = GetOrAddModelIfContains(propertyDecl.Initializer, span);
+                        }
+                            if (propertyDecl.ExpressionBody != null)
+                            {
+                                result = result ?? GetOrAddModelIfContains(propertyDecl.ExpressionBody, span);
+                            }
+                            return result;
                         }
 
                     case SyntaxKind.GetAccessorDeclaration:
@@ -948,23 +956,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var variableDecl = (VariableDeclaratorSyntax)node.Parent;
                                 SourceMemberFieldSymbol fieldSymbol = GetDeclaredFieldSymbol(variableDecl);
 
-                                return InitializerSemanticModel.Create(
+                                return NoBlockSemanticModel.Create(
                                     this.Compilation,
                                     variableDecl,   //pass in the entire field initializer to permit region analysis. 
                                     fieldSymbol,
                                     //if we're in regular C#, then insert an extra binder to perform field initialization checks
-                                    GetFieldInitializerBinder(fieldSymbol, outer));
+                                    GetFieldOrPropertyInitializerBinder(fieldSymbol, outer));
                             }
 
                         case SyntaxKind.PropertyDeclaration:
                             {
                                 var propertyDecl = (PropertyDeclarationSyntax)node.Parent;
                                 var propertySymbol = (SourcePropertySymbol)GetDeclaredSymbol(propertyDecl);
-                                return InitializerSemanticModel.Create(
+                                return NoBlockSemanticModel.Create(
                                     this.Compilation,
                                     propertyDecl,
                                     propertySymbol,
-                                    GetPropertyInitializerBinder(propertySymbol, outer));
+                                    GetFieldOrPropertyInitializerBinder(propertySymbol, outer));
                             }
 
                         case SyntaxKind.Parameter:
@@ -977,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if ((object)parameterSymbol == null)
                                     return null;
 
-                                return InitializerSemanticModel.Create(
+                                return NoBlockSemanticModel.Create(
                                     this.Compilation,
                                     parameterDecl,
                                     parameterSymbol,
@@ -991,15 +999,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if ((object)enumSymbol == null)
                                     return null;
 
-                                return InitializerSemanticModel.Create(
+                                return NoBlockSemanticModel.Create(
                                     this.Compilation,
                                     enumDecl,
                                     enumSymbol,
-                                    GetFieldInitializerBinder(enumSymbol, outer));
+                                    GetFieldOrPropertyInitializerBinder(enumSymbol, outer));
                             }
                         default:
                             Debug.Assert(false, "Unexpected node: " + node.Parent);
                             return null;
+                    }
+
+                case SyntaxKind.ArrowExpressionClause:
+                    {
+                        Debug.Assert(node.Parent.Kind == SyntaxKind.PropertyDeclaration);
+                        var exprDecl = (ArrowExpressionClauseSyntax)node;
+                        var symbol = (SourceMethodSymbol)GetDeclaredSymbol(exprDecl);
+                        if ((object)symbol == null)
+                            return null;
+                        return NoBlockSemanticModel.Create(
+                            this.Compilation,
+                            exprDecl,
+                            symbol,
+                            outer.WithContainingMemberOrLambda(symbol));
                     }
 
                 case SyntaxKind.GlobalStatement:
@@ -1026,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)constructorSymbol == null)
                             return null;
 
-                        return InitializerSemanticModel.Create(
+                        return NoBlockSemanticModel.Create(
                             this.Compilation,
                             (ConstructorInitializerSyntax)node,
                             constructorSymbol,
@@ -1051,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if ((object)constructorSymbol == null)
                                     return null;
 
-                                return InitializerSemanticModel.Create(
+                                return NoBlockSemanticModel.Create(
                                     this.Compilation,
                                     initializer.ArgumentList,
                                     constructorSymbol,
@@ -1101,36 +1123,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private Binder GetPropertyInitializerBinder(PropertySymbol propertySymbol, Binder outer)
+        private Binder GetFieldOrPropertyInitializerBinder(Symbol symbol, Binder outer)
         {
-            BinderFlags flags = outer.Flags | BinderFlags.FieldInitializer;
-
-            if (!propertySymbol.IsStatic)
-            {
-                outer = outer.WithPrimaryConstructorParametersIfNecessary(propertySymbol.ContainingType);
-            }
-
-            return new LocalScopeBinder(outer.WithAdditionalFlagsAndContainingMemberOrLambda(
-                flags, propertySymbol));
-        }
-
-
-        private Binder GetFieldInitializerBinder(FieldSymbol fieldSymbol, Binder outer)
-        {
-            BinderFlags flags = outer.Flags;
+            Debug.Assert(symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Property);
+            BinderFlags flags = BinderFlags.None;
 
             // NOTE: checking for a containing script class is sufficient, but the regular C# test is quick and easy.
-            if (this.IsRegularCSharp || !fieldSymbol.ContainingType.IsScriptClass)
+            if (this.IsRegularCSharp || !symbol.ContainingType.IsScriptClass)
             {
                 flags |= BinderFlags.FieldInitializer;
             }
 
-            if (!fieldSymbol.IsStatic)
+            if (!symbol.IsStatic)
             {
-                outer = outer.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType);
+                outer = outer.WithPrimaryConstructorParametersIfNecessary(symbol.ContainingType);
             }
 
-            return new LocalScopeBinder(outer).WithAdditionalFlagsAndContainingMemberOrLambda(flags, fieldSymbol);
+            return new LocalScopeBinder(outer).WithAdditionalFlagsAndContainingMemberOrLambda(flags, symbol);
         }
 
         private static bool IsMemberDeclaration(CSharpSyntaxNode node)
@@ -1485,6 +1494,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         Debug.Assert(false, "Accessor unexpectedly attached to " + propertyOrEventDecl.Kind);
                         return null;
+                }
+            }
+        }
+
+        public override IMethodSymbol GetDeclaredSymbol(ArrowExpressionClauseSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetDeclaredSymbol, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
+            {
+                CheckSyntaxNode(declarationSyntax);
+
+                var containingMemberSyntax = declarationSyntax.Parent;
+
+                switch (containingMemberSyntax.Kind)
+                {
+                    case SyntaxKind.PropertyDeclaration:
+                        var container = GetDeclaredTypeMemberContainer(containingMemberSyntax);
+                        Debug.Assert((object)container != null);
+                        return this.GetDeclaredMember(container, declarationSyntax.Span) as MethodSymbol;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(containingMemberSyntax.Kind);
                 }
             }
         }

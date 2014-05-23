@@ -2953,8 +2953,7 @@
         <summary>Gets the optional explicit interface specifier.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="AccessorList" Type="AccessorListSyntax">
-    </Field>
+    <Field Name="AccessorList" Type="AccessorListSyntax" Optional="true" />
   </AbstractNode>
   <Node Name="PropertyDeclarationSyntax" Base="BasePropertyDeclarationSyntax">
     <Kind Name="PropertyDeclaration"/>
@@ -2968,11 +2967,22 @@
       </PropertyComment>
       <Kind Name="IdentifierToken"/>
     </Field>
-    <Field Name="AccessorList" Type="AccessorListSyntax" Override="true"/>
+    <Field Name="AccessorList" Type="AccessorListSyntax" Override="true" Optional="true" />
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
     <Field Name="Initializer" Type="EqualsValueClauseSyntax" Optional="true"/>
-    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
-      <Kind Name="SemicolonToken"/>
+    <Field Name="Semicolon" Type="SyntaxToken" Optional="true">
+      <Kind Name="SemicolonToken" />
     </Field>
+  </Node>
+  <Node Name="ArrowExpressionClauseSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>The syntax for the expression body of an expression-bodied member.</summary>
+    </TypeComment>
+    <Kind Name="ArrowExpressionClause" />
+    <Field Name="ArrowToken" Type="SyntaxToken">
+      <Kind Name="EqualsGreaterThanToken" />
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" />
   </Node>
   <Node Name="EventDeclarationSyntax" Base="BasePropertyDeclarationSyntax">
     <Kind Name="EventDeclaration"/>

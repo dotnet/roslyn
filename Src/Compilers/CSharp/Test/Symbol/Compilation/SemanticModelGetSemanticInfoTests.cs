@@ -15170,5 +15170,65 @@ struct Program(int i)
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
+
+        [Fact]
+        public void ExprBodiedProp01()
+        {
+            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+class Program
+{
+    public int F = 1;
+    public int P2 => /*<bind>*/this.F/*</bind>*/;
+    static void Main(string[] args)
+    {
+        Console.WriteLine(new Program().P2);
+    }
+}
+");
+            var semanticInfo = GetSemanticInfoForTest<MemberAccessExpressionSyntax>(comp);
+
+            Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, semanticInfo.ConvertedType.SpecialType);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            var semanticSymbol = semanticInfo.Symbol;
+            var global = comp.GlobalNamespace;
+            var program = global.GetTypeMember("Program");
+            var field = program.GetMember<SourceFieldSymbol>("F");
+
+            Assert.Equal(field, semanticSymbol);
+
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void ExprBodiedProp02()
+        {
+            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+using System;
+
+class Program(int f)
+{
+    public int P2 => /*<bind>*/f/*</bind>*/;
+    static void Main(string[] args)
+    {
+        Console.WriteLine(new Program(2).P2);
+    }
+}
+");
+            comp.VerifyDiagnostics(
+    // (6,32): error CS0103: The name 'f' does not exist in the current context
+    //     public int P2 => /*<bind>*/f/*</bind>*/;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(6, 32));
+
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
+
+            Assert.Null(semanticInfo.Symbol);
+        }
     }
 }

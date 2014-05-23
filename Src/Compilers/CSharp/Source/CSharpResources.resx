@@ -3796,7 +3796,7 @@
     <value>Implemented interface cannot have arguments.</value>
   </data>
   <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
-    <value>Only auto-implemented properties can have a initializers.</value>
+    <value>Only auto-implemented properties can have initializers.</value>
   </data>
   <data name="ERR_AutoPropertyMustHaveSetOrInitializer" xml:space="preserve">
     <value>Auto-implemented properties must have set accessors or initializers.</value>
@@ -3812,5 +3812,8 @@
   </data>
   <data name="ERR_EncodinglessSyntaxTree" xml:space="preserve">
     <value>Cannot emit debug information for a source text without encoding.</value>
+  </data>
+  <data name="ERR_AccessorListAndExpressionBody" xml:space="preserve">
+    <value>Properties cannot combine accessor lists with expression bodies.</value>
   </data>
 </root>

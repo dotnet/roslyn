@@ -852,11 +852,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (body == null || !isPrimaryCtor)
                         {
-                            // These analyses check for diagnostics in lambdas.
-                            // Control flow analysis and implicit return insertion are unnecessary.
-                            DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
-                            DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
-                        }
+                        // These analyses check for diagnostics in lambdas.
+                        // Control flow analysis and implicit return insertion are unnecessary.
+                        DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                        DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
+                    }
                         else 
                         {
                             Debug.Assert(isPrimaryCtor);
@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (initializationScopeLocals.IsDefaultOrEmpty)
                             {
-                                body = body.Update(body.LocalsOpt, body.Statements.Insert(0, analyzedInitializers));
+                            body = body.Update(body.LocalsOpt, body.Statements.Insert(0, analyzedInitializers));
                             }
                             else
                             {
@@ -1043,8 +1043,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // initializers for global code have already been included in the body
                         if (includeInitializersInBody)
                         {
-                            boundStatements = boundStatements.Concat(processedInitializers.LoweredInitializers.Statements);
-                        }
+                                boundStatements = boundStatements.Concat(processedInitializers.LoweredInitializers.Statements);
+                            }
 
                         if (hasBody)
                         {
@@ -1326,11 +1326,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
+                var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
+                Binder inMethodBinder;
+                Binder binder;
+
                 var blockSyntax = sourceMethod.BlockSyntax;
                 if (blockSyntax != null)
                 {
-                    var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
-                    var inMethodBinder = factory.GetBinder(blockSyntax);
+                    inMethodBinder = factory.GetBinder(blockSyntax);
 
                     // Bring locals declared in initializer in scope, they should be visible within the block.
                     if (!localsDeclaredInInitializer.IsDefaultOrEmpty)
@@ -1338,7 +1341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         inMethodBinder = new SimpleLocalScopeBinder(localsDeclaredInInitializer, inMethodBinder);
                     }
 
-                    var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
+                    binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
                     body = binder.BindBlock(blockSyntax, diagnostics);
                     if (generateDebugInfo)
                     {
@@ -1374,9 +1377,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else // for [if (blockSyntax != null)]
                 {
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbol;
-                    if ((object)property != null && property.IsAutoProperty)
+                    if ((object)property != null)
+                    {
+                        if (property.IsAutoProperty)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
+                    }
+
+                        var methodSyntax = sourceMethod.SyntaxNode;
+                        if (methodSyntax.Kind == SyntaxKind.ArrowExpressionClause)
+                        {
+                            inMethodBinder = factory.GetBinder(methodSyntax);
+                            binder = new ExecutableCodeBinder(methodSyntax, sourceMethod, inMethodBinder);
+                            return binder.BindExpressionBodyAsBlock(
+                                ((ArrowExpressionClauseSyntax)methodSyntax).Expression,
+                                diagnostics);
+                        }
                     }
 
                     if (sourceMethod.IsPrimaryCtor)

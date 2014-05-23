@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SynthesizedBackingFieldSymbol backingField;
         private readonly TypeSymbol explicitInterfaceType;
         private readonly ImmutableArray<PropertySymbol> explicitInterfaceImplementations;
+        private readonly bool hasExpressionBody;
 
         private SymbolCompletionState state;
         private ImmutableArray<ParameterSymbol> lazyParameters;
@@ -103,38 +104,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out this.explicitInterfaceType, out aliasQualifierOpt);
             this.sourceName = this.sourceName ?? memberName; //sourceName may have been set while loading attributes
             this.name = isIndexer ? ExplicitInterfaceHelpers.GetMemberName(WellKnownMemberNames.Indexer, this.explicitInterfaceType, aliasQualifierOpt) : this.sourceName;
+            this.hasExpressionBody = false;
 
-            AccessorDeclarationSyntax getSyntax = null;
-            AccessorDeclarationSyntax setSyntax = null;
-            bool generateBackingField = (!IsAbstract && !IsExtern && !isIndexer);
-            foreach (var accessor in syntax.AccessorList.Accessors)
+            bool hasAccessorList = syntax.AccessorList != null;
+            var propertySyntax = syntax as PropertyDeclarationSyntax;
+            var arrowExpression = propertySyntax != null 
+                ? propertySyntax.ExpressionBody
+                : null;
+            bool hasExpressionBody = !isIndexer && arrowExpression != null;
+            bool hasInitializer = !isIndexer && propertySyntax.Initializer != null;
+
+            if (hasAccessorList && hasExpressionBody)
             {
-                if (accessor.Kind == SyntaxKind.GetAccessorDeclaration &&
-                    (getSyntax == null || getSyntax.Keyword.Span.IsEmpty))
-                {
-                    getSyntax = accessor;
-                }
-                else if (accessor.Kind == SyntaxKind.SetAccessorDeclaration &&
-                    (setSyntax == null || setSyntax.Keyword.Span.IsEmpty))
-                {
-                    setSyntax = accessor;
-                }
-                else
-                {
-                    continue;
-                }
-
-                if (accessor.Body != null)
-                {
-                    generateBackingField = false;
-                }
+                diagnostics.Add(ErrorCode.ERR_AccessorListAndExpressionBody, location, this);
             }
 
-            var propertySyntax = syntax as PropertyDeclarationSyntax;
-            bool hasInitializer = propertySyntax != null && propertySyntax.Initializer != null;
-            if (containingType.IsInterface && hasInitializer)
+            bool generateBackingField = (!IsAbstract && !IsExtern && !isIndexer && !hasExpressionBody);
+            AccessorDeclarationSyntax getSyntax = null;
+            AccessorDeclarationSyntax setSyntax = null;
+            if (hasAccessorList)
             {
-                diagnostics.Add(ErrorCode.ERR_AutoPropertyInitializerInInterface, location, this);
+                foreach (var accessor in syntax.AccessorList.Accessors)
+                {
+                    if (accessor.Kind == SyntaxKind.GetAccessorDeclaration &&
+                        (getSyntax == null || getSyntax.Keyword.Span.IsEmpty))
+                    {
+                        getSyntax = accessor;
+                    }
+                    else if (accessor.Kind == SyntaxKind.SetAccessorDeclaration &&
+                        (setSyntax == null || setSyntax.Keyword.Span.IsEmpty))
+                    {
+                        setSyntax = accessor;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    if (accessor.Body != null)
+                    {
+                        generateBackingField = false;
+                    }
+                }
+            }
+            else
+            {
+                generateBackingField = false;
+            }
+
+            if (hasInitializer)
+            {
+                CheckInitializer(hasExpressionBody, generateBackingField, location, diagnostics);
             }
 
             if (generateBackingField)
@@ -221,59 +241,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            this.getMethod = CreateAccessorSymbol(getSyntax, explicitlyImplementedProperty, aliasQualifierOpt, generateBackingField, diagnostics);
-            this.setMethod = CreateAccessorSymbol(setSyntax, explicitlyImplementedProperty, aliasQualifierOpt, generateBackingField, diagnostics);
-
-            if ((getSyntax == null) || (setSyntax == null))
+            if (!hasAccessorList)
             {
-                if ((getSyntax == null) && (setSyntax == null))
+                if (hasExpressionBody)
                 {
-                    diagnostics.Add(ErrorCode.ERR_PropertyWithNoAccessors, location, this);
+                    this.hasExpressionBody = true;
+                    this.getMethod = SourcePropertyAccessorSymbol.CreateAccessorSymbol(
+                        containingType,
+                        this,
+                        this.modifiers,
+                        this.sourceName,
+                        arrowExpression,
+                        explicitlyImplementedProperty,
+                        aliasQualifierOpt,
+                        diagnostics);
                 }
-                else if (generateBackingField)
+                else
                 {
-                    var accessor = this.getMethod ?? this.setMethod;
-                    if (getSyntax == null)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, accessor.Locations[0], accessor);
-                    }
-                    else if (propertySyntax != null && propertySyntax.Initializer == null)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, accessor.Locations[0], accessor);
-                    }
+                    this.getMethod = null;
                 }
-            }
-
-            // Check accessor accessibility is more restrictive than property accessibility.
-            CheckAccessibilityMoreRestrictive(this.getMethod, diagnostics);
-            CheckAccessibilityMoreRestrictive(this.setMethod, diagnostics);
-
-            if (((object)this.getMethod != null) && ((object)this.setMethod != null))
-            {
-                // Check accessibility is set on at most one accessor.
-                if ((this.getMethod.LocalAccessibility != Accessibility.NotApplicable) &&
-                    (this.setMethod.LocalAccessibility != Accessibility.NotApplicable))
-                {
-                    diagnostics.Add(ErrorCode.ERR_DuplicatePropertyAccessMods, location, this);
-                }
-                else if (this.IsAbstract)
-                {
-                    // Check abstract property accessors are not private.
-                    CheckAbstractPropertyAccessorNotPrivate(this.getMethod, diagnostics);
-                    CheckAbstractPropertyAccessorNotPrivate(this.setMethod, diagnostics);
-                }
+                this.setMethod = null;
             }
             else
             {
-                if (!this.IsOverride)
+                this.getMethod = CreateAccessorSymbol(getSyntax, explicitlyImplementedProperty, aliasQualifierOpt, generateBackingField, diagnostics);
+                this.setMethod = CreateAccessorSymbol(setSyntax, explicitlyImplementedProperty, aliasQualifierOpt, generateBackingField, diagnostics);
+
+                if ((getSyntax == null) || (setSyntax == null))
                 {
-                    var accessor = this.getMethod ?? this.setMethod;
-                    if ((object)accessor != null)
+                    if ((getSyntax == null) && (setSyntax == null))
                     {
-                        // Check accessibility is not set on the one accessor.
-                        if (accessor.LocalAccessibility != Accessibility.NotApplicable)
+                        diagnostics.Add(ErrorCode.ERR_PropertyWithNoAccessors, location, this);
+                    }
+                    else if (generateBackingField)
+                    {
+                        var accessor = this.getMethod ?? this.setMethod;
+                        if (getSyntax == null)
                         {
-                            diagnostics.Add(ErrorCode.ERR_AccessModMissingAccessor, location, this);
+                            diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, accessor.Locations[0], accessor);
+                        }
+                        else if (propertySyntax != null && propertySyntax.Initializer == null)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, accessor.Locations[0], accessor);
+                        }
+                    }
+                }
+
+                // Check accessor accessibility is more restrictive than property accessibility.
+                CheckAccessibilityMoreRestrictive(this.getMethod, diagnostics);
+                CheckAccessibilityMoreRestrictive(this.setMethod, diagnostics);
+
+                if (((object)this.getMethod != null) && ((object)this.setMethod != null))
+                {
+                    // Check accessibility is set on at most one accessor.
+                    if ((this.getMethod.LocalAccessibility != Accessibility.NotApplicable) &&
+                        (this.setMethod.LocalAccessibility != Accessibility.NotApplicable))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_DuplicatePropertyAccessMods, location, this);
+                    }
+                    else if (this.IsAbstract)
+                    {
+                        // Check abstract property accessors are not private.
+                        CheckAbstractPropertyAccessorNotPrivate(this.getMethod, diagnostics);
+                        CheckAbstractPropertyAccessorNotPrivate(this.setMethod, diagnostics);
+                    }
+                }
+                else
+                {
+                    if (!this.IsOverride)
+                    {
+                        var accessor = this.getMethod ?? this.setMethod;
+                        if ((object)accessor != null)
+                        {
+                            // Check accessibility is not set on the one accessor.
+                            if (accessor.LocalAccessibility != Accessibility.NotApplicable)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_AccessModMissingAccessor, location, this);
+                            }
                         }
                     }
                 }
@@ -289,6 +333,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (object)explicitlyImplementedProperty == null ?
                     ImmutableArray<PropertySymbol>.Empty :
                     ImmutableArray.Create<PropertySymbol>(explicitlyImplementedProperty);
+        }
+
+        internal bool HasExpressionBody
+        {
+            get
+            {
+                return this.hasExpressionBody;
+            }
+        }
+
+        private void CheckInitializer(
+            bool hasExpressionBody,
+            bool isAutoProperty,
+            Location location,
+            DiagnosticBag diagnostics)
+        {
+            if (containingType.IsInterface)
+            {
+                diagnostics.Add(ErrorCode.ERR_AutoPropertyInitializerInInterface, location, this);
+            }
+            else if (!isAutoProperty)
+            {
+                diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, location, this);
+            }
         }
 
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
@@ -713,6 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // Create AccessorSymbol for AccessorDeclarationSyntax
         private SourcePropertyAccessorSymbol CreateAccessorSymbol(AccessorDeclarationSyntax syntaxOpt,
             PropertySymbol explicitlyImplementedPropertyOpt, string aliasQualifierOpt, bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
         {

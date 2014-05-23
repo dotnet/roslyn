@@ -214,6 +214,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Properties cannot combine accessor lists with expression bodies..
+        /// </summary>
+        internal static string ERR_AccessorListAndExpressionBody {
+            get {
+                return ResourceManager.GetString("ERR_AccessorListAndExpressionBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; cannot be added to this assembly because it already is an assembly.
         /// </summary>
         internal static string ERR_AddModuleAssembly {
@@ -4696,7 +4705,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only auto-implemented properties can have a initializers..
+        ///   Looks up a localized string similar to Only auto-implemented properties can have initializers..
         /// </summary>
         internal static string ERR_InitializerOnNonAutoProperty {
             get {

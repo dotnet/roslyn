@@ -235,7 +235,7 @@
     <Compile Include="Compilation\CSharpDiagnosticFilter.cs" />
     <Compile Include="Compilation\CSharpSemanticModel.cs" />
     <Compile Include="Compilation\ForEachStatementInfo.cs" />
-    <Compile Include="Compilation\InitializerSemanticModel.cs" />
+    <Compile Include="Compilation\NoBlockSemanticModel.cs" />
     <Compile Include="Compilation\LexicalOrderSymbolComparer.cs" />
     <Compile Include="Compilation\MemberSemanticModel.cs" />
     <Compile Include="Compilation\MemberSemanticModel.NodeMapBuilder.cs" />

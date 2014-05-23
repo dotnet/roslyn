@@ -192,6 +192,7 @@
     <Compile Include="Symbols\Source\ModifierTests.cs" />
     <Compile Include="Symbols\Source\PrimaryConstructors.cs" />
     <Compile Include="Symbols\Source\PropertyTests.cs" />
+    <Compile Include="Symbols\Source\ExpressionBodiedPropertyTests.cs" />
     <Compile Include="Symbols\Source\SourcePlusMetadataTests.cs" />
     <Compile Include="Symbols\Source\TypeMapTests.cs" />
     <Compile Include="Symbols\Source\UsingAliasTests.cs" />

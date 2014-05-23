@@ -10,22 +10,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// A binding for a field initializer, property initializer, constructor
-    /// initializer, or parameter default value. Represents the result of
-    /// binding an initial value expression rather than an block (for that,
-    /// use a MethodBodySemanticModel).
+    /// initializer, parameter default value, or expression-bodied member.
+    /// Represents the result of binding a value expression rather than a
+    /// block (for that, use a MethodBodySemanticModel).
     /// </summary>
-    internal sealed class InitializerSemanticModel : MemberSemanticModel
+    internal sealed class NoBlockSemanticModel : MemberSemanticModel
     {
         // create a SemanticModel for:
         // (a) A true field initializer (field = value) of a named type (incl. Enums) OR
         // (b) A constructor initializer (": this(...)" or ": base(...)") OR
-        // (c) A parameter default value
-        private InitializerSemanticModel(CSharpCompilation compilation,
-                                         CSharpSyntaxNode syntax,
-                                         Symbol symbol,
-                                         Binder rootBinder,
-                                         SyntaxTreeSemanticModel parentSemanticModelOpt = null,
-                                         int speculatedPosition = 0) :
+        // (c) A parameter default value OR
+        // (d) An expression-bodied (=> value) for a member (properties, methods,
+        //     indexers, and operators)
+        private NoBlockSemanticModel(CSharpCompilation compilation,
+                                     CSharpSyntaxNode syntax,
+                                     Symbol symbol,
+                                     Binder rootBinder,
+                                     SyntaxTreeSemanticModel parentSemanticModelOpt = null,
+                                     int speculatedPosition = 0) :
             base(compilation, syntax, symbol, rootBinder, parentSemanticModelOpt, speculatedPosition)
         {
         }
@@ -33,50 +35,58 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a SemanticModel for a true field initializer (field = value) of a named type (incl. Enums).
         /// </summary>
-        internal static InitializerSemanticModel Create(CSharpCompilation compilation, CSharpSyntaxNode syntax, FieldSymbol fieldSymbol, Binder rootBinder)
+        internal static NoBlockSemanticModel Create(CSharpCompilation compilation, CSharpSyntaxNode syntax, FieldSymbol fieldSymbol, Binder rootBinder)
         {
             Debug.Assert(syntax.IsKind(SyntaxKind.VariableDeclarator) || syntax.IsKind(SyntaxKind.EnumMemberDeclaration));
-            return new InitializerSemanticModel(compilation, syntax, fieldSymbol, rootBinder);
+            return new NoBlockSemanticModel(compilation, syntax, fieldSymbol, rootBinder);
         }
 
         /// <summary>
         /// Creates a SemanticModel for an autoprop initializer of a named type
         /// </summary>
-        internal static InitializerSemanticModel Create(CSharpCompilation compilation, CSharpSyntaxNode syntax, PropertySymbol propertySymbol, Binder rootBinder)
+        internal static NoBlockSemanticModel Create(CSharpCompilation compilation, CSharpSyntaxNode syntax, PropertySymbol propertySymbol, Binder rootBinder)
         {
             Debug.Assert(syntax.IsKind(SyntaxKind.PropertyDeclaration));
-            return new InitializerSemanticModel(compilation, syntax, propertySymbol, rootBinder);
+            return new NoBlockSemanticModel(compilation, syntax, propertySymbol, rootBinder);
         }
 
         /// <summary>
         /// Creates a SemanticModel for a constructor initializer (": this(...)" or ": base(...)").
         /// </summary>
-        internal static InitializerSemanticModel Create(CSharpCompilation compilation, ConstructorInitializerSyntax syntax, MethodSymbol methodSymbol, Binder rootBinder)
+        internal static NoBlockSemanticModel Create(CSharpCompilation compilation, ConstructorInitializerSyntax syntax, MethodSymbol methodSymbol, Binder rootBinder)
         {
-            return new InitializerSemanticModel(compilation, syntax, methodSymbol, rootBinder);
+            return new NoBlockSemanticModel(compilation, syntax, methodSymbol, rootBinder);
         }
 
         /// <summary>
         /// Creates a SemanticModel for a constructor initializer (": base-class(...)").
         /// </summary>
-        internal static InitializerSemanticModel Create(CSharpCompilation compilation, ArgumentListSyntax syntax, MethodSymbol methodSymbol, Binder rootBinder)
+        internal static NoBlockSemanticModel Create(CSharpCompilation compilation, ArgumentListSyntax syntax, MethodSymbol methodSymbol, Binder rootBinder)
         {
-            return new InitializerSemanticModel(compilation, syntax, methodSymbol, rootBinder);
+            return new NoBlockSemanticModel(compilation, syntax, methodSymbol, rootBinder);
         }
 
         /// <summary>
         /// Creates a SemanticModel for a a parameter default value.
         /// </summary>
-        internal static InitializerSemanticModel Create(CSharpCompilation compilation, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder)
+        internal static NoBlockSemanticModel Create(CSharpCompilation compilation, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder)
         {
-            return new InitializerSemanticModel(compilation, syntax, parameterSymbol, rootBinder);
+            return new NoBlockSemanticModel(compilation, syntax, parameterSymbol, rootBinder);
+        }
+
+        /// <summary>
+        /// Creates a SemanticModel for an expression-bodied member.
+        /// </summary>
+        internal static NoBlockSemanticModel Create(CSharpCompilation compilation, ArrowExpressionClauseSyntax syntax, MethodSymbol expressionBodySymbol, Binder rootBinder)
+        {
+            return new NoBlockSemanticModel(compilation, syntax, expressionBodySymbol, rootBinder);
         }
 
         /// <summary>
         /// Creates a speculative SemanticModel for an initializer node (field initializer, constructor initializer, or parameter default value)
         /// that did not appear in the original source code.
         /// </summary>
-        internal static InitializerSemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, CSharpSyntaxNode syntax, Binder rootBinder, int position)
+        internal static NoBlockSemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, CSharpSyntaxNode syntax, Binder rootBinder, int position)
         {
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(syntax != null);
@@ -87,12 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            return new InitializerSemanticModel(parentSemanticModel.Compilation, syntax, owner, rootBinder, parentSemanticModel, position);
+            return new NoBlockSemanticModel(parentSemanticModel.Compilation, syntax, owner, rootBinder, parentSemanticModel, position);
         }
 
         internal protected override CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
         {
-            return IsBindableInitializer(node) ? node : base.GetBindableSyntaxNode(node);
+            return IsBindableInitializerOrExpressionBody(node) ? node : base.GetBindableSyntaxNode(node);
         }
 
         internal override BoundNode GetBoundRoot()
@@ -139,6 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     equalsValue = (EqualsValueClauseSyntax)node;
                     break;
 
+                case SyntaxKind.ArrowExpressionClause:
+                    return BindArrowValue(binder, (ArrowExpressionClauseSyntax)node, diagnostics);
+
                 case SyntaxKind.VariableDeclarator:
                     equalsValue = ((VariableDeclaratorSyntax)node).Initializer;
                     break;
@@ -165,6 +178,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.Bind(binder, node, diagnostics);
+        }
+
+        private BoundNode BindArrowValue(Binder binder, ArrowExpressionClauseSyntax arrowValue, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(this.MemberSymbol.Kind == SymbolKind.Method);
+            return binder.BindExpressionBodyAsBlock(arrowValue.Expression, diagnostics);
         }
 
         private BoundNode BindEqualsValue(Binder binder, EqualsValueClauseSyntax equalsValue, DiagnosticBag diagnostics)
@@ -206,15 +225,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsBindableInitializer(CSharpSyntaxNode node)
+        private bool IsBindableInitializerOrExpressionBody(CSharpSyntaxNode node)
         {
             // If we are being asked to bind the equals clause (the "=1" part of "double x=1,y=2;"),
+            // or the expression in an expression-bodied member ("=> expr")
             // that's our root and we know how to bind that thing even if it is not an 
             // expression or a statement.
 
-            return (node.Kind == SyntaxKind.EqualsValueClause &&
-                (/*enum or parameter initializer*/ this.Root == node || /*field initializer*/ this.Root == node.Parent)) ||
-                    ((node.Kind == SyntaxKind.BaseConstructorInitializer || node.Kind == SyntaxKind.ThisConstructorInitializer || node.Kind == SyntaxKind.ArgumentList) && this.Root == node);
+            switch (node.Kind)
+            {
+                case SyntaxKind.EqualsValueClause:
+                    return this.Root == node ||     /*enum or parameter initializer*/
+                           this.Root == node.Parent /*field initializer*/;
+
+                case SyntaxKind.BaseConstructorInitializer:
+                case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.ArgumentList:
+                    return this.Root == node;
+
+                case SyntaxKind.ArrowExpressionClause:
+                    return this.Root == node;
+
+                default:
+                    return false;
+            }
         }
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)

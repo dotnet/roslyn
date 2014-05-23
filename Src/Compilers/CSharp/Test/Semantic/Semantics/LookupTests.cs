@@ -17,13 +17,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region helpers
 
-        internal List<string> GetLookupNames(string testSrc)
+        internal List<string> GetLookupNames(string testSrc, bool experimental = false)
         {
-            var compilation = CreateCompilationWithMscorlib(testSrc);
+            var compilation = experimental
+                ? CreateExperimentalCompilationWithMscorlib45(testSrc)
+                : CreateCompilationWithMscorlib45(testSrc);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
             return model.LookupNames(position);
+        }
+
+        internal List<string> GetExperimentalLookupNames(string testSrc)
+        {
+            return GetLookupNames(testSrc, experimental: true);
         }
 
         internal List<ISymbol> GetLookupSymbols(string testSrc, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, bool isScript = false, IEnumerable<string> globalUsings = null)
@@ -39,6 +46,92 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         #endregion helpers
 
         #region tests
+
+        [Fact]
+        public void LookupExpressionBodyProp01()
+        {
+            var text = @"
+class C
+{
+    public int P => /*<bind>*/10/*</bind>*/;
+}";
+            var actual = GetExperimentalLookupNames(text).ListToSortedString();
+
+            var expected_lookupNames = new List<string>
+            {
+                "C",
+                "Equals",
+                "Finalize",
+                "GetHashCode",
+                "GetType",
+                "MemberwiseClone",
+                "Microsoft",
+                "P",
+                "ReferenceEquals",
+                "System",
+                "ToString"
+            };
+
+            Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
+        }
+
+        [Fact]
+        public void LookupExpressionBodyProp02()
+        {
+            var text = @"
+class C(int i)
+{
+    public int P => /*<bind>*/10/*</bind>*/;
+}";
+            var actual = GetExperimentalLookupNames(text).ListToSortedString();
+
+            var expected_lookupNames = new List<string>
+            {
+                "C",
+                "Equals",
+                "Finalize",
+                "GetHashCode",
+                "GetType",
+                "MemberwiseClone",
+                "Microsoft",
+                "P",
+                "ReferenceEquals",
+                "System",
+                "ToString"
+            };
+
+            Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
+        }
+
+        [Fact]
+        public void LookupExpressionBodyProp03()
+        {
+            var text = @"
+class C(int i)
+{
+    public int f = 1;
+    public int P => ((f) => /*<bind>*/f/*</bind>*/)(f);
+}";
+            var actual = GetExperimentalLookupNames(text).ListToSortedString();
+
+            var expected_lookupNames = new List<string>
+            {
+                "C",
+				"Equals",
+				"f",
+				"Finalize",
+				"GetHashCode",
+				"GetType",
+				"MemberwiseClone",
+				"Microsoft",
+				"P",
+				"ReferenceEquals",
+				"System",
+				"ToString"
+            };
+
+            Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
+        }
 
         [WorkItem(538262, "DevDiv")]
         [Fact]

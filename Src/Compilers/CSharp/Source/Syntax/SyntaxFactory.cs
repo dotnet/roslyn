@@ -1831,5 +1831,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Block(List(statements));
         }
+
+        public static PropertyDeclarationSyntax PropertyDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax type,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            SyntaxToken identifier,
+            AccessorListSyntax accessorList)
+        {
+            return SyntaxFactory.PropertyDeclaration(
+                attributeLists,
+                modifiers,
+                type,
+                explicitInterfaceSpecifier,
+                identifier,
+                accessorList,
+                default(ArrowExpressionClauseSyntax),
+                default(EqualsValueClauseSyntax));
+        }
     }
 }
