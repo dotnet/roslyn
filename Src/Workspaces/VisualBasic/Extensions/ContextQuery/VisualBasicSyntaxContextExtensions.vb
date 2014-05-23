@@ -126,7 +126,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         <Extension()>
         Public Function CanDeclareCustomEventAccessor(context As VisualBasicSyntaxContext, accessorBlockKind As SyntaxKind) As Boolean
             If context.IsCustomEventContext Then
-                Return Not context.TargetToken.GetAncestor(Of EventBlockSyntax)().Accessors.Any(Function(a) a.MatchesKind(accessorBlockKind))
+                Dim accessors = context.TargetToken.GetAncestor(Of EventBlockSyntax)().Accessors
+                Return Not accessors.Any(Function(a) a.MatchesKind(accessorBlockKind)) AndAlso
+                    Not accessors.Any(Function(a) a.Span.Contains(context.Position))
             End If
 
             Return False
