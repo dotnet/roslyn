@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // round trip single string with all possible characters
             var sb = new StringBuilder();
-            for (int i = ushort.MinValue; i <= ushort.MinValue; i++)
+            for (int i = ushort.MinValue; i <= ushort.MaxValue; i++)
             {
                 sb.Append((char)i);
             }

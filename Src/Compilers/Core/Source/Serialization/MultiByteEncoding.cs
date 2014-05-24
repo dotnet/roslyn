@@ -34,6 +34,27 @@ namespace Roslyn.Utilities
             return byteCount;
         }
 
+        public override int GetByteCount(string s)
+        {
+            int byteCount = 0;
+
+            foreach (char c in s)
+            {
+                if (c >= DoubleByteEncoded)
+                {
+                    // marker + 2 byte value
+                    byteCount += 3;
+                }
+                else
+                {
+                    // single byte value
+                    byteCount += 1;
+                }
+            }
+
+            return byteCount;
+        }
+
         public override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
         {
             int bi = byteIndex;
@@ -56,6 +77,52 @@ namespace Roslyn.Utilities
             }
 
             return bi - byteIndex;
+        }
+
+        public override int GetBytes(string s, int charIndex, int charCount, byte[] bytes, int byteIndex)
+        {
+            int bi = byteIndex;
+            for (int i = 0; i < charCount; i++)
+            {
+                ushort c = (ushort)s[charIndex + i];
+
+                if (c >= DoubleByteEncoded)
+                {
+                    bytes[bi] = DoubleByteEncoded;
+                    bytes[bi + 1] = (byte)(c & 0xFF);
+                    bytes[bi + 2] = (byte)((c >> 8) & 0xFF);
+                    bi += 3;
+                }
+                else
+                {
+                    bytes[bi] = (byte)c;
+                    bi++;
+                }
+            }
+
+            return bi - byteIndex;
+        }
+
+        public override unsafe int GetBytes(char* chars, int charCount, byte* bytes, int byteCount)
+        {
+            byte* dest = bytes;
+            for (; charCount > 0; charCount--)
+            {
+                ushort c = *chars++;
+
+                if (c >= DoubleByteEncoded)
+                {
+                    *dest++ = DoubleByteEncoded;
+                    *dest++ = (byte)(c & 0xFF);
+                    *dest++ = (byte)((c >> 8) & 0xFF);
+                }
+                else
+                {
+                    *dest++ = (byte)c;
+                }
+            }
+
+            return (int)(dest - bytes);
         }
 
         public override int GetCharCount(byte[] bytes, int index, int count)
