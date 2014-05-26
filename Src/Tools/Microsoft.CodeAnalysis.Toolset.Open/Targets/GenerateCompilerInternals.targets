@@ -42,14 +42,15 @@
       <SyntaxGenerator>$(VBSyntaxGeneratorToolPath)</SyntaxGenerator>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Language)' == 'C#'">
-      <SyntaxGenerator>$(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>
+      <SyntaxGenerator Condition=" '$(OS)' == 'Windows_NT' ">$(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>
+      <SyntaxGenerator Condition=" '$(OS)' != 'Windows_NT' ">mono $(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>
     </PropertyGroup>
     <PropertyGroup>
       <GeneratedSyntaxModel>@(SyntaxDefinition -> '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModel>
     </PropertyGroup>
 
     <Exec
-      Command='"$(SyntaxGenerator)" @(SyntaxDefinition) $(GeneratedSyntaxModel)'
+      Command='$(SyntaxGenerator) @(SyntaxDefinition) $(GeneratedSyntaxModel)'
       Outputs="$(GeneratedSyntaxModel)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
@@ -77,14 +78,15 @@
       <SyntaxGenerator>$(VBSyntaxGeneratorToolPath)</SyntaxGenerator>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Language)' == 'C#'">
-      <SyntaxGenerator>$(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>
+      <SyntaxGenerator Condition=" '$(OS)' == 'Windows_NT' ">$(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>
+      <SyntaxGenerator Condition=" '$(OS)' != 'Windows_NT' ">mono $(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>      
     </PropertyGroup>
     <PropertyGroup>
       <GeneratedSyntaxModelTests>@(SyntaxTestDefinition -> '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelTests>
     </PropertyGroup>
 
     <Exec
-      Command='"$(SyntaxGenerator)" @(SyntaxTestDefinition) $(GeneratedSyntaxModelTests) /test'
+      Command='$(SyntaxGenerator) @(SyntaxTestDefinition) $(GeneratedSyntaxModelTests) /test'
       Outputs="$(GeneratedSyntaxModelTests)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
@@ -110,12 +112,13 @@
     Condition="'$(Language)' == 'VB' or '$(Language)' == 'C#'"
   >
     <PropertyGroup>
-      <BoundTreeGenerator>$(BoundTreeGeneratorToolPath)</BoundTreeGenerator>
+      <BoundTreeGenerator Condition=" '$(OS)' == 'Windows_NT' ">$(BoundTreeGeneratorToolPath)</BoundTreeGenerator>
+      <BoundTreeGenerator Condition=" '$(OS)' != 'Windows_NT' ">mono $(BoundTreeGeneratorToolPath)</BoundTreeGenerator>
       <GeneratedBoundTree>@(BoundTreeDefinition -> '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedBoundTree>
     </PropertyGroup>
 
     <Exec
-      Command='"$(BoundTreeGenerator)" $(Language) @(BoundTreeDefinition) $(GeneratedBoundTree)'
+      Command='$(BoundTreeGenerator) $(Language) @(BoundTreeDefinition) $(GeneratedBoundTree)'
       Outputs="$(GeneratedBoundTree)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
@@ -140,12 +143,13 @@
     Condition="'$(Language)' == 'C#'"
   >
     <PropertyGroup>
-      <ErrorFactsGenerator>$(CSharpErrorFactsGeneratorToolPath)</ErrorFactsGenerator>
+      <ErrorFactsGenerator Condition=" '$(OS)' == 'Windows_NT' ">$(CSharpErrorFactsGeneratorToolPath)</ErrorFactsGenerator>
+      <ErrorFactsGenerator Condition=" '$(OS)' != 'Windows_NT' ">mono $(CSharpErrorFactsGeneratorToolPath)</ErrorFactsGenerator>
       <GeneratedErrorFacts>@(ErrorCode -> '$(IntermediateOutputPath)ErrorFacts.Generated$(DefaultLanguageSourceExtension)')</GeneratedErrorFacts>
     </PropertyGroup>
 
     <Exec
-      Command='"$(ErrorFactsGenerator)" @(ErrorCode) $(GeneratedErrorFacts)'
+      Command='$(ErrorFactsGenerator) @(ErrorCode) $(GeneratedErrorFacts)'
       Outputs="$(GeneratedErrorFacts)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
