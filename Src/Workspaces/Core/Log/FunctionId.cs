@@ -37,17 +37,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CommandHandler_GetCommandState,
         CommandHandler_ExecuteHandlers,
 
-        Diagnostics_CollectDiagnostics,
-        Diagnostics_PriorityList,
-        Diagnostics_ProjectList,
-        Diagnostics_ComputeDeclarationDiagnostics,
-        Diagnostics_ComputeBindingDiagnostics,
-        Diagnostics_ComputeDocumentDeclarationDiagnostics,
-        Diagnostics_ComputeDocumentBindingDiagnostics,
-        Diagnostics_OnDiagnosticsUpdated,
-        Diagnostics_RemoveOldTasks,
-        Diagnostics_AddNewTasks,
-
         Document_GetSemanticModel,
         Document_GetSyntaxTree,
         Document_GetTextChanges,
@@ -293,5 +282,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         TaskList_VSTaskItemBase_NavigateTo,
         NavigationService_VSDocumentNavigationService_NavigateTo,
+
+        Diagnostics_SyntaxDiagnostic,
+        Diagnostics_SemanticDiagnostic,
+        Diagnostics_ProjectDiagnostic,
+        Diagnostics_DocumentReset,
+        Diagnostics_DocumentOpen,
+        Diagnostics_RemoveDocument,
+        Diagnostics_RemoveProject,
     }
 }

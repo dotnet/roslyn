@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -24,7 +23,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         private static bool GetDefaultValue(FeatureId id)
         {
-            return id != FeatureId.Cache && id != FeatureId.WorkCoordinator && id != FeatureId.Simplifier && id != FeatureId.Recoverable;
+            return id != FeatureId.Cache &&
+                   id != FeatureId.WorkCoordinator &&
+                   id != FeatureId.Simplifier &&
+                   id != FeatureId.Recoverable &&
+                   id != FeatureId.Diagnostics;
         }
     }
 }
