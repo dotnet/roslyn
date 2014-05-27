@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract void PrintLogo(TextWriter consoleOutput);
         protected abstract void PrintHelp(TextWriter consoleOutput);
         protected abstract uint GetSqmAppID();
+        protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string baseDirectory, string additionalReferencePaths)
@@ -537,24 +538,27 @@ namespace Microsoft.CodeAnalysis
                         //Suppress Warnings / warningCode as error / warningCode as warning
                         foreach (var item in compilationOptions.SpecificDiagnosticOptions)
                         {
-                            uint code = uint.Parse(item.Key.Substring(2));
-                            ReportDiagnostic options = item.Value;
-                            switch (options)
+                            uint code;
+                            if (TryGetCompilerDiagnosticCode(item.Key, out code))
                             {
-                            case ReportDiagnostic.Suppress:
-                                sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Supress warning
-                                break;
+                                ReportDiagnostic options = item.Value;
+                                switch (options)
+                                {
+                                    case ReportDiagnostic.Suppress:
+                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Supress warning
+                                        break;
 
-                            case ReportDiagnostic.Error:
-                                sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNASERRORS_NUMBERS, code);       // Warning as errors
-                                break;
+                                    case ReportDiagnostic.Error:
+                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNASERRORS_NUMBERS, code);       // Warning as errors
+                                        break;
 
-                            case ReportDiagnostic.Warn:
-                                sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNASWARNINGS_NUMBERS, code);     // Warning as warnings
-                                break;
+                                    case ReportDiagnostic.Warn:
+                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNASWARNINGS_NUMBERS, code);     // Warning as warnings
+                                        break;
 
-                            default:
-                                break;
+                                    default:
+                                        break;
+                                }
                             }
                         }
                         sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_OUTPUTKIND, (uint)compilationOptions.OutputKind);
@@ -799,6 +803,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             return fullPath;
+        }
+
+        internal static bool TryGetCompilerDiagnosticCode(string diagnosticId, string expectedPrefix, out uint code)
+        {
+            code = 0;
+            return diagnosticId.StartsWith(expectedPrefix) && uint.TryParse(diagnosticId.Substring(expectedPrefix.Length), out code);
         }
 
         /// <summary>

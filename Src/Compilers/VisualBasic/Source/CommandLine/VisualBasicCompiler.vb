@@ -402,6 +402,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 ]]>.Value)
 
         End Sub
+
+        Protected Overrides Function TryGetCompilerDiagnosticCode(diagnosticId As String, ByRef code As UInteger) As Boolean
+            Return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "BC", code)
+        End Function
     End Class
 End Namespace
 

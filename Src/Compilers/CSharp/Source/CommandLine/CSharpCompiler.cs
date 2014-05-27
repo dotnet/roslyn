@@ -412,5 +412,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 ");
         }
 
+        protected override bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code)
+        {
+            return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
+
+        }
     }
 }
