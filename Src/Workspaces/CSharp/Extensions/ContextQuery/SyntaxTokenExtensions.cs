@@ -441,6 +441,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   new Foo( |
             //   new Foo(expr, |
             //   new Foo(bar: |
+            //   Foo : base( |
+            //   Foo : base(bar: |
+            //   Foo : this( |
+            //   Foo : ths(bar: |
 
             // Foo(bar: |
             if (targetToken.CSharpKind() == SyntaxKind.ColonToken &&
@@ -450,7 +454,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 var owner = targetToken.Parent.GetParent().GetParent().GetParent();
                 if (owner.IsKind(SyntaxKind.InvocationExpression) ||
-                    owner.IsKind(SyntaxKind.ObjectCreationExpression))
+                    owner.IsKind(SyntaxKind.ObjectCreationExpression) ||
+                    owner.IsKind(SyntaxKind.BaseConstructorInitializer) ||
+                    owner.IsKind(SyntaxKind.ThisConstructorInitializer))
                 {
                     return true;
                 }
@@ -462,7 +468,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (targetToken.IsParentKind(SyntaxKind.ArgumentList))
                 {
                     if (targetToken.Parent.IsParentKind(SyntaxKind.InvocationExpression) ||
-                        targetToken.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                        targetToken.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression) ||
+                        targetToken.Parent.IsParentKind(SyntaxKind.BaseConstructorInitializer) ||
+                        targetToken.Parent.IsParentKind(SyntaxKind.ThisConstructorInitializer))
                     {
                         return true;
                     }
