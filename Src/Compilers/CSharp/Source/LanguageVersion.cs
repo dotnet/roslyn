@@ -1,8 +1,5 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -57,14 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// C# language version 6.0 + experimental features. 
         /// </summary>
-        Experimental = 7,
+        Experimental = int.MaxValue,
     }
 
     internal static partial class LanguageVersionExtensions
     {
         internal static bool IsValid(this LanguageVersion value)
         {
-            return value >= LanguageVersion.CSharp1 && value <= LanguageVersion.Experimental;
+            return (value >= LanguageVersion.CSharp1 && value <= LanguageVersion.CSharp6) || value == LanguageVersion.Experimental;
         }
 
         internal static ErrorCode GetErrorCode(this LanguageVersion version)

@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Runtime.Serialization.Formatters.Binary
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
 
 <CLSCompliant(False)>
@@ -18,17 +17,17 @@ Public Class ParseOptionsTests
 
     <Fact>
     Public Sub WithXxx()
-        Dim syms = ImmutableArray.Create(Of KeyValuePair(Of String, Object))(New KeyValuePair(Of String, Object)("A", 1),
-                                                                            New KeyValuePair(Of String, Object)("B", 2),
-                                                                            New KeyValuePair(Of String, Object)("C", 3))
+        Dim syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("A", 1),
+                                         New KeyValuePair(Of String, Object)("B", 2),
+                                         New KeyValuePair(Of String, Object)("C", 3))
 
         TestProperty(Function(old, value) old.WithKind(value), Function(opt) opt.Kind, SourceCodeKind.Script)
         TestProperty(Function(old, value) old.WithLanguageVersion(value), Function(opt) opt.LanguageVersion, LanguageVersion.VisualBasic9)
         TestProperty(Function(old, value) old.WithDocumentationMode(value), Function(opt) opt.DocumentationMode, DocumentationMode.None)
         TestProperty(Function(old, value) old.WithPreprocessorSymbols(value), Function(opt) opt.PreprocessorSymbols, syms)
 
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithKind(DirectCast(Int32.MaxValue, SourceCodeKind)))
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithLanguageVersion(DirectCast(Int32.MaxValue, LanguageVersion)))
+        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithKind(DirectCast(Integer.MaxValue, SourceCodeKind)))
+        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithLanguageVersion(DirectCast(1000, LanguageVersion)))
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(CType(Nothing, ImmutableArray(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, IEnumerable(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, KeyValuePair(Of String, Object)())).PreprocessorSymbols.Length)
@@ -37,7 +36,7 @@ Public Class ParseOptionsTests
     <Fact>
     Public Sub ConstructorValidation()
         Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(kind:=DirectCast(Int32.MaxValue, SourceCodeKind)))
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(languageVersion:=DirectCast(Int32.MaxValue, LanguageVersion)))
+        Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(languageVersion:=DirectCast(1000, LanguageVersion)))
     End Sub
 
     <Fact, WorkItem(546206, "DevDiv")>

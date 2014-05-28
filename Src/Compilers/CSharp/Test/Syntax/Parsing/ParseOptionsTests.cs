@@ -3,11 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -34,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             TestProperty((old, value) => old.WithPreprocessorSymbols(value), opt => opt.PreprocessorSymbols, ImmutableArray.Create<string>("A", "B", "C"));
 
             Assert.Throws<ArgumentOutOfRangeException>(() => CSharpParseOptions.Default.WithKind((SourceCodeKind)Int32.MaxValue));
-            Assert.Throws<ArgumentOutOfRangeException>(() => CSharpParseOptions.Default.WithLanguageVersion((LanguageVersion)Int32.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => CSharpParseOptions.Default.WithLanguageVersion((LanguageVersion)1000));
 
             Assert.Equal(0, CSharpParseOptions.Default.WithPreprocessorSymbols(ImmutableArray.Create<string>("A", "B")).WithPreprocessorSymbols(default(ImmutableArray<string>)).PreprocessorSymbols.Length);
             Assert.Equal(0, CSharpParseOptions.Default.WithPreprocessorSymbols(ImmutableArray.Create<string>("A", "B")).WithPreprocessorSymbols((IEnumerable<string>)null).PreprocessorSymbols.Length);
@@ -45,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void ConstructorValidation()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => new CSharpParseOptions(kind: (SourceCodeKind)Int32.MaxValue));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new CSharpParseOptions(languageVersion: (LanguageVersion)Int32.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new CSharpParseOptions(languageVersion: (LanguageVersion)1000));
         }
 
         [Fact(), WorkItem(546206, "DevDiv")]
