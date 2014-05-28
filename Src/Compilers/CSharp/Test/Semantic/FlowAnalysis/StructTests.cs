@@ -156,5 +156,20 @@ class GraphicsContext
             var comp = CreateCompilationWithMscorlib(program);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(874526)]
+        public void GenericStructWithPropertyUsingStruct()
+        {
+            var source =
+@"struct S<T>
+{
+    S<T[]>? P { get; set; }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,13): error CS0523: Struct member 'S<T>.P' of type 'S<T[]>?' causes a cycle in the struct layout
+                //     S<T[]>? P { get; set; }
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S<T>.P", "S<T[]>?").WithLocation(3, 13));
+        }
     }
 }

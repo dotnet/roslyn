@@ -2125,7 +2125,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Dev10 also reports only one error for all the cycles starting with the same field, which one is reported 
         ''' depends on the declaration order. Current implementation reports all of the cycles for consistency. 
         ''' See testcases MultiplyCyclesInStructure03 and MultiplyCyclesInStructure04 (report different errors in Dev10).
-        ''' 
         ''' </remarks>
         Private Function CheckStructureCircularity(diagnostics As DiagnosticBag) As Boolean
             '  Must be a structure
@@ -2195,21 +2194,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                         firstField.ContainingType.Name,
                                                         New CompoundDiagnosticInfo(diagnosticInfos.ToArrayAndFree()))
 
-                                        '  Dont report errors for other fields of this type referencing 'structBeingAnalyzed'
+                                        '  Don't report errors for other fields of this type referencing 'structBeingAnalyzed'
                                         cycleReportedForCurrentType = True
-
-                                        ' Only one type in the cycle is reported as having a
-                                        ' cycle, to match the diagnostic on one type only.
-                                        If current.Type Is Me Then
-                                            hasCycle = True
-                                        End If
+                                        hasCycle = True
                                     End If
 
                                 ElseIf Not data.ProcessedTypes.Contains(fieldType) Then
                                     ' Add to the queue if we don't know yet if it was processed
 
                                     If Not fieldType.IsDefinition Then
-                                        ' Types constructred from generic types are considered to be a separate types. We never report 
+                                        ' Types constructed from generic types are considered to be a separate types. We never report 
                                         ' errors on such types. We also process only fields actually changed compared to original generic type.
                                         data.Queue.Enqueue(New StructureCircularityDetectionDataSet.QueueElement(
                                                 fieldType, New ConsList(Of FieldSymbol)(field, current.Path)))

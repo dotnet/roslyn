@@ -106,6 +106,7 @@
     <Compile Include="CommonCommandLineParserTests.cs" />
     <Compile Include="CommonCompilationOptionsTests.cs" />
     <Compile Include="CommonParseOptionsTests.cs" />
+    <Compile Include="CommonSqmUtilitiesTests.cs" />
     <Compile Include="CommonSyntaxTests.cs" />
     <Compile Include="CommonTypedConstantTests.cs" />
     <Compile Include="CorLibTypesTests.cs" />

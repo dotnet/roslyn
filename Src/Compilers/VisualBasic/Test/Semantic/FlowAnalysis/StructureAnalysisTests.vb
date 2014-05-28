@@ -868,6 +868,27 @@ End Structure
 
 #End Region
 
+        <WorkItem(874526)>
+        <Fact()>
+        Public Sub GenericStructWithPropertyUsingStruct()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+      <compilation>
+          <file name="a.b">
+Structure S(Of T)
+    Property P As S(Of T())?
+End Structure
+        </file>
+      </compilation>)
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30294: Structure 'S' cannot contain an instance of itself: 
+    'S(Of T)' contains 'S(Of T())?' (variable '_P').
+    'S(Of T())?' contains 'S(Of T())' (variable 'value').
+    Property P As S(Of T())?
+             ~
+</errors>)
+        End Sub
+
     End Class
 
 End Namespace
