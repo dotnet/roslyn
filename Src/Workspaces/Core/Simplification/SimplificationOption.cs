@@ -70,9 +70,20 @@ namespace Microsoft.CodeAnalysis.Simplification
 #endif
         public static readonly PerLanguageOption<bool> QualifyMemberAccessWithThisOrMe = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMemberAccessWithThisOrMe", defaultValue: false);
 
+        /// <summary>
+        /// This option says if we should prefer keyword for Intrinsic Predefined Types in Declarations
+        /// </summary>
 #if MEF
         [ExportOption]
 #endif
         public static readonly PerLanguageOption<bool> PreferIntrinsicPredefinedTypeKeywordInDeclaration = new PerLanguageOption<bool>(PerLanguageFeatureName, "PreferIntrinsicPredefinedTypeKeywordInDeclaration", defaultValue: true);
+
+        /// <summary>
+        /// This option says if we should prefer keyword for Intrinsic Predefined Types in Member Access Expression
+        /// </summary>
+#if MEF
+        [ExportOption]
+#endif
+        public static readonly PerLanguageOption<bool> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = new PerLanguageOption<bool>(PerLanguageFeatureName, "PreferIntrinsicPredefinedTypeKeywordInMemberAccess", defaultValue: true);
     }
 }

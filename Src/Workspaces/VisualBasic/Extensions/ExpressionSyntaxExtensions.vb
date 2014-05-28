@@ -993,6 +993,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                         Return True
                     End If
+
+                    If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet) Then
+                        Dim type = semanticModel.GetTypeInfo(memberAccess).Type
+                        If type IsNot Nothing Then
+                            Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
+                            If keywordKind <> SyntaxKind.None Then
+                                replacementNode = SyntaxFactory.PredefinedType(
+                                                    SyntaxFactory.Token(
+                                                        memberAccess.GetLeadingTrivia(),
+                                                        keywordKind,
+                                                        memberAccess.GetTrailingTrivia()))
+
+                                issueSpan = memberAccess.Span
+
+                                Return True
+                            End If
+                        End If
+                    End If
                 End If
 
                 ' a module name was inserted by the name expansion, so removing this should be tried first.
@@ -1022,6 +1040,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return False
+        End Function
+
+        Private Function PreferPredefinedTypeKeywordInMemberAccess(memberAccess As ExpressionSyntax, optionSet As OptionSet) As Boolean
+            Return memberAccess.Parent IsNot Nothing AndAlso TypeOf memberAccess.Parent Is MemberAccessExpressionSyntax AndAlso optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic)
+        End Function
+
+        Private Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
+            Return name.Parent IsNot Nothing AndAlso TypeOf name.Parent IsNot MemberAccessExpressionSyntax AndAlso optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic)
         End Function
 
         <Extension>
@@ -1230,17 +1256,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                     Dim aliasInfo = semanticModel.GetAliasInfo(name, cancellationToken)
                     If nameHasNoAlias AndAlso aliasInfo Is Nothing Then
-                        Dim type = semanticModel.GetTypeInfo(name).Type
-
-                        If optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic) Then
+                        If Not InsideCrefReference(name) AndAlso
+                           (PreferPredefinedTypeKeywordInDeclarations(name, optionSet) OrElse
+                            PreferPredefinedTypeKeywordInMemberAccess(name, optionSet)) Then
+                            Dim type = semanticModel.GetTypeInfo(name).Type
                             If type IsNot Nothing Then
                                 Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
-                                If keywordKind <> SyntaxKind.None AndAlso Not TypeOf (name.Parent) Is CrefReferenceSyntax Then
+                                If keywordKind <> SyntaxKind.None Then
                                     replacementNode = SyntaxFactory.PredefinedType(
-                                    SyntaxFactory.Token(
-                                        name.GetLeadingTrivia(),
-                                        keywordKind,
-                                        name.GetTrailingTrivia()))
+                                                        SyntaxFactory.Token(
+                                                            name.GetLeadingTrivia(),
+                                                            keywordKind,
+                                                            name.GetTrailingTrivia()))
 
                                     issueSpan = name.Span
 
@@ -1311,6 +1338,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken)
+        End Function
+
+        Private Function InsideCrefReference(name As NameSyntax) As Boolean
+            Return name.IsParentKind(SyntaxKind.CrefReference) OrElse
+            (name.Parent IsNot Nothing AndAlso name.Parent.IsParentKind(SyntaxKind.CrefReference))
         End Function
 
         Private Function TryReduceAttributeSuffix(

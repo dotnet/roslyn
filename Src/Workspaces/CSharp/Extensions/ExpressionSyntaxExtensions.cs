@@ -720,6 +720,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     return true;
                 }
+
+                // Check if the Expression can be replaced by Predefined Type keyword
+                if (PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet))
+                {
+                    var type = semanticModel.GetTypeInfo(memberAccess).Type;
+                    if (type != null)
+                    {
+                        var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
+                        if (keywordKind != SyntaxKind.None)
+                        {
+                            replacementNode = CreatePredefinedTypeSyntax(memberAccess, keywordKind);
+
+                            issueSpan = memberAccess.Span; // we want to show the whole expression as unnecessary
+
+                            return true;
+                        }
+                    }
+                }
             }
 
             replacementNode = memberAccess.Name.WithLeadingTrivia(memberAccess.GetLeadingTrivia()).WithTrailingTrivia(memberAccess.GetTrailingTrivia());
@@ -731,6 +749,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+        }
+
+        private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, OptionSet optionSet)
+        {
+            return name.Parent != null && !(name.Parent is MemberAccessExpressionSyntax) &&
+                optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.CSharp);
+        }
+
+        private static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax memberAccess, OptionSet optionSet)
+        {
+            return memberAccess.Parent != null && memberAccess.Parent is MemberAccessExpressionSyntax &&
+                optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp);
         }
 
         public static bool IsAliasReplaceableExpression(this ExpressionSyntax expression)
@@ -1226,7 +1256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return true;
                         }
 
-                        if (optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.CSharp))
+                        if (PreferPredefinedTypeKeywordInDeclarations(name, optionSet) ||
+                            PreferPredefinedTypeKeywordInMemberAccess(name, optionSet))
                         {
                             var type = semanticModel.GetTypeInfo(name).Type;
                             if (type != null)
@@ -1234,12 +1265,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                 var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
                                 if (keywordKind != SyntaxKind.None)
                                 {
-                                    replacementNode = SyntaxFactory.PredefinedType(
-                                        SyntaxFactory.Token(name.GetLeadingTrivia(), keywordKind, name.GetTrailingTrivia()));
-
-                                    issueSpan = name.Span; // we want to show the whole name expression as unnecessary
-
-                                    return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken);
+                                    return CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, cancellationToken);
+                                }
+                            }
+                            else
+                            {
+                                var typeSymbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol;
+                                if (typeSymbol.IsKind(SymbolKind.NamedType))
+                                {
+                                    var keywordKind = GetPredefinedKeywordKind(((INamedTypeSymbol)typeSymbol).SpecialType);
+                                    if (keywordKind != SyntaxKind.None)
+                                    {
+                                        return CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, cancellationToken);
+                                    }
                                 }
                             }
                         }
@@ -1322,6 +1360,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+        }
+
+        private static bool CanReplaceWithPredefinedTypeKeywordInContext(NameSyntax name, SemanticModel semanticModel, out TypeSyntax replacementNode, ref TextSpan issueSpan, SyntaxKind keywordKind, CancellationToken cancellationToken)
+        {
+            replacementNode = CreatePredefinedTypeSyntax(name, keywordKind);
+
+            issueSpan = name.Span; // we want to show the whole name expression as unnecessary
+
+            return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken);
+        }
+
+        private static TypeSyntax CreatePredefinedTypeSyntax(ExpressionSyntax expression, SyntaxKind keywordKind)
+        {
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(expression.GetLeadingTrivia(), keywordKind, expression.GetTrailingTrivia()));
         }
 
         private static bool TryReduceAttributeSuffix(
