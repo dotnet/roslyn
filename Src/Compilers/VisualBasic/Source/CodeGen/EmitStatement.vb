@@ -981,26 +981,26 @@ OtherExpressions:
                         Dim constant As ConstantValue
 
                         Select Case caseClause.Kind
-                            Case BoundKind.CaseValueClause
-                                Dim caseValueClause = DirectCast(caseClause, BoundCaseValueClause)
+                            Case BoundKind.SimpleCaseClause
+                                Dim simpleCaseClause = DirectCast(caseClause, BoundSimpleCaseClause)
 
-                                Debug.Assert(caseValueClause.ValueOpt IsNot Nothing)
-                                Debug.Assert(caseValueClause.ConditionOpt Is Nothing)
+                                Debug.Assert(simpleCaseClause.ValueOpt IsNot Nothing)
+                                Debug.Assert(simpleCaseClause.ConditionOpt Is Nothing)
 
-                                constant = caseValueClause.ValueOpt.ConstantValueOpt
+                                constant = simpleCaseClause.ValueOpt.ConstantValueOpt
 
-                            Case BoundKind.CaseRelationalClause
-                                Dim caseRelationalClause = DirectCast(caseClause, BoundCaseRelationalClause)
+                            Case BoundKind.RelationalCaseClause
+                                Dim relationalCaseClause = DirectCast(caseClause, BoundRelationalCaseClause)
 
-                                Debug.Assert(caseRelationalClause.OperatorKind = BinaryOperatorKind.Equals)
-                                Debug.Assert(caseRelationalClause.OperandOpt IsNot Nothing)
-                                Debug.Assert(caseRelationalClause.ConditionOpt Is Nothing)
+                                Debug.Assert(relationalCaseClause.OperatorKind = BinaryOperatorKind.Equals)
+                                Debug.Assert(relationalCaseClause.OperandOpt IsNot Nothing)
+                                Debug.Assert(relationalCaseClause.ConditionOpt Is Nothing)
 
-                                constant = caseRelationalClause.OperandOpt.ConstantValueOpt
+                                constant = relationalCaseClause.OperandOpt.ConstantValueOpt
 
-                            Case BoundKind.CaseRangeClause
+                            Case BoundKind.RangeCaseClause
                                 ' TODO: For now we use IF lists if we encounter
-                                ' TODO: BoundCaseRangeClause, we should not reach here.
+                                ' TODO: BoundRangeCaseClause, we should not reach here.
                                 Throw ExceptionUtilities.UnexpectedValue(caseClause.Kind)
 
                             Case Else

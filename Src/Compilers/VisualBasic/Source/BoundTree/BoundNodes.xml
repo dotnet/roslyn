@@ -1006,19 +1006,19 @@
     <AbstractNode Name="BoundCaseClause" Base="BoundNode">
     </AbstractNode>
 
-    <Node Name="BoundCaseValueClause" Base="BoundCaseClause">
+    <Node Name="BoundSimpleCaseClause" Base="BoundCaseClause">
         <Field Name="ValueOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="ConditionOpt" Type="BoundExpression" Null="allow"/>
     </Node>
   
-    <Node Name="BoundCaseRangeClause" Base="BoundCaseClause">
+    <Node Name="BoundRangeCaseClause" Base="BoundCaseClause">
         <Field Name="LowerBoundOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="UpperBoundOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="LowerBoundConditionOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="UpperBoundConditionOpt" Type="BoundExpression" Null="allow"/>
     </Node>
   
-    <Node Name="BoundCaseRelationalClause" Base="BoundCaseClause">
+    <Node Name="BoundRelationalCaseClause" Base="BoundCaseClause">
         <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
         <Field Name="OperandOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="ConditionOpt" Type="BoundExpression" Null="allow"/>

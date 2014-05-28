@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 elseKeyword = DirectCast(CurrentToken, KeywordSyntax)
                 GetNextToken() '// get off ELSE
 
-                Dim caseClause = SyntaxFactory.CaseElseClause(elseKeyword)
+                Dim caseClause = SyntaxFactory.ElseCaseClause(elseKeyword)
                 caseClauses.Add(caseClause)
 
             Else
@@ -274,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                 CaseExpr = ResyncAt(CaseExpr)
                             End If
 
-                            caseClause = SyntaxFactory.CaseRelationalClause(RelationalOperatorKindToCaseKind(relationalOperator.Kind), optionalIsKeyword, relationalOperator, CaseExpr)
+                            caseClause = SyntaxFactory.RelationalCaseClause(RelationalOperatorKindToCaseKind(relationalOperator.Kind), optionalIsKeyword, relationalOperator, CaseExpr)
 
                         Else
                             ' Since we saw IS, create a relational case.
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             ' the operators that can follow "Is".
                             Dim relationalOperator = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ExpectedRelational)
 
-                            caseClause = ResyncAt(InternalSyntaxFactory.CaseRelationalClause(SyntaxKind.CaseEqualsClause, optionalIsKeyword, relationalOperator, InternalSyntaxFactory.MissingExpression))
+                            caseClause = ResyncAt(InternalSyntaxFactory.RelationalCaseClause(SyntaxKind.CaseEqualsClause, optionalIsKeyword, relationalOperator, InternalSyntaxFactory.MissingExpression))
                         End If
 
                     Else
@@ -302,10 +302,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                 upperBound = ResyncAt(upperBound)
                             End If
 
-                            caseClause = SyntaxFactory.CaseRangeClause(value, toKeyword, upperBound)
+                            caseClause = SyntaxFactory.RangeCaseClause(value, toKeyword, upperBound)
                         Else
 
-                            caseClause = SyntaxFactory.CaseValueClause(value)
+                            caseClause = SyntaxFactory.SimpleCaseClause(value)
                         End If
                     End If
 

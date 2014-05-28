@@ -655,7 +655,7 @@ nextm:
         Private Sub CheckSwitchSections(sections As ImmutableArray(Of BoundCaseBlock))
             Dim labels = New HashSet(Of Integer)()
             For Each s In sections
-                For Each l As BoundCaseValueClause In s.CaseStatement.CaseClauses
+                For Each l As BoundSimpleCaseClause In s.CaseStatement.CaseClauses
                     Dim v1 = l.ValueOpt.ConstantValueOpt.Int32Value
                     Debug.Assert(Not labels.Contains(v1))
                     labels.Add(v1)
@@ -664,7 +664,7 @@ nextm:
         End Sub
 
         'Public Function SwitchSection(value As Integer, ParamArray statements As BoundStatement()) As BoundCaseBlock
-        '    Dim boundCaseClause = New BoundCaseValueClause(_syntax, Literal(value), Nothing)
+        '    Dim boundCaseClause = New BoundSimpleCaseClause(_syntax, Literal(value), Nothing)
         '    boundCaseClause.SetWasCompilerGenerated()
         '    Dim boundCaseStatement = New BoundCaseStatement(_syntax, ImmutableArray(Of BoundCaseClause).CreateFrom(boundCaseClause), Nothing)
         '    boundCaseStatement.SetWasCompilerGenerated()
@@ -676,7 +676,7 @@ nextm:
         Public Function SwitchSection(values As List(Of Integer), ParamArray statements As BoundStatement()) As BoundCaseBlock
             Dim builder = ArrayBuilder(Of BoundCaseClause).GetInstance()
             For Each i In values
-                Dim boundCaseClause = New BoundCaseValueClause(_syntax, Literal(i), Nothing)
+                Dim boundCaseClause = New BoundSimpleCaseClause(_syntax, Literal(i), Nothing)
                 boundCaseClause.SetWasCompilerGenerated()
                 builder.Add(boundCaseClause)
             Next

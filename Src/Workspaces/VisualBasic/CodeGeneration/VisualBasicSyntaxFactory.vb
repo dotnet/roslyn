@@ -242,9 +242,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function CreateSwitchLabel(Optional expressionOpt As SyntaxNode = Nothing) As SyntaxNode
             If expressionOpt Is Nothing Then
-                Return SyntaxFactory.CaseElseStatement(SyntaxFactory.CaseElseClause())
+                Return SyntaxFactory.CaseElseStatement(SyntaxFactory.ElseCaseClause())
             Else
-                Return SyntaxFactory.CaseStatement(SyntaxFactory.CaseValueClause(DirectCast(expressionOpt, ExpressionSyntax)))
+                Return SyntaxFactory.CaseStatement(SyntaxFactory.SimpleCaseClause(DirectCast(expressionOpt, ExpressionSyntax)))
             End If
         End Function
 

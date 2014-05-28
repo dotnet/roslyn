@@ -3331,7 +3331,7 @@ End Module
             Dim root = tree.GetCompilationUnitRoot()
             Dim collector = New SyntaxWalkerVerifier()
             collector.Visit(root)
-            Assert.Equal(1, collector.GetCount(SyntaxKind.CaseRangeClause.ToString))
+            Assert.Equal(1, collector.GetCount(SyntaxKind.RangeCaseClause.ToString))
         End Sub
 
         <Fact()>

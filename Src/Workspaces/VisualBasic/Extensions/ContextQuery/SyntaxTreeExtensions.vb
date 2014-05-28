@@ -312,8 +312,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                targetToken.IsChildToken(Of CatchFilterClauseSyntax)(Function(catchFilterClauseSyntax) catchFilterClauseSyntax.WhenKeyword) OrElse
                targetToken.IsChildToken(Of CaseStatementSyntax)(Function(caseStatement) caseStatement.CaseKeyword) OrElse
                targetToken.IsChildSeparatorToken(Of CaseStatementSyntax, CaseClauseSyntax)(Function(caseStatement) caseStatement.Cases) OrElse
-               targetToken.IsChildToken(Of CaseRangeClauseSyntax)(Function(caseRangeClause) caseRangeClause.ToKeyword) OrElse
-               targetToken.IsChildToken(Of CaseRelationalClauseSyntax)(Function(caseRelationalClause) caseRelationalClause.OperatorToken) OrElse
+               targetToken.IsChildToken(Of RangeCaseClauseSyntax)(Function(rangeCaseClause) rangeCaseClause.ToKeyword) OrElse
+               targetToken.IsChildToken(Of RelationalCaseClauseSyntax)(Function(relationalCaseClause) relationalCaseClause.OperatorToken) OrElse
                targetToken.IsChildToken(Of CastExpressionSyntax)(Function(castExpression) castExpression.OpenParenToken) OrElse
                targetToken.IsChildToken(Of CollectionInitializerSyntax)(Function(collectionInitializer) collectionInitializer.OpenBraceToken) OrElse
                targetToken.IsChildToken(Of CollectionRangeVariableSyntax)(Function(collectionRange) collectionRange.InKeyword) OrElse

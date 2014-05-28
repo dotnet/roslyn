@@ -943,9 +943,9 @@ Public Module VerificationHelpers
             MyBase.VisitPartitionWhileClause(node)
         End Sub
 
-        Public Overrides Sub VisitCaseRangeClause(node As CaseRangeClauseSyntax)
+        Public Overrides Sub VisitRangeCaseClause(node As RangeCaseClauseSyntax)
             IncrementTypeCounter(node, node.Kind.ToString)
-            MyBase.VisitCaseRangeClause(node)
+            MyBase.VisitRangeCaseClause(node)
         End Sub
 
         Public Overrides Sub VisitRangeArgument(node As RangeArgumentSyntax)

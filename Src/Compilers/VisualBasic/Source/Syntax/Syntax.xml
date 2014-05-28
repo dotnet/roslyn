@@ -3872,7 +3872,7 @@ Unify Enum declarations with other block type declarations.
       <child name="Cases" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@CaseClauseSyntax">
         <description>
           A list of clauses associated with this Case. If Kind=CaseElse, then this list has exactly one child,
-          which is a CaseElseClause.
+          which is a ElseCaseClause.
         </description>
         <lm-equiv name="Cases"></lm-equiv>
         <native-equiv name="Cases"></native-equiv>
@@ -3889,16 +3889,16 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 
     <!--****************
-      -  CaseElseClause
+      -  ElseCaseClause
       ******************-->
-    <node-structure name="CaseElseClauseSyntax" parent="CaseClauseSyntax">
+    <node-structure name="ElseCaseClauseSyntax" parent="CaseClauseSyntax">
       <description>The "Else" part in a Case Else statement.</description>
       <lm-equiv name="CaseElseBranchNode"></lm-equiv>
       <native-equiv name="ExecutableBlockStatement"></native-equiv>
       <spec-section>10.8.2</spec-section>
       <grammar>CaseElseStatement</grammar>
 
-      <node-kind name="CaseElseClause" />
+      <node-kind name="ElseCaseClause" />
 
       <child name="ElseKeyword" kind="ElseKeyword">
         <description>The "Else" keyword.</description>
@@ -3908,16 +3908,16 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 
     <!--****************
-      -  CaseValueClause
+      -  SimpleCaseClause
       ******************-->
-    <node-structure name="CaseValueClauseSyntax" parent="CaseClauseSyntax">
+    <node-structure name="SimpleCaseClauseSyntax" parent="CaseClauseSyntax">
       <description>Represents a single value in a Case.</description>
       <lm-equiv name="RangeNode"></lm-equiv>
       <native-equiv name="ValueCase"></native-equiv>
       <spec-section>10.8.2</spec-section>
       <grammar>CaseClause</grammar>
 
-      <node-kind name="CaseValueClause">
+      <node-kind name="SimpleCaseClause">
         <lm-equiv name="Range" />
         <native-equiv name="Case.Opcodes.ValueCase" />
       </node-kind>
@@ -3929,16 +3929,16 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 
     <!--****************
-      -  CaseRangeClause
+      -  RangeCaseClause
       ******************-->
-    <node-structure name="CaseRangeClauseSyntax" parent="CaseClauseSyntax">
+    <node-structure name="RangeCaseClauseSyntax" parent="CaseClauseSyntax">
       <description>Represents a range "expression To expression" in a Case.</description>
       <lm-equiv name="RangeNode"></lm-equiv>
       <native-equiv name="RangeCase"></native-equiv>
       <spec-section>10.8.2</spec-section>
       <grammar>CaseClause</grammar>
 
-      <node-kind name="CaseRangeClause">
+      <node-kind name="RangeCaseClause">
         <lm-equiv name="Range" />
         <native-equiv name="Case.Opcodes.RangeCase" />
       </node-kind>
@@ -3963,9 +3963,9 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 
     <!--****************
-      -  CaseRelationalClause
+      -  RelationalCaseClause
       ******************-->
-    <node-structure name="CaseRelationalClauseSyntax" parent="CaseClauseSyntax">
+    <node-structure name="RelationalCaseClauseSyntax" parent="CaseClauseSyntax">
       <description>Represents a relation clause in a Case statement, such as "Is &gt; expression".</description>
       <lm-equiv name="RelationalCaseNode"></lm-equiv>
       <native-equiv name="RelationalCase"></native-equiv>

@@ -336,23 +336,23 @@ End Namespace
 
 
     <Fact>
-    Public Sub IsCaseRelationalClause()
+    Public Sub IsRelationalCaseClause()
         Dim item As SyntaxKind
         For Each item In New SyntaxKind() {SyntaxKind.CaseEqualsClause, SyntaxKind.CaseNotEqualsClause, SyntaxKind.CaseLessThanClause, SyntaxKind.CaseLessThanOrEqualClause, SyntaxKind.CaseGreaterThanOrEqualClause, SyntaxKind.CaseGreaterThanClause}
-            Assert.True(SyntaxFacts.IsCaseRelationalClause(item))
+            Assert.True(SyntaxFacts.IsRelationalCaseClause(item))
         Next
-        Assert.False(SyntaxFacts.IsCaseRelationalClause(SyntaxKind.ExitKeyword))
-        Assert.False(SyntaxFacts.IsCaseRelationalClause(SyntaxKind.None))
+        Assert.False(SyntaxFacts.IsRelationalCaseClause(SyntaxKind.ExitKeyword))
+        Assert.False(SyntaxFacts.IsRelationalCaseClause(SyntaxKind.None))
     End Sub
 
     <Fact>
-    Public Sub IsCaseRelationalClauseOperatorToken()
+    Public Sub IsRelationalCaseClauseOperatorToken()
         Dim item As SyntaxKind
         For Each item In New SyntaxKind() {SyntaxKind.EqualsToken, SyntaxKind.LessThanGreaterThanToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.GreaterThanToken}
-            Assert.True(SyntaxFacts.IsCaseRelationalClauseOperatorToken(item))
+            Assert.True(SyntaxFacts.IsRelationalCaseClauseOperatorToken(item))
         Next
-        Assert.False(SyntaxFacts.IsCaseRelationalClauseOperatorToken(SyntaxKind.ExitKeyword))
-        Assert.False(SyntaxFacts.IsCaseRelationalClauseOperatorToken(SyntaxKind.None))
+        Assert.False(SyntaxFacts.IsRelationalCaseClauseOperatorToken(SyntaxKind.ExitKeyword))
+        Assert.False(SyntaxFacts.IsRelationalCaseClauseOperatorToken(SyntaxKind.None))
     End Sub
 
     <Fact>

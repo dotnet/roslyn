@@ -661,7 +661,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInSelectStatement(switchStatementSyntax As SelectStatementSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
                 ' Use the first case label to determine the return type.
                 If TypeOf switchStatementSyntax.Parent Is SelectBlockSyntax Then
-                    Dim firstCase = DirectCast(switchStatementSyntax.Parent, SelectBlockSyntax).CaseBlocks.SelectMany(Function(c) c.Begin.Cases).OfType(Of CaseValueClauseSyntax).FirstOrDefault()
+                    Dim firstCase = DirectCast(switchStatementSyntax.Parent, SelectBlockSyntax).CaseBlocks.SelectMany(Function(c) c.Begin.Cases).OfType(Of SimpleCaseClauseSyntax).FirstOrDefault()
                     If firstCase IsNot Nothing Then
                         Return GetTypes(firstCase.Value)
                     End If

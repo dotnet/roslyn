@@ -1749,12 +1749,12 @@ lUnsplitAndFinish:
             Else
                 For Each clause In node.CaseClauses
                     Select Case clause.Kind
-                        Case BoundKind.CaseRelationalClause
-                            VisitCaseRelationalClause(DirectCast(clause, BoundCaseRelationalClause))
-                        Case BoundKind.CaseValueClause
-                            VisitCaseValueClause(DirectCast(clause, BoundCaseValueClause))
-                        Case BoundKind.CaseRangeClause
-                            VisitCaseRangeClause(DirectCast(clause, BoundCaseRangeClause))
+                        Case BoundKind.RelationalCaseClause
+                            VisitRelationalCaseClause(DirectCast(clause, BoundRelationalCaseClause))
+                        Case BoundKind.SimpleCaseClause
+                            VisitSimpleCaseClause(DirectCast(clause, BoundSimpleCaseClause))
+                        Case BoundKind.RangeCaseClause
+                            VisitRangeCaseClause(DirectCast(clause, BoundRangeCaseClause))
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(clause.Kind)
                     End Select
@@ -1764,7 +1764,7 @@ lUnsplitAndFinish:
             Return Nothing
         End Function
 
-        Public Overrides Function VisitCaseRelationalClause(node As BoundCaseRelationalClause) As BoundNode
+        Public Overrides Function VisitRelationalCaseClause(node As BoundRelationalCaseClause) As BoundNode
             ' Exactly one of the operand or condition must be non-null
             Debug.Assert(node.OperandOpt IsNot Nothing Xor node.ConditionOpt IsNot Nothing)
 
@@ -1777,7 +1777,7 @@ lUnsplitAndFinish:
             Return Nothing
         End Function
 
-        Public Overrides Function VisitCaseValueClause(node As BoundCaseValueClause) As BoundNode
+        Public Overrides Function VisitSimpleCaseClause(node As BoundSimpleCaseClause) As BoundNode
             ' Exactly one of the value or condition must be non-null
             Debug.Assert(node.ValueOpt IsNot Nothing Xor node.ConditionOpt IsNot Nothing)
 
@@ -1790,7 +1790,7 @@ lUnsplitAndFinish:
             Return Nothing
         End Function
 
-        Public Overrides Function VisitCaseRangeClause(node As BoundCaseRangeClause) As BoundNode
+        Public Overrides Function VisitRangeCaseClause(node As BoundRangeCaseClause) As BoundNode
             ' Exactly one of the LowerBoundOpt or LowerBoundConditionOpt must be non-null
             Debug.Assert(node.LowerBoundOpt IsNot Nothing Xor node.LowerBoundConditionOpt IsNot Nothing)
 

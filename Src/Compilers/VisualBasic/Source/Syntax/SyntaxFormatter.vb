@@ -477,8 +477,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             ' case > 100 should keep separator
             ' need to test before xml analysis below
-            If SyntaxFacts.IsCaseRelationalClause(token.Parent.VisualBasicKind()) OrElse
-                SyntaxFacts.IsCaseRelationalClause(nextToken.Parent.VisualBasicKind()) Then
+            If SyntaxFacts.IsRelationalCaseClause(token.Parent.VisualBasicKind()) OrElse
+                SyntaxFacts.IsRelationalCaseClause(nextToken.Parent.VisualBasicKind()) Then
                 Return True
             End If
 

@@ -375,13 +375,13 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub SelectCase_CaseRelationalClauseExpression_Literal()
+        Public Sub SelectCase_RelationalCaseClauseExpression_Literal()
             Dim compilation = CreateCompilationWithMscorlib(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
 Module M1
-    Sub CaseRelationalClauseExpression(number As Integer)
+    Sub RelationalCaseClauseExpression(number As Integer)
         Select Case number
             Case Is < 1'BIND:"1"
         End Select
@@ -411,7 +411,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub SelectCase_CaseRangeClauseExpression_MethodCall()
+        Public Sub SelectCase_RangeCaseClauseExpression_MethodCall()
             Dim compilation = CreateCompilationWithMscorlib(
         <compilation>
             <file name="a.vb"><![CDATA[
@@ -421,7 +421,7 @@ Module M1
         Return 0
     End Function
 
-    Sub CaseRangeClauseExpression(number As Integer)
+    Sub RangeCaseClauseExpression(number As Integer)
         Select Case number
             Case Foo() To 1'BIND:"Foo()"
         End Select
@@ -450,7 +450,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub SelectCase_CaseValueClauseExpression_DateTime()
+        Public Sub SelectCase_SimpleCaseClauseExpression_DateTime()
             Dim compilation = CreateCompilationWithMscorlib(
         <compilation>
             <file name="a.vb"><![CDATA[
@@ -460,7 +460,7 @@ Module M1
         Return 0
     End Function
 
-    Sub CaseValueClauseExpression(number As Integer)
+    Sub SimpleCaseClauseExpression(number As Integer)
         Select Case number
             Case #8/13/2002 12:14 PM#'BIND:"#8/13/2002 12:14 PM#"
         End Select

@@ -166,21 +166,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.CaseGreaterThanClause, SyntaxKind.CaseGreaterThanOrEqualClause,
                      SyntaxKind.CaseLessThanClause, SyntaxKind.CaseLessThanOrEqualClause
 
-                    Return BindCaseRelationalClause(DirectCast(node, CaseRelationalClauseSyntax), selectExpression, convertCaseElements, diagnostics)
+                    Return BindRelationalCaseClause(DirectCast(node, RelationalCaseClauseSyntax), selectExpression, convertCaseElements, diagnostics)
 
-                Case SyntaxKind.CaseValueClause
-                    Return BindCaseValueClause(DirectCast(node, CaseValueClauseSyntax), selectExpression, convertCaseElements, diagnostics)
+                Case SyntaxKind.SimpleCaseClause
+                    Return BindSimpleCaseClause(DirectCast(node, SimpleCaseClauseSyntax), selectExpression, convertCaseElements, diagnostics)
 
-                Case SyntaxKind.CaseRangeClause
-                    Return BindCaseRangeClause(DirectCast(node, CaseRangeClauseSyntax), selectExpression, convertCaseElements, diagnostics)
+                Case SyntaxKind.RangeCaseClause
+                    Return BindRangeCaseClause(DirectCast(node, RangeCaseClauseSyntax), selectExpression, convertCaseElements, diagnostics)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
         End Function
 
-        Private Function BindCaseRelationalClause(
-            node As CaseRelationalClauseSyntax,
+        Private Function BindRelationalCaseClause(
+            node As RelationalCaseClauseSyntax,
             selectExpression As BoundExpression,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
@@ -223,11 +223,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 conditionOpt:=conditionOpt,
                 diagnostics:=diagnostics)
 
-            Return New BoundCaseRelationalClause(node, operatorKind, operandE1, conditionOpt)
+            Return New BoundRelationalCaseClause(node, operatorKind, operandE1, conditionOpt)
         End Function
 
-        Private Function BindCaseValueClause(
-            node As CaseValueClauseSyntax,
+        Private Function BindSimpleCaseClause(
+            node As SimpleCaseClauseSyntax,
             selectExpression As BoundExpression,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
@@ -255,11 +255,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 conditionOpt:=conditionOpt,
                 diagnostics:=diagnostics)
 
-            Return New BoundCaseValueClause(node, value, conditionOpt)
+            Return New BoundSimpleCaseClause(node, value, conditionOpt)
         End Function
 
-        Private Function BindCaseRangeClause(
-            node As CaseRangeClauseSyntax,
+        Private Function BindRangeCaseClause(
+            node As RangeCaseClauseSyntax,
             selectExpression As BoundExpression,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 conditionOpt:=upperBoundConditionOpt,
                 diagnostics:=diagnostics)
 
-            Return New BoundCaseRangeClause(node, lowerBound, upperBound, lowerBoundConditionOpt, upperBoundConditionOpt)
+            Return New BoundRangeCaseClause(node, lowerBound, upperBound, lowerBoundConditionOpt, upperBoundConditionOpt)
         End Function
 
         Private Function BindCaseClauseExpression(
@@ -441,22 +441,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function ComputeCaseClauseCondition(caseClause As BoundCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundExpression, diagnostics As DiagnosticBag) As BoundCaseClause
             Select Case caseClause.Kind
-                Case BoundKind.CaseRelationalClause
-                    Return ComputeCaseRelationalClauseCondition(DirectCast(caseClause, BoundCaseRelationalClause), conditionOpt, selectExpression, diagnostics)
+                Case BoundKind.RelationalCaseClause
+                    Return ComputeRelationalCaseClauseCondition(DirectCast(caseClause, BoundRelationalCaseClause), conditionOpt, selectExpression, diagnostics)
 
-                Case BoundKind.CaseValueClause
-                    Return ComputeCaseValueClauseCondition(DirectCast(caseClause, BoundCaseValueClause), conditionOpt, selectExpression, diagnostics)
+                Case BoundKind.SimpleCaseClause
+                    Return ComputeSimpleCaseClauseCondition(DirectCast(caseClause, BoundSimpleCaseClause), conditionOpt, selectExpression, diagnostics)
 
-                Case BoundKind.CaseRangeClause
-                    Return ComputeCaseRangeClauseCondition(DirectCast(caseClause, BoundCaseRangeClause), conditionOpt, selectExpression, diagnostics)
+                Case BoundKind.RangeCaseClause
+                    Return ComputeRangeCaseClauseCondition(DirectCast(caseClause, BoundRangeCaseClause), conditionOpt, selectExpression, diagnostics)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(caseClause.Kind)
             End Select
         End Function
 
-        Private Function ComputeCaseRelationalClauseCondition(boundClause As BoundCaseRelationalClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundExpression, diagnostics As DiagnosticBag) As BoundCaseClause
-            Dim syntax = DirectCast(boundClause.Syntax, CaseRelationalClauseSyntax)
+        Private Function ComputeRelationalCaseClauseCondition(boundClause As BoundRelationalCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundExpression, diagnostics As DiagnosticBag) As BoundCaseClause
+            Dim syntax = DirectCast(boundClause.Syntax, RelationalCaseClauseSyntax)
 
             ' Exactly one of the operand or condition must be non-null
             Debug.Assert(boundClause.ConditionOpt IsNot Nothing Xor boundClause.OperandOpt IsNot Nothing)
@@ -473,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundClause.Update(boundClause.OperatorKind, operandOpt:=Nothing, conditionOpt:=conditionOpt)
         End Function
 
-        Private Function ComputeCaseValueClauseCondition(boundClause As BoundCaseValueClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundExpression, diagnostics As DiagnosticBag) As BoundCaseClause
+        Private Function ComputeSimpleCaseClauseCondition(boundClause As BoundSimpleCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundExpression, diagnostics As DiagnosticBag) As BoundCaseClause
             ' Exactly one of the value or condition must be non-null
             Debug.Assert(boundClause.ConditionOpt IsNot Nothing Xor boundClause.ValueOpt IsNot Nothing)
 
@@ -489,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundClause.Update(valueOpt:=Nothing, conditionOpt:=conditionOpt)
         End Function
 
-        Private Function ComputeCaseRangeClauseCondition(boundClause As BoundCaseRangeClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundExpression, diagnostics As DiagnosticBag) As BoundCaseClause
+        Private Function ComputeRangeCaseClauseCondition(boundClause As BoundRangeCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundExpression, diagnostics As DiagnosticBag) As BoundCaseClause
             Dim syntax = boundClause.Syntax
 
             ' Exactly one of the LowerBoundOpt or LowerBoundConditionOpt must be non-null
@@ -551,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '   ranges must have lower bound first
 
             ' We also generate warnings for Invalid range clauses in this function.
-            ' Ideally we would like to generate them in BindCaseRangeClause.
+            ' Ideally we would like to generate them in BindRangeCaseClause.
             ' However, Dev10 doesn't do this check individually for each CaseClause.
             ' It is performed only if bounds for all clauses in the Select are integer constants and
             ' all clauses are either range clauses or equality clause.
@@ -571,8 +571,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each caseBlock In caseBlocks
                 For Each caseClause In caseBlock.CaseStatement.CaseClauses
                     Select Case caseClause.Kind
-                        Case BoundKind.CaseRelationalClause
-                            Dim relationalClause = DirectCast(caseClause, BoundCaseRelationalClause)
+                        Case BoundKind.RelationalCaseClause
+                            Dim relationalClause = DirectCast(caseClause, BoundRelationalCaseClause)
 
                             ' Exactly one of the operand or condition must be non-null
                             Debug.Assert(relationalClause.OperandOpt IsNot Nothing Xor relationalClause.ConditionOpt IsNot Nothing)
@@ -587,7 +587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Return False
                             End If
 
-                        Case BoundKind.CaseRangeClause
+                        Case BoundKind.RangeCaseClause
                             ' TODO: RecommendSwitchTable for Range clause.
                             ' TODO: If we decide to implement it we will need to
                             ' TODO: add heuristic to determine when the range is
@@ -595,17 +595,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' TODO: We will also need to add logic in the emitter
                             ' TODO: to iterate through ConstantValues in a range.
 
-                            ' For now we use IF lists if we encounter BoundCaseRangeClause
-                            Dim caseRangeClause = DirectCast(caseClause, BoundCaseRangeClause)
+                            ' For now we use IF lists if we encounter BoundRangeCaseClause
+                            Dim rangeCaseClause = DirectCast(caseClause, BoundRangeCaseClause)
 
                             ' Exactly one of the LowerBoundOpt or LowerBoundConditionOpt must be non-null
-                            Debug.Assert(caseRangeClause.LowerBoundOpt IsNot Nothing Xor caseRangeClause.LowerBoundConditionOpt IsNot Nothing)
+                            Debug.Assert(rangeCaseClause.LowerBoundOpt IsNot Nothing Xor rangeCaseClause.LowerBoundConditionOpt IsNot Nothing)
 
                             ' Exactly one of the UpperBoundOpt or UpperBoundConditionOpt must be non-null
-                            Debug.Assert(caseRangeClause.UpperBoundOpt IsNot Nothing Xor caseRangeClause.UpperBoundConditionOpt IsNot Nothing)
+                            Debug.Assert(rangeCaseClause.UpperBoundOpt IsNot Nothing Xor rangeCaseClause.UpperBoundConditionOpt IsNot Nothing)
 
-                            Dim lowerBound = caseRangeClause.LowerBoundOpt
-                            Dim upperBound = caseRangeClause.UpperBoundOpt
+                            Dim lowerBound = rangeCaseClause.LowerBoundOpt
+                            Dim upperBound = rangeCaseClause.UpperBoundOpt
 
                             If lowerBound Is Nothing OrElse
                                 upperBound Is Nothing OrElse
@@ -620,12 +620,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             recommendSwitch = False
 
                         Case Else
-                            Dim caseValueClause = DirectCast(caseClause, BoundCaseValueClause)
+                            Dim simpleCaseClause = DirectCast(caseClause, BoundSimpleCaseClause)
 
                             ' Exactly one of the value or condition must be non-null
-                            Debug.Assert(caseValueClause.ValueOpt IsNot Nothing Xor caseValueClause.ConditionOpt IsNot Nothing)
+                            Debug.Assert(simpleCaseClause.ValueOpt IsNot Nothing Xor simpleCaseClause.ConditionOpt IsNot Nothing)
 
-                            Dim value = caseValueClause.ValueOpt
+                            Dim value = simpleCaseClause.ValueOpt
 
                             If value Is Nothing OrElse
                                 value.ConstantValueOpt Is Nothing OrElse
@@ -648,21 +648,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each caseBlock In caseBlocks
                 For Each caseClause In caseBlock.CaseStatement.CaseClauses
                     Select Case caseClause.Kind
-                        Case BoundKind.CaseRangeClause
-                            Dim caseRangeClause = DirectCast(caseClause, BoundCaseRangeClause)
+                        Case BoundKind.RangeCaseClause
+                            Dim rangeCaseClause = DirectCast(caseClause, BoundRangeCaseClause)
 
-                            Dim lowerBound = caseRangeClause.LowerBoundOpt
-                            Dim upperBound = caseRangeClause.UpperBoundOpt
+                            Dim lowerBound = rangeCaseClause.LowerBoundOpt
+                            Dim upperBound = rangeCaseClause.UpperBoundOpt
 
                             Debug.Assert(lowerBound IsNot Nothing)
                             Debug.Assert(lowerBound.ConstantValueOpt IsNot Nothing)
                             Debug.Assert(upperBound IsNot Nothing)
                             Debug.Assert(upperBound.ConstantValueOpt IsNot Nothing)
-                            Debug.Assert(caseRangeClause.LowerBoundConditionOpt Is Nothing)
-                            Debug.Assert(caseRangeClause.UpperBoundConditionOpt Is Nothing)
+                            Debug.Assert(rangeCaseClause.LowerBoundConditionOpt Is Nothing)
+                            Debug.Assert(rangeCaseClause.UpperBoundConditionOpt Is Nothing)
 
                             If IsInvalidSelectCaseRange(lowerBound.ConstantValueOpt, upperBound.ConstantValueOpt) Then
-                                ReportDiagnostic(diagnostics, caseRangeClause.Syntax, ERRID.WRN_SelectCaseInvalidRange)
+                                ReportDiagnostic(diagnostics, rangeCaseClause.Syntax, ERRID.WRN_SelectCaseInvalidRange)
                                 Return True
                             End If
                     End Select
