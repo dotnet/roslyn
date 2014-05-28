@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property EnableBreakingFlowAnalisysFeatures As Boolean
+        Protected Overrides ReadOnly Property EnableBreakingFlowAnalysisFeatures As Boolean
             Get
                 Return True
             End Get

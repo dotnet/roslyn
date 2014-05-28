@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Protected Overrides ReadOnly Property EnableBreakingFlowAnalisysFeatures As Boolean
+        Protected Overrides ReadOnly Property EnableBreakingFlowAnalysisFeatures As Boolean
             Get
                 Return True
             End Get

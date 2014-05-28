@@ -993,7 +993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' compiler mode to maintain backward compatibility (mostly diagnostics not reported by Dev11), 
         ''' but *enabled* in flow analysis API
         ''' </summary>
-        Protected Overridable ReadOnly Property EnableBreakingFlowAnalisysFeatures As Boolean
+        Protected Overridable ReadOnly Property EnableBreakingFlowAnalysisFeatures As Boolean
             Get
                 Return False
             End Get
@@ -1092,7 +1092,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If sym.Kind = SymbolKind.Local Then
                 Dim locSym = DirectCast(sym, LocalSymbol)
                 localOrFieldType = locSym.Type
-                isFunctionValue = locSym.IsFunctionValue AndAlso EnableBreakingFlowAnalisysFeatures
+                isFunctionValue = locSym.IsFunctionValue AndAlso EnableBreakingFlowAnalysisFeatures
                 isStaticLocal = locSym.IsStatic
                 isImplicityDeclared = locSym.IsImplicitlyDeclared
             Else
@@ -1145,7 +1145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Special case: We specifically want to give a warning if the user doesn't return from a WinRT AddHandler.
                 ' NOTE: Strictly speaking, dev11 actually checks whether the return type is EventRegistrationToken (see IsWinRTEventAddHandler),
                 ' but the conditions should be equivalent (i.e. return EventRegistrationToken if and only if WinRT).
-                If EnableBreakingFlowAnalisysFeatures OrElse Not type.IsValueType OrElse type.IsIntrinsicOrEnumType OrElse Not IsEmptyStructType(type) OrElse
+                If EnableBreakingFlowAnalysisFeatures OrElse Not type.IsValueType OrElse type.IsIntrinsicOrEnumType OrElse Not IsEmptyStructType(type) OrElse
                     (Me.MethodSymbol.MethodKind = MethodKind.EventAdd AndAlso DirectCast(Me.MethodSymbol.AssociatedSymbol, EventSymbol).IsWindowsRuntimeEvent) Then
                     ReportUnassignedFunctionValue(local, node)
                 End If
