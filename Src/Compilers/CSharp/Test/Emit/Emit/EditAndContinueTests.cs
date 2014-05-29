@@ -4050,7 +4050,7 @@ class C
         /// Reuse existing anonymous types.
         /// </summary>
         [WorkItem(825903, "DevDiv")]
-        [Fact(Skip = "900633")]
+        [Fact]
         public void AnonymousTypes()
         {
             var source0 =
@@ -4093,8 +4093,9 @@ namespace M
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, compOptions: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.UnoptimizedDll);
+            var compOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize: false, concurrentBuild: false);
+            var compilation0 = CreateCompilationWithMscorlib(source0, compOptions: compOptions);
+            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: compOptions);
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
