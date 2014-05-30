@@ -140,7 +140,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Friend Function GetInnermostDeclarationContext(node As SyntaxToken) As SyntaxNode
-            Return node.GetAncestors(Of SyntaxNode).FirstOrDefault(
+            Dim ancestors = node.GetAncestors(Of SyntaxNode)
+
+            ' In error cases where the declaration is not complete, the parser attaches the incomplete token to the
+            ' trailing trivia of preceding block. In such cases, skip through the siblings and search upwards to find a candidate ancestor.
+            If TypeOf ancestors.FirstOrDefault() Is EndBlockStatementSyntax Then
+
+                ' If the first ancestor is an EndBlock, the second is the matching OpenBlock, if one exists
+                Dim openBlock = ancestors.ElementAtOrDefault(1)
+                Dim closeTypeBlock = DirectCast(ancestors.First(), EndBlockStatementSyntax)
+
+                If openBlock Is Nothing Then
+                    ' case: No matching open block
+                    '      End Class
+                    '    C|
+                    ancestors = ancestors.Skip(1)
+                ElseIf TypeOf openBlock Is TypeBlockSyntax Then
+                    ancestors = FilterAncestors(ancestors, DirectCast(openBlock, TypeBlockSyntax).End, closeTypeBlock)
+                ElseIf TypeOf openBlock Is NamespaceBlockSyntax Then
+                    ancestors = FilterAncestors(ancestors, DirectCast(openBlock, NamespaceBlockSyntax).EndNamespaceStatement, closeTypeBlock)
+                ElseIf TypeOf openBlock Is EnumBlockSyntax Then
+                    ancestors = FilterAncestors(ancestors, DirectCast(openBlock, EnumBlockSyntax).EndEnumStatement, closeTypeBlock)
+                End If
+            End If
+
+            Return ancestors.FirstOrDefault(
                 Function(ancestor) ancestor.MatchesKind(SyntaxKind.ClassBlock,
                                                         SyntaxKind.StructureBlock,
                                                         SyntaxKind.EnumBlock,
@@ -148,6 +172,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                                         SyntaxKind.NamespaceBlock,
                                                         SyntaxKind.ModuleBlock,
                                                         SyntaxKind.CompilationUnit))
+        End Function
+
+        Private Function FilterAncestors(ancestors As IEnumerable(Of SyntaxNode),
+                                         parentEndBlock As EndBlockStatementSyntax,
+                                         precedingEndBlock As EndBlockStatementSyntax) As IEnumerable(Of SyntaxNode)
+            If parentEndBlock.Equals(precedingEndBlock) Then
+                ' case: the preceding end block has a matching open block and the declaration context for 'C' is 'N1'
+                '    Namespace N1
+                '      Class C1
+                '
+                '      End Class
+                '    C|
+                '    End Namespace
+                Return ancestors.Skip(2)
+            Else
+                ' case: mismatched end block and the declaration context for 'C' is 'N1'
+                '    Namespace N1
+                '      End Class
+                '    C|
+                '    End Namespace
+                Return ancestors.Skip(1)
+            End If
         End Function
 
         <Extension()>
