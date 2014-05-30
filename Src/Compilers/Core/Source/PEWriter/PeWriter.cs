@@ -823,7 +823,7 @@ namespace Microsoft.Cci
             for (int i = 0; i < bytes; i++)
             {
                 int value = stream.ReadByte();
-                Debug.Assert(value == 0, "Value not zero", "Value at index '{0}' was not zero", i);
+                Debug.Assert(value == 0);
             }
         }
 

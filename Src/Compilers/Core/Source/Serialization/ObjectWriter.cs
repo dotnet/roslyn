@@ -4,6 +4,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
@@ -13,7 +15,7 @@ namespace Roslyn.Utilities
     /// A class that writes both primitive values and non-cyclical object graphs to a stream that may be
     /// later read back using the ObjectReader class.
     /// </summary>
-    internal class ObjectWriter : ObjectReaderWriterBase, IDisposable
+    internal sealed class ObjectWriter : ObjectReaderWriterBase, IDisposable
     {
         private readonly BinaryWriter writer;
         private readonly ObjectWriterData dataMap;
@@ -26,7 +28,11 @@ namespace Roslyn.Utilities
             RecordingObjectBinder binder = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            this.writer = new BinaryWriter(stream, MultiByteEncoding.Instance);
+            // String serialization assumes both reader and writer to be of the same endianness.
+            // It can be adjusted for BigEndian if needed.
+            Debug.Assert(BitConverter.IsLittleEndian);
+
+            this.writer = new BinaryWriter(stream, Encoding.UTF8);
             this.dataMap = new ObjectWriterData(defaultData);
             this.binder = binder ?? new RecordingObjectBinder();
             this.cancellationToken = cancellationToken;
@@ -200,7 +206,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Writes a String value to the stream.
         /// </summary>
-        public void WriteString(string value)
+        public unsafe void WriteString(string value)
         {
             if (value == null)
             {
@@ -231,8 +237,30 @@ namespace Roslyn.Utilities
                 else
                 {
                     dataMap.Add(value);
-                    writer.Write((byte)DataKind.String);
-                    writer.Write(value);
+
+                    if (value.IsValidUnicodeString())
+                    {
+                        // Usual case - the string can be encoded as UTF8:
+                        // We can use the UTF8 encoding of the binary writer.
+
+                        writer.Write((byte)DataKind.StringUtf8);
+                        writer.Write(value); 
+                    }
+                    else
+                    {
+                        writer.Write((byte)DataKind.StringUtf16);
+
+                        // This is rare, just allocate UTF16 bytes for simplicity.
+
+                        byte[] bytes = new byte[(uint)value.Length * sizeof(char)];
+                        fixed (char* valuePtr = value)
+                        {
+                            Marshal.Copy((IntPtr)valuePtr, bytes, 0, bytes.Length);
+                        }
+
+                        WriteCompressedUInt((uint)value.Length);
+                        writer.Write(bytes);
+                    }
                 }
             }
         }

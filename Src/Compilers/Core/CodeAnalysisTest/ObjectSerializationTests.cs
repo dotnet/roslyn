@@ -1,18 +1,12 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
-
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -40,6 +34,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteSingle(Single.MaxValue);
             writer.WriteChar('X');
             writer.WriteString("YYY");
+            writer.WriteString("\uD800\uDC00"); // valid surrogate pair
+            writer.WriteString("\uDC00\uD800"); // invalid surrogate pair
+            writer.WriteString("\uD800"); // incomplete surrogate pair
             writer.WriteCompressedUInt(Byte.MaxValue >> 2);   // 6 bits
             writer.WriteCompressedUInt(UInt16.MaxValue >> 2); // 14 bits
             writer.WriteCompressedUInt(UInt32.MaxValue >> 2); // 30 bits
@@ -66,6 +63,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(Single.MaxValue, reader.ReadSingle());
             Assert.Equal('X', reader.ReadChar());
             Assert.Equal("YYY", reader.ReadString());
+            Assert.Equal("\uD800\uDC00", reader.ReadString()); // valid surrogate pair
+            Assert.Equal("\uDC00\uD800", reader.ReadString()); // invalid surrogate pair
+            Assert.Equal("\uD800", reader.ReadString()); // incomplete surrogate pair
             Assert.Equal((UInt32)(Byte.MaxValue >> 2), reader.ReadCompressedUInt());
             Assert.Equal((UInt32)(UInt16.MaxValue >> 2), reader.ReadCompressedUInt());
             Assert.Equal(UInt32.MaxValue >> 2, reader.ReadCompressedUInt());
@@ -95,6 +95,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteValue(Single.MaxValue);
             writer.WriteValue('X');
             writer.WriteValue("YYY");
+            writer.WriteString("\uD800\uDC00"); // valid surrogate pair
+            writer.WriteString("\uDC00\uD800"); // invalid surrogate pair
+            writer.WriteString("\uD800"); // incomplete surrogate pair
             writer.WriteValue(null);
             writer.WriteValue(ConsoleColor.Cyan);
             writer.WriteValue(EByte.Value);
@@ -129,6 +132,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(Single.MaxValue, (Single)reader.ReadValue());
             Assert.Equal('X', (Char)reader.ReadValue());
             Assert.Equal("YYY", (String)reader.ReadValue());
+            Assert.Equal("\uD800\uDC00", (String)reader.ReadValue()); // valid surrogate pair
+            Assert.Equal("\uDC00\uD800", (String)reader.ReadValue()); // invalid surrogate pair
+            Assert.Equal("\uD800", (String)reader.ReadValue()); // incomplete surrogate pair
             Assert.Equal(null, reader.ReadValue());
             Assert.Equal(ConsoleColor.Cyan, reader.ReadValue());
             Assert.Equal(EByte.Value, reader.ReadValue());

@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
-using System.Reflection;
+using System.Text;
 
 namespace Roslyn.Utilities
 {
@@ -10,7 +11,7 @@ namespace Roslyn.Utilities
     /// A class that reads both primitive values and non-cyclical object graphs from a stream that was constructed using 
     /// the ObjectWriter class.
     /// </summary>
-    internal class ObjectReader : ObjectReaderWriterBase, IDisposable
+    internal sealed class ObjectReader : ObjectReaderWriterBase, IDisposable
     {
         private readonly BinaryReader reader;
         private readonly ObjectReaderData dataMap;
@@ -21,7 +22,11 @@ namespace Roslyn.Utilities
             ObjectReaderData defaultData = null,
             ObjectBinder binder = null)
         {
-            this.reader = new BinaryReader(stream, MultiByteEncoding.Instance);
+            // String serialization assumes both reader and writer to be of the same endianness.
+            // It can be adjusted for BigEndian if needed.
+            Debug.Assert(BitConverter.IsLittleEndian);
+
+            this.reader = new BinaryReader(stream, Encoding.UTF8);
             this.dataMap = new ObjectReaderData(defaultData);
             this.binder = binder;
         }
@@ -226,7 +231,8 @@ namespace Roslyn.Utilities
                     return this.ReadDateTime();
                 case DataKind.Char:
                     return this.ReadChar();
-                case DataKind.String:
+                case DataKind.StringUtf8:
+                case DataKind.StringUtf16:
                 case DataKind.StringRef:
                 case DataKind.StringRef_B:
                 case DataKind.StringRef_S:
@@ -283,15 +289,37 @@ namespace Roslyn.Utilities
                 case DataKind.StringRef:
                     return (string)this.dataMap.GetValue(reader.ReadInt32());
 
-                case DataKind.String:
-                    int id = this.dataMap.GetNextId();
-                    string value = reader.ReadString();
-                    this.dataMap.AddValue(id, value);
-                    return value;
+                case DataKind.StringUtf16:
+                case DataKind.StringUtf8:
+                    return ReadStringLiteral(kind);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
+        }
+
+        private unsafe string ReadStringLiteral(DataKind kind)
+        {
+            int id = this.dataMap.GetNextId();
+            string value;
+            if (kind == DataKind.StringUtf8)
+            {
+                value = reader.ReadString();
+            }
+            else
+            {
+                // This is rare, just allocate UTF16 bytes for simplicity.
+
+                int characterCount = (int)ReadCompressedUInt();
+                byte[] bytes = reader.ReadBytes(characterCount * sizeof(char));
+                fixed (byte* bytesPtr = bytes)
+                {
+                    value = new string((char*)bytesPtr, 0, characterCount);
+                }
+            }
+
+            this.dataMap.AddValue(id, value);
+            return value;
         }
 
         private Array ReadArray(DataKind kind)

@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static bool IsValidMetadataIdentifier(string str)
         {
-            return !String.IsNullOrEmpty(str) && IsValidUnicodeString(str, allowNullCharacters: false);
+            return !string.IsNullOrEmpty(str) && str.IsValidUnicodeString() && str.IndexOf('\0') == -1;
         }
 
         /// <summary>
@@ -786,41 +786,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static bool IsValidUnicodeString(string str)
         {
-            return String.IsNullOrEmpty(str) || IsValidUnicodeString(str, allowNullCharacters: true);
-        }
-
-        private static bool IsValidUnicodeString(string str, bool allowNullCharacters)
-        {
-            int i = 0;
-            while (i < str.Length)
-            {
-                char c = str[i++];
-                if (c == 0 && !allowNullCharacters)
-                {
-                    return false;
-                }
-
-                // (high surrogate, low surrogate) makes a valid pair, anything else is invalid:
-                if (Char.IsHighSurrogate(c))
-                {
-                    if (i < str.Length && Char.IsLowSurrogate(str[i]))
-                    {
-                        i++;
-                    }
-                    else
-                    {
-                        // high surrogate not followed by low surrogate
-                        return false;
-                    }
-                }
-                else if (Char.IsLowSurrogate(c))
-                {
-                    // previous character wasn't a high surrogate
-                    return false;
-                }
-            }
-
-            return true;
+            return str == null || str.IsValidUnicodeString();
         }
 
         internal static void ValidateAssemblyOrModuleName(string name, string argumentName)

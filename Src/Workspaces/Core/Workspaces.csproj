@@ -182,9 +182,6 @@
     <Compile Include="..\..\Compilers\Core\Source\Serialization\IObjectWritable.cs">
       <Link>Serialization\IObjectWritable.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Source\Serialization\MultiByteEncoding.cs">
-      <Link>Serialization\MultiByteEncoding.cs</Link>
-    </Compile>
     <Compile Include="..\..\Compilers\Core\Source\Serialization\ObjectBinder.cs">
       <Link>Serialization\ObjectBinder.cs</Link>
     </Compile>

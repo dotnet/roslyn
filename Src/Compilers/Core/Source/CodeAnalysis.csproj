@@ -414,7 +414,6 @@
     <Compile Include="Serialization\FixedObjectBinder.cs" />
     <Compile Include="Serialization\IObjectReadable.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
-    <Compile Include="Serialization\MultiByteEncoding.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
     <Compile Include="Serialization\ObjectReader.cs" />
     <Compile Include="Serialization\ObjectReaderData.cs" />

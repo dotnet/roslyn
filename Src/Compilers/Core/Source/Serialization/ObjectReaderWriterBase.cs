@@ -15,7 +15,8 @@ namespace Roslyn.Utilities
             ObjectRef,    // object ref id as 4 bytes
             ObjectRef_B,  // object ref id as 1 byte
             ObjectRef_S,  // object ref id as 2 bytes
-            String,       // string 
+            StringUtf8,   // string in UTF8 encoding
+            StringUtf16,  // string in UTF16 encoding
             StringRef,    // string ref id as 4-bytes
             StringRef_B,  // string ref id as 1-byte
             StringRef_S,  // string ref id as 2-bytes
