@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var binder = binderFactory.GetBinder(defaultSyntax);
 
             BoundExpression valueBeforeConversion;
-            var convertedExpression = binder.BindParameterDefaultValue(ContainingSymbol, defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
+            var convertedExpression = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax).BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
 
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
             if (hasErrors)

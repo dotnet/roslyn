@@ -3726,7 +3726,7 @@
   <data name="ERR_FeatureNotAvailableInVersion5" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 5.  Please use language version {1} or greater.</value>
   </data>
-  <data name="ERR_DeclarationExpressionOutsideOfAMethodBody" xml:space="preserve">
+  <data name="ERR_DeclarationExpressionOutOfContext" xml:space="preserve">
     <value>A declaration expression is not permitted in this context.</value>
   </data>
   <data name="ERR_VariableUsedInTheSameArgumentList" xml:space="preserve">

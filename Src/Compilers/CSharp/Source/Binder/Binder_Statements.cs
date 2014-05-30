@@ -684,13 +684,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected BoundLocalDeclaration BindVariableDeclaration(
-            LocalDeclarationKind kind, 
-            bool isVar, 
-            VariableDeclaratorSyntax declarator, 
-            TypeSyntax typeSyntax, 
-            TypeSymbol declTypeOpt, 
-            AliasSymbol aliasOpt, 
-            DiagnosticBag diagnostics, 
+            LocalDeclarationKind kind,
+            bool isVar,
+            VariableDeclaratorSyntax declarator,
+            TypeSyntax typeSyntax,
+            TypeSymbol declTypeOpt,
+            AliasSymbol aliasOpt,
+            DiagnosticBag diagnostics,
+            CSharpSyntaxNode associatedSyntaxNode = null)
+        {
+            Debug.Assert(declarator != null);
+
+            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax),
+                                           kind,
+                                           isVar,
+                                           declarator,
+                                           typeSyntax,
+                                           declTypeOpt,
+                                           aliasOpt,
+                                           diagnostics,
+                                           associatedSyntaxNode);
+        }
+
+        protected BoundLocalDeclaration BindVariableDeclaration(
+            SourceLocalSymbol localSymbol,
+            LocalDeclarationKind kind,
+            bool isVar,
+            VariableDeclaratorSyntax declarator,
+            TypeSyntax typeSyntax,
+            TypeSymbol declTypeOpt,
+            AliasSymbol aliasOpt,
+            DiagnosticBag diagnostics,
             CSharpSyntaxNode associatedSyntaxNode = null)
         {
             Debug.Assert(declarator != null);
@@ -703,8 +727,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = false;
             
             BoundExpression initializerOpt;
-
-            SourceLocalSymbol localSymbol = LocateDeclaredVariableSymbol(declarator, typeSyntax);
 
             // Check for variable declaration errors.
             hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
@@ -859,17 +881,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax)
-            {
+        {
             SourceLocalSymbol localSymbol = this.LookupLocal(declarator.Identifier);
 
             // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
             // This occurs through the semantic model.  In that case concoct a plausible result.
             if ((object)localSymbol == null)
+            {
+                if (declarator.Initializer == null)
                 {
-                localSymbol = SourceLocalSymbol.MakeLocal(
-                    ContainingMemberOrLambda, this, typeSyntax,
-                    declarator.Identifier, declarator.Initializer, LocalDeclarationKind.Variable);
+                    localSymbol = SourceLocalSymbol.MakeLocal(
+                        ContainingMemberOrLambda, this, typeSyntax,
+                        declarator.Identifier, LocalDeclarationKind.Variable);
                 }
+                else
+                {
+                    localSymbol = SourceLocalSymbol.MakeLocalWithInitializer(
+                        ContainingMemberOrLambda, this, typeSyntax,
+                        declarator.Identifier, declarator.Initializer, LocalDeclarationKind.Variable);
+                }
+            }
 
             return localSymbol;
         }
@@ -3260,9 +3291,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public BoundBlock BindExpressionBodyAsBlock(ExpressionSyntax body, DiagnosticBag diagnostics)
         {
-            var expressionBinder = new ScopedExpressionBinder(this, body);
-            BoundExpression expression = expressionBinder.BindValue(body, diagnostics, BindValueKind.RValue);
-            return CreateBlockFromExpression(expressionBinder.Locals, expression, body, diagnostics);
+            BoundExpression expression = this.BindValue(body, diagnostics, BindValueKind.RValue);
+            return CreateBlockFromExpression(this.Locals, expression, body, diagnostics);
         }
 
         internal virtual ImmutableArray<LocalSymbol> Locals

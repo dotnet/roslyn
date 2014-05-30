@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -56,9 +60,805 @@ public class Cls
     }
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
-            
+
             CompileAndVerify(compilation, expectedOutput: @"123
 123").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
+        }
+
+
+        private class DeclarationScope
+        {
+            public readonly DeclarationScope Parent;
+            private SmallDictionary<string, SemanticModelInfo> locals;
+
+            public DeclarationScope(DeclarationScope parent)
+            {
+                this.Parent = parent;
+            }
+
+            internal void AddDeclaration(string name, SemanticModelInfo info)
+            {
+                if (locals == null)
+                {
+                    locals = new SmallDictionary<string, SemanticModelInfo>();
+                }
+
+                locals[name] = info;
+            }
+
+            internal SemanticModelInfo Bind(string name)
+            {
+                SemanticModelInfo result;
+
+                if (locals != null && locals.TryGetValue(name, out result))
+                {
+                    return result;
+                }
+
+                if (Parent != null)
+                {
+                    return Parent.Bind(name);
+                }
+
+                return null;
+            }
+        }
+
+        private class SemanticModelInfo
+        {
+            public readonly DeclarationScope DeclScope;
+            public readonly CSharpSyntaxNode Node;
+            public SemanticModelInfo LocalDeclaration;
+
+            public SymbolInfo SymInfo;
+            public TypeInfo TypeInfo;
+
+            public SemanticModelInfo(DeclarationScope declScope, CSharpSyntaxNode node)
+            {
+                this.DeclScope = declScope;
+                this.Node = node;
+            }
+
+            public void Clear()
+            {
+                SymInfo = default(SymbolInfo);
+                TypeInfo = default(TypeInfo);
+            }
+        }
+
+        private class ModelBuilder : CSharpSyntaxWalker
+        {
+            private DeclarationScope currentScope;
+            private DeclarationScope staticInitScope;
+            private DeclarationScope instanceInitScope;
+            private ArrayBuilder<SemanticModelInfo> builder;
+
+            private ModelBuilder() { }
+
+            public static ImmutableArray<SemanticModelInfo> Build(SyntaxTree tree)
+            {
+                var visitor = new ModelBuilder();
+                visitor.builder = ArrayBuilder<SemanticModelInfo>.GetInstance();
+
+                // Collect nodes of interest.
+                visitor.Visit(tree.GetRoot());
+
+                // Populate local scopes with local declarations
+                foreach (var info in visitor.builder.Reverse())
+                {
+                    switch (info.Node.Kind)
+                    {
+                        case SyntaxKind.VariableDeclarator:
+                            info.DeclScope.AddDeclaration(((VariableDeclaratorSyntax)info.Node).Identifier.ValueText, info);
+                            break;
+
+                        case SyntaxKind.CatchDeclaration:
+                            info.DeclScope.AddDeclaration(((CatchDeclarationSyntax)info.Node).Identifier.ValueText, info);
+                            break;
+
+                        case SyntaxKind.ForEachStatement:
+                            info.DeclScope.AddDeclaration(((ForEachStatementSyntax)info.Node).Identifier.ValueText, info);
+                            break;
+
+                        case SyntaxKind.IdentifierName:
+                            break;
+
+                        default:
+                            throw new NotImplementedException();
+                    }
+                }
+
+                // "Bind" identifiers
+                foreach (var info in visitor.builder)
+                {
+                    if (info.Node.Kind == SyntaxKind.IdentifierName && info.DeclScope != null)
+                    {
+                        info.LocalDeclaration = info.DeclScope.Bind(((IdentifierNameSyntax)info.Node).Identifier.ValueText);
+                    }
+                }
+
+                return visitor.builder.ToImmutableAndFree(); 
+            }
+
+            public override void VisitClassDeclaration(ClassDeclarationSyntax node)
+            {
+                Debug.Assert(currentScope == null);
+                DeclarationScope saveStaticInitScope = staticInitScope;
+                DeclarationScope saveInstanceInitScope = instanceInitScope;
+
+                staticInitScope = new DeclarationScope(null);
+                instanceInitScope = new DeclarationScope(null);
+
+                base.VisitClassDeclaration(node);
+
+                staticInitScope = saveStaticInitScope;
+                instanceInitScope = saveInstanceInitScope;
+                Debug.Assert(currentScope == null);
+            }
+
+            public override void VisitStructDeclaration(StructDeclarationSyntax node)
+            {
+                Debug.Assert(currentScope == null);
+                DeclarationScope saveStaticInitScope = staticInitScope;
+                DeclarationScope saveInstanceInitScope = instanceInitScope;
+
+                staticInitScope = new DeclarationScope(null);
+                instanceInitScope = new DeclarationScope(null);
+
+                base.VisitStructDeclaration(node);
+
+                staticInitScope = saveStaticInitScope;
+                instanceInitScope = saveInstanceInitScope;
+                Debug.Assert(currentScope == null);
+            }
+
+            public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
+            {
+                Debug.Assert(currentScope == null);
+                DeclarationScope saveStaticInitScope = staticInitScope;
+                DeclarationScope saveInstanceInitScope = instanceInitScope;
+
+                staticInitScope = null;
+                instanceInitScope = null;
+
+                base.VisitEnumDeclaration(node);
+
+                staticInitScope = saveStaticInitScope;
+                instanceInitScope = saveInstanceInitScope;
+                Debug.Assert(currentScope == null);
+            }
+
+            public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+            {
+                Debug.Assert(currentScope == null);
+                DeclarationScope saveStaticInitScope = staticInitScope;
+                DeclarationScope saveInstanceInitScope = instanceInitScope;
+
+                staticInitScope = new DeclarationScope(null);
+                instanceInitScope = new DeclarationScope(null);
+
+                base.VisitInterfaceDeclaration(node);
+
+                staticInitScope = saveStaticInitScope;
+                instanceInitScope = saveInstanceInitScope;
+                Debug.Assert(currentScope == null);
+            }
+
+            public override void VisitFieldDeclaration(FieldDeclarationSyntax node)
+            {
+                Debug.Assert(currentScope == null);
+                DeclarationScope initScope = null;
+
+                if (!node.Modifiers.Any(SyntaxKind.ConstKeyword))
+                {
+                    initScope = node.Modifiers.Any(SyntaxKind.StaticKeyword) ? staticInitScope : instanceInitScope;
+                }
+
+                foreach (VariableDeclaratorSyntax declarator in node.Declaration.Variables)
+                {
+                    currentScope = initScope ?? new DeclarationScope(null);
+                    Visit(declarator.Initializer);
+                    currentScope = null;
+                }
+            }
+
+            public override void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
+            {
+                Debug.Assert(currentScope == null);
+                DeclarationScope initScope = node.Modifiers.Any(SyntaxKind.StaticKeyword) ? staticInitScope : instanceInitScope;
+
+                foreach (VariableDeclaratorSyntax declarator in node.Declaration.Variables)
+                {
+                    currentScope = initScope ?? new DeclarationScope(null);
+                    Visit(declarator.Initializer);
+                    currentScope = null;
+                }
+            }
+
+            public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
+            {
+                Debug.Assert(currentScope == null);
+                DeclarationScope initScope = node.Modifiers.Any(SyntaxKind.StaticKeyword) ? staticInitScope : instanceInitScope;
+
+                currentScope = initScope ?? new DeclarationScope(null);
+                Visit(node.Initializer);
+                currentScope = null;
+            }
+
+            public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
+            {
+                Debug.Assert(currentScope != null);
+
+                foreach (VariableDeclaratorSyntax declarator in node.Declaration.Variables)
+                {
+                    builder.Add(new SemanticModelInfo(currentScope, declarator));
+                    Visit(declarator.Initializer);
+                }
+            }
+
+            public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
+            {
+                Debug.Assert(currentScope != null);
+                builder.Add(new SemanticModelInfo(currentScope, node.Variable));
+                Visit(node.Variable.Initializer);
+            }
+
+            public override void VisitIdentifierName(IdentifierNameSyntax node)
+            {
+                if (node.IsMissing)
+                {
+                    return;
+                }
+
+                switch (node.Parent.Kind)
+                {
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                    case SyntaxKind.InvocationExpression:
+                    case SyntaxKind.QualifiedName:
+                    case SyntaxKind.UsingDirective:
+                    case SyntaxKind.NameEquals:
+                        return;
+
+                    case SyntaxKind.Attribute:
+                        if (((AttributeSyntax)node.Parent).Name == node)
+                        {
+                            return;
+                        }
+                        break;
+                }
+
+                builder.Add(new SemanticModelInfo(currentScope, node));
+            }
+
+            public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void VisitBlock(BlockSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+                base.VisitBlock(node);
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitUsingStatement(UsingStatementSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                if (node.Declaration != null)
+                {
+                    foreach (VariableDeclaratorSyntax declarator in node.Declaration.Variables)
+                    {
+                        builder.Add(new SemanticModelInfo(currentScope, declarator));
+                        Visit(declarator.Initializer);
+                    }
+                }
+
+                Visit(node.Expression);
+                VisitPossibleEmbeddedStatement(node.Statement);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitWhileStatement(WhileStatementSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Condition);
+                VisitPossibleEmbeddedStatement(node.Statement);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitDoStatement(DoStatementSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Condition);
+                VisitPossibleEmbeddedStatement(node.Statement);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitForStatement(ForStatementSyntax node)
+            {
+                var saveCurentScope = currentScope;
+
+                currentScope = new DeclarationScope(currentScope);
+
+                if (node.Declaration != null)
+                {
+                    foreach (VariableDeclaratorSyntax declarator in node.Declaration.Variables)
+                    {
+                        builder.Add(new SemanticModelInfo(currentScope, declarator));
+                        Visit(declarator.Initializer);
+                    }
+                }
+
+                foreach (var initializer in node.Initializers)
+                {
+                    Visit(initializer);
+                }
+
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Condition);
+
+                foreach (var incrementor in node.Incrementors)
+                {
+                    Visit(incrementor);
+                }
+
+                VisitPossibleEmbeddedStatement(node.Statement);
+
+                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitForEachStatement(ForEachStatementSyntax node)
+            {
+                var saveCurentScope = currentScope;
+
+                currentScope = new DeclarationScope(currentScope);
+
+                var nestedScope = new DeclarationScope(currentScope);
+
+                builder.Add(new SemanticModelInfo(nestedScope, node));
+
+                Visit(node.Expression);
+
+                currentScope = nestedScope;
+
+                VisitPossibleEmbeddedStatement(node.Statement);
+
+                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitFixedStatement(FixedStatementSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                foreach (VariableDeclaratorSyntax declarator in node.Declaration.Variables)
+                {
+                    builder.Add(new SemanticModelInfo(currentScope, declarator));
+                    Visit(declarator.Initializer);
+                }
+
+                VisitPossibleEmbeddedStatement(node.Statement);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitLockStatement(LockStatementSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Expression);
+                VisitPossibleEmbeddedStatement(node.Statement);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitSwitchStatement(SwitchStatementSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Expression);
+
+                currentScope = new DeclarationScope(currentScope);
+
+                foreach (SwitchSectionSyntax section in node.Sections)
+                {
+                    Visit(section);
+                }
+
+                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitIfStatement(IfStatementSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Condition);
+
+                VisitPossibleEmbeddedStatement(node.Statement);
+                Visit(node.Else);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitElseClause(ElseClauseSyntax node)
+            {
+                VisitPossibleEmbeddedStatement(node.Statement);
+            }
+
+            public override void VisitCatchClause(CatchClauseSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                var declarationOpt = node.Declaration;
+                if ((declarationOpt != null) && (declarationOpt.Identifier.CSharpKind() != SyntaxKind.None))
+                {
+                    builder.Add(new SemanticModelInfo(currentScope, declarationOpt));
+                }
+
+                Visit(node.Filter);
+                Visit(node.Block);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            private void VisitPossibleEmbeddedStatement(StatementSyntax statement)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(statement);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Block);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Body);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Body);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitFromClause(FromClauseSyntax node)
+            {
+                var saveCurentScope = currentScope;
+
+                // Visit Expression in the current scope only for a "from" clause that starts a query, it (the expression) doesn't become a body of a lambda.
+                var parent = node.Parent;
+
+                if (parent != null && (parent.Kind != SyntaxKind.QueryExpression || ((QueryExpressionSyntax)parent).FromClause != node))
+                {
+                    currentScope = new DeclarationScope(currentScope);
+                }
+
+                Visit(node.Expression);
+
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitLetClause(LetClauseSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Expression);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitJoinClause(JoinClauseSyntax node)
+            {
+                Visit(node.InExpression);
+
+                var saveCurentScope = currentScope;
+
+                currentScope = new DeclarationScope(saveCurentScope);
+                Visit(node.LeftExpression);
+
+                currentScope = new DeclarationScope(saveCurentScope);
+                Visit(node.RightExpression);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitWhereClause(WhereClauseSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Condition);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitOrdering(OrderingSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Expression);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitSelectClause(SelectClauseSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+
+                Visit(node.Expression);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitGroupClause(GroupClauseSyntax node)
+            {
+                var saveCurentScope = currentScope;
+
+                currentScope = new DeclarationScope(saveCurentScope);
+                Visit(node.GroupExpression);
+
+                currentScope = new DeclarationScope(saveCurentScope);
+                Visit(node.ByExpression);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitParameter(ParameterSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(saveCurentScope);
+
+                Visit(node.Default);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitAttributeArgument(AttributeArgumentSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(saveCurentScope);
+
+                Visit(node.Expression);
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+        }
+
+        private static void TestSemanticModelAPI(CSharpCompilation compilation, ImmutableArray<Diagnostic> diagnostics = default(ImmutableArray<Diagnostic>))
+        {
+            if (diagnostics.IsDefault)
+            {
+                diagnostics = ImmutableArray<Diagnostic>.Empty;
+            }
+
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+
+            var infos = ModelBuilder.Build(tree);
+
+            TestSemanticModelAPI(compilation, tree, infos, diagnostics, backwards: false);
+            TestSemanticModelAPI(compilation, tree, infos, diagnostics, backwards: true);
+        }
+
+        private static void TestSemanticModelAPI(
+            CSharpCompilation compilation, 
+            SyntaxTree tree, 
+            ImmutableArray<SemanticModelInfo> infos, 
+            ImmutableArray<Diagnostic> diagnostics, 
+            bool backwards)
+        {
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
+
+            SymbolInfo symInfo;
+            TypeInfo typeInfo;
+            LocalSymbol local;
+
+            foreach (var info in backwards ? infos.Reverse() : infos)
+            {
+                info.Clear();
+
+                switch (info.Node.Kind)
+                {
+                    case SyntaxKind.VariableDeclarator:
+                        var declarator = (VariableDeclaratorSyntax)info.Node;
+                        local = (LocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+
+                        if ((object)local != null)
+                        {
+                            Assert.Equal(declarator.Identifier.ValueText, local.Name);
+                            Assert.Equal(declarator.Identifier.GetLocation(), local.Locations[0]);
+                        }
+                        else
+                        {
+                            Assert.Equal(SyntaxKind.DeclarationExpression, declarator.Parent.Kind);
+                            Assert.True(diagnostics.Where(d => d.Code == (int)ErrorCode.ERR_DeclarationExpressionOutOfContext &&
+                                                          d.Location == declarator.Parent.GetLocation()).Any());
+                            break;
+                        }
+
+                        info.SymInfo = new SymbolInfo(local);
+
+                        if (declarator.Parent.Kind == SyntaxKind.DeclarationExpression)
+                        {
+                            Assert.Equal(LocalDeclarationKind.Variable, local.DeclarationKind);
+
+                            var declExpr = (DeclarationExpressionSyntax)declarator.Parent;
+                            symInfo = semanticModel.GetSymbolInfo(declExpr);
+                            Assert.Same(local, symInfo.Symbol);
+
+                            typeInfo = semanticModel.GetTypeInfo(declExpr);
+                            Assert.Equal(local.Type, typeInfo.Type);
+                        }
+
+                        Assert.True(semanticModel.LookupNames(declarator.Identifier.Position).Contains(local.Name));
+
+                        var declDiagnostics = diagnostics.Where(d => d.Location == declarator.Identifier.GetLocation()).ToArray();
+
+                        bool duplicate = declDiagnostics.Where(d => d.Code == (int)ErrorCode.ERR_LocalDuplicate).Any();
+                        bool overrides = declDiagnostics.Where(d => d.Code == (int)ErrorCode.ERR_LocalIllegallyOverrides).Any();
+
+                        Assert.False(duplicate && overrides);
+
+                        if (duplicate)
+                        {
+                            Assert.NotEqual(local, semanticModel.LookupSymbols(declarator.Identifier.Position, name: local.Name).Single());
+                        }
+                        else
+                        {
+                            Assert.Same(local, semanticModel.LookupSymbols(declarator.Identifier.Position, name: local.Name).Single());
+                        }
+
+                        break;
+
+                    case SyntaxKind.CatchDeclaration:
+                        var catchDecl = (CatchDeclarationSyntax)info.Node;
+                        local = (LocalSymbol)semanticModel.GetDeclaredSymbol(catchDecl);
+                        Assert.Equal(catchDecl.Identifier.ValueText, local.Name);
+                        Assert.Equal(catchDecl.Identifier.GetLocation(), local.Locations[0]);
+
+                        info.SymInfo = new SymbolInfo(local);
+                        break;
+
+                    case SyntaxKind.ForEachStatement:
+                        var loop = (ForEachStatementSyntax)info.Node;
+                        local = (LocalSymbol)semanticModel.GetDeclaredSymbol(loop);
+                        Assert.Equal(loop.Identifier.ValueText, local.Name);
+                        Assert.Equal(loop.Identifier.GetLocation(), local.Locations[0]);
+
+                        info.SymInfo = new SymbolInfo(local);
+                        break;
+
+                    case SyntaxKind.IdentifierName:
+                        var reference = (IdentifierNameSyntax)info.Node;
+                        info.SymInfo = semanticModel.GetSymbolInfo(reference);
+                        info.TypeInfo = semanticModel.GetTypeInfo(reference);
+
+                        if ((object)info.SymInfo.Symbol != null)
+                        {
+                            Assert.True(semanticModel.LookupNames(reference.Identifier.Position).Contains(info.SymInfo.Symbol.Name));
+
+                            switch (info.SymInfo.Symbol.Kind)
+                            {
+                                case SymbolKind.NamedType:
+                                    break;
+
+                                default:
+                                    Assert.Same(info.SymInfo.Symbol, semanticModel.LookupSymbols(reference.Identifier.Position, name: info.SymInfo.Symbol.Name).Single());
+                                    break;
+                            }
+                        }
+                        else if (info.SymInfo.CandidateSymbols.Length == 0)
+                        {
+                            Assert.True(diagnostics.Where(d => d.Code == (int)ErrorCode.ERR_NameNotInContext &&
+                                                               d.Location == reference.Identifier.GetLocation()).Any());
+                        }
+
+                        break;
+
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+
+            foreach (var info in infos)
+            {
+                switch (info.Node.Kind)
+                {
+                    case SyntaxKind.VariableDeclarator:
+                    case SyntaxKind.CatchDeclaration:
+                    case SyntaxKind.ForEachStatement:
+                        break;
+
+                    case SyntaxKind.IdentifierName:
+                        var reference = (IdentifierNameSyntax)info.Node;
+                        info.SymInfo = semanticModel.GetSymbolInfo(reference);
+                        info.TypeInfo = semanticModel.GetTypeInfo(reference);
+
+                        if (info.LocalDeclaration != null)
+                        {
+                            Assert.Same(info.LocalDeclaration.SymInfo.Symbol, info.SymInfo.Symbol);
+                            Assert.Equal(0, info.SymInfo.CandidateSymbols.Length);
+
+                            if ((object)info.SymInfo.Symbol != null)
+                            {
+                                Assert.Equal(((LocalSymbol)info.SymInfo.Symbol).Type, info.TypeInfo.Type);
+                            }
+                        }
+                        else if ((object)info.SymInfo.Symbol != null)
+                        {
+                            Assert.NotEqual(SymbolKind.Local, info.SymInfo.Symbol.Kind);
+                        }
+
+                        break;
+
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+
         }
 
         [Fact]
@@ -91,7 +891,9 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+
+            diagnostics.Verify(
     // (6,9): error CS0841: Cannot use local variable 'i' before it is declared
     //         i = 1;
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "i").WithArguments("i").WithLocation(6, 9),
@@ -114,6 +916,8 @@ public class Cls
     //         int l = 4;
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "l").WithArguments("l").WithLocation(15, 13)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -133,6 +937,8 @@ public class Cls
 
             CompileAndVerify(compilation, expectedOutput: @"123
 123").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -152,10 +958,12 @@ public class Cls
 
             CompileAndVerify(compilation, expectedOutput: @"123
 123").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
-        public void ERR_DeclarationExpressionOutsideOfAMethodBody_01()
+        public void ERR_DeclarationExpressionOutOfContext_01()
         {
             var text = @"
 public class Cls
@@ -178,19 +986,21 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+
+            diagnostics.Verify(
+    // (8,45): error CS0103: The name 'a' does not exist in the current context
+    //     static void Test1(int p = (int a = 3) + a)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 45),
     // (8,32): error CS8047: A declaration expression is not permitted in this context.
     //     static void Test1(int p = (int a = 3) + a)
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int a = 3").WithLocation(8, 32),
-    // (8,31): error CS1736: Default parameter value for 'p' must be a compile-time constant
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int a = 3").WithLocation(8, 32),
+    // (8,27): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
     //     static void Test1(int p = (int a = 3) + a)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(int a = 3) + a").WithArguments("p").WithLocation(8, 31),
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "int").WithLocation(8, 27),
     // (12,32): error CS8047: A declaration expression is not permitted in this context.
     //     static void Test2(int p1 = int b = 3, int p2 = b)
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int b = 3").WithLocation(12, 32),
-    // (12,32): error CS1736: Default parameter value for 'p1' must be a compile-time constant
-    //     static void Test2(int p1 = int b = 3, int p2 = b)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "int b = 3").WithArguments("p1").WithLocation(12, 32),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int b = 3").WithLocation(12, 32),
     // (12,52): error CS0103: The name 'b' does not exist in the current context
     //     static void Test2(int p1 = int b = 3, int p2 = b)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(12, 52),
@@ -205,15 +1015,14 @@ public class Cls
     Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p1").WithArguments("?", "int").WithLocation(16, 27),
     // (16,44): error CS8047: A declaration expression is not permitted in this context.
     //     static void Test3(int p1 = c, int p2 = int c = 3)
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int c = 3").WithLocation(16, 44),
-    // (16,44): error CS1736: Default parameter value for 'p2' must be a compile-time constant
-    //     static void Test3(int p1 = c, int p2 = int c = 3)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "int c = 3").WithArguments("p2").WithLocation(16, 44)
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int c = 3").WithLocation(16, 44)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
-        public void ERR_DeclarationExpressionOutsideOfAMethodBody_02()
+        public void ERR_DeclarationExpressionOutOfContext_02()
         {
             var text = @"
 public class Cls
@@ -253,54 +1062,88 @@ class TestAttribute : System.Attribute
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+
+            diagnostics.Verify(
+    // (8,34): error CS0103: The name 'a' does not exist in the current context
+    //     [TestAttribute((int a = 3) + a)]
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 34),
     // (8,21): error CS8047: A declaration expression is not permitted in this context.
     //     [TestAttribute((int a = 3) + a)]
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int a = 3").WithLocation(8, 21),
-    // (8,20): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-    //     [TestAttribute((int a = 3) + a)]
-    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "(int a = 3) + a").WithLocation(8, 20),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int a = 3").WithLocation(8, 21),
     // (11,20): error CS8047: A declaration expression is not permitted in this context.
     //     [TestAttribute(int b = 3, Y = b)]
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int b = 3").WithLocation(11, 20),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int b = 3").WithLocation(11, 20),
     // (11,35): error CS0103: The name 'b' does not exist in the current context
     //     [TestAttribute(int b = 3, Y = b)]
     Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(11, 35),
-    // (11,20): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-    //     [TestAttribute(int b = 3, Y = b)]
-    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "int b = 3").WithLocation(11, 20),
+    // (14,38): error CS0103: The name 'c' does not exist in the current context
+    //     [TestAttribute(Y = (int c = 3) + c)]
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(14, 38),
     // (14,25): error CS8047: A declaration expression is not permitted in this context.
     //     [TestAttribute(Y = (int c = 3) + c)]
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int c = 3").WithLocation(14, 25),
-    // (14,24): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-    //     [TestAttribute(Y = (int c = 3) + c)]
-    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "(int c = 3) + c").WithLocation(14, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int c = 3").WithLocation(14, 25),
     // (17,24): error CS8047: A declaration expression is not permitted in this context.
     //     [TestAttribute(Y = int d = 3, Z = d)]
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int d = 3").WithLocation(17, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int d = 3").WithLocation(17, 24),
     // (17,39): error CS0103: The name 'd' does not exist in the current context
     //     [TestAttribute(Y = int d = 3, Z = d)]
     Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(17, 39),
-    // (17,24): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-    //     [TestAttribute(Y = int d = 3, Z = d)]
-    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "int d = 3").WithLocation(17, 24),
     // (20,20): error CS0103: The name 'e' does not exist in the current context
     //     [TestAttribute(e, Y = int e = 3)]
     Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(20, 20),
     // (20,27): error CS8047: A declaration expression is not permitted in this context.
     //     [TestAttribute(e, Y = int e = 3)]
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int e = 3").WithLocation(20, 27),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int e = 3").WithLocation(20, 27),
     // (23,24): error CS0103: The name 'f' does not exist in the current context
     //     [TestAttribute(Y = f, Z = int f = 3)]
     Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(23, 24),
     // (23,31): error CS8047: A declaration expression is not permitted in this context.
     //     [TestAttribute(Y = f, Z = int f = 3)]
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int f = 3").WithLocation(23, 31),
-    // (23,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-    //     [TestAttribute(Y = f, Z = int f = 3)]
-    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "int f = 3").WithLocation(23, 31)
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int f = 3").WithLocation(23, 31)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
+
+        [Fact]
+        public void ERR_DeclarationExpressionOutOfContext_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    static void Test1(int p = (var a = 3))
+    {
+    }
+
+    static void Test2(int p = (var b = Test1(0)))
+    {
+    }
+
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+
+            diagnostics.Verify(
+    // (8,32): error CS8047: A declaration expression is not permitted in this context.
+    //     static void Test1(int p = (var a = 3))
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "var a = 3").WithLocation(8, 32),
+    // (12,32): error CS8047: A declaration expression is not permitted in this context.
+    //     static void Test2(int p = (var b = Test1(0)))
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "var b = Test1(0)").WithLocation(12, 32),
+    // (12,27): error CS1750: A value of type 'var' cannot be used as a default parameter because there are no standard conversions to type 'int'
+    //     static void Test2(int p = (var b = Test1(0)))
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("var", "int").WithLocation(12, 27)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
 
         [Fact]
         public void SimpleVar_01()
@@ -330,6 +1173,8 @@ public class Cls
             CompileAndVerify(compilation, expectedOutput: @"123
 123
 System.Int32").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -349,7 +1194,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,18): error CS0818: Implicitly-typed variables must be initialized
     //         Test(var y);
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 18),
@@ -357,6 +1203,8 @@ public class Cls
     //         Test(var y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 14)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -377,7 +1225,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,21): error CS0841: Cannot use local variable 'x' before it is declared
     //         var x = 1 + x;
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 21),
@@ -391,6 +1240,8 @@ public class Cls
     //         Test(var y = 1 + y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(7, 26)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -422,6 +1273,8 @@ public class Cls
 43
 40
 43").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -557,7 +1410,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (14,9): error CS0103: The name 'j' does not exist in the current context
     //         j = 3;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "j").WithArguments("j").WithLocation(14, 9),
@@ -655,6 +1509,8 @@ public class Cls
     //             System.Console.WriteLine(j);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "j").WithArguments("j").WithLocation(8, 38)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -698,6 +1554,8 @@ public class Cls
 200
 1000
 2000").VerifyDiagnostics();
+            
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -729,6 +1587,8 @@ public class Cls
             CompileAndVerify(compilation, expectedOutput: @"10
 20
 30").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -759,6 +1619,8 @@ public class Cls
 
             CompileAndVerify(compilation, expectedOutput: @"100
 200").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -790,6 +1652,8 @@ public class Cls
             CompileAndVerify(compilation, expectedOutput: @"10
 20
 30").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -820,6 +1684,46 @@ public class Cls
 
             CompileAndVerify(compilation, expectedOutput: @"1000
 2000").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
+        }
+
+        [Fact]
+        public void For_08()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Action lambda = () =>
+            {
+                for (int i = (int)(double j = 0); (j = i) < 2; i=(int)j+1)
+                {
+                    System.Console.WriteLine(j);
+                }
+
+                for (int i = (int)(double j = 10); (j = i) < 12; i=(int)j+1)
+                    System.Console.WriteLine(j + (int k = 5 + i) + k);
+
+                int ii;
+                for (ii = (int)(double j = 10); (j = ii) < 12; ii=(int)j+1)
+                    System.Console.WriteLine(j + (int k = 5 + ii) + k);
+            };
+
+        lambda();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+40
+43
+40
+43").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -854,6 +1758,8 @@ public class Cls
 1
 13
 25").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -939,7 +1845,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (20,9): error CS0103: The name 'j' does not exist in the current context
     //         j = 3;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "j").WithArguments("j").WithLocation(20, 9),
@@ -989,6 +1896,8 @@ public class Cls
     //             System.Console.WriteLine((int e1 = 1) + (int e1 = 1));
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "e1").WithArguments("e1").WithLocation(76, 58)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -1015,6 +1924,8 @@ public class Cls
 
             CompileAndVerify(compilation, expectedOutput: @"2
 -10").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -1092,7 +2003,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (20,9): error CS0103: The name 'j' does not exist in the current context
     //         j = 3;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "j").WithArguments("j"),
@@ -1136,6 +2048,8 @@ public class Cls
     //                 System.Console.WriteLine((int e1 = 2) + (int e1 = 2));
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "e1").WithArguments("e1").WithLocation(67, 62)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -1169,6 +2083,8 @@ public class Cls
 
             CompileAndVerify(compilation, expectedOutput: @"2
 13").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -1255,7 +2171,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (14,9): error CS0103: The name 'j' does not exist in the current context
     //         j = 3;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "j").WithArguments("j"),
@@ -1284,6 +2201,48 @@ public class Cls
     //                 int c3 = 0;
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "c3").WithArguments("c3").WithLocation(74, 21)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void switch_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Action lambda = () =>
+            {
+                switch ((int j = 2) - 1)
+                {
+                    default:
+                        System.Console.WriteLine(j);
+                        break;
+                }
+
+                switch ((int j = 3) - 1)
+                {
+                    default:
+                        System.Console.WriteLine(j + (int k = 5) + k);
+                        break;
+                    case 298980:
+                        k = 3;
+                        System.Console.WriteLine(k);
+                        break;
+                }
+            };
+
+        lambda();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"2
+13").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -1326,6 +2285,8 @@ public class Cls
 31
 20
 21").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -1402,7 +2363,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (20,9): error CS0103: The name 'j' does not exist in the current context
     //         j = 3;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "j").WithArguments("j"),
@@ -1446,6 +2408,57 @@ public class Cls
     //             System.Console.WriteLine((int e1 = 3) + (int e1 = 3));
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "e1").WithArguments("e1").WithLocation(67, 58)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void ForEach_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Action lambda = () =>
+            {
+                foreach (var i in new [] { int j = 0, 1})
+                {
+                    System.Console.WriteLine(j);
+                    j+=2;
+                }
+
+                foreach (var i in new [] { int j = 0, 1})
+                    System.Console.WriteLine(j = j + (int k = 5) + k);
+
+                var lambdas = new System.Func<int>[2];
+                foreach (var i in new [] { 0, 1})
+                    Dummy(int k = i+30, lambdas[i] = () => k);
+
+                foreach (var i in lambdas)
+                    System.Console.WriteLine(i());
+
+                foreach (var i in (System.Collections.Generic.IEnumerable<int>)(new [] { int j = 10, 1}))
+                    System.Console.WriteLine(j = j + i);
+            };
+
+        lambda();
+    }
+
+    static void Dummy(object p1, object p2){}
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"0
+2
+10
+20
+30
+31
+20
+21").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -1475,6 +2488,8 @@ public class Cls
 3
 50
 54").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -1539,7 +2554,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (9,9): error CS0103: The name 'j' does not exist in the current context
     //         j = 3;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "j").WithArguments("j").WithLocation(9, 9),
@@ -1578,6 +2594,8 @@ public class Cls
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "d1").WithArguments("d1").WithLocation(55, 58)
 
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -1615,6 +2633,8 @@ public class Cls
 30
 100
 200").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -1646,6 +2666,8 @@ public class Cls
             CompileAndVerify(compilation, expectedOutput: @"10
 20
 30").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -1676,6 +2698,8 @@ public class Cls
 
             CompileAndVerify(compilation, expectedOutput: @"100
 200").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -1711,6 +2735,8 @@ public class Cls
             CompileAndVerify(compilation, expectedOutput: @"3
 6
 4").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -1797,7 +2823,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,9): error CS0103: The name 'j' does not exist in the current context
     //         j = 3;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "j").WithArguments("j").WithLocation(10, 9),
@@ -1841,6 +2868,8 @@ public class Cls
     //             System.Console.WriteLine((int d1 = 1) + (int d1 = 1));
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "d1").WithArguments("d1").WithLocation(75, 58)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -1878,6 +2907,8 @@ public class Cls
 200
 20
 30").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -1915,6 +2946,8 @@ public class Cls
 3
 103
 1003").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -2061,7 +3094,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (16,60): error CS0103: The name 'm' does not exist in the current context
     //             System.Console.WriteLine(j + (int n = 5) + n + m);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "m").WithArguments("m").WithLocation(16, 60),
@@ -2165,6 +3199,8 @@ public class Cls
     //             System.Console.WriteLine((int c2 = 1) + (int c2 = 1));
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "c2").WithArguments("c2").WithLocation(137, 58)
             );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2187,6 +3223,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -2210,6 +3248,8 @@ public class Cls
 
             CompileAndVerify(compilation, expectedOutput: @"123
 123").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -2237,7 +3277,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (8,19): error CS1510: A ref or out argument must be an assignable variable
     //         Test1(ref (int z) = 2);
     Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(int z) = 2").WithLocation(8, 19),
@@ -2257,6 +3298,8 @@ public class Cls
     //         Test1(ref (int z) = 2);
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(8, 24)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2267,13 +3310,22 @@ public class Cls
 {
     public static void Main()
     {
-        Test(out var y);
+        Test1(out var y);
         Print(y);
+        Test2(out (var z));
+        Print(z);
+        var notused = new Cls(out var u);
+        Print(u);
     }
 
-    static void Test(out int x)
+    static void Test1(out int x)
     {
         x = 123;
+    }
+
+    static void Test2(out short x)
+    {
+        x = 1234;
     }
 
     static void Print<T>(T val)
@@ -2281,11 +3333,22 @@ public class Cls
         System.Console.WriteLine(val);
         System.Console.WriteLine(typeof(T));
     }
+
+    Cls(out byte x)
+    {
+        x = 31;
+    }
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"123
-System.Int32").VerifyDiagnostics();
+System.Int32
+1234
+System.Int16
+31
+System.Byte").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -2297,18 +3360,32 @@ public class Cls
     public static void Main()
     {
         int x = (var y);
+
+        System.Console.WriteLine(z);
+        Test2(out var z);
+    }
+
+    static void Test2(out short x)
+    {
+        x = 1234;
     }
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,22): error CS0818: Implicitly-typed variables must be initialized
     //         int x = (var y);
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 22),
     // (6,18): error CS0165: Use of unassigned local variable 'y'
     //         int x = (var y);
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 18)
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 18),
+    // (8,34): error CS0841: Cannot use local variable 'z' before it is declared
+    //         System.Console.WriteLine(z);
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "z").WithArguments("z").WithLocation(8, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2324,11 +3401,14 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,22): error CS0818: Implicitly-typed variables must be initialized
     //         int x = (var y) = 1;
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 22)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2350,7 +3430,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,18): error CS0818: Implicitly-typed variables must be initialized
     //         Test(var y);
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 18),
@@ -2358,6 +3439,8 @@ public class Cls
     //         Test(var y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 14)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
 
@@ -2380,7 +3463,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,18): error CS1620: Argument 1 must be passed with the 'out' keyword
     //         Test(ref var y);
     Diagnostic(ErrorCode.ERR_BadArgRef, "var y").WithArguments("1", "out").WithLocation(6, 18),
@@ -2391,6 +3475,8 @@ public class Cls
     //         Test(ref var y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 18)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2412,7 +3498,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,18): error CS1615: Argument 1 should not be passed with the 'out' keyword
     //         Test(out var y);
     Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("1", "out").WithLocation(6, 18),
@@ -2420,6 +3507,8 @@ public class Cls
     //         byte z = y;
     Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("int", "byte").WithLocation(7, 18)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2441,7 +3530,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,18): error CS1620: Argument 1 must be passed with the 'ref' keyword
     //         Test(out var y);
     Diagnostic(ErrorCode.ERR_BadArgRef, "var y").WithArguments("1", "ref").WithLocation(6, 18),
@@ -2449,6 +3539,8 @@ public class Cls
     //         byte z = y;
     Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("int", "byte").WithLocation(7, 18)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2471,7 +3563,8 @@ public class C
 
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,28): error CS0818: Implicitly-typed variables must be initialized
     //         M(1, __arglist(var x));
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "x").WithLocation(6, 28),
@@ -2487,6 +3580,8 @@ public class C
     // (8,28): error CS0165: Use of unassigned local variable 'z'
     //         M(1, __arglist(ref var z));
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var z").WithArguments("z").WithLocation(8, 28));
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2510,7 +3605,8 @@ public struct C
 
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (8,21): error CS1525: Invalid expression term 'out'
     //         M(__makeref(out var j));
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(8, 21),
@@ -2551,6 +3647,8 @@ public struct C
     //         M(__makeref(ref var k));
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var k").WithArguments("k").WithLocation(9, 25)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2585,7 +3683,8 @@ public class MyAttribute : Attribute
 
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,14): error CS1041: Identifier expected; 'out' is a keyword
     // [MyAttribute(out var a)] class Test1
     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(10, 14),
@@ -2594,23 +3693,25 @@ public class MyAttribute : Attribute
     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "ref").WithArguments("", "ref").WithLocation(13, 14),
     // (13,18): error CS8028: A declaration expression is not permitted in a variable-initializer of a field declaration, or in a class-base specification.
     // [MyAttribute(ref var b)] class Test2
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "var b").WithLocation(13, 18),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "var b").WithLocation(13, 18),
     // (13,22): error CS0818: Implicitly-typed variables must be initialized
     // [MyAttribute(ref var b)] class Test2
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "b").WithLocation(13, 22),
     // (10,18): error CS8028: A declaration expression is not permitted in a variable-initializer of a field declaration, or in a class-base specification.
     // [MyAttribute(out var a)] class Test1
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "var a").WithLocation(10, 18),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "var a").WithLocation(10, 18),
     // (10,22): error CS0818: Implicitly-typed variables must be initialized
     // [MyAttribute(out var a)] class Test1
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "a").WithLocation(10, 22),
     // (16,14): error CS8028: A declaration expression is not permitted in a variable-initializer of a field declaration, or in a class-base specification.
     // [MyAttribute(var c)] class Test3
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "var c").WithLocation(16, 14),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "var c").WithLocation(16, 14),
     // (16,18): error CS0818: Implicitly-typed variables must be initialized
     // [MyAttribute(var c)] class Test3
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "c").WithLocation(16, 18)
             );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2643,7 +3744,8 @@ public class MyAttribute : Attribute
 
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,14): error CS1041: Identifier expected; 'out' is a keyword
     // [MyAttribute(out var a)] class Test1
     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(10, 14),
@@ -2652,23 +3754,25 @@ public class MyAttribute : Attribute
     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "ref").WithArguments("", "ref").WithLocation(13, 14),
     // (13,18): error CS8028: A declaration expression is not permitted in a variable-initializer of a field declaration, or in a class-base specification.
     // [MyAttribute(ref var b)] class Test2
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "var b").WithLocation(13, 18),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "var b").WithLocation(13, 18),
     // (13,22): error CS0818: Implicitly-typed variables must be initialized
     // [MyAttribute(ref var b)] class Test2
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "b").WithLocation(13, 22),
     // (10,18): error CS8028: A declaration expression is not permitted in a variable-initializer of a field declaration, or in a class-base specification.
     // [MyAttribute(out var a)] class Test1
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "var a").WithLocation(10, 18),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "var a").WithLocation(10, 18),
     // (10,22): error CS0818: Implicitly-typed variables must be initialized
     // [MyAttribute(out var a)] class Test1
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "a").WithLocation(10, 22),
     // (16,14): error CS8028: A declaration expression is not permitted in a variable-initializer of a field declaration, or in a class-base specification.
     // [MyAttribute(var c)] class Test3
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "var c").WithLocation(16, 14),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "var c").WithLocation(16, 14),
     // (16,18): error CS0818: Implicitly-typed variables must be initialized
     // [MyAttribute(var c)] class Test3
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "c").WithLocation(16, 18)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2701,7 +3805,8 @@ public class MyAttribute : Attribute
 
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,14): error CS1041: Identifier expected; 'out' is a keyword
     // [MyAttribute(out var a)] class Test1
     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(10, 14),
@@ -2710,23 +3815,25 @@ public class MyAttribute : Attribute
     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "ref").WithArguments("", "ref").WithLocation(13, 14),
     // (13,18): error CS8028: A declaration expression is not permitted in a variable-initializer of a field declaration, or in a class-base specification.
     // [MyAttribute(ref var b)] class Test2
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "var b").WithLocation(13, 18),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "var b").WithLocation(13, 18),
     // (13,22): error CS0818: Implicitly-typed variables must be initialized
     // [MyAttribute(ref var b)] class Test2
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "b").WithLocation(13, 22),
     // (10,18): error CS8028: A declaration expression is not permitted in a variable-initializer of a field declaration, or in a class-base specification.
     // [MyAttribute(out var a)] class Test1
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "var a").WithLocation(10, 18),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "var a").WithLocation(10, 18),
     // (10,22): error CS0818: Implicitly-typed variables must be initialized
     // [MyAttribute(out var a)] class Test1
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "a").WithLocation(10, 22),
     // (16,14): error CS8028: A declaration expression is not permitted in a variable-initializer of a field declaration, or in a class-base specification.
     // [MyAttribute(var c)] class Test3
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "var c").WithLocation(16, 14),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "var c").WithLocation(16, 14),
     // (16,18): error CS0818: Implicitly-typed variables must be initialized
     // [MyAttribute(var c)] class Test3
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "c").WithLocation(16, 18)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2742,11 +3849,14 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,29): error CS0818: Implicitly-typed variables must be initialized
     //         target.Test(out var y);
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 29)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2762,7 +3872,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,29): error CS0818: Implicitly-typed variables must be initialized
     //         target.Test(ref var y);
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 29),
@@ -2770,6 +3881,8 @@ public class Cls
     //         target.Test(ref var y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 25)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2785,7 +3898,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,25): error CS0818: Implicitly-typed variables must be initialized
     //         target.Test(var y);
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 25),
@@ -2793,6 +3907,8 @@ public class Cls
     //         target.Test(var y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 21)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2814,7 +3930,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (7,18): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
     //         byte z = y;
     Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("int", "byte").WithLocation(7, 18),
@@ -2822,6 +3939,8 @@ public class Cls
     //         Test(ref var y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 18)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2843,7 +3962,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,18): error CS1615: Argument 1 should not be passed with the 'ref' keyword
     //         Test(ref var y);
     Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("1", "ref").WithLocation(6, 18),
@@ -2854,6 +3974,8 @@ public class Cls
     //         Test(ref var y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 18)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2875,7 +3997,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,18): error CS0818: Implicitly-typed variables must be initialized
     //         Test(var y);
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 18),
@@ -2883,6 +4006,8 @@ public class Cls
     //         Test(var y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 14)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2904,7 +4029,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,18): error CS0818: Implicitly-typed variables must be initialized
     //         Test(var y);
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 18),
@@ -2912,6 +4038,8 @@ public class Cls
     //         Test(var y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 14)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2934,11 +4062,14 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,18): error CS1615: Argument 1 should not be passed with the 'out' keyword
     //         Test(out var y);
     Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("1", "out").WithLocation(6, 18)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2965,11 +4096,14 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Cls.Test(out int)' and 'Cls.Test(out string)'
     //         Test(out var y);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Cls.Test(out int)", "Cls.Test(out string)").WithLocation(6, 9)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -2987,7 +4121,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (8,32): error CS0149: Method name expected
     //         var x = new Action(out var y);
     Diagnostic(ErrorCode.ERR_MethodNameExpected, "var y").WithLocation(8, 32),
@@ -2995,6 +4130,8 @@ public class Cls
     //         var x = new Action(out var y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(8, 32)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3012,7 +4149,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (8,28): error CS0149: Method name expected
     //         var x = new Action(Main, out var y);
     Diagnostic(ErrorCode.ERR_MethodNameExpected, "Main, out var y").WithLocation(8, 28),
@@ -3020,6 +4158,8 @@ public class Cls
     //         var x = new Action(Main, out var y);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(8, 38)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3049,11 +4189,14 @@ class Test
 ";
             var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,42): error CS0818: Implicitly-typed variables must be initialized
     //         var x = new Test(target, out var y);
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 42)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3069,7 +4212,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,20): error CS0818: Implicitly-typed variables must be initialized
     //         target[var y] = 0;
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 20),
@@ -3077,6 +4221,8 @@ public class Cls
     //         target[var y] = 0;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 16)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3092,7 +4238,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,20): error CS0818: Implicitly-typed variables must be initialized
     //         target[var y] = 0;
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 20),
@@ -3100,6 +4247,8 @@ public class Cls
     //         target[var y] = 0;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 16)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3115,7 +4264,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,24): error CS0818: Implicitly-typed variables must be initialized
     //         target[out var y] = 0;
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 24),
@@ -3123,6 +4273,8 @@ public class Cls
     //         target[out var y] = 0;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 20)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3138,7 +4290,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,9): error CS0022: Wrong number of indices inside []; expected 2
     //         target[out var y] = 0;
     Diagnostic(ErrorCode.ERR_BadIndexCount, "target[out var y]").WithArguments("2").WithLocation(6, 9),
@@ -3146,6 +4299,8 @@ public class Cls
     //         target[out var y] = 0;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 20)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
 
@@ -3162,7 +4317,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,20): error CS0818: Implicitly-typed variables must be initialized
     //         target[var y, 3] = 0;
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 20),
@@ -3170,6 +4326,8 @@ public class Cls
     //         target[var y, 3] = 0;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 16)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3185,7 +4343,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,20): error CS0818: Implicitly-typed variables must be initialized
     //         target[var y] = 0;
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 20),
@@ -3193,6 +4352,8 @@ public class Cls
     //         target[var y] = 0;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 16)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3208,7 +4369,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,20): error CS1615: Argument 1 should not be passed with the 'out' keyword
     //         target[out var y] = 0;
     Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("1", "out").WithLocation(6, 20),
@@ -3219,6 +4381,8 @@ public class Cls
     //         target[out var y] = 0;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 20)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3234,7 +4398,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,20): error CS1615: Argument 1 should not be passed with the 'out' keyword
     //         target[out var y, 1] = 0;
     Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("1", "out").WithLocation(6, 20),
@@ -3242,6 +4407,8 @@ public class Cls
     //         target[out var y, 1] = 0;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 20)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3257,7 +4424,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,23): error CS0818: Implicitly-typed variables must be initialized
     //         target[4, var y] = 0;
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 23),
@@ -3265,6 +4433,8 @@ public class Cls
     //         target[4, var y] = 0;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 19)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3280,7 +4450,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,23): error CS1615: Argument 2 should not be passed with the 'out' keyword
     //         target[5, out var y] = 0;
     Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("2", "out").WithLocation(6, 23),
@@ -3288,6 +4459,8 @@ public class Cls
     //         target[5, out var y] = 0;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 23)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3303,11 +4476,14 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,32): error CS0818: Implicitly-typed variables must be initialized
     //         var x = target[out var y];
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 32)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3323,7 +4499,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,28): error CS0818: Implicitly-typed variables must be initialized
     //         var x = target[var y];
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 28),
@@ -3331,6 +4508,8 @@ public class Cls
     //         var x = target[var y];
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 24)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3356,11 +4535,14 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Cls.Test(out int)' and 'Cls.Test(out uint)'
     //         Test(out var y);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Cls.Test(out int)", "Cls.Test(out uint)").WithLocation(6, 9)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3381,11 +4563,14 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,9): error CS0411: The type arguments for method 'Cls.Test<T>(out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
     //         Test(out var y);
     Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Cls.Test<T>(out T)").WithLocation(6, 9)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3413,6 +4598,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"System.Int32").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -3442,11 +4629,14 @@ class B{}
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Cls.Test(A, out int)' and 'Cls.Test(B, out int)'
     //         Test(null, out var y);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Cls.Test(A, out int)", "Cls.Test(B, out int)").WithLocation(6, 9)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3467,7 +4657,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,25): error CS8029: Reference to variable 'y' is not permitted in this context.
     //         Test(out var y, y + 1);
     Diagnostic(ErrorCode.ERR_VariableUsedInTheSameArgumentList, "y").WithArguments("y").WithLocation(6, 25),
@@ -3475,6 +4666,8 @@ public class Cls
     //         Test(out var y, y + 1);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(6, 25)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3495,11 +4688,14 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,14): error CS0841: Cannot use local variable 'y' before it is declared
     //         Test(y + 1, out var y);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(6, 14)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3529,6 +4725,8 @@ public class Cls
 
             CompileAndVerify(compilation, expectedOutput: @"124
 123").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -3556,11 +4754,58 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,15): error CS0841: Cannot use local variable 'y' before it is declared
     //         Test2(y, Test1(out var y));
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(6, 15)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void OutVar_45()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var t = new int[1,1];
+        var u1 = t[out var y, y + 1];
+        var u2 = t[var z, z + 1];
+        var u3 = (var w) + w;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (7,31): error CS8048: Reference to variable 'y' is not permitted in this context.
+    //         var u1 = t[out var y, y + 1];
+    Diagnostic(ErrorCode.ERR_VariableUsedInTheSameArgumentList, "y").WithArguments("y").WithLocation(7, 31),
+    // (8,24): error CS0818: Implicitly-typed variables must be initialized
+    //         var u2 = t[var z, z + 1];
+    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "z").WithLocation(8, 24),
+    // (8,27): error CS8048: Reference to variable 'z' is not permitted in this context.
+    //         var u2 = t[var z, z + 1];
+    Diagnostic(ErrorCode.ERR_VariableUsedInTheSameArgumentList, "z").WithArguments("z").WithLocation(8, 27),
+    // (7,24): error CS0165: Use of unassigned local variable 'y'
+    //         var u1 = t[out var y, y + 1];
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(7, 24),
+    // (8,20): error CS0165: Use of unassigned local variable 'z'
+    //         var u2 = t[var z, z + 1];
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "var z").WithArguments("z").WithLocation(8, 20),
+    // (9,23): error CS0818: Implicitly-typed variables must be initialized
+    //         var u3 = (var w) + w;
+    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "w").WithLocation(9, 23),
+    // (9,19): error CS0165: Use of unassigned local variable 'w'
+    //         var u3 = (var w) + w;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "var w").WithArguments("w").WithLocation(9, 19)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3655,6 +4900,8 @@ System.NullReferenceException
     //         catch (System.NullReferenceException e) if ((int j = 9) == 9)
     Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(51, 46)
                 );
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -3746,7 +4993,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (15,34): error CS0103: The name 'a' does not exist in the current context
     //         System.Console.WriteLine(a);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(15, 34),
@@ -3766,6 +5014,8 @@ public class Cls
     //             System.Console.WriteLine(g);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "g").WithArguments("g").WithLocation(81, 38)
             );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3848,7 +5098,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (14,34): error CS0103: The name 'a' does not exist in the current context
     //         System.Console.WriteLine(a);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(14, 34),
@@ -3868,6 +5119,8 @@ public class Cls
     //             System.Console.WriteLine(g);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "g").WithArguments("g").WithLocation(72, 38)
             );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -3956,7 +5209,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (12,58): error CS0136: A local or parameter named 'a1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //         catch (System.NullReferenceException e) if (bool a1 = false)
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a1").WithArguments("a1").WithLocation(12, 58),
@@ -3987,6 +5241,8 @@ public class Cls
     // (40,46): warning CS0168: The variable 'b2' is declared but never used
     //         catch (System.NullReferenceException b2)
     Diagnostic(ErrorCode.WRN_UnreferencedVar, "b2").WithArguments("b2").WithLocation(40, 46));
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -4018,7 +5274,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,59): error CS0128: A local variable named 'b1' is already defined in this scope
     //         catch (System.NullReferenceException b1) if (bool b1 = false)
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "b1").WithArguments("b1").WithLocation(10, 59),
@@ -4026,6 +5283,8 @@ public class Cls
     //         catch (System.NullReferenceException) if ((bool c1 = false) && (bool c1 = false))
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "c1").WithArguments("c1").WithLocation(19, 78)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(42)]
@@ -4062,7 +5321,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (7,36): error CS0128: A local variable named 'n0' is already defined in this scope
     //         int.TryParse("20", out int n0); // Collision
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "n0").WithArguments("n0").WithLocation(7, 36),
@@ -4088,6 +5348,8 @@ public class Cls
     //         int n6 = 0; // Collision
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "n6").WithArguments("n6").WithLocation(26, 13)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(42)]
@@ -4108,11 +5370,14 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (7,40): error CS0136: A local or parameter named 'n7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //         if (int.TryParse("20", out var n7))
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "n7").WithArguments("n7").WithLocation(7, 40)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -4145,7 +5410,10 @@ class Test
         return null;
     }
 }";
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (16,13): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
     //     void M1(out TypedReference tr)
     Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out TypedReference tr").WithArguments("System.TypedReference").WithLocation(16, 13),
@@ -4156,6 +5424,8 @@ class Test
     //         M1(out var y);
     Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference").WithLocation(12, 16)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -4191,6 +5461,8 @@ public class Cls
   IL_0013:  stloc.0
   IL_0014:  ret
 }");
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -4206,7 +5478,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,31): error CS1002: ; expected
     //         var x = int[] y = { } = null;
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(6, 31),
@@ -4214,6 +5487,8 @@ public class Cls
     //         var x = int[] y = { } = null;
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 31)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -4244,6 +5519,8 @@ public class Cls
   IL_0005:  stloc.0
   IL_0006:  ret
 }");
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -4259,7 +5536,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,26): error CS1525: Invalid expression term 'int'
     //         var x = (object) int[] y = { };
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 26),
@@ -4279,6 +5557,8 @@ public class Cls
     //         var x = (object) int[] y = { };
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 32)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -4294,7 +5574,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,31): error CS1003: Syntax error, ',' expected
     //         var x = int[] y = { } ? 1 : 2;
     Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",", "?").WithLocation(6, 31),
@@ -4311,6 +5592,8 @@ public class Cls
     //         var x = int[] y = { } ? 1 : 2;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "2").WithLocation(6, 37)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -4326,7 +5609,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,31): error CS1002: ; expected
     //         var x = int[] y = { } ?? new int[] { 1 };
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "??").WithLocation(6, 31),
@@ -4334,6 +5618,8 @@ public class Cls
     //         var x = int[] y = { } ?? new int[] { 1 };
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "??").WithArguments("??").WithLocation(6, 31)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -4349,7 +5635,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,22): error CS1002: ; expected
     //         var x = int y++;
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "++").WithLocation(6, 22),
@@ -4360,6 +5647,8 @@ public class Cls
     //         var x = int y++;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(6, 17)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -4375,7 +5664,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,20): error CS1525: Invalid expression term 'int'
     //         var x = ++ int y;
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 20),
@@ -4389,6 +5679,8 @@ public class Cls
     //         var x = ++ int y;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "y").WithLocation(6, 24)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -4407,7 +5699,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (9,23): error CS1525: Invalid expression term 'int'
     //         var x = await int y = 2;
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(9, 23),
@@ -4418,6 +5711,8 @@ public class Cls
     //         var x = await int y = 2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(9, 27)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -4433,7 +5728,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (6,21): error CS1525: Invalid expression term 'int'
     //         var x = 3 + int y = 2;
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 21),
@@ -4444,6 +5740,8 @@ public class Cls
     //         var x = 3 + int y = 2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 25)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -4460,7 +5758,8 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (7,22): error CS1525: Invalid expression term 'int'
     //         var x = y ?? int[] z = { 1 };
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 22),
@@ -4483,6 +5782,8 @@ public class Cls
     //         var x = y ?? int[] z = { 1 };
     Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(7, 28)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(2)]
@@ -4507,6 +5808,8 @@ class C
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation).VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(2)]
@@ -4527,6 +5830,8 @@ class C
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation).VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(2)]
@@ -4551,7 +5856,8 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (9,27): error CS0103: The name 'y' does not exist in the current context
     //         Console.WriteLine(y); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(9, 27),
@@ -4562,6 +5868,8 @@ class C
     //         Console.WriteLine(w); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "w").WithArguments("w").WithLocation(15, 27)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(2)]
@@ -4583,7 +5891,8 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (9,27): error CS0103: The name 'y' does not exist in the current context
     //         Console.WriteLine(y); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(9, 27),
@@ -4591,6 +5900,8 @@ class C
     //         Console.WriteLine(z); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(12, 27)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(2)]
@@ -4612,6 +5923,8 @@ class C
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(2)]
@@ -4639,6 +5952,8 @@ class C
             CompileAndVerify(compilation, expectedOutput: @"{ x1 = 41, x2 = False }
 { x1 = 42, x2 = True }
 { x1 = 43, x2 = False }").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(2)]
@@ -4660,7 +5975,8 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,26): error CS0103: The name 'y' does not exist in the current context
     //                   select y;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 26),
@@ -4668,6 +5984,8 @@ class C
     //         System.Console.WriteLine(y); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(12, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(2)]
@@ -4689,6 +6007,8 @@ class C
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(2)]
@@ -4716,6 +6036,8 @@ class C
             CompileAndVerify(compilation, expectedOutput: @"{ x1 = 41, x2 = False }
 { x1 = 42, x2 = True }
 { x1 = 43, x2 = False }").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(2)]
@@ -4737,7 +6059,8 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,26): error CS0103: The name 'y' does not exist in the current context
     //                   select y;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 26),
@@ -4745,6 +6068,8 @@ class C
     //         System.Console.WriteLine(y); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(12, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(2)]
@@ -4772,6 +6097,8 @@ class C
             CompileAndVerify(compilation, expectedOutput: @"{ x1 = 41, x2 = False }
 { x1 = 42, x2 = True }
 { x1 = 43, x2 = False }").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(2)]
@@ -4793,7 +6120,8 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,26): error CS0103: The name 'y' does not exist in the current context
     //                   select y;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 26),
@@ -4801,6 +6129,8 @@ class C
     //         System.Console.WriteLine(y); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(12, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(2)]
@@ -4824,6 +6154,8 @@ class C
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         public void InJoin_02()
@@ -4849,6 +6181,8 @@ class C
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"{ x1 = 42, x2 = 42 }").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         public void InJoin_03()
@@ -4870,7 +6204,8 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,80): error CS1938: The name 'y' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
     //                             on int.TryParse(x1, out int y) ? y : 0 equals x2 + y
     Diagnostic(ErrorCode.ERR_QueryInnerKey, "y").WithArguments("y").WithLocation(10, 80),
@@ -4881,6 +6216,8 @@ class C
     //         System.Console.WriteLine(y); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(13, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         public void InJoin_04()
@@ -4906,6 +6243,8 @@ class C
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"{ x1 = 42, x2 = 42 }").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         public void InJoin_05()
@@ -4927,7 +6266,8 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,37): error CS0103: The name 'y' does not exist in the current context
     //                             on x2 + y equals int.TryParse(x1, out int y) ? y : 0
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 37),
@@ -4938,6 +6278,8 @@ class C
     //         System.Console.WriteLine(y); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(13, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(2)]
@@ -4963,6 +6305,8 @@ class C
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(2)]
@@ -4985,7 +6329,8 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,26): error CS0103: The name 'y' does not exist in the current context
     //                   select y;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 26),
@@ -4993,6 +6338,8 @@ class C
     //         System.Console.WriteLine(y); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(12, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(2)]
@@ -5020,6 +6367,8 @@ class C
             CompileAndVerify(compilation, expectedOutput: @"xx
 41
 43").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(2)]
@@ -5042,7 +6391,8 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (10,26): error CS0103: The name 'y' does not exist in the current context
     //                   select y;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 26),
@@ -5050,6 +6400,8 @@ class C
     //         System.Console.WriteLine(y); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(12, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(2)]
@@ -5074,6 +6426,8 @@ class C
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"{ r = True, y = 42 }").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(2)]
@@ -5094,11 +6448,14 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (11,34): error CS0103: The name 'y' does not exist in the current context
     //         System.Console.WriteLine(y); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(11, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(2)]
@@ -5132,6 +6489,8 @@ class C
 43
    0
    43").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         public void InGroupBy_02()
@@ -5153,7 +6512,8 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
         // (10,51): error CS0103: The name 'y' does not exist in the current context
         //                   by int.TryParse(x, out int z) ? y : z;
         Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 51),
@@ -5167,6 +6527,8 @@ class C
         //         System.Console.WriteLine(z);
         Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(13, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(6)]
@@ -5362,7 +6724,8 @@ struct S : IDisposable
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (24,20): error CS1001: Identifier expected
     //         using(S b, ) 
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(24, 20),
@@ -6056,7 +7419,8 @@ partial class Test6(int p = x)
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (46,22): error CS0514: 'Test4': static constructor cannot have an explicit 'this' or 'base' constructor call
     //     static Test4() : base((int y = x) + y){}  
     Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "base").WithArguments("Test4").WithLocation(46, 22),
@@ -6110,7 +7474,8 @@ partial class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (15,30): error CS0841: Cannot use local variable 'x' before it is declared
     // partial class Test1() : Base(x, y)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(15, 30),
@@ -6149,7 +7514,8 @@ partial class Test1() : Base(x, y)
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (20,30): error CS0841: Cannot use local variable 'x' before it is declared
     // partial class Test1() : Base(x, y)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(20, 30),
@@ -6193,7 +7559,8 @@ partial class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (20,30): error CS0841: Cannot use local variable 'x' before it is declared
     // partial class Test1() : Base(x, y, z)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(20, 30),
@@ -6228,7 +7595,8 @@ partial class Test1() : Base(int x = 10)
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (15,21): error CS0103: The name 'x' does not exist in the current context
     //     public int x1 = x;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 21)
@@ -6253,7 +7621,8 @@ partial class Test1(int x)
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (11,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //     public int x1 = (int x = 1);
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 26)
@@ -6300,10 +7669,11 @@ partial class Test1(int x)
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (11,20): error CS0133: The expression being assigned to 'Test1.x1' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (11,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x1 = (int x = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int x = 1)").WithArguments("Test1.x1").WithLocation(11, 20)
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int x = 1").WithLocation(11, 21)
                 );
         }
 
@@ -6325,10 +7695,14 @@ partial class Test1(int x)
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (11,24): error CS0133: The expression being assigned to 'Test1.x1' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (11,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x1 = (int x = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int x = 1)").WithArguments("Test1.x1").WithLocation(11, 24)
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int x = 1").WithLocation(11, 25),
+    // (11,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x1 = (int x = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int x = 1").WithLocation(11, 25)
                 );
         }
 
@@ -6353,7 +7727,8 @@ partial class Test1(int x) : Base(int x = 10)
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (13,39): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     // partial class Test1(int x) : Base(int x = 10)
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(13, 39)
@@ -6387,13 +7762,26 @@ partial class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (19,43): error CS0128: A local variable named 'g' is already defined in this scope
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (19,39): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1) + g + (int g = 2);
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "g").WithArguments("g").WithLocation(19, 43),
-    // (20,55): error CS0128: A local variable named 'h' is already defined in this scope
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 2").WithLocation(19, 39),
+    // (19,34): error CS0103: The name 'g' does not exist in the current context
+    //     const int x7 = (int g = 1) + g + (int g = 2);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g").WithArguments("g").WithLocation(19, 34),
+    // (19,21): error CS8047: A declaration expression is not permitted in this context.
+    //     const int x7 = (int g = 1) + g + (int g = 2);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(19, 21),
+    // (20,47): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1) + h + (decimal h = 2);
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "h").WithArguments("h").WithLocation(20, 55),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 2").WithLocation(20, 47),
+    // (20,42): error CS0103: The name 'h' does not exist in the current context
+    //     const decimal x8 = (decimal h = 1) + h + (decimal h = 2);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h").WithArguments("h").WithLocation(20, 42),
+    // (20,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1) + h + (decimal h = 2);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(20, 25),
     // (15,44): error CS0128: A local variable named 'd' is already defined in this scope
     //     static int x4 = (int d = 1) + d + (int d = 2);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "d").WithArguments("d").WithLocation(15, 44),
@@ -6403,9 +7791,15 @@ partial class Test1
     // (17,86): error CS0128: A local variable named 'f' is already defined in this scope
     //     static event System.Action x6  = (System.Action f = null) += f += (System.Action f = null);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "f").WithArguments("f").WithLocation(17, 86),
-    // (20,55): error CS0128: A local variable named 'h' is already defined in this scope
+    // (20,47): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1) + h + (decimal h = 2);
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "h").WithArguments("h").WithLocation(20, 55),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 2").WithLocation(20, 47),
+    // (20,42): error CS0103: The name 'h' does not exist in the current context
+    //     const decimal x8 = (decimal h = 1) + h + (decimal h = 2);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h").WithArguments("h").WithLocation(20, 42),
+    // (20,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1) + h + (decimal h = 2);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(20, 25),
     // (11,37): error CS0128: A local variable named 'a' is already defined in this scope
     //     int x1 = (int a = 1) + a + (int a = 2);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "a").WithArguments("a").WithLocation(11, 37),
@@ -6456,16 +7850,17 @@ partial class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (28,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(28, 21),
     // (29,21): error CS0103: The name 'g1' does not exist in the current context
     //     const int x71 = g1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
-    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6478,6 +7873,9 @@ partial class Test1
     // (26,44): error CS0103: The name 'f1' does not exist in the current context
     //     static event System.Action x61  = ()=> f1 = 2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "f1").WithArguments("f1").WithLocation(26, 44),
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6531,16 +7929,17 @@ partial class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (28,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(28, 21),
     // (29,21): error CS0103: The name 'g1' does not exist in the current context
     //     const int x71 = g1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
-    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6553,6 +7952,9 @@ partial class Test1
     // (26,44): error CS0103: The name 'f1' does not exist in the current context
     //     static event System.Action x61  = ()=> f1 = 2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "f1").WithArguments("f1").WithLocation(26, 44),
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6606,16 +8008,17 @@ partial class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (28,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(28, 21),
     // (29,21): error CS0103: The name 'g1' does not exist in the current context
     //     const int x71 = g1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
-    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6628,6 +8031,9 @@ partial class Test1
     // (26,39): error CS0103: The name 'f1' does not exist in the current context
     //     static event System.Action x61  = f1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "f1").WithArguments("f1").WithLocation(26, 39),
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6681,16 +8087,17 @@ partial class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (28,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(28, 21),
     // (29,21): error CS0103: The name 'g1' does not exist in the current context
     //     const int x71 = g1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
-    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6703,6 +8110,9 @@ partial class Test1
     // (25,53): error CS0128: A local variable named 'f' is already defined in this scope
     //     static event System.Action x6  = (System.Action f = null);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "f").WithArguments("f").WithLocation(25, 53),
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6756,16 +8166,17 @@ partial class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (28,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(28, 21),
     // (29,21): error CS0103: The name 'g1' does not exist in the current context
     //     const int x71 = g1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
-    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6778,6 +8189,9 @@ partial class Test1
     // (25,53): error CS0128: A local variable named 'f' is already defined in this scope
     //     static event System.Action x6  = (System.Action f = null);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "f").WithArguments("f").WithLocation(25, 53),
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6831,16 +8245,17 @@ partial class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (28,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(28, 21),
     // (29,21): error CS0103: The name 'g1' does not exist in the current context
     //     const int x71 = g1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
-    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6853,6 +8268,9 @@ partial class Test1
     // (25,53): error CS0128: A local variable named 'f' is already defined in this scope
     //     static event System.Action x6  = (System.Action f = null);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "f").WithArguments("f").WithLocation(25, 53),
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6906,25 +8324,68 @@ partial class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (12,19): error CS0133: The expression being assigned to 'Test1.y' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (12,111): error CS8047: A declaration expression is not permitted in this context.
     //     const int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1)").WithArguments("Test1.y").WithLocation(12, 19),
-    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int h1 = 1").WithLocation(12, 111),
+    // (12,98): error CS8047: A declaration expression is not permitted in this context.
+    //     const int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g1 = 1").WithLocation(12, 98),
+    // (12,85): error CS8047: A declaration expression is not permitted in this context.
+    //     const int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int f1 = 1").WithLocation(12, 85),
+    // (12,72): error CS8047: A declaration expression is not permitted in this context.
+    //     const int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int e1 = 1").WithLocation(12, 72),
+    // (12,59): error CS8047: A declaration expression is not permitted in this context.
+    //     const int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int d1 = 1").WithLocation(12, 59),
+    // (12,46): error CS8047: A declaration expression is not permitted in this context.
+    //     const int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int c1 = 1").WithLocation(12, 46),
+    // (12,33): error CS8047: A declaration expression is not permitted in this context.
+    //     const int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int b1 = 1").WithLocation(12, 33),
+    // (12,20): error CS8047: A declaration expression is not permitted in this context.
+    //     const int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int a1 = 1").WithLocation(12, 20),
+    // (28,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(28, 21),
     // (29,21): error CS0103: The name 'g1' does not exist in the current context
     //     const int x71 = g1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
-    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
-    // (11,19): error CS0133: The expression being assigned to 'Test1.x' must be constant
+    // (11,104): error CS8047: A declaration expression is not permitted in this context.
     //     const int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1)").WithArguments("Test1.x").WithLocation(11, 19),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int h = 1").WithLocation(11, 104),
+    // (11,92): error CS8047: A declaration expression is not permitted in this context.
+    //     const int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(11, 92),
+    // (11,80): error CS8047: A declaration expression is not permitted in this context.
+    //     const int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int f = 1").WithLocation(11, 80),
+    // (11,68): error CS8047: A declaration expression is not permitted in this context.
+    //     const int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int e = 1").WithLocation(11, 68),
+    // (11,56): error CS8047: A declaration expression is not permitted in this context.
+    //     const int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int d = 1").WithLocation(11, 56),
+    // (11,44): error CS8047: A declaration expression is not permitted in this context.
+    //     const int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int c = 1").WithLocation(11, 44),
+    // (11,32): error CS8047: A declaration expression is not permitted in this context.
+    //     const int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int b = 1").WithLocation(11, 32),
+    // (11,20): error CS8047: A declaration expression is not permitted in this context.
+    //     const int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int a = 1").WithLocation(11, 20),
     // (22,22): error CS0103: The name 'd1' does not exist in the current context
     //     static int x41 = d1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "d1").WithArguments("d1").WithLocation(22, 22),
@@ -6934,6 +8395,9 @@ partial class Test1
     // (26,44): error CS0103: The name 'f1' does not exist in the current context
     //     static event System.Action x61  = ()=> f1 = 2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "f1").WithArguments("f1").WithLocation(26, 44),
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -6987,25 +8451,116 @@ partial class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (12,23): error CS0133: The expression being assigned to 'Test1.y' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (12,115): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1)").WithArguments("Test1.y").WithLocation(12, 23),
-    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int h1 = 1").WithLocation(12, 115),
+    // (12,102): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g1 = 1").WithLocation(12, 102),
+    // (12,89): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int f1 = 1").WithLocation(12, 89),
+    // (12,76): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int e1 = 1").WithLocation(12, 76),
+    // (12,63): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int d1 = 1").WithLocation(12, 63),
+    // (12,50): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int c1 = 1").WithLocation(12, 50),
+    // (12,37): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int b1 = 1").WithLocation(12, 37),
+    // (12,24): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int a1 = 1").WithLocation(12, 24),
+    // (28,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(28, 21),
     // (29,21): error CS0103: The name 'g1' does not exist in the current context
     //     const int x71 = g1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
-    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
-    // (11,23): error CS0133: The expression being assigned to 'Test1.x' must be constant
+    // (11,108): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1)").WithArguments("Test1.x").WithLocation(11, 23),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int h = 1").WithLocation(11, 108),
+    // (11,96): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(11, 96),
+    // (11,84): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int f = 1").WithLocation(11, 84),
+    // (11,72): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int e = 1").WithLocation(11, 72),
+    // (11,60): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int d = 1").WithLocation(11, 60),
+    // (11,48): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int c = 1").WithLocation(11, 48),
+    // (11,36): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int b = 1").WithLocation(11, 36),
+    // (11,24): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int a = 1").WithLocation(11, 24),
+    // (11,108): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int h = 1").WithLocation(11, 108),
+    // (11,96): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(11, 96),
+    // (11,84): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int f = 1").WithLocation(11, 84),
+    // (11,72): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int e = 1").WithLocation(11, 72),
+    // (11,60): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int d = 1").WithLocation(11, 60),
+    // (11,48): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int c = 1").WithLocation(11, 48),
+    // (11,36): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int b = 1").WithLocation(11, 36),
+    // (11,24): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int a = 1").WithLocation(11, 24),
+    // (12,115): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int h1 = 1").WithLocation(12, 115),
+    // (12,102): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g1 = 1").WithLocation(12, 102),
+    // (12,89): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int f1 = 1").WithLocation(12, 89),
+    // (12,76): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int e1 = 1").WithLocation(12, 76),
+    // (12,63): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int d1 = 1").WithLocation(12, 63),
+    // (12,50): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int c1 = 1").WithLocation(12, 50),
+    // (12,37): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int b1 = 1").WithLocation(12, 37),
+    // (12,24): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int a1 = 1").WithLocation(12, 24),
     // (22,22): error CS0103: The name 'd1' does not exist in the current context
     //     static int x41 = d1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "d1").WithArguments("d1").WithLocation(22, 22),
@@ -7015,6 +8570,9 @@ partial class Test1
     // (26,44): error CS0103: The name 'f1' does not exist in the current context
     //     static event System.Action x61  = ()=> f1 = 2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "f1").WithArguments("f1").WithLocation(26, 44),
+    // (30,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(30, 25),
     // (31,34): error CS0103: The name 'h1' does not exist in the current context
     //     const decimal x81 = (decimal)h1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
@@ -7073,13 +8631,17 @@ class Test1 : Base
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (24,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (24,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(24, 20),
-    // (25,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(24, 21),
+    // (25,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(25, 24)
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(25, 25),
+    // (25,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(25, 25)
                 );
         }
 
@@ -7123,13 +8685,17 @@ class Test1() : Base(
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (32,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (32,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(32, 20),
-    // (33,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(32, 21),
+    // (33,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(33, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(33, 25),
+    // (33,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(33, 25),
     // (15,14): error CS0136: A local or parameter named 'a' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //         (int a = 1), 
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a").WithArguments("a").WithLocation(15, 14),
@@ -7185,13 +8751,17 @@ class Test1 : Base
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (24,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (24,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(24, 20),
-    // (25,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(24, 21),
+    // (25,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(25, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(25, 25),
+    // (25,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(25, 25),
     // (28,9): error CS0103: The name 'a' does not exist in the current context
     //         a, 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(28, 9),
@@ -7259,13 +8829,17 @@ class Test1() : Base(
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (32,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (32,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(32, 20),
-    // (33,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(32, 21),
+    // (33,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(33, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(33, 25),
+    // (33,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(33, 25),
     // (15,9): error CS0841: Cannot use local variable 'a' before it is declared
     //         a, 
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "a").WithArguments("a").WithLocation(15, 9),
@@ -7332,13 +8906,17 @@ class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (19,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (19,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(19, 20),
-    // (20,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(19, 21),
+    // (20,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(20, 24)
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(20, 25),
+    // (20,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(20, 25)
                 );
         }
 
@@ -7381,13 +8959,17 @@ class Test1
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
-    // (19,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (19,21): error CS8047: A declaration expression is not permitted in this context.
     //     const int x7 = (int g = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(19, 20),
-    // (20,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int g = 1").WithLocation(19, 21),
+    // (20,25): error CS8047: A declaration expression is not permitted in this context.
     //     const decimal x8 = (decimal h = 1);
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(20, 24),
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(20, 25),
+    // (20,25): error CS8047: A declaration expression is not permitted in this context.
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(20, 25),
     // (24,34): error CS0103: The name 'a' does not exist in the current context
     //         System.Console.WriteLine(a); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(24, 34),
@@ -7439,7 +9021,8 @@ class Test1() : Base(
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (16,14): error CS0128: A local variable named 'a' is already defined in this scope
     //         (int a = 2))
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "a").WithArguments("a").WithLocation(16, 14)
@@ -7472,7 +9055,8 @@ class Test1 : Base
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (18,14): error CS0128: A local variable named 'a' is already defined in this scope
     //         (int a = 2))
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "a").WithArguments("a").WithLocation(18, 14)
@@ -7508,7 +9092,8 @@ class Test1 : Base
 ";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            compilation.VerifyDiagnostics(
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
     // (21,38): error CS0136: A local or parameter named 'b' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //         System.Console.WriteLine(int b = 3);
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "b").WithArguments("b").WithLocation(21, 38)

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var walker = new BuildLocalsFromDeclarationsWalker(this);
+            var walker = new BuildLocalsFromDeclarationsWalker(this, expression);
 
             walker.Visit(expression);
 
@@ -31,11 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        internal BoundSequence AddLocalScopeToExpression(BoundExpression expression)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
         {
-            Debug.Assert(!this.Locals.IsDefaultOrEmpty);
-            Debug.Assert((object)expression.Type != null);
-            return new BoundSequence(expression.Syntax, this.Locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
+            if (node == expression)
+            {
+                return this.Locals;
+            }
+
+            return base.GetDeclaredLocalsForScope(node);
         }
     }
 }

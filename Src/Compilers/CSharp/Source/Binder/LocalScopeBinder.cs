@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        protected ImmutableArray<LocalSymbol> BuildLocals(StatementSyntax stmt, bool isRoot = true)
+        protected ImmutableArray<LocalSymbol> BuildLocals(CSharpSyntaxNode node)
         {
-            Debug.Assert(stmt != null);
-            var walker = new BuildLocalsFromDeclarationsWalker(this, isRoot ? stmt : null);
+            Debug.Assert(node != null);
+            var walker = new BuildLocalsFromDeclarationsWalker(this, node);
 
-            walker.Visit(stmt);
+            walker.Visit(node);
 
             if (walker.Locals != null)
             {
@@ -122,12 +122,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected ImmutableArray<LocalSymbol> BuildLocals(SyntaxList<StatementSyntax> statements)
         {
-            var walker = new BuildLocalsFromDeclarationsWalker(this);
+            var walker = new BuildLocalsFromDeclarationsWalker(this, null);
 
             foreach (var statement in statements)
             {
+                walker.ScopeSegmentRoot = statement;
                 walker.Visit(statement);
             }
+
+            walker.ScopeSegmentRoot = null;
 
             if (walker.Locals != null)
             {
@@ -140,17 +143,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         public class BuildLocalsFromDeclarationsWalker : CSharpSyntaxWalker 
         {
             public readonly Binder Binder;
-            public readonly StatementSyntax RootStmtOpt;
             public ArrayBuilder<LocalSymbol> Locals;
 
-            public BuildLocalsFromDeclarationsWalker(Binder binder, StatementSyntax rootStmtOpt = null)
+            private CSharpSyntaxNode scopeSegmentRoot;
+
+            public BuildLocalsFromDeclarationsWalker(Binder binder, CSharpSyntaxNode scopeSegmentRoot)
             {
+                Debug.Assert(binder != null);
                 this.Binder = binder;
-                this.RootStmtOpt = rootStmtOpt;
+                this.scopeSegmentRoot = scopeSegmentRoot;
+            }
+
+            public CSharpSyntaxNode ScopeSegmentRoot
+            {
+                get
+                {
+                    return scopeSegmentRoot;
+                }
+                set
+                {
+                    this.scopeSegmentRoot = value;
+                }
             }
 
             public override void VisitVariableDeclaration(VariableDeclarationSyntax node)
             {
+                Debug.Assert(scopeSegmentRoot != null);
+
                 if (Locals == null)
                 {
                     Locals = ArrayBuilder<LocalSymbol>.GetInstance();
@@ -185,13 +204,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var vdecl in node.Variables)
                 {
-                    var localSymbol = SourceLocalSymbol.MakeLocal(
-                        Binder.ContainingMemberOrLambda,
-                        Binder,
-                        node.Type,
-                        vdecl.Identifier,
-                        vdecl.Initializer,
-                        kind);
+                    SourceLocalSymbol localSymbol;
+
+                    if (vdecl.Initializer == null)
+                    {
+                        localSymbol = SourceLocalSymbol.MakeLocal(
+                                            Binder.ContainingMemberOrLambda,
+                                            Binder,
+                                            node.Type,
+                                            vdecl.Identifier,
+                                            kind);
+                    }
+                    else
+                    {
+                        localSymbol = SourceLocalSymbol.MakeLocalWithInitializer(
+                                            Binder.ContainingMemberOrLambda,
+                                            Binder,
+                                            node.Type,
+                                            vdecl.Identifier,
+                                            vdecl.Initializer,
+                                            kind);
+                    }
+
                     Locals.Add(localSymbol);
 
                     Visit(vdecl.Initializer);
@@ -200,18 +234,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
             {
+                Debug.Assert(scopeSegmentRoot != null);
+
                 if (Locals == null)
                 {
                     Locals = ArrayBuilder<LocalSymbol>.GetInstance();
                 }
 
-                var localSymbol = SourceLocalSymbol.MakeLocal(
-                    Binder.ContainingMemberOrLambda,
-                    Binder,
-                    node.Type,
-                    node.Variable.Identifier,
-                    node.Variable.Initializer,
-                    LocalDeclarationKind.Variable);
+                SourceLocalSymbol localSymbol;
+
+                if (node.Variable.Initializer == null)
+                {
+                    if (node.Type.IsVar)
+                    {
+                        localSymbol = SourceLocalSymbol.MakePossibleOutVarLocalWithoutInitializer(
+                            Binder.ContainingMemberOrLambda,
+                            Binder,
+                            node.Type,
+                            node.Variable.Identifier,
+                            scopeSegmentRoot,
+                            LocalDeclarationKind.Variable);
+                    }
+                    else
+                    {
+                        localSymbol = SourceLocalSymbol.MakeLocal(
+                            Binder.ContainingMemberOrLambda,
+                            Binder,
+                            node.Type,
+                            node.Variable.Identifier,
+                            LocalDeclarationKind.Variable);
+                    }
+                }
+                else
+                {
+                    localSymbol = SourceLocalSymbol.MakeLocalWithInitializer(
+                        Binder.ContainingMemberOrLambda,
+                        Binder,
+                        node.Type,
+                        node.Variable.Identifier,
+                        node.Variable.Initializer,
+                        LocalDeclarationKind.Variable);
+                }
 
                 Locals.Add(localSymbol);
 
@@ -282,83 +345,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitBlock(BlockSyntax node)
             {
-                if (RootStmtOpt != node)
-                {
-                    return;
-                }
-
-                base.VisitBlock(node);
+                return;
             }
 
             public override void VisitForStatement(ForStatementSyntax node)
             {
-                if (RootStmtOpt != node)
-                {
-                    return;
-                }
-
-                throw ExceptionUtilities.Unreachable;
+                return;
             }
 
             public override void VisitUsingStatement(UsingStatementSyntax node)
             {
-                if (RootStmtOpt != node)
-                {
-                    return;
-                }
-
-                Visit(node.Declaration);
-                Visit(node.Expression);
+                return;
             }
 
             public override void VisitFixedStatement(FixedStatementSyntax node)
             {
-                if (RootStmtOpt != node)
-                {
-                    return;
-                }
-
-                Visit(node.Declaration);
+                return;
             }
 
             public override void VisitSwitchStatement(SwitchStatementSyntax node)
             {
-                if (RootStmtOpt != node)
-                {
-                    return;
-                }
-
-                throw ExceptionUtilities.Unreachable;
+                return;
             }
 
             public override void VisitForEachStatement(ForEachStatementSyntax node)
             {
-                if (RootStmtOpt != node)
-                {
-                    return;
-                }
-
-                throw ExceptionUtilities.Unreachable;
+                return;
             }
 
             public override void VisitWhileStatement(WhileStatementSyntax node)
             {
-                if (RootStmtOpt != node)
-                {
-                    return;
-                }
-
-                Visit(node.Condition);
+                return;
             }
 
             public override void VisitDoStatement(DoStatementSyntax node)
             {
-                if (RootStmtOpt != node)
-                {
-                    return;
-                }
-
-                Visit(node.Condition);
+                return;
             }
 
             public override void VisitCatchClause(CatchClauseSyntax node)
@@ -368,12 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitIfStatement(IfStatementSyntax node)
             {
-                if (RootStmtOpt != node)
-                {
-                    return;
-                }
-
-                Visit(node.Condition);
+                return;
             }
         }
 

@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            return BuildLocals(syntax);
+            Debug.Assert(syntax.Declaration == null || syntax.Expression == null);
+            return BuildLocals(syntax.Declaration ?? (CSharpSyntaxNode)syntax.Expression);
         }
 
         internal override ImmutableHashSet<Symbol> LockedOrDisposedVariables

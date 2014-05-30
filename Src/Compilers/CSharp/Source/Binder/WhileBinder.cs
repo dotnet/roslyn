@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            return BuildLocals(syntax);
+            return BuildLocals(syntax.Kind == SyntaxKind.WhileStatement ? ((WhileStatementSyntax)syntax).Condition : ((DoStatementSyntax)syntax).Condition);
         }
 
         internal override BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics)

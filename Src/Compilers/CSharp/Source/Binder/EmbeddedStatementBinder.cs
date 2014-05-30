@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            return BuildLocals(embeddedStatement,
-                               isRoot: false); // Pass false because statements that always introduce a new scope should be ignored by this binder.
+            return BuildLocals(embeddedStatement); 
         }
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)

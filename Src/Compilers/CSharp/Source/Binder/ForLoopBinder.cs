@@ -22,14 +22,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var walker = new BuildLocalsFromDeclarationsWalker(this);
+            var walker = new BuildLocalsFromDeclarationsWalker(this, null);
 
+            walker.ScopeSegmentRoot = syntax.Condition;
             walker.Visit(syntax.Condition);
 
             foreach (var incrementor in syntax.Incrementors)
             {
+                walker.ScopeSegmentRoot = incrementor;
                 walker.Visit(incrementor);
             }
+
+            walker.ScopeSegmentRoot = null;
 
             if (walker.Locals != null)
             {
@@ -73,15 +77,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var walker = new BuildLocalsFromDeclarationsWalker(this);
+            var walker = new BuildLocalsFromDeclarationsWalker(this, null);
 
+            walker.ScopeSegmentRoot = syntax.Declaration;
             walker.Visit(syntax.Declaration);
 
             foreach (var initializer in syntax.Initializers)
             {
+                walker.ScopeSegmentRoot = initializer;
                 walker.Visit(initializer);
             }
 
+            walker.ScopeSegmentRoot = null;
             if (walker.Locals != null)
             {
                 return walker.Locals.ToImmutableAndFree();

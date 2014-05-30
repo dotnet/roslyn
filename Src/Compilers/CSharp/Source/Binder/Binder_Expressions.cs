@@ -252,29 +252,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GenerateConversionForAssignment(varType, initializer, diagnostics);
         }
 
+        internal Binder CreateBinderForParameterDefaultValue(
+            ParameterSymbol parameter,
+            EqualsValueClauseSyntax defaultValueSyntax)
+        {
+            return new LocalScopeBinder(this.WithContainingMemberOrLambda(parameter.ContainingSymbol).WithAdditionalFlags(BinderFlags.ParameterDefaultValue));
+        }
+
         internal BoundExpression BindParameterDefaultValue(
-            Symbol containingSymbol,
             EqualsValueClauseSyntax defaultValueSyntax,
             TypeSymbol parameterType,
             DiagnosticBag diagnostics,
             out BoundExpression valueBeforeConversion)
         {
+            Debug.Assert(this.InParameterDefaultValue);
+            Debug.Assert(this.ContainingMember().Kind == SymbolKind.Method || this.ContainingMember().Kind == SymbolKind.Property);
+
             // UNDONE: The binding and conversion has to be executed in a checked context.
 
-            var scopeBinder = new ScopedExpressionBinder(this.WithContainingMemberOrLambda(containingSymbol),
-                                                         defaultValueSyntax.Value);
-            valueBeforeConversion = scopeBinder.WithAdditionalFlags(BinderFlags.ParameterDefaultValue).BindValue(defaultValueSyntax.Value, diagnostics, BindValueKind.RValue);
+            valueBeforeConversion = this.BindValue(defaultValueSyntax.Value, diagnostics, BindValueKind.RValue);
 
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
-            BoundExpression result = GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true);
-
-            if (!scopeBinder.Locals.IsDefaultOrEmpty)
-            {
-                result = scopeBinder.AddLocalScopeToExpression(result);
-            }
-
-            return result;
+            return GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true);
         }
 
         internal BoundExpression BindEnumConstantInitializer(
@@ -539,23 +539,71 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, /*isFixed*/ false, out isVar, out alias);
 
-            if ((ContainingMemberOrLambda.Kind != SymbolKind.Method && !this.InFieldInitializer) || this.InParameterDefaultValue)
+            SourceLocalSymbol localSymbol = this.LookupLocal(node.Variable.Identifier);
+
+            if ((object)localSymbol == null)
             {
-                Error(diagnostics, ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, node);
+                Error(diagnostics, ErrorCode.ERR_DeclarationExpressionOutOfContext, node);
+
+                TypeSymbol resultType;
+                ImmutableArray<BoundExpression> children = BindDeclaratorArguments(node.Variable, diagnostics);
+                BoundExpression initializer = null;
+
+                if (children.IsDefault)
+                {
+                    children = ImmutableArray<BoundExpression>.Empty;
+                }
+
+                if (isVar)
+                {
+                    initializer = BindInferredVariableInitializer(diagnostics, node.Variable.Initializer, node.Variable);
+
+                    if (initializer != null && (object)initializer.Type != null)
+                    {
+                        if (initializer.Type.SpecialType == SpecialType.System_Void)
+                        {
+                            resultType = CreateErrorType("var");
+                        }
+                        else
+                        {
+                            resultType = initializer.Type;
+                        }
+                    }
+                    else
+                    {
+                        resultType = CreateErrorType("var");
+                    }
+
+                }
+                else
+                {
+                    resultType = declType;
+
+                    if (node.Variable.Initializer != null)
+                    {
+                        initializer = BindPossibleArrayInitializer(node.Variable.Initializer.Value, declType, diagnostics);
+                        initializer = GenerateConversionForAssignment(declType, initializer, diagnostics);
+                    }
+                }
+
+                if (initializer != null)
+                {
+                    children = children.Add(initializer);
+                }
+
+                return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, StaticCast<BoundNode>.From(children), resultType, hasErrors: true);
             }
 
             if (isVar && node.Variable.Initializer == null)
             {
-                SourceLocalSymbol localSymbol = LocateDeclaredVariableSymbol(node.Variable, typeSyntax);
-
                 return new UninitializedVarDeclarationExpression(node,
-                                                                 LocateDeclaredVariableSymbol(node.Variable, typeSyntax),
+                                                                 localSymbol,
                                                                  BindDeclaratorArguments(node.Variable, diagnostics),
                                                                  // Check for variable declaration errors.
                                                                  hasErrors: this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics));
             }
 
-            BoundLocalDeclaration localDeclaration = BindVariableDeclaration(LocalDeclarationKind.Variable, isVar, node.Variable, typeSyntax, declType, alias, diagnostics, node);
+            BoundLocalDeclaration localDeclaration = BindVariableDeclaration(localSymbol, LocalDeclarationKind.Variable, isVar, node.Variable, typeSyntax, declType, alias, diagnostics, node);
 
             return new BoundDeclarationExpression(node, 
                                                   localDeclaration.LocalSymbol, 
@@ -1040,9 +1088,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var constantValueOpt = localSymbol.IsConst ? localSymbol.GetConstantValue(this.LocalInProgress) : null;
                         TypeSymbol type;
 
+                        Location localSymbolLocation = localSymbol.Locations[0];
+
                         bool usedBeforeDecl =
-                            node.SyntaxTree == localSymbol.Locations[0].SourceTree &&
-                            node.SpanStart < localSymbol.Locations[0].SourceSpan.Start;
+                            node.SyntaxTree == localSymbolLocation.SourceTree &&
+                            node.SpanStart < localSymbolLocation.SourceSpan.Start;
                         bool isBindingVar = IsBindingImplicitlyTypedLocal(localSymbol);
 
                         if (usedBeforeDecl || isBindingVar)
@@ -1155,36 +1205,67 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            var sourceLocal = localSymbol as SourceLocalSymbol;
+                            SourceLocalSymbol sourceLocal;
+                            type = null;
 
-                            if ((object)sourceLocal != null)
+                            if (node.SyntaxTree == localSymbolLocation.SourceTree && (object)(sourceLocal = localSymbol as SourceLocalSymbol) != null)
                             {
                                 CSharpSyntaxNode declarationParent = (CSharpSyntaxNode)sourceLocal.IdentifierToken.Parent;
-                                VariableDeclaratorSyntax declarator = null;
+                                VariableDeclaratorSyntax declarator;
+                                DeclarationExpressionSyntax declarationExpression;
 
                                 if (declarationParent != null && 
                                     declarationParent.Kind == SyntaxKind.VariableDeclarator &&
                                     (declarator = (VariableDeclaratorSyntax)declarationParent) != null &&
                                     (declarationParent = declarator.Parent) != null &&
                                     declarationParent.Kind == SyntaxKind.DeclarationExpression &&
-                                    ((DeclarationExpressionSyntax)declarationParent).Variable == declarator &&
+                                    (declarationExpression = (DeclarationExpressionSyntax)declarationParent).Type.IsVar &&
+                                    declarationExpression.Variable == declarator &&
                                     declarator.Identifier == sourceLocal.IdentifierToken &&
-                                    declarator.Initializer == null &&
-                                    sourceLocal.IsVarPendingTypeInference)
+                                    declarator.Initializer == null)
                                 {
-                                    // Declaration expression, which is a 'var' without an initializer, is an argument and we are referring to
-                                    // the declared local in a different argument in the same argument list.
-                                    // TODO: This assumption is correct only if there is a guarantee that 
-                                    // all statements are bound in order, which is not correct for SemanticModel, I believe.
-                                    Error(diagnostics, ErrorCode.ERR_VariableUsedInTheSameArgumentList, node, node);
-                                    type = new ExtendedErrorTypeSymbol(this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: false);
+                                    // We are referring to a Declaration Expression local, which looks like a 'var' without an initializer.
+                                    // If it is in fact a 'var' and is an argument, it is illegal to reference it in the same argument list.
+                                    CSharpSyntaxNode possibleArgument = declarationExpression.Parent;
+
+                                    // Skip parenthesis
+                                    while (possibleArgument != null && possibleArgument.Kind == SyntaxKind.ParenthesizedExpression)
+                                    {
+                                        possibleArgument = possibleArgument.Parent;
+                                    }
+
+                                    if (possibleArgument != null && possibleArgument.Kind == SyntaxKind.Argument && possibleArgument.Parent != null)
+                                    {
+                                        bool isInTheSameArgumentList;
+
+                                        switch (possibleArgument.Parent.Kind)
+                                        {
+                                            case SyntaxKind.ArgumentList:
+                                                isInTheSameArgumentList = node.SpanStart < ((ArgumentListSyntax)possibleArgument.Parent).CloseParenToken.SpanStart;
+                                                break;
+
+                                            case SyntaxKind.BracketedArgumentList:
+                                                isInTheSameArgumentList = node.SpanStart < ((BracketedArgumentListSyntax)possibleArgument.Parent).CloseBracketToken.SpanStart;
+                                                break;
+
+                                            default:
+                                                isInTheSameArgumentList = false;
+                                                break;
+                                        }
+
+                                        if (isInTheSameArgumentList && sourceLocal.IsVar)
+                                        {
+                                            Error(diagnostics, ErrorCode.ERR_VariableUsedInTheSameArgumentList, node, node);
+
+                                            // Treat this case as variable used before declaration, we might be able to infer type of the variable anyway and SemanticModel 
+                                            // will be able to return non-error type information for this node. 
+                                            type = new ExtendedErrorTypeSymbol(this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
+                                        }
+                                    }
                                 }
-                                else
-                                {
-                            type = localSymbol.Type;
-                        }
                             }
-                            else
+                            
+                            if ((object)type == null)
                             {
                                 type = localSymbol.Type;
                             }

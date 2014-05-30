@@ -36,15 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = new EarlyWellKnownAttributeBinder(binder);
             }
             var inProgressBinder = new ConstantFieldsInProgressBinder(new ConstantFieldsInProgress(symbol, dependencies), binder);
-
-            var scopeBinder = new ScopedExpressionBinder(inProgressBinder, equalsValueNode.Value);
-            var boundValue = BindFieldOrEnumInitializer(scopeBinder, symbol, equalsValueNode, diagnostics);
-
-            if (!scopeBinder.Locals.IsDefaultOrEmpty)
-            {
-                boundValue = scopeBinder.AddLocalScopeToExpression(boundValue);
-            }
-
+            var boundValue = BindFieldOrEnumInitializer(inProgressBinder, symbol, equalsValueNode, diagnostics);
             var initValueNodeLocation = equalsValueNode.Value.Location;
 
             var value = GetAndValidateConstantValue(boundValue, symbol, symbol.Type, initValueNodeLocation, diagnostics);

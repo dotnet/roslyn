@@ -1389,8 +1389,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             inMethodBinder = factory.GetBinder(methodSyntax);
                             binder = new ExecutableCodeBinder(methodSyntax, sourceMethod, inMethodBinder);
+                            var expression = ((ArrowExpressionClauseSyntax)methodSyntax).Expression;
+                            binder = new ScopedExpressionBinder(binder, expression);
                             return binder.BindExpressionBodyAsBlock(
-                                ((ArrowExpressionClauseSyntax)methodSyntax).Expression,
+                                expression,
                                 diagnostics);
                         }
                     }

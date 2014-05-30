@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            return BuildLocals(ifStatement);
+            return BuildLocals(ifStatement.Condition);
         }
 
         internal override BoundIfStatement BindIfParts(DiagnosticBag diagnostics)

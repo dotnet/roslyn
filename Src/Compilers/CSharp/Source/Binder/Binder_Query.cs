@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         UnboundLambda MakePairLambda(CSharpSyntaxNode node, QueryTranslationState state, RangeVariableSymbol x1, RangeVariableSymbol x2)
         {
-            LambdaBodyResolver resolver = (LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag d) =>
+            LambdaBodyResolver resolver = (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag d) =>
             {
                 var x1Expression = new BoundParameter(node, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
                 var x2Expression = new BoundParameter(node, lambdaSymbol.Parameters[1]) { WasCompilerGenerated = true };
@@ -513,12 +513,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // are accessed as TRID.Item1 (or members of that), and y is accessed
             // as TRID.Item2, where TRID is the compiler-generated identifier used
             // to represent the transparent identifier in the result.
-            LambdaBodyResolver resolver = (LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag d) =>
+            LambdaBodyResolver resolver = (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag d) =>
             {
                 var xExpression = new BoundParameter(let, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
 
-                var expressionBinder = new ScopedExpressionBinder(lambdaBodyBinder, let.Expression);
-                var yExpression = expressionBinder.BindValue(let.Expression, d, BindValueKind.RValue);
+                lambdaBodyBinder = new ScopedExpressionBinder(lambdaBodyBinder, let.Expression);
+                var yExpression = lambdaBodyBinder.BindValue(let.Expression, d, BindValueKind.RValue);
                 SourceLocation errorLocation = new SourceLocation(let.SyntaxTree, new TextSpan(let.Identifier.SpanStart, let.Expression.Span.End - let.Identifier.SpanStart));
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var construction = MakePair(let, x.Name, xExpression, let.Identifier.ValueText, yExpression, state, d);
-                return lambdaBodyBinder.CreateBlockFromExpression(expressionBinder.Locals, construction, let, d);
+                return lambdaBodyBinder.CreateBlockFromExpression(lambdaBodyBinder.Locals, construction, let, d);
             };
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), x, let.Expression, resolver);
             state.rangeVariable = state.TransparentRangeVariable(this);

@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declarationOpt = syntax.Declaration;
             if ((declarationOpt != null) && (declarationOpt.Identifier.CSharpKind() != SyntaxKind.None))
             {
-                local = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, declarationOpt.Type, declarationOpt.Identifier, null, LocalDeclarationKind.Catch);
+                local = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.Catch);
             }
 
             if (syntax.Filter != null)
             {
-                var walker = new BuildLocalsFromDeclarationsWalker(this);
+                var walker = new BuildLocalsFromDeclarationsWalker(this.GetBinder(syntax.Filter), syntax.Filter);
 
                 walker.Visit(syntax.Filter);
 

@@ -379,8 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLambda
     {
-        public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, ExecutableCodeBinder binder, TypeSymbol type)
-            : this(syntax, (LambdaSymbol)binder.MemberSymbol, body, diagnostics, binder, type)
+        public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol type)
+            : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, type)
         {
         }
     }

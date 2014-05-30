@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        delegate BoundBlock LambdaBodyResolver(LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics);
+        delegate BoundBlock LambdaBodyResolver(LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics);
 
         private class QueryUnboundLambdaState : UnboundLambdaState
         {
@@ -27,21 +27,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public QueryUnboundLambdaState(UnboundLambda unbound, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax body, TypeSyntax castTypeSyntax, TypeSymbol castType)
-                : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics) =>
+                : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                var expressionBinder = new ScopedExpressionBinder(lambdaBodyBinder, body);
-                BoundExpression expression = expressionBinder.BindValue(body, diagnostics, BindValueKind.RValue);
+                lambdaBodyBinder = new ScopedExpressionBinder(lambdaBodyBinder, body);
+                BoundExpression expression = lambdaBodyBinder.BindValue(body, diagnostics, BindValueKind.RValue);
                 Debug.Assert((object)castType != null);
                 Debug.Assert(castTypeSyntax != null);
                 // We transform the expression from "expr" to "expr.Cast<castTypeOpt>()".
                 expression = lambdaBodyBinder.MakeQueryInvocation(body, expression, "Cast", castTypeSyntax, castType, diagnostics);
-                return lambdaBodyBinder.CreateBlockFromExpression(expressionBinder.Locals, expression, body, diagnostics);
+                return lambdaBodyBinder.CreateBlockFromExpression(lambdaBodyBinder.Locals, expression, body, diagnostics);
             })
             { }
 
             public QueryUnboundLambdaState(UnboundLambda unbound, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax body)
-                : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics) =>
+                : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
+                lambdaBodyBinder = new ScopedExpressionBinder(lambdaBodyBinder, body);
                 return lambdaBodyBinder.BindExpressionBodyAsBlock(body, diagnostics);
             })
             { }
@@ -73,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new WithQueryLambdaParametersBinder(lambdaSymbol, rangeVariableMap, binder);
             }
 
-            protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics)
+            protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics)
             {
-                return bodyResolver(lambdaSymbol, lambdaBodyBinder, diagnostics);
+                return bodyResolver(lambdaSymbol, ref lambdaBodyBinder, diagnostics);
             }
         }
     }

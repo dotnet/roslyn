@@ -121,7 +121,7 @@ int field = constantField;
             Assert.Equal(SpecialType.System_Int32, bindInfo.Type.SpecialType);
             var symbol = bindInfo.Symbol;
             Assert.Equal("System.Int32 local1", symbol.ToTestDisplayString());
-            Assert.IsType<SourceLocalSymbol>(symbol);
+            Assert.IsAssignableFrom<SourceLocalSymbol>(symbol);
         }
 
         [WorkItem(540513, "DevDiv")]

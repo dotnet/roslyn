@@ -163,35 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (binder != null)
                         {
-                            switch (stmt.CSharpKind())
-                            {
-                                case SyntaxKind.ForEachStatement:
-                                    var forEachStmt = (ForEachStatementSyntax)stmt;
-                                    if (LookupPosition.IsBetweenTokens(position, forEachStmt.InKeyword, forEachStmt.CloseParenToken))
-                                    {
-                                        binder = binder.Next;
-                                        Debug.Assert(binder is ScopedExpressionBinder);
-                                    }
-                                    break;
-
-                                case SyntaxKind.ForStatement:
-                                    var forStmt = (ForStatementSyntax)stmt;
-                                    if (LookupPosition.IsBetweenTokens(position, forStmt.OpenParenToken, forStmt.FirstSemicolonToken))
-                                    {
-                                        binder = binder.Next;
-                                        Debug.Assert(binder is ForLoopInitializationBinder);
-                                    }
-                                    break;
-
-                                case SyntaxKind.SwitchStatement:
-                                    var switchStmt = (SwitchStatementSyntax)stmt;
-                                    if (LookupPosition.IsBetweenTokens(position, switchStmt.OpenParenToken, switchStmt.CloseParenToken))
-                                    {
-                                        binder = binder.Next;
-                                        Debug.Assert(binder is ScopedExpressionBinder);
-                                    }
-                                    break;
-                            }
+                            binder = AdjustBinderForPositionWithinStatement(position, binder, stmt);
                         }
                     }
                 }
@@ -262,6 +234,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return binder.WithAdditionalFlags(BinderFlags.SemanticModel);
+        }
+
+        private static Binder AdjustBinderForPositionWithinStatement(int position, Binder binder, StatementSyntax stmt)
+        {
+            switch (stmt.CSharpKind())
+            {
+                case SyntaxKind.ForEachStatement:
+                    var forEachStmt = (ForEachStatementSyntax)stmt;
+                    if (LookupPosition.IsBetweenTokens(position, forEachStmt.InKeyword, forEachStmt.Statement.GetFirstToken()))
+                    {
+                        binder = binder.Next;
+                        Debug.Assert(binder is ScopedExpressionBinder);
+                    }
+                    break;
+
+                case SyntaxKind.ForStatement:
+                    var forStmt = (ForStatementSyntax)stmt;
+                    if (LookupPosition.IsBetweenTokens(position, forStmt.OpenParenToken, forStmt.FirstSemicolonToken))
+                    {
+                        binder = binder.Next;
+                        Debug.Assert(binder is ForLoopInitializationBinder);
+                    }
+                    break;
+
+                case SyntaxKind.SwitchStatement:
+                    var switchStmt = (SwitchStatementSyntax)stmt;
+                    if (LookupPosition.IsBetweenTokens(position, switchStmt.OpenParenToken, switchStmt.OpenBraceToken))
+                    {
+                        binder = binder.Next;
+                        Debug.Assert(binder is ScopedExpressionBinder);
+                    }
+                    break;
+            }
+
+            return binder;
         }
 
         public override Conversion ClassifyConversion(
@@ -1279,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// Returned binder doesn't need to have <see cref="BinderFlags.SemanticModel"/> set - the caller will add it.
         /// </remarks>
-        private static Binder GetLambdaEnclosingBinder(int position, CSharpSyntaxNode startingNode, CSharpSyntaxNode containingLambda, ExecutableCodeBinder lambdaBinder)
+        private static Binder GetLambdaEnclosingBinder(int position, CSharpSyntaxNode startingNode, CSharpSyntaxNode containingLambda, Binder lambdaBinder)
         {
             Debug.Assert(containingLambda.IsAnonymousFunction());
             Debug.Assert(LookupPosition.IsInAnonymousFunctionOrQuery(position, containingLambda));
@@ -1297,7 +1304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Binder binder = lambdaBinder.GetBinder(current);
                         if (binder != null)
                         {
-                            return binder;
+                            return AdjustBinderForPositionWithinStatement(position, binder, stmt);
                         }
                     }
                 }

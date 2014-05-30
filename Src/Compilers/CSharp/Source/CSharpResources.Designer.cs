@@ -2934,9 +2934,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to A declaration expression is not permitted in this context..
         /// </summary>
-        internal static string ERR_DeclarationExpressionOutsideOfAMethodBody {
+        internal static string ERR_DeclarationExpressionOutOfContext {
             get {
-                return ResourceManager.GetString("ERR_DeclarationExpressionOutsideOfAMethodBody", resourceCulture);
+                return ResourceManager.GetString("ERR_DeclarationExpressionOutOfContext", resourceCulture);
             }
         }
         

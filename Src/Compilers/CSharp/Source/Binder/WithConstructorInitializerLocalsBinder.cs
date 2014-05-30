@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var walker = new BuildLocalsFromDeclarationsWalker(this);
+            var walker = new BuildLocalsFromDeclarationsWalker(this, initializerArgumentList);
 
             walker.Visit(initializerArgumentList);
 

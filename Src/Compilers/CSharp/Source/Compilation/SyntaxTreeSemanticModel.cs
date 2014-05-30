@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     this.Compilation,
                                     parameterDecl,
                                     parameterSymbol,
-                                    new LocalScopeBinder(outer)); //Since otherwise there won't be one and we'll assert.
+                                    outer.CreateBinderForParameterDefaultValue(parameterSymbol, (EqualsValueClauseSyntax)node));
                             }
 
                         case SyntaxKind.EnumMemberDeclaration:

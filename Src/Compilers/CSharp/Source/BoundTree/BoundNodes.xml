@@ -1292,7 +1292,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
     <Field Name="Body" Type="BoundBlock"/>
     <Field Name="Diagnostics" Type="ImmutableArray&lt;Microsoft.CodeAnalysis.Diagnostic&gt;" />
-    <Field Name="Binder" Type="ExecutableCodeBinder" Null="disallow" />
+    <Field Name="Binder" Type="Binder" Null="disallow" />
   </Node>
 
   <Node Name="UnboundLambda" Base="BoundExpression">

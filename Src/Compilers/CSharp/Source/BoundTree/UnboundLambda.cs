@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract TypeSymbol ParameterType(int index);
         //public abstract SyntaxToken ParameterIdentifier(int index);
         public abstract RefKind RefKind(int index);
-        protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, ExecutableCodeBinder binder, DiagnosticBag diagnostics);
+        protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics);
 
         public virtual void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType)
         {
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var returnType = DelegateReturnType(delegateType);
 
             LambdaSymbol lambdaSymbol;
-            ExecutableCodeBinder lambdaBodyBinder;
+            Binder lambdaBodyBinder;
             BoundBlock block;
 
             var diagnostics = DiagnosticBag.GetInstance();
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameters = DelegateParameters(delegateType);
             lambdaSymbol = new LambdaSymbol(binder.Compilation, binder.ContainingMemberOrLambda, this.unboundLambda, parameters, returnType);
             lambdaBodyBinder = new ExecutableCodeBinder(this.unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
-            block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
+            block = BindLambdaBody(lambdaSymbol, ref lambdaBodyBinder, diagnostics);
             ValidateUnsafeParameters(diagnostics, parameters);
 
         haveLambdaBodyAndBinders:
@@ -402,8 +402,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnostics = DiagnosticBag.GetInstance();
             var parameters = DelegateParameters(delegateType);
             var lambdaSymbol = new LambdaSymbol(binder.Compilation, binder.ContainingMemberOrLambda, this.unboundLambda, parameters, returnType: null);
-            var lambdaBodyBinder = new ExecutableCodeBinder(this.unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
-            var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
+            Binder lambdaBodyBinder = new ExecutableCodeBinder(this.unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
+            var block = BindLambdaBody(lambdaSymbol, ref lambdaBodyBinder, diagnostics);
 
             var result = new BoundLambda(this.unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType)
             { WasCompilerGenerated = this.unboundLambda.WasCompilerGenerated };
@@ -746,11 +746,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.parameterTypes[index];
         }
 
-        protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics)
+        protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics)
         {
             if (this.IsExpressionLambda)
             {
-                return lambdaBodyBinder.BindExpressionBodyAsBlock((ExpressionSyntax)this.Body, diagnostics);
+                var body = (ExpressionSyntax)this.Body;
+                lambdaBodyBinder = new ScopedExpressionBinder(lambdaBodyBinder, body);
+                return lambdaBodyBinder.BindExpressionBodyAsBlock(body, diagnostics);
             }
             else
             {

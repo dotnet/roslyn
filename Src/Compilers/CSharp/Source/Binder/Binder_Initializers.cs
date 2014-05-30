@@ -162,24 +162,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var info in infos)
                 {
                     Binder binder = info.Binder;
-                    ScopedExpressionBinder scopedExpressionBinder = null;
 
                     // Constant initializers is not part of the initialization scope.
-                    if (info.Initializer.Field.IsConst || locals.IsDefault)
-                    {
-                        binder = scopedExpressionBinder = new ScopedExpressionBinder(binder, info.EqualsValue.Value);
-                    }
-                    else if (!locals.IsEmpty)
+                    if (!info.Initializer.Field.IsConst && !locals.IsDefaultOrEmpty)
                     {
                         binder = new SimpleLocalScopeBinder(locals, binder);
                     }
 
                     BoundFieldInitializer boundInitializer = BindFieldInitializer(binder, info.Initializer.Field, info.EqualsValue, diagnostics);
-
-                    if (scopedExpressionBinder != null && !scopedExpressionBinder.Locals.IsDefaultOrEmpty)
-                    {
-                        boundInitializer = boundInitializer.Update(boundInitializer.Field, scopedExpressionBinder.AddLocalScopeToExpression(boundInitializer.InitialValue));
-                    }
 
                     initializersBuilder.Add(boundInitializer);
                 }
@@ -202,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Constant initializers do not contribute to the initialization scope.
                 if (!info.Initializer.Field.IsConst)
                 {
-                    var walker = new LocalScopeBinder.BuildLocalsFromDeclarationsWalker(info.Binder);
+                    var walker = new LocalScopeBinder.BuildLocalsFromDeclarationsWalker(info.Binder, info.EqualsValue.Value);
                     walker.Visit(info.EqualsValue.Value);
 
                     if (walker.Locals != null)
