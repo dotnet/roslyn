@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EmitContext otherContext)
         {
             this.defs = new MatchDefsToSource(sourceContext, otherContext);
-            this.symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, this.defs);
+            this.symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly);
         }
 
         public SymbolMatcher(
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol otherAssembly)
         {
             this.defs = new MatchDefsToMetadata(sourceContext, otherAssembly);
-            this.symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, this.defs);
+            this.symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly);
         }
 
         internal IDefinition MapDefinition(IDefinition def)
@@ -258,7 +258,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap;
             private readonly SourceAssemblySymbol sourceAssembly;
             private readonly AssemblySymbol otherAssembly;
-            private readonly MatchDefs defs;
             private readonly SymbolComparer comparer;
             private readonly ConcurrentDictionary<Symbol, Symbol> matches;
             // A cache of members per type, populated when the first member for a given
@@ -270,13 +269,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public MatchSymbols(
                 IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
                 SourceAssemblySymbol sourceAssembly,
-                AssemblySymbol otherAssembly,
-                MatchDefs defs)
+                AssemblySymbol otherAssembly)
             {
                 this.anonymousTypeMap = anonymousTypeMap;
                 this.sourceAssembly = sourceAssembly;
                 this.otherAssembly = otherAssembly;
-                this.defs = defs;
                 this.comparer = new SymbolComparer(this);
                 this.matches = new ConcurrentDictionary<Symbol, Symbol>();
                 this.otherTypeMembers = new ConcurrentDictionary<NamedTypeSymbol, IReadOnlyDictionary<string, ImmutableArray<Symbol>>>();
