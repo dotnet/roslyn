@@ -119,8 +119,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>";
 
-            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "There is a duplicate key sequence 'CA1012' for the 'UniqueRuleName' key or unique identity constraint."), locMessage: locMessage);
+            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetHasDuplicateRules, "CA1012", "Error", "Warn"), locSpecific: false);
+        }
+
+        [Fact]
+        public void TestRuleSetParsingDuplicateRule3()
+        {
+            string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <IncludeAll Action=""Warning"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1012"" Action=""Error"" />
+    <Rule Id=""CA1014"" Action=""None"" />
+  </Rules>
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1012"" Action=""Error"" />
+    <Rule Id=""CA1013"" Action=""None"" />
+  </Rules>
+</RuleSet>";
+
+            var ruleSet = ParseRuleSet(source);
+            Assert.Equal(expected: ReportDiagnostic.Error, actual: ruleSet.SpecificDiagnosticOptions["CA1012"]);
         }
 
         [Fact]

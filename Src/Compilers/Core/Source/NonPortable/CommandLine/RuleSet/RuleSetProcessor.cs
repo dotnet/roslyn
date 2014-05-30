@@ -130,11 +130,21 @@ namespace Microsoft.CodeAnalysis
                     var rules = ReadRules(childNode);
                     foreach (var rule in rules)
                     {
-                        if (specificOptions.ContainsKey(rule.Key))
+                        var ruleId = rule.Key;
+                        var action = rule.Value;
+
+                        ReportDiagnostic existingAction;
+                        if (specificOptions.TryGetValue(ruleId, out existingAction))
                         {
-                            Debug.Fail("Schema validation for duplicate rule failed.");
+                            if (existingAction != action)
+                            {
+                                throw new InvalidRuleSetException(string.Format(CodeAnalysisResources.RuleSetHasDuplicateRules, ruleId, existingAction, action));
+                            }
                         }
-                        specificOptions.Add(rule.Key, rule.Value);
+                        else
+                        {
+                            specificOptions.Add(ruleId, action);
+                        }
                     }
                 }
                 else if (childNode.Name == IncludeNodeName)

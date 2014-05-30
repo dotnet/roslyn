@@ -682,6 +682,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The rule set file has duplicate rules for &apos;{0}&apos; with differing actions &apos;{1}&apos; and &apos;{2}&apos;..
+        /// </summary>
+        internal static string RuleSetHasDuplicateRules {
+            get {
+                return ResourceManager.GetString("RuleSetHasDuplicateRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The file does not conform to the rule set schema - {0}.
         /// </summary>
         internal static string RuleSetSchemaViolation {
