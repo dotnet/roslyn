@@ -110,7 +110,7 @@ public class Cls
         {
             public readonly DeclarationScope DeclScope;
             public readonly CSharpSyntaxNode Node;
-            public SemanticModelInfo LocalDeclaration;
+            public SemanticModelInfo LocalOrParameterDeclaration;
 
             public SymbolInfo SymInfo;
             public TypeInfo TypeInfo;
@@ -134,6 +134,9 @@ public class Cls
             private DeclarationScope staticInitScope;
             private DeclarationScope instanceInitScope;
             private ArrayBuilder<SemanticModelInfo> builder;
+
+            private SmallDictionary<string, DeclarationScope> primaryConstructorParametersScopes = new SmallDictionary<string, DeclarationScope>();
+            private SmallDictionary<string, bool> primaryConstructorParametersScopesValidator = new SmallDictionary<string, bool>();
 
             private ModelBuilder() { }
 
@@ -162,6 +165,10 @@ public class Cls
                             info.DeclScope.AddDeclaration(((ForEachStatementSyntax)info.Node).Identifier.ValueText, info);
                             break;
 
+                        case SyntaxKind.Parameter:
+                            info.DeclScope.AddDeclaration(((ParameterSyntax)info.Node).Identifier.ValueText, info);
+                            break;
+
                         case SyntaxKind.IdentifierName:
                             break;
 
@@ -175,7 +182,7 @@ public class Cls
                 {
                     if (info.Node.Kind == SyntaxKind.IdentifierName && info.DeclScope != null)
                     {
-                        info.LocalDeclaration = info.DeclScope.Bind(((IdentifierNameSyntax)info.Node).Identifier.ValueText);
+                        info.LocalOrParameterDeclaration = info.DeclScope.Bind(((IdentifierNameSyntax)info.Node).Identifier.ValueText);
                     }
                 }
 
@@ -188,8 +195,15 @@ public class Cls
                 DeclarationScope saveStaticInitScope = staticInitScope;
                 DeclarationScope saveInstanceInitScope = instanceInitScope;
 
+                DeclarationScope primaryConstructorParametersScope;
+                if (!primaryConstructorParametersScopes.TryGetValue(node.Identifier.ValueText, out primaryConstructorParametersScope))
+                {
+                    primaryConstructorParametersScope = new DeclarationScope(null);
+                    primaryConstructorParametersScopes.Add(node.Identifier.ValueText, primaryConstructorParametersScope);
+                }
+
                 staticInitScope = new DeclarationScope(null);
-                instanceInitScope = new DeclarationScope(null);
+                instanceInitScope = new DeclarationScope(primaryConstructorParametersScope);
 
                 base.VisitClassDeclaration(node);
 
@@ -204,8 +218,15 @@ public class Cls
                 DeclarationScope saveStaticInitScope = staticInitScope;
                 DeclarationScope saveInstanceInitScope = instanceInitScope;
 
+                DeclarationScope primaryConstructorParametersScope;
+                if (!primaryConstructorParametersScopes.TryGetValue(node.Identifier.ValueText, out primaryConstructorParametersScope))
+                {
+                    primaryConstructorParametersScope = new DeclarationScope(null);
+                    primaryConstructorParametersScopes.Add(node.Identifier.ValueText, primaryConstructorParametersScope);
+                }
+
                 staticInitScope = new DeclarationScope(null);
-                instanceInitScope = new DeclarationScope(null);
+                instanceInitScope = new DeclarationScope(primaryConstructorParametersScope);
 
                 base.VisitStructDeclaration(node);
 
@@ -555,22 +576,36 @@ public class Cls
             public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
             {
                 var saveCurentScope = currentScope;
-                currentScope = new DeclarationScope(currentScope);
+                var parametersScope = new DeclarationScope(saveCurentScope);
+                currentScope = parametersScope;
+
+                Visit(node.Parameter);
+
+                Debug.Assert(currentScope == parametersScope);
+                currentScope = new DeclarationScope(parametersScope);
 
                 Visit(node.Body);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
+                Debug.Assert(currentScope.Parent == parametersScope);
+                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
                 currentScope = saveCurentScope;
             }
 
             public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
             {
                 var saveCurentScope = currentScope;
-                currentScope = new DeclarationScope(currentScope);
+                var parametersScope = new DeclarationScope(saveCurentScope);
+                currentScope = parametersScope;
+
+                Visit(node.ParameterList);
+
+                Debug.Assert(currentScope == parametersScope);
+                currentScope = new DeclarationScope(parametersScope);
 
                 Visit(node.Body);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
+                Debug.Assert(currentScope.Parent == parametersScope);
+                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
                 currentScope = saveCurentScope;
             }
 
@@ -667,12 +702,19 @@ public class Cls
 
             public override void VisitParameter(ParameterSyntax node)
             {
+                Debug.Assert(currentScope != null);
+
+                if (node.Identifier.CSharpKind() != SyntaxKind.ArgListKeyword)
+                {
+                    builder.Add(new SemanticModelInfo(currentScope, node));
+                }
+
                 var saveCurentScope = currentScope;
-                currentScope = new DeclarationScope(saveCurentScope);
+                currentScope = new DeclarationScope(currentScope.Parent);
 
                 Visit(node.Default);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
+                Debug.Assert(currentScope.Parent == saveCurentScope.Parent);
                 currentScope = saveCurentScope;
             }
 
@@ -685,6 +727,120 @@ public class Cls
 
                 Debug.Assert(currentScope.Parent == saveCurentScope);
                 currentScope = saveCurentScope;
+            }
+
+            public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
+            {
+                VisitAttributes(node.AttributeLists);
+
+                var saveCurentScope = currentScope;
+                var parametersScope = new DeclarationScope(saveCurentScope);
+                currentScope = parametersScope;
+
+                Visit(node.ParameterList);
+
+                Debug.Assert(currentScope == parametersScope);
+                currentScope = new DeclarationScope(parametersScope);
+
+                Visit(node.Initializer);
+
+                if (node.Modifiers.Any(SyntaxKind.StaticKeyword))
+                {
+                    Debug.Assert(currentScope.Parent == parametersScope);
+                    currentScope = parametersScope;
+
+                    Visit(node.Body);
+                }
+                else
+                {
+                    Visit(node.Body);
+
+                    Debug.Assert(currentScope.Parent == parametersScope);
+                    currentScope = parametersScope;
+                }
+
+                Debug.Assert(currentScope.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            private void VisitAttributes(SyntaxList<AttributeListSyntax> attributeLists)
+            {
+                foreach (var attr in attributeLists)
+                {
+                    Visit(attr);
+                }
+            }
+
+            public override void VisitBaseClassWithArguments(BaseClassWithArgumentsSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                currentScope = new DeclarationScope(instanceInitScope);
+
+                Visit(node.ArgumentList);
+
+                Debug.Assert(currentScope.Parent == instanceInitScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
+            {
+                VisitAttributes(node.AttributeLists);
+
+                var saveCurentScope = currentScope;
+                var parametersScope = new DeclarationScope(saveCurentScope);
+                currentScope = parametersScope;
+
+                Visit(node.ParameterList);
+
+                Debug.Assert(currentScope == parametersScope);
+                currentScope = new DeclarationScope(parametersScope);
+
+                Visit(node.Body);
+
+                Debug.Assert(currentScope.Parent == parametersScope);
+                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
+                currentScope = saveCurentScope;
+            }
+
+            public override void VisitParameterList(ParameterListSyntax node)
+            {
+                var saveCurentScope = currentScope;
+                DeclarationScope parametersScope = null;
+
+                switch (node.Parent.Kind)
+                {
+                    case SyntaxKind.ClassDeclaration:
+                        if (((ClassDeclarationSyntax)node.Parent).ParameterList == node)
+                        {
+                            var name = ((ClassDeclarationSyntax)node.Parent).Identifier.ValueText;
+                            parametersScope = primaryConstructorParametersScopes[name];
+                            primaryConstructorParametersScopesValidator.Add(name, true); // this is expected to throw in case of collision.
+                            currentScope = parametersScope;
+                        }
+                        break;
+                    case SyntaxKind.StructDeclaration:
+                        if (((StructDeclarationSyntax)node.Parent).ParameterList == node)
+                        {
+                            var name = ((StructDeclarationSyntax)node.Parent).Identifier.ValueText;
+                            parametersScope = primaryConstructorParametersScopes[name];
+                            primaryConstructorParametersScopesValidator.Add(name, true); // this is expected to throw in case of collision.
+                            currentScope = parametersScope;
+                        }
+                        break;
+                }
+
+                base.VisitParameterList(node);
+
+                if (parametersScope != null)
+                {
+                    Debug.Assert(currentScope == parametersScope);
+                    Debug.Assert(currentScope.Parent == saveCurentScope);
+                    currentScope = saveCurentScope;
+                }
+                else
+                {
+                    Debug.Assert(currentScope == saveCurentScope);
+                }
             }
         }
 
@@ -714,7 +870,6 @@ public class Cls
 
             SymbolInfo symInfo;
             TypeInfo typeInfo;
-            LocalSymbol local;
 
             foreach (var info in backwards ? infos.Reverse() : infos)
             {
@@ -722,14 +877,28 @@ public class Cls
 
                 switch (info.Node.Kind)
                 {
+                    case SyntaxKind.Parameter:
+                        var parameterDecl = (ParameterSyntax)info.Node;
+                        var param = (ParameterSymbol)semanticModel.GetDeclaredSymbol(parameterDecl);
+
+                        Assert.Equal(parameterDecl.Identifier.ValueText, param.Name);
+                        Assert.Equal(parameterDecl.Identifier.GetLocation(), param.Locations[0]);
+
+                        info.SymInfo = new SymbolInfo(param);
+                        break;
+
                     case SyntaxKind.VariableDeclarator:
                         var declarator = (VariableDeclaratorSyntax)info.Node;
-                        local = (LocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+                        var local = (LocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
 
                         if ((object)local != null)
                         {
                             Assert.Equal(declarator.Identifier.ValueText, local.Name);
                             Assert.Equal(declarator.Identifier.GetLocation(), local.Locations[0]);
+                        }
+                        else if (declarator.Identifier.IsMissing)
+                        {
+                            break;
                         }
                         else
                         {
@@ -796,24 +965,58 @@ public class Cls
                         info.SymInfo = semanticModel.GetSymbolInfo(reference);
                         info.TypeInfo = semanticModel.GetTypeInfo(reference);
 
-                        if ((object)info.SymInfo.Symbol != null)
-                        {
-                            Assert.True(semanticModel.LookupNames(reference.Identifier.Position).Contains(info.SymInfo.Symbol.Name));
+                        var symbol = info.SymInfo.Symbol;
 
-                            switch (info.SymInfo.Symbol.Kind)
+                        if (symbol == null && info.SymInfo.CandidateReason == CandidateReason.NotAVariable && 
+                            info.SymInfo.CandidateSymbols.Length == 1 && info.SymInfo.CandidateSymbols[0].Kind == SymbolKind.Local &&
+                            ((LocalSymbol)info.SymInfo.CandidateSymbols[0]).DeclarationKind == LocalDeclarationKind.Using) 
+                        {
+                            symbol = info.SymInfo.CandidateSymbols[0];
+                        }
+
+                        var nameNotInContext = diagnostics.Where(d => d.Code == (int)ErrorCode.ERR_NameNotInContext && d.Location == reference.Identifier.GetLocation()).Any();
+
+                        if ((object)symbol != null)
+                        {
+                            Assert.True(semanticModel.LookupNames(reference.Identifier.Position).Contains(symbol.Name));
+                            Assert.False(nameNotInContext);
+
+                            switch (symbol.Kind)
                             {
                                 case SymbolKind.NamedType:
                                     break;
 
                                 default:
-                                    Assert.Same(info.SymInfo.Symbol, semanticModel.LookupSymbols(reference.Identifier.Position, name: info.SymInfo.Symbol.Name).Single());
+                                    Assert.Same(symbol, semanticModel.LookupSymbols(reference.Identifier.Position, name: symbol.Name).Single());
                                     break;
                             }
                         }
                         else if (info.SymInfo.CandidateSymbols.Length == 0)
                         {
-                            Assert.True(diagnostics.Where(d => d.Code == (int)ErrorCode.ERR_NameNotInContext &&
-                                                               d.Location == reference.Identifier.GetLocation()).Any());
+                            if (!nameNotInContext)
+                            {
+                                var parent = reference.Parent;
+
+                                while (parent != null)
+                                {
+                                    switch (parent.Kind)
+                                    {
+                                        case SyntaxKind.ThisConstructorInitializer:
+                                        case SyntaxKind.BaseConstructorInitializer:
+                                            nameNotInContext = diagnostics.Where(d => d.Code == (int)ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall &&
+                                                                                      d.Location == ((ConstructorInitializerSyntax)parent).ThisOrBaseKeyword.GetLocation()).Any();
+                                            break;
+
+                                        default:
+                                            parent = parent.Parent;
+                                            continue;
+                                    }
+
+                                    break;
+                                }
+
+                                Assert.True(nameNotInContext);
+                            }
                         }
 
                         break;
@@ -830,26 +1033,56 @@ public class Cls
                     case SyntaxKind.VariableDeclarator:
                     case SyntaxKind.CatchDeclaration:
                     case SyntaxKind.ForEachStatement:
+                    case SyntaxKind.Parameter:
                         break;
 
                     case SyntaxKind.IdentifierName:
                         var reference = (IdentifierNameSyntax)info.Node;
-                        info.SymInfo = semanticModel.GetSymbolInfo(reference);
-                        info.TypeInfo = semanticModel.GetTypeInfo(reference);
+                        symInfo = semanticModel.GetSymbolInfo(reference);
+                        typeInfo = semanticModel.GetTypeInfo(reference);
 
-                        if (info.LocalDeclaration != null)
+                        Assert.Same(info.SymInfo.Symbol, symInfo.Symbol);
+                        Assert.True(info.SymInfo.CandidateSymbols.SequenceEqual<ISymbol, ISymbol>(symInfo.CandidateSymbols, Roslyn.Utilities.ReferenceEqualityComparer.Instance));
+                        Assert.Equal(info.TypeInfo.Type, typeInfo.Type);
+
+                        var symbol = info.SymInfo.Symbol;
+
+                        if (symbol == null && info.SymInfo.CandidateReason == CandidateReason.NotAVariable &&
+                            info.SymInfo.CandidateSymbols.Length == 1 && info.SymInfo.CandidateSymbols[0].Kind == SymbolKind.Local &&
+                            ((LocalSymbol)info.SymInfo.CandidateSymbols[0]).DeclarationKind == LocalDeclarationKind.Using)
                         {
-                            Assert.Same(info.LocalDeclaration.SymInfo.Symbol, info.SymInfo.Symbol);
-                            Assert.Equal(0, info.SymInfo.CandidateSymbols.Length);
+                            symbol = info.SymInfo.CandidateSymbols[0];
+                        }
 
-                            if ((object)info.SymInfo.Symbol != null)
+                        if (info.LocalOrParameterDeclaration != null)
+                        {
+                            Assert.Same(info.LocalOrParameterDeclaration.SymInfo.Symbol, symbol);
+
+                            if ((object)symbol != null)
                             {
-                                Assert.Equal(((LocalSymbol)info.SymInfo.Symbol).Type, info.TypeInfo.Type);
+                                switch (symbol.Kind)
+                                {
+                                    case SymbolKind.Local:
+                                        Assert.Equal(((LocalSymbol)symbol).Type, info.TypeInfo.Type);
+                                        break;
+
+                                    case SymbolKind.Parameter:
+                                        Assert.Equal(((ParameterSymbol)symbol).Type, info.TypeInfo.Type);
+                                        break;
+
+                                    default:
+                                        throw new NotImplementedException();
+                                }
+                            }
+                            else
+                            {
+                                Assert.Equal(0, info.SymInfo.CandidateSymbols.Length);
                             }
                         }
-                        else if ((object)info.SymInfo.Symbol != null)
+                        else if ((object)symbol != null)
                         {
-                            Assert.NotEqual(SymbolKind.Local, info.SymInfo.Symbol.Kind);
+                            Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+                            Assert.NotEqual(SymbolKind.Parameter, symbol.Kind);
                         }
 
                         break;
@@ -6561,6 +6794,8 @@ class Derived : Base
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"Base: 123").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(6)]
@@ -6593,6 +6828,7 @@ class Derived : Base
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"Derived: 123").VerifyDiagnostics();
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(6)]
@@ -6628,6 +6864,8 @@ class Derived : Base
 
             CompileAndVerify(compilation, expectedOutput: @"Base: 123
 Derived: 247").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(6)]
@@ -6656,6 +6894,165 @@ class Derived() : Base(int x = 123, x + 1)
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"Base: 123, 124").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
+        }
+
+        [Fact, WorkItem(6)]
+        public void InConstructorInitializer_05()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = new Derived();
+    }
+}
+
+class Base
+{
+    public Base(out int x, int y)
+    { 
+        x = 124;
+    }
+}
+
+class Derived() : Base(out var x, x) 
+{
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (18,35): error CS8048: Reference to variable 'x' is not permitted in this context.
+    // class Derived() : Base(out var x, x) 
+    Diagnostic(ErrorCode.ERR_VariableUsedInTheSameArgumentList, "x").WithArguments("x").WithLocation(18, 35),
+    // (18,35): error CS0165: Use of unassigned local variable 'x'
+    // class Derived() : Base(out var x, x) 
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(18, 35)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact, WorkItem(6)]
+        public void InConstructorInitializer_06()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = new Derived();
+    }
+}
+
+class Derived
+{
+    public Derived(out int x)
+    { 
+        x = 123;
+    }
+
+    public Derived() : this(out var x)
+    { 
+        System.Console.WriteLine(""Derived: {0}"", x);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"Derived: 123").VerifyDiagnostics();
+            TestSemanticModelAPI(compilation);
+        }
+
+        [Fact, WorkItem(6)]
+        public void InConstructorInitializer_07()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = new Derived();
+    }
+}
+
+class Base
+{
+    public Base(int x, int y, int z)
+    { 
+    }
+
+    public Base()
+    { 
+    }
+}
+
+class Derived : Base 
+{
+    static Derived() : base(Test(out var x, int y = 1, y))
+    { 
+        System.Console.WriteLine(""Derived: {0}"", x);
+    }
+
+    static int Test(out int x)
+    { 
+        x = 123;
+        return x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (23,24): error CS0514: 'Derived': static constructor cannot have an explicit 'this' or 'base' constructor call
+    //     static Derived() : base(Test(out var x))
+    Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "base").WithArguments("Derived").WithLocation(23, 24),
+    // (25,50): error CS0103: The name 'x' does not exist in the current context
+    //         System.Console.WriteLine("Derived: {0}", x);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(25, 50)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact, WorkItem(6)]
+        public void InConstructorInitializer_08()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Derived
+{
+    public Derived(out int x, int y, int z)
+    { 
+        x = 123;
+    }
+
+    static Derived() : this(out var x, int y = 1, y)
+    { 
+        System.Console.WriteLine(""Derived: {0}"", x);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (16,24): error CS0514: 'Derived': static constructor cannot have an explicit 'this' or 'base' constructor call
+    //     static Derived() : this(out var x, int y = 1, y)
+    Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("Derived").WithLocation(16, 24),
+    // (18,50): error CS0103: The name 'x' does not exist in the current context
+    //         System.Console.WriteLine("Derived: {0}", x);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(18, 50)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -6814,6 +7211,8 @@ struct S : IDisposable
     //         using(int y) 
     Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(14, 15)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact, WorkItem(134)]
@@ -6862,6 +7261,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "1 1").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(134)]
@@ -6878,6 +7279,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "2 1").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(134)]
@@ -6894,6 +7297,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "3 3").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(134)]
@@ -6910,6 +7315,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "1 1").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(134)]
@@ -6926,6 +7333,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(134)]
@@ -6942,6 +7351,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(134)]
@@ -6958,6 +7369,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "2 2").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(134)]
@@ -6974,6 +7387,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "3 3").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(134)]
@@ -6990,6 +7405,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "3 3").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(134)]
@@ -7006,6 +7423,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(134)]
@@ -7022,6 +7441,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact, WorkItem(134)]
@@ -7038,6 +7459,8 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "1 1").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7063,6 +7486,8 @@ class Test
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7100,6 +7525,8 @@ partial class Test
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101 10 12 11 100 102 101").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7137,6 +7564,8 @@ partial class Test
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101 10 12 11 100 102 101").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7174,6 +7603,8 @@ partial class Test
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101 10 12 11 100 102 101").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7198,6 +7629,8 @@ class Test
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7231,6 +7664,8 @@ partial class Test
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7262,6 +7697,8 @@ partial class Test
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7295,6 +7732,8 @@ partial class Test
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7324,6 +7763,8 @@ partial class Test
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7352,6 +7793,8 @@ partial class Test
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7443,6 +7886,8 @@ partial class Test6(int p = x)
     //         System.Console.WriteLine(x);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(38, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -7483,6 +7928,8 @@ partial class Test1
     // partial class Test1() : Base(x, y)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(15, 33)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -7523,6 +7970,8 @@ partial class Test1() : Base(x, y)
     // partial class Test1() : Base(x, y)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(20, 33)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -7571,6 +8020,8 @@ partial class Test1
     // partial class Test1() : Base(x, y, z)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(20, 36)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -7601,6 +8052,8 @@ partial class Test1() : Base(int x = 10)
     //     public int x1 = x;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 21)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -7627,6 +8080,8 @@ partial class Test1(int x)
     //     public int x1 = (int x = 1);
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 26)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -7649,6 +8104,8 @@ partial class Test1(int x)
 
             compilation.VerifyDiagnostics(
                 );
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -7675,6 +8132,8 @@ partial class Test1(int x)
     //     const int x1 = (int x = 1);
     Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int x = 1").WithLocation(11, 21)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -7704,6 +8163,8 @@ partial class Test1(int x)
     //     const decimal x1 = (int x = 1);
     Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int x = 1").WithLocation(11, 25)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -7733,6 +8194,8 @@ partial class Test1(int x) : Base(int x = 10)
     // partial class Test1(int x) : Base(int x = 10)
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(13, 39)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -7810,6 +8273,8 @@ partial class Test1
     //     event System.Action x3  = (System.Action c = null) += c += (System.Action c = null);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(13, 79)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -7889,6 +8354,8 @@ partial class Test1
     //     event System.Action x3  = (System.Action c = null);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(18, 46)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -7968,6 +8435,8 @@ partial class Test1
     //     event System.Action x3  = (System.Action c = null);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(18, 46)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8047,6 +8516,8 @@ partial class Test1
     //     event System.Action x3  = (System.Action c = null);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(18, 46)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8126,6 +8597,8 @@ partial class Test1
     //     event System.Action x31  = ()=> c1 = 2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "c1").WithArguments("c1").WithLocation(19, 37)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8205,6 +8678,8 @@ partial class Test1
     //     event System.Action x31  = ()=> c1 = 2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "c1").WithArguments("c1").WithLocation(19, 37)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8284,6 +8759,8 @@ partial class Test1
     //     event System.Action x31  = c1;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "c1").WithArguments("c1").WithLocation(19, 32)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8411,6 +8888,8 @@ partial class Test1
     //     event System.Action x31  = ()=> c1 = 2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "c1").WithArguments("c1").WithLocation(19, 37)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8586,6 +9065,8 @@ partial class Test1
     //     event System.Action x31  = ()=> c1 = 2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "c1").WithArguments("c1").WithLocation(19, 37)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8643,6 +9124,8 @@ class Test1 : Base
     //     const decimal x8 = (decimal h = 1);
     Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(25, 25)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8706,6 +9189,8 @@ class Test1() : Base(
     //         (System.Action c = null), 
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "c").WithArguments("c").WithLocation(17, 24)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8787,6 +9272,8 @@ class Test1 : Base
     //         h)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h").WithArguments("h").WithLocation(35, 9)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8865,6 +9352,8 @@ class Test1() : Base(
     //         h)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h").WithArguments("h").WithLocation(22, 9)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8918,6 +9407,8 @@ class Test1
     //     const decimal x8 = (decimal h = 1);
     Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "decimal h = 1").WithLocation(20, 25)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -8995,6 +9486,8 @@ class Test1
     //         System.Console.WriteLine(h);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "h").WithArguments("h").WithLocation(31, 34)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -9027,6 +9520,8 @@ class Test1() : Base(
     //         (int a = 2))
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "a").WithArguments("a").WithLocation(16, 14)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -9061,6 +9556,8 @@ class Test1 : Base
     //         (int a = 2))
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "a").WithArguments("a").WithLocation(18, 14)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -9098,6 +9595,8 @@ class Test1 : Base
     //         System.Console.WriteLine(int b = 3);
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "b").WithArguments("b").WithLocation(21, 38)
                 );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
         [Fact]
@@ -9131,6 +9630,8 @@ class Test() : Base((int x = 10)++, ()=>x, x++)
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -9166,6 +9667,8 @@ class Test(int x1, System.Func<int> x2, int x3) : Base(x1, x2, x3)
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "100 102 101").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -9195,6 +9698,8 @@ class Test(int x1, System.Func<int> x2)
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "201 202").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
         [Fact]
@@ -9225,6 +9730,94 @@ class Test(int x1)
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "300 301").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
+        }
+
+        [Fact]
+        public void InitializationScope_43()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x1, int x2){}
+}
+
+partial class Test1(int y1, int y2) : Base(y1, y2)
+{
+    int f1 = y1;
+    static int f2 = y2;
+}
+
+partial class Test1
+{
+    int f3 = y1;
+    static int f4 = y2;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (17,21): error CS0103: The name 'y2' does not exist in the current context
+    //     static int f2 = y2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y2").WithArguments("y2").WithLocation(17, 21),
+    // (23,21): error CS0103: The name 'y2' does not exist in the current context
+    //     static int f4 = y2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y2").WithArguments("y2").WithLocation(23, 21)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void InitializationScope_44()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x1, int x2){}
+}
+
+partial class Test1
+{
+    int f3 = y1;
+    static int f4 = y2;
+}
+
+partial class Test1(int y1, int y2) : Base(y1, y2)
+{
+    int f1 = y1;
+    static int f2 = y2;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (17,21): error CS0103: The name 'y2' does not exist in the current context
+    //     static int f4 = y2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y2").WithArguments("y2").WithLocation(17, 21),
+    // (23,21): error CS0103: The name 'y2' does not exist in the current context
+    //     static int f2 = y2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y2").WithArguments("y2").WithLocation(23, 21)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
     }

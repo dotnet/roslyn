@@ -1639,21 +1639,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(initializerArgumentListOpt);
+            }
 
-                if (!initializationScopeLocals.IsDefaultOrEmpty)
-                {
-                    Debug.Assert(syntax.Kind == SyntaxKind.ParameterList);
-                    outerBinder = new SimpleLocalScopeBinder(initializationScopeLocals, outerBinder);
-                }
-
-                if (syntax.Kind == SyntaxKind.ParameterList)
-                {
-                    outerBinder = new WithConstructorInitializerLocalsBinder(outerBinder, initializerArgumentListOpt);
-                }
-                else
-                {
-                    outerBinder = new WithConstructorInitializerLocalsBinder(outerBinder, (ConstructorDeclarationSyntax)syntax);
-                }
+            if (!initializationScopeLocals.IsDefaultOrEmpty)
+            {
+                Debug.Assert(syntax != null && syntax.Kind == SyntaxKind.ParameterList);
+                outerBinder = new SimpleLocalScopeBinder(initializationScopeLocals, outerBinder);
             }
 
             //wrap in ConstructorInitializerBinder for appropriate errors
@@ -1661,7 +1652,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initializerArgumentListOpt != null)
             {
-                localsDeclaredInInitializer = initializerBinder.GetDeclaredLocalsForScope(syntax.Kind == SyntaxKind.ParameterList ? initializerArgumentListOpt : syntax);
+                if (syntax.Kind == SyntaxKind.ParameterList)
+                {
+                    initializerBinder = new WithConstructorInitializerLocalsBinder(initializerBinder, initializerArgumentListOpt);
+                    localsDeclaredInInitializer = initializerBinder.GetDeclaredLocalsForScope(initializerArgumentListOpt);
+                }
+                else
+                {
+                    initializerBinder = new WithConstructorInitializerLocalsBinder(initializerBinder, (ConstructorDeclarationSyntax)syntax);
+                    localsDeclaredInInitializer = initializerBinder.GetDeclaredLocalsForScope(syntax);
+                }
             }
 
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);

@@ -491,16 +491,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         node = node.Parent;
 
-                        if (node != scopeSegmentRoot && node.Parent != null)
+                        if (node != scopeSegmentRoot)
                         {
-                            node = node.Parent;
-
-                            // TODO: Should we handle constructor initializer too?
-                            switch (node.CSharpKind())
+                            if (node.Parent != null)
                             {
-                                case SyntaxKind.InvocationExpression:
-                                case SyntaxKind.ObjectCreationExpression:
-                                    this.binder.BindExpression((ExpressionSyntax)node, diagnostics);
+                                node = node.Parent;
+
+                                switch (node.CSharpKind())
+                                {
+                                    case SyntaxKind.InvocationExpression:
+                                    case SyntaxKind.ObjectCreationExpression:
+                                        this.binder.BindExpression((ExpressionSyntax)node, diagnostics);
+                                        var result = this.type;
+                                        Debug.Assert((object)result != null);
+                                        return result;
+                                }
+                            }
+                        }
+                        else if (node.Parent != null)
+                        {
+                            Debug.Assert(node.CSharpKind() == SyntaxKind.ArgumentList);
+                            Debug.Assert(node == scopeSegmentRoot);
+                            // This could be an argument list for a constructor initializer
+
+                            switch (node.Parent.CSharpKind())
+                            {
+                                case SyntaxKind.ThisConstructorInitializer:
+                                case SyntaxKind.BaseConstructorInitializer:
+                                    this.binder.BindConstructorInitializer((ArgumentListSyntax)node, (MethodSymbol)this.binder.ContainingMember(), diagnostics);
                                     var result = this.type;
                                     Debug.Assert((object)result != null);
                                     return result;

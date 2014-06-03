@@ -74,20 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundInitializers.ToImmutableAndFree();
         }
 
-        private struct FieldInitializerInfo
-        {
-            public readonly FieldInitializer Initializer;
-            public readonly Binder Binder;
-            public readonly EqualsValueClauseSyntax EqualsValue;
-
-            public FieldInitializerInfo(FieldInitializer initializer, Binder binder, EqualsValueClauseSyntax equalsValue)
-            {
-                Initializer = initializer;
-                Binder = binder;
-                EqualsValue = equalsValue;
-            }
-        }
-
         /// <summary>
         /// In regular C#, all field initializers are assignments to fields and the assigned expressions
         /// may not reference instance members.
@@ -104,73 +90,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (FieldInitializers siblingInitializers in initializers)
             {
-                // All sibling initializers share the same parent node and tree so we can reuse the binder 
-                // factory across siblings.  Unfortunately, we cannot reuse the binder itself, because
-                // individual fields might have their own binders (e.g. because of being declared unsafe).
-                BinderFactory binderFactory = null;
-
                 var infos = ArrayBuilder<FieldInitializerInfo>.GetInstance(); // Exact size is not known up front.
-
-                foreach (FieldInitializer initializer in siblingInitializers.Initializers)
-                {
-                    FieldSymbol fieldSymbol = initializer.Field;
-                    Debug.Assert((object)fieldSymbol != null);
-
-                    // A constant field of type decimal needs a field initializer, so
-                    // check if it is a metadata constant, not just a constant to exclude
-                    // decimals. Other constants do not need field initializers.
-                    if (!fieldSymbol.IsMetadataConstant)
-                    {
-                        //Can't assert that this is a regular C# compilation, because we could be in a nested type of a script class.
-                        SyntaxReference syntaxRef = initializer.Syntax;
-                        var initializerNode = (EqualsValueClauseSyntax)syntaxRef.GetSyntax();
-
-                        if (binderFactory == null)
-                        {
-                            binderFactory = compilation.GetBinderFactory(syntaxRef.SyntaxTree);
-                        }
-
-                        Binder parentBinder = binderFactory.GetBinder(initializerNode);
-                        Debug.Assert(parentBinder.ContainingMemberOrLambda == fieldSymbol.ContainingType || //should be the binder for the type
-                            fieldSymbol.ContainingType.IsImplicitClass); //however, we also allow fields in namespaces to help support script scenarios
-
-                        if (generateDebugInfo && firstDebugImports == null)
-                        {
-                            firstDebugImports = parentBinder.ImportsList;
-                        }
-
-                        parentBinder = new LocalScopeBinder(parentBinder).WithAdditionalFlagsAndContainingMemberOrLambda(parentBinder.Flags | BinderFlags.FieldInitializer, fieldSymbol);
-
-                        if (!fieldSymbol.IsConst && !fieldSymbol.IsStatic)
-                        {
-                            parentBinder = parentBinder.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType);
-                        }
-
-                        infos.Add(new FieldInitializerInfo(initializer, parentBinder, initializerNode));
-                    }
-                }
-
-                // See if there are locals that we need to bring into the scope.
-                var locals = default(ImmutableArray<LocalSymbol>);
-                if (siblingInitializers.TypeDeclarationSyntax != null)
-                {
-                    locals = GetInitializationScopeLocals(infos);
-                }
+                var locals = GetFieldInitializerInfos(compilation, siblingInitializers, infos, generateDebugInfo, ref firstDebugImports);
 
                 ArrayBuilder<BoundInitializer> initializersBuilder = locals.IsDefaultOrEmpty ? boundInitializers : ArrayBuilder<BoundInitializer>.GetInstance(infos.Count);
 
                 foreach (var info in infos)
                 {
-                    Binder binder = info.Binder;
-
-                    // Constant initializers is not part of the initialization scope.
-                    if (!info.Initializer.Field.IsConst && !locals.IsDefaultOrEmpty)
-                    {
-                        binder = new SimpleLocalScopeBinder(locals, binder);
-                    }
-
-                    BoundFieldInitializer boundInitializer = BindFieldInitializer(binder, info.Initializer.Field, info.EqualsValue, diagnostics);
-
+                    BoundFieldInitializer boundInitializer = BindFieldInitializer(info.Binder, info.Initializer.Field, info.EqualsValue, diagnostics);
                     initializersBuilder.Add(boundInitializer);
                 }
 
@@ -180,7 +107,86 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundInitializers.Add(new BoundInitializationScope((CSharpSyntaxNode)siblingInitializers.TypeDeclarationSyntax.GetSyntax(),
                                                                        locals, initializersBuilder.ToImmutableAndFree()));
                 }
+
+                infos.Free();
             }
+        }
+
+        internal static ImmutableArray<LocalSymbol> GetFieldInitializerInfos(
+            CSharpCompilation compilation,
+            FieldInitializers siblingInitializers,
+            ArrayBuilder<FieldInitializerInfo> infos,
+            bool generateDebugInfo,
+            ref ConsList<Imports> firstDebugImports)
+        {
+            // All sibling initializers share the same parent node and tree so we can reuse the binder 
+            // factory across siblings.  Unfortunately, we cannot reuse the binder itself, because
+            // individual fields might have their own binders (e.g. because of being declared unsafe).
+            BinderFactory binderFactory = null;
+
+            foreach (FieldInitializer initializer in siblingInitializers.Initializers)
+            {
+                FieldSymbol fieldSymbol = initializer.Field;
+                Debug.Assert((object)fieldSymbol != null);
+
+                // A constant field of type decimal needs a field initializer, so
+                // check if it is a metadata constant, not just a constant to exclude
+                // decimals. Other constants do not need field initializers.
+                if (!fieldSymbol.IsMetadataConstant)
+                {
+                    //Can't assert that this is a regular C# compilation, because we could be in a nested type of a script class.
+                    SyntaxReference syntaxRef = initializer.Syntax;
+                    var initializerNode = (EqualsValueClauseSyntax)syntaxRef.GetSyntax();
+
+                    if (binderFactory == null)
+                    {
+                        binderFactory = compilation.GetBinderFactory(syntaxRef.SyntaxTree);
+                    }
+
+                    Binder parentBinder = binderFactory.GetBinder(initializerNode);
+                    Debug.Assert(parentBinder.ContainingMemberOrLambda == fieldSymbol.ContainingType || //should be the binder for the type
+                            fieldSymbol.ContainingType.IsImplicitClass); //however, we also allow fields in namespaces to help support script scenarios
+
+                    if (generateDebugInfo && firstDebugImports == null)
+                    {
+                        firstDebugImports = parentBinder.ImportsList;
+                    }
+
+                    parentBinder = new LocalScopeBinder(parentBinder).WithAdditionalFlagsAndContainingMemberOrLambda(parentBinder.Flags | BinderFlags.FieldInitializer, fieldSymbol);
+
+                    if (!fieldSymbol.IsConst && !fieldSymbol.IsStatic)
+                    {
+                        parentBinder = parentBinder.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType);
+                    }
+
+                    infos.Add(new FieldInitializerInfo(initializer, parentBinder, initializerNode));
+                }
+            }
+
+            // See if there are locals that we need to bring into the scope.
+            var locals = default(ImmutableArray<LocalSymbol>);
+            if (siblingInitializers.TypeDeclarationSyntax != null)
+            {
+                locals = GetInitializationScopeLocals(infos);
+
+                if (!locals.IsDefaultOrEmpty)
+                {
+                    for (int i = 0; i < infos.Count; i++)
+                    {
+                        FieldInitializerInfo info = infos[i];
+
+                        // Constant initializers is not part of the initialization scope.
+                        if (!info.Initializer.Field.IsConst)
+                        {
+                            infos[i] = new FieldInitializerInfo(info.Initializer,
+                                                                new SimpleLocalScopeBinder(locals, info.Binder),
+                                                                info.EqualsValue);
+                        }
+                    }
+                }
+            }
+
+            return locals;
         }
 
         private static ImmutableArray<LocalSymbol> GetInitializationScopeLocals(ArrayBuilder<FieldInitializerInfo> infos)

@@ -25,4 +25,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Initializers = initializers;
         }
     }
+
+    internal struct FieldInitializersInfo
+    {
+        public readonly ImmutableArray<LocalSymbol> Locals;
+        public readonly ImmutableArray<FieldInitializerInfo> Initializers;
+
+        public FieldInitializersInfo(ImmutableArray<LocalSymbol> locals, ImmutableArray<FieldInitializerInfo> initializers)
+        {
+            Locals = locals;
+            Initializers = initializers;
+        }
+    }
 }

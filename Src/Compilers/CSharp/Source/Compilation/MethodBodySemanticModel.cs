@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             position = CheckAndAdjustPosition(position);
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
-            var executablebinder = new ExecutableCodeBinder(body, methodSymbol, this.rootBinder.Next); // Strip off ExecutableCodeBinder (see ctor).
+            var executablebinder = new ExecutableCodeBinder(body, methodSymbol, this.RootBinder.Next); // Strip off ExecutableCodeBinder (see ctor).
             var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(BinderFlags.SemanticModel);
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, body, blockBinder, position);
             return true;

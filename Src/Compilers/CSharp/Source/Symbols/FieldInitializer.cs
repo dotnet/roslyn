@@ -27,4 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Syntax = syntax;
         }
     }
+
+    internal struct FieldInitializerInfo
+    {
+        public readonly FieldInitializer Initializer;
+        public readonly Binder Binder;
+        public readonly EqualsValueClauseSyntax EqualsValue;
+
+        public FieldInitializerInfo(FieldInitializer initializer, Binder binder, EqualsValueClauseSyntax equalsValue)
+        {
+            Initializer = initializer;
+            Binder = binder;
+            EqualsValue = equalsValue;
+        }
+    }
 }
