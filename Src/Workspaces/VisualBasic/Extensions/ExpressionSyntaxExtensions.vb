@@ -997,20 +997,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet) Then
                         Dim symbol = semanticModel.GetSymbolInfo(memberAccess).Symbol
                         If (symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.NamedType)) Then
-                            Dim type = semanticModel.GetTypeInfo(memberAccess).Type
-                            If type IsNot Nothing Then
-                                Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
-                                If keywordKind <> SyntaxKind.None Then
-                                    replacementNode = SyntaxFactory.PredefinedType(
-                                                    SyntaxFactory.Token(
-                                                        memberAccess.GetLeadingTrivia(),
-                                                        keywordKind,
-                                                        memberAccess.GetTrailingTrivia()))
+                            Dim keywordKind = GetPredefinedKeywordKind(DirectCast(symbol, INamedTypeSymbol).SpecialType)
+                            If keywordKind <> SyntaxKind.None Then
+                                replacementNode = SyntaxFactory.PredefinedType(
+                                                SyntaxFactory.Token(
+                                                    memberAccess.GetLeadingTrivia(),
+                                                    keywordKind,
+                                                    memberAccess.GetTrailingTrivia()))
 
-                                    issueSpan = memberAccess.Span
+                                issueSpan = memberAccess.Span
 
-                                    Return True
-                                End If
+                                Return True
                             End If
                         End If
                     End If

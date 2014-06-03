@@ -727,18 +727,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
                     if (symbol != null && symbol.IsKind(SymbolKind.NamedType))
                     {
-                        var type = semanticModel.GetTypeInfo(memberAccess).Type;
-                        if (type != null)
+                        var keywordKind = GetPredefinedKeywordKind(((INamedTypeSymbol)symbol).SpecialType);
+                        if (keywordKind != SyntaxKind.None)
                         {
-                            var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
-                            if (keywordKind != SyntaxKind.None)
-                            {
-                                replacementNode = CreatePredefinedTypeSyntax(memberAccess, keywordKind);
+                            replacementNode = CreatePredefinedTypeSyntax(memberAccess, keywordKind);
 
-                                issueSpan = memberAccess.Span; // we want to show the whole expression as unnecessary
+                            issueSpan = memberAccess.Span; // we want to show the whole expression as unnecessary
 
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }
