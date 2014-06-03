@@ -5282,9 +5282,12 @@ class Program
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
+        [WorkItem(953535, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ConditionalMemberAccess()
         {
             var code = @"
+using System;
 class A
 {
     public A a;
@@ -5292,14 +5295,17 @@ class A
 
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
         A a = null;
-        A ?.a = null;
+        A         ?.a = null;
+        System.Console.WriteLine(args       ?[0]);
+        System.Console.WriteLine(args                   ?.Length);
     }
 }";
 
             var expected = @"
+using System;
 class A
 {
     public A a;
@@ -5307,14 +5313,17 @@ class A
 
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
         A a = null;
         A?.a = null;
+        System.Console.WriteLine(args?[0]);
+        System.Console.WriteLine(args?.Length);
     }
 }";
+            var parseOptions = new CSharpParseOptions(languageVersion: LanguageVersion.Experimental);
 
-            AssertFormat(expected, code);
+            AssertFormat(expected, code, parseOptions: parseOptions);
         }
     }
 }

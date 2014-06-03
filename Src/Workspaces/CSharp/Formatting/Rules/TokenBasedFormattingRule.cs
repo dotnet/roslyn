@@ -287,6 +287,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // For spacing between the identifer and the conditional operator 
+            if (currentToken.IsKind(SyntaxKind.QuestionToken) && currentToken.Parent.CSharpKind() == SyntaxKind.ConditionalAccessExpression)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // ( * or ) * or [ * or ] * or . * or -> *
             switch (previousToken.CSharpKind())
             {
@@ -350,11 +356,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // * :: or :: * case
             if (previousToken.CSharpKind() == SyntaxKind.ColonColonToken || currentToken.CSharpKind() == SyntaxKind.ColonColonToken)
-            {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
-
-            if (previousToken.CSharpKind() == SyntaxKind.IdentifierToken && currentToken.CSharpKind() == SyntaxKind.QuestionToken && currentToken.Parent.IsKind(SyntaxKind.ConditionalAccessExpression))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

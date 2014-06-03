@@ -28,11 +28,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             string language,
             bool debugMode = false,
             Dictionary<OptionKey, object> changedOptionSet = null,
-            bool treeCompare = true)
+            bool treeCompare = true,
+            ParseOptions parseOptions = null)
         {
             using (var workspace = new CustomWorkspace())
             {
                 var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", language);
+                if (parseOptions != null)
+                {
+                    project = project.WithParseOptions(parseOptions);
+                }
+
                 var document = project.AddDocument("Document", SourceText.From(code));
 
                 var syntaxTree = document.GetSyntaxTreeAsync().Result;
@@ -50,21 +56,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
                 AssertFormat(workspace, expected, root, spans, options, document.GetTextAsync().Result);
 
                 // format with node and transform
-                AssertFormatWithTransformation(workspace, expected, root, spans, options, treeCompare);
+                AssertFormatWithTransformation(workspace, expected, root, spans, options, treeCompare, parseOptions);
             }
         }
 
-        protected abstract SyntaxNode ParseCompilation(string text);
+        protected abstract SyntaxNode ParseCompilation(string text, ParseOptions parseOptions);
 
         protected void AssertFormatWithTransformation(
-            Workspace workspace, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, OptionSet optionSet, bool treeCompare = true)
+            Workspace workspace, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, OptionSet optionSet, bool treeCompare = true, ParseOptions parseOptions = null)
         {
             var newRootNode = Formatter.Format(root, spans, workspace, optionSet, CancellationToken.None);
 
             Assert.Equal(expected, newRootNode.ToFullString());
 
             // test doesn't use parsing option. add one if needed later
-            var newRootNodeFromString = ParseCompilation(expected);
+            var newRootNodeFromString = ParseCompilation(expected, parseOptions);
 
             if (treeCompare)
             {

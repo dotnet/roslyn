@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
     Public Class VisualBasicFormattingTestBase
         Inherits FormattingTestBase
 
-        Protected Overrides Function ParseCompilation(text As String) As SyntaxNode
-            Return SyntaxFactory.ParseCompilationUnit(text)
+        Protected Overrides Function ParseCompilation(text As String, parseOptions As ParseOptions) As SyntaxNode
+            Return SyntaxFactory.ParseCompilationUnit(text, options:=DirectCast(parseOptions, VisualBasicParseOptions))
         End Function
 
         Protected Function CreateMethod(ParamArray lines() As String) As String
