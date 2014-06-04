@@ -34,7 +34,7 @@ namespace Roslyn.Utilities
 
             this.writer = new BinaryWriter(stream, Encoding.UTF8);
             this.dataMap = new ObjectWriterData(defaultData);
-            this.binder = binder ?? new RecordingObjectBinder();
+            this.binder = binder ?? new SimpleRecordingObjectBinder();
             this.cancellationToken = cancellationToken;
         }
 

@@ -203,6 +203,9 @@
     <Compile Include="..\..\Compilers\Core\Source\Serialization\RecordingObjectBinder.cs">
       <Link>Serialization\RecordingObjectBinder.cs</Link>
     </Compile>
+    <Compile Include="..\..\Compilers\Core\Source\Serialization\SimpleRecordingObjectBinder.cs">
+      <Link>Serialization\SimpleRecordingObjectBinder.cs</Link>
+    </Compile>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;MEF</DefineConstants>

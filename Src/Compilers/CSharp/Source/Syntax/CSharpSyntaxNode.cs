@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region serialization
 
 
-        private static readonly RecordingObjectBinder defaultBinder = new RecordingObjectBinder();
+        private static readonly RecordingObjectBinder defaultBinder = new ConcurrentRecordingObjectBinder();
 
         /// <summary>
         /// Serialize the syntax node into a byte stream.

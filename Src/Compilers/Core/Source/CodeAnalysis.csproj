@@ -411,6 +411,7 @@
     <Compile Include="ReferenceManager\UnifiedAssembly.cs" />
     <Compile Include="ResourceDescription.cs" />
     <Compile Include="ResourceException.cs" />
+    <Compile Include="Serialization\ConcurrentRecordingObjectBinder.cs" />
     <Compile Include="Serialization\FixedObjectBinder.cs" />
     <Compile Include="Serialization\IObjectReadable.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
@@ -422,6 +423,7 @@
     <Compile Include="Serialization\ObjectWriterData.cs" />
     <Compile Include="Serialization\RecordingObjectBinder.cs" />
     <Compile Include="Serialization\SerializationInfoExtensions.cs" />
+    <Compile Include="Serialization\SimpleRecordingObjectBinder.cs" />
     <Compile Include="SignatureComparer.cs" />
     <Compile Include="SourceCodeKind.cs" />
     <Compile Include="SpecialMember.cs" />

@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Serialization"
 
-        Private Shared _binder As RecordingObjectBinder = New RecordingObjectBinder()
+        Private Shared _binder As RecordingObjectBinder = New ConcurrentRecordingObjectBinder()
         ''' <summary>
         ''' Serialize this node to a byte stream.
         ''' </summary>
