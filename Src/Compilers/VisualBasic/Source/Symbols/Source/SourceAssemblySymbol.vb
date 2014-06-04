@@ -1199,8 +1199,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each pair In m_Compilation.GetBoundReferenceManager().ReferencedModuleIndexMap
                 Dim fileRef = TryCast(pair.Key, PortableExecutableReference)
 
-                If fileRef IsNot Nothing AndAlso fileRef.FullPath IsNot Nothing Then
-                    Dim fileName As String = PathUtilities.GetFileName(fileRef.FullPath)
+                If fileRef IsNot Nothing AndAlso fileRef.FilePath IsNot Nothing Then
+                    Dim fileName As String = PathUtilities.GetFileName(fileRef.FilePath)
                     Dim moduleName As String = m_Modules(pair.Value).Name
 
                     If Not String.Equals(fileName, moduleName, StringComparison.OrdinalIgnoreCase) Then

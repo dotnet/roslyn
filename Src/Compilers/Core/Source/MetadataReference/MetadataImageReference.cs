@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="documentation">Provides XML documentation for symbol found in the reference.</param>
         /// <param name="aliases">Reference aliases.</param>
         /// <param name="embedInteropTypes">True if interop types contained in the reference should be embedded to the compilation that uses the reference.</param>
-        /// <param name="fullPath">Optional full path used for reference comparison when used in compilation. The file doesn't need to exist.</param>
+        /// <param name="filePath">Optional path that describes the location of the metadata. The file doesn't need to exist on disk. The path is opaque to the compiler.</param>
         /// <param name="display">Display string for error reporting.</param>
-        public MetadataImageReference(ImmutableArray<byte> assemblyImage, DocumentationProvider documentation = null, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, string fullPath = null, string display = null)
-            : this(AssemblyMetadata.CreateFromImage(RequireNonNull(assemblyImage, "assemblyImage")), documentation, aliases, embedInteropTypes, fullPath, display)
+        public MetadataImageReference(ImmutableArray<byte> assemblyImage, DocumentationProvider documentation = null, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, string filePath = null, string display = null)
+            : this(AssemblyMetadata.CreateFromImage(RequireNonNull(assemblyImage, "assemblyImage")), documentation, aliases, embedInteropTypes, filePath, display)
         {
         }
 
@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="documentation">Provides XML documentation for symbol found in the reference.</param>
         /// <param name="aliases">Reference aliases.</param>
         /// <param name="embedInteropTypes">True if interop types contained in the reference should be embedded to the compilation that uses the reference.</param>
-        /// <param name="fullPath">Optional full path used for reference comparison when used in compilation. The file doesn't need to exist.</param>
+        /// <param name="filePath">Optional path that describes the location of the metadata. The file doesn't need to exist on disk. The path is opaque to the compiler.</param>
         /// <param name="display">Display string for error reporting.</param>
-        public MetadataImageReference(IEnumerable<byte> assemblyImage, DocumentationProvider documentation = null, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, string fullPath = null, string display = null)
-            : this(assemblyImage.AsImmutableOrNull(), documentation, aliases, embedInteropTypes, fullPath, display)
+        public MetadataImageReference(IEnumerable<byte> assemblyImage, DocumentationProvider documentation = null, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, string filePath = null, string display = null)
+            : this(assemblyImage.AsImmutableOrNull(), documentation, aliases, embedInteropTypes, filePath, display)
         {
         }
 
@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="documentation">Provides XML documentation for symbol found in the reference.</param>
         /// <param name="aliases">Reference alias.</param>
         /// <param name="embedInteropTypes">True if interop types contained in the reference should be embedded to the compilation that uses the reference.</param>
-        /// <param name="fullPath">Optional full path used for reference comparison when used in compilation. The file doesn't need to exist.</param>
+        /// <param name="filePath">Optional path that describes the location of the metadata. The file doesn't need to exist on disk. The path is opaque to the compiler.</param>
         /// <param name="display">Display string for error reporting.</param>
-        public MetadataImageReference(System.IO.Stream assemblyImage, DocumentationProvider documentation = null, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, string fullPath = null, string display = null)
-            : this(AssemblyMetadata.CreateFromImageStream(RequireNonNull(assemblyImage, "assemblyImage")), documentation, aliases, embedInteropTypes, fullPath, display)
+        public MetadataImageReference(System.IO.Stream assemblyImage, DocumentationProvider documentation = null, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, string filePath = null, string display = null)
+            : this(AssemblyMetadata.CreateFromImageStream(RequireNonNull(assemblyImage, "assemblyImage")), documentation, aliases, embedInteropTypes, filePath, display)
         {
         }
 
@@ -64,15 +64,11 @@ namespace Microsoft.CodeAnalysis
         /// Creates a reference to a standalone module image.
         /// </summary>
         /// <param name="metadata">Metadata for the standalone module.</param>
-        /// <param name="fullPath">
-        /// Optional full path used for reference comparison when used in compilation. 
-        /// The file doesn't need to exist.
-        /// If <paramref name="metadata"/> represents a memory mapped file and this parameter is not specified the path to the memory mapped file is used.
-        /// </param>
+        /// <param name="filePath">Optional path that describes the location of the metadata. The file doesn't need to exist on disk. The path is opaque to the compiler.</param>
         /// <param name="documentation">Provides XML documentation for symbol found in the reference.</param>
         /// <param name="display">Display string for error reporting.</param>
-        public MetadataImageReference(ModuleMetadata metadata, DocumentationProvider documentation = null, string fullPath = null, string display = null)
-            : this(RequireNonNull(metadata, "metadata"), documentation, MetadataReferenceProperties.Module, fullPath, display)
+        public MetadataImageReference(ModuleMetadata metadata, DocumentationProvider documentation = null, string filePath = null, string display = null)
+            : this(RequireNonNull(metadata, "metadata"), documentation, MetadataReferenceProperties.Module, filePath, display)
         {
         }
 
@@ -83,29 +79,25 @@ namespace Microsoft.CodeAnalysis
         /// <param name="documentation">Provides XML documentation for symbol found in the reference.</param>
         /// <param name="aliases">Reference aliases.</param>
         /// <param name="embedInteropTypes">True if interop types contained in the reference should be embedded to the compilation that uses the reference.</param>
-        /// <param name="fullPath">
-        /// Optional full path used for reference comparison when used in compilation. 
-        /// The file doesn't need to exist.
-        /// If the manifest module of the assembly is a memory mapped file and this parameter is not specified the path to the memory mapped file is used.
-        /// </param>
+        /// <param name="filePath">Optional path that describes the location of the metadata. The file doesn't need to exist on disk. The path is opaque to the compiler.</param>
         /// <param name="display">Display string for error reporting.</param>
         public MetadataImageReference(
             AssemblyMetadata metadata,
             DocumentationProvider documentation = null,
             ImmutableArray<string> aliases = default(ImmutableArray<string>),
             bool embedInteropTypes = false,
-            string fullPath = null,
+            string filePath = null,
             string display = null)
             : this(RequireNonNull(metadata, "metadata"),
                    documentation,
                    new MetadataReferenceProperties(metadata.Kind, aliases, embedInteropTypes),
-                   fullPath,
+                   filePath,
                    display)
         {
         }
 
-        private MetadataImageReference(Metadata metadata, DocumentationProvider documentation, MetadataReferenceProperties properties, string fullPath, string display)
-            : base(properties, fullPath, documentation ?? DocumentationProvider.Default)
+        private MetadataImageReference(Metadata metadata, DocumentationProvider documentation, MetadataReferenceProperties properties, string filePath, string display)
+            : base(properties, filePath, documentation ?? DocumentationProvider.Default)
         {
             this.display = display;
             this.metadata = metadata;
@@ -148,7 +140,7 @@ namespace Microsoft.CodeAnalysis
                 this.metadata,
                 this.DocumentationProvider,
                 new MetadataReferenceProperties(this.Properties.Kind, aliases, this.Properties.EmbedInteropTypes),
-                this.FullPath,
+                this.FilePath,
                 this.display);
         }
 
@@ -168,7 +160,7 @@ namespace Microsoft.CodeAnalysis
                 this.metadata,
                 this.DocumentationProvider,
                 new MetadataReferenceProperties(this.Properties.Kind, this.Properties.Aliases, value),
-                this.FullPath,
+                this.FilePath,
                 this.display);
         }
 
@@ -193,7 +185,7 @@ namespace Microsoft.CodeAnalysis
                 this.metadata,
                 provider,
                 this.Properties,
-                this.FullPath,
+                this.FilePath,
                 this.display);
         }
 
@@ -221,7 +213,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return display ?? FullPath ?? (Properties.Kind == MetadataImageKind.Assembly ? CodeAnalysisResources.InMemoryAssembly : CodeAnalysisResources.InMemoryModule);
+                return display ?? FilePath ?? (Properties.Kind == MetadataImageKind.Assembly ? CodeAnalysisResources.InMemoryAssembly : CodeAnalysisResources.InMemoryModule);
             }
         }
 
@@ -241,10 +233,10 @@ namespace Microsoft.CodeAnalysis
                 sb.Append(" Embed");
             }
 
-            if (FullPath != null)
+            if (FilePath != null)
             {
                 sb.Append(" Path='");
-                sb.Append(FullPath);
+                sb.Append(FilePath);
                 sb.Append("'");
             }
 

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly IModuleSymbol module;
 
-        public MetadataLocation(IModuleSymbol module)
+        internal MetadataLocation(IModuleSymbol module)
         {
             Debug.Assert(module != null);
             this.module = module;

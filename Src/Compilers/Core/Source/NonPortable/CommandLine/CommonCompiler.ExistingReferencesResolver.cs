@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
                     var identity = ((AssemblyMetadata)fileReference.GetMetadata()).Assembly.Identity;
                     if (assemblyIdentityComparer.ReferenceMatchesDefinition(displayName, identity))
                     {
-                        return fileReference.FullPath;
+                        return fileReference.FilePath;
                     }
                 }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var fileReference in availableReferences)
                 {
-                    if (string.Equals(fileReference.FullPath, fullPath, StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(fileReference.FilePath, fullPath, StringComparison.OrdinalIgnoreCase))
                     {
                         return fullPath;
                     }

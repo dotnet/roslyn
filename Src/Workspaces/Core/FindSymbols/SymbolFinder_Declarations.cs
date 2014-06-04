@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return null;
             }
 
-            return executabeReference.FullPath;
+            return executabeReference.FilePath;
         }
 
         /// <summary>

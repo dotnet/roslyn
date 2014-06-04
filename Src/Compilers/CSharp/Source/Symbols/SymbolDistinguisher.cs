@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     PortableExecutableReference metadataReference = compilation.GetMetadataReference(containingAssembly) as PortableExecutableReference;
                     if (metadataReference != null)
                     {
-                        string path = metadataReference.FullPath;
+                        string path = metadataReference.FilePath;
                         if (!string.IsNullOrEmpty(path))
                         {
                             return path;

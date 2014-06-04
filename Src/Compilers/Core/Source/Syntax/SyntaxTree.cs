@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         /// If this syntax tree is not associated with a file, this value can be empty.
         /// The path shall not be null.
         /// 
-        /// The file doesn't need to exist on disk. The path is opaque for the compiler.
+        /// The file doesn't need to exist on disk. The path is opaque to the compiler.
         /// The only requirement on the path format is that the implementations of 
         /// <see cref="SourceReferenceResolver"/>, <see cref="XmlReferenceResolver"/> and <see cref="MetadataReferenceResolver"/> 
         /// passed to the compilation that contains the tree understand it.

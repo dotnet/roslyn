@@ -675,8 +675,8 @@ BC31539: Cannot find the interop type that matches the embedded type 'IB'. Are y
         Public Sub DuplicateReferences()
             Dim c As VisualBasicCompilation
             Dim source As String
-            Dim r1 = New MetadataImageReference(TestResources.SymbolsTests.General.C1.AsImmutableOrNull(), fullPath:="c:\temp\a.dll", display:="R1")
-            Dim r2 = New MetadataImageReference(TestResources.SymbolsTests.General.C1.AsImmutableOrNull(), fullPath:="c:\temp\a.dll", display:="R2")
+            Dim r1 = New MetadataImageReference(TestResources.SymbolsTests.General.C1.AsImmutableOrNull(), filePath:="c:\temp\a.dll", display:="R1")
+            Dim r2 = New MetadataImageReference(TestResources.SymbolsTests.General.C1.AsImmutableOrNull(), filePath:="c:\temp\a.dll", display:="R2")
             Dim rEmbed = r1.WithEmbedInteropTypes(True)
 
             source =
@@ -776,14 +776,12 @@ End Class
                 Dim imageRefLibV1 = refLibV1.EmitToArray()
 
                 Dim main = CompilationUtils.CreateCompilationWithMscorlibAndReferences(sourceMain,
-                {metadataLibV1,
-                 New MetadataImageReference(imageRefLibV1),
-                 New MetadataImageReference(imageRefLibV1, display:="MyBytesAssembly1")})
+                    {metadataLibV1,
+                     New MetadataImageReference(imageRefLibV1),
+                     New MetadataImageReference(imageRefLibV1, display:="MyBytesAssembly1")})
 
-                CompilationUtils.AssertTheseDiagnostics(main,
-<expected>
-BC32208: Project already has a reference to assembly 'RefLibV1'. A second reference to 'MyBytesAssembly1' cannot be added.
-</expected>)
+                ' Dev12 reports BC32208: Project already has a reference to assembly 'RefLibV1'. A second reference to 'MyBytesAssembly1' cannot be added.
+                main.VerifyDiagnostics()
 
                 '
                 ' test duplicate references in assemblies from file assemblies
@@ -797,11 +795,8 @@ BC32208: Project already has a reference to assembly 'RefLibV1'. A second refere
                     New MetadataFileReference(tempFile2.Path),
                     New MetadataFileReference(tempFile1_copy2.Path)}, OptionsDll)
 
-                CompilationUtils.AssertTheseDiagnostics(main,
-<expected>
-BC32208: Project already has a reference to assembly 'Lib'. A second reference to '<%= tempFile1_copy2.Path %>' cannot be added.
-</expected>)
-
+                ' Dev12 reports BC32208: Project already has a reference to assembly 'Lib'. A second reference to '...' cannot be added.
+                main.VerifyDiagnostics()
                 '
                 ' no error is reported if normalized paths are the same:
                 '
@@ -823,15 +818,13 @@ BC32208: Project already has a reference to assembly 'Lib'. A second reference t
                     New VisualBasicCompilationReference(compRef1Copy)
                 }, OptionsDll)
 
-                CompilationUtils.AssertTheseDiagnostics(main,
-<expected>
-BC32208: Project already has a reference to assembly 'Lib'. A second reference to 'Lib' cannot be added.
-</expected>)
+                ' Dev12 reports BC32208: Project already has a reference to assembly 'Lib'. A second reference to 'Lib' cannot be added.
+                main.VerifyDiagnostics()
 
                 ' test duplicate references in assemblies from compilations do not show an error if the assembly has a strong name
                 DirectCast(libV1.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity(libV1.AssemblyName, New Version("4.3.2.1"), publicKeyOrToken:=New Byte() {0, 1, 2, 3, 4, 5, 6, 7}.AsImmutableOrNull())
                 main = CompilationUtils.CreateCompilationWithMscorlibAndReferences(sourceMain, {New VisualBasicCompilationReference(libV1), New VisualBasicCompilationReference(refLibV1), New VisualBasicCompilationReference(libV1)}, OptionsDll)
-                CompilationUtils.AssertNoErrors(main)
+                main.VerifyDiagnostics()
             End Using
         End Sub
 
@@ -914,14 +907,16 @@ End Class
             Using metadataLib1 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1.AsImmutable()),
                   metadataLib2 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.W2.AsImmutable())
 
-                Dim mdRefLib1 = New MetadataImageReference(metadataLib1, fullPath:="C:\W1.dll")
-                Dim mdRefLib2 = New MetadataImageReference(metadataLib2, fullPath:="C:\W2.dll")
+                Dim mdRefLib1 = New MetadataImageReference(metadataLib1, filePath:="C:\W1.dll")
+                Dim mdRefLib2 = New MetadataImageReference(metadataLib2, filePath:="C:\W2.dll")
+
+                ' Dev12 reports ERR_DuplicateReference2. An assembly with the same simple name '...' has already been imported. 
+                ' We consider the second reference a duplicate and ignore it.
 
                 Dim main = CompilationUtils.CreateCompilationWithMscorlibAndReferences(sourceMain,
                     {mdRefLib1, mdRefLib2})
 
                 main.VerifyDiagnostics(
-                    Diagnostic(ERRID.ERR_DuplicateReference2).WithArguments("W", "C:\W2.dll"),
                     Diagnostic(ERRID.ERR_UndefinedType1, "C1").WithArguments("C1"))
             End Using
         End Sub
@@ -947,8 +942,8 @@ End Class
             Using metadataLib1 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1.AsImmutable()),
                   metadataLib2 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.WB.AsImmutable())
 
-                Dim mdRefLib1 = New MetadataImageReference(metadataLib1, fullPath:="C:\W1.dll")
-                Dim mdRefLib2 = New MetadataImageReference(metadataLib2, fullPath:="C:\WB.dll")
+                Dim mdRefLib1 = New MetadataImageReference(metadataLib1, filePath:="C:\W1.dll")
+                Dim mdRefLib2 = New MetadataImageReference(metadataLib2, filePath:="C:\WB.dll")
 
                 Dim main = CompilationUtils.CreateCompilationWithMscorlibAndReferences(sourceMain,
                     {mdRefLib1, mdRefLib2})
@@ -978,8 +973,8 @@ End Class
             Using metadataLib1 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.WB.AsImmutable()),
                   metadataLib2 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.WB_Version1.AsImmutable())
 
-                Dim mdRefLib1 = New MetadataImageReference(metadataLib1, fullPath:="C:\WB.dll")
-                Dim mdRefLib2 = New MetadataImageReference(metadataLib2, fullPath:="C:\WB_Version1.dll")
+                Dim mdRefLib1 = New MetadataImageReference(metadataLib1, filePath:="C:\WB.dll")
+                Dim mdRefLib2 = New MetadataImageReference(metadataLib2, filePath:="C:\WB_Version1.dll")
 
                 Dim main = CompilationUtils.CreateCompilationWithMscorlibAndReferences(sourceMain,
                     {mdRefLib1, mdRefLib2})
@@ -989,7 +984,7 @@ End Class
         End Sub
 
         ''' <summary> 
-        ''' We replicate the Dev11 behavior here but is there any real world scenario for this? 
+        ''' We replicate the Dev12 behavior here but is there any real world scenario for this? 
         ''' </summary>
         <Fact>
         Public Sub MetadataReferencesDifferInCultureOnly()

@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.True(mscorlibRef.Properties.Aliases.IsDefault);
             Assert.Equal(false, mscorlibRef.Properties.EmbedInteropTypes);
-            Assert.Equal(mscorlibPath, mscorlibRef.FullPath, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(mscorlibPath, mscorlibRef.FilePath, StringComparer.OrdinalIgnoreCase);
             Assert.Equal(MetadataImageKind.Assembly, mscorlibRef.Properties.Kind);
 
             using (MetadataCache.LockAndClean())
@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Equal(3, MetadataCache.AssembliesFromFiles.Count);
                 Assert.Equal(0, MetadataCache.ModulesFromFiles.Count);
 
-                var fileInfo = MetadataCache.AssembliesFromFiles[FileKey.Create(multimoduleRef.FullPath)];
+                var fileInfo = MetadataCache.AssembliesFromFiles[FileKey.Create(multimoduleRef.FilePath)];
 
                 var assembly = fileInfo.Metadata.GetTarget().Assembly;
 

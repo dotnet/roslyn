@@ -58,12 +58,6 @@ namespace Microsoft.CodeAnalysis
                                          GetMessagePrefix(diagnostic, culture),
                                          diagnostic.GetMessage(culture));
 
-                case LocationKind.MetadataFile:
-                    return string.Format(formatter, "{0}: {1}: {2}",
-                                         diagnostic.Location.MetadataModule.Name,
-                                         GetMessagePrefix(diagnostic, culture),
-                                         diagnostic.GetMessage(culture));
-
                 default:
                     return string.Format(formatter, "{0}: {1}",
                                          GetMessagePrefix(diagnostic, culture),

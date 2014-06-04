@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class PortableExecutableReference : MetadataReference
     {
-        // although not all references have path we store it here so that we can make sure it is a normalized full path (or null):
         private readonly string fullPath;
 
         private DocumentationProvider lazyDocumentation;
@@ -24,21 +23,7 @@ namespace Microsoft.CodeAnalysis
             DocumentationProvider initialDocumentation = null)
             : base(properties)
         {
-            // TODO: remove full path normalization
-            if (fullPath != null)
-            {
-                CompilerPathUtilities.RequireAbsolutePath(fullPath, "fullPath");
-
-                try
-                {
-                    this.fullPath = Path.GetFullPath(fullPath);
-                }
-                catch (Exception e)
-                {
-                    throw new ArgumentException(e.Message, "fullPath");
-                }
-            }
-
+            this.fullPath = fullPath;
             this.lazyDocumentation = initialDocumentation;
         }
 
@@ -47,13 +32,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public override string Display
         {
-            get { return FullPath; }
+            get { return FilePath; }
         }
 
         /// <summary>
         /// Full path describing the location of the metadata, or null if the metadata have no location.
         /// </summary>
-        public string FullPath
+        public string FilePath
         {
             get { return fullPath; }
         }

@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -12,25 +10,15 @@ namespace Microsoft.CodeAnalysis
     /// A program location in source code.
     /// </summary>
     [Serializable]
-    internal class ExternalFileLocation : Location, IEquatable<ExternalFileLocation>
+    internal sealed class ExternalFileLocation : Location, IEquatable<ExternalFileLocation>
     {
-        private readonly string filePath;
         private readonly TextSpan sourceSpan;
         private readonly FileLinePositionSpan lineSpan;
 
-        public ExternalFileLocation(string filePath, TextSpan sourceSpan, LinePositionSpan lineSpan)
+        internal ExternalFileLocation(string filePath, TextSpan sourceSpan, LinePositionSpan lineSpan)
         {
-            this.filePath = filePath;
             this.sourceSpan = sourceSpan;
             this.lineSpan = new FileLinePositionSpan(filePath, lineSpan);
-        }
-
-        public override string FilePath
-        {
-            get
-            {
-                return this.filePath;
-            }
         }
 
         public override TextSpan SourceSpan
@@ -71,17 +59,14 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            return obj != null &&
-                StringComparer.Ordinal.Equals(this.filePath, obj.filePath) &&
-                this.sourceSpan == obj.sourceSpan &&
-                this.lineSpan.Equals(obj.lineSpan);
+            return obj != null 
+                && this.sourceSpan == obj.sourceSpan 
+                && this.lineSpan.Equals(obj.lineSpan);
         }
 
         public override int GetHashCode()
         {
-            return
-                Hash.Combine(this.lineSpan.GetHashCode(),
-                Hash.Combine(this.sourceSpan.GetHashCode(), StringComparer.Ordinal.GetHashCode(this.filePath)));
+            return Hash.Combine(this.lineSpan.GetHashCode(), this.sourceSpan.GetHashCode());
         }
     }
 }

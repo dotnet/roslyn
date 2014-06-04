@@ -38,22 +38,17 @@ namespace Microsoft.CodeAnalysis
         public bool IsInSource { get { return SourceTree != null; } }
 
         /// <summary>
-        /// Returns the path to this location if this is a location from source.
-        /// </summary>
-        public virtual string FilePath { get { return null; } }
-
-        /// <summary>
         /// Returns true if the location is in metadata.
         /// </summary>
         public bool IsInMetadata { get { return MetadataModule != null; } }
 
         /// <summary>
-        /// The syntax tree this location is located in or null if not in a syntax tree.
+        /// The syntax tree this location is located in or <c>null</c> if not in a syntax tree.
         /// </summary>
         public virtual SyntaxTree SourceTree { get { return null; } }
 
         /// <summary>
-        /// Returns the metadata module the location is associated with or null if the module is not available.
+        /// Returns the metadata module the location is associated with or <c>null</c> if the module is not available.
         /// </summary>
         /// <remarks>
         /// Might return null even if <see cref="IsInMetadata"/> returns true. The module symbol might not be available anymore, 
@@ -65,7 +60,7 @@ namespace Microsoft.CodeAnalysis
         /// The location within the syntax tree that this location is associated with.
         /// </summary>
         /// <remarks>
-        /// If IsInSource returns False this method returns an empty TextSpan which starts at position 0.
+        /// If <see cref="IsInSource"/> returns False this method returns an empty <see cref="TextSpan"/> which starts at position 0.
         /// </remarks>
         public virtual TextSpan SourceSpan { get { return default(TextSpan); } }
 
@@ -101,16 +96,19 @@ namespace Microsoft.CodeAnalysis
         public abstract override bool Equals(object obj);
         public abstract override int GetHashCode();
 
-        public sealed override string ToString()
+        public override string ToString()
         {
             string result = Kind.ToString();
             if (IsInSource)
             {
-                result += "(" + this.FilePath + this.SourceSpan + ")";
+                result += "(" + (this.SourceTree != null ? this.SourceTree.FilePath : null) + this.SourceSpan + ")";
             }
             else if (IsInMetadata)
             {
-                result += "(" + this.MetadataModule + ")";
+                if (this.MetadataModule != null)
+                {
+                    result += "(" + this.MetadataModule.Name + ")";
+                }
             }
             else
             {

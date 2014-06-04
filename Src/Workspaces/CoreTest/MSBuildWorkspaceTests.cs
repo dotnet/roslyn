@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // verify the dependent project has the correct metadata references (and does not include the output for the project references)
             var references = vbProject.MetadataReferences.ToList();
             Assert.Equal(4, references.Count);
-            var fileNames = new HashSet<string>(references.Select(r => Path.GetFileName(((MetadataFileReference)r).FullPath)));
+            var fileNames = new HashSet<string>(references.Select(r => Path.GetFileName(((MetadataFileReference)r).FilePath)));
             Assert.Equal(true, fileNames.Contains("System.Core.dll"));
             Assert.Equal(true, fileNames.Contains("System.dll"));
             Assert.Equal(true, fileNames.Contains("Microsoft.VisualBasic.dll"));
@@ -473,7 +473,7 @@ class C1
             var solution = LoadSolution(GetSolutionFileName(@"TestSolution.sln"));
             var project = solution.Projects.First();
             var refs = project.MetadataReferences.ToList();
-            var csharpLib = refs.OfType<MetadataFileReference>().FirstOrDefault(r => r.FullPath.Contains("Microsoft.CSharp"));
+            var csharpLib = refs.OfType<MetadataFileReference>().FirstOrDefault(r => r.FilePath.Contains("Microsoft.CSharp"));
             Assert.NotNull(csharpLib);
         }
 

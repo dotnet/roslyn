@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected override Metadata GetMetadataImpl()
         {
-            return mdCache.GetMetadata(FullPath, Properties);
+            return mdCache.GetMetadata(FilePath, Properties);
         }
     }
 

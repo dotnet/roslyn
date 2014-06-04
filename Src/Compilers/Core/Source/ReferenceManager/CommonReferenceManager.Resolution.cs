@@ -182,7 +182,12 @@ namespace Microsoft.CodeAnalysis
                 MetadataReference existingReference;
                 if (boundReferences.TryGetValue(boundReference, out existingReference))
                 {
-                    MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
+                    // merge properties of compilation-based references if the underlying compilations are the same
+                    if ((object)boundReference != existingReference)
+                    {
+                        MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
+                    }
+
                     continue;
                 }
 
@@ -435,8 +440,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Decides whether 2 references are interchangeable when used in the same compilation.
-        /// PE references are interchangeable if they have the same non-null full path, compilation references if they refer to the same compilation.
+        /// Determines whether references are the same. Compilation references are the same if they refer to the same compilation.
+        /// Otherwise, references are represented by their object identities.
         /// </summary>
         internal sealed class MetadataReferenceEqualityComparer : IEqualityComparer<MetadataReference>
         {
@@ -449,20 +454,17 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
-                var px = x as PortableExecutableReference;
-                if (px != null)
+                var cx = x as CompilationReference;
+                if (cx != null)
                 {
-                    var py = y as PortableExecutableReference;
-                    if (py == null)
+                    var cy = y as CompilationReference;
+                    if (cy != null)
                     {
-                        return false;
+                        return (object)cx.Compilation == cy.Compilation;
                     }
-
-                    return px.FullPath != null && py.FullPath != null && string.Equals(px.FullPath, py.FullPath, StringComparison.OrdinalIgnoreCase);
                 }
 
-                var cy = y as CompilationReference;
-                return cy != null && ((CompilationReference)x).Compilation == cy.Compilation;
+                return false;
             }
 
             public int GetHashCode(MetadataReference reference)
@@ -470,13 +472,7 @@ namespace Microsoft.CodeAnalysis
                 var compilationReference = reference as CompilationReference;
                 if (compilationReference != null)
                 {
-                    return compilationReference.Compilation.GetHashCode();
-                }
-
-                var peReference = (PortableExecutableReference)reference;
-                if (peReference.FullPath != null)
-                {
-                    return StringComparer.OrdinalIgnoreCase.GetHashCode(peReference.FullPath);
+                    return RuntimeHelpers.GetHashCode(compilationReference.Compilation);
                 }
 
                 return RuntimeHelpers.GetHashCode(reference);
@@ -614,8 +610,8 @@ namespace Microsoft.CodeAnalysis
                 // versions migth have been unified for a Framework assembly:
                 if (identity != equivalent.Identity)
                 {
-                    // Dev11 C# reports an error
-                    // Dev11 VB keeps both references in the compilation and reports an ambiguity error when a symbol is used.
+                    // Dev12 C# reports an error
+                    // Dev12 VB keeps both references in the compilation and reports an ambiguity error when a symbol is used.
                     // BREAKING CHANGE in VB: we report an error for both languages
 
                     // Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.
@@ -623,15 +619,26 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // If the versions match exactly we ignore duplicates w/o reporting errors while 
-                // Dev11 C# reports:
+                // Dev12 C# reports:
                 //   error CS1703: An assembly with the same identity '{0}' has already been imported. Try removing one of the duplicate references.
-                // Dev11 VB reports:
+                // Dev12 VB reports:
                 //   Fatal error BC2000 : compiler initialization failed unexpectedly: Project already has a reference to assembly System. 
                 //   A second reference to 'D:\Temp\System.dll' cannot be added.
             }
             else
             {
-                MessageProvider.ReportDuplicateMetadataReferenceWeak(diagnostics, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
+                Debug.Assert(!equivalent.Identity.IsStrongName);
+
+                // Dev12 reports an error for all weak-named assemblies, even if the versions are the same.
+                // We treat assemblies with the same name and version equal even if they don't have a strong name.
+                // This change allows us to de-duplicate #r references based on identities rather than full paths,
+                // and is closer to platforms that don't support strong names and consider name and version enough
+                // to identify an assembly. An identity without version is considered to have version 0.0.0.0.
+
+                if (identity != equivalent.Identity)
+                {
+                    MessageProvider.ReportDuplicateMetadataReferenceWeak(diagnostics, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
+                }
             }
 
             Debug.Assert(equivalent.MetadataReference != null);
@@ -786,7 +793,7 @@ namespace Microsoft.CodeAnalysis
 
             if (IsMscorlib(assembly.Identity))
             {
-                mscorlibPath = peReference.FullPath;
+                mscorlibPath = peReference.FilePath;
                 return false;
             }
 

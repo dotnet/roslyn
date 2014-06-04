@@ -262,11 +262,11 @@ public class Test : Class2
             var netModule1 = new MetadataImageReference(
                 ModuleMetadata.CreateFromImage(
                     TestResources.SymbolsTests.netModule.netModule1),
-                    fullPath: Path.GetFullPath("netModule1.netmodule"));
+                    filePath: Path.GetFullPath("netModule1.netmodule"));
             var netModule2 = new MetadataImageReference(
                 ModuleMetadata.CreateFromImage(
                     TestResources.SymbolsTests.netModule.netModule2),
-                    fullPath: Path.GetFullPath("netModule2.netmodule"));
+                    filePath: Path.GetFullPath("netModule2.netmodule"));
 
             string source = @"
 public class Test : Class1

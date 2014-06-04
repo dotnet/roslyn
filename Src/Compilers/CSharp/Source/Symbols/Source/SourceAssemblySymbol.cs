@@ -867,9 +867,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var fileRef = pair.Key as PortableExecutableReference;
 
-                if ((object)fileRef != null && (object)fileRef.FullPath != null)
+                if ((object)fileRef != null && (object)fileRef.FilePath != null)
                 {
-                    string fileName = PathUtilities.GetFileName(fileRef.FullPath);
+                    string fileName = PathUtilities.GetFileName(fileRef.FilePath);
                     string moduleName = modules[pair.Value].Name;
 
                     if (!string.Equals(fileName, moduleName, StringComparison.OrdinalIgnoreCase))

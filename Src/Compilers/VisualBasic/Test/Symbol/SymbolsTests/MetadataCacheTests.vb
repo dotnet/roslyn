@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Assert.True(mscorlibRef.Properties.Aliases.IsDefault)
             Assert.Equal(False, mscorlibRef.Properties.EmbedInteropTypes)
-            Assert.Equal(mscorlibPath, mscorlibRef.FullPath, StringComparer.OrdinalIgnoreCase)
+            Assert.Equal(mscorlibPath, mscorlibRef.FilePath, StringComparer.OrdinalIgnoreCase)
             Assert.Equal(MetadataImageKind.Assembly, mscorlibRef.Properties.Kind)
 
             Using MetadataCache.LockAndClean()
@@ -771,7 +771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Assert.Equal(3, MetadataCache.AssembliesFromFiles.Count)
                 Assert.Equal(0, MetadataCache.ModulesFromFiles.Count)
 
-                Dim cachedAssembly = MetadataCache.AssembliesFromFiles(FileKey.Create(multimoduleRef.FullPath))
+                Dim cachedAssembly = MetadataCache.AssembliesFromFiles(FileKey.Create(multimoduleRef.FilePath))
                 Dim assembly = cachedAssembly.Metadata.GetTarget().Assembly
                 Assert.NotNull(assembly)
 

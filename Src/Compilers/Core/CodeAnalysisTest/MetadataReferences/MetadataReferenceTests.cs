@@ -25,15 +25,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Assert.Throws<ArgumentNullException>(() => { new MetadataFileReference(null); });
             Assert.Throws<ArgumentNullException>(() => { new MetadataFileReference(null, default(MetadataReferenceProperties)); });
-
-            Assert.Throws<ArgumentException>(() => new MetadataFileReference(""));
-            Assert.Throws<ArgumentException>(() => new MetadataFileReference("foo.dll"));
-            Assert.Throws<ArgumentException>(() => new MetadataFileReference("c:foo.dll"));
-            Assert.Throws<ArgumentException>(() => new MetadataFileReference(@".\foo.dll"));
-            Assert.Throws<ArgumentException>(() => new MetadataFileReference(@"\foo.dll"));
-            Assert.Throws<ArgumentException>(() => new MetadataFileReference(@"http://foo.bar"));
-
-            Assert.Throws<ArgumentException>(() => new MetadataFileReference(@"c:\*"));
         }
 
         [Fact]
@@ -69,14 +60,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var doc = new TestDocumentationProvider();
             var module = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1);
-            var r = new MetadataImageReference(module, fullPath: @"c:\temp", display: "hello", documentation: doc);
+            var r = new MetadataImageReference(module, filePath: @"c:\temp", display: "hello", documentation: doc);
             Assert.Same(doc, r.DocumentationProvider);
             Assert.Same(doc, r.DocumentationProvider);
             Assert.NotNull(r.GetMetadata());
             Assert.Equal(false, r.Properties.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
             Assert.True(r.Properties.Aliases.IsDefault);
-            Assert.Equal(@"c:\temp", r.FullPath);
+            Assert.Equal(@"c:\temp", r.FilePath);
 
             var r1 = r.WithAliases(default(ImmutableArray<string>));
             Assert.Same(r, r1);
@@ -102,7 +93,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 documentation: doc, 
                 aliases: ImmutableArray.Create("a"), 
                 embedInteropTypes: true, 
-                fullPath: @"c:\temp", 
+                filePath: @"c:\temp", 
                 display: "hello");
 
             Assert.Same(doc, r.DocumentationProvider);
@@ -111,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(true, r.Properties.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
             AssertEx.Equal(new[] { "a" }, r.Properties.Aliases);
-            Assert.Equal(@"c:\temp", r.FullPath);
+            Assert.Equal(@"c:\temp", r.FilePath);
 
             var r2 = r.WithEmbedInteropTypes(true);
             Assert.Equal(r, r2);
@@ -122,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(r.Properties.EmbedInteropTypes, r3.Properties.EmbedInteropTypes);
             Assert.Equal(r.Properties.Kind, r3.Properties.Kind);
             AssertEx.Equal(new[] { "b", "c" }, r3.Properties.Aliases);
-            Assert.Equal(r.FullPath, r3.FullPath);
+            Assert.Equal(r.FilePath, r3.FilePath);
 
             var r4 = r.WithEmbedInteropTypes(false);
             Assert.Same(r.DocumentationProvider, r4.DocumentationProvider);
@@ -130,7 +121,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(false, r4.Properties.EmbedInteropTypes);
             Assert.Equal(r.Properties.Kind, r4.Properties.Kind);
             AssertEx.Equal(r.Properties.Aliases, r4.Properties.Aliases);
-            Assert.Equal(r.FullPath, r4.FullPath);
+            Assert.Equal(r.FilePath, r4.FilePath);
 
             Assert.Throws<ArgumentNullException>(() => r.WithDocumentationProvider(null));
             Assert.Same(r, r.WithDocumentationProvider(r.DocumentationProvider));
@@ -143,7 +134,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(r.Properties.EmbedInteropTypes, r5.Properties.EmbedInteropTypes);
             Assert.Equal(r.Properties.Kind, r5.Properties.Kind);
             AssertEx.Equal(r.Properties.Aliases, r5.Properties.Aliases);
-            Assert.Equal(r.FullPath, r5.FullPath);
+            Assert.Equal(r.FilePath, r5.FilePath);
         }
 
         [Fact]
@@ -153,12 +144,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // no path specified
             var mmr1 = new MetadataImageReference(module);
-            Assert.Null(mmr1.FullPath);
+            Assert.Null(mmr1.FilePath);
 
             // path specified
             const string path = @"c:\some path that doesn't need to exist";
-            var r = new MetadataImageReference(module, fullPath: path);
-            Assert.Equal(path, r.FullPath);
+            var r = new MetadataImageReference(module, filePath: path);
+            Assert.Equal(path, r.FilePath);
         }
 
         [Fact]
@@ -168,12 +159,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // no path specified
             var mmr1 = new MetadataImageReference(assembly);
-            Assert.Null(mmr1.FullPath);
+            Assert.Null(mmr1.FilePath);
 
             // path specified
             const string path = @"c:\some path that doesn't need to exist";
-            var r = new MetadataImageReference(assembly, fullPath: path);
-            Assert.Equal(path, r.FullPath);
+            var r = new MetadataImageReference(assembly, filePath: path);
+            Assert.Equal(path, r.FilePath);
         }
 
         [Fact]
@@ -187,13 +178,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             r = new MetadataImageReference(ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1));
             Assert.Equal("<in-memory module>".NeedsLocalization(), r.Display);
 
-            r = new MetadataImageReference(ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1), fullPath: @"c:\blah");
+            r = new MetadataImageReference(ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1), filePath: @"c:\blah");
             Assert.Equal(@"c:\blah", r.Display);
 
             r = new MetadataImageReference(ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1), display: @"dddd");
             Assert.Equal(@"dddd", r.Display);
 
-            r = new MetadataImageReference(ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1), fullPath: @"c:\blah", display: @"dddd");
+            r = new MetadataImageReference(ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1), filePath: @"c:\blah", display: @"dddd");
             Assert.Equal(@"dddd", r.Display);
 
             r = new MetadataFileReference(@"c:\some path");
@@ -270,15 +261,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var f1 = MscorlibRef;
             var f2 = SystemCoreRef;
 
-            var i1 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull(), display: "i1");
-            var i2 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull(), display: "i2");
+            var i1 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib, display: "i1");
+            var i2 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib, display: "i2");
 
             var m1a = new MyReference(@"c:\a\foo.dll", display: "m1a");
-            Assert.Equal("m1a", ((PortableExecutableReference ) m1a).Display);            
+            Assert.Equal("m1a", m1a.Display);
             var m1b = new MyReference(@"c:\b\..\a\foo.dll", display: "m1b");
-            Assert.Equal("m1b", ((PortableExecutableReference)m1b).Display);
+            Assert.Equal("m1b", m1b.Display);
             var m2 = new MyReference(@"c:\b\foo.dll", display: "m2");
-            Assert.Equal("m2", ((PortableExecutableReference)m2).Display);                       
+            Assert.Equal("m2", m2.Display);
             var m3 = new MyReference(null, display: "m3");
             var m4 = new MyReference(null, display: "m4");
 
@@ -295,9 +286,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                     if (ReferenceEquals(r, s) || 
                         ReferenceEquals(r, c1a) && ReferenceEquals(s, c1b) ||
-                        ReferenceEquals(s, c1a) && ReferenceEquals(r, c1b) ||
-                        ReferenceEquals(r, m1a) && ReferenceEquals(s, m1b) ||
-                        ReferenceEquals(s, m1a) && ReferenceEquals(r, m1b))
+                        ReferenceEquals(s, c1a) && ReferenceEquals(r, c1b))
                     {
                         Assert.True(eq, string.Format("expected '{0}' == '{1}'", r.Display, s.Display));
                     }
@@ -319,7 +308,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             
             var m1a = new MyReference2(@"c:\a\foo.dll", display: "m1a");
             Assert.Equal(@"c:\a\foo.dll", m1a.Display);
-            Assert.Equal(@"c:\a\foo.dll", m1a.FullPath);            
+            Assert.Equal(@"c:\a\foo.dll", m1a.FilePath);            
         }
 
         [Fact]

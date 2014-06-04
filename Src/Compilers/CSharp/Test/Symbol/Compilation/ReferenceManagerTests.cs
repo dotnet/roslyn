@@ -719,8 +719,8 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
     }
 }";
             var tree = Parse(source);
-            var r1 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Core, fullPath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
-            var r2 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Core, fullPath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
+            var r1 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Core, filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
+            var r2 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Core, filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
             var r2_SysCore = r2.WithAliases(new[] { "SysCore" });
 
             var compilation = CreateCompilation(new List<SyntaxTree> { tree }, new[] { MscorlibRef, r1, r2_SysCore }, new CSharpCompilationOptions(OutputKind.ConsoleApplication), "Test");
@@ -734,8 +734,8 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
             CSharpCompilation c;
             string source;
 
-            var r1 = new MetadataImageReference(TestResources.SymbolsTests.General.C1, fullPath: @"c:\temp\a.dll", display: "R1");
-            var r2 = new MetadataImageReference(TestResources.SymbolsTests.General.C1, fullPath: @"c:\temp\a.dll", display: "R2");
+            var r1 = new MetadataImageReference(TestResources.SymbolsTests.General.C1, filePath: @"c:\temp\a.dll", display: "R1");
+            var r2 = new MetadataImageReference(TestResources.SymbolsTests.General.C1, filePath: @"c:\temp\a.dll", display: "R2");
             var rFoo = r2.WithAliases(new[] { "foo" });
             var rBar = r2.WithAliases(new[] { "bar" });
             var rEmbed = r1.WithEmbedInteropTypes(true);
@@ -858,9 +858,9 @@ public class E : bar::C { }
                 Assert.Equal(r1, refs[1]);
                 Assert.Equal(r2, refs[2]);
 
-                // all #r's are referring to the same assembly that is already listed in external references:
+                // All #r's resolved are represented in directive references.
                 var dirRefs = compilation.DirectiveReferences;
-                Assert.Equal(0, dirRefs.Length);
+                Assert.Equal(2, dirRefs.Length);
 
                 var as1 = compilation.GetReferencedAssemblySymbol(r2);
                 Assert.Equal("MDTestLib1", as1.Identity.Name);
@@ -888,10 +888,10 @@ public class E : bar::C { }
                 Assert.False(dr2.Properties.EmbedInteropTypes);
                 Assert.False(dr3.Properties.EmbedInteropTypes);
 
-                // the paths are normalized:
-                Assert.Equal(p1, dr1.FullPath);
-                Assert.Equal(p1, dr2.FullPath);
-                Assert.Equal(p1, dr3.FullPath);
+                // the paths come from the resolver:
+                Assert.Equal(p2, dr1.FilePath);
+                Assert.Equal(p3, dr2.FilePath);
+                Assert.Equal(p3, dr3.FilePath);
             }
         }
 
@@ -910,12 +910,23 @@ public class E : bar::C { }
                 var compilation = CSharpCompilation.Create("foo", options: TestOptions.Dll,
                     references: new MetadataReference[] { m1, m2 });
 
-                compilation.VerifyDiagnostics();
+                // We don't deeduplicate references based on file path on the compilation level.
+                // The host (command line compiler and msbuild workspace) is responsible for such de-duplication, if needed.
+
+                compilation.VerifyDiagnostics(
+                    // error CS8015: Module 'netModule1.netmodule' is already defined in this assembly. Each module must have a unique filename.
+                    Diagnostic(ErrorCode.ERR_NetModuleNameMustBeUnique).WithArguments("netModule1.netmodule"),
+                    // netModule1.netmodule: error CS0101: The namespace '<global namespace>' already contains a definition for 'Class1'
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Class1", "<global namespace>"),
+                    // netModule1.netmodule: error CS0101: The namespace 'NS1' already contains a definition for 'Class4'
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Class4", "NS1"),
+                    // netModule1.netmodule: error CS0101: The namespace 'NS1' already contains a definition for 'Class8'
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Class8", "NS1"));
 
                 var mods = compilation.Assembly.Modules.ToArray();
-                Assert.Equal(2, mods.Length);
+                Assert.Equal(3, mods.Length);
 
-                Assert.Null(compilation.GetReferencedModuleSymbol(m1));
+                Assert.NotNull(compilation.GetReferencedModuleSymbol(m1));
                 Assert.NotNull(compilation.GetReferencedModuleSymbol(m2));
             }
         }
@@ -926,8 +937,8 @@ public class E : bar::C { }
         [Fact]
         public void DuplicateAssemblyReferences_EquivalentStrongNames_Metadata()
         {
-            var ref1 = new MetadataImageReference(TestResources.SymbolsTests.General.C2, embedInteropTypes: true, fullPath: @"R:\A\MTTestLib1.dll");
-            var ref2 = new MetadataImageReference(TestResources.SymbolsTests.General.C2, embedInteropTypes: false, fullPath: @"R:\B\MTTestLib1.dll");
+            var ref1 = new MetadataImageReference(TestResources.SymbolsTests.General.C2, embedInteropTypes: true, filePath: @"R:\A\MTTestLib1.dll");
+            var ref2 = new MetadataImageReference(TestResources.SymbolsTests.General.C2, embedInteropTypes: false, filePath: @"R:\B\MTTestLib1.dll");
 
             var c = CreateCompilationWithMscorlib("class C {}", new[] { ref1, ref2 });
             c.VerifyDiagnostics(
@@ -1006,16 +1017,12 @@ public interface I {}";
         {
             using (MetadataCache.LockAndClean())
             {
-                var text = @"extern alias A1;
-extern alias A2;
-";
-                var text1 = @"using System;
+                var libSource = @"
+using System;
 public class A { }";
 
 
-                var c1 = CreateCompilationWithMscorlib(text1,
-                    compOptions: TestOptions.Dll,
-                    assemblyName: "CS1704");
+                var c1 = CreateCompilationWithMscorlib(libSource, compOptions: TestOptions.Dll, assemblyName: "CS1704");
 
                 var dir1 = Temp.CreateDirectory();
                 var exe1 = dir1.CreateFile("CS1704.dll");
@@ -1044,16 +1051,17 @@ public class A { }";
                 var ref1 = new MetadataFileReference(exe1.Path, aliases: ImmutableArray.Create("A1"));
                 var ref2 = new MetadataFileReference(exe2.Path, aliases: ImmutableArray.Create("A2"));
 
-                CreateCompilationWithMscorlib(text, new[] { ref1, ref2 }).VerifyDiagnostics(
-                    // error CS1704: An assembly with the same simple name 'CS1704' has already been imported. 
-                    // Try removing one of the references (e.g. '...\SymbolsTests\netModule\CS1704.dll') or sign them to enable side-by-side.
-                    Diagnostic(ErrorCode.ERR_DuplicateImportSimple).WithArguments("CS1704", exe1.Path),
-                    // (1,1): info CS8020: Unused extern alias.
-                    // extern alias A1;
-                    Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias A1;"),
-                    // (2,1): info CS8020: Unused extern alias.
-                    // extern alias A2;
-                    Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias A2;"));
+                var source = @"
+extern alias A1;
+extern alias A2;
+
+class B : A1::A { }
+class C : A2::A { }
+";
+                // Dev12 reports CS1704. An assembly with the same simple name '...' has already been imported. 
+                // We consider the second reference a duplicate and ignore it (merging the aliases).
+
+                CreateCompilationWithMscorlib(source, new[] { ref1, ref2 }).VerifyDiagnostics();
             }
         }
 
@@ -1128,15 +1136,16 @@ public class Q
                                     metadataLib2 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.W2))
             {
 
-                var mdRefLib1 = new MetadataImageReference(metadataLib1, fullPath:@"C:\W1.dll");
-                var mdRefLib2 = new MetadataImageReference(metadataLib2, fullPath:@"C:\W2.dll");
+                var mdRefLib1 = new MetadataImageReference(metadataLib1, filePath: @"C:\W1.dll");
+                var mdRefLib2 = new MetadataImageReference(metadataLib2, filePath: @"C:\W2.dll");
 
                 var main = CreateCompilationWithMscorlib(sourceMain,
                     new[] { mdRefLib1, mdRefLib2 });
 
+                // Dev12 reports CS1704. An assembly with the same simple name '...' has already been imported. 
+                // We consider the second reference a duplicate and ignore it.
+
                 main.VerifyDiagnostics(
-                    // error CS1704: An assembly with the same simple name 'W' has already been imported. Try removing one of the references (e.g. 'C:\W1.dll') or sign them to enable side-by-side.
-                    Diagnostic(ErrorCode.ERR_DuplicateImportSimple).WithArguments("W", @"C:\W1.dll"),
                     // (4,12): error CS0246: The type or namespace name 'C1' could not be found (are you missing a using directive or an assembly reference?)
                     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C1").WithArguments("C1"));
             }
@@ -1162,8 +1171,8 @@ public class Q
             using (AssemblyMetadata metadataLib1 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1),
                                     metadataLib2 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.WB))
             {
-                var mdRefLib1 = new MetadataImageReference(metadataLib1, fullPath: @"C:\W1.dll");
-                var mdRefLib2 = new MetadataImageReference(metadataLib2, fullPath: @"C:\WB.dll");
+                var mdRefLib1 = new MetadataImageReference(metadataLib1, filePath: @"C:\W1.dll");
+                var mdRefLib2 = new MetadataImageReference(metadataLib2, filePath: @"C:\WB.dll");
 
                 var main = CreateCompilationWithMscorlib(sourceMain,
                     new[] {mdRefLib1, mdRefLib2});
@@ -1192,8 +1201,8 @@ public class Q
             using (AssemblyMetadata metadataLib1 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.WB),
                                     metadataLib2 = AssemblyMetadata.CreateFromImage(TestResources.WinRt.WB_Version1))
             {
-                var mdRefLib1 = new MetadataImageReference(metadataLib1, fullPath: @"C:\WB.dll");
-                var mdRefLib2 = new MetadataImageReference(metadataLib2, fullPath: @"C:\WB_Version1.dll");
+                var mdRefLib1 = new MetadataImageReference(metadataLib1, filePath: @"C:\WB.dll");
+                var mdRefLib2 = new MetadataImageReference(metadataLib2, filePath: @"C:\WB_Version1.dll");
 
                 var main = CreateCompilationWithMscorlib(sourceMain,
                     new[] { mdRefLib1, mdRefLib2 });

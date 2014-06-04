@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return FullPath;
+                return FilePath;
             }
         }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (lazyMetadata == null)
             {
-                Interlocked.CompareExchange(ref lazyMetadata, MetadataCache.GetOrCreateFromFile(FullPath, this.Properties.Kind), null);
+                Interlocked.CompareExchange(ref lazyMetadata, MetadataCache.GetOrCreateFromFile(FilePath, this.Properties.Kind), null);
             }
 
             return lazyMetadata;

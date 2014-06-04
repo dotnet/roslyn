@@ -249,7 +249,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_mscorlibRef_v4_0_30316_17626 == null)
                 {
-                    _mscorlibRef_v4_0_30316_17626 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib, display: "mscorlib.v4_0_30319_17626.dll", fullPath: @"Z:\FxReferenceAssembliesUri");
+                    _mscorlibRef_v4_0_30316_17626 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib, display: "mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri");
                 }
 
                 return _mscorlibRef_v4_0_30316_17626;
