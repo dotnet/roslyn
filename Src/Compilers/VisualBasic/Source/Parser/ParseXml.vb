@@ -1583,6 +1583,16 @@ lFailed:
             Return name
         End Function
 
+        ''' <summary>
+        ''' Checks if the given <paramref name="node"/> is a colon trivia whose string representation is the COLON (U+003A) character from ASCII range
+        ''' (specifically excluding cases when it is the FULLWIDTH COLON (U+FF1A) character).
+        ''' See also: http://fileformat.info/info/unicode/char/FF1A
+        ''' </summary>
+        ''' <param name="node">A VB syntax node to check.</param>
+        Private Shared Function IsAsciiColonTrivia(node As VisualBasicSyntaxNode) As Boolean
+            Return node.Kind = SyntaxKind.ColonTrivia AndAlso node.ToString() = ":"
+        End Function
+
         Private Function ParseXmlQualifiedNameVB() As XmlNameSyntax
 
             If Not IsValidXmlQualifiedNameToken(CurrentToken) Then
@@ -1599,9 +1609,11 @@ lFailed:
             ' so that the colon appears as a normal token. A colon may come after the identifier if and only if it is the only
             ' trivia following the identifier.  If there is any trivia before the colon then the colon should stay as trivia
             ' and be interpreted as a colon token terminator.  If there is any trivia following the colon, this is an error.
+            ' Note that only the COLON (U+003A) character, but not the FULLWIDTH COLON (U+FF1A), may be a part of an XML name, 
+            ' although they both may be represented by a node with kind SyntaxKind.ColonTrivia.
 
             Dim trailingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(localName.GetTrailingTrivia())
-            If trailingTrivia.Count > 0 AndAlso trailingTrivia(0).Kind = SyntaxKind.ColonTrivia Then
+            If trailingTrivia.Count > 0 AndAlso IsAsciiColonTrivia(trailingTrivia(0)) Then
 
                 Debug.Assert(trailingTrivia.Last.Kind = SyntaxKind.ColonTrivia)
                 Debug.Assert(CurrentToken.FullWidth = 0)

@@ -4740,6 +4740,121 @@ End Module
 remove_Test")
         End Sub
 
+        ''' <summary>
+        ''' Tests that FULLWIDTH COLON (U+FF1A) is never parsed as part of XML name,
+        ''' but is instead parsed as a statement separator when it immediately follows an XML name.
+        ''' If the next token is an identifier or keyword, it should be parsed as a separate statement.
+        ''' An XML name should never include more than one colon.
+        ''' See also: http://fileformat.info/info/unicode/char/FF1A
+        ''' </summary>
+        <Fact>
+        <WorkItem(529880)>
+        Public Sub FullWidthColonInXmlNames()
+
+            ' FULLWIDTH COLON is represented by "~" below
+            Dim source = <![CDATA[
+Imports System
+
+Module M
+
+    Sub Main()
+        Test1()
+        Test2()
+        Test3()
+        Test4()
+        Test5()
+        Test6()
+        Test7()
+        Test8()
+    End Sub
+
+    Sub Test1()
+        Console.WriteLine(">1")
+        Dim x = <a/>.@xml:foo
+        Console.WriteLine("<1")
+    End Sub
+
+    Sub Test2()
+        Console.WriteLine(">2")
+        Dim x = <a/>.@xml:foo:foo
+        Console.WriteLine("<2")
+    End Sub
+
+    Sub Test3()
+        Console.WriteLine(">3")
+        Dim x = <a/>.@xml:return
+        Console.WriteLine("<3")
+    End Sub
+
+    Sub Test4()
+        Console.WriteLine(">4")
+        Dim x = <a/>.@xml:return:return
+        Console.WriteLine("<4")
+    End Sub
+
+    Sub Test5()
+        Console.WriteLine(">5")
+        Dim x = <a/>.@xml~foo
+        Console.WriteLine("<5")
+    End Sub
+
+    Sub Test6()
+        Console.WriteLine(">6")
+        Dim x = <a/>.@xml~return
+        Console.WriteLine("<6")
+    End Sub
+
+    Sub Test7()
+        Console.WriteLine(">7")
+        Dim x = <a/>.@xml~foo~return
+        Console.WriteLine("<7")
+    End Sub
+
+    Sub Test8()
+        Console.WriteLine(">8")
+        Dim x = <a/>.@xml~REM
+        Console.WriteLine("<8")
+    End Sub
+
+    Sub foo
+        Console.WriteLine("foo")
+    End Sub
+
+    Sub [return]
+        Console.WriteLine("return")
+    End Sub
+
+    Sub [REM]
+        Console.WriteLine("REM")
+    End Sub
+End Module]]>.Value.Replace("~"c, SyntaxFacts.FULLWIDTH_COL)
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                <compilation name="FullWidthColonInXmlNames">
+                    <file name="M.vb"><%= source %></file>
+                </compilation>,
+                XmlReferences,
+                OptionsExe)
+
+            CompileAndVerify(compilation, expectedOutput:=<![CDATA[
+>1
+<1
+>2
+foo
+<2
+>3
+<3
+>4
+>5
+foo
+<5
+>6
+>7
+foo
+>8
+<8]]>.Value.Replace(vbLf, vbCrLf))
+        End Sub
+
     End Class
 
 End Namespace

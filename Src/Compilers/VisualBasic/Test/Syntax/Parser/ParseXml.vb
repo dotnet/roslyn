@@ -4389,4 +4389,76 @@ End Module
             </errors>)
     End Sub
 
+    ''' <summary>
+    ''' Tests that the REM keyword cannot be neither left nor right part of a qualified XML name.
+    ''' But FULLWIDTH COLON (U+FF1A) should never be parsed as a qualified XML name separator, so REM can follow it.
+    ''' Also, the second colon should never be parsed as a qualified XML name separator.
+    ''' </summary>
+    <Fact>
+    <WorkItem(529880)>
+    Public Sub NoRemInXmlNames()
+
+        ParseAndVerify(<![CDATA[
+Module M
+    Sub Main()
+        Dim x = <a/>.@rem
+    End Sub
+End Module]]>,
+            Diagnostic(ERRID.ERR_ExpectedXmlName, "@").WithLocation(4, 22))
+
+        ParseAndVerify(<![CDATA[
+Module M
+    Sub Main()
+        Dim x = <a/>.@rem:foo
+    End Sub
+End Module]]>,
+            Diagnostic(ERRID.ERR_ExpectedXmlName, "@").WithLocation(4, 22))
+
+        ParseAndVerify(<![CDATA[
+Module M
+    Sub Main()
+        Dim x = <a/>.@xml:rem
+    End Sub
+End Module]]>,
+            Diagnostic(ERRID.ERR_ExpectedXmlName, "").WithLocation(4, 27))
+
+        ParseAndVerify(<![CDATA[
+Module M
+    Sub Main()
+        Dim x = <a/>.@xml:rem$
+    End Sub
+End Module]]>,
+            Diagnostic(ERRID.ERR_ExpectedXmlName, "").WithLocation(4, 27))
+
+        ParseAndVerify(<![CDATA[
+Module M
+    Sub Main()
+        Dim x = <a/>.@xml :rem
+    End Sub
+End Module]]>)
+
+        ParseAndVerify(<![CDATA[
+Module M
+    Sub Main()
+        Dim x = <a/>.@xml:foo:rem
+    End Sub
+End Module]]>)
+
+        ' FULLWIDTH COLON is represented by "~" below
+        ParseAndVerify(<![CDATA[
+Module M
+    Sub Main()
+        Dim x = <a/>.@foo~rem
+    End Sub
+End Module]]>.Value.Replace("~"c, FULLWIDTH_COL))
+
+        ParseAndVerify(<![CDATA[
+Module M
+    Sub Main()
+        Dim x = <a/>.@foo~rem$
+    End Sub
+End Module]]>.Value.Replace("~"c, FULLWIDTH_COL))
+
+    End Sub
+
 End Class
