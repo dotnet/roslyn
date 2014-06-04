@@ -5325,5 +5325,31 @@ class Program
 
             AssertFormat(expected, code, parseOptions: parseOptions);
         }
+
+        [WorkItem(956631, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void IgnoreSpacesInDeclarationStatementEnabled()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.OtherSpacesDeclarationIgnore, true);
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int       s;
+    }
+}";
+
+            var expected = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int       s;
+    }
+}";
+            AssertFormat(expected, code, changedOptionSet: changingOptions);
+        }
     }
 }

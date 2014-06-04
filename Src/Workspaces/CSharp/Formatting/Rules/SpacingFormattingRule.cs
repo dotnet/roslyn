@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     var firstToken = node.GetFirstToken(includeZeroWidth: true);
                     var lastToken = node.GetLastToken(includeZeroWidth: true);
 
-                    list.Add(FormattingOperations.CreateSuppressOperation(firstToken, lastToken, SuppressOption.NoSpacing | SuppressOption.IgnoreElastic));
+                    list.Add(FormattingOperations.CreateSuppressOperation(firstToken, lastToken, SuppressOption.NoSpacing));
                 }
             }
         }
