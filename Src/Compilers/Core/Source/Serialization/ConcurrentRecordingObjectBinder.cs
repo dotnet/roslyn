@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Roslyn.Utilities
@@ -9,7 +10,7 @@ namespace Roslyn.Utilities
     /// <summary>
     /// A binder that gathers type/reader mappings during object writing
     /// </summary>
-    internal class ConcurrentRecordingObjectBinder : RecordingObjectBinder
+    internal sealed class ConcurrentRecordingObjectBinder : RecordingObjectBinder
     {
         private readonly ConcurrentDictionary<TypeKey, Type> typeMap =
             new ConcurrentDictionary<TypeKey, Type>();
@@ -20,20 +21,23 @@ namespace Roslyn.Utilities
         public override Type GetType(string assemblyName, string typeName)
         {
             Type type;
-            this.typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type);
+            if (!this.typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type))
+            {
+                Debug.Fail(assemblyName + "/" + typeName + " don't exist");
+            }
+
             return type;
         }
 
         public override Func<ObjectReader, object> GetReader(Type type)
         {
             Func<ObjectReader, object> reader;
-            this.readerMap.TryGetValue(type, out reader);
-            return reader;
-        }
+            if (!this.readerMap.TryGetValue(type, out reader))
+            {
+                Debug.Fail(type.ToString() + " reader doesn't exist");
+            }
 
-        private bool HasType(Type type)
-        {
-            return this.typeMap.ContainsKey(new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName));
+            return reader;
         }
 
         private bool HasConstructor(Type type)
@@ -45,11 +49,8 @@ namespace Roslyn.Utilities
         {
             if (type != null)
             {
-                if (!HasType(type))
-                {
-                    var key = new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
-                    this.typeMap.TryAdd(key, type);
-                }
+                var key = new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
+                this.typeMap.TryAdd(key, type);
             }
         }
 
@@ -58,13 +59,20 @@ namespace Roslyn.Utilities
             if (instance != null)
             {
                 var type = instance.GetType();
-                Record(type);
 
                 var readable = instance as IObjectReadable;
-                if (readable != null && !HasConstructor(type))
+                if (readable != null)
                 {
+                    if (HasConstructor(type))
+                    {
+                        Debug.Assert(this.typeMap.ContainsKey(new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName)));
+                        return;
+                    }
+
                     this.readerMap.TryAdd(type, readable.GetReader());
                 }
+
+                Record(type);
             }
         }
     }
