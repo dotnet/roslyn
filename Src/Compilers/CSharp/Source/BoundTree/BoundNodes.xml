@@ -544,7 +544,7 @@
         That is why unassigned use is just a warning and jumps into blocks are generally allowed.
   -->
   <Node Name="BoundBlock" Base="BoundStatementList">
-    <Field Name="LocalsOpt" Type="ImmutableArray&lt;LocalSymbol&gt;" Null="allow"/>
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
   </Node>
 
 
@@ -645,7 +645,7 @@
     <Field Name="ConstantTargetOpt" Type="LabelSymbol" Null= "allow"/>
     
     <!-- Locals declared immediately within the switch block. -->
-    <Field Name="InnerLocalsOpt" Type="ImmutableArray&lt;LocalSymbol&gt;" Null="allow"/>
+    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>    
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
     <!-- Well-known member populated during lowering -->

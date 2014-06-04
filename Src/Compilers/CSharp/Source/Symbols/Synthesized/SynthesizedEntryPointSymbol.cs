@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntax = (CSharpSyntaxNode)syntaxTree.GetRoot();
 
             return new BoundBlock(syntax,
-                default(ImmutableArray<LocalSymbol>),
+                ImmutableArray<LocalSymbol>.Empty,
                 ImmutableArray.Create<BoundStatement>(
                     new BoundExpressionStatement(syntax,
                         new BoundObjectCreationExpression(

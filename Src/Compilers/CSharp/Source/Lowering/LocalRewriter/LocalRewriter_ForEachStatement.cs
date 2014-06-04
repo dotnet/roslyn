@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conditionSequencePointSpan: forEachSyntax.InKeyword.Span,
                 rewrittenBody: new BoundBlock(rewrittenBody.Syntax,
                                               statements: ImmutableArray.Create<BoundStatement>(iterationVarDecl, rewrittenBody),
-                                              localsOpt: ImmutableArray.Create<LocalSymbol>(iterationVar)),
+                                              locals: ImmutableArray.Create<LocalSymbol>(iterationVar)),
                 breakLabel: node.BreakLabel,
                 continueLabel: node.ContinueLabel,
                 hasErrors: false);
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     finallyBlockOpt = new BoundBlock(forEachSyntax,
-                        localsOpt: default(ImmutableArray<LocalSymbol>),
+                        locals: ImmutableArray<LocalSymbol>.Empty,
                         statements: ImmutableArray.Create<BoundStatement>(disposeStmt));
                 }
                 else
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // IDisposable d = e as IDisposable;
                     // if (d != null) d.Dispose();
                     finallyBlockOpt = new BoundBlock(forEachSyntax,
-                        localsOpt: ImmutableArray.Create<LocalSymbol>(disposableVar),
+                        locals: ImmutableArray.Create<LocalSymbol>(disposableVar),
                         statements: ImmutableArray.Create<BoundStatement>(disposableVarDecl, ifStmt));
                 }
 
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // }
                 BoundStatement tryFinally = new BoundTryStatement(forEachSyntax,
                     tryBlock: new BoundBlock(forEachSyntax,
-                        localsOpt: ImmutableArray<LocalSymbol>.Empty,
+                        locals: ImmutableArray<LocalSymbol>.Empty,
                         statements: ImmutableArray.Create<BoundStatement>(whileLoop)),
                     catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
                     finallyBlockOpt: finallyBlockOpt);
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     /* as above */
                 result = new BoundBlock(
                     syntax: forEachSyntax,
-                    localsOpt: node.OuterLocals.Add(enumeratorVar),
+                    locals: node.OuterLocals.Add(enumeratorVar),
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, tryFinally));
             }
             else
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // }
                 result = new BoundBlock(
                     syntax: forEachSyntax,
-                    localsOpt: node.OuterLocals.Add(enumeratorVar),
+                    locals: node.OuterLocals.Add(enumeratorVar),
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, whileLoop));
             }
 
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // { V v = (V)s.Chars[p]; /*node.Body*/ }
             BoundStatement loopBody = new BoundBlock(forEachSyntax,
-                localsOpt: ImmutableArray.Create<LocalSymbol>(iterationVar),
+                locals: ImmutableArray.Create<LocalSymbol>(iterationVar),
                 statements: ImmutableArray.Create<BoundStatement>(iterationVarDecl, rewrittenBody));
 
             // for (string s = /*node.Expression*/, int p = 0; p < s.Length; p = p + 1) {
@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // { V v = (V)a[p]; /* node.Body */ }
             BoundStatement loopBody = new BoundBlock(forEachSyntax,
-                localsOpt: ImmutableArray.Create<LocalSymbol>(iterationVar),
+                locals: ImmutableArray.Create<LocalSymbol>(iterationVar),
                 statements: ImmutableArray.Create<BoundStatement>(iterationVariableDecl, rewrittenBody));
 
             // for (A[] a = /*node.Expression*/, int p = 0; p < a.Length; p = p + 1) {
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // { V v = (V)a[p_0, p_1, ...]; /* node.Body */ }
             BoundStatement innermostLoopBody = new BoundBlock(forEachSyntax,
-                localsOpt: ImmutableArray.Create<LocalSymbol>(iterationVar),
+                locals: ImmutableArray.Create<LocalSymbol>(iterationVar),
                 statements: ImmutableArray.Create<BoundStatement>(iterationVarDecl, rewrittenBody));
 
             // work from most-nested to least-nested

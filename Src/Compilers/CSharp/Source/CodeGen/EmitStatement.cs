@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitCondBranch(BoundExpression condition, ref object dest, bool sense)
         {
 
-        oneMoreTime:
+            oneMoreTime:
 
             ILOpCode ilcode;
 
@@ -565,13 +565,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitBlock(BoundBlock block)
         {
-            var hasLocals = !block.LocalsOpt.IsDefaultOrEmpty;
+            var hasLocals = !block.Locals.IsEmpty;
 
             if (hasLocals)
             {
                 builder.OpenLocalScope();
 
-                foreach (var local in block.LocalsOpt)
+                foreach (var local in block.Locals)
                 {
                     var declaringReferences = local.DeclaringSyntaxReferences;
                     DefineLocal(local, !declaringReferences.IsEmpty ? (CSharpSyntaxNode)declaringReferences[0].GetSyntax() : block.Syntax);
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (hasLocals)
             {
-                foreach (var local in block.LocalsOpt)
+                foreach (var local in block.Locals)
                 {
                     FreeLocal(local);
                 }
@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
-            EmitSwitchBody(switchStatement.InnerLocalsOpt, switchSections, breakLabel, switchStatement.Syntax);
+            EmitSwitchBody(switchStatement.InnerLocals, switchSections, breakLabel, switchStatement.Syntax);
         }
 
         private static KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
@@ -1217,18 +1217,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         private void EmitSwitchBody(
-            ImmutableArray<LocalSymbol> localsOpt,
+            ImmutableArray<LocalSymbol> locals,
             ImmutableArray<BoundSwitchSection> switchSections,
             GeneratedLabelSymbol breakLabel,
             CSharpSyntaxNode syntaxNode)
         {
-            var hasLocals = !localsOpt.IsEmpty;
+            var hasLocals = !locals.IsEmpty;
 
             if (hasLocals)
             {
                 builder.OpenLocalScope();
 
-                foreach (var local in localsOpt)
+                foreach (var local in locals)
                 {
                     DefineLocal(local, syntaxNode);
                 }
@@ -1454,7 +1454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 BoundExpression boundExpression = node.BoundExpression;
                 ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
                 Debug.Assert(node.OuterLocals.IsEmpty);
-                return node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocalsOpt, switchSections, breakLabelClone, node.StringEquality);
+                return node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, breakLabelClone, node.StringEquality);
             }
 
             public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)

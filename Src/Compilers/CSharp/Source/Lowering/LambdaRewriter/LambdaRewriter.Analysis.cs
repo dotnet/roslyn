@@ -268,13 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     blockParent[currentBlock] = previousBlock;
                 }
 
-                if (!locals.IsDefaultOrEmpty)
+                foreach (var local in locals)
                 {
-                    foreach (var local in locals)
-                    {
-                        variableBlock[local] = currentBlock;
-                        if (inExpressionLambda) declaredInsideExpressionLambda.Add(local);
-                    }
+                    variableBlock[local] = currentBlock;
+                    if (inExpressionLambda) declaredInsideExpressionLambda.Add(local);
                 }
 
                 return previousBlock;
@@ -288,14 +285,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
             {
                 Debug.Assert(node.OuterLocals.IsEmpty);
-                var localsOpt = node.InnerLocalsOpt;
-                if (localsOpt.IsDefaultOrEmpty)
+                var locals = node.InnerLocals;
+                if (locals.IsEmpty)
                 {
                     // no variables declared inside the switch statement.
                     return base.VisitSwitchStatement(node);
                 }
 
-                var previousBlock = PushBlock(node, localsOpt);
+                var previousBlock = PushBlock(node, locals);
                 var result = base.VisitSwitchStatement(node);
                 PopBlock(previousBlock);
                 return result;
@@ -303,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitBlock(BoundBlock node)
             {
-                if (node.LocalsOpt.IsDefaultOrEmpty)
+                if (node.Locals.IsEmpty)
                 {
                     // ignore blocks that declare no variables.
                     return base.VisitBlock(node);
@@ -315,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void VisitBlockInternal(BoundBlock node)
             {
-                var previousBlock = PushBlock(node, node.LocalsOpt);
+                var previousBlock = PushBlock(node, node.Locals);
                 base.VisitBlock(node);
                 PopBlock(previousBlock);
             }
@@ -353,13 +350,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (inExpressionLambda) declaredInsideExpressionLambda.Add(parameter);
                 }
 
-                if (!node.Body.LocalsOpt.IsDefaultOrEmpty)
+                foreach (var local in node.Body.Locals)
                 {
-                    foreach (var local in node.Body.LocalsOpt)
-                    {
-                        variableBlock[local] = currentBlock;
-                        if (inExpressionLambda) declaredInsideExpressionLambda.Add(local);
-                    }
+                    variableBlock[local] = currentBlock;
+                    if (inExpressionLambda) declaredInsideExpressionLambda.Add(local);
                 }
 
                 var result = base.VisitBlock(node.Body);

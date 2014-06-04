@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // normally we would not allow stack locals
             // when evaluation stack is not empty.
-            DeclareLocals(node.LocalsOpt, 0);
+            DeclareLocals(node.Locals, 0);
 
             return base.VisitBlock(node);
         }
@@ -1221,7 +1221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(node.OuterLocals.IsEmpty);
             Debug.Assert(this.evalStack == 0);
-            DeclareLocals(node.InnerLocalsOpt, 0);
+            DeclareLocals(node.InnerLocals, 0);
 
             var origStack = this.evalStack;
 
@@ -1237,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EnsureOnlyEvalStack();
 
             ImmutableArray<BoundSwitchSection> switchSections = this.VisitList(node.SwitchSections);
-            var result = node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocalsOpt, switchSections, node.BreakLabel, node.StringEquality);
+            var result = node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, node.BreakLabel, node.StringEquality);
 
             // implicit control flow
             EnsureOnlyEvalStack();
@@ -1561,12 +1561,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void DeclareLocals(ImmutableArray<LocalSymbol> locals, int stack)
         {
-            if (!locals.IsDefaultOrEmpty)
+            foreach (var local in locals)
             {
-                foreach (var local in locals)
-                {
-                    DeclareLocal(local, stack);
-                }
+                DeclareLocal(local, stack);
             }
         }
 

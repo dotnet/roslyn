@@ -809,9 +809,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // condition which is reported elsewhere. 
                     SourceMemberContainerTypeSymbol container = methodSymbol.ContainingType as SourceMemberContainerTypeSymbol;
                     isPrimaryCtor = ((object)container != null && (object)container.PrimaryCtor == (object)methodSymbol);
-                    includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty && 
+                    includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
                                                 !HasThisConstructorInitializer(methodSymbol) &&
-                                                (methodSymbol.IsStatic || 
+                                                (methodSymbol.IsStatic ||
                                                  isPrimaryCtor || (object)container == null || (object)container.PrimaryCtor == null);
 
                     Debug.Assert(!(includeInitializersInBody && isPrimaryCtor) || processedInitializers.LoweredInitializers == null);
@@ -852,12 +852,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (body == null || !isPrimaryCtor)
                         {
-                        // These analyses check for diagnostics in lambdas.
-                        // Control flow analysis and implicit return insertion are unnecessary.
-                        DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
-                        DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
-                    }
-                        else 
+                            // These analyses check for diagnostics in lambdas.
+                            // Control flow analysis and implicit return insertion are unnecessary.
+                            DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                            DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
+                        }
+                        else
                         {
                             Debug.Assert(isPrimaryCtor);
 
@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (initializationScopeLocals.IsDefaultOrEmpty)
                             {
-                            body = body.Update(body.LocalsOpt, body.Statements.Insert(0, analyzedInitializers));
+                                body = body.Update(body.Locals, body.Statements.Insert(0, analyzedInitializers));
                             }
                             else
                             {
@@ -878,14 +878,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // and will append body at the end. 
                                 var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance(analyzedInitializers.Statements.Length + initializationScopeStatements);
                                 BoundBlock blockToUpdate = null;
-                                
+
                                 foreach (var initializer in analyzedInitializers.Statements)
                                 {
                                     if (initializer.Kind == BoundKind.Block)
                                     {
                                         var block = (BoundBlock)initializer;
 
-                                        if (block.LocalsOpt == initializationScopeLocals)
+                                        if (block.Locals == initializationScopeLocals)
                                         {
                                             if (blockToUpdate != null)
                                             {
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 blockBuilder.Add(body);
 
                                 Debug.Assert(blockBuilder.Count == analyzedInitializers.Statements.Length + initializationScopeStatements);
-                                body = blockToUpdate.Update(blockToUpdate.LocalsOpt, blockBuilder.ToImmutableAndFree());
+                                body = blockToUpdate.Update(blockToUpdate.Locals, blockBuilder.ToImmutableAndFree());
                             }
 
                             includeInitializersInBody = false;
@@ -1043,8 +1043,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // initializers for global code have already been included in the body
                         if (includeInitializersInBody)
                         {
-                                boundStatements = boundStatements.Concat(processedInitializers.LoweredInitializers.Statements);
-                            }
+                            boundStatements = boundStatements.Concat(processedInitializers.LoweredInitializers.Statements);
+                        }
 
                         if (hasBody)
                         {
@@ -1182,10 +1182,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodBody GenerateMethodBody(
             TypeCompilationState compilationState,
             MethodSymbol method,
-            BoundStatement block, 
+            BoundStatement block,
             NamedTypeSymbol stateMachineTypeOpt,
             DiagnosticBag diagnostics,
-            bool optimize, 
+            bool optimize,
             DebugDocumentProvider debugDocumentProvider,
             ImmutableArray<Cci.NamespaceScope> namespaceScopes)
         {
@@ -1380,9 +1380,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)property != null)
                     {
                         if (property.IsAutoProperty)
-                    {
-                        return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
-                    }
+                        {
+                            return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
+                        }
 
                         var methodSyntax = sourceMethod.SyntaxNode;
                         if (methodSyntax.Kind == SyntaxKind.ArrowExpressionClause)
@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    block = new BoundBlock(syntax, default(ImmutableArray<LocalSymbol>), statements.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                    block = new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements.ToImmutableAndFree()) { WasCompilerGenerated = true };
                 }
             }
             else

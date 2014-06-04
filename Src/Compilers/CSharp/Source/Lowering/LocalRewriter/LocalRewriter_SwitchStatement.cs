@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenExpression = (BoundExpression)Visit(node.BoundExpression);
             var rewrittenSections = VisitSwitchSections(node.SwitchSections);
 
-            var rewrittenStatement = MakeSwitchStatement(syntax, rewrittenExpression, rewrittenSections, node.ConstantTargetOpt, node.InnerLocalsOpt, node.BreakLabel, node);
+            var rewrittenStatement = MakeSwitchStatement(syntax, rewrittenExpression, rewrittenSections, node.ConstantTargetOpt, node.InnerLocals, node.BreakLabel, node);
 
             if (!node.OuterLocals.IsEmpty)
             {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenExpression,
             ImmutableArray<BoundSwitchSection> rewrittenSections,
             LabelSymbol constantTargetOpt,
-            ImmutableArray<LocalSymbol> localsOpt,
+            ImmutableArray<LocalSymbol> locals,
             GeneratedLabelSymbol breakLabel,
             BoundSwitchStatement oldNode)
         {
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)rewrittenExpression.Type != null);
 
             return rewrittenExpression.Type.IsNullableType() ?
-                MakeSwitchStatementWithNullableExpression(syntax, rewrittenExpression, rewrittenSections, constantTargetOpt, localsOpt, breakLabel, oldNode) :
-                MakeSwitchStatementWithNonNullableExpression(syntax, rewrittenExpression, rewrittenSections, constantTargetOpt, localsOpt, breakLabel, oldNode);
+                MakeSwitchStatementWithNullableExpression(syntax, rewrittenExpression, rewrittenSections, constantTargetOpt, locals, breakLabel, oldNode) :
+                MakeSwitchStatementWithNonNullableExpression(syntax, rewrittenExpression, rewrittenSections, constantTargetOpt, locals, breakLabel, oldNode);
         }
 
         private BoundStatement MakeSwitchStatementWithNonNullableExpression(
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenExpression,
             ImmutableArray<BoundSwitchSection> rewrittenSections,
             LabelSymbol constantTargetOpt,
-            ImmutableArray<LocalSymbol> localsOpt,
+            ImmutableArray<LocalSymbol> locals,
             GeneratedLabelSymbol breakLabel,
             BoundSwitchStatement oldNode)
         {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerLocals: ImmutableArray<LocalSymbol>.Empty,
                 boundExpression: rewrittenExpression,
                 constantTargetOpt: constantTargetOpt,
-                innerLocalsOpt: localsOpt,
+                innerLocals: locals,
                 switchSections: rewrittenSections,
                 breakLabel: breakLabel,
                 stringEquality: stringEquality);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenExpression,
             ImmutableArray<BoundSwitchSection> rewrittenSections,
             LabelSymbol constantTargetOpt,
-            ImmutableArray<LocalSymbol> localsOpt,
+            ImmutableArray<LocalSymbol> locals,
             GeneratedLabelSymbol breakLabel,
             BoundSwitchStatement oldNode)
         {
@@ -172,11 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // rewrite switch statement
             BoundStatement rewrittenSwitchStatement = MakeSwitchStatementWithNonNullableExpression(syntax,
-                rewrittenExpression, rewrittenSections, constantTargetOpt, localsOpt, breakLabel, oldNode);
+                rewrittenExpression, rewrittenSections, constantTargetOpt, locals, breakLabel, oldNode);
 
             statementBuilder.Add(rewrittenSwitchStatement);
 
-            return new BoundBlock(syntax, localsOpt: (object)tempLocal == null ? ImmutableArray<LocalSymbol>.Empty : ImmutableArray.Create<LocalSymbol>(tempLocal), statements: statementBuilder.ToImmutableAndFree());
+            return new BoundBlock(syntax, locals: (object)tempLocal == null ? ImmutableArray<LocalSymbol>.Empty : ImmutableArray.Create<LocalSymbol>(tempLocal), statements: statementBuilder.ToImmutableAndFree());
         }
 
         private static LabelSymbol GetNullValueTargetSwitchLabel(ImmutableArray<BoundSwitchSection> sections, GeneratedLabelSymbol breakLabel)

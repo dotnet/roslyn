@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression TranslateLambdaBody(BoundBlock block)
         {
-            Debug.Assert(block.LocalsOpt.IsEmpty);
+            Debug.Assert(block.Locals.IsEmpty);
             foreach (var s in block.Statements)
             {
                 for (var stmt = s; stmt != null;)

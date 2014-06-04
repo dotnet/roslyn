@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequence2 ss = null;
             BoundExpression boundExpression = VisitExpression(ref ss, node.BoundExpression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-            return UpdateStatement(ss, node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocalsOpt, switchSections, node.BreakLabel, node.StringEquality));
+            return UpdateStatement(ss, node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, node.BreakLabel, node.StringEquality));
         }
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
         {
