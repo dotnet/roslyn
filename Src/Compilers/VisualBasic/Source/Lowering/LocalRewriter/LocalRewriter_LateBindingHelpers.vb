@@ -518,12 +518,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If isComplex Then
                 If Not Me.TryGetWellknownMember(lateSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateSetComplex, syntax) Then
                     ' need to return something void
-                    Return New BoundSequence(syntax, Nothing, ImmutableArray.Create(Of BoundExpression)(memberAccess), Nothing, Me.GetSpecialType(SpecialType.System_Void))
+                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(memberAccess), Nothing, Me.GetSpecialType(SpecialType.System_Void))
                 End If
             Else
                 If Not Me.TryGetWellknownMember(lateSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateSet, syntax) Then
                     ' need to return something void
-                    Return New BoundSequence(syntax, Nothing, ImmutableArray.Create(Of BoundExpression)(memberAccess), Nothing, Me.GetSpecialType(SpecialType.System_Void))
+                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(memberAccess), Nothing, Me.GetSpecialType(SpecialType.System_Void))
                 End If
             End If
 
@@ -589,12 +589,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If isComplex Then
                 If Not Me.TryGetWellknownMember(lateIndexSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateIndexSetComplex, syntax) Then
                     ' need to return something void
-                    Return New BoundSequence(syntax, Nothing, ImmutableArray.Create(Of BoundExpression)(invocation), Nothing, Me.GetSpecialType(SpecialType.System_Void))
+                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(invocation), Nothing, Me.GetSpecialType(SpecialType.System_Void))
                 End If
             Else
                 If Not Me.TryGetWellknownMember(lateIndexSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateIndexSet, syntax) Then
                     ' need to return something void
-                    Return New BoundSequence(syntax, Nothing, ImmutableArray.Create(Of BoundExpression)(invocation), Nothing, Me.GetSpecialType(SpecialType.System_Void))
+                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(invocation), Nothing, Me.GetSpecialType(SpecialType.System_Void))
                 End If
             End If
 

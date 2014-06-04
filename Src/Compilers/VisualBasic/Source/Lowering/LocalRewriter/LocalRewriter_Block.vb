@@ -15,27 +15,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Static locals should be removed from the list of locals,
             ' they are replaced with fields.
-            If Not node.LocalsOpt.IsDefaultOrEmpty Then
+            If Not node.Locals.IsEmpty Then
                 Dim i As Integer
                 Dim builder As ArrayBuilder(Of LocalSymbol) = Nothing
 
-                For i = 0 To node.LocalsOpt.Length - 1
-                    If node.LocalsOpt(i).IsStatic Then
+                For i = 0 To node.Locals.Length - 1
+                    If node.Locals(i).IsStatic Then
                         builder = ArrayBuilder(Of LocalSymbol).GetInstance()
                         Exit For
                     End If
                 Next
 
                 If builder IsNot Nothing Then
-                    builder.AddRange(node.LocalsOpt, i)
+                    builder.AddRange(node.Locals, i)
 
-                    For i = i + 1 To node.LocalsOpt.Length - 1
-                        If Not node.LocalsOpt(i).IsStatic Then
-                            builder.Add(node.LocalsOpt(i))
+                    For i = i + 1 To node.Locals.Length - 1
+                        If Not node.Locals(i).IsStatic Then
+                            builder.Add(node.Locals(i))
                         End If
                     Next
 
-                    Debug.Assert(builder.Count < node.LocalsOpt.Length)
+                    Debug.Assert(builder.Count < node.Locals.Length)
 
                     node = node.Update(node.StatementListSyntax, builder.ToImmutableAndFree(), node.Statements)
                 End If
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     Next
 
-                    Return New BoundBlock(node.Syntax, node.StatementListSyntax, node.LocalsOpt, builder.ToImmutableAndFree())
+                    Return New BoundBlock(node.Syntax, node.StatementListSyntax, node.Locals, builder.ToImmutableAndFree())
                 End If
             End If
 

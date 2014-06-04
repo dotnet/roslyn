@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             sideEffects(count) = DirectCast(node, BoundStatement)
-            Return New BoundBlock(node.Syntax, Nothing, locals.AsImmutableOrNull, sideEffects.AsImmutableOrNull)
+            Return New BoundBlock(node.Syntax, Nothing, locals.AsImmutable, sideEffects.AsImmutableOrNull)
         End Function
 
         Public Shared Function Rewrite(node As BoundBlock,
@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 consequenceWithEnd(block.Statements.Length) = additionOpt
-                Return block.Update(block.StatementListSyntax, block.LocalsOpt, consequenceWithEnd.AsImmutableOrNull)
+                Return block.Update(block.StatementListSyntax, block.Locals, consequenceWithEnd.AsImmutableOrNull)
             Else
                 Dim consequenceWithEnd(1) As BoundStatement
                 consequenceWithEnd(0) = statement
@@ -386,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             consequenceWithEnd(block.Statements.Length) = additionOpt
-            Return block.Update(block.StatementListSyntax, block.LocalsOpt, consequenceWithEnd.AsImmutableOrNull)
+            Return block.Update(block.StatementListSyntax, block.Locals, consequenceWithEnd.AsImmutableOrNull)
         End Function
 
         Private Function InsertBlockEpilogue(statement As BoundStatement, endBlockResumeTargetOpt As BoundStatement, sequencePointSyntax As VisualBasicSyntaxNode) As BoundStatement
@@ -789,7 +789,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New BoundSequence(syntax,
-                                     localsOpt:=temporariesBuilder.ToImmutableAndFree(),
+                                     locals:=temporariesBuilder.ToImmutableAndFree(),
                                      sideEffects:=sideEffectsBuilder.ToImmutableAndFree(),
                                      valueOpt:=valueOpt,
                                      type:=type)

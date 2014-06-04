@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Return New BoundBlock(accessorBlock, Nothing, Nothing, ImmutableArray.Create(Of BoundStatement)(boundStatement))
+            Return New BoundBlock(accessorBlock, Nothing, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundStatement)(boundStatement))
         End Function
 
         Protected MustOverride Function GetMethodBlock(fieldName As String, createOrDisposeMethodName As String, targetTypeName As String) As String

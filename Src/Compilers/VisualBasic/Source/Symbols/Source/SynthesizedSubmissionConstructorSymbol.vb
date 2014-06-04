@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New BoundBlock(
                 Me.m_SyntaxNode,
                 Nothing,
-                Nothing,
+                ImmutableArray(Of LocalSymbol).Empty,
                 ImmutableArray.Create(Of BoundStatement)(New BoundReturnStatement(Me.m_SyntaxNode, Nothing, Nothing, Nothing)))
         End Function
 

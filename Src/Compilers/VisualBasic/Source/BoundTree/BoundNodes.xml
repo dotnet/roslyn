@@ -856,7 +856,7 @@
     -->
     <Node Name="BoundBlock" Base="BoundStatement">
         <Field Name="StatementListSyntax" Type="SyntaxList(Of StatementSyntax)"/>
-        <Field Name="LocalsOpt" Type="ImmutableArray(Of LocalSymbol)" Null="allow"/>
+        <Field Name="Locals" Type="ImmutableArray(Of LocalSymbol)"/>
         <Field Name="Statements" Type="ImmutableArray(Of BoundStatement)"/>
     </Node>
 
@@ -960,7 +960,7 @@
         <!-- Type is required for this node type; may not be null -->
         <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-        <Field Name="LocalsOpt" Type="ImmutableArray(Of LocalSymbol)" Null="allow"/>
+        <Field Name="Locals" Type="ImmutableArray(Of LocalSymbol)"/>
         <Field Name="SideEffects" Type="ImmutableArray(Of BoundExpression)"/>
       
         <!--

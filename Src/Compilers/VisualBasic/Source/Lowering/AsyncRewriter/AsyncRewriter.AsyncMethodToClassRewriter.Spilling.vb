@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case BoundKind.Sequence
                         Dim sequence = DirectCast(expr, BoundSequence)
 
-                        builder.AddLocals(sequence.LocalsOpt)
+                        builder.AddLocals(sequence.Locals)
 
                         Dim sideEffects As ImmutableArray(Of BoundExpression) = sequence.SideEffects
                         If Not sideEffects.IsEmpty Then

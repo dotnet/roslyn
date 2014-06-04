@@ -1040,7 +1040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return GetUnassignedSymbolFirstLocation(DirectCast(receiver, BoundLocal).LocalSymbol, Nothing)
 
                         Case BoundKind.FieldAccess
-                            Dim fieldAccess = DirectCast(receiver, boundFieldAccess)
+                            Dim fieldAccess = DirectCast(receiver, BoundFieldAccess)
                             Return GetUnassignedSymbolFirstLocation(fieldAccess.FieldSymbol, fieldAccess)
 
                         Case Else
@@ -1193,7 +1193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 warning = ERRID.WRN_DefAsgNoRetValFuncRef1
                         End Select
 
-                    ElseIf type.TypeKind = TYPEKIND.TypeParameter Then
+                    ElseIf type.TypeKind = TypeKind.TypeParameter Then
                         ' IsReferenceType was false, so this type parameter was not known to be a reference type.
                         ' Following past practice, no warning is given in this case.
 
@@ -1235,10 +1235,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function GetFunctionLocalName(methodKind As MethodKind, local As LocalSymbol) As String
             Select Case methodKind
-                Case methodKind.LambdaMethod
+                Case MethodKind.LambdaMethod
                     Return StringConstants.AnonymousMethodName
 
-                Case methodKind.Conversion, methodKind.UserDefinedOperator
+                Case MethodKind.Conversion, MethodKind.UserDefinedOperator
                     ' the operator's function local is op_<something> and not
                     ' VB's operator name, so we need to take the identifier token
                     ' directly
@@ -1596,14 +1596,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' For flow analysis purposes, we treat an implicit declared local as equivalent to a variable declared at the 
             ' start of the method body (this block) with no initializer.
 
-            Dim localVariables = node.LocalsOpt
-            If Not localVariables.IsDefaultOrEmpty Then
-                For Each local In localVariables
-                    If local.IsImplicitlyDeclared Then
-                        SetSlotState(MakeSlot(local), ConsiderLocalInitiallyAssigned(local))
-                    End If
-                Next
-            End If
+            Dim localVariables = node.Locals
+            For Each local In localVariables
+                If local.IsImplicitlyDeclared Then
+                    SetSlotState(MakeSlot(local), ConsiderLocalInitiallyAssigned(local))
+                End If
+            Next
 
             Return MyBase.VisitBlock(node)
         End Function

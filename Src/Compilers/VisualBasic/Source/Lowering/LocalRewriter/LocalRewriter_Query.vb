@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim lambdaBody = New BoundBlock(node.Syntax,
                                             Nothing,
-                                            Nothing,
+                                            ImmutableArray(Of LocalSymbol).Empty,
                                             ImmutableArray.Create(returnstmt))
 
             Me.hasLambdas = True

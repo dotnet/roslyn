@@ -121,17 +121,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitSequence(node As BoundSequence) As BoundNode
             Dim result As BoundNode = Nothing
 
-            If Not node.LocalsOpt.IsDefault Then
-                For Each local In node.LocalsOpt
-                    SetSlotState(MakeSlot(local), True)
-                Next
-                result = MyBase.VisitSequence(node)
-                For Each local In node.LocalsOpt
-                    CheckAssigned(local, node.Syntax)
-                Next
-            Else
-                result = MyBase.VisitSequence(node)
-            End If
+            For Each local In node.Locals
+                SetSlotState(MakeSlot(local), True)
+            Next
+            result = MyBase.VisitSequence(node)
+            For Each local In node.Locals
+                CheckAssigned(local, node.Syntax)
+            Next
 
             Return result
         End Function

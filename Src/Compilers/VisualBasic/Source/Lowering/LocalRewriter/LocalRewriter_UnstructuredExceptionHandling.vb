@@ -48,9 +48,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             body = body.Update(body.StatementListSyntax,
-                               If(body.LocalsOpt.IsDefaultOrEmpty,
+                               If(body.Locals.IsEmpty,
                                   ImmutableArray.Create(Of LocalSymbol)(currentLineTemporary),
-                                  body.LocalsOpt.Add(currentLineTemporary)),
+                                  body.Locals.Add(currentLineTemporary)),
                                body.Statements)
 
             currentLineTemporary = Nothing

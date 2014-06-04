@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundBlock(
                 syntax:=syntax,
                 statementListSyntax:=Nothing,
-                localsOpt:=ImmutableArray.Create(Of LocalSymbol)(boundTemp.LocalSymbol),
+                locals:=ImmutableArray.Create(Of LocalSymbol)(boundTemp.LocalSymbol),
                 statements:=ImmutableArray.Create(Of BoundStatement)(
                     New BoundExpressionStatement(syntax, tempAssignment),
                     New BoundExpressionStatement(syntax, marshalCall)))

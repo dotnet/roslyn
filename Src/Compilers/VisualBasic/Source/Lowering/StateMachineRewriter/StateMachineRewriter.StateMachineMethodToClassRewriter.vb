@@ -180,11 +180,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitBlock(node As BoundBlock) As BoundNode
-                Return PossibleStateMachineScope(node.LocalsOpt, MyBase.VisitBlock(node))
+                Return PossibleStateMachineScope(node.Locals, MyBase.VisitBlock(node))
             End Function
 
             Private Function PossibleStateMachineScope(locals As ImmutableArray(Of LocalSymbol), wrapped As BoundNode) As BoundNode
-                If locals.IsDefaultOrEmpty Then
+                If locals.IsEmpty Then
                     Return wrapped
                 End If
 

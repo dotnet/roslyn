@@ -221,11 +221,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitSequenceExpression(sequence As BoundSequence, used As Boolean)
-            Dim hasLocals As Boolean = Not sequence.LocalsOpt.IsDefaultOrEmpty
+            Dim hasLocals As Boolean = Not sequence.Locals.IsEmpty
             If hasLocals Then
                 _builder.OpenLocalScope()
 
-                For Each local In sequence.LocalsOpt
+                For Each local In sequence.Locals
                     Me.DefineLocal(local, sequence.Syntax)
                 Next
             End If
@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If hasLocals Then
                 _builder.CloseLocalScope()
 
-                For Each local In sequence.LocalsOpt
+                For Each local In sequence.Locals
                     Me.FreeLocal(local)
                 Next
             End If

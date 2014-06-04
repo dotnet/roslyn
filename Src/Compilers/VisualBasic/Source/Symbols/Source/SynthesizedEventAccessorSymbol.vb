@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                       New BoundBlock(
                         DirectCast(eventSymbol.SyntaxReference.GetSyntax(), VisualBasicSyntaxNode),
                         Nothing,
-                        Nothing,
+                        ImmutableArray(Of LocalSymbol).Empty,
                         ImmutableArray(Of BoundStatement).Empty,
                         hasErrors:=True))
         End Function
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return New BoundBlock(
                     syntax,
                     statementListSyntax:=Nothing,
-                    localsOpt:=ImmutableArray(Of LocalSymbol).Empty,
+                    locals:=ImmutableArray(Of LocalSymbol).Empty,
                     statements:=ImmutableArray.Create(Of BoundStatement)(returnStatement)).MakeCompilerGenerated()
             Else
                 ' {
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return New BoundBlock(
                     syntax,
                     statementListSyntax:=Nothing,
-                    localsOpt:=ImmutableArray(Of LocalSymbol).Empty,
+                    locals:=ImmutableArray(Of LocalSymbol).Empty,
                     statements:=ImmutableArray.Create(Of BoundStatement)(callStatement, returnStatement)).MakeCompilerGenerated()
             End If
 
@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If compareExchangeMethod Is Nothing Then
                 Return New BoundBlock(syntax,
                                       Nothing,
-                                      Nothing,
+                                      ImmutableArray(Of LocalSymbol).Empty,
                                       ImmutableArray.Create(Of BoundStatement)(New BoundReturnStatement(syntax,
                                                                                                           Nothing,
                                                                                                           Nothing,
@@ -407,7 +407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return New BoundBlock(syntax,
                                   Nothing,
-                                  tmps.AsImmutableOrNull(),
+                                  tmps.AsImmutable(),
                                   ImmutableArray.Create(Of BoundStatement)(
                                       tmp0Init,
                                       loopStart,

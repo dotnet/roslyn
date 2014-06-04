@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             RemovePlaceholderReplacement(rewriterInfo.Placeholder)
 
             Return New BoundSequence(syntax,
-                                     localsOpt:=locals.ToImmutableAndFree(),
+                                     locals:=locals.ToImmutableAndFree(),
                                      sideEffects:=sideEffects.ToImmutableAndFree(),
                                      valueOpt:=local,
                                      type:=type)

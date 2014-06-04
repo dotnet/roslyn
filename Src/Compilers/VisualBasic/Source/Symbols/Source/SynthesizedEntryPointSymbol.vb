@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(ContainingType.IsScriptClass)
             Return New BoundBlock(syntax, Nothing,
-                Nothing,
+                ImmutableArray(Of LocalSymbol).Empty,
                 ImmutableArray.Create(Of BoundStatement)(
                     New BoundExpressionStatement(syntax,
                         New BoundObjectCreationExpression(syntax,

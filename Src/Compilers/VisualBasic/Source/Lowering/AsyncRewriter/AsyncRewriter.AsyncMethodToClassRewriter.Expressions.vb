@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function VisitSequence(node As BoundSequence) As BoundNode
                 Dim rewritten = DirectCast(MyBase.VisitSequence(node), BoundSequence)
-                Dim localsOpt As ImmutableArray(Of LocalSymbol) = rewritten.LocalsOpt
+                Dim locals As ImmutableArray(Of LocalSymbol) = rewritten.Locals
                 Dim sideEffects As ImmutableArray(Of BoundExpression) = rewritten.SideEffects
                 Dim valueOpt As BoundExpression = rewritten.ValueOpt
 
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim builder As New SpillBuilder()
 
-                builder.AddLocals(localsOpt)
+                builder.AddLocals(locals)
 
                 If sideEffectsRequireSpill Then
                     For Each sideEffect In sideEffects

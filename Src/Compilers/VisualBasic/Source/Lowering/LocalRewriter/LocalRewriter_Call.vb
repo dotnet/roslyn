@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                           True,
                                                                           rewrittenArgument.Type)
 
-            Return New BoundSequence(rewrittenArgument.Syntax, Nothing, ImmutableArray.Create(storeVal), boundTemp, rewrittenArgument.Type)
+            Return New BoundSequence(rewrittenArgument.Syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(storeVal), boundTemp, rewrittenArgument.Type)
         End Function
 
         Private Function RewriteByRefArgumentWithCopyBack(
@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             copyBackArray.Add(copyBack)
 
-            Return New BoundSequence(argument.Syntax, Nothing, ImmutableArray.Create(storeVal), boundTemp, argument.Type)
+            Return New BoundSequence(argument.Syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(storeVal), boundTemp, argument.Type)
         End Function
 
     End Class

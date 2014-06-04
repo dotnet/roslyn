@@ -811,11 +811,11 @@ OtherExpressions:
 
         'TODO: is this to fold value? Same in C#?
         Private Sub EmitSequenceCondBranch(sequence As BoundSequence, ByRef lazyDest As Object, sense As Boolean)
-            Dim hasLocals As Boolean = Not sequence.LocalsOpt.IsEmpty
+            Dim hasLocals As Boolean = Not sequence.Locals.IsEmpty
             If hasLocals Then
                 _builder.OpenLocalScope()
 
-                For Each local In sequence.LocalsOpt
+                For Each local In sequence.Locals
                     Me.DefineLocal(local, sequence.Syntax)
                 Next
             End If
@@ -827,7 +827,7 @@ OtherExpressions:
             If hasLocals Then
                 _builder.CloseLocalScope()
 
-                For Each local In sequence.LocalsOpt
+                For Each local In sequence.Locals
                     Me.FreeLocal(local)
                 Next
             End If
@@ -1208,11 +1208,11 @@ OtherExpressions:
         End Sub
 
         Private Sub EmitBlock(scope As BoundBlock)
-            Dim hasLocals As Boolean = Not scope.LocalsOpt.IsDefaultOrEmpty
+            Dim hasLocals As Boolean = Not scope.Locals.IsEmpty
             If hasLocals Then
                 _builder.OpenLocalScope()
 
-                For Each local In scope.LocalsOpt
+                For Each local In scope.Locals
                     Dim declNodes = local.DeclaringSyntaxReferences
                     Me.DefineLocal(local, If(declNodes.IsEmpty, scope.Syntax, declNodes(0).GetVisualBasicSyntax()))
                 Next

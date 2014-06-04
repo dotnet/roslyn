@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Function PushBlock(node As BoundNode, locals As ImmutableArray(Of LocalSymbol)) As BoundNode
-                If (locals.IsDefaultOrEmpty) Then
+                If (locals.IsEmpty) Then
                     Return currentBlock
                 End If
 
@@ -278,14 +278,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitBlock(node As BoundBlock) As BoundNode
-                Dim previousBlock = PushBlock(node, node.LocalsOpt)
+                Dim previousBlock = PushBlock(node, node.Locals)
                 Dim result = MyBase.VisitBlock(node)
                 PopBlock(previousBlock)
                 Return result
             End Function
 
             Public Overrides Function VisitSequence(node As BoundSequence) As BoundNode
-                Dim previousBlock = PushBlock(node, node.LocalsOpt)
+                Dim previousBlock = PushBlock(node, node.Locals)
                 Dim result = MyBase.VisitSequence(node)
                 PopBlock(previousBlock)
                 Return result
@@ -316,14 +316,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                If Not node.Body.LocalsOpt.IsDefaultOrEmpty Then
-                    For Each local In node.Body.LocalsOpt
-                        variableBlock.Add(local, currentBlock)
-                        If inExpressionLambda Then
-                            declaredInsideExpressionLambda.Add(local)
-                        End If
-                    Next
-                End If
+                For Each local In node.Body.Locals
+                    variableBlock.Add(local, currentBlock)
+                    If inExpressionLambda Then
+                        declaredInsideExpressionLambda.Add(local)
+                    End If
+                Next
 
                 Dim result = MyBase.VisitBlock(node.Body)
 

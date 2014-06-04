@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundStatements.Add(blockStatements(statementIndex))
             Next
 
-            Return New BoundBlock(block.Syntax, block.StatementListSyntax, block.LocalsOpt, boundStatements.ToImmutableAndFree(), block.HasErrors)
+            Return New BoundBlock(block.Syntax, block.StatementListSyntax, block.Locals, boundStatements.ToImmutableAndFree(), block.HasErrors)
         End Function
 
         ''' <summary>

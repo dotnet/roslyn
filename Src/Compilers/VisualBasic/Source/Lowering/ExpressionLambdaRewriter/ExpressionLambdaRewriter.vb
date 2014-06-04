@@ -128,8 +128,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                           block.Statements(2).Kind = BoundKind.ReturnStatement))
 
             ' The only local should be the Function Value. We'll ignore that.
-            Debug.Assert(block.LocalsOpt.IsEmpty OrElse
-                         (block.LocalsOpt.Length = 1 AndAlso block.LocalsOpt(0).IsFunctionValue))
+            Debug.Assert(block.Locals.IsEmpty OrElse
+                         (block.Locals.Length = 1 AndAlso block.Locals(0).IsFunctionValue))
 
             ' We only need to generate expression tree for the first statement.
             Dim stmt = block.Statements(0)
@@ -149,7 +149,7 @@ lSelect:
 
                 Case BoundKind.Block
                     Dim innerBlock = DirectCast(stmt, BoundBlock)
-                    If innerBlock.LocalsOpt.IsEmpty AndAlso innerBlock.Statements.Length = 1 Then
+                    If innerBlock.Locals.IsEmpty AndAlso innerBlock.Statements.Length = 1 Then
                         stmt = innerBlock.Statements(0)
                         GoTo lSelect
                     End If
@@ -600,7 +600,7 @@ lSelect:
         End Function
 
         Private Function VisitSequence(node As BoundSequence) As BoundExpression
-            Dim locals As ImmutableArray(Of LocalSymbol) = node.LocalsOpt
+            Dim locals As ImmutableArray(Of LocalSymbol) = node.Locals
             Dim sideEffects As ImmutableArray(Of BoundExpression) = node.SideEffects
             Dim value As BoundExpression = node.ValueOpt
 
