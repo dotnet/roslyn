@@ -568,17 +568,19 @@ namespace Microsoft.CodeAnalysis
 
         internal struct LocalInfo
         {
-            internal readonly bool IsPinned;
-            internal readonly bool IsByRef;
+            internal readonly byte[] Signature;
             internal readonly TypeSymbol Type;
             internal readonly ImmutableArray<ModifierInfo> CustomModifiers;
+            internal readonly bool IsPinned;
+            internal readonly bool IsByRef;
 
-            public LocalInfo(TypeSymbol type, ImmutableArray<ModifierInfo> customModifiers, bool isPinned, bool isByRef)
+            internal LocalInfo(byte[] signature, TypeSymbol type, ImmutableArray<ModifierInfo> customModifiers, bool isPinned, bool isByRef)
             {
-                Type = type;
-                CustomModifiers = customModifiers;
-                IsPinned = isPinned;
-                IsByRef = isByRef;
+                this.Signature = signature;
+                this.Type = type;
+                this.CustomModifiers = customModifiers;
+                this.IsPinned = isPinned;
+                this.IsByRef = isByRef;
             }
         }
 
@@ -668,15 +670,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded local variable type is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        internal ImmutableArray<LocalInfo> DecodeLocalSignatureOrThrow(BlobHandle signature)
+        internal ImmutableArray<LocalInfo> DecodeLocalSignatureOrThrow(ref BlobReader signatureReader)
         {
-            if (signature.IsNil)
-            {
-                throw new UnsupportedSignatureContent();
-            }
-
-            byte callingConvention;
-            BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out callingConvention);
+            var callingConvention = signatureReader.ReadByte();
 
             if (!SignatureHeader.IsLocalVarSignature(callingConvention))
             {
@@ -688,10 +684,12 @@ namespace Microsoft.CodeAnalysis
             GetSignatureCountsOrThrow(ref signatureReader, callingConvention, out localCount, out typeParameterCount);
             Debug.Assert(typeParameterCount == 0);
 
-            var locals = new LocalInfo[localCount];
-            for (int i = 0; i < locals.Length; i++)
+            var locals = ArrayBuilder<LocalInfo>.GetInstance(localCount);
+            var offsets = ArrayBuilder<int>.GetInstance(localCount);
+            for (int i = 0; i < localCount; i++)
             {
-                locals[i] = DecodeLocalVariableOrThrow(ref signatureReader);
+                offsets.Add(signatureReader.Offset);
+                locals.Add(DecodeLocalVariableOrThrow(ref signatureReader));
             }
 
             if (signatureReader.RemainingBytes > 0)
@@ -699,7 +697,24 @@ namespace Microsoft.CodeAnalysis
                 throw new UnsupportedSignatureContent();
             }
 
-            return ImmutableArray.Create(locals);
+            // Include signatures with each local.
+            signatureReader.Reset();
+            var builder = ArrayBuilder<byte[]>.GetInstance();
+            for (int i = 0; i < localCount; i++)
+            {
+                int start = offsets[i];
+                Debug.Assert(signatureReader.Offset <= start);
+                while (signatureReader.Offset < start)
+                {
+                    signatureReader.ReadByte();
+                }
+                int n = (i < localCount - 1) ? (offsets[i + 1] - start) : signatureReader.RemainingBytes;
+                var signature = signatureReader.ReadBytes(n);
+                var local = locals[i];
+                locals[i] = new LocalInfo(signature, local.Type, local.CustomModifiers, local.IsPinned, local.IsByRef);
+            }
+
+            return locals.ToImmutableAndFree();
         }
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded local variable type is invalid.</exception>
@@ -743,7 +758,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new LocalInfo(typeSymbol, customModifiers, isPinned, isByRef);
+            return new LocalInfo(null, typeSymbol, customModifiers, isPinned, isByRef);
         }
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>

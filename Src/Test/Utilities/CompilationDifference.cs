@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL);
         }
 
-        public void VerifyIL(string qualifiedMethodName, string expectedIL)
+        public void VerifyIL(string qualifiedMethodName, string expectedIL, Func<Microsoft.Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal)
         {
             var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
-            string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder);
+            string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL);
         }
 

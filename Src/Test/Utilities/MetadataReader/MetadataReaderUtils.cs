@@ -93,7 +93,7 @@ namespace Roslyn.Test.Utilities
 
         public static string[] GetStrings(this MetadataReader[] readers, StringHandle[] handles)
         {
-            return handles.Select(h => readers.GetString(h)).ToArray();
+            return handles.Select(handle => readers.GetString(handle)).ToArray();
         }
 
         public static Guid GetModuleVersionId(this MetadataReader reader)
@@ -101,81 +101,49 @@ namespace Roslyn.Test.Utilities
             return reader.GetGuid(reader.GetModuleDefinition().Mvid);
         }
 
+        public static StringHandle[] GetAssemblyRefNames(this MetadataReader reader)
+        {
+            return reader.AssemblyReferences.Select(handle => reader.GetAssemblyReference(handle).Name).ToArray();
+        }
+
         public static StringHandle[] GetTypeDefNames(this MetadataReader reader)
         {
-            var builder = ArrayBuilder<StringHandle>.GetInstance();
-            foreach (var handle in reader.TypeDefinitions)
-            {
-                var def = reader.GetTypeDefinition(handle);
-                builder.Add(def.Name);
-            }
-            return builder.ToArrayAndFree();
+            return reader.TypeDefinitions.Select(handle => reader.GetTypeDefinition(handle).Name).ToArray();
+        }
+
+        public static StringHandle[] GetTypeRefNames(this MetadataReader reader)
+        {
+            return reader.TypeReferences.Select(handle => reader.GetTypeReference(handle).Name).ToArray();
         }
 
         public static StringHandle[] GetEventDefNames(this MetadataReader reader)
         {
-            var builder = ArrayBuilder<StringHandle>.GetInstance();
-            foreach (var handle in reader.EventDefinitions)
-            {
-                var def = reader.GetEvent(handle);
-                builder.Add(def.Name);
-            }
-            return builder.ToArrayAndFree();
+            return reader.EventDefinitions.Select(handle => reader.GetEvent(handle).Name).ToArray();
         }
 
         public static StringHandle[] GetFieldDefNames(this MetadataReader reader)
         {
-            var builder = ArrayBuilder<StringHandle>.GetInstance();
-            foreach (var handle in reader.FieldDefinitions)
-            {
-                var def = reader.GetField(handle);
-                builder.Add(def.Name);
-            }
-            return builder.ToArrayAndFree();
+            return reader.FieldDefinitions.Select(handle => reader.GetField(handle).Name).ToArray();
         }
 
         public static StringHandle[] GetMethodDefNames(this MetadataReader reader)
         {
-            var builder = ArrayBuilder<StringHandle>.GetInstance();
-            foreach (var handle in reader.MethodDefinitions)
-            {
-                var def = reader.GetMethod(handle);
-                builder.Add(def.Name);
-            }
-            return builder.ToArrayAndFree();
+            return reader.MethodDefinitions.Select(handle => reader.GetMethod(handle).Name).ToArray();
         }
 
         public static StringHandle[] GetMemberRefNames(this MetadataReader reader)
         {
-            var builder = ArrayBuilder<StringHandle>.GetInstance();
-            foreach (var handle in reader.MemberReferences)
-            {
-                var memberRef = reader.GetMemberReference(handle);
-                builder.Add(memberRef.Name);
-            }
-            return builder.ToArrayAndFree();
+            return reader.MemberReferences.Select(handle => reader.GetMemberReference(handle).Name).ToArray();
         }
 
         public static StringHandle[] GetParameterDefNames(this MetadataReader reader)
         {
-            var builder = ArrayBuilder<StringHandle>.GetInstance();
-            for (int i = 1; i <= reader.GetTableRowCount(TableIndex.Param); i++)
-            {
-                var handle = MetadataTokens.ParameterHandle(i);
-                builder.Add(reader.GetParameter(handle).Name);
-            }
-            return builder.ToArrayAndFree();
+            return reader.GetParameters().Select(handle => reader.GetParameter(handle).Name).ToArray();
         }
 
         public static StringHandle[] GetPropertyDefNames(this MetadataReader reader)
         {
-            var builder = ArrayBuilder<StringHandle>.GetInstance();
-            foreach (var handle in reader.PropertyDefinitions)
-            {
-                var def = reader.GetProperty(handle);
-                builder.Add(def.Name);
-            }
-            return builder.ToArrayAndFree();
+            return reader.PropertyDefinitions.Select(handle => reader.GetProperty(handle).Name).ToArray();
         }
 
         public static StringHandle GetName(this MetadataReader reader, Handle token)

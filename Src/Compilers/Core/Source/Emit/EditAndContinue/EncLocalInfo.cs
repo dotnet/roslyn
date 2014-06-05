@@ -17,13 +17,21 @@ namespace Microsoft.CodeAnalysis.Emit
         public readonly ITypeReference Type;
         public readonly LocalSlotConstraints Constraints;
         public readonly int TempKind;
+        public readonly byte[] Signature;
 
-        public EncLocalInfo(ITypeReference type, LocalSlotConstraints constraints) :
-            this(-1, type, constraints, tempKind: 0)
+        public EncLocalInfo(byte[] signature)
         {
+            Debug.Assert(signature != null);
+            Debug.Assert(signature.Length > 0);
+
+            this.Offset = -1;
+            this.Type = null;
+            this.Constraints = default(LocalSlotConstraints);
+            this.TempKind = 0;
+            this.Signature = signature;
         }
 
-        public EncLocalInfo(int offset, ITypeReference type, LocalSlotConstraints constraints, int tempKind)
+        public EncLocalInfo(int offset, ITypeReference type, LocalSlotConstraints constraints, int tempKind, byte[] signature)
         {
             Debug.Assert(type != null);
 
@@ -31,11 +39,12 @@ namespace Microsoft.CodeAnalysis.Emit
             this.Type = type;
             this.Constraints = constraints;
             this.TempKind = tempKind;
+            this.Signature = signature;
         }
 
         public bool IsDefault
         {
-            get { return this.Type == null; }
+            get { return (this.Type == null) && (this.Signature == null); }
         }
 
         public bool IsInvalid
@@ -45,6 +54,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public bool Equals(EncLocalInfo other)
         {
+            Debug.Assert(this.Type != null);
+            Debug.Assert(other.Type != null);
+
             return (this.Offset == other.Offset) &&
                 (this.TempKind == other.TempKind) &&
                 this.Type.Equals(other.Type) &&
@@ -58,6 +70,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override int GetHashCode()
         {
+            Debug.Assert(this.Type != null);
+
             int result = this.Offset.GetHashCode();
             result = Hash.Combine(result, this.Type.GetHashCode());
             result = Hash.Combine(result, this.Constraints.GetHashCode());

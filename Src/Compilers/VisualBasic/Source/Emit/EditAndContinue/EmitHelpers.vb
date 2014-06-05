@@ -194,9 +194,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             localInfo As EncLocalInfo) As EncLocalInfo
 
             Debug.Assert(Not localInfo.IsDefault)
-            Dim type = map.MapReference(localInfo.Type)
-            Debug.Assert(type IsNot Nothing)
-            Return New EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.TempKind)
+            If localInfo.Type Is Nothing Then
+                Debug.Assert(localInfo.Signature IsNot Nothing)
+                Return localInfo
+            Else
+                Dim type = map.MapReference(localInfo.Type)
+                Debug.Assert(type IsNot Nothing)
+                Return New EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.TempKind, localInfo.Signature)
+            End If
         End Function
 
     End Module

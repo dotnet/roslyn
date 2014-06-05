@@ -155,5 +155,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get { return name; }
         }
+
+        public byte[] Signature
+        {
+            get { return null; }
+        }
     }
 }

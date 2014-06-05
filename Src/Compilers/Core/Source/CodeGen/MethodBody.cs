@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo;
         private readonly ushort maxStack;
         private readonly Cci.IMethodDefinition parent;
-        private readonly ImmutableArray<LocalDefinition> locals;    // built by someone else
+        private readonly ImmutableArray<Cci.ILocalDefinition> locals;    // built by someone else
         private readonly SequencePointList sequencePoints;
         private readonly DebugDocumentProvider debugDocumentProvider;
         private readonly ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             byte[] ilBits,
             ushort maxStack,
             Cci.IMethodDefinition parent,
-            ImmutableArray<LocalDefinition> locals,
+            ImmutableArray<Cci.ILocalDefinition> locals,
             SequencePointList sequencePoints,
             DebugDocumentProvider debugDocumentProvider,
             ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers,
@@ -41,6 +42,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ImmutableArray<Cci.LocalScope> iteratorScopes = default(ImmutableArray<Cci.LocalScope>),
             Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo = null)
         {
+            Debug.Assert(!locals.IsDefault);
+            Debug.Assert(!exceptionHandlers.IsDefault);
+            Debug.Assert(!localScopes.IsDefault);
+
             this.ilBits = ilBits;
             this.asyncMethodDebugInfo = asyncMethodDebugInfo;
             this.maxStack = maxStack;
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables
         {
-            get { return StaticCast<Cci.ILocalDefinition>.From(this.locals); }
+            get { return this.locals; }
         }
 
         Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition

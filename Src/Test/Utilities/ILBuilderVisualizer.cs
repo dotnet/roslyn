@@ -103,23 +103,18 @@ namespace Roslyn.Test.Utilities
             return spans;
         }
 
-        public static LocalInfo ToLocalInfo(LocalDefinition local)
-        {
-            // May be null for deleted locals in edit and continue.
-            if (local == null)
-            {
-                return default(LocalInfo);
-            }
-            return new LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference);
-        }
-
-        internal static string ILBuilderToString(ILBuilder builder)
+        internal static string ILBuilderToString(ILBuilder builder, Func<Microsoft.Cci.ILocalDefinition, LocalInfo> mapLocal = null)
         {
             var sb = new StringBuilder();
 
             var ilStream = builder.RealizedIL;
-            var locals = builder.LocalSlotManager.LocalsInOrder().SelectAsArray(ToLocalInfo);
-                var visualizer = new ILBuilderVisualizer(builder.module);
+            if (mapLocal == null)
+            {
+                mapLocal = local => new LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference);
+            }
+            var locals = builder.LocalSlotManager.LocalsInOrder().SelectAsArray(mapLocal);
+            var visualizer = new ILBuilderVisualizer(builder.module);
+
             if (ilStream != null)
             {
                 visualizer.DumpMethod(sb, builder.MaxStack, ilStream, locals, GetHandlerSpans(builder.RealizedExceptionHandlers));
@@ -454,5 +449,5 @@ namespace Roslyn.Test.Utilities
 
             throw ExceptionUtilities.UnexpectedValue(opcode);
         }
-    }    
+    }
 }

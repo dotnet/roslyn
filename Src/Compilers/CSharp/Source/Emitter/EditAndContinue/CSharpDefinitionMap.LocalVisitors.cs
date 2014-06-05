@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if (info.CustomModifiers.IsDefaultOrEmpty)
                 {
                     var constraints = GetConstraints(info);
-                    var local = new EncLocalInfo(this.offset, (Cci.ITypeReference)info.Type, constraints, (int)tempKind);
+                    var local = new EncLocalInfo(this.offset, (Cci.ITypeReference)info.Type, constraints, (int)tempKind, info.Signature);
                     this.locals.Add(local, this.slotIndex);
                 }
 

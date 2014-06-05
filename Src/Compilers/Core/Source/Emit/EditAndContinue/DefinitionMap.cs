@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeGen;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System;
@@ -74,7 +73,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal abstract ImmutableArray<EncLocalInfo> GetLocalInfo(
             Cci.IMethodDefinition def,
-            ImmutableArray<LocalDefinition> localDefs);
+            ImmutableArray<Cci.ILocalDefinition> localDefs,
+            ImmutableArray<byte[]> signatures);
 
         internal abstract bool DefinitionExists(Cci.IDefinition def);
     }

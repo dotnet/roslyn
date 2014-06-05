@@ -179,8 +179,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     if (!methodBody.LocalSignature.IsNil)
                     {
-                        var signature = this.module.MetadataReader.GetLocalSignature(methodBody.LocalSignature);
-                        localInfo = this.metadataDecoder.DecodeLocalSignatureOrThrow(signature);
+                        var signatureHandle = this.module.MetadataReader.GetLocalSignature(methodBody.LocalSignature);
+                        var signatureReader = this.module.GetMemoryReaderOrThrow(signatureHandle);
+                        localInfo = this.metadataDecoder.DecodeLocalSignatureOrThrow(ref signatureReader);
                     }
                     else
                     {
@@ -272,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             var previousType = map.MapReference(typeRef);
                             if (previousType != null)
                             {
-                                var localKey = new EncLocalInfo(offset, previousType, constraints, (int)local.TempKind);
+                                var localKey = new EncLocalInfo(offset, previousType, constraints, (int)local.TempKind, signature: null);
                                 int slot;
                                 // Should report a warning if the type of the local has changed
                                 // and the previous value will be dropped. (Bug #781309.)
@@ -325,7 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override ImmutableArray<EncLocalInfo> GetLocalInfo(
             Cci.IMethodDefinition methodDef,
-            ImmutableArray<LocalDefinition> localDefs)
+            ImmutableArray<Cci.ILocalDefinition> localDefs,
+            ImmutableArray<byte[]> signatures)
         {
             if (localDefs.IsEmpty)
             {
@@ -338,29 +340,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Create a map from declarator to declarator index.
             var declaratorToIndex = CreateDeclaratorToIndexMap(declarators);
 
-            return localDefs.SelectAsArray(localDef => GetLocalInfo(declaratorToIndex, localDef));
+            return localDefs.SelectAsArray((localDef, i, arg) => GetLocalInfo(declaratorToIndex, localDef, signatures[i]), (object)null);
         }
 
         private static EncLocalInfo GetLocalInfo(
             IReadOnlyDictionary<SyntaxNode, int> declaratorToIndex,
-            LocalDefinition localDef)
+            Microsoft.Cci.ILocalDefinition localDef,
+            byte[] signature)
         {
-            // Local symbol will be null for short-lived temporaries.
-            var local = (LocalSymbol)localDef.Identity;
-            if ((object)local != null)
+            var def = localDef as LocalDefinition;
+            if (def != null)
             {
-                var syntaxRefs = local.DeclaringSyntaxReferences;
-                Debug.Assert(!syntaxRefs.IsDefault);
-
-                if (!syntaxRefs.IsDefaultOrEmpty)
+                // Local symbol will be null for short-lived temporaries.
+                var local = (LocalSymbol)def.Identity;
+                if ((object)local != null)
                 {
-                    var syntax = syntaxRefs[0].GetSyntax();
-                    var offset = declaratorToIndex[syntax];
-                    return new EncLocalInfo(offset, localDef.Type, localDef.Constraints, (int)local.TempKind);
+                    var syntaxRefs = local.DeclaringSyntaxReferences;
+                    Debug.Assert(!syntaxRefs.IsDefault);
+
+                    if (!syntaxRefs.IsDefaultOrEmpty)
+                    {
+                        var syntax = syntaxRefs[0].GetSyntax();
+                        var offset = declaratorToIndex[syntax];
+                        return new EncLocalInfo(offset, localDef.Type, def.Constraints, (int)local.TempKind, signature);
+                    }
                 }
             }
 
-            return new EncLocalInfo(localDef.Type, localDef.Constraints);
+            return new EncLocalInfo(signature);
         }
 
         /// <summary>
@@ -394,9 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 if (locals[i].IsDefault)
                 {
-                    var info = localInfo[i];
-                    var constraints = GetConstraints(info);
-                    locals[i] = new EncLocalInfo((Cci.ITypeReference)info.Type, constraints);
+                    locals[i] = new EncLocalInfo(localInfo[i].Signature);
                 }
             }
 

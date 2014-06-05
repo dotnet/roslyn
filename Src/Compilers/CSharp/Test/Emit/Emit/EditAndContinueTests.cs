@@ -2640,14 +2640,11 @@ class C
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-
-            diff1.TestData.GetMethodData("C.Main").VerifyIL(
-            // Should be ".locals init (S1 V_0, //..." (with S1 type) to ensure alignment
-            // of V_1. However this issue does not seem to affect runtime behavior.
+            diff1.VerifyIL("C.Main",
  @"{
   // Code size       22 (0x16)
   .maxstack  2
-  .locals init (S1 V_0,
+  .locals init ([unchanged] V_0,
   S2 V_1) //y
   IL_0000:  nop
   IL_0001:  ldloca.s   V_1
@@ -2830,7 +2827,7 @@ class C
 @"{
   // Code size       48 (0x30)
   .maxstack  4
-  .locals init (int[] V_0,
+  .locals init ([unchanged] V_0,
   int[] V_1) //a
   IL_0000:  nop
   IL_0001:  ldc.i4.7
@@ -3096,7 +3093,7 @@ class C
 
                 // Should not have generated call to ComputeStringHash nor
                 // added the method to <PrivateImplementationDetails>.
-                var actualIL1 = diff1.TestData.GetMethodData("C.F").GetMethodIL();
+                var actualIL1 = diff1.GetMethodIL("C.F");
                 Assert.False(actualIL1.Contains(ComputeStringHashName));
 
                 using (var md1 = diff1.GetMetadata())
@@ -3624,7 +3621,7 @@ class B : A<B>
 @"{
   // Code size       10 (0xa)
   .maxstack  1
-  .locals init (object V_0,
+  .locals init ([unchanged] V_0,
   string V_1, //b
   int V_2) //a
   IL_0000:  nop
@@ -3970,8 +3967,8 @@ class C
 @"{
   // Code size       17 (0x11)
   .maxstack  1
-  .locals init (E V_0,
-  E V_1,
+  .locals init ([unchanged] V_0,
+  [unchanged] V_1,
   E V_2, //z
   A V_3, //x
   A V_4) //y
@@ -3998,8 +3995,8 @@ class C
 @"{
   // Code size       17 (0x11)
   .maxstack  1
-  .locals init (E V_0,
-  E V_1,
+  .locals init ([unchanged] V_0,
+  [unchanged] V_1,
   E V_2, //z
   A V_3, //x
   A V_4) //y
@@ -4026,9 +4023,9 @@ class C
 @"{
   // Code size       18 (0x12)
   .maxstack  1
-  .locals init (E V_0,
-  E V_1,
-  E V_2,
+  .locals init ([unchanged] V_0,
+  [unchanged] V_1,
+  [unchanged] V_2,
   A V_3, //x
   A V_4, //y
   A V_5) //z
@@ -4369,9 +4366,9 @@ class B
 @"{
   // Code size       33 (0x21)
   .maxstack  1
-  .locals init (int V_0,
+  .locals init ([unchanged] V_0,
   object V_1,
-  object V_2,
+  [unchanged] V_2,
   <>f__AnonymousType0<A> V_3, //x
   <>f__AnonymousType1<int> V_4, //y
   object V_5)
@@ -4402,9 +4399,9 @@ class B
     @"{
   // Code size       39 (0x27)
   .maxstack  1
-  .locals init (int V_0,
+  .locals init ([unchanged] V_0,
   object V_1,
-  object V_2,
+  [unchanged] V_2,
   <>f__AnonymousType0<A> V_3, //x
   <>f__AnonymousType1<int> V_4, //y
   object V_5)
@@ -4629,7 +4626,7 @@ class B
 @"{
   // Code size       27 (0x1b)
   .maxstack  1
-  .locals init (C V_0,
+  .locals init ([unchanged] V_0,
   object V_1, //y
   object V_2,
   <>f__AnonymousType0<object> V_3, //x
@@ -4911,8 +4908,8 @@ class B
 @"{
   // Code size       45 (0x2d)
   .maxstack  2
-  .locals init (C V_0,
-  System.IDisposable V_1,
+  .locals init ([unchanged] V_0,
+  [unchanged] V_1,
   bool V_2,
   object V_3,
   C V_4, //c
@@ -5048,7 +5045,7 @@ class B
   // Code size       37 (0x25)
   .maxstack  3
   .locals init (C V_0, //c
-  C V_1,
+  [unchanged] V_1,
   int V_2,
   C V_3,
   int V_4)
@@ -5668,7 +5665,7 @@ class B
   pinned string V_1, //CS$519$0000
   bool V_2,
   pinned int& V_3, //q
-  int[] V_4,
+  [unchanged] V_4,
   char* V_5, //r
   pinned string V_6, //CS$519$0001
   bool V_7,
@@ -5997,7 +5994,7 @@ class C
   System.Collections.Generic.List<object>.Enumerator V_2, //CS$5$0001
   object V_3, //y
   bool V_4,
-  System.IDisposable V_5,
+  [unchanged] V_5,
   System.Collections.Generic.List<object>.Enumerator V_6, //CS$5$0002
   object V_7, //x
   System.Collections.IEnumerator V_8, //CS$5$0003
@@ -6459,8 +6456,8 @@ class C
   string V_3, //CS$6$0003
   int V_4, //CS$7$0004
   char V_5, //c
-  System.IDisposable V_6,
-  bool V_7,
+  [unchanged] V_6,
+  [unchanged] V_7,
   System.IDisposable V_8, //CS$3$0000
   bool V_9)
   IL_0000:  nop
@@ -6741,8 +6738,8 @@ class C
 @"{
   // Code size      170 (0xaa)
   .maxstack  4
-  .locals init (A V_0,
-  A V_1,
+  .locals init ([unchanged] V_0,
+  [unchanged] V_1,
   int V_2,
   A V_3, //CS$3$0000
   bool V_4,
@@ -7192,7 +7189,7 @@ public interface I
 @"{
   // Code size       11 (0xb)
   .maxstack  1
-  .locals init (I V_0,
+  .locals init ([unchanged] V_0,
   I V_1) //y
   IL_0000:  nop
   IL_0001:  ldnull
@@ -7305,8 +7302,8 @@ public struct S
 @"{
   // Code size        9 (0x9)
   .maxstack  1
-  .locals init (IA V_0,
-  S V_1)
+  .locals init ([unchanged] V_0,
+  [unchanged] V_1)
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  call       ""void C<T>.M2(object)""
@@ -7388,6 +7385,172 @@ public interface IB
   IL_0018:  nop
   IL_0019:  ret
 }");
+            }
+        }
+
+        /// <summary>
+        /// Should use TypeDef rather than TypeRef for unrecognized
+        /// local of a type defined in the original assembly.
+        /// </summary>
+        [WorkItem(910777)]
+        [Fact]
+        public void UnrecognizedLocalOfTypeFromAssembly()
+        {
+            var source =
+@"class E : System.Exception
+{
+}
+class C
+{
+    static void M()
+    {
+        try
+        {
+        }
+        catch (E e)
+        {
+        }
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
+            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
+            var bytes0 = compilation0.EmitToArray(debug: true);
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var reader0 = md0.MetadataReader;
+                CheckNames(reader0, reader0.GetAssemblyRefNames(), "mscorlib");
+                var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+                // Use empty LocalVariableNameProvider for original locals and
+                // use preserveLocalVariables: true for the edit so that existing
+                // locals are retained even though all are unrecognized.
+                var generation0 = EmitBaseline.CreateInitialBaseline(
+                    md0,
+                    EmptyLocalsProvider);
+                var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, syntaxMap: s => null, preserveLocalVariables: true)));
+                using (var md1 = diff1.GetMetadata())
+                {
+                    var reader1 = md1.Reader;
+                    var readers = new[] { reader0, reader1 };
+                    CheckNames(readers, reader1.GetAssemblyRefNames(), "mscorlib");
+                    CheckNames(readers, reader1.GetTypeRefNames(), "Object");
+                    CheckEncLog(reader1,
+                        Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                    CheckEncMap(reader1,
+                        Handle(5, TableIndex.TypeRef),
+                        Handle(2, TableIndex.MethodDef),
+                        Handle(2, TableIndex.StandAloneSig),
+                        Handle(2, TableIndex.AssemblyRef));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Similar to above test but with anonymous type
+        /// added in subsequent generation.
+        /// </summary>
+        [WorkItem(910777)]
+        [Fact]
+        public void UnrecognizedLocalOfAnonymousTypeFromAssembly()
+        {
+            var source0 =
+@"class C
+{
+    static string F()
+    {
+        return null;
+    }
+    static string G()
+    {
+        var o = new { Y = 1 };
+        return o.ToString();
+    }
+}";
+            var source1 =
+@"class C
+{
+    static string F()
+    {
+        var o = new { X = 1 };
+        return o.ToString();
+    }
+    static string G()
+    {
+        var o = new { Y = 1 };
+        return o.ToString();
+    }
+}";
+            var source2 =
+@"class C
+{
+    static string F()
+    {
+        return null;
+    }
+    static string G()
+    {
+        return null;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, compOptions: TestOptions.UnoptimizedDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.UnoptimizedDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, compOptions: TestOptions.UnoptimizedDll);
+            var bytes0 = compilation0.EmitToArray(debug: true);
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var reader0 = md0.MetadataReader;
+                CheckNames(reader0, reader0.GetAssemblyRefNames(), "mscorlib");
+                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                // Use empty LocalVariableNameProvider for original locals and
+                // use preserveLocalVariables: true for the edit so that existing
+                // locals are retained even though all are unrecognized.
+                var generation0 = EmitBaseline.CreateInitialBaseline(
+                    md0,
+                    EmptyLocalsProvider);
+                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
+                var method1G = compilation1.GetMember<MethodSymbol>("C.G");
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)));
+                using (var md1 = diff1.GetMetadata())
+                {
+                    var reader1 = md1.Reader;
+                    var readers = new[] { reader0, reader1 };
+                    CheckNames(readers, reader1.GetAssemblyRefNames(), "mscorlib");
+                    CheckNames(readers, reader1.GetTypeDefNames(), "<>f__AnonymousType1`1");
+                    CheckNames(readers, reader1.GetTypeRefNames(), "CompilerGeneratedAttribute", "Object", "DebuggerBrowsableState", "DebuggerBrowsableAttribute", "DebuggerHiddenAttribute", "EqualityComparer`1", "String");
+                    // Change method updated in generation 1.
+                    var method2F = compilation2.GetMember<MethodSymbol>("C.F");
+                    var diff2F = compilation2.EmitDifference(
+                        diff1.NextGeneration,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1F, method2F, syntaxMap: s => null, preserveLocalVariables: true)));
+                    using (var md2 = diff2F.GetMetadata())
+                    {
+                        var reader2 = md2.Reader;
+                        readers = new[] { reader0, reader1, reader2 };
+                        CheckNames(readers, reader2.GetAssemblyRefNames(), "mscorlib");
+                        CheckNames(readers, reader2.GetTypeDefNames());
+                        CheckNames(readers, reader2.GetTypeRefNames(), "Object");
+                    }
+                    // Change method unchanged since generation 0.
+                    var method2G = compilation2.GetMember<MethodSymbol>("C.G");
+                    var diff2G = compilation2.EmitDifference(
+                        diff1.NextGeneration,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1G, method2G, syntaxMap: s => null, preserveLocalVariables: true)));
+                    using (var md2 = diff2G.GetMetadata())
+                    {
+                        var reader2 = md2.Reader;
+                        readers = new[] { reader0, reader1, reader2 };
+                        CheckNames(readers, reader2.GetAssemblyRefNames(), "mscorlib");
+                        CheckNames(readers, reader2.GetTypeDefNames());
+                        CheckNames(readers, reader2.GetTypeRefNames(), "Object");
+                    }
+                }
             }
         }
 
@@ -7572,5 +7735,45 @@ public interface IB
         }
 
         #endregion
+    }
+
+    internal static class CompilationDifferenceExtensions
+    {
+        internal static void VerifyIL(this CompilationDifference diff, string qualifiedMethodName, string expectedIL)
+        {
+            diff.VerifyIL(qualifiedMethodName, expectedIL, ToLocalInfo);
+        }
+
+        internal static string GetMethodIL(this CompilationDifference diff, string qualifiedMethodName)
+        {
+            return ILBuilderVisualizer.ILBuilderToString(diff.TestData.GetMethodData(qualifiedMethodName).ILBuilder, ToLocalInfo);
+        }
+
+        private static ILVisualizer.LocalInfo ToLocalInfo(Microsoft.Cci.ILocalDefinition local)
+        {
+            var signature = local.Signature;
+            if (signature == null)
+            {
+                return new ILVisualizer.LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference);
+            }
+            else
+            {
+                // Decode simple types only.
+                var typeName = (signature.Length == 1) ? GetTypeName((SignatureTypeCode)signature[0]) : null;
+                return new ILVisualizer.LocalInfo(null, typeName ?? "[unchanged]", false, false);
+            }
+        }
+
+        private static string GetTypeName(SignatureTypeCode typeCode)
+        {
+            switch (typeCode)
+            {
+                case SignatureTypeCode.Boolean: return "bool";
+                case SignatureTypeCode.Int32: return "int";
+                case SignatureTypeCode.String: return "string";
+                case SignatureTypeCode.Object: return "object";
+                default: return null;
+            }
+        }
     }
 }

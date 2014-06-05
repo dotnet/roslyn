@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
+Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
@@ -11,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.MetadataUtilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -516,7 +518,7 @@ End Class
 
                 ' Should not have generated call to ComputeStringHash nor
                 ' added the method to <PrivateImplementationDetails>.
-                Dim actualIL1 = diff1.TestData.GetMethodData("C.F").GetMethodIL()
+                Dim actualIL1 = diff1.GetMethodIL("C.F")
                 Assert.False(actualIL1.Contains(ComputeStringHashName))
 
                 Using md1 = diff1.GetMetadata()
@@ -725,7 +727,7 @@ End Class
 {
   // Code size       11 (0xb)
   .maxstack  1
-  .locals init (I V_0,
+  .locals init ([unchanged] V_0,
   I V_1) //y
   IL_0000:  nop
   IL_0001:  ldnull
@@ -835,8 +837,8 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
 {
   // Code size        9 (0x9)
   .maxstack  1
-  .locals init (IA V_0,
-  S V_1)
+  .locals init ([unchanged] V_0,
+  [unchanged] V_1)
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  call       "Public Shared Sub M2(o As Object)"
@@ -919,6 +921,73 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
   IL_0019:  ret
 }
 ]]>.Value)
+            End Using
+        End Sub
+
+        ''' <summary>
+        ''' Should use TypeDef rather than TypeRef for unrecognized
+        ''' local of a type defined in the original assembly.
+        ''' </summary>
+        <WorkItem(910777)>
+        <Fact()>
+        Public Sub UnrecognizedLocalOfTypeFromAssembly()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class E
+    Inherits System.Exception
+End Class
+Class C
+    Shared Sub M()
+        Try
+        Catch e As E
+        End Try
+    End Sub
+End Class
+]]></file>
+</compilation>
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=UnoptimizedDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=UnoptimizedDll)
+
+            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+                Dim reader0 = md0.MetadataReader
+                CheckNames(reader0, reader0.GetAssemblyRefNames(), "mscorlib", "Microsoft.VisualBasic")
+                Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
+                ' Use empty LocalVariableNameProvider for original locals and
+                ' use preserveLocalVariables: true for the edit so that existing
+                ' locals are retained even though all are unrecognized.
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
+                Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, syntaxMap:=Function(s) Nothing, preserveLocalVariables:=True)))
+                Using md1 = diff1.GetMetadata()
+                    Dim reader1 = md1.Reader
+                    Dim readers = {reader0, reader1}
+                    CheckNames(readers, reader1.GetAssemblyRefNames(), "mscorlib", "Microsoft.VisualBasic")
+                    CheckNames(readers, reader1.GetTypeRefNames(), "Object", "ProjectData", "Exception")
+                    CheckEncLog(reader1,
+                        Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                    CheckEncMap(reader1,
+                        Handle(6, TableIndex.TypeRef),
+                        Handle(7, TableIndex.TypeRef),
+                        Handle(8, TableIndex.TypeRef),
+                        Handle(3, TableIndex.MethodDef),
+                        Handle(7, TableIndex.MemberRef),
+                        Handle(8, TableIndex.MemberRef),
+                        Handle(2, TableIndex.StandAloneSig),
+                        Handle(3, TableIndex.AssemblyRef),
+                        Handle(4, TableIndex.AssemblyRef))
+                End Using
             End Using
         End Sub
 
@@ -1051,7 +1120,7 @@ End Class
 {
   // Code size       28 (0x1c)
   .maxstack  2
-  .locals init (System.Exception V_0,
+  .locals init ([unchanged] V_0,
   System.Exception V_1) //ex
   IL_0000:  nop
   .try
@@ -1428,7 +1497,7 @@ End Class
 {
   // Code size       10 (0xa)
   .maxstack  1
-  .locals init (Object V_0,
+  .locals init ([unchanged] V_0,
   String V_1, //b
   Integer V_2) //a
   IL_0000:  nop
@@ -2621,7 +2690,7 @@ End Class
   Double V_2, //VB$ForStep
   Boolean V_3, //VB$LoopDirection
   Double V_4, //i
-  Double V_5,
+  [unchanged] V_5,
   Double V_6, //VB$LoopObject
   Double V_7, //VB$ForLimit
   Double V_8, //VB$ForStep
@@ -3115,7 +3184,7 @@ End Class
   .maxstack  3
   .locals init (Object V_0, //qq
   Object V_1, //aa
-  System.Xml.Linq.XElement V_2,
+  [unchanged] V_2,
   System.Xml.Linq.XElement V_3)
   IL_0000:  nop
   IL_0001:  ldstr      "qq"
@@ -3286,9 +3355,9 @@ End Class
 {
   // Code size      111 (0x6f)
   .maxstack  2
-  .locals init (VB$AnonymousType_0(Of Integer) V_0,
-  VB$AnonymousDelegate_2(Of Object, Object) V_1,
-  VB$AnonymousDelegate_1(Of Object) V_2,
+  .locals init ([unchanged] V_0,
+  [unchanged] V_1,
+  [unchanged] V_2,
   VB$AnonymousDelegate_3(Of C) V_3, //u
   VB$AnonymousType_1(Of Integer) V_4, //x
   VB$AnonymousDelegate_4(Of Object, Object) V_5, //s
@@ -3460,8 +3529,8 @@ End Class
   .maxstack  1
   .locals init (Object V_0,
   Integer V_1,
-  Object V_2,
-  Integer V_3,
+  [unchanged] V_2,
+  [unchanged] V_3,
   Object V_4, //G
   VB$AnonymousType_0(Of A) V_5, //x
   VB$AnonymousType_1(Of Integer) V_6) //y
@@ -3494,8 +3563,8 @@ End Class
   .maxstack  1
   .locals init (Object V_0,
   Integer V_1,
-  Object V_2,
-  Integer V_3,
+  [unchanged] V_2,
+  [unchanged] V_3,
   Object V_4, //G
   VB$AnonymousType_0(Of A) V_5, //x
   VB$AnonymousType_1(Of Integer) V_6) //y
@@ -3690,8 +3759,8 @@ End Class
   // Code size       45 (0x2d)
   .maxstack  2
   .locals init (Object V_0,
-  C V_1,
-  System.IDisposable V_2,
+  [unchanged] V_1,
+  [unchanged] V_2,
   Boolean V_3,
   Object V_4, //F
   C V_5, //c
@@ -3845,12 +3914,12 @@ End Module
 
             ' Verify full metadata contains expected rows.
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
-        Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
 
-        Dim diff1 = compilation1.EmitDifference(
-                    EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, compilation1.GetMember(Of MethodSymbol)("C.Main"))),
-                    New CompilationTestData With {.SymWriterFactory = Function() New MockSymUnmanagedWriter()})
+                Dim diff1 = compilation1.EmitDifference(
+                            EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
+                            ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, compilation1.GetMember(Of MethodSymbol)("C.Main"))),
+                            New CompilationTestData With {.SymWriterFactory = Function() New MockSymUnmanagedWriter()})
 
                 diff1.Result.Diagnostics.Verify(
                     Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments("The method or operation is not implemented."))
@@ -3998,5 +4067,45 @@ End Module
 
 #End Region
     End Class
+
+    Friend Module CompilationDifferenceExtensions
+
+        <Extension()>
+        Friend Sub VerifyIL(diff As CompilationDifference, qualifiedMethodName As String, expectedIL As String)
+            diff.VerifyIL(qualifiedMethodName, expectedIL, AddressOf ToLocalInfo)
+        End Sub
+
+        <Extension()>
+        Friend Function GetMethodIL(diff As CompilationDifference, qualifiedMethodName As String) As String
+            Return ILBuilderVisualizer.ILBuilderToString(diff.TestData.GetMethodData(qualifiedMethodName).ILBuilder, AddressOf ToLocalInfo)
+        End Function
+
+        Private Function ToLocalInfo(local As Microsoft.Cci.ILocalDefinition) As ILVisualizer.LocalInfo
+            Dim signature = local.Signature
+            If signature Is Nothing Then
+                Return New ILVisualizer.LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference)
+            Else
+                ' Decode simple types only.
+                Dim typeName = If(signature.Length = 1, GetTypeName(CType(signature(0), SignatureTypeCode)), Nothing)
+                Return New ILVisualizer.LocalInfo(Nothing, If(typeName, "[unchanged]"), False, False)
+            End If
+        End Function
+
+        Private Function GetTypeName(typeCode As SignatureTypeCode) As String
+            Select Case typeCode
+                Case SignatureTypeCode.Boolean
+                    Return "Boolean"
+                Case SignatureTypeCode.Int32
+                    Return "Integer"
+                Case SignatureTypeCode.String
+                    Return "String"
+                Case SignatureTypeCode.Object
+                    Return "Object"
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
+
+    End Module
 
 End Namespace

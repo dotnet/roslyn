@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
@@ -38,10 +39,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         private struct LocalSignature : IEquatable<LocalSignature>
         {
-            private readonly Microsoft.Cci.ITypeReference Type;
+            private readonly ITypeReference Type;
             private readonly LocalSlotConstraints Constraints;
 
-            internal LocalSignature(Microsoft.Cci.ITypeReference valType, LocalSlotConstraints constraints)
+            internal LocalSignature(ITypeReference valType, LocalSlotConstraints constraints)
             {
                 this.Constraints = constraints;
                 this.Type = valType;
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             public bool Equals(LocalSignature other)
             {
-                // Microsoft.Cci.ITypeReference does not have object identity.
+                // ITypeReference does not have object identity.
                 // Same type may be represented by multiple instances.
                 // Therefore the use of "Equals" here.
                 return this.Constraints == other.Constraints &&
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         internal LocalDefinition DeclareLocal(
-            Microsoft.Cci.ITypeReference type,
+            ITypeReference type,
             object identity,
             string name,
             bool isCompilerGenerated,
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Gets a local slot.
         /// </summary>
         internal LocalDefinition AllocateSlot(
-            Microsoft.Cci.ITypeReference type,
+            ITypeReference type,
             LocalSlotConstraints constraints,
             ImmutableArray<TypedConstant> dynamicTransformFlags = default(ImmutableArray<TypedConstant>))
         {
@@ -175,10 +176,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             FreeSlots.Push(new LocalSignature(slot.Type, slot.Constraints), slot);
         }
 
-        public abstract ImmutableArray<LocalDefinition> LocalsInOrder();
+        public abstract ImmutableArray<ILocalDefinition> LocalsInOrder();
 
         protected abstract LocalDefinition DeclareLocalInternal(
-            Microsoft.Cci.ITypeReference type,
+            ITypeReference type,
             object identity,
             string name,
             bool isCompilerGenerated,

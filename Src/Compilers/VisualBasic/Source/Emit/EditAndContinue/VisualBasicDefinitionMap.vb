@@ -148,8 +148,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Debug.Assert(Me.module.HasIL)
                     Dim methodIL As MethodBodyBlock = Me.module.GetMethodBodyOrThrow(handle)
                     If Not methodIL.LocalSignature.IsNil Then
-                        Dim signature = Me.module.MetadataReader.GetLocalSignature(methodIL.LocalSignature)
-                        localInfo = Me.metadataDecoder.DecodeLocalSignatureOrThrow(signature)
+                        Dim signatureHandle = Me.module.MetadataReader.GetLocalSignature(methodIL.LocalSignature)
+                        Dim signatureReader = Me.module.GetMemoryReaderOrThrow(signatureHandle)
+                        localInfo = Me.metadataDecoder.DecodeLocalSignatureOrThrow(signatureReader)
                     Else
                         localInfo = ImmutableArray(Of MetadataDecoder.LocalInfo).Empty
                     End If
@@ -223,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                            If previousSyntax IsNot Nothing AndAlso previousDeclaratorToOffset.TryGetValue(previousSyntax, offset) Then
                                                Dim previousType = map.MapReference(typeRef)
                                                If previousType IsNot Nothing Then
-                                                   Dim localKey = New EncLocalInfo(offset, previousType, constraints, CInt(local.TempKind))
+                                                   Dim localKey = New EncLocalInfo(offset, previousType, constraints, CInt(local.TempKind), signature:=Nothing)
                                                    Dim slot As Integer
                                                    If previousLocalInfoToSlot.TryGetValue(localKey, slot) Then
                                                        Return slot
@@ -255,7 +256,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return False
         End Function
 
-        Friend Overrides Function GetLocalInfo(methodDef As IMethodDefinition, localDefs As ImmutableArray(Of LocalDefinition)) As ImmutableArray(Of EncLocalInfo)
+        Friend Overrides Function GetLocalInfo(
+            methodDef As IMethodDefinition,
+            localDefs As ImmutableArray(Of ILocalDefinition),
+            signatures As ImmutableArray(Of Byte())) As ImmutableArray(Of EncLocalInfo)
+
             If localDefs.IsEmpty Then
                 Return ImmutableArray(Of EncLocalInfo).Empty
             End If
@@ -266,22 +271,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Create a map from declarator to declarator index.
             Dim declaratorToIndex As IReadOnlyDictionary(Of SyntaxNode, Integer) = CreateDeclaratorToIndexMap(declarators)
 
-            Return localDefs.SelectAsArray(Function(localDef) GetLocalInfo(declaratorToIndex, localDef))
+            Return localDefs.SelectAsArray(Of Object, EncLocalInfo)(Function(localDef, i, arg) GetLocalInfo(declaratorToIndex, localDef, signatures(i)), Nothing)
         End Function
 
-        Private Overloads Shared Function GetLocalInfo(declaratorToIndex As IReadOnlyDictionary(Of SyntaxNode, Integer), localDef As LocalDefinition) As EncLocalInfo
-            ' Local symbol will be null for short-lived temporaries.
-            Dim local = DirectCast(localDef.Identity, LocalSymbol)
-            If local IsNot Nothing Then
-                Dim syntaxRefs = local.DeclaringSyntaxReferences
-                Debug.Assert(Not syntaxRefs.IsDefault)
+        Private Overloads Shared Function GetLocalInfo(
+            declaratorToIndex As IReadOnlyDictionary(Of SyntaxNode, Integer),
+            localDef As ILocalDefinition,
+            signature As Byte()) As EncLocalInfo
 
-                If Not syntaxRefs.IsDefaultOrEmpty Then
-                    Dim syntax As SyntaxNode = syntaxRefs(0).GetSyntax()
-                    Return New EncLocalInfo(declaratorToIndex(syntax), localDef.Type, localDef.Constraints, CInt(local.TempKind))
+            Dim def = TryCast(localDef, LocalDefinition)
+            If def IsNot Nothing Then
+                ' Local symbol will be null for short-lived temporaries.
+                Dim local = DirectCast(def.Identity, LocalSymbol)
+                If local IsNot Nothing Then
+                    Dim syntaxRefs = local.DeclaringSyntaxReferences
+                    Debug.Assert(Not syntaxRefs.IsDefault)
+
+                    If Not syntaxRefs.IsDefaultOrEmpty Then
+                        Dim syntax As SyntaxNode = syntaxRefs(0).GetSyntax()
+                        Return New EncLocalInfo(declaratorToIndex(syntax), localDef.Type, def.Constraints, CInt(local.TempKind), signature)
+                    End If
                 End If
             End If
-            Return New EncLocalInfo(localDef.Type, localDef.Constraints)
+
+            Return New EncLocalInfo(signature)
         End Function
 
         Private Shared Function CreateDeclaratorToIndexMap(declarators As ImmutableArray(Of VisualBasicSyntaxNode)) As IReadOnlyDictionary(Of SyntaxNode, Integer)
@@ -321,9 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Populate any remaining locals that were not matched to source.
             For i = 0 To locals.Length - 1
                 If locals(i).IsDefault Then
-                    Dim info = localInfo(i)
-                    Dim constraints = GetConstraints(info)
-                    locals(i) = New EncLocalInfo(DirectCast(info.Type, ITypeReference), constraints)
+                    locals(i) = New EncLocalInfo(localInfo(i).Signature)
                 End If
             Next
 

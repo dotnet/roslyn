@@ -221,9 +221,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EncLocalInfo localInfo)
         {
             Debug.Assert(!localInfo.IsDefault);
-            var type = map.MapReference(localInfo.Type);
-            Debug.Assert(type != null);
-            return new EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.TempKind);
+            if (localInfo.Type == null)
+            {
+                Debug.Assert(localInfo.Signature != null);
+                return localInfo;
+            }
+            else
+            {
+                var type = map.MapReference(localInfo.Type);
+                Debug.Assert(type != null);
+                return new EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.TempKind, localInfo.Signature);
+            }
         }
     }
 }

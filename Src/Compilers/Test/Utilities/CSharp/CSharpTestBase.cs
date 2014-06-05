@@ -888,7 +888,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             if (!bodyBlock.LocalSignature.IsNil)
             {
                 var signature = peModule.Module.MetadataReader.GetLocalSignature(bodyBlock.LocalSignature);
-                var localInfos = methodDecoder.DecodeLocalSignatureOrThrow(signature);
+                var signatureReader = peModule.Module.GetMemoryReaderOrThrow(signature);
+                var localInfos = methodDecoder.DecodeLocalSignatureOrThrow(ref signatureReader);
                 localDefinitions = ToLocalDefinitions(localInfos, methodData.ILBuilder);
             }
             else

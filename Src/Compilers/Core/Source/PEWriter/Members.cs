@@ -247,8 +247,6 @@ namespace Microsoft.Cci
         IMetadataConstant CompileTimeValue
         {
             get;
-
-            // ^ requires this.IsConstant;
         }
 
         /// <summary>
@@ -258,11 +256,6 @@ namespace Microsoft.Cci
         {
             get;
         }
-
-        /// <summary>
-        /// True if this local definition is readonly and initialized with a compile time constant value.
-        /// </summary>
-        bool IsConstant { get; }
 
         /// <summary>
         /// True if the value referenced by the local must not be moved by the actions of the garbage collector.
@@ -306,6 +299,11 @@ namespace Microsoft.Cci
         /// Slot index or -1 if not applicable.
         /// </summary>
         int SlotIndex { get; }
+
+        /// <summary>
+        /// Optional serialized local signature.
+        /// </summary>
+        byte[] Signature { get; }
     }
 
     /// <summary>

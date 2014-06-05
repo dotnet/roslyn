@@ -424,13 +424,6 @@ namespace Microsoft.Cci
         protected abstract ReferenceIndexer CreateReferenceVisitor();
 
         /// <summary>
-        /// Invoked after serializing the method body.
-        /// </summary>
-        protected virtual void OnSerializedMethodBody(IMethodBody body)
-        {
-        }
-
-        /// <summary>
         /// Invoked after serializing metadata tables.
         /// </summary>
         protected virtual void OnBeforeHeapsAligned()
@@ -1578,7 +1571,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private uint GetBlobIndex(byte[] blob)
+        internal uint GetBlobIndex(byte[] blob)
         {
             uint result = 0;
             if (blob.Length == 0 || this.blobIndex.TryGetValue(blob, out result))
@@ -5243,7 +5236,7 @@ namespace Microsoft.Cci
 
                     if (body != null)
                     {
-                        uint localSignatureToken = this.SerializeLocalVariablesSignature(body.LocalVariables);
+                        uint localSignatureToken = this.SerializeLocalVariablesSignature(body);
 
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
                         rva = this.SerializeMethodBody(body, writer, localSignatureToken);
@@ -5331,15 +5324,18 @@ namespace Microsoft.Cci
                 }
             }
 
-            this.OnSerializedMethodBody(methodBody);
-
             return bodyRva;
         }
 
-        private uint SerializeLocalVariablesSignature(ImmutableArray<ILocalDefinition> localVariables)
+        /// <summary>
+        /// Serialize the method local signature to the blob.
+        /// </summary>
+        /// <returns>Standalone signature token</returns>
+        protected virtual uint SerializeLocalVariablesSignature(IMethodBody body)
         {
             Debug.Assert(!this.tableIndicesAreComplete);
 
+            var localVariables = body.LocalVariables;
             if (localVariables.Length == 0)
             {
                 return 0;
@@ -5351,29 +5347,7 @@ namespace Microsoft.Cci
             writer.WriteCompressedUInt((uint)localVariables.Length);
             foreach (ILocalDefinition local in localVariables)
             {
-                if (module.IsPlatformType(local.Type, PlatformType.SystemTypedReference))
-                {
-                    writer.WriteByte(0x16);
-                }
-                else
-                {
-                    foreach (ICustomModifier customModifier in local.CustomModifiers)
-                    {
-                        this.SerializeCustomModifier(customModifier, writer);
-                    }
-
-                    if (local.IsPinned)
-                    {
-                        writer.WriteByte(0x45);
-                    }
-
-                    if (local.IsReference)
-                    {
-                        writer.WriteByte(0x10);
-                    }
-
-                    this.SerializeTypeReference(local.Type, writer, false, true);
-                }
+                this.SerializeLocalVariableSignature(writer, local);
             }
 
             uint blobIndex = this.GetBlobIndex(writer.BaseStream.ToArray());
@@ -5381,6 +5355,33 @@ namespace Microsoft.Cci
             stream.Free();
 
             return 0x11000000 | signatureIndex;
+        }
+
+        protected void SerializeLocalVariableSignature(BinaryWriter writer, ILocalDefinition local)
+        {
+            if (module.IsPlatformType(local.Type, PlatformType.SystemTypedReference))
+            {
+                writer.WriteByte(0x16);
+            }
+            else
+            {
+                foreach (ICustomModifier customModifier in local.CustomModifiers)
+                {
+                    this.SerializeCustomModifier(customModifier, writer);
+                }
+
+                if (local.IsPinned)
+                {
+                    writer.WriteByte(0x45);
+                }
+
+                if (local.IsReference)
+                {
+                    writer.WriteByte(0x10);
+                }
+
+                this.SerializeTypeReference(local.Type, writer, false, true);
+            }
         }
 
         internal uint SerializeLocalConstantSignature(ILocalDefinition localConstant)
