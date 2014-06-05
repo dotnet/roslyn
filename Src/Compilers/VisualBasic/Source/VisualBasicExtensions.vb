@@ -738,39 +738,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
         End Function
-
-        ''' <summary>
-        ''' Gets the compilation emit result.
-        ''' </summary>
-        ''' <param name="compilation">A source Compilation object.</param>
-        ''' <param name="outputStream">A stream used to emit assembly.</param>
-        ''' <param name="outputName">A file name used to emit assembly.</param>
-        ''' <param name="pdbFileName">A file name used to emit assembly debug information.</param>
-        ''' <param name="pdbStream">A stream used to emit assembly debug information.</param>
-        ''' <param name="xmlDocStream">A stream used to emit assembly XML doc comments.</param>
-        ''' <param name="cancellationToken">A cancellation token.</param>
-        ''' <param name="win32Resources">A stream used to emit assembly resources.</param>
-        ''' <param name="manifestResources">A stream used to emit assembly manifest.</param>
-        ''' <returns>The emitted assembly; if there are no errors otherwise false;   Null if compilation is Null.</returns>
-        <Extension>
-        Public Function Emit(
-            compilation As Compilation,
-            outputStream As Stream,
-            Optional outputName As String = Nothing,
-            Optional pdbFileName As String = Nothing,
-            Optional pdbStream As Stream = Nothing,
-            Optional xmlDocStream As Stream = Nothing,
-            Optional cancellationToken As CancellationToken = Nothing,
-            Optional win32Resources As Stream = Nothing,
-            Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing
-        ) As Microsoft.CodeAnalysis.Emit.EmitResult
-            Dim vbcomp = TryCast(compilation, VisualBasicCompilation)
-            If vbcomp IsNot Nothing Then
-                Return vbcomp.Emit(outputStream, outputName, pdbFileName, pdbStream, xmlDocStream, cancellationToken, win32Resources, manifestResources)
-            Else
-                Return Nothing
-            End If
-        End Function
 #End Region
 
 #Region "SemanticModel"

@@ -525,6 +525,7 @@
     <Compile Include="Lowering\SyntheticBoundNodeFactory.vb" />
     <Compile Include="Lowering\UseTwiceRewriter.vb" />
     <Compile Include="Lowering\WithExpressionRewriter.vb" />
+    <Compile Include="NonPortable\VisualBasicDesktopExtensions.vb" />
     <Compile Include="OptionStrict.vb" />
     <Compile Include="OptionsValidator.vb" />
     <Compile Include="Parser\BlockContexts\BlockContext.vb" />

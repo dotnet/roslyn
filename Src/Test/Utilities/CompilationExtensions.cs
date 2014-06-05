@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var stream = new MemoryStream();
 
             var emitResult = compilation.Emit(
-                executableStream: stream,
+                peStream: stream,
                 outputName: null,
                 pdbFilePath: debug ? "Compilation.pdb" : null,
                 pdbStream: debug ? new MemoryStream() : null,
-                xmlDocStream: null,
+                xmlDocumentationStream: null,
                 cancellationToken: default(CancellationToken),
                 win32Resources: null,
                 manifestResources: null,

@@ -38,7 +38,7 @@ public class Maine
 
             using (FileStream output = exe.Open())
             {
-                c1.Emit(output, null, null, null, null, default(CancellationToken), c1.CreateDefaultWin32Resources(true, false, null, null));
+                c1.Emit(output, win32Resources: c1.CreateDefaultWin32Resources(true, false, null, null));
             }
 
             c1 = null;
@@ -129,7 +129,7 @@ class C
             using (FileStream output = exe.Open())
             {
                 var memStream = new MemoryStream(TestResources.SymbolsTests.General.nativeCOFFResources);
-                c1.Emit(output, null, null, null, null, default(CancellationToken), memStream);
+                c1.Emit(output, win32Resources: memStream);
             }
 
             c1 = null;

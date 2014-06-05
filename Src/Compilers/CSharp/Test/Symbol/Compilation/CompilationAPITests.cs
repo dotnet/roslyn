@@ -12,6 +12,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -150,13 +151,13 @@ namespace A.B {
                         Assert.True(result.Success);
                         result = comp.Emit(output, outputName, pdbPath, outputPdb);
                         Assert.True(result.Success);
-                        result = comp.Emit(outputStream: output, outputName: outputName, pdbFileName: pdbPath, pdbStream: outputPdb, xmlDocStream: null, cancellationToken: default(CancellationToken));
+                        result = comp.Emit(peStream: output, outputName: outputName, pdbFilePath: pdbPath, pdbStream: outputPdb, xmlDocumentationStream: null);
                         Assert.True(result.Success);
-                        result = comp.Emit(outputStream: output, outputName: outputName, pdbFileName: pdbPath, pdbStream: outputPdb, cancellationToken: default(CancellationToken));
+                        result = comp.Emit(peStream: output, outputName: outputName, pdbFilePath: pdbPath, pdbStream: outputPdb);
                         Assert.True(result.Success);
-                        result = comp.Emit(output, outputName, pdbPath, outputPdb, null, CancellationToken.None);
+                        result = comp.Emit(output, outputName, pdbPath, outputPdb, null);
                         Assert.True(result.Success);
-                        result = comp.Emit(output, outputName, pdbPath, outputPdb, cancellationToken: CancellationToken.None);
+                        result = comp.Emit(output, outputName, pdbPath, outputPdb);
                         Assert.True(result.Success);
                         result = comp.Emit(output, outputName, pdbPath, outputPdb, outputxml);
                         Assert.True(result.Success);
@@ -166,11 +167,11 @@ namespace A.B {
                         Assert.True(result.Success);
                         result = comp.Emit(output, outputName, null, null, outputxml);
                         Assert.True(result.Success);
-                        result = comp.Emit(output, outputName, xmlDocStream: outputxml);
+                        result = comp.Emit(output, outputName, xmlDocumentationStream: outputxml);
                         Assert.True(result.Success);
                         result = comp.Emit(output, outputName, pdbPath, null, outputxml);
                         Assert.True(result.Success);
-                        result = comp.Emit(output, outputName, pdbPath, xmlDocStream: outputxml);
+                        result = comp.Emit(output, outputName, pdbPath, xmlDocumentationStream: outputxml);
                         Assert.True(result.Success);
                     }
                 }
@@ -183,18 +184,18 @@ namespace A.B {
         {
             var ops = TestOptions.Dll;
             var comp = CSharpCompilation.Create("Compilation", null, null, ops);
-            using (System.IO.MemoryStream output = new System.IO.MemoryStream())
+            using (MemoryStream output = new MemoryStream())
             {
-                using (System.IO.MemoryStream outputPdb = new System.IO.MemoryStream())
+                using (MemoryStream outputPdb = new MemoryStream())
                 {
-                    using (System.IO.MemoryStream outputxml = new System.IO.MemoryStream())
+                    using (MemoryStream outputxml = new MemoryStream())
                     {
                         var result = comp.Emit(output, null, null, outputPdb, outputxml);
                         Assert.True(result.Success);
                     }
                 }
             }
-            Assert.Throws<ArgumentNullException>(() => comp.Emit(outputStream: null));
+            Assert.Throws<ArgumentNullException>(() => comp.Emit(peStream: null));
         }
 
         [Fact]
@@ -213,15 +214,15 @@ namespace A.B {
                 {
                     using (var outputxml = xml.Open())
                     {
-                        var result = comp.Emit(output, outputName, pdb.Path, outputPdb, null);
+                        var result = comp.Emit(output, outputName, pdb.Path, outputPdb);
                         Assert.True(result.Success);
-                        result = comp.Emit(outputStream: output, outputName: outputName, pdbFileName: pdb.Path, pdbStream: outputPdb, xmlDocStream: null, cancellationToken: default(CancellationToken));
+                        result = comp.Emit(peStream: output, outputName: outputName, pdbFilePath: pdb.Path, pdbStream: outputPdb);
                         Assert.True(result.Success);
-                        result = comp.Emit(output, outputName, pdb.Path, outputPdb, null, CancellationToken.None);
+                        result = comp.Emit(output, outputName, pdb.Path, outputPdb);
                         Assert.True(result.Success);
                         result = comp.Emit(output, outputName, pdb.Path, outputPdb, outputxml);
                         Assert.True(result.Success);
-                        result = comp.Emit(output, outputName, null, null, null);
+                        result = comp.Emit(output, outputName);
                         Assert.True(result.Success);
                         result = comp.Emit(output, outputName, null, null, outputxml);
                         Assert.True(result.Success);

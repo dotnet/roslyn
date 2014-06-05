@@ -580,9 +580,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // This is an untested code path. If we
                 // reach here, add a corresponding test.
-                Debug.Fail("Skipping assembly-level access check");
-                return true;
+                throw ExceptionUtilities.Unreachable;
             }
+
             return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics);
         }
 

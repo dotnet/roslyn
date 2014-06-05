@@ -1300,7 +1300,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Emit the IL for the compiled source code into the specified stream.
         /// </summary>
-        /// <param name="executableStream">Stream to which the compilation will be written.</param>
+        /// <param name="peStream">Stream to which the compilation will be written.</param>
         /// <param name="outputName">Name of the compilation: file name and extension.  Null to use the existing output name.
         /// CAUTION: If this is set to a (non-null) value other than the existing compilation output name, then internals-visible-to
         /// and assembly references may not work as expected.  In particular, things that were visible at bind time, based on the 
@@ -1312,79 +1312,37 @@ namespace Microsoft.CodeAnalysis
         /// Ignored unless <paramref name="pdbStream"/> is non-null.
         /// </param>
         /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
-        /// <param name="xmlDocStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
+        /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
         /// <param name="cancellationToken">To cancel the emit process.</param>
         /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
         /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
         /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
         public EmitResult Emit(
-            Stream executableStream,
+            Stream peStream,
             string outputName = null,
             string pdbFilePath = null,
             Stream pdbStream = null,
-            Stream xmlDocStream = null,
-            CancellationToken cancellationToken = default(CancellationToken),
+            Stream xmlDocumentationStream = null,
             Stream win32Resources = null,
-            IEnumerable<ResourceDescription> manifestResources = null)
+            IEnumerable<ResourceDescription> manifestResources = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (executableStream == null)
+            if (peStream == null)
             {
-                throw new ArgumentNullException("executableStream");
+                throw new ArgumentNullException("peStream");
             }
 
             return Emit(
-                executableStream,
+                peStream,
                 outputName,
                 pdbFilePath,
                 pdbStream,
-                xmlDocStream,
-                cancellationToken,
+                xmlDocumentationStream,
                 win32Resources,
                 manifestResources,
                 metadataOnly: false,
-                testData: null);
-        }
-
-        /// <summary>
-        /// Emit the IL for the compilation into the specified stream.
-        /// </summary>
-        /// <param name="outputPath">Path of the file to which the compilation will be written.</param>
-        /// <param name="pdbPath">Path of the file to which the compilation's debug info will be written.
-        /// Also embedded in the output file.  Null to forego PDB generation.
-        /// </param>
-        /// <param name="xmlDocPath">Path of the file to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
-        /// <param name="cancellationToken">To cancel the emit process.</param>
-        /// <param name="win32ResourcesPath">Path of the file from which the compilation's Win32 resources will be read (in RES format).  
-        /// Null to indicate that there are none.</param>
-        /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
-        public EmitResult Emit(
-            string outputPath,
-            string pdbPath = null,
-            string xmlDocPath = null,
-            CancellationToken cancellationToken = default(CancellationToken),
-            string win32ResourcesPath = null,
-            IEnumerable<ResourceDescription> manifestResources = null)
-        {
-            if (string.IsNullOrEmpty(outputPath))
-            {
-                throw new ArgumentException("outputPath");
-            }
-
-            using (var outputStream = File.Create(outputPath))
-            using (var pdbStream = (pdbPath == null ? null : File.Create(pdbPath)))
-            using (var xmlDocStream = (xmlDocPath == null ? null : File.Create(xmlDocPath)))
-            using (var win32ResourcesStream = (win32ResourcesPath == null ? null : File.OpenRead(win32ResourcesPath)))
-            {
-                return Emit(
-                    outputStream,
-                    outputName: null,
-                    pdbFilePath: pdbPath,
-                    pdbStream: pdbStream,
-                    xmlDocStream: xmlDocStream,
-                    cancellationToken: cancellationToken,
-                    win32Resources: win32ResourcesStream,
-                    manifestResources: manifestResources);
-            }
+                testData: null,
+                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -1392,7 +1350,7 @@ namespace Microsoft.CodeAnalysis
         /// information for cross-language modeling of code. This emits what it can even if there
         /// are errors.
         /// </summary>
-        /// <param name="metadataStream">Stream to which the compilation's metadata will be written.</param>
+        /// <param name="peStream">Stream to which the PE image with metadata will be written.</param>
         /// <param name="xmlDocStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
         /// <param name="outputName">Name of the compilation: file name and extension.  Null to use the existing output name.
         /// CAUTION: If this is set to a (non-null) value other than the existing compilation output name, then internals-visible-to
@@ -1401,27 +1359,27 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         /// <param name="cancellationToken">To cancel the emit process.</param>
         public EmitResult EmitMetadataOnly(
-            Stream metadataStream,
+            Stream peStream,
             string outputName = null,
             Stream xmlDocStream = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (metadataStream == null)
+            if (peStream == null)
             {
                 throw new ArgumentNullException("metadataStream");
             }
 
             return Emit(
-                metadataStream,
+                peStream,
                 outputName,
                 pdbFilePath: null,
                 pdbStream: null,
-                xmlDocStream: xmlDocStream,
-                cancellationToken: cancellationToken,
+                xmlDocumentationStream: xmlDocStream,
                 win32Resources: null,
                 manifestResources: null,
                 metadataOnly: true,
-                testData: null);
+                testData: null,
+                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -1487,18 +1445,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns>True if emit succeeded.</returns>
         internal EmitResult Emit(
-            Stream executableStream,
+            Stream peStream,
             string outputName,
             string pdbFilePath,
             Stream pdbStream,
-            Stream xmlDocStream,
-            CancellationToken cancellationToken,
+            Stream xmlDocumentationStream,
             Stream win32Resources,
             IEnumerable<ResourceDescription> manifestResources,
             bool metadataOnly,
-            CompilationTestData testData)
+            CompilationTestData testData,
+            CancellationToken cancellationToken)
         {
-            Debug.Assert(executableStream != null);
+            Debug.Assert(peStream != null);
 
             using (Logger.LogBlock(EmitFunctionId, message: this.AssemblyName, cancellationToken: cancellationToken))
             {
@@ -1540,7 +1498,7 @@ namespace Microsoft.CodeAnalysis
                     moduleBeingBuilt,
                     outputName,
                     win32Resources,
-                    xmlDocStream,
+                    xmlDocumentationStream,
                     cancellationToken,
                     generateDebugInfo: pdbStream != null,
                     diagnostics: diagnostics,
@@ -1551,7 +1509,7 @@ namespace Microsoft.CodeAnalysis
 
                 bool success = SerializeToPeStream(
                     (Cci.IModule)moduleBeingBuilt,
-                    executableStream,
+                    peStream,
                     pdbFilePath,
                     pdbStream,
                     (testData != null) ? testData.SymWriterFactory : null,

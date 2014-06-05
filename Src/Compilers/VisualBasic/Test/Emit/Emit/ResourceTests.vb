@@ -36,7 +36,7 @@ End Class
             Dim c1 = CreateCompilationWithMscorlib(source, options:=OptionsExe)
             Dim exe = Temp.CreateFile()
             Using output As FileStream = exe.Open()
-                c1.Emit(output, Nothing, Nothing, Nothing, Nothing, Nothing, c1.CreateDefaultWin32Resources(True, False, Nothing, Nothing))
+                c1.Emit(output, win32Resources:=c1.CreateDefaultWin32Resources(True, False, Nothing, Nothing))
             End Using
 
             c1 = Nothing
@@ -124,7 +124,7 @@ End Class
             Dim exe = Temp.CreateFile()
             Using output As FileStream = exe.Open()
                 Dim memStream = New MemoryStream(TestResources.SymbolsTests.General.nativeCOFFResources)
-                c1.Emit(output, Nothing, Nothing, Nothing, Nothing, Nothing, memStream)
+                c1.Emit(output, win32Resources:=memStream)
             End Using
 
             c1 = Nothing
@@ -323,7 +323,7 @@ End Module
 
             Dim exeFile = Temp.CreateFile()
             Using output As FileStream = exeFile.Open()
-                c1.Emit(output, Nothing, Nothing, Nothing, Nothing, Nothing, c1.CreateDefaultWin32Resources(True, False, Nothing, Nothing))
+                c1.Emit(output, win32Resources:=c1.CreateDefaultWin32Resources(True, False, Nothing, Nothing))
             End Using
 
             c1 = Nothing

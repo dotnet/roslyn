@@ -387,22 +387,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Produces a syntax tree by parsing the source file.
-        /// </summary>
-        public static SyntaxTree ParseFile(
-            string path,
-            CSharpParseOptions options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (string.IsNullOrEmpty(path)) throw new ArgumentException("path");
-
-            using (var data = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            {
-                return ParseText(EncodedStringText.Create(data), options, path, cancellationToken);
-            }
-        }
-
         #endregion
 
         #region Changes

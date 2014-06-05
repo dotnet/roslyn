@@ -333,6 +333,7 @@
     <Compile Include="NonPortable\CommandLine\RuleSet\RuleSetInclude.cs" />
     <Compile Include="NonPortable\CommandLine\RuleSet\RuleSetProcessor.cs" />
     <Compile Include="NonPortable\CommandLine\TouchedFileLogger.cs" />
+    <Compile Include="NonPortable\DesktopExtensions.cs" />
     <Compile Include="NonPortable\DesktopAssemblyIdentityComparer.cs" />
     <Compile Include="NonPortable\DesktopAssemblyIdentityComparer.Fx.cs" />
     <Compile Include="NonPortable\DesktopStrongNameProvider.cs" />

@@ -4715,11 +4715,11 @@ class C
             using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
             {
                 var result = compilation.Emit(
-                    executableStream: peStream,
+                    peStream: peStream,
                     outputName: null,
                     pdbFilePath: null,
                     pdbStream: pdbStream,
-                    xmlDocStream: null,
+                    xmlDocumentationStream: null,
                     cancellationToken: default(CancellationToken),
                     win32Resources: null,
                     manifestResources: null,

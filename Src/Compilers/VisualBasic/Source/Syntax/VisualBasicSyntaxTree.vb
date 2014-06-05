@@ -248,17 +248,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Produce a syntax tree by parsing the source file.
-        ''' </summary>
-        Public Shared Function ParseFile(path As String, Optional options As VisualBasicParseOptions = Nothing, Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
-            If String.IsNullOrEmpty(path) Then Throw New ArgumentException("path")
-
-            Using data As New FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                Return ParseText(EncodedStringText.Create(data), options, path, cancellationToken)
-            End Using
-        End Function
-
-        ''' <summary>
         ''' Gets a list of all the diagnostics in the sub tree that has the specified node as its root.
         ''' This method does not filter diagnostics based on compiler options like nowarn, warnaserror etc.
         ''' </summary>

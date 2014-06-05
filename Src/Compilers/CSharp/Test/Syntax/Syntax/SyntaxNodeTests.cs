@@ -2644,21 +2644,6 @@ class C
             // lists should be not equal
             Assert.NotEqual(emptyToken.LeadingTrivia, emptyToken.TrailingTrivia);
         }
-        
-        [Fact]
-        public void Test_SyntaxTree_ParseFileInvalid()
-        {
-            // Invalid arguments - Validate Exceptions           
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                var tree_Invalid_1 = CSharpSyntaxTree.ParseFile("");
-            });
-
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                var tree_Invalid_1 = CSharpSyntaxTree.ParseFile((string)null);
-            });
-        }
 
         [Fact]
         public void Test_SyntaxTree_ParseTextInvalidArguments()

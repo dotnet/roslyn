@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // TODO: remove
-        #region Workaround for bug #531342
+        #region Workaround for bug #797360
 
         private IEnumerable<MetadataReference> ResolveFacadeReferences(TCompilation compilation)
         {

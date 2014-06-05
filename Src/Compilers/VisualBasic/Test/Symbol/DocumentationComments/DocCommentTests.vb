@@ -12031,7 +12031,7 @@ End Class
 
             Using output = New MemoryStream()
                 Using xml = New MemoryStream()
-                    Dim emitResult = compilation.Emit(output, Nothing, Nothing, Nothing, xmlDocStream:=xml)
+                    Dim emitResult = compilation.Emit(output, Nothing, Nothing, Nothing, xmlDocumentationStream:=xml)
 
                     xml.Seek(0, SeekOrigin.Begin)
                     Dim xmlDoc = New StreamReader(xml).ReadToEnd().Trim()

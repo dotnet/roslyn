@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         outputName: null,
                         pdbFilePath: pdbFilePath,
                         pdbStream: pdbStream,
-                        xmlDocStream: null,
+                        xmlDocumentationStream: null,
                         cancellationToken: default(CancellationToken),
                         win32Resources: null,
                         manifestResources: manifestResources,

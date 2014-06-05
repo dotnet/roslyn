@@ -2530,18 +2530,6 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub Test_SyntaxTree_ParseFileInvalid()
-            'Invalid File argument
-            Assert.Throws(Of ArgumentException)(Sub()
-                                                    Dim tree_Invalid_1 = VisualBasicSyntaxTree.ParseFile("")
-                                                End Sub)
-
-            Assert.Throws(Of ArgumentException)(Sub()
-                                                    Dim tree_Invalid_1 = VisualBasicSyntaxTree.ParseFile(Nothing)
-                                                End Sub)
-        End Sub
-
-        <Fact()>
         Public Sub Test_SyntaxTree_ParseTextInvalid()
             Assert.Throws(Of ArgumentNullException)(Sub()
                                                         Dim treeFromSourceWithPath_Invalid1 = VisualBasicSyntaxTree.ParseText("", path:=Nothing)
