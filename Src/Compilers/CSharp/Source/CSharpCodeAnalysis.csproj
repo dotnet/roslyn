@@ -14,9 +14,9 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StyleCopEnabled>false</StyleCopEnabled>
-    <CSharpSyntaxGeneratorToolPath>..\..\..\..\Binaries\$(Configuration)\CSharpSyntaxGenerator.exe</CSharpSyntaxGeneratorToolPath>
-    <BoundTreeGeneratorToolPath>..\..\..\..\Binaries\$(Configuration)\BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
-    <CSharpErrorFactsGeneratorToolPath>..\..\..\..\Binaries\$(Configuration)\CSharpErrorFactsGenerator.exe</CSharpErrorFactsGeneratorToolPath>
+    <CSharpSyntaxGeneratorToolPath>$(OutDir)\CSharpSyntaxGenerator.exe</CSharpSyntaxGeneratorToolPath>
+    <BoundTreeGeneratorToolPath>$(OutDir)\BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
+    <CSharpErrorFactsGeneratorToolPath>$(OutDir)\CSharpErrorFactsGenerator.exe</CSharpErrorFactsGeneratorToolPath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>

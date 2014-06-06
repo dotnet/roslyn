@@ -25,6 +25,7 @@
     <RestorePackages>true</RestorePackages>
     <OutDir>..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
+  <ItemGroup Label="Build Items" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>

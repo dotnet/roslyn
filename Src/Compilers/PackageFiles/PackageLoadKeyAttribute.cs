@@ -2,7 +2,6 @@
 
 using System;
 using System.Globalization;
-using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell;
 
 namespace Roslyn.Utilities
@@ -17,10 +16,6 @@ namespace Roslyn.Utilities
 
         public PackageLoadKeyAttribute(string productVersion, string productName, string companyName)
         {
-            Validate.IsNotNull(productVersion, "productVersion");
-            Validate.IsNotNull(productName, "productName");
-            Validate.IsNotNull(companyName, "companyName");
-
             ProductVersion = productVersion;
             ProductName = productName;
             CompanyName = companyName;

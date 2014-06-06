@@ -830,7 +830,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			if (processID != 0)
 			{
 				LogFormatted("Connecting to newly created process id %d", processID);
-				HANDLE pipeHandle = ConnectToProcess(processID, TimeOutMsNewProcess);
+				pipeHandle = ConnectToProcess(processID, TimeOutMsNewProcess);
 				if (pipeHandle != NULL)
 				{
 					// Let everyone else access our process

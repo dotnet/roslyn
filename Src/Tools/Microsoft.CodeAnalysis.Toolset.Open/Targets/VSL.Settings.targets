@@ -69,7 +69,7 @@
 
   <PropertyGroup Condition="'$(OutDir)' == ''">
     <!-- If we don't already have an OutDir, set one-->
-    <OutDir>Binaries\$(Configuration)\</OutDir>
+    <OutDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\..\..\Binaries\$(Configuration)'))\</OutDir>
   </PropertyGroup>
 
   <PropertyGroup>

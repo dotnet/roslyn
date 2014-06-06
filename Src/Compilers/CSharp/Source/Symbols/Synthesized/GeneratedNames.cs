@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int openBracketOffset;
             int closeBracketOffset;
             if (TryParseGeneratedName(mangledTypeName, out kind, out openBracketOffset, out closeBracketOffset) &&
-                (kind == GeneratedNameKind.DisplayClassType) &&
+                (kind == GeneratedNameKind.StateMachineType) &&
                 (openBracketOffset == 0))
             {
                 iteratorName = mangledTypeName.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);

@@ -319,7 +319,7 @@ Class RedNodeWriter
         End If
     End Sub
 
-    Private Function HasNestedList(nodeStructure As ParseNodeStructure, child As ParseNodeChild)
+    Private Function HasNestedList(nodeStructure As ParseNodeStructure, child As ParseNodeChild) As Boolean
         Dim nestedList = GetNestedList(nodeStructure, child)
         Return nestedList IsNot Nothing
     End Function

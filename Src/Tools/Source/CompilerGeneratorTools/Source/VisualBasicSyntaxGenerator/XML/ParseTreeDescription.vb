@@ -536,7 +536,7 @@ Public Class ParseNodeChild
         NotInFactory = If(CType(el.Attribute("not-in-factory"), Boolean?), False)
         GenerateWith = If(CType(el.Attribute("generate-with"), Boolean?), False)
         InternalSyntaxFacts = If(CType(el.Attribute("syntax-facts-internal"), Boolean?), False)
-        _defaultChildKindName = el.Attribute("default-kind")
+        _defaultChildKindName = CType(el.Attribute("default-kind"), String)
 
         For Each kind In el.<kind>
             ' The kind may be duplicated
@@ -618,7 +618,7 @@ Public Class ParseNodeChild
     Public ReadOnly Property DefaultChildKind() As ParseNodeKind
         Get
             If _defaultChildKind Is Nothing AndAlso _defaultChildKindName IsNot Nothing Then
-                _defaultChildKind = ParseTree.ParseNodeKind(_defaultChildKindName, Element)
+                _defaultChildKind = CType(ParseTree.ParseNodeKind(_defaultChildKindName, Element), ParseNodeKind)
             End If
             Return _defaultChildKind
         End Get
