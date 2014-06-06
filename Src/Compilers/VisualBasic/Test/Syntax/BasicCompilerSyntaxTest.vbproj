@@ -112,9 +112,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(IntermediateOutputPath)\Syntax.xml.Generated.vb">
-      <Link>Syntax\Syntax.xml.Generated.vb</Link>
-    </Compile>
+    <Compile Include="$(IntermediateOutputPath)\Syntax.xml.Generated.vb" />
     <Compile Include="IncrementalParser\IncrementalParser.vb" />
     <Compile Include="IncrementalParser\IPEndBlockStatements.vb" />
     <Compile Include="IncrementalParser\SyntaxDifferences.vb" />

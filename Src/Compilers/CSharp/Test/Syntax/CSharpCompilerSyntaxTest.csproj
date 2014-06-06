@@ -89,9 +89,7 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(IntermediateOutputPath)\Syntax.xml.Generated.cs">
-      <Link>Syntax\Syntax.xml.Generated.cs</Link>
-    </Compile>
+    <Compile Include="$(IntermediateOutputPath)\Syntax.xml.Generated.cs" />
     <Compile Include="Diagnostics\DiagnosticTest.cs" />
     <Compile Include="Diagnostics\DiagnosticTest.MockSyntaxTree.cs" />
     <Compile Include="Diagnostics\LocationsTests.cs" />
