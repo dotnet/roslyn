@@ -1655,6 +1655,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_CantUseRequiredAttribute = 37235
         ERR_EncodinglessSyntaxTree = 37236
 
+        ERR_InvalidFormatSpecifier = 37237
+
         ERR_LastPlusOne
 
 

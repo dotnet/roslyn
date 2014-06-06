@@ -3233,7 +3233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cannot emit debug information for a syntax tree without encoding..
+        '''  Looks up a localized string similar to Cannot emit debug information for a source text without encoding..
         '''</summary>
         Friend ReadOnly Property ERR_EncodinglessSyntaxTree() As String
             Get
@@ -5734,6 +5734,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_InvalidFormatForGuidForOption() As String
             Get
                 Return ResourceManager.GetString("ERR_InvalidFormatForGuidForOption", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; is not a valid format specifier.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidFormatSpecifier() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidFormatSpecifier", resourceCulture)
             End Get
         End Property
         

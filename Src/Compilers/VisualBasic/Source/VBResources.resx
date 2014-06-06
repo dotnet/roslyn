@@ -4523,4 +4523,7 @@
   <data name="ERR_EncodinglessSyntaxTree" xml:space="preserve">
     <value>Cannot emit debug information for a source text without encoding.</value>
   </data>
+  <data name="ERR_InvalidFormatSpecifier" xml:space="preserve">
+    <value>'{0}' is not a valid format specifier</value>
+  </data>
 </root>
