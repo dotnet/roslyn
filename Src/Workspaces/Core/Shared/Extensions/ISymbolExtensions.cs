@@ -490,8 +490,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                             if (actionType != null)
                             {
-                                return actionType.Construct(
-                                    method.Parameters.Skip(skip).Select(p => p.Type).ToArray());
+                                var types = method.Parameters
+                                    .Skip(skip)
+                                    .Select(p =>
+                                        (object)p.Type == null ?
+                                        compilation.GetSpecialType(SpecialType.System_Object) :
+                                        p.Type)
+                                    .ToArray();
+                                return actionType.Construct(types);
                             }
                         }
                     }
@@ -507,7 +513,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                         if (functionType != null)
                         {
-                            var types = method.Parameters.Skip(skip).Select(p => p.Type).Concat(method.ReturnType).ToArray();
+                            var types = method.Parameters
+                                .Skip(skip)
+                                .Select(p => p.Type)
+                                .Concat(method.ReturnType)
+                                .Select(t =>
+                                    (object)t == null ?
+                                    compilation.GetSpecialType(SpecialType.System_Object) :
+                                    t)
+                                .ToArray();
                             return functionType.Construct(types);
                         }
                     }
