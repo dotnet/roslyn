@@ -1877,10 +1877,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_AnalyzerCannotBeCreated = 42376
         WRN_NoAnalyzerInAssembly = 42377
         WRN_UnableToLoadAnalyzer = 42378
-        WRN_UnableToLoadSomeTypesInAnalyzer = 42379
 
         WRN_Last 'Can't be the same value as WRN_ConflictingMachineAssembly otherwise resource string for WRN_ConflictingMachineAssembly isn't found
-        ' // AVAILABLE                             42380 - 49998
+        ' // AVAILABLE                             42379 - 49998
 
 
         '// INFOS BEGIN HERE
@@ -1888,9 +1887,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         INF_UnusedImportClause = 50000
         INF_UnusedImportStatement = 50001
+        INF_UnableToLoadSomeTypesInAnalyzer = 50002
 
         INF_Last 'Can't be the same value as INF_UnusedImportStatement otherwise resource string for INF_UnusedImportStatement isn't found
-        ' // AVAILABLE                             50002 - 54999   
+        ' // AVAILABLE                             50003 - 54999   
 
         '// Feature classification for the /LangVersion switch errors starts at 55000, must be ordered, and indexed starting at 55000.
         '// Don't start with a capital letter or put a '.' at the end of these messages as they are all intended to be in-place text

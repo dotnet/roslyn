@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int WRN_NoConfigNotOnCommandLine { get; }
         public abstract int ERR_BinaryFile { get; }
         public abstract int WRN_UnableToLoadAnalyzer { get; }
-        public abstract int WRN_UnableToLoadSomeTypesInAnalyzer { get; }
+        public abstract int INF_UnableToLoadSomeTypesInAnalyzer { get; }
         public abstract int WRN_AnalyzerCannotBeCreated { get; }
         public abstract int WRN_NoAnalyzerInAssembly { get; }
         public abstract int ERR_CantReadRulesetFile { get; }

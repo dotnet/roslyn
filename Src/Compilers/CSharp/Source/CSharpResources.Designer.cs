@@ -9160,6 +9160,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Skipping some types in analyzer assembly {0} due to a ReflectionTypeLoadException : {1}..
+        /// </summary>
+        internal static string INF_UnableToLoadSomeTypesInAnalyzer {
+            get {
+                return ResourceManager.GetString("INF_UnableToLoadSomeTypesInAnalyzer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unused extern alias..
         /// </summary>
         internal static string INF_UnusedExternAlias {
@@ -10740,15 +10749,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_UnableToLoadAnalyzer {
             get {
                 return ResourceManager.GetString("WRN_UnableToLoadAnalyzer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Skipping some types in analyzer assembly {0} due to a ReflectionTypeLoadException : {1}..
-        /// </summary>
-        internal static string WRN_UnableToLoadSomeTypesInAnalyzer {
-            get {
-                return ResourceManager.GetString("WRN_UnableToLoadSomeTypesInAnalyzer", resourceCulture);
             }
         }
         

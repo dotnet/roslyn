@@ -1265,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PrimaryCtorParameterSameNameAsTypeParam = 8038,
         ERR_PrimaryCtorParameterSameNameAsContainingType = 8039,
 
-        WRN_UnableToLoadSomeTypesInAnalyzer = 8040,
+        INF_UnableToLoadSomeTypesInAnalyzer = 8040,
         
         // available = 8041
         // available = 8042

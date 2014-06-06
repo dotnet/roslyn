@@ -1,14 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Globalization;
-using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -236,7 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AnalyzerCannotBeCreated:
                 case ErrorCode.WRN_NoAnalyzerInAssembly:
                 case ErrorCode.WRN_UnableToLoadAnalyzer:
-                case ErrorCode.WRN_UnableToLoadSomeTypesInAnalyzer:
                 case ErrorCode.WRN_DefineIdentifierRequired:
                 case ErrorCode.WRN_CLS_NoVarArgs:
                 case ErrorCode.WRN_CLS_BadArgType:

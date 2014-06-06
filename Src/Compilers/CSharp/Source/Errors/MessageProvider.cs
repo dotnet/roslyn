@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int WRN_AnalyzerCannotBeCreated { get { return (int)ErrorCode.WRN_AnalyzerCannotBeCreated; } }
         public override int WRN_NoAnalyzerInAssembly { get { return (int)ErrorCode.WRN_NoAnalyzerInAssembly; } }
         public override int WRN_UnableToLoadAnalyzer { get { return (int)ErrorCode.WRN_UnableToLoadAnalyzer; } }
-        public override int WRN_UnableToLoadSomeTypesInAnalyzer { get { return (int)ErrorCode.WRN_UnableToLoadSomeTypesInAnalyzer; } }        
+        public override int INF_UnableToLoadSomeTypesInAnalyzer { get { return (int)ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer; } }        
         public override int ERR_CantReadRulesetFile { get { return (int)ErrorCode.ERR_CantReadRulesetFile; } }
 
         // reference manager:

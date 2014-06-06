@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var message = typeLoadEx == null ?
                         messageProviderOpt.WRN_UnableToLoadAnalyzer :
-                        messageProviderOpt.WRN_UnableToLoadSomeTypesInAnalyzer;
+                        messageProviderOpt.INF_UnableToLoadSomeTypesInAnalyzer;
                     diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, message, fullPath, ex.Message));
                 }
 

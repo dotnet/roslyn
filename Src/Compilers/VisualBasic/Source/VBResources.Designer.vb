@@ -11487,6 +11487,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Skipping some types in analyzer assembly {0} due to a ReflectionTypeLoadException : {1}..
+        '''</summary>
+        Friend ReadOnly Property INF_UnableToLoadSomeTypesInAnalyzer() As String
+            Get
+                Return ResourceManager.GetString("INF_UnableToLoadSomeTypesInAnalyzer", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Unused import clause..
         '''</summary>
         Friend ReadOnly Property INF_UnusedImportClause() As String
@@ -12851,15 +12860,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property WRN_UnableToLoadAnalyzer() As String
             Get
                 Return ResourceManager.GetString("WRN_UnableToLoadAnalyzer", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Skipping some types in analyzer assembly {0} due to a ReflectionTypeLoadException : {1}..
-        '''</summary>
-        Friend ReadOnly Property WRN_UnableToLoadSomeTypesInAnalyzer() As String
-            Get
-                Return ResourceManager.GetString("WRN_UnableToLoadSomeTypesInAnalyzer", resourceCulture)
             End Get
         End Property
         

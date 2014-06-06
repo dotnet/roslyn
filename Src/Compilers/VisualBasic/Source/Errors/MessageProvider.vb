@@ -168,9 +168,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property WRN_UnableToLoadSomeTypesInAnalyzer As Integer
+        Public Overrides ReadOnly Property INF_UnableToLoadSomeTypesInAnalyzer As Integer
             Get
-                Return ERRID.WRN_UnableToLoadSomeTypesInAnalyzer
+                Return ERRID.INF_UnableToLoadSomeTypesInAnalyzer
             End Get
         End Property
 

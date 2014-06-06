@@ -209,7 +209,7 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
-        public override int WRN_UnableToLoadSomeTypesInAnalyzer
+        public override int INF_UnableToLoadSomeTypesInAnalyzer
         {
             get { throw new NotImplementedException(); }
         }

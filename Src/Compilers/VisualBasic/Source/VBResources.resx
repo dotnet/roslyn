@@ -4511,7 +4511,7 @@
   <data name="WRN_UnableToLoadAnalyzer" xml:space="preserve">
     <value>Unable to load analyzer assembly {0} : {1}.</value>
   </data>
-  <data name="WRN_UnableToLoadSomeTypesInAnalyzer" xml:space="preserve">
+  <data name="INF_UnableToLoadSomeTypesInAnalyzer" xml:space="preserve">
     <value>Skipping some types in analyzer assembly {0} due to a ReflectionTypeLoadException : {1}.</value>
   </data>
   <data name="ERR_CantReadRulesetFile" xml:space="preserve">
