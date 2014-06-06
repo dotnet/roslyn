@@ -362,16 +362,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
-                TypeSymbol inferredType = null;
-
                 var newBinder = new ImplicitlyTypedLocalBinder(this.binder, this);
                 var initializerOpt = newBinder.BindInferredVariableInitializer(diagnostics, initializer, initializer);
                 if (initializerOpt != null)
                 {
-                    inferredType = initializerOpt.Type;
+                    return initializerOpt.Type;
                 }
 
-                return inferredType;
+                return null;
             }
 
             /// <summary>

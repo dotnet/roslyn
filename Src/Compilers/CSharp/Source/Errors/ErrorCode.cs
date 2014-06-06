@@ -1267,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         INF_UnableToLoadSomeTypesInAnalyzer = 8040,
         
-        // available = 8041
+        ERR_DuplicatePrimaryCtorBody = 8041,
         // available = 8042
         ERR_InstanceCtorCannotHaveDefaultThisInitializer = 8043,
 

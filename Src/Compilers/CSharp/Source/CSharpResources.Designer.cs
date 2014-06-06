@@ -3337,6 +3337,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Primary constructor already has a body..
+        /// </summary>
+        internal static string ERR_DuplicatePrimaryCtorBody {
+            get {
+                return ResourceManager.GetString("ERR_DuplicatePrimaryCtorBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot specify accessibility modifiers for both accessors of the property or indexer &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_DuplicatePropertyAccessMods {

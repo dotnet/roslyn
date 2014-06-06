@@ -491,6 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OperatorDeclaration,
         ConversionOperatorDeclaration,
         ConstructorDeclaration,
+        PrimaryConstructorBody,
         BaseConstructorInitializer,
         ThisConstructorInitializer,
         DestructorDeclaration,

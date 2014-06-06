@@ -558,16 +558,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     initializer = BindInferredVariableInitializer(diagnostics, node.Variable.Initializer, node.Variable);
 
-                    if (initializer != null && (object)initializer.Type != null)
+                    if (initializer != null && (object)initializer.Type != null && initializer.Type.SpecialType != SpecialType.System_Void)
                     {
-                        if (initializer.Type.SpecialType == SpecialType.System_Void)
-                        {
-                            resultType = CreateErrorType("var");
-                        }
-                        else
-                        {
-                            resultType = initializer.Type;
-                        }
+                        resultType = initializer.Type;
                     }
                     else
                     {

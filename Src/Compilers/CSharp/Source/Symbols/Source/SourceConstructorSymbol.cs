@@ -39,11 +39,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             ParameterListSyntax syntax,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), null, ImmutableArray.Create(location))
+            base(containingType, syntax.GetReference(), GetPrimaryConstructorBlockSyntaxReferenceOrNull(syntax), ImmutableArray.Create(location))
         {
             var declarationModifiers = (containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public) | DeclarationModifiers.PrimaryCtor;
             this.flags = MakeFlags(MethodKind.Constructor, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
             this.CheckModifiers(MethodKind.Constructor, location, diagnostics);
+        }
+
+        private static SyntaxReference GetPrimaryConstructorBlockSyntaxReferenceOrNull(ParameterListSyntax syntax)
+        {
+            foreach (var m in ((TypeDeclarationSyntax)syntax.Parent).Members)
+            {
+                if (m.Kind == SyntaxKind.PrimaryConstructorBody)
+                {
+                    return ((PrimaryConstructorBodySyntax)m).Body.GetReference();
+                }
+            }
+
+            return null;
         }
 
         private SourceConstructorSymbol(

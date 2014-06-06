@@ -852,11 +852,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (body == null || !isPrimaryCtor)
                         {
-                        // These analyses check for diagnostics in lambdas.
-                        // Control flow analysis and implicit return insertion are unnecessary.
-                        DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
-                        DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
-                    }
+                            // These analyses check for diagnostics in lambdas.
+                            // Control flow analysis and implicit return insertion are unnecessary.
+                            DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                            DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
+                        }
                         else 
                         {
                             Debug.Assert(isPrimaryCtor);
@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (initializationScopeLocals.IsDefaultOrEmpty)
                             {
-                            body = body.Update(body.LocalsOpt, body.Statements.Insert(0, analyzedInitializers));
+                                body = body.Update(body.LocalsOpt, body.Statements.Insert(0, analyzedInitializers));
                             }
                             else
                             {
@@ -1331,9 +1331,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder binder;
 
                 var blockSyntax = sourceMethod.BlockSyntax;
+                Debug.Assert(initializationScopeLocals.IsDefaultOrEmpty || sourceMethod.IsPrimaryCtor);
+
                 if (blockSyntax != null)
                 {
                     inMethodBinder = factory.GetBinder(blockSyntax);
+
+                    if (sourceMethod.IsPrimaryCtor && !initializationScopeLocals.IsDefaultOrEmpty)
+                    {
+                        // Locals declared in field initializers should be in scope.
+                        inMethodBinder = new SimpleLocalScopeBinder(initializationScopeLocals, inMethodBinder);
+                    }
 
                     // Bring locals declared in initializer in scope, they should be visible within the block.
                     if (!localsDeclaredInInitializer.IsDefaultOrEmpty)
@@ -1380,9 +1388,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)property != null)
                     {
                         if (property.IsAutoProperty)
-                    {
-                        return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
-                    }
+                        {
+                            return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
+                        }
 
                         var methodSyntax = sourceMethod.SyntaxNode;
                         if (methodSyntax.Kind == SyntaxKind.ArrowExpressionClause)
@@ -1399,7 +1407,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (sourceMethod.IsPrimaryCtor)
                     {
-                        // TODO: When we add binding for the body, initializationScopeLocals and localsDeclaredInInitializer should both be brought in scope for the binding.
                         body = null;
                     }
                     else

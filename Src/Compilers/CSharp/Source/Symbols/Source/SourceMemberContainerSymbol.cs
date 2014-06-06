@@ -2737,8 +2737,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxList<MemberDeclarationSyntax> members,
             DiagnosticBag diagnostics)
         {
+            bool havePrimaryCtor = false;
+
             if (primaryCtorParameterList != null)
             {
+                havePrimaryCtor = true;
                 var constructor = SourceConstructorSymbol.CreatePrimaryConstructorSymbol(this, primaryCtorParameterList, diagnostics);
                 result.NonTypeNonIndexerMembers.Add(constructor);
 
@@ -2760,6 +2763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var firstMember = members[0];
             var bodyBinder = this.GetBinder(firstMember);
             bool globalCodeAllowed = IsGlobalCodeAllowed(firstMember.Parent);
+            bool havePrimaryCtorBody = false;
 
             ArrayBuilder<FieldInitializer> staticInitializers = null;
             ArrayBuilder<FieldInitializer> instanceInitializers = null;
@@ -3003,6 +3007,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             result.NonTypeNonIndexerMembers.Add(method);
                         }
 
+                        break;
+
+                    case SyntaxKind.PrimaryConstructorBody:
+                        if (havePrimaryCtor)
+                        {
+                            if (havePrimaryCtorBody)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicatePrimaryCtorBody, new SourceLocation(((PrimaryConstructorBodySyntax)m).Body));
+                            }
+                            else
+                            {
+                                havePrimaryCtorBody = true;
+                            }
+                        }
                         break;
 
                     case SyntaxKind.GlobalStatement:

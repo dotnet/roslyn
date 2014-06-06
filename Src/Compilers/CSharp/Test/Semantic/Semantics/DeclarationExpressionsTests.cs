@@ -133,10 +133,12 @@ public class Cls
             private DeclarationScope currentScope;
             private DeclarationScope staticInitScope;
             private DeclarationScope instanceInitScope;
+            private DeclarationScope primaryConstructorInitializerScope;
             private ArrayBuilder<SemanticModelInfo> builder;
 
-            private SmallDictionary<string, DeclarationScope> primaryConstructorParametersScopes = new SmallDictionary<string, DeclarationScope>();
-            private SmallDictionary<string, bool> primaryConstructorParametersScopesValidator = new SmallDictionary<string, bool>();
+            private SmallDictionary<TypeDeclarationSyntax, DeclarationScope> primaryConstructorParametersScopes = new SmallDictionary<TypeDeclarationSyntax, DeclarationScope>();
+            private SmallDictionary<string, DeclarationScope> primaryConstructorParametersScopesForInitializers = new SmallDictionary<string, DeclarationScope>();
+            private HashSet<string> primaryConstructorParametersScopesForInitializersIsUsed = new HashSet<string>();
 
             private ModelBuilder() { }
 
@@ -194,22 +196,59 @@ public class Cls
                 Debug.Assert(currentScope == null);
                 DeclarationScope saveStaticInitScope = staticInitScope;
                 DeclarationScope saveInstanceInitScope = instanceInitScope;
-
-                DeclarationScope primaryConstructorParametersScope;
-                if (!primaryConstructorParametersScopes.TryGetValue(node.Identifier.ValueText, out primaryConstructorParametersScope))
-                {
-                    primaryConstructorParametersScope = new DeclarationScope(null);
-                    primaryConstructorParametersScopes.Add(node.Identifier.ValueText, primaryConstructorParametersScope);
-                }
+                DeclarationScope savePrimaryConstructorInitializerScope = primaryConstructorInitializerScope;
 
                 staticInitScope = new DeclarationScope(null);
-                instanceInitScope = new DeclarationScope(primaryConstructorParametersScope);
+
+                DeclarationScope primaryConstructorParametersScope;
+                instanceInitScope = new DeclarationScope(GetPrimaryConstructorParametersScopeForInitializers(node, node.ParameterList, out primaryConstructorParametersScope));
+
+                if (primaryConstructorParametersScope == instanceInitScope.Parent)
+                {
+                    primaryConstructorInitializerScope = new DeclarationScope(instanceInitScope);
+                }
+                else
+                {
+                    primaryConstructorInitializerScope = new DeclarationScope(primaryConstructorParametersScope);
+                }
 
                 base.VisitClassDeclaration(node);
 
                 staticInitScope = saveStaticInitScope;
                 instanceInitScope = saveInstanceInitScope;
+                primaryConstructorInitializerScope = savePrimaryConstructorInitializerScope;
                 Debug.Assert(currentScope == null);
+            }
+
+            private DeclarationScope GetPrimaryConstructorParametersScopeForInitializers(TypeDeclarationSyntax node, ParameterListSyntax parameterList, out DeclarationScope primaryConstructorParametersScope)
+            {
+                DeclarationScope primaryConstructorParametersScopeForInitializers;
+
+                if (!primaryConstructorParametersScopesForInitializers.TryGetValue(node.Identifier.ValueText, out primaryConstructorParametersScopeForInitializers))
+                {
+                    primaryConstructorParametersScopeForInitializers = new DeclarationScope(null);
+                    primaryConstructorParametersScopesForInitializers.Add(node.Identifier.ValueText, primaryConstructorParametersScopeForInitializers);
+                }
+
+                if (parameterList != null)
+                {
+                    if (primaryConstructorParametersScopesForInitializersIsUsed.Add(node.Identifier.ValueText))
+                    {
+                        primaryConstructorParametersScope = primaryConstructorParametersScopeForInitializers;
+                    }
+                    else
+                    {
+                        primaryConstructorParametersScope = new DeclarationScope(null);
+                    }
+
+                    primaryConstructorParametersScopes.Add(node, primaryConstructorParametersScope);
+                }
+                else
+                {
+                    primaryConstructorParametersScope = null;
+                }
+
+                return primaryConstructorParametersScopeForInitializers;
             }
 
             public override void VisitStructDeclaration(StructDeclarationSyntax node)
@@ -217,21 +256,27 @@ public class Cls
                 Debug.Assert(currentScope == null);
                 DeclarationScope saveStaticInitScope = staticInitScope;
                 DeclarationScope saveInstanceInitScope = instanceInitScope;
-
-                DeclarationScope primaryConstructorParametersScope;
-                if (!primaryConstructorParametersScopes.TryGetValue(node.Identifier.ValueText, out primaryConstructorParametersScope))
-                {
-                    primaryConstructorParametersScope = new DeclarationScope(null);
-                    primaryConstructorParametersScopes.Add(node.Identifier.ValueText, primaryConstructorParametersScope);
-                }
+                DeclarationScope savePrimaryConstructorInitializerScope = primaryConstructorInitializerScope;
 
                 staticInitScope = new DeclarationScope(null);
-                instanceInitScope = new DeclarationScope(primaryConstructorParametersScope);
+
+                DeclarationScope primaryConstructorParametersScope;
+                instanceInitScope = new DeclarationScope(GetPrimaryConstructorParametersScopeForInitializers(node, node.ParameterList, out primaryConstructorParametersScope));
+
+                if (primaryConstructorParametersScope == instanceInitScope.Parent)
+                {
+                    primaryConstructorInitializerScope = new DeclarationScope(instanceInitScope);
+                }
+                else
+                {
+                    primaryConstructorInitializerScope = new DeclarationScope(primaryConstructorParametersScope);
+                }
 
                 base.VisitStructDeclaration(node);
 
                 staticInitScope = saveStaticInitScope;
                 instanceInitScope = saveInstanceInitScope;
+                primaryConstructorInitializerScope = savePrimaryConstructorInitializerScope;
                 Debug.Assert(currentScope == null);
             }
 
@@ -360,16 +405,16 @@ public class Cls
 
             public override void VisitBlock(BlockSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
                 base.VisitBlock(node);
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitUsingStatement(UsingStatementSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 if (node.Declaration != null)
@@ -384,37 +429,37 @@ public class Cls
                 Visit(node.Expression);
                 VisitPossibleEmbeddedStatement(node.Statement);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitWhileStatement(WhileStatementSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 Visit(node.Condition);
                 VisitPossibleEmbeddedStatement(node.Statement);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitDoStatement(DoStatementSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 Visit(node.Condition);
                 VisitPossibleEmbeddedStatement(node.Statement);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitForStatement(ForStatementSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
 
                 currentScope = new DeclarationScope(currentScope);
 
@@ -443,13 +488,13 @@ public class Cls
 
                 VisitPossibleEmbeddedStatement(node.Statement);
 
-                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitForEachStatement(ForEachStatementSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
 
                 currentScope = new DeclarationScope(currentScope);
 
@@ -463,13 +508,13 @@ public class Cls
 
                 VisitPossibleEmbeddedStatement(node.Statement);
 
-                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitFixedStatement(FixedStatementSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 foreach (VariableDeclaratorSyntax declarator in node.Declaration.Variables)
@@ -480,25 +525,25 @@ public class Cls
 
                 VisitPossibleEmbeddedStatement(node.Statement);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitLockStatement(LockStatementSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 Visit(node.Expression);
                 VisitPossibleEmbeddedStatement(node.Statement);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitSwitchStatement(SwitchStatementSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 Visit(node.Expression);
@@ -510,13 +555,13 @@ public class Cls
                     Visit(section);
                 }
 
-                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitIfStatement(IfStatementSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 Visit(node.Condition);
@@ -524,8 +569,8 @@ public class Cls
                 VisitPossibleEmbeddedStatement(node.Statement);
                 Visit(node.Else);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitElseClause(ElseClauseSyntax node)
@@ -535,7 +580,7 @@ public class Cls
 
             public override void VisitCatchClause(CatchClauseSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 var declarationOpt = node.Declaration;
@@ -547,36 +592,36 @@ public class Cls
                 Visit(node.Filter);
                 Visit(node.Block);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             private void VisitPossibleEmbeddedStatement(StatementSyntax statement)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 Visit(statement);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 Visit(node.Block);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
             {
-                var saveCurentScope = currentScope;
-                var parametersScope = new DeclarationScope(saveCurentScope);
+                var saveCurrentScope = currentScope;
+                var parametersScope = new DeclarationScope(saveCurrentScope);
                 currentScope = parametersScope;
 
                 Visit(node.Parameter);
@@ -587,14 +632,14 @@ public class Cls
                 Visit(node.Body);
 
                 Debug.Assert(currentScope.Parent == parametersScope);
-                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
             {
-                var saveCurentScope = currentScope;
-                var parametersScope = new DeclarationScope(saveCurentScope);
+                var saveCurrentScope = currentScope;
+                var parametersScope = new DeclarationScope(saveCurrentScope);
                 currentScope = parametersScope;
 
                 Visit(node.ParameterList);
@@ -605,13 +650,13 @@ public class Cls
                 Visit(node.Body);
 
                 Debug.Assert(currentScope.Parent == parametersScope);
-                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitFromClause(FromClauseSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
 
                 // Visit Expression in the current scope only for a "from" clause that starts a query, it (the expression) doesn't become a body of a lambda.
                 var parent = node.Parent;
@@ -623,81 +668,81 @@ public class Cls
 
                 Visit(node.Expression);
 
-                currentScope = saveCurentScope;
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitLetClause(LetClauseSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 Visit(node.Expression);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitJoinClause(JoinClauseSyntax node)
             {
                 Visit(node.InExpression);
 
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
 
-                currentScope = new DeclarationScope(saveCurentScope);
+                currentScope = new DeclarationScope(saveCurrentScope);
                 Visit(node.LeftExpression);
 
-                currentScope = new DeclarationScope(saveCurentScope);
+                currentScope = new DeclarationScope(saveCurrentScope);
                 Visit(node.RightExpression);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitWhereClause(WhereClauseSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 Visit(node.Condition);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitOrdering(OrderingSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 Visit(node.Expression);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitSelectClause(SelectClauseSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
 
                 Visit(node.Expression);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitGroupClause(GroupClauseSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
 
-                currentScope = new DeclarationScope(saveCurentScope);
+                currentScope = new DeclarationScope(saveCurrentScope);
                 Visit(node.GroupExpression);
 
-                currentScope = new DeclarationScope(saveCurentScope);
+                currentScope = new DeclarationScope(saveCurrentScope);
                 Visit(node.ByExpression);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitParameter(ParameterSyntax node)
@@ -709,32 +754,32 @@ public class Cls
                     builder.Add(new SemanticModelInfo(currentScope, node));
                 }
 
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope.Parent);
 
                 Visit(node.Default);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope.Parent);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope.Parent);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitAttributeArgument(AttributeArgumentSyntax node)
             {
-                var saveCurentScope = currentScope;
-                currentScope = new DeclarationScope(saveCurentScope);
+                var saveCurrentScope = currentScope;
+                currentScope = new DeclarationScope(saveCurrentScope);
 
                 Visit(node.Expression);
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
             {
                 VisitAttributes(node.AttributeLists);
 
-                var saveCurentScope = currentScope;
-                var parametersScope = new DeclarationScope(saveCurentScope);
+                var saveCurrentScope = currentScope;
+                var parametersScope = new DeclarationScope(saveCurrentScope);
                 currentScope = parametersScope;
 
                 Visit(node.ParameterList);
@@ -759,8 +804,8 @@ public class Cls
                     currentScope = parametersScope;
                 }
 
-                Debug.Assert(currentScope.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             private void VisitAttributes(SyntaxList<AttributeListSyntax> attributeLists)
@@ -773,21 +818,32 @@ public class Cls
 
             public override void VisitBaseClassWithArguments(BaseClassWithArgumentsSyntax node)
             {
-                var saveCurentScope = currentScope;
-                currentScope = new DeclarationScope(instanceInitScope);
+                var saveCurrentScope = currentScope;
+                currentScope = primaryConstructorInitializerScope;
 
                 Visit(node.ArgumentList);
 
-                Debug.Assert(currentScope.Parent == instanceInitScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope == primaryConstructorInitializerScope);
+                currentScope = saveCurrentScope;
+            }
+
+            public override void VisitPrimaryConstructorBody(PrimaryConstructorBodySyntax node)
+            {
+                var saveCurrentScope = currentScope;
+                currentScope = primaryConstructorInitializerScope;
+
+                base.VisitPrimaryConstructorBody(node);
+
+                Debug.Assert(currentScope == primaryConstructorInitializerScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
             {
                 VisitAttributes(node.AttributeLists);
 
-                var saveCurentScope = currentScope;
-                var parametersScope = new DeclarationScope(saveCurentScope);
+                var saveCurrentScope = currentScope;
+                var parametersScope = new DeclarationScope(saveCurrentScope);
                 currentScope = parametersScope;
 
                 Visit(node.ParameterList);
@@ -798,13 +854,13 @@ public class Cls
                 Visit(node.Body);
 
                 Debug.Assert(currentScope.Parent == parametersScope);
-                Debug.Assert(currentScope.Parent.Parent == saveCurentScope);
-                currentScope = saveCurentScope;
+                Debug.Assert(currentScope.Parent.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
             }
 
             public override void VisitParameterList(ParameterListSyntax node)
             {
-                var saveCurentScope = currentScope;
+                var saveCurrentScope = currentScope;
                 DeclarationScope parametersScope = null;
 
                 switch (node.Parent.Kind)
@@ -812,18 +868,14 @@ public class Cls
                     case SyntaxKind.ClassDeclaration:
                         if (((ClassDeclarationSyntax)node.Parent).ParameterList == node)
                         {
-                            var name = ((ClassDeclarationSyntax)node.Parent).Identifier.ValueText;
-                            parametersScope = primaryConstructorParametersScopes[name];
-                            primaryConstructorParametersScopesValidator.Add(name, true); // this is expected to throw in case of collision.
+                            parametersScope = primaryConstructorParametersScopes[(ClassDeclarationSyntax)node.Parent];
                             currentScope = parametersScope;
                         }
                         break;
                     case SyntaxKind.StructDeclaration:
                         if (((StructDeclarationSyntax)node.Parent).ParameterList == node)
                         {
-                            var name = ((StructDeclarationSyntax)node.Parent).Identifier.ValueText;
-                            parametersScope = primaryConstructorParametersScopes[name];
-                            primaryConstructorParametersScopesValidator.Add(name, true); // this is expected to throw in case of collision.
+                            parametersScope = primaryConstructorParametersScopes[(StructDeclarationSyntax)node.Parent];
                             currentScope = parametersScope;
                         }
                         break;
@@ -834,12 +886,12 @@ public class Cls
                 if (parametersScope != null)
                 {
                     Debug.Assert(currentScope == parametersScope);
-                    Debug.Assert(currentScope.Parent == saveCurentScope);
-                    currentScope = saveCurentScope;
+                    Debug.Assert(currentScope.Parent == saveCurrentScope);
+                    currentScope = saveCurrentScope;
                 }
                 else
                 {
-                    Debug.Assert(currentScope == saveCurentScope);
+                    Debug.Assert(currentScope == saveCurrentScope);
                 }
             }
         }
@@ -9815,6 +9867,689 @@ partial class Test1(int y1, int y2) : Base(y1, y2)
     // (23,21): error CS0103: The name 'y2' does not exist in the current context
     //     static int f2 = y2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y2").WithArguments("y2").WithLocation(23, 21)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_01()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived()
+{
+    private int x = int y = 10;
+
+    {
+        System.Console.WriteLine(y);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var x = new Derived();
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"10").VerifyDiagnostics();
+
+            TestSemanticModelAPI(comp);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_02()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int x){}
+}
+class Derived() : Base(int z = 11)
+{
+    {
+        System.Console.WriteLine(z);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var x = new Derived();
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"11").VerifyDiagnostics();
+
+            TestSemanticModelAPI(comp);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_03()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int x){}
+}
+class Derived(int a) : Base(int z = 11)
+{
+    private int x = int y = 10;
+
+    {
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(z);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var x = new Derived(9);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"9
+10
+11").VerifyDiagnostics();
+
+            TestSemanticModelAPI(comp);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_04()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class Derived()
+{
+    {
+        System.Console.WriteLine(y);
+    }
+
+    private int x = int y = 10;
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (5,34): error CS0841: Cannot use local variable 'y' before it is declared
+    //         System.Console.WriteLine(y);
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(5, 34)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_05()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class Derived()
+{
+    private int a = int x = 10;
+
+    {
+        int x = 11;
+        int y = 12;
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(y);
+    }
+
+    private int b = int y = 10;
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (7,13): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         int x = 11;
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(7, 13),
+    // (8,13): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         int y = 12;
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(8, 13)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_06()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class Derived()
+{
+    private static int x = int y = 10;
+
+    {
+        System.Console.WriteLine(y);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (7,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(7, 34)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_07()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class Derived()
+{
+    private const int x = int y = 10;
+
+    {
+        System.Console.WriteLine(y);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (4,27): error CS8047: A declaration expression is not permitted in this context.
+    //     private const int x = int y = 10;
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutOfContext, "int y = 10").WithLocation(4, 27),
+    // (7,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(7, 34)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_08()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+partial class Derived
+{
+    private int x = int y = 10;
+}
+
+partial class Derived()
+{
+    {
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(y);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (11,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(11, 34)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_09()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int x){}
+}
+
+class Derived() : Base(int y = 10)
+{
+    {
+        int y = 12;
+        System.Console.WriteLine(y);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (10,13): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         int y = 12;
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(10, 13)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_10()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int x){}
+}
+
+partial class Derived(byte z) : Base(int x = 10)
+{
+    {
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(y); // bad
+        System.Console.WriteLine(z);
+    }
+}
+
+partial class Derived(int z) : Base(int y = 10)
+{
+    {
+        System.Console.WriteLine(x); // bad
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(z);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (16,22): error CS8036: Only one part of a partial type can declare primary constructor parameters.
+    // partial class Derived(int z) : Base(int y = 10)
+    Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "(int z)").WithLocation(16, 22),
+    // (11,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(11, 34),
+    // (19,34): error CS0103: The name 'x' does not exist in the current context
+    //         System.Console.WriteLine(x); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(19, 34)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_11()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int x, int y){}
+}
+
+partial class Derived(byte z) : Base(int x = 10, b + d)
+{
+    private int a = int b = 11;
+
+    {
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(y); // bad
+        System.Console.WriteLine(z);
+
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(b);
+        System.Console.WriteLine(c);
+        System.Console.WriteLine(d); // bad
+    }
+}
+
+partial class Derived(int z) : Base(int y = 10, b + d)
+{
+    private int c = int d = 11;
+
+    {
+        System.Console.WriteLine(x); // bad
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(z);
+
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(b); // bad
+        System.Console.WriteLine(c);
+        System.Console.WriteLine(d); // bad
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (23,22): error CS8036: Only one part of a partial type can declare primary constructor parameters.
+    // partial class Derived(int z) : Base(int y = 10, b + d)
+    Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "(int z)").WithLocation(23, 22),
+    // (7,54): error CS0103: The name 'd' does not exist in the current context
+    // partial class Derived(byte z) : Base(int x = 10, b + d)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(7, 54),
+    // (7,50): error CS0841: Cannot use local variable 'b' before it is declared
+    // partial class Derived(byte z) : Base(int x = 10, b + d)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "b").WithArguments("b").WithLocation(7, 50),
+    // (13,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(13, 34),
+    // (19,34): error CS0103: The name 'd' does not exist in the current context
+    //         System.Console.WriteLine(d); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(19, 34),
+    // (23,53): error CS0103: The name 'd' does not exist in the current context
+    // partial class Derived(int z) : Base(int y = 10, b + d)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(23, 53),
+    // (23,49): error CS0103: The name 'b' does not exist in the current context
+    // partial class Derived(int z) : Base(int y = 10, b + d)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(23, 49),
+    // (28,34): error CS0103: The name 'x' does not exist in the current context
+    //         System.Console.WriteLine(x); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(28, 34),
+    // (33,34): error CS0103: The name 'b' does not exist in the current context
+    //         System.Console.WriteLine(b); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(33, 34),
+    // (35,34): error CS0103: The name 'd' does not exist in the current context
+    //         System.Console.WriteLine(d); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(35, 34)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_12()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+partial class Derived(byte z)
+{
+    private int a = int b = 11;
+
+    {
+        System.Console.WriteLine(z);
+
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(b);
+        System.Console.WriteLine(c);
+        System.Console.WriteLine(d); // bad
+    }
+}
+
+partial class Derived(int z)
+{
+    private int c = int d = 11;
+
+    {
+        System.Console.WriteLine(z);
+
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(b); // bad
+        System.Console.WriteLine(c);
+        System.Console.WriteLine(d); // bad
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (16,22): error CS8036: Only one part of a partial type can declare primary constructor parameters.
+    // partial class Derived(int z)
+    Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "(int z)").WithLocation(16, 22),
+    // (12,34): error CS0103: The name 'd' does not exist in the current context
+    //         System.Console.WriteLine(d); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(12, 34),
+    // (24,34): error CS0103: The name 'b' does not exist in the current context
+    //         System.Console.WriteLine(b); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(24, 34),
+    // (26,34): error CS0103: The name 'd' does not exist in the current context
+    //         System.Console.WriteLine(d); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(26, 34)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_13()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+partial struct Derived(byte z)
+{
+    private int a = int b = 11;
+
+    {
+        System.Console.WriteLine(z);
+
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(b);
+        System.Console.WriteLine(c);
+        System.Console.WriteLine(d); // bad
+    }
+}
+
+partial struct Derived(int z)
+{
+    private int c = int d = 11;
+
+    {
+        System.Console.WriteLine(z);
+
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(b); // bad
+        System.Console.WriteLine(c);
+        System.Console.WriteLine(d); // bad
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (16,23): error CS8036: Only one part of a partial type can declare primary constructor parameters.
+    // partial struct Derived(int z)
+    Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "(int z)").WithLocation(16, 23),
+    // (2,16): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'Derived'. To specify an ordering, all instance fields must be in the same declaration.
+    // partial struct Derived(byte z)
+    Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "Derived").WithArguments("Derived").WithLocation(2, 16),
+    // (12,34): error CS0103: The name 'd' does not exist in the current context
+    //         System.Console.WriteLine(d); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(12, 34),
+    // (24,34): error CS0103: The name 'b' does not exist in the current context
+    //         System.Console.WriteLine(b); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(24, 34),
+    // (26,34): error CS0103: The name 'd' does not exist in the current context
+    //         System.Console.WriteLine(d); // bad
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(26, 34)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_14()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int x){}
+}
+
+partial class Derived(int a) : Base(int z = 11)
+{
+    private int x = int y = 10;
+
+    {
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(z);
+    }
+
+    {
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(z);
+    }
+}
+
+partial class Derived(byte a) : Base(short z = 11)
+{
+    {
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(z);
+    }
+
+    {
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(z);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (17,5): error CS8040: Primary constructor already has a body.
+    //     {
+    Diagnostic(ErrorCode.ERR_DuplicatePrimaryCtorBody, @"{
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(z);
+    }").WithLocation(17, 5),
+    // (24,22): error CS8036: Only one part of a partial type can declare primary constructor parameters.
+    // partial class Derived(byte a) : Base(short z = 11)
+    Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "(byte a)").WithLocation(24, 22),
+    // (31,5): error CS8040: Primary constructor already has a body.
+    //     {
+    Diagnostic(ErrorCode.ERR_DuplicatePrimaryCtorBody, @"{
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(z);
+    }").WithLocation(31, 5)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void PrimaryCtorBody_15()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+partial struct Derived(int a) 
+{
+    private int x = int y = 10;
+
+    {
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(y);
+    }
+
+    {
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(y);
+    }
+}
+
+partial struct Derived(byte a) 
+{
+    {
+        System.Console.WriteLine(a);
+    }
+
+    {
+        System.Console.WriteLine(a);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (11,5): error CS8040: Primary constructor already has a body.
+    //     {
+    Diagnostic(ErrorCode.ERR_DuplicatePrimaryCtorBody, @"{
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(y);
+    }").WithLocation(11, 5),
+    // (17,23): error CS8036: Only one part of a partial type can declare primary constructor parameters.
+    // partial struct Derived(byte a) 
+    Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "(byte a)").WithLocation(17, 23),
+    // (23,5): error CS8040: Primary constructor already has a body.
+    //     {
+    Diagnostic(ErrorCode.ERR_DuplicatePrimaryCtorBody, @"{
+        System.Console.WriteLine(a);
+    }").WithLocation(23, 5)
                 );
 
             TestSemanticModelAPI(compilation, diagnostics);

@@ -3792,6 +3792,9 @@
   <data name="ERR_PrimaryCtorParameterSameNameAsContainingType" xml:space="preserve">
     <value>'{0}': a parameter of a primary constructor cannot have the same name as containing type</value>
   </data>
+  <data name="ERR_DuplicatePrimaryCtorBody" xml:space="preserve">
+    <value>Primary constructor already has a body.</value>
+  </data>
   <data name="ERR_InstanceCtorCannotHaveDefaultThisInitializer" xml:space="preserve">
     <value>Since this struct type has a primary constructor, an instance constructor declaration cannot specify a constructor initializer that invokes default constructor.</value>
   </data>

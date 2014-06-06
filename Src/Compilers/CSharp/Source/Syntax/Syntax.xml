@@ -3805,4 +3805,17 @@
     </Field>
     <Field Name="IsActive" Type="bool" Override="true"/>
   </Node>
+  <Node Name="PrimaryConstructorBodySyntax" Base="MemberDeclarationSyntax">
+    <TypeComment>
+      <summary>Syntax for Primary Constructor body.</summary>
+    </TypeComment>
+    <Kind Name="PrimaryConstructorBody"/>
+    <Field Name="Body" Type="BlockSyntax" Optional="false"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
 </Tree>

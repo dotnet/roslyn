@@ -3262,5 +3262,486 @@ partial class Derived() : IDisposable(2)
                 );
         }
 
+        [Fact]
+        public void Body_DisabledByDefault()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived()
+{
+    public readonly int X;
+
+    {
+        X = 5;
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((new Derived()).X);
+    }
+}
+", compOptions: TestOptions.Exe);
+
+            comp.VerifyDiagnostics(
+    // (2,14): error CS1514: { expected
+    // class Derived()
+    Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 14),
+    // (2,14): error CS1513: } expected
+    // class Derived()
+    Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 14),
+    // (2,14): error CS1022: Type or namespace definition, or end-of-file expected
+    // class Derived()
+    Diagnostic(ErrorCode.ERR_EOFExpected, "(").WithLocation(2, 14),
+    // (6,5): error CS1022: Type or namespace definition, or end-of-file expected
+    //     {
+    Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(6, 5),
+    // (7,9): error CS0116: A namespace cannot directly contain members such as fields or methods
+    //         X = 5;
+    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "X").WithLocation(7, 9),
+    // (7,11): error CS1022: Type or namespace definition, or end-of-file expected
+    //         X = 5;
+    Diagnostic(ErrorCode.ERR_EOFExpected, "=").WithLocation(7, 11),
+    // (8,5): error CS1022: Type or namespace definition, or end-of-file expected
+    //     }
+    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 5),
+    // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
+    // }
+    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1),
+    // (15,50): error CS1061: 'Derived' does not contain a definition for 'X' and no extension method 'X' accepting a first argument of type 'Derived' could be found (are you missing a using directive or an assembly reference?)
+    //         System.Console.WriteLine((new Derived()).X);
+    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "X").WithArguments("Derived", "X").WithLocation(15, 50)
+                );
+        }
+
+        [Fact]
+        public void Body_00()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived
+{
+    public readonly int X;
+
+    {
+        X = 5;
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((new Derived()).X);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            comp.VerifyDiagnostics(
+    // (6,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+    //     {
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(6, 5),
+    // (7,11): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+    //         X = 5;
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(7, 11),
+    // (7,11): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+    //         X = 5;
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(7, 11),
+    // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
+    // }
+    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1),
+    // (4,25): warning CS0649: Field 'Derived.X' is never assigned to, and will always have its default value 0
+    //     public readonly int X;
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "X").WithArguments("Derived.X", "0").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void Body_01()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived()
+{
+    public readonly int X;
+
+    {
+        X = 5;
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((new Derived()).X);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Body_02()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived(int x)
+{
+    {
+        X = x;
+    }
+
+    public readonly int X;
+}
+
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((new Derived(6)).X);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "6").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Body_03()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+struct Derived(int x)
+{
+    {
+        X = x;
+    }
+
+    public readonly int X;
+}
+
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((new Derived(6)).X);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "6").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Body_04()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived()
+{
+    {
+        X = 5;
+    };
+
+    public readonly int X;
+}
+
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((new Derived()).X);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            comp.VerifyDiagnostics(
+    // (6,6): error CS1597: Semicolon after method or accessor block is not valid
+    //     };
+    Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(6, 6)
+                );
+        }
+
+        [Fact]
+        public void Body_05()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived()
+{
+    {
+    }
+
+    public readonly int X;
+
+    { // duplicate #1
+        X = 5;
+    }
+
+    {} // duplicate #2
+
+}
+
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((new Derived()).X);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            comp.VerifyDiagnostics(
+    // (9,5): error CS8040: Primary constructor already has a body.
+    //     { // duplicate #1
+    Diagnostic(ErrorCode.ERR_DuplicatePrimaryCtorBody, @"{ // duplicate #1
+        X = 5;
+    }").WithLocation(9, 5),
+    // (13,5): error CS8040: Primary constructor already has a body.
+    //     {} // duplicate #2
+    Diagnostic(ErrorCode.ERR_DuplicatePrimaryCtorBody, "{}").WithLocation(13, 5),
+    // (7,25): warning CS0649: Field 'Derived.X' is never assigned to, and will always have its default value 0
+    //     public readonly int X;
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "X").WithArguments("Derived.X", "0").WithLocation(7, 25)
+                );
+        }
+
+        [Fact]
+        public void Body_06()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+partial class Derived(int x)
+{
+    {
+        int x = 5;
+        System.Console.WriteLine(x);
+        int y = 6;
+        System.Console.WriteLine(y);
+    }
+}
+
+partial class Derived(short y)
+{
+    { 
+        int y = 7;
+        System.Console.WriteLine(y);
+        int x = 8;
+        System.Console.WriteLine(x);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            comp.VerifyDiagnostics(
+    // (10,22): error CS8036: Only one part of a partial type can declare primary constructor parameters.
+    // partial class Derived(short y)
+    Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "(short y)").WithLocation(12, 22),
+    // (5,13): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         int x = 5;
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 13),
+    // (13,13): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         int y = 7;
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(15, 13)
+                );
+        }
+
+        [Fact]
+        public void Body_07()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived(int x, int y)
+{
+    {
+        int x = 5; // first
+        System.Console.WriteLine(x);
+    }
+
+    {
+        int x = 5;
+        System.Console.WriteLine(x);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            comp.VerifyDiagnostics(
+    // (9,5): error CS8040: Primary constructor already has a body.
+    //     {
+    Diagnostic(ErrorCode.ERR_DuplicatePrimaryCtorBody, @"{
+        int x = 5;
+        System.Console.WriteLine(x);
+    }").WithLocation(9, 5),
+    // (5,13): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         int x = 5; // first
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 13)
+                );
+        }
+
+        [Fact]
+        public void Body_08()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int a)
+    {
+        System.Console.WriteLine(a);
+    }
+}
+
+class Derived(int x, int y) : Base(y)
+{
+    {
+        System.Console.WriteLine(x);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var x = new Derived(5, 6);
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"6
+5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Body_09()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived()
+{
+    {
+        System.Console.WriteLine(5);
+    }
+
+    private int X = GetX();
+
+    private static int GetX()
+    {
+        System.Console.WriteLine(7);
+        return 0;
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var x = new Derived();
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"7
+5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Body_10()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int a)
+    {
+        System.Console.WriteLine(a);
+    }
+}
+
+class Derived() : Base(6)
+{
+    {
+        System.Console.WriteLine(5);
+    }
+
+    private int X = GetX();
+
+    private static int GetX()
+    {
+        System.Console.WriteLine(7);
+        return 0;
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var x = new Derived();
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"7
+6
+5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Body_11()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int a)
+    {
+    }
+}
+
+partial class Derived(int x, int y) : Base(v)
+{
+    {
+        System.Console.WriteLine(u);
+    }
+}
+
+partial class Derived(int u, int v) : Base(y)
+{
+    { 
+        System.Console.WriteLine(x);
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            comp.VerifyDiagnostics(
+    // (16,22): error CS8036: Only one part of a partial type can declare primary constructor parameters.
+    // partial class Derived(int u, int v) : Base(y)
+    Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "(int u, int v)").WithLocation(16, 22),
+    // (9,44): error CS0103: The name 'v' does not exist in the current context
+    // partial class Derived(int x, int y) : Base(v)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "v").WithArguments("v").WithLocation(9, 44),
+    // (12,34): error CS0103: The name 'u' does not exist in the current context
+    //         System.Console.WriteLine(u);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "u").WithArguments("u").WithLocation(12, 34),
+    // (16,44): error CS0103: The name 'y' does not exist in the current context
+    // partial class Derived(int u, int v) : Base(y)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(16, 44),
+    // (19,34): error CS0103: The name 'x' does not exist in the current context
+    //         System.Console.WriteLine(x);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(19, 34)
+                );
+        }
+
     }
 }

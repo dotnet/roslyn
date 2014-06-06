@@ -758,6 +758,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 GetOrAddModelIfContains(constructorDecl.Body, span);
                         }
 
+                    case SyntaxKind.PrimaryConstructorBody:
+                        return GetOrAddModelIfContains(((PrimaryConstructorBodySyntax)memberDecl).Body, span);
+
                     case SyntaxKind.ClassDeclaration:
                         {
                             var classDecl = (ClassDeclarationSyntax)memberDecl;
@@ -925,6 +928,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind)
             {
                 case SyntaxKind.Block:
+                    if (node.Parent != null && node.Parent.Kind == SyntaxKind.PrimaryConstructorBody)
+                    {
+                        if (node.Parent.Parent != null && (node.Parent.Parent.Kind == SyntaxKind.ClassDeclaration || node.Parent.Parent.Kind == SyntaxKind.StructDeclaration))
+                        {
+                            var typeDecl = (TypeDeclarationSyntax)node.Parent.Parent;
+                            var constructorSymbol = (SourceMethodSymbol)GetDeclaredConstructorSymbol(typeDecl);
+
+                            if ((object)constructorSymbol == null)
+                                return null;
+
+                            // We need to share locals declared in constructor initializer with 
+                            // constructor initializer member model. We want both models to use the same symbols for the locals.
+                            var localsDeclaredInInitializer = ImmutableArray<LocalSymbol>.Empty;
+
+                            if (typeDecl.Kind == SyntaxKind.ClassDeclaration)
+                            {
+                                var classDecl = (ClassDeclarationSyntax)typeDecl;
+
+                                if (classDecl.BaseList != null && classDecl.BaseList.Types.Count > 0 && classDecl.BaseList.Types[0].Kind == SyntaxKind.BaseClassWithArguments)
+                                {
+                                    ArgumentListSyntax argList = ((BaseClassWithArgumentsSyntax)classDecl.BaseList.Types[0]).ArgumentList;
+                                    MemberSemanticModel initializerModel = GetOrAddModel(argList);
+
+                                    if (initializerModel != null)
+                                    {
+                                        localsDeclaredInInitializer = initializerModel.RootBinder.GetDeclaredLocalsForScope(argList);
+                                    }
+                                }
+                            }
+
+                            // Locals declared in instance initializers within the current partial class declaration
+                            // should be in scope within the body.
+                            outer = AddInitializersLocalsScope(outer, typeDecl, constructorSymbol);
+
+                            if (!localsDeclaredInInitializer.IsDefaultOrEmpty)
+                            {
+                                outer = new SimpleLocalScopeBinder(localsDeclaredInInitializer, outer);
+                            }
+
+                            return MethodBodySemanticModel.Create(this.Compilation, constructorSymbol, outer, node);
+                        }
+
+                        return null;
+                    }
+                    else
                     {
                         MemberDeclarationSyntax memberDecl;
                         AccessorDeclarationSyntax accessorDecl;
@@ -1098,23 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 // Locals declared in instance initializers within the current partial class declaration
                                 // should be in scope within the argument list.
-                                var initializersInfo = default(FieldInitializersInfo);
-
-                                foreach (FieldInitializers siblingInitializers in ((SourceMemberContainerTypeSymbol)constructorSymbol.ContainingType).InstanceInitializers )
-                                {
-                                    if (siblingInitializers.TypeDeclarationSyntax != null &&
-                                        siblingInitializers.TypeDeclarationSyntax.SyntaxTree == this.syntaxTree &&
-                                        siblingInitializers.TypeDeclarationSyntax.GetSyntax() == classDecl)
-                                    {
-                                        initializersInfo = GetFieldInitializersInfo(instanceInitializersInfo, siblingInitializers);
-                                        break;
-                                    }
-                                }
-
-                                if (!initializersInfo.Locals.IsDefaultOrEmpty)
-                                {
-                                    outer = new SimpleLocalScopeBinder(initializersInfo.Locals, outer);
-                                }
+                                outer = AddInitializersLocalsScope(outer, classDecl, constructorSymbol);
 
                                 //insert an extra binder to perform constructor initialization checks
                                 outer = outer.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructorSymbol);
@@ -1148,6 +1180,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        private Binder AddInitializersLocalsScope(Binder outer, TypeDeclarationSyntax typeDecl, SourceMethodSymbol constructorSymbol)
+        {
+            if ((object)((SourceMemberContainerTypeSymbol)constructorSymbol.ContainingSymbol).PrimaryCtor == constructorSymbol)
+            {
+                foreach (FieldInitializers siblingInitializers in ((SourceMemberContainerTypeSymbol)constructorSymbol.ContainingType).InstanceInitializers)
+                {
+                    if (siblingInitializers.TypeDeclarationSyntax != null &&
+                        siblingInitializers.TypeDeclarationSyntax.SyntaxTree == this.syntaxTree &&
+                        siblingInitializers.TypeDeclarationSyntax.GetSyntax() == typeDecl)
+                    {
+                        FieldInitializersInfo initializersInfo = GetFieldInitializersInfo(instanceInitializersInfo, siblingInitializers);
+
+                        if (!initializersInfo.Locals.IsDefaultOrEmpty)
+                        {
+                            return new SimpleLocalScopeBinder(initializersInfo.Locals, outer);
+                        }
+
+                        return outer;
+                    }
+                }
+            }
+
+            return outer;
         }
 
         private SourceMemberFieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
@@ -1233,15 +1290,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private FieldInitializersInfo GetFieldInitializersInfo(ConcurrentDictionary<TypeDeclarationSyntax, FieldInitializersInfo> map, FieldInitializers siblingInitializers)
         {
-            FieldInitializersInfo initializersInfo = map.GetOrAdd((TypeDeclarationSyntax)siblingInitializers.TypeDeclarationSyntax.GetSyntax(),
-                                                            (typeDecl) =>
-                                                            {
-                                                                var infos = ArrayBuilder<FieldInitializerInfo>.GetInstance(); // Exact size is not known up front.
-                                                                ConsList<Imports> firstDebugImports = null;
-                                                                var locals = Binder.GetFieldInitializerInfos(compilation, siblingInitializers, infos, false, ref firstDebugImports);
-                                                                return new FieldInitializersInfo(locals, infos.ToImmutableAndFree());
-                                                            });
-            return initializersInfo;
+            return map.GetOrAdd((TypeDeclarationSyntax)siblingInitializers.TypeDeclarationSyntax.GetSyntax(),
+                                (typeDecl) =>
+                                {
+                                    var infos = ArrayBuilder<FieldInitializerInfo>.GetInstance(); // Exact size is not known up front.
+                                    ConsList<Imports> firstDebugImports = null;
+                                    var locals = Binder.GetFieldInitializerInfos(compilation, siblingInitializers, infos, false, ref firstDebugImports);
+                                    return new FieldInitializersInfo(locals, infos.ToImmutableAndFree());
+                                });
         }
 
         private static bool IsMemberDeclaration(CSharpSyntaxNode node)

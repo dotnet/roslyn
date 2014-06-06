@@ -95,8 +95,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (syntax != null)
                         {
-                            var start = syntax.Parent.SpanStart;
-                            var end = syntax.OpenBraceToken.GetPreviousToken().Span.End;
+                            TextSpan span;
+
+                            if (asSourceMethod.IsPrimaryCtor)
+                            {
+                                span = syntax.OpenBraceToken.Span;
+                            }
+                            else
+                            {
+                                var start = syntax.Parent.SpanStart;
+                                var end = syntax.OpenBraceToken.GetPreviousToken().Span.End;
+                                span = TextSpan.FromBounds(start, end);
+                            }
 
                             // just wrap it. We do not need to force a nop. there will either be
                             // code between the method start and the first statement or we do not
@@ -104,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return new BoundSequencePointWithSpan(
                                 syntax,
                                 body,
-                                TextSpan.FromBounds(start, end));
+                                span);
                         }
                     }
                 }
