@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return location.SourceTree.GetRoot(cancellationToken).FindToken(location.SourceSpan.Start);
         }
 
-        public static bool IsVisibleSourceLocation(this Location loc, Solution solution)
+        public static bool IsVisibleSourceLocation(this Location loc)
         {
             if (!loc.IsInSource)
             {
