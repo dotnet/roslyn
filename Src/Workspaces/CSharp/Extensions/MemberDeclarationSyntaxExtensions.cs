@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static MemberDeclarationSyntax AddAttributeLists(
             this MemberDeclarationSyntax member,
-            AttributeListSyntax[] attributeLists)
+            params AttributeListSyntax[] attributeLists)
         {
             return member.WithAttributeLists(member.GetAttributes().AddRange(attributeLists));
         }

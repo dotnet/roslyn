@@ -10,8 +10,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
     public sealed class OpenDocumentOperation : CodeActionOperation
     {
         private readonly DocumentId documentId;
+        private readonly bool activate;
 
-        public OpenDocumentOperation(DocumentId documentId)
+        public OpenDocumentOperation(DocumentId documentId, bool activateIfAlreadyOpen = false)
         {
             if (documentId == null)
             {
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
 
             this.documentId = documentId;
+            this.activate = activateIfAlreadyOpen;
         }
 
         public DocumentId DocumentId
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (workspace.CanOpenDocuments)
             {
-                workspace.OpenDocument(this.documentId, activate: false);
+                workspace.OpenDocument(this.documentId, this.activate);
             }
         }
     }

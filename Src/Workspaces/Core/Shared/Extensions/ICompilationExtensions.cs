@@ -90,5 +90,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.ComAliasNameAttribute");
         }
+
+        public static INamedTypeSymbol SuppressMessageAttributeType(this Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute");
+        }
     }
 }
