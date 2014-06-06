@@ -236,6 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AnalyzerCannotBeCreated:
                 case ErrorCode.WRN_NoAnalyzerInAssembly:
                 case ErrorCode.WRN_UnableToLoadAnalyzer:
+                case ErrorCode.WRN_UnableToLoadSomeTypesInAnalyzer:
                 case ErrorCode.WRN_DefineIdentifierRequired:
                 case ErrorCode.WRN_CLS_NoVarArgs:
                 case ErrorCode.WRN_CLS_BadArgType:

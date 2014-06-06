@@ -144,12 +144,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ex != null)
             {
+                var typeLoadEx = ex as ReflectionTypeLoadException;
                 if (diagnosticsOpt != null && messageProviderOpt != null)
                 {
-                    diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.WRN_UnableToLoadAnalyzer, fullPath, ex.Message));
+                    var message = typeLoadEx == null ?
+                        messageProviderOpt.WRN_UnableToLoadAnalyzer :
+                        messageProviderOpt.WRN_UnableToLoadSomeTypesInAnalyzer;
+                    diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, message, fullPath, ex.Message));
                 }
 
-                return;
+                if (typeLoadEx != null)
+                {
+                    types = typeLoadEx.Types.Where(t => t != null).ToArray();
+                }
+                else
+                {
+                    return;
+                }
             }
 
             bool hasAnalyzers = false;

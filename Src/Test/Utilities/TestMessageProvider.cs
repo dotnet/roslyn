@@ -209,6 +209,11 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
+        public override int WRN_UnableToLoadSomeTypesInAnalyzer
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override int ERR_CantReadRulesetFile
         {
             get { throw new NotImplementedException(); }

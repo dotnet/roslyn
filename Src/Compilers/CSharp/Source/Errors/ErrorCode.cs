@@ -1264,7 +1264,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InstanceCtorMustHaveThisInitializer = 8037,
         ERR_PrimaryCtorParameterSameNameAsTypeParam = 8038,
         ERR_PrimaryCtorParameterSameNameAsContainingType = 8039,
-        // available = 8040
+
+        WRN_UnableToLoadSomeTypesInAnalyzer = 8040,
+        
         // available = 8041
         // available = 8042
         ERR_InstanceCtorCannotHaveDefaultThisInitializer = 8043,

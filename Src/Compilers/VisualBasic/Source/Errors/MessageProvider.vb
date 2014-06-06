@@ -168,6 +168,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property WRN_UnableToLoadSomeTypesInAnalyzer As Integer
+            Get
+                Return ERRID.WRN_UnableToLoadSomeTypesInAnalyzer
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ERR_CantReadRulesetFile As Integer
             Get
                 Return ERRID.ERR_CantReadRulesetFile

@@ -1877,9 +1877,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_AnalyzerCannotBeCreated = 42376
         WRN_NoAnalyzerInAssembly = 42377
         WRN_UnableToLoadAnalyzer = 42378
+        WRN_UnableToLoadSomeTypesInAnalyzer = 42379
 
         WRN_Last 'Can't be the same value as WRN_ConflictingMachineAssembly otherwise resource string for WRN_ConflictingMachineAssembly isn't found
-        ' // AVAILABLE                             42376 - 49998
+        ' // AVAILABLE                             42380 - 49998
 
 
         '// INFOS BEGIN HERE
