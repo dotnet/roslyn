@@ -65,7 +65,6 @@ namespace Roslyn.Utilities
                 {
                     if (HasConstructor(type))
                     {
-                        Debug.Assert(this.typeMap.ContainsKey(new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName)));
                         return;
                     }
 
