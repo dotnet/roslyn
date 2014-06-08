@@ -80,9 +80,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.InterfaceBlock,
                         SyntaxKind.ModuleBlock,
                         SyntaxKind.StructureBlock
-                        Return DirectCast(member, TypeBlockSyntax).Begin.WithAttributeLists(attributeLists)
+                        Dim typeBlock = DirectCast(member, TypeBlockSyntax)
+                        Dim newBegin = DirectCast(typeBlock.Begin.WithAttributeLists(attributeLists), TypeStatementSyntax)
+                        Return typeBlock.WithBegin(newBegin)
                     Case SyntaxKind.EnumBlock
-                        Return DirectCast(member, EnumBlockSyntax).EnumStatement.WithAttributeLists(attributeLists)
+                        Dim enumBlock = DirectCast(member, EnumBlockSyntax)
+                        Dim newEnumStatement = DirectCast(enumBlock.EnumStatement.WithAttributeLists(attributeLists), EnumStatementSyntax)
+                        Return enumBlock.WithEnumStatement(newEnumStatement)
                     Case SyntaxKind.ClassStatement
                         Return DirectCast(member, ClassStatementSyntax).WithAttributeLists(attributeLists)
                     Case SyntaxKind.InterfaceStatement
@@ -98,11 +102,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Case SyntaxKind.FieldDeclaration
                         Return DirectCast(member, FieldDeclarationSyntax).WithAttributeLists(attributeLists)
                     Case SyntaxKind.EventBlock
-                        Return DirectCast(member, EventBlockSyntax).EventStatement.WithAttributeLists(attributeLists)
+                        Dim eventBlock = DirectCast(member, EventBlockSyntax)
+                        Dim newEventStatement = DirectCast(eventBlock.EventStatement.WithAttributeLists(attributeLists), EventStatementSyntax)
+                        Return eventBlock.WithEventStatement(newEventStatement)
                     Case SyntaxKind.EventStatement
                         Return DirectCast(member, EventStatementSyntax).WithAttributeLists(attributeLists)
                     Case SyntaxKind.PropertyBlock
-                        Return DirectCast(member, PropertyBlockSyntax).PropertyStatement.WithAttributeLists(attributeLists)
+                        Dim propertyBlock = DirectCast(member, PropertyBlockSyntax)
+                        Dim newPropertyStatement = propertyBlock.PropertyStatement.WithAttributeLists(attributeLists)
+                        Return propertyBlock.WithPropertyStatement(newPropertyStatement)
                     Case SyntaxKind.PropertyStatement
                         Return DirectCast(member, PropertyStatementSyntax).WithAttributeLists(attributeLists)
                     Case SyntaxKind.FunctionBlock,
@@ -114,7 +122,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.AddHandlerBlock,
                         SyntaxKind.RemoveHandlerBlock,
                         SyntaxKind.RaiseEventBlock
-                        Return DirectCast(member, MethodBlockBaseSyntax).Begin.WithAttributeLists(attributeLists)
+                        Dim methodBlock = DirectCast(member, MethodBlockBaseSyntax)
+                        Dim newBegin = methodBlock.Begin.WithAttributeLists(attributeLists)
+                        Return methodBlock.ReplaceNode(methodBlock.Begin, newBegin)
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement
                         Return DirectCast(member, MethodStatementSyntax).WithAttributeLists(attributeLists)
@@ -143,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function AddAttributeLists(member As StatementSyntax, attributeLists As AttributeListSyntax()) As StatementSyntax
+        Public Function AddAttributeLists(member As StatementSyntax, ParamArray attributeLists As AttributeListSyntax()) As StatementSyntax
             Return member.WithAttributeLists(member.GetAttributes().AddRange(attributeLists))
         End Function
 
