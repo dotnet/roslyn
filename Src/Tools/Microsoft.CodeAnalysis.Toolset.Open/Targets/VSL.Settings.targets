@@ -99,6 +99,8 @@
         <Import Include="System.Collections" />
         <Import Include="System.Collections.Generic" />
         <Import Include="System.Diagnostics" />
+      </ItemGroup>
+      <ItemGroup Condition="'$(TargetFrameworkVersion)' != 'v2.0'">
         <Import Include="System.Linq" />
       </ItemGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
