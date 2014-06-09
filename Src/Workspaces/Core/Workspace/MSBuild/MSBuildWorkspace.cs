@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly Dictionary<string, string> extensionToLanguageMap = new Dictionary<string, string>();
         private readonly Dictionary<string, ProjectId> projectPathToProjectIdMap = new Dictionary<string, ProjectId>();
         private readonly Dictionary<string, IProjectFileLoader> projectPathToLoaderMap = new Dictionary<string, IProjectFileLoader>();
-        private readonly Dictionary<string, DocumentationProvider> assemblyPathToDocumentationProviderMap = new Dictionary<string, DocumentationProvider>();
 
         private string solutionFilePath;
         private bool currentPreferMetadata;
@@ -150,7 +149,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // clear project related data
                 this.projectPathToProjectIdMap.Clear();
                 this.projectPathToLoaderMap.Clear();
-                this.assemblyPathToDocumentationProviderMap.Clear();
             }
         }
 
@@ -424,9 +422,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var resolvedReferences = await this.ResolveProjectReferencesAsync(
                     projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
 
-                // metadata references
                 var metadataReferences = projectFileInfo.MetadataReferences
-                    .Select(mi => new MetadataFileReference(mi.Path, mi.Properties, this.GetDocumentationProvider(mi.Path)))
                     .Concat(resolvedReferences.MetadataReferences);
 
                 var outputFilePath = projectFileInfo.OutputFilePath;
@@ -566,10 +562,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 if (outputFilePath != null && File.Exists(outputFilePath))
                 {
-                    var docProvider = this.GetDocumentationProvider(outputFilePath);
-
                     if (Workspace.TestHookStandaloneProjectsDoNotHoldReferences)
                     {
+                        var documentationService = this.Services.GetService<IDocumentationProviderService>();
+                        var docProvider = documentationService.GetDocumentationProvider(outputFilePath);
+
                         return new MetadataImageReference(
                             AssemblyMetadata.CreateFromImage(ImmutableArray.Create(File.ReadAllBytes(outputFilePath))),
                             documentation: docProvider,
@@ -578,7 +575,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                     else
                     {
-                        return new MetadataFileReference(outputFilePath, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases), docProvider);
+                        var metadataService = this.Services.GetService<IMetadataReferenceProviderService>();
+                        var provider = metadataService.GetProvider();
+                        return provider.GetReference(outputFilePath, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases));
                     }
                 }
             }
@@ -588,23 +587,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             return null;
-        }
-
-        private DocumentationProvider GetDocumentationProvider(string assemblyPath)
-        {
-            using (this.dataGuard.DisposableWait())
-            {
-                assemblyPath = Path.ChangeExtension(assemblyPath, "xml");
-
-                DocumentationProvider provider;
-                if (!this.assemblyPathToDocumentationProviderMap.TryGetValue(assemblyPath, out provider))
-                {
-                    provider = XmlDocumentationProvider.Create(assemblyPath);
-                    this.assemblyPathToDocumentationProviderMap.Add(assemblyPath, provider);
-                }
-
-                return provider;
-            }
         }
     #endregion
 

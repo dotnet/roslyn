@@ -11,6 +11,7 @@ using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -21,9 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class CSharpProjectFile : ProjectFile
         {
-            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project)
+            private readonly IMetadataReferenceProviderService metadataService;
+
+            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataReferenceProviderService metadataService)
                 : base(loader, project)
             {
+                this.metadataService = metadataService;
             }
 
             public override SourceCodeKind GetSourceCodeKind(string documentFileName)
@@ -95,15 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
                        .ToImmutableArray();
 
-                var metadataRefs = compilerInputs.References.SelectMany(r => MakeMetadataInfo(r));
-
-                var analyzerRefs = compilerInputs.AnalyzerReferences.Select(r => new AnalyzerFileReference(GetDocumentFilePath(r)));
-
-                if (!compilerInputs.NoStandardLib)
-                {
-                    var mscorlibPath = typeof(object).Assembly.Location;
-                    metadataRefs = metadataRefs.Concat(new[] { new MetadataInfo(mscorlibPath) });
-                }
+                IEnumerable<MetadataReference> metadataRefs;
+                IEnumerable<AnalyzerReference> analyzerRefs;
+                this.GetReferences(compilerInputs, executedProject, out metadataRefs, out analyzerRefs);
 
                 return new ProjectFileInfo(
                     this.Guid,
@@ -114,8 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     docs,
                     this.GetProjectReferences(executedProject),
                     metadataRefs,
-                    analyzerRefs,
-                    appConfigPath: compilerInputs.AppConfigPath);
+                    analyzerRefs);
             }
 
             private DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, MSB.Framework.ITaskItem item)
@@ -125,14 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var isLinked = IsDocumentLinked(item);
                 var isGenerated = IsDocumentGenerated(item);
                 return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated);
-            }
-
-            private IEnumerable<MetadataInfo> MakeMetadataInfo(MSB.Framework.ITaskItem item)
-            {
-                var filePath = GetDocumentFilePath(item);
-
-                var aliases = GetAliases(item);
-                return new MetadataInfo[] { new MetadataInfo(filePath, new MetadataReferenceProperties(aliases: aliases)) };
             }
 
             private ImmutableArray<string> GetAliases(MSB.Framework.ITaskItem item)
@@ -145,6 +134,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return ImmutableArray.CreateRange(aliasesText.Split(new char[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries));
+            }
+
+            private void GetReferences(
+                CSharpCompilerInputs compilerInputs,
+                MSB.Execution.ProjectInstance executedProject,
+                out IEnumerable<MetadataReference> metadataReferences, 
+                out IEnumerable<AnalyzerReference> analyzerReferences)
+            {
+                // use command line parser to do reference translation same as command line compiler
+
+                var args = new List<string>();
+
+                if (compilerInputs.LibPaths != null && compilerInputs.LibPaths.Count > 0)
+                {
+                    args.Add("/lib:\"" + string.Join(";", compilerInputs.LibPaths) + "\"");
+                }
+
+                foreach (var mr in compilerInputs.References)
+                {
+                    var filePath = GetDocumentFilePath(mr);
+
+                    var aliases = GetAliases(mr);
+                    if (aliases.IsDefault || aliases.IsEmpty)
+                    {
+                        args.Add("/r:\"" + filePath + "\"");
+                    }
+                    else
+                    {
+                        foreach (var alias in aliases)
+                        {
+                            args.Add("/r:" + alias + "=\"" + filePath + "\"");
+                        }
+                    }
+                }
+
+                foreach (var ar in compilerInputs.AnalyzerReferences)
+                {
+                    var filePath = GetDocumentFilePath(ar);
+                    args.Add("/a:\"" + filePath + "\"");
+                }
+
+                if (compilerInputs.NoStandardLib)
+                {
+                    args.Add("/nostdlib");
+                }
+
+                var commandLineParser = CSharpCommandLineParser.Default;
+                var commandLineArgs = commandLineParser.Parse(args, executedProject.Directory);
+
+                var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
+                metadataReferences = commandLineArgs.ResolveMetadataReferences(resolver, this.metadataService.GetProvider());
+                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences();
             }
 
             private void InitializeFromModel(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
@@ -221,10 +262,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal bool Initialized { get; private set; }
                 internal CSharpParseOptions ParseOptions { get; private set; }
                 internal CSharpCompilationOptions CompilationOptions { get; private set; }
-                internal string AppConfigPath { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> Sources { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> References { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> AnalyzerReferences { get; private set; }
+                internal IReadOnlyList<string> LibPaths { get; private set; }
                 internal bool NoStandardLib { get; private set; }
                 internal Dictionary<string, ReportDiagnostic> Warnings { get; private set; }
 
@@ -258,6 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.Sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.References = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.AnalyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    this.LibPaths = SpecializedCollections.EmptyReadOnlyList<string>();
                 }
 
                 public bool Compile()
@@ -332,7 +374,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!string.IsNullOrEmpty(applicationConfiguration))
                     {
-                        this.AppConfigPath = FileUtilities.ResolveRelativePath(applicationConfiguration, Path.GetDirectoryName(this.projectFile.FilePath));
+                        var appConfigPath = FileUtilities.ResolveRelativePath(applicationConfiguration, Path.GetDirectoryName(this.projectFile.FilePath));
+                        try
+                        {
+                            using (var appConfigStream = new FileStream(appConfigPath, FileMode.Open, FileAccess.Read))
+                            {
+                                this.CompilationOptions = this.CompilationOptions.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream));
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
                     }
 
                     return true;
@@ -362,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetAdditionalLibPaths(string[] additionalLibPaths)
                 {
-                    // ???
+                    this.LibPaths = additionalLibPaths;
                     return true;
                 }
 

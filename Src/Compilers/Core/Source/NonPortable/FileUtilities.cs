@@ -44,7 +44,7 @@ namespace Roslyn.Utilities
             IEnumerable<string> searchPaths,
             Func<string, bool> fileExists)
         {
-            Debug.Assert(baseDirectory == null || PathUtilities.IsAbsolute(baseDirectory));
+            Debug.Assert(baseDirectory == null || searchPaths != null || PathUtilities.IsAbsolute(baseDirectory));
             Debug.Assert(searchPaths != null);
             Debug.Assert(fileExists != null);
 

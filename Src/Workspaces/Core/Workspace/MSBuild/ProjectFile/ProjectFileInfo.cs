@@ -50,17 +50,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// References to other metadata files; libraries and executables.
         /// </summary>
-        public IReadOnlyList<MetadataInfo> MetadataReferences { get; private set; }
+        public IReadOnlyList<MetadataReference> MetadataReferences { get; private set; }
 
         /// <summary>
         /// References to analyzer assembly files; contains diagnostic analyzers.
         /// </summary>
         public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; private set; }
-
-        /// <summary>
-        /// The path to an App.config configuration file, or null if none is provided.
-        /// </summary>
-        public string AppConfigPath { get; private set; }
 
         public ProjectFileInfo(
             Guid guid,
@@ -70,9 +65,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ParseOptions parseOptions,
             IEnumerable<DocumentFileInfo> documents,
             IEnumerable<ProjectFileReference> projectReferences,
-            IEnumerable<MetadataInfo> metadataReferences,
-            IEnumerable<AnalyzerReference> analyzerReferences,
-            string appConfigPath)
+            IEnumerable<MetadataReference> metadataReferences,
+            IEnumerable<AnalyzerReference> analyzerReferences)
         {
             this.Guid = guid;
             this.OutputFilePath = outputPath;
@@ -83,7 +77,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
             this.MetadataReferences = metadataReferences.ToImmutableReadOnlyListOrEmpty();
             this.AnalyzerReferences = analyzerReferences.ToImmutableReadOnlyListOrEmpty();
-            this.AppConfigPath = appConfigPath;
         }
     }
 }

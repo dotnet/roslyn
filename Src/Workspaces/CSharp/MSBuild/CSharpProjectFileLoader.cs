@@ -9,9 +9,15 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    [ExportLanguageService(typeof(IProjectFileLoader), LanguageNames.CSharp)]
     internal partial class CSharpProjectFileLoader : ProjectFileLoader
     {
+        private readonly HostWorkspaceServices workspaceServices;
+
+        public CSharpProjectFileLoader(HostWorkspaceServices workspaceServices)
+        {
+            this.workspaceServices = workspaceServices;
+        }
+
         public override string Language
         {
             get { return LanguageNames.CSharp; }
@@ -31,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject)
         {
-            return new CSharpProjectFile(this, loadedProject);
+            return new CSharpProjectFile(this, loadedProject, this.workspaceServices.GetService<IMetadataReferenceProviderService>());
         }
     }
 }

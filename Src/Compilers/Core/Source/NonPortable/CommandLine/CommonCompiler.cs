@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
             using (Logger.LogBlock(FunctionId.Common_CommandLineCompiler_ResolveMetadataReferences))
             {
                 List<MetadataReference> resolved = new List<MetadataReference>();
-                ResolveMetadataReferencesFromArguments(externalReferenceResolver, metadataProvider, diagnostics, resolved);
+                Arguments.ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, this.MessageProvider, resolved);
 
                 if (Arguments.IsInteractive)
                 {
@@ -116,28 +116,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// Returns false if there were unresolved references in arguments, true otherwise.
-        /// </summary>
-        protected virtual bool ResolveMetadataReferencesFromArguments(MetadataReferenceResolver externalReferenceResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnostics, List<MetadataReference> resolved)
-        {
-            bool result = true;
-
-            foreach (var reference in Arguments.ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, MessageProvider))
-            {
-                if (!reference.IsUnresolved)
-                {
-                    resolved.Add(reference);
-                }
-                else
-                {
-                    result = false;
-                    Debug.Assert(diagnostics.Any());
-                }
-            }
-
-            return result;
-        }
 
         /// <summary>
         /// Reads content of a source file.

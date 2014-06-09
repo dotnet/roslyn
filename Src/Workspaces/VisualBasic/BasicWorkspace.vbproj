@@ -194,6 +194,7 @@
     <Compile Include="LanguageServices\VisualBasicTypeInferenceService.TypeInferrer.vb" />
     <Compile Include="LanguageServices\VisualBasicTypeInferenceService.vb" />
     <Compile Include="MSBuild\VisualBasicProjectFileLoader.vb" />
+    <Compile Include="MSBuild\VisualBasicProjectFileLoaderFactory.vb" />
     <Compile Include="Recommendations\VisualBasicRecommendationService.vb" />
     <Compile Include="Rename\LabelConflictVisitor.vb" />
     <Compile Include="Rename\LocalConflictVisitor.vb" />

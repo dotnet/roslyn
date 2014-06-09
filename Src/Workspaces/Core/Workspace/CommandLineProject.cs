@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis
 
             // construct file infos
             var docs = new List<DocumentInfo>();
-            var ids = new HashSet<DocumentId>();
             foreach (var fileArg in commandLineArguments.SourceFiles)
             {
                 var absolutePath = Path.IsPathRooted(fileArg.Path) || string.IsNullOrEmpty(projectDirectory)
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                 var folderRoot = isWithinProject ? Path.GetDirectoryName(relativePath) : "";
                 var folders = isWithinProject ? GetFolders(relativePath) : null;
                 var name = Path.GetFileName(relativePath);
-                var id = GetUniqueDocumentId(projectId, name, folderRoot, ids);
+                var id = DocumentId.CreateNewId(projectId, absolutePath);
 
                 var doc = DocumentInfo.Create(
                    id: id,
@@ -155,19 +154,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return directory.Split(folderSplitters, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
             }
-        }
-
-        private static DocumentId GetUniqueDocumentId(ProjectId projectId, string name, string folderRoot, HashSet<DocumentId> ids)
-        {
-            var id = DocumentId.CreateNewId(projectId, Path.Combine(folderRoot, name));
-            int n = 1;
-
-            while (ids.Contains(id))
-            {
-                id = DocumentId.CreateNewId(projectId, Path.Combine(folderRoot, name + (n++)));
-            }
-
-            return id;
         }
     }
 }

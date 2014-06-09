@@ -230,19 +230,47 @@ namespace Microsoft.CodeAnalysis
         /// reports appropriate diagnostics.
         /// Otherwise, if <paramref name="diagnosticsOpt"/> is null, the exceptions are unhandled.
         /// </summary>
+        /// <remarks>
+        /// called by CommonCompiler with diagnostics and message provider
+        /// </remarks>
         internal IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
             Debug.Assert(metadataResolver != null);
             Debug.Assert(metadataProvider != null);
 
-            foreach (CommandLineReference cmdReference in MetadataReferences)
-            {
-                yield return ResolveMetadataReference(cmdReference, metadataResolver, metadataProvider, diagnosticsOpt, messageProviderOpt) ?? 
-                    new UnresolvedMetadataReference(cmdReference.Reference, cmdReference.Properties);
-            }
+            var resolved = new List<MetadataReference>();
+            this.ResolveMetadataReferences(metadataResolver, metadataProvider, diagnosticsOpt, messageProviderOpt, resolved);
+
+            return resolved;
         }
 
-        internal MetadataReference ResolveMetadataReference(CommandLineReference cmdReference, MetadataReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal virtual bool ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt, List<MetadataReference> resolved)
+        {
+            bool result = true;
+
+            foreach (CommandLineReference cmdReference in MetadataReferences)
+            {
+                var r = ResolveMetadataReference(cmdReference, metadataResolver, metadataProvider, diagnosticsOpt, messageProviderOpt);
+                if (r != null)
+                {
+                    resolved.Add(r);
+                }
+                else
+                {
+                    result = false;
+                    if (diagnosticsOpt == null)
+                    {
+                        // no diagnostic, so leaved unresolved reference in list
+                        resolved.Add(new UnresolvedMetadataReference(cmdReference.Reference, cmdReference.Properties));
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        // TODO: change to private protected when available
+        internal static MetadataReference ResolveMetadataReference(CommandLineReference cmdReference, MetadataReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
             Debug.Assert(metadataResolver != null);
             Debug.Assert(metadataProvider != null);
@@ -283,7 +311,8 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (CommandLineAnalyzerReference cmdLineReference in AnalyzerReferences)
             {
-                yield return ResolveAnalyzerReference(cmdLineReference) ?? (AnalyzerReference)new UnresolvedAnalyzerReference(cmdLineReference.FilePath);
+                yield return ResolveAnalyzerReference(cmdLineReference) 
+                    ?? (AnalyzerReference)new UnresolvedAnalyzerReference(cmdLineReference.FilePath);
             }
         }
 

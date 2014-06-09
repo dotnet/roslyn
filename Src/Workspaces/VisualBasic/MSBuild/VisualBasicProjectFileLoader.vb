@@ -11,11 +11,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports MSB = Microsoft.Build
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    <ExportLanguageService(GetType(IProjectFileLoader), LanguageNames.VisualBasic)>
     Friend Class VisualBasicProjectFileLoader
         Inherits ProjectFileLoader
 
-        Friend Sub New()
+        Private _workspaceServices As HostWorkspaceServices
+
+        Friend Sub New(workspaceServices As HostWorkspaceServices)
+            Me._workspaceServices = workspaceServices
         End Sub
 
         Public Overrides ReadOnly Property Language As String
@@ -35,14 +37,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function CreateProjectFile(loadedProject As MSB.Evaluation.Project) As ProjectFile
-            Return New VisualBasicProjectFile(Me, loadedProject)
+            Return New VisualBasicProjectFile(Me, loadedProject, Me._workspaceServices.GetService(Of IMetadataReferenceProviderService))
         End Function
 
         Friend Class VisualBasicProjectFile
             Inherits ProjectFile
 
-            Public Sub New(loader As VisualBasicProjectFileLoader, loadedProject As MSB.Evaluation.Project)
+            Private _metadataService As IMetadataReferenceProviderService
+
+            Public Sub New(loader As VisualBasicProjectFileLoader, loadedProject As MSB.Evaluation.Project, metadataServices As IMetadataReferenceProviderService)
                 MyBase.New(loader, loadedProject)
+                Me._metadataService = metadataServices
             End Sub
 
             Public Overrides Function GetSourceCodeKind(documentFileName As String) As SourceCodeKind
@@ -75,6 +80,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Shadows Function CreateProjectFileInfo(compilerInputs As VisualBasicCompilerInputs, executedProject As MSB.Execution.ProjectInstance) As ProjectFileInfo
+
+                Dim metadataReferences As IEnumerable(Of MetadataReference) = Nothing
+                Dim analyzerReferences As IEnumerable(Of AnalyzerReference) = Nothing
+                GetReferences(compilerInputs, executedProject, metadataReferences, analyzerReferences)
+
                 Return New ProjectFileInfo(
                     Me.Guid,
                     Me.GetTargetPath(),
@@ -84,10 +94,63 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         compilerInputs.CompilationOptions.OutputKind, compilerInputs.ParseOptions.PreprocessorSymbols)),
                     Me.GetDocuments(compilerInputs, executedProject),
                     Me.GetProjectReferences(executedProject),
-                    Me.GetMetadataReferences(compilerInputs),
-                    Me.GetAnalyzerReferences(compilerInputs),
-                    appConfigPath:=Nothing)
+                    metadataReferences,
+                    analyzerReferences)
             End Function
+
+            Private Sub GetReferences(
+                compilerInputs As VisualBasicCompilerInputs,
+                executedProject As MSB.Execution.ProjectInstance,
+                ByRef metadataReferences As IEnumerable(Of MetadataReference),
+                ByRef analyzerReferences As IEnumerable(Of AnalyzerReference))
+
+                ' use command line parser to compute references using common logic
+
+                Dim args = New List(Of String)()
+
+                If compilerInputs.LibPaths IsNot Nothing AndAlso compilerInputs.LibPaths.Count > 0 Then
+                    args.Add("/libpath:""" + String.Join(";", compilerInputs.LibPaths) + """")
+                End If
+
+                ' metadata references
+                For Each mr In compilerInputs.References
+                    Dim filePath = GetDocumentFilePath(mr)
+                    args.Add("/r:""" + filePath + """")
+                Next
+
+                ' analyzer references
+                For Each ar In compilerInputs.AnalyzerReferences
+                    Dim filePath = GetDocumentFilePath(ar)
+                    args.Add("/a:""" + filePath + """")
+                Next
+
+                If compilerInputs.NoStandardLib Then
+                    args.Add("/nostdlib")
+                End If
+
+                If Not String.IsNullOrEmpty(compilerInputs.VbRuntime) Then
+                    If compilerInputs.VbRuntime = "Default" Then
+                        args.Add("/vbruntime+")
+                    ElseIf compilerInputs.VbRuntime = "Embed" Then
+                        args.Add("/vbruntime*")
+                    ElseIf compilerInputs.VbRuntime = "None" Then 'TODO: check on this
+                        args.Add("/vbruntime-")
+                    Else
+                        args.Add("/vbruntime: " + compilerInputs.VbRuntime)
+                    End If
+                End If
+
+                If Not String.IsNullOrEmpty(compilerInputs.SdkPath) Then
+                    args.Add("/sdkpath:" + compilerInputs.SdkPath)
+                End If
+
+                Dim commandLineParser = VisualBasicCommandLineParser.Default
+                Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory)
+                Dim resolver = New MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)
+                metadataReferences = commandLineArgs.ResolveMetadataReferences(resolver, Me._metadataService.GetProvider())
+                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences()
+
+            End Sub
 
             Private Function GetDocuments(compilerInputs As VisualBasicCompilerInputs, executedProject As MSB.Execution.ProjectInstance) As IEnumerable(Of DocumentFileInfo)
                 Dim projectDirectory = executedProject.Directory
@@ -98,55 +161,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return compilerInputs.Sources _
                          .Where(Function(s) Not System.IO.Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_")) _
                          .Select(Function(s) New DocumentFileInfo(GetDocumentFilePath(s), GetDocumentLogicalPath(s, projectDirectory), IsDocumentLinked(s), IsDocumentGenerated(s))).ToImmutableArray()
-            End Function
-
-            Private Function GetMetadataReferences(compilerInputs As VisualBasicCompilerInputs) As IEnumerable(Of MetadataInfo)
-                Dim refs = compilerInputs.References.Select(Function(r) New MetadataInfo(GetDocumentFilePath(r))).ToList()
-
-                If (compilerInputs.SdkPath IsNot Nothing) Then
-                    Dim mscorlibPath = Path.Combine(compilerInputs.SdkPath, "mscorlib.dll")
-                    refs.Add(New MetadataInfo(mscorlibPath))
-                End If
-
-                ' figure out msvb location
-                Dim msvbPath As String = Nothing
-
-                If compilerInputs.VbRuntime = "Default" OrElse String.IsNullOrEmpty(compilerInputs.VbRuntime) Then
-                    If compilerInputs.SdkPath IsNot Nothing Then
-                        msvbPath = Path.Combine(compilerInputs.SdkPath, "Microsoft.VisualBasic.dll")
-                    End If
-                ElseIf compilerInputs.VbRuntime <> "Embed" Then
-                    ' this must be a user specified runtime
-
-                    ' If they specified a fully qualified file, use it
-                    If File.Exists(compilerInputs.VbRuntime) Then
-                        msvbPath = compilerInputs.VbRuntime
-                    Else
-                        ' If it's just a filename, try to find it in the SDK path.
-                        If compilerInputs.VbRuntime = Path.GetFileName(compilerInputs.VbRuntime) AndAlso compilerInputs.SdkPath IsNot Nothing Then
-                            Dim _path = Path.Combine(compilerInputs.SdkPath, compilerInputs.VbRuntime)
-                            If File.Exists(_path) Then
-                                msvbPath = _path
-                            End If
-                        End If
-                    End If
-                End If
-
-                If msvbPath IsNot Nothing Then
-                    refs.Add(New MetadataInfo(msvbPath))
-                End If
-
-                ' Add System.Dll if not no-standard-lib
-                If Not compilerInputs.NoStandardLib AndAlso compilerInputs.SdkPath IsNot Nothing Then
-                    Dim systemPath = Path.Combine(compilerInputs.SdkPath, "System.dll")
-                    refs.Add(New MetadataInfo(systemPath))
-                End If
-
-                Return refs.ToImmutableArray()
-            End Function
-
-            Private Function GetAnalyzerReferences(compilerInputs As VisualBasicCompilerInputs) As IEnumerable(Of AnalyzerReference)
-                Return compilerInputs.AnalyzerReferences.Select(Function(r) New AnalyzerFileReference(GetDocumentFilePath(r)))
             End Function
 
             Private Sub InitializeFromModel(compilerInputs As VisualBasicCompilerInputs, executedProject As MSB.Execution.ProjectInstance)
@@ -243,7 +257,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Function
 
-
             Private Class VisualBasicCompilerInputs
                 Implements MSB.Tasks.Hosting.IVbcHostObject5, MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded
 
@@ -259,6 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private _sdkPath As String
                 Private _targetCompactFramework As Boolean
                 Private _vbRuntime As String
+                Private _libPaths As IEnumerable(Of String)
 
                 Public Sub New(projectFile As VisualBasicProjectFile)
                     Me._projectFile = projectFile
@@ -339,6 +353,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
+                Public ReadOnly Property LibPaths As IEnumerable(Of String)
+                    Get
+                        Return Me._libPaths
+                    End Get
+                End Property
+
                 Public Sub BeginInitialization() Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.BeginInitialization
                 End Sub
 
@@ -363,6 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetAdditionalLibPaths(additionalLibPaths() As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetAdditionalLibPaths
+                    Me._libPaths = additionalLibPaths
                     Return True
                 End Function
 

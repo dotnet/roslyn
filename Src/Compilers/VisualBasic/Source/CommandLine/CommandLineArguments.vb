@@ -58,6 +58,75 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub New()
         End Sub
+
+        Friend Overrides Function ResolveMetadataReferences(
+            metadataResolver As MetadataReferenceResolver,
+            metadataProvider As MetadataReferenceProvider,
+            diagnostics As List(Of DiagnosticInfo),
+            messageProvider As CommonMessageProvider,
+            resolved As List(Of MetadataReference)
+            ) As Boolean
+
+            If MyBase.ResolveMetadataReferences(metadataResolver, metadataProvider, diagnostics, messageProvider, resolved) Then
+
+                ' If there were no references, don't try to add default Cor library reference.
+                If Me.DefaultCoreLibraryReference IsNot Nothing AndAlso resolved.Count > 0 Then
+                    ' All references from arguments were resolved successfully. Let's see if we have a reference that can be used as a Cor library.
+                    For Each reference In resolved
+                        Dim refProps = reference.Properties
+
+                        ' The logic about deciding what assembly is a candidate for being a Cor library here and in
+                        ' CommonReferenceManager<TCompilation, TAssemblySymbol>.IndexOfCorLibrary
+                        ' should be equivalent.
+                        If Not refProps.EmbedInteropTypes AndAlso refProps.Kind = MetadataImageKind.Assembly Then
+                            Dim metadata As Metadata
+
+                            Try
+                                metadata = DirectCast(reference, PortableExecutableReference).GetMetadata()
+                            Catch
+                                ' Failed to get metadata, there will be some errors reported later.
+                                Return True
+                            End Try
+
+                            If metadata Is Nothing Then
+                                ' Failed to get metadata, there will be some errors reported later.
+                                Return True
+                            End If
+
+                            Dim assemblyMetadata = DirectCast(metadata, AssemblyMetadata)
+
+                            If Not assemblyMetadata.IsValidAssembly Then
+                                ' There will be some errors reported later.
+                                Return True
+                            End If
+
+                            Dim assembly As PEAssembly = assemblyMetadata.Assembly
+
+                            If assembly.AssemblyReferences.Length = 0 AndAlso Not assembly.ContainsNoPiaLocalTypes AndAlso assembly.DeclaresTheObjectClass Then
+                                ' This reference looks like a valid Cor library candidate, bail out.
+                                Return True
+                            End If
+                        End If
+                    Next
+
+                    ' None of the supplied references could be used as a Cor library. Let's add a default one.
+                    Dim defaultCorLibrary As MetadataReference = ResolveMetadataReference(Me.DefaultCoreLibraryReference.Value, metadataResolver, metadataProvider, diagnostics, messageProvider)
+
+                    If defaultCorLibrary.IsUnresolved Then
+                        Debug.Assert(diagnostics Is Nothing OrElse diagnostics.Any())
+                        Return False
+                    Else
+                        resolved.Insert(0, defaultCorLibrary)
+                        Return True
+                    End If
+                End If
+
+                Return True
+            End If
+
+            Return False
+        End Function
+
     End Class
 
     Friend Enum OutputLevel

@@ -198,6 +198,7 @@
     <Compile Include="LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs" />
     <Compile Include="MSBuild\CSharpProjectFileLoader.cs" />
     <Compile Include="MSBuild\CSharpProjectFileLoader.CSharpProjectFile.cs" />
+    <Compile Include="MSBuild\CSharpProjectFileLoaderFactory.cs" />
     <Compile Include="Recommendations\CSharpRecommendationService.cs" />
     <Compile Include="Rename\CSharpRenameRewriterLanguageService.cs" />
     <Compile Include="Rename\LabelConflictVisitor.cs" />
