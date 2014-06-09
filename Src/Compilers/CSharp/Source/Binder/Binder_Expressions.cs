@@ -1221,10 +1221,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     // If it is in fact a 'var' and is an argument, it is illegal to reference it in the same argument list.
                                     CSharpSyntaxNode possibleArgument = declarationExpression.Parent;
 
-                                    // Skip parenthesis
-                                    while (possibleArgument != null && possibleArgument.Kind == SyntaxKind.ParenthesizedExpression)
+                                    // Skip parentheses and checked/unchecked expressions
+                                    while (possibleArgument != null)
                                     {
-                                        possibleArgument = possibleArgument.Parent;
+                                        switch (possibleArgument.Kind)
+                                        {
+                                            case SyntaxKind.ParenthesizedExpression:
+                                            case SyntaxKind.CheckedExpression:
+                                            case SyntaxKind.UncheckedExpression:
+                                                possibleArgument = possibleArgument.Parent;
+                                                continue;
+                                        }
+
+                                        break;
                                     }
 
                                     if (possibleArgument != null && possibleArgument.Kind == SyntaxKind.Argument && possibleArgument.Parent != null)

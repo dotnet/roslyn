@@ -1267,6 +1267,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode VisitLockStatement(BoundLockStatement node)
+        {
+            DeclareVariables(node.Locals);
+            var result = base.VisitLockStatement(node);
+            ReportUnusedVariables(node.Locals);
+            return result;
+        }
+
         /// <remarks>
         /// Variables declared in a using statement are always considered used, so this is just an assert.
         /// </remarks>

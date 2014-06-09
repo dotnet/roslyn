@@ -1,28 +1,32 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class LockBinder : Binder // NOTE: not LocalScopeBinder
+    internal sealed class LockBinder : LockOrUsingBinder 
     {
         private readonly LockStatementSyntax syntax;
-        private readonly LockOrUsingStatementExpressionHandler expressionHandler;
 
         public LockBinder(Binder enclosing, LockStatementSyntax syntax)
             : base(enclosing)
         {
             this.syntax = syntax;
-            this.expressionHandler = new LockOrUsingStatementExpressionHandler(syntax.Expression, this);
         }
 
-        internal override ImmutableHashSet<Microsoft.CodeAnalysis.CSharp.Symbol> LockedOrDisposedVariables
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
+        {
+            return BuildLocals(syntax.Expression);
+        }
+
+        protected override ExpressionSyntax TargetExpressionSyntax
         {
             get
             {
-                return expressionHandler.LockedOrDisposedVariables;
+                return syntax.Expression;
             }
         }
 
@@ -30,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Allow method groups during binding and then rule them out when we check that the expression has
             // a reference type.
-            ExpressionSyntax exprSyntax = syntax.Expression;
-            BoundExpression expr = expressionHandler.GetExpression(diagnostics);
+            ExpressionSyntax exprSyntax = TargetExpressionSyntax;
+            BoundExpression expr = BindTargetExpression(diagnostics);
             TypeSymbol exprType = expr.Type;
 
             bool hasErrors = false;
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundStatement stmt = BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
-            return new BoundLockStatement(syntax, expr, stmt, hasErrors);
+            return new BoundLockStatement(syntax, this.Locals, expr, stmt, hasErrors);
         }
     }
 }

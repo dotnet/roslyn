@@ -132,7 +132,7 @@
     <Compile Include="Binder\LocalInProgressBinder.cs" />
     <Compile Include="Binder\LocalScopeBinder.cs" />
     <Compile Include="Binder\LockBinder.cs" />
-    <Compile Include="Binder\LockOrUsingStatementExpressionHandler.cs" />
+    <Compile Include="Binder\LockOrUsingBinder.cs" />
     <Compile Include="Binder\LookupOptions.cs" />
     <Compile Include="Binder\LookupResult.cs" />
     <Compile Include="Binder\LookupResultKind.cs" />

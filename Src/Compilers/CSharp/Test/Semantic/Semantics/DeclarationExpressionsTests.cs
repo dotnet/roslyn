@@ -346,6 +346,16 @@ public class Cls
             public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
             {
                 Debug.Assert(currentScope == null);
+
+                VisitAttributes(node.AttributeLists);
+
+                if (node.AccessorList != null)
+                {
+                    VisitAccessorList(node.AccessorList);
+                }
+
+                Visit(node.ExpressionBody);
+
                 DeclarationScope initScope = node.Modifiers.Any(SyntaxKind.StaticKeyword) ? staticInitScope : instanceInitScope;
 
                 currentScope = initScope ?? new DeclarationScope(null);
@@ -408,6 +418,15 @@ public class Cls
                 var saveCurrentScope = currentScope;
                 currentScope = new DeclarationScope(currentScope);
                 base.VisitBlock(node);
+                Debug.Assert(currentScope.Parent == saveCurrentScope);
+                currentScope = saveCurrentScope;
+            }
+
+            public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
+            {
+                var saveCurrentScope = currentScope;
+                currentScope = new DeclarationScope(currentScope);
+                base.VisitArrowExpressionClause(node);
                 Debug.Assert(currentScope.Parent == saveCurrentScope);
                 currentScope = saveCurrentScope;
             }
@@ -852,6 +871,8 @@ public class Cls
                 currentScope = new DeclarationScope(parametersScope);
 
                 Visit(node.Body);
+
+                // TODO: Should visit expression body here.
 
                 Debug.Assert(currentScope.Parent == parametersScope);
                 Debug.Assert(currentScope.Parent.Parent == saveCurrentScope);
@@ -3601,6 +3622,14 @@ public class Cls
         Print(z);
         var notused = new Cls(out var u);
         Print(u);
+
+        Test1(out checked(var v));
+        Print(v);
+        Test2(out unchecked(var w));
+        Print(w);
+
+        notused = new Cls(out (checked(unchecked((checked(unchecked(var a)))))));
+        Print(a);
     }
 
     static void Test1(out int x)
@@ -3627,6 +3656,12 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"123
+System.Int32
+1234
+System.Int16
+31
+System.Byte
+123
 System.Int32
 1234
 System.Int16
@@ -5088,6 +5123,130 @@ public class Cls
     // (9,19): error CS0165: Use of unassigned local variable 'w'
     //         var u3 = (var w) + w;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "var w").WithArguments("w").WithLocation(9, 19)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void OutVar_46()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test(out (var y), y + 1);
+    }
+
+    static void Test(out int x, int y)
+    {
+        x = 123;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (6,27): error CS8048: Reference to variable 'y' is not permitted in this context.
+    //         Test(out (var y), y + 1);
+    Diagnostic(ErrorCode.ERR_VariableUsedInTheSameArgumentList, "y").WithArguments("y").WithLocation(6, 27),
+    // (6,27): error CS0165: Use of unassigned local variable 'y'
+    //         Test(out (var y), y + 1);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(6, 27)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void OutVar_47()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test(out checked(var y), y + 1);
+    }
+
+    static void Test(out int x, int y)
+    {
+        x = 123;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (6,34): error CS8048: Reference to variable 'y' is not permitted in this context.
+    //         Test(out checked(var y), y + 1);
+    Diagnostic(ErrorCode.ERR_VariableUsedInTheSameArgumentList, "y").WithArguments("y").WithLocation(6, 34),
+    // (6,34): error CS0165: Use of unassigned local variable 'y'
+    //         Test(out checked(var y), y + 1);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(6, 34)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void OutVar_48()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test(out unchecked(var y), y + 1);
+    }
+
+    static void Test(out int x, int y)
+    {
+        x = 123;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (6,36): error CS8048: Reference to variable 'y' is not permitted in this context.
+    //         Test(out unchecked(var y), y + 1);
+    Diagnostic(ErrorCode.ERR_VariableUsedInTheSameArgumentList, "y").WithArguments("y").WithLocation(6, 36),
+    // (6,36): error CS0165: Use of unassigned local variable 'y'
+    //         Test(out unchecked(var y), y + 1);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(6, 36)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void OutVar_49()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test(out (checked(unchecked((checked(unchecked(var y)))))), y + 1);
+    }
+
+    static void Test(out int x, int y)
+    {
+        x = 123;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (6,69): error CS8048: Reference to variable 'y' is not permitted in this context.
+    //         Test(out (checked(unchecked((checked(unchecked(var y)))))), y + 1);
+    Diagnostic(ErrorCode.ERR_VariableUsedInTheSameArgumentList, "y").WithArguments("y").WithLocation(6, 69),
+    // (6,69): error CS0165: Use of unassigned local variable 'y'
+    //         Test(out (checked(unchecked((checked(unchecked(var y)))))), y + 1);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(6, 69)
                 );
 
             TestSemanticModelAPI(compilation, diagnostics);
@@ -7175,6 +7334,12 @@ struct S : IDisposable
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
+    // (11,13): warning CS0728: Possibly incorrect assignment to local 'x' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+    //             x = new S(); 
+    Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "x").WithArguments("x").WithLocation(11, 13),
+    // (16,13): warning CS0728: Possibly incorrect assignment to local 'y' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+    //             y = 10; 
+    Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "y").WithArguments("y").WithLocation(16, 13),
     // (24,20): error CS1001: Identifier expected
     //         using(S b, ) 
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(24, 20),
@@ -10553,6 +10718,250 @@ class Program
                 );
 
             TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void Lock_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        lock (new [] { int j = 1})
+        {
+            System.Console.WriteLine(j);
+        }
+
+        lock (new [] { int j = 3})
+            System.Console.WriteLine(j + (int k = 5) + k);
+
+        lock (new [] { int j = 5})
+            System.Console.WriteLine(j + (int k = 10) + k);
+
+        lock (var j = new [] { 1})
+        {
+            System.Console.WriteLine(j[0]);
+        }
+
+        lock (var j = new [] { 3})
+            System.Console.WriteLine(j[0] + (int k = 5) + k);
+
+        lock (var j = new [] { 5})
+            System.Console.WriteLine(j[0] + (int k = 10) + k);
+
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"1
+13
+25
+1
+13
+25").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
+        }
+
+        [Fact]
+        public void Lock_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        lock (new [] { (int j = 0) + j, 1})
+        {
+            System.Console.WriteLine(j);
+            j++;
+        }
+
+        lock (new [] { int j = 3, 1})
+            System.Console.WriteLine(j + (int k = 5) + k);
+
+        j = 3;
+        k = 4;
+
+        lock (var e = l)
+        {
+            System.Console.WriteLine(int l = 0);
+        }
+
+        lock (var e = m)
+            System.Console.WriteLine(int m = 0);
+
+        int a1 = 0;
+        System.Console.WriteLine(a1 + (int b1 = 1));
+
+        lock (new [] { int a1 = 3, 1}) System.Console.WriteLine();
+        lock (new [] { int b1 = 3, 1}) System.Console.WriteLine();
+
+        int a2 = 0;
+        System.Console.WriteLine(a2);
+        lock (new [] { 0, 1}) 
+            System.Console.WriteLine(int a2 = 1);
+
+        int a3 = 0;
+        System.Console.WriteLine(a3);
+        lock (new [] { 0, 1}) 
+        {
+            System.Console.WriteLine(int a3 = 1);
+        }
+
+        lock (var c1 = new [] { int c1 = 3, 1}) System.Console.WriteLine();
+
+        lock (var c2 = new [] { 0, 1}) 
+        {
+            System.Console.WriteLine(int c2 = 1);
+        }
+
+        lock (new [] { int d1 = 3, int d1 = 4}) System.Console.WriteLine();
+
+        lock (new [] { int d2 = 3, 1})
+            System.Console.WriteLine(int d2 = 1);
+
+        lock (new [] { int d3 = 3, 1})
+        {
+            System.Console.WriteLine(int d3 = 1);
+        }
+
+        lock (new [] { int d4 = 3, 1})
+        {
+            int d4 = 0;
+            System.Console.WriteLine(d4);
+        }
+
+        lock (var c3 = new [] { 0, 1})
+            System.Console.WriteLine(int c3 = 1);
+
+        lock (new [] { 0, 1})
+            System.Console.WriteLine((int e1 = 1) + (int e1 = 1));
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (15,9): error CS0103: The name 'j' does not exist in the current context
+    //         j = 3;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "j").WithArguments("j").WithLocation(15, 9),
+    // (16,9): error CS0103: The name 'k' does not exist in the current context
+    //         k = 4;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "k").WithArguments("k").WithLocation(16, 9),
+    // (18,23): error CS0103: The name 'l' does not exist in the current context
+    //         lock (var e = l)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "l").WithArguments("l").WithLocation(18, 23),
+    // (23,23): error CS0103: The name 'm' does not exist in the current context
+    //         lock (var e = m)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "m").WithArguments("m").WithLocation(23, 23),
+    // (29,28): error CS0136: A local or parameter named 'a1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         lock (new [] { int a1 = 3, 1}) System.Console.WriteLine();
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a1").WithArguments("a1").WithLocation(29, 28),
+    // (30,28): error CS0136: A local or parameter named 'b1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         lock (new [] { int b1 = 3, 1}) System.Console.WriteLine();
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "b1").WithArguments("b1").WithLocation(30, 28),
+    // (35,42): error CS0136: A local or parameter named 'a2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             System.Console.WriteLine(int a2 = 1);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a2").WithArguments("a2").WithLocation(35, 42),
+    // (41,42): error CS0136: A local or parameter named 'a3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             System.Console.WriteLine(int a3 = 1);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a3").WithArguments("a3").WithLocation(41, 42),
+    // (44,37): error CS0128: A local variable named 'c1' is already defined in this scope
+    //         lock (var c1 = new [] { int c1 = 3, 1}) System.Console.WriteLine();
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "c1").WithArguments("c1").WithLocation(44, 37),
+    // (48,42): error CS0136: A local or parameter named 'c2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             System.Console.WriteLine(int c2 = 1);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "c2").WithArguments("c2").WithLocation(48, 42),
+    // (51,40): error CS0128: A local variable named 'd1' is already defined in this scope
+    //         lock (new [] { int d1 = 3, int d1 = 4}) System.Console.WriteLine();
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "d1").WithArguments("d1").WithLocation(51, 40),
+    // (54,42): error CS0136: A local or parameter named 'd2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             System.Console.WriteLine(int d2 = 1);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "d2").WithArguments("d2").WithLocation(54, 42),
+    // (58,42): error CS0136: A local or parameter named 'd3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             System.Console.WriteLine(int d3 = 1);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "d3").WithArguments("d3").WithLocation(58, 42),
+    // (63,17): error CS0136: A local or parameter named 'd4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             int d4 = 0;
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "d4").WithArguments("d4").WithLocation(63, 17),
+    // (68,42): error CS0136: A local or parameter named 'c3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             System.Console.WriteLine(int c3 = 1);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "c3").WithArguments("c3").WithLocation(68, 42),
+    // (71,58): error CS0128: A local variable named 'e1' is already defined in this scope
+    //             System.Console.WriteLine((int e1 = 1) + (int e1 = 1));
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "e1").WithArguments("e1").WithLocation(71, 58)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void Lock_03()
+        {
+            var text = @"
+class C
+{
+    void M()
+    {
+        
+        lock (C c = null)
+        {
+            c = null; //CS0728
+            Ref(ref c); //CS0728
+            this[out c] = 1; //CS0728
+        }
+    }
+
+    void Ref(ref C c) { }
+    int this[out C c] { set { c = null; } } //this is illegal, so if we break this test, we may need a metadata indexer
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+                // (16,14): error CS0631: ref and out are not valid in this context
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
+                // (9,13): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+                Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"),
+                // (10,21): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+                Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"),
+                // (11,22): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+                Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"));
+        }
+
+        [Fact]
+        public void ArrowExpression_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = new Cls();
+        System.Console.WriteLine(x.P1);
+        System.Console.WriteLine(x.P2);
+    }
+
+    int P1 => (int x = 10) + x/2;
+
+    int P2 => Test(out var x) + x;
+
+    static int Test(out int x)
+    {
+        x = 100;
+        return 543;
+    } 
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"15
+643").VerifyDiagnostics();
+
+            TestSemanticModelAPI(compilation);
         }
 
     }

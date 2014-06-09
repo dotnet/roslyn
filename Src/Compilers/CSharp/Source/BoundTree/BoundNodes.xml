@@ -748,6 +748,7 @@
   </Node>
 
   <Node Name="BoundLockStatement" Base="BoundStatement">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Argument" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>

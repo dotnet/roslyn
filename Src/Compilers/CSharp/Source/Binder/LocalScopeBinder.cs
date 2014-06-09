@@ -358,6 +358,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            public override void VisitLockStatement(LockStatementSyntax node)
+            {
+                return;
+            }
+
             public override void VisitFixedStatement(FixedStatementSyntax node)
             {
                 return;

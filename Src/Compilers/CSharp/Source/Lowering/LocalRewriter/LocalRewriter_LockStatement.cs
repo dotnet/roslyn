@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundBlock(
                     lockSyntax,
-                    ImmutableArray.Create<LocalSymbol>(boundLockTemp.LocalSymbol, boundFlagTemp.LocalSymbol),
+                    node.Locals.Concat(ImmutableArray.Create<LocalSymbol>(boundLockTemp.LocalSymbol, boundFlagTemp.LocalSymbol)),
                     ImmutableArray.Create<BoundStatement>(
                         boundFlagTempInit,
                         new BoundTryStatement(
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundBlock(
                     lockSyntax,
-                    ImmutableArray.Create<LocalSymbol>(boundLockTemp.LocalSymbol),
+                    node.Locals.Add(boundLockTemp.LocalSymbol),
                     ImmutableArray.Create<BoundStatement>(
                         boundLockTempInit,
                         enterCall,

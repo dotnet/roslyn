@@ -183,9 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindArrowValue(Binder binder, ArrowExpressionClauseSyntax arrowValue, DiagnosticBag diagnostics)
         {
             Debug.Assert(this.MemberSymbol.Kind == SymbolKind.Method);
-
-            // TODO: This binder should be cached by the model and passed in.
-            binder = new ScopedExpressionBinder(binder, arrowValue.Expression);
             return binder.BindExpressionBodyAsBlock(arrowValue.Expression, diagnostics);
         }
 

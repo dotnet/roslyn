@@ -475,10 +475,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxNode node = identifierToken.Parent.Parent;
                 Debug.Assert(node.CSharpKind() == SyntaxKind.DeclarationExpression);
 
-                // Skip parenthesized expressions
-                while (node != scopeSegmentRoot && node.Parent != null && node.Parent.CSharpKind() == SyntaxKind.ParenthesizedExpression)
+                // Skip parenthesized and checked/unchecked expressions
+                while (node != scopeSegmentRoot && node.Parent != null)
                 {
-                    node = node.Parent;
+                    switch (node.Parent.CSharpKind())
+                    {
+                        case SyntaxKind.ParenthesizedExpression:
+                        case SyntaxKind.CheckedExpression:
+                        case SyntaxKind.UncheckedExpression:
+                            node = node.Parent;
+                            continue;
+                    }
+
+                    break;
                 }
 
                 if (node != scopeSegmentRoot && node.Parent != null && node.Parent.CSharpKind() == SyntaxKind.Argument)

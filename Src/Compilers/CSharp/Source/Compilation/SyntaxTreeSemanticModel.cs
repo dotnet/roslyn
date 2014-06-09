@@ -1091,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             this.Compilation,
                             exprDecl,
                             symbol,
-                            outer.WithContainingMemberOrLambda(symbol));
+                            new ScopedExpressionBinder(outer.WithContainingMemberOrLambda(symbol), exprDecl.Expression));
                     }
 
                 case SyntaxKind.GlobalStatement:
