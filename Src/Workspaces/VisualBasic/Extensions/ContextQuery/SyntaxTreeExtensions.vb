@@ -165,6 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                                  SyntaxKind.FriendKeyword,
                                  SyntaxKind.PrivateKeyword,
                                  SyntaxKind.ProtectedKeyword,
+                                 SyntaxKind.ReadOnlyKeyword,
                                  SyntaxKind.PublicKeyword,
                                  SyntaxKind.ShadowsKeyword,
                                  SyntaxKind.SharedKeyword,
