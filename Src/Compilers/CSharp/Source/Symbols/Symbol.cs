@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat format)
         {
-            SemanticModel csharpModel = semanticModel as SemanticModel;
+            CSharpSemanticModel csharpModel = semanticModel as CSharpSemanticModel;
             if (csharpModel == null)
             {
                 throw new ArgumentException(CSharpResources.WrongSemanticModelType, this.Language);
@@ -1147,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat format)
         {
-            SemanticModel csharpModel = semanticModel as SemanticModel;
+            CSharpSemanticModel csharpModel = semanticModel as CSharpSemanticModel;
             if (csharpModel == null)
             {
                 throw new ArgumentException(CSharpResources.WrongSemanticModelType, this.Language);
