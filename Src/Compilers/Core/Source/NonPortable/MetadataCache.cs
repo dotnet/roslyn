@@ -186,7 +186,6 @@ namespace Microsoft.CodeAnalysis
 
                 compactCollectionCount = currentCollectionCount;
 
-                DebuggerUtilities.CallBeforeAcquiringLock(); //see method comment
                 lock (Guard)
                 {
                     if (!(AnyAssembliesCached() || AnyModulesCached() || AnyAnalyzerAssembliesCached()))
@@ -268,8 +267,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static void CompactCacheOfAssemblies()
         {
-            DebuggerUtilities.CallBeforeAcquiringLock(); //see method comment
-
             // Do one pass through the assemblyKeys list    
             int originalCount = -1;
 
@@ -335,8 +332,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static void CompactCacheOfModules()
         {
-            DebuggerUtilities.CallBeforeAcquiringLock(); //see method comment
-
             // Do one pass through the moduleKeys list    
             int originalCount = -1;
 
@@ -402,8 +397,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static void CompactCacheOfAnalyzers()
         {
-            DebuggerUtilities.CallBeforeAcquiringLock(); //see method comment
-
             // Do one pass through the analyzerAssemblyKeys list    
             int originalCount = -1;
 

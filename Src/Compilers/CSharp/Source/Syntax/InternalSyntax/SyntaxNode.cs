@@ -377,8 +377,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var parent = trivia.Token.Parent;
                 if (parent != null)
                 {
-                    DebuggerUtilities.CallBeforeAcquiringLock(); //see method comment
-
                     SyntaxNode structure;
                     var structsInParent = structuresTable.GetOrCreateValue(parent);
                     lock (structsInParent)

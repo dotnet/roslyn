@@ -104,8 +104,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             Cci.ITypeReference type = this.proxyTypes.GetOrAdd((uint)data.Length, size => GetStorageStruct(size));
 
-            DebuggerUtilities.CallBeforeAcquiringLock(); //see method comment
-
             var block = new MetadataBlock(data);
 
             //This object may be accessed concurrently
