@@ -259,7 +259,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Class VisualBasicCompilerInputs
                 Implements MSB.Tasks.Hosting.IVbcHostObject5, MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded
-
+#If Not MSBUILD12 Then
+                Implements MSB.Tasks.Hosting.IAnalyzerHostObject
+#End If
                 Private _projectFile As VisualBasicProjectFile
                 Private _initialized As Boolean
                 Private _parseOptions As VisualBasicParseOptions
@@ -579,7 +581,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End Function
 
-                Public Function SetAnalyzers(analyzerReferences() As Microsoft.Build.Framework.ITaskItem) As Boolean
+#If Not MSBUILD12 Then
+                Public Function SetAnalyzers(analyzerReferences() As MSB.Framework.ITaskItem) As Boolean Implements MSB.Tasks.Hosting.IAnalyzerHostObject.SetAnalyzers
+#Else
+                Public Function SetAnalyzers(analyzerReferences() As MSB.Framework.ITaskItem) As Boolean
+#End If
                     Me._analyzerReferences = If(analyzerReferences, SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)())
                     Return True
                 End Function
@@ -635,7 +641,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End Function
 
+#If Not MSBUILD12 Then
+                Public Function SetRuleSet(ruleSetFile As String) As Boolean Implements MSB.Tasks.Hosting.IAnalyzerHostObject.SetRuleSet
+#Else
                 Public Function SetRuleSet(ruleSetFile As String) As Boolean
+#End If
                     If Not String.IsNullOrEmpty(ruleSetFile) Then
                         Dim fullPath = FileUtilities.ResolveRelativePath(ruleSetFile, Path.GetDirectoryName(Me._projectFile.FilePath))
 

@@ -50,6 +50,9 @@
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildAssemblyNameFragment)' == 'v12.0'">
+    <DefineConstants>MSBUILD12</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -1545,9 +1545,10 @@ class C1
         }
 
         [WorkItem(918072, "DevDiv")]
-        [Fact(Skip = "918072"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAnalyzerReferenceLoadStandalone()
         {
+#if !MSBUILD12
             var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
             var files = GetAnalyzerReferenceSolutionFiles();
 
@@ -1560,11 +1561,15 @@ class C1
                     var projectFullPath = Path.Combine(this.solutionDirectory.Path, projectPath);
                     var proj = ws.OpenProjectAsync(projectFullPath).Result;
                     Assert.Equal(1, proj.AnalyzerReferences.Count);
+                    var analyzerReference = proj.AnalyzerReferences.First() as AnalyzerFileReference;
+                    Assert.NotNull(analyzerReference);
+                    Assert.True(analyzerReference.FullPath.EndsWith("CSharpProject.dll"));
                 }
 
                 // prove that project gets opened instead.
                 Assert.Equal(2, ws.CurrentSolution.Projects.Count());
             }
+#endif
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "DevDiv")]

@@ -255,7 +255,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilerInputs.EndInitialization(out errorMessage, out errorCode);
             }
 
-            private class CSharpCompilerInputs : MSB.Tasks.Hosting.ICscHostObject4
+            private class CSharpCompilerInputs :
+#if !MSBUILD12
+                MSB.Tasks.Hosting.ICscHostObject4, MSB.Tasks.Hosting.IAnalyzerHostObject
+#else
+                MSB.Tasks.Hosting.ICscHostObject4
+#endif
             {
                 private readonly CSharpProjectFile projectFile;
 

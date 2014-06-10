@@ -197,6 +197,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new FileSet(new Dictionary<string, object>
             {
                 { @"AnalyzerReference.sln", GetResourceText("TestSolution_AnalyzerReference.sln") },
+                { @"AnalyzerSolution\CSharpProject.dll", GetResourceText("CSharpProject.dll") },
                 { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", GetResourceText("CSharpProject_CSharpProject_AnalyzerReference.csproj") },
                 { @"AnalyzerSolution\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
                 { @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_AnalyzerReference.vbproj") },
