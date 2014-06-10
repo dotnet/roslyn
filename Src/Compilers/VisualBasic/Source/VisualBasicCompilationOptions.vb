@@ -1,19 +1,15 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.Serialization
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' A class representing Visual Basic compilation Options.
     ''' </summary>
-    <Serializable>
     Public NotInheritable Class VisualBasicCompilationOptions
         Inherits CompilationOptions
         Implements IEquatable(Of VisualBasicCompilationOptions)
-        Implements ISerializable
 
         Private Const GlobalImportsString = "GlobalImports"
         Private Const RootNamespaceString = "RootNamespace"
@@ -140,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Private Sub New(
+        Friend Sub New(
             outputKind As OutputKind,
             moduleName As String,
             mainTypeName As String,
@@ -205,8 +201,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataImportOptions:=metadataImportOptions,
                 features:=features)
 
-            Initialize(globalImports, rootNamespace, optionStrict, optionInfer, optionExplicit, optionCompareText, embedVbCoreRuntime, parseOptions)
-
+            _globalImports = globalImports.AsImmutableOrEmpty()
+            _rootNamespace = If(rootNamespace, String.Empty)
+            _optionStrict = optionStrict
+            _optionInfer = optionInfer
+            _optionExplicit = optionExplicit
+            _optionCompareText = optionCompareText
+            _embedVbCoreRuntime = embedVbCoreRuntime
+            _parseOptions = parseOptions
         End Sub
 
         Private Sub New(other As VisualBasicCompilationOptions)
@@ -246,61 +248,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataImportOptions:=other.MetadataImportOptions,
                 features:=other.Features)
         End Sub
-
-        ''' <summary>
-        ''' Initializes an instance of VisualBasicCompilationOptions. 
-        ''' </summary>
-        ''' <param name="info">A SerializationInfo object that contains the information required to serialize the VisualBasicCompilationOptions instance. <see cref="System.Runtime.Serialization.SerializationInfo"/></param>
-        ''' <param name="context">A StreamingContext object that contains the source and destination of the serialized stream associated with the VisualBasicCompilationOptions instance. <see cref="System.Runtime.Serialization.StreamingContext"/></param>
-        Protected Sub New(info As SerializationInfo, context As StreamingContext)
-            MyBase.New(info, context)
-            Dim importStrings = DirectCast(info.GetValue(GlobalImportsString, GetType(String())), String())
-
-            Initialize(globalImports:=importStrings.Select(AddressOf GlobalImport.Parse),
-                       rootNamespace:=info.GetString(RootNamespaceString),
-                       optionStrict:=CType(info.GetInt32(OptionStrictString), OptionStrict),
-                       optionInfer:=info.GetBoolean(OptionInferString),
-                       optionExplicit:=info.GetBoolean(OptionExplicitString),
-                       optionCompareText:=info.GetBoolean(OptionCompareTextString),
-                       embedVbCoreRuntime:=info.GetBoolean(EmbedVbCoreRuntimeString),
-                       parseOptions:=DirectCast(info.GetValue(ParseOptionsString, GetType(VisualBasicParseOptions)), VisualBasicParseOptions))
-        End Sub
-
-        ''' <summary>
-        ''' Implements the System.Runtime.Serialization.ISerializable interface and returns the data needed to serialize the VisualBasicCompilationOptions instance.
-        ''' </summary>
-        ''' <param name="info">A SerializationInfo object that contains the information required to serialize the VisualBasicCompilationOptions instance. <see cref="System.Runtime.Serialization.SerializationInfo"/></param>
-        ''' <param name="context">A StreamingContext object that contains the source and destination of the serialized stream associated with the VisualBasicCompilationOptions instance. <see cref="System.Runtime.Serialization.StreamingContext"/></param>
-        Public Overrides Sub GetObjectData(info As SerializationInfo, context As StreamingContext)
-            MyBase.GetObjectData(info, context)
-            info.AddValue(GlobalImportsString, _globalImports.Select(Function(g) g.Name).ToArray())
-            info.AddValue(RootNamespaceString, _rootNamespace)
-            info.AddValue(OptionStrictString, _optionStrict)
-            info.AddValue(OptionInferString, _optionInfer)
-            info.AddValue(OptionExplicitString, _optionExplicit)
-            info.AddValue(OptionCompareTextString, _optionCompareText)
-            info.AddValue(EmbedVbCoreRuntimeString, _embedVbCoreRuntime)
-            info.AddValue(ParseOptionsString, _parseOptions)
-        End Sub
-
-        Private Shadows Sub Initialize(globalImports As IEnumerable(Of GlobalImport),
-                                       rootNamespace As String,
-                                       optionStrict As OptionStrict,
-                                       optionInfer As Boolean,
-                                       optionExplicit As Boolean,
-                                       optionCompareText As Boolean,
-                                       embedVbCoreRuntime As Boolean,
-                                       parseOptions As VisualBasicParseOptions)
-            _globalImports = globalImports.AsImmutableOrEmpty()
-            _rootNamespace = If(rootNamespace, String.Empty)
-            _optionStrict = optionStrict
-            _optionInfer = optionInfer
-            _optionExplicit = optionExplicit
-            _optionCompareText = optionCompareText
-            _embedVbCoreRuntime = embedVbCoreRuntime
-            _parseOptions = parseOptions
-        End Sub
-
 
         ''' <summary>
         ''' Gets the global imports collection.

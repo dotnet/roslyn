@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis
         public string OutputFilePath { get; private set; }
 
         /// <summary>
-        /// The initial compilation options for the project.
+        /// The initial compilation options for the project, or null if the default options should be used.
         /// </summary>
         public CompilationOptions CompilationOptions { get; private set; }
 
         /// <summary>
-        /// The initial parse options for the source code documents in this project.
+        /// The initial parse options for the source code documents in this project, or null if the default options should be used.
         /// </summary>
         public ParseOptions ParseOptions { get; private set; }
 

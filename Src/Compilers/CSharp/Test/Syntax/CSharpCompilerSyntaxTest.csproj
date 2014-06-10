@@ -122,7 +122,7 @@
     <Compile Include="Parsing\LambdaParameterParsingTests.cs" />
     <Compile Include="Parsing\NameAttributeValueParsingTests.cs" />
     <Compile Include="Parsing\NameParsingTests.cs" />
-    <Compile Include="Parsing\ParseOptionsTests.cs" />
+    <Compile Include="Parsing\CSharpParseOptionsTests.cs" />
     <Compile Include="Parsing\ParserErrorMessageTests.cs" />
     <Compile Include="Parsing\ParsingErrorRecoveryTests.cs" />
     <Compile Include="Parsing\ParsingTests.cs" />

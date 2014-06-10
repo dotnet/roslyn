@@ -379,6 +379,7 @@
     <Compile Include="Lowering\AsyncRewriter\AsyncRewriter.cs" />
     <Compile Include="Lowering\AsyncRewriter\AsyncStateMachine.cs" />
     <Compile Include="Lowering\AsyncRewriter\AwaitLiftingRewriter.cs" />
+    <Compile Include="NonPortable\CSharpSerializableParseOptions.cs" />
     <Compile Include="Lowering\DiagnosticsPass_ExpressionTrees.cs" />
     <Compile Include="Lowering\DiagnosticsPass_Warnings.cs" />
     <Compile Include="Lowering\Extensions.cs" />
@@ -465,6 +466,7 @@
     <Compile Include="Lowering\SyntheticBoundNodeFactory.cs" />
     <Compile Include="Lowering\UnmatchedGotoFinder.cs" />
     <Compile Include="NonPortable\CSharpDesktopExtensions.cs" />
+    <Compile Include="NonPortable\CSharpSerializableCompilationOptions.cs" />
     <Compile Include="Parser\AbstractLexer.cs" />
     <Compile Include="Parser\BlendedNode.cs" />
     <Compile Include="Parser\Blender.cs" />

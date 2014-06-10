@@ -916,8 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     languageVersion: languageVersion,
                     preprocessorSymbols: defines.ToImmutableAndFree(),
                     documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
-                    kind: SourceCodeKind.Regular,
-                    privateCtor: true
+                    kind: SourceCodeKind.Regular
                 );
 
                 var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);

@@ -526,6 +526,8 @@
     <Compile Include="Lowering\UseTwiceRewriter.vb" />
     <Compile Include="Lowering\WithExpressionRewriter.vb" />
     <Compile Include="NonPortable\VisualBasicDesktopExtensions.vb" />
+    <Compile Include="NonPortable\VisualBasicSerializableCompilationOptions.vb" />
+    <Compile Include="NonPortable\VisualBasicSerializableParseOptions.vb" />
     <Compile Include="OptionStrict.vb" />
     <Compile Include="OptionsValidator.vb" />
     <Compile Include="Parser\BlockContexts\BlockContext.vb" />

@@ -128,7 +128,7 @@
     <Compile Include="Parser\ParseImports.vb" />
     <Compile Include="Parser\ParseIteratorTests.vb" />
     <Compile Include="Parser\ParseMethods.vb" />
-    <Compile Include="Parser\ParseOptionsTests.vb" />
+    <Compile Include="Parser\VisualBasicParseOptionsTests.vb" />
     <Compile Include="Parser\ParseSpecifiers.vb" />
     <Compile Include="Parser\ParseStatements.vb" />
     <Compile Include="Parser\ParseVarDecl.vb" />

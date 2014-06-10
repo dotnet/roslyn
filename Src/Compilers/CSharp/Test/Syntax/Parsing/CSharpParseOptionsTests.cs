@@ -3,12 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
-    public class ParseOptionsTests
+    public class CSharpParseOptionsTests : CSharpTestBase
     {
         private void TestProperty<T>(Func<CSharpParseOptions, T, CSharpParseOptions> factory, Func<CSharpParseOptions, T> getter, T validValue)
         {
@@ -68,6 +69,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 "LanguageVersion",
                 "PreprocessorSymbolNames",
                 "PreprocessorSymbols");
+        }
+
+        [Fact]
+        public void Serializability()
+        {
+            VerifySerializability(new CSharpSerializableParseOptions(new CSharpParseOptions(
+                languageVersion: LanguageVersion.Experimental,
+                documentationMode: DocumentationMode.None,
+                kind: SourceCodeKind.Interactive,
+                preprocessorSymbols: new[] { "A", "B" })));
         }
     }
 }

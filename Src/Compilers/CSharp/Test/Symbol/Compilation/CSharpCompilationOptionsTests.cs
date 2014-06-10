@@ -3,11 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -355,6 +358,17 @@ Parameter name: ModuleName")
                 "AllowUnsafe",
                 "RuntimeMetadataVersion",
                 "Usings");
+        }
+
+        [Fact]
+        public void Serializability()
+        {
+            VerifySerializability(new CSharpSerializableCompilationOptions(new CSharpCompilationOptions(
+                outputKind: OutputKind.WindowsApplication,
+                usings: new[] { "F", "G" },
+                generalDiagnosticOption: ReportDiagnostic.Hidden,
+                specificDiagnosticOptions: new[] { KeyValuePair.Create("CS0001", ReportDiagnostic.Suppress) },
+                subsystemVersion: SubsystemVersion.Windows2000)));
         }
     }
 }

@@ -178,7 +178,6 @@ namespace A.B {
             }
         }
 
-        // Emit  when parameter 'pdbfilename' is null and 'pdbstream' is not null
         [Fact]
         public void NegEmit()
         {
@@ -1825,64 +1824,6 @@ public class C { public static FrameworkName Foo() { return null; }}";
                 compOptions: TestOptions.Dll.WithAssemblyIdentityComparer(comparer));
 
             c2.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void CompilationOptions_Serialize()
-        {
-            var options = TestOptions.Dll;
-
-            // Serialize the CompileOptions
-            MemoryStream o = SerializeToStream(TestOptions.Dll);
-            var dt = (CSharpCompilationOptions)DeserializeFromStream(o);
-
-            // resolvers are not serializable
-            dt = dt.
-                WithMetadataReferenceResolver(options.MetadataReferenceResolver).
-                WithMetadataReferenceProvider(options.MetadataReferenceProvider).
-                WithXmlReferenceResolver(options.XmlReferenceResolver).
-                WithSourceReferenceResolver(options.SourceReferenceResolver).
-                WithAssemblyIdentityComparer(options.AssemblyIdentityComparer).
-                WithStrongNameProvider(options.StrongNameProvider);
-            
-            Assert.Equal(TestOptions.Dll, dt);
-        }
-        
-        [Fact]
-        public void ParseOptions_Serialize()
-        {
-            var text = @"
-class C
-{
-    void Foo()
-    {
-    }
-}
-"; 
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
-            var p = (CSharpParseOptions)tree.Options;
-            Assert.Equal(Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp5, p.LanguageVersion);
-
-            MemoryStream o = SerializeToStream(p);
-            CSharpParseOptions dp = (CSharpParseOptions) DeserializeFromStream(o);
-            Assert.Equal(p, dp);            
-        }
-
-        public static MemoryStream SerializeToStream(Object o)
-        {
-            MemoryStream stream = new MemoryStream();
-            IFormatter formatter = new BinaryFormatter();
-            formatter.Serialize(stream, o);
-            return stream;
-        }
-
-        public static object DeserializeFromStream(MemoryStream stream)
-        {
-            IFormatter formatter = new BinaryFormatter();
-            stream.Seek(0, SeekOrigin.Begin);
-            Object o = formatter.Deserialize(stream);
-            return o;
         }
 
         [Fact]

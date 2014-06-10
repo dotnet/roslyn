@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using Roslyn.Utilities;
@@ -13,31 +12,8 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents compilation options common to C# and VB.
     /// </summary>
-    [Serializable]
-    public abstract class CompilationOptions : ISerializable
+    public abstract class CompilationOptions
     {
-        private const string OutputKindString = "OutputKind";
-        private const string ModuleNameString = "ModuleName";
-        private const string MainTypeNameString = "MainTypeName";
-        private const string ScriptClassNameString = "ScriptClassName";
-        private const string CryptoKeyContainerString = "CryptoKeyContainer";
-        private const string CryptoKeyFileString = "CryptoKeyFile";
-        private const string DelaySignString = "DelaySign";
-        private const string CheckOverflowString = "CheckOverflow";
-        private const string FileAlignmentString = "FileAlignment";
-        private const string BaseAddressString = "BaseAddress";
-        private const string PlatformString = "Platform";
-        private const string GeneralDiagnosticOptionString = "GeneralDiagnosticOption";
-        private const string WarningLevelString = "WarningLevel";
-        private const string SpecificDiagnosticOptionsString = "SpecificDiagnosticOptions";
-        private const string HighEntropyVirtualAddressSpaceString = "HighEntropyVirtualAddressSpace";
-        private const string DebugInformationKindString = "DebugInformationKind";
-        private const string OptimizeString = "Optimize";
-        private const string ConcurrentBuildString = "ConcurrentBuild";
-        private const string SubsystemVersionString = "SubsystemVersion";
-        private const string MetadataImportOptionsString = "MetadataImportOptions";
-        private const string FeaturesString = "Features";
-
         /// <summary>
         /// The kind of assembly generated when emitted.
         /// </summary>
@@ -233,42 +209,6 @@ namespace Microsoft.CodeAnalysis
             MetadataImportOptions metadataImportOptions,
             ImmutableArray<string> features)
         {
-            Initialize(
-                outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimize, checkOverflow, fileAlignment, 
-                baseAddress, platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind, 
-                subsystemVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, 
-                metadataImportOptions, features);
-        }
-
-        internal void Initialize(
-            OutputKind outputKind,
-            string moduleName,
-            string mainTypeName,
-            string scriptClassName,
-            string cryptoKeyContainer,
-            string cryptoKeyFile,
-            bool? delaySign,
-            bool optimize,
-            bool checkOverflow,
-            int fileAlignment,
-            ulong baseAddress,
-            Platform platform,
-            ReportDiagnostic generalDiagnosticOption,
-            int warningLevel,
-            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
-            bool highEntropyVirtualAddressSpace,
-            DebugInformationKind debugInformationKind,
-            SubsystemVersion subsystemVersion,
-            bool concurrentBuild,
-            XmlReferenceResolver xmlReferenceResolver,
-            SourceReferenceResolver sourceReferenceResolver,
-            MetadataReferenceResolver metadataReferenceResolver,
-            MetadataReferenceProvider metadataReferenceProvider,
-            AssemblyIdentityComparer assemblyIdentityComparer,
-            StrongNameProvider strongNameProvider,
-            MetadataImportOptions metadataImportOptions,
-            ImmutableArray<string> features)
-        {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
             this.MainTypeName = mainTypeName;
@@ -303,63 +243,6 @@ namespace Microsoft.CodeAnalysis
                 ValidateOptions(builder);
                 return builder.ToImmutableAndFree();
             });
-        }
-
-        protected CompilationOptions(SerializationInfo info, StreamingContext context)
-        {
-            Initialize(
-                outputKind: (OutputKind)info.GetInt32(OutputKindString),
-                moduleName: info.GetString(ModuleNameString),
-                mainTypeName: info.GetString(MainTypeNameString),
-                scriptClassName: info.GetString(ScriptClassNameString),
-                cryptoKeyContainer: info.GetString(CryptoKeyContainerString),
-                cryptoKeyFile: info.GetString(CryptoKeyFileString),
-                delaySign: (bool?)info.GetValue(DelaySignString, typeof(bool?)),
-                optimize: info.GetBoolean(OptimizeString),
-                checkOverflow: info.GetBoolean(CheckOverflowString),
-                fileAlignment: info.GetInt32(FileAlignmentString),
-                baseAddress: info.GetUInt64(BaseAddressString),
-                platform: (Platform)info.GetInt32(PlatformString),
-                generalDiagnosticOption: (ReportDiagnostic)info.GetInt32(GeneralDiagnosticOptionString),
-                warningLevel: info.GetInt32(WarningLevelString),
-                specificDiagnosticOptions: ((Dictionary<string, ReportDiagnostic>)info.GetValue(SpecificDiagnosticOptionsString, typeof(Dictionary<string, ReportDiagnostic>))).ToImmutableDictionary(),
-                highEntropyVirtualAddressSpace: info.GetBoolean(HighEntropyVirtualAddressSpaceString),
-                debugInformationKind: (DebugInformationKind)info.GetInt32(DebugInformationKindString),
-                subsystemVersion: (SubsystemVersion)info.GetValue(SubsystemVersionString, typeof(SubsystemVersion)),
-                concurrentBuild: info.GetBoolean(ConcurrentBuildString),
-                xmlReferenceResolver: XmlFileResolver.Default,
-                sourceReferenceResolver: SourceFileResolver.Default,
-                metadataReferenceResolver: MetadataFileReferenceResolver.Default,
-                metadataReferenceProvider: MetadataFileReferenceProvider.Default,
-                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
-                strongNameProvider: new DesktopStrongNameProvider(),
-                metadataImportOptions: (MetadataImportOptions)info.GetByte(MetadataImportOptionsString),
-                features: ((string[])info.GetValue(FeaturesString, typeof(string[]))).AsImmutable());
-        }
-
-        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue(OutputKindString, (int)this.OutputKind);
-            info.AddValue(ModuleNameString, this.ModuleName);
-            info.AddValue(MainTypeNameString, this.MainTypeName);
-            info.AddValue(ScriptClassNameString, this.ScriptClassName);
-            info.AddValue(CryptoKeyContainerString, this.CryptoKeyContainer);
-            info.AddValue(CryptoKeyFileString, this.CryptoKeyFile);
-            info.AddValue(DelaySignString, this.DelaySign);
-            info.AddValue(CheckOverflowString, this.CheckOverflow);
-            info.AddValue(FileAlignmentString, this.FileAlignment);
-            info.AddValue(BaseAddressString, this.BaseAddress);
-            info.AddValue(PlatformString, (int)this.Platform);
-            info.AddValue(GeneralDiagnosticOptionString, (int)this.GeneralDiagnosticOption);
-            info.AddValue(WarningLevelString, this.WarningLevel);
-            info.AddValue(SpecificDiagnosticOptionsString, new Dictionary<string, ReportDiagnostic>(this.SpecificDiagnosticOptions));
-            info.AddValue(HighEntropyVirtualAddressSpaceString, this.HighEntropyVirtualAddressSpace);
-            info.AddValue(DebugInformationKindString, (int)this.DebugInformationKind);
-            info.AddValue(OptimizeString, this.Optimize);
-            info.AddValue(SubsystemVersionString, this.SubsystemVersion);
-            info.AddValue(ConcurrentBuildString, this.ConcurrentBuild);
-            info.AddValue(MetadataImportOptionsString, (byte)this.MetadataImportOptions);
-            info.AddValue(FeaturesString, Features.ToArray());
         }
 
         internal bool CanReuseCompilationReferenceManager(CompilationOptions other)

@@ -348,6 +348,8 @@
     <Compile Include="NonPortable\MetadataFileReferenceProvider.cs" />
     <Compile Include="NonPortable\MetadataFileReferenceResolver.cs" />
     <Compile Include="NonPortable\ModuleMetadata.FromFile.cs" />
+    <Compile Include="NonPortable\SerializableCompilationOptions.cs" />
+    <Compile Include="NonPortable\SerializableParseOptions.cs" />
     <Compile Include="NonPortable\SourceFileResolver.cs" />
     <Compile Include="NonPortable\SqmServiceProvider.cs" />
     <Compile Include="NonPortable\XmlFileResolver.cs" />

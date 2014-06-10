@@ -501,49 +501,6 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                                    </expected>)
         End Sub
 
-        <Fact>
-        Public Sub SerializationRoundTrip()
-            Dim parseOptions = New VisualBasicParseOptions(
-                languageVersion:=LanguageVersion.VisualBasic10,
-                documentationMode:=Microsoft.CodeAnalysis.DocumentationMode.Diagnose,
-                kind:=Microsoft.CodeAnalysis.SourceCodeKind.Regular,
-                preprocessorSymbols:=ImmutableArray.Create(New KeyValuePair(Of String, Object)("key", "Value")))
-
-            Dim compilationOptions = New VisualBasicCompilationOptions(
-                Microsoft.CodeAnalysis.OutputKind.ConsoleApplication,
-                globalImports:={GlobalImport.Parse("Foo.Bar")},
-                rootNamespace:="Alpha.Beta",
-                optionStrict:=OptionStrict.Custom,
-                optionInfer:=False,
-                optionExplicit:=False,
-                optionCompareText:=True,
-                embedVbCoreRuntime:=True,
-                parseOptions:=parseOptions)
-
-            Dim stream = New MemoryStream()
-            Dim formatter = New BinaryFormatter()
-
-            formatter.Serialize(stream, compilationOptions)
-            stream.Position = 0
-
-            Dim deserializedCompilationOptions = DirectCast(formatter.Deserialize(stream), VisualBasicCompilationOptions)
-
-            Assert.Equal(compilationOptions.GlobalImports.First().Name,
-                         deserializedCompilationOptions.GlobalImports.First().Name)
-            Assert.Equal(compilationOptions.RootNamespace,
-                         deserializedCompilationOptions.RootNamespace)
-            Assert.Equal(compilationOptions.OptionStrict,
-                         deserializedCompilationOptions.OptionStrict)
-            Assert.Equal(compilationOptions.OptionInfer,
-                         deserializedCompilationOptions.OptionInfer)
-            Assert.Equal(compilationOptions.OptionExplicit,
-                         deserializedCompilationOptions.OptionExplicit)
-            Assert.Equal(compilationOptions.OptionCompareText,
-                         deserializedCompilationOptions.OptionCompareText)
-            Assert.Equal(compilationOptions.EmbedVbCoreRuntime,
-                         deserializedCompilationOptions.EmbedVbCoreRuntime)
-        End Sub
-
         ''' <summary>
         ''' If this test fails, please update the <see cref="CompilationOptions.GetHashCode" />
         ''' And <see cref="CompilationOptions.Equals" /> methods to
@@ -562,6 +519,69 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                 "OptionCompareText",
                 "EmbedVbCoreRuntime",
                 "ParseOptions")
+        End Sub
+
+        <Fact>
+        Public Sub Serializability1()
+            VerifySerializability(New VisualBasicSerializableCompilationOptions(New VisualBasicCompilationOptions(
+                outputKind:=OutputKind.WindowsApplication,
+                generalDiagnosticOption:=ReportDiagnostic.Hidden,
+                specificDiagnosticOptions:={KeyValuePair.Create("VB0001", ReportDiagnostic.Suppress)},
+                subsystemVersion:=SubsystemVersion.Windows2000,
+                globalImports:={GlobalImport.Parse("Foo.Bar")})))
+        End Sub
+
+        <Fact>
+        Public Sub Serializability2()
+            VerifySerializability(New VisualBasicSerializableCompilationOptions(New VisualBasicCompilationOptions(
+                outputKind:=OutputKind.WindowsApplication,
+                parseOptions:=New VisualBasicParseOptions(
+                    languageVersion:=LanguageVersion.Experimental,
+                    documentationMode:=DocumentationMode.Diagnose,
+                    preprocessorSymbols:={KeyValuePair.Create(Of String, Object)("s", 1), KeyValuePair.Create(Of String, Object)("t", 2)}))))
+        End Sub
+
+        <Fact>
+        Public Sub Serializability3()
+            Dim parseOptions = New VisualBasicParseOptions(
+                languageVersion:=LanguageVersion.VisualBasic10,
+                documentationMode:=DocumentationMode.Diagnose,
+                kind:=SourceCodeKind.Regular,
+                preprocessorSymbols:=ImmutableArray.Create(New KeyValuePair(Of String, Object)("key", "Value")))
+
+            Dim compilationOptions = New VisualBasicCompilationOptions(
+                OutputKind.ConsoleApplication,
+                globalImports:={GlobalImport.Parse("Foo.Bar")},
+                rootNamespace:="Alpha.Beta",
+                optionStrict:=OptionStrict.Custom,
+                optionInfer:=False,
+                optionExplicit:=False,
+                optionCompareText:=True,
+                embedVbCoreRuntime:=True,
+                parseOptions:=parseOptions)
+
+            Dim stream = New MemoryStream()
+            Dim formatter = New BinaryFormatter()
+
+            formatter.Serialize(stream, New VisualBasicSerializableCompilationOptions(compilationOptions))
+            stream.Position = 0
+
+            Dim deserializedCompilationOptions = DirectCast(formatter.Deserialize(stream), VisualBasicSerializableCompilationOptions).Options
+
+            Assert.Equal(compilationOptions.GlobalImports.First().Name,
+                         deserializedCompilationOptions.GlobalImports.First().Name)
+            Assert.Equal(compilationOptions.RootNamespace,
+                         deserializedCompilationOptions.RootNamespace)
+            Assert.Equal(compilationOptions.OptionStrict,
+                         deserializedCompilationOptions.OptionStrict)
+            Assert.Equal(compilationOptions.OptionInfer,
+                         deserializedCompilationOptions.OptionInfer)
+            Assert.Equal(compilationOptions.OptionExplicit,
+                         deserializedCompilationOptions.OptionExplicit)
+            Assert.Equal(compilationOptions.OptionCompareText,
+                         deserializedCompilationOptions.OptionCompareText)
+            Assert.Equal(compilationOptions.EmbedVbCoreRuntime,
+                         deserializedCompilationOptions.EmbedVbCoreRuntime)
         End Sub
 
     End Class

@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // Parse Options
             var oldParseOptions = solution.GetProject(project1).ParseOptions;
-            var newParseOptions = new CSharpParseOptions(preprocessorSymbols: "AFTER");
+            var newParseOptions = new CSharpParseOptions(preprocessorSymbols: new[] { "AFTER" });
             solution = solution.WithProjectParseOptions(project1, newParseOptions);
             var newUpdatedParseOptions = solution.GetProject(project1).ParseOptions;
             Assert.NotEqual(oldParseOptions, newUpdatedParseOptions);

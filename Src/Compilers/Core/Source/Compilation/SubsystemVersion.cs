@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis
     ///   - Windows 7                   6.01
     ///   - Windows 8 Release Preview   6.02
     /// </summary>
-    [Serializable]
     public struct SubsystemVersion : IEquatable<SubsystemVersion>
     {
         /// <summary>

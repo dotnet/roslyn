@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -16,13 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// whether to emit an executable or a library, whether to optimize
     /// generated code, and so on.
     /// </summary>
-    [Serializable]
-    public sealed class CSharpCompilationOptions : CompilationOptions, IEquatable<CSharpCompilationOptions>, ISerializable
+    public sealed class CSharpCompilationOptions : CompilationOptions, IEquatable<CSharpCompilationOptions>
     {
-        private const string AllowUnsafeString = "AllowUnsafe";
-        private const string UsingsString = "Usings";
-        private const string RuntimeMetadataVersionString = "RuntimeMetadataVersion";
-
         /// <summary>
         /// Allow unsafe regions (i.e. unsafe modifiers on members and unsafe blocks).
         /// </summary>
@@ -67,14 +60,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssemblyIdentityComparer assemblyIdentityComparer = null,
             StrongNameProvider strongNameProvider = null)
             : this(outputKind, moduleName, mainTypeName, scriptClassName, usings, optimize, checkOverflow, allowUnsafe,
-            cryptoKeyContainer, cryptoKeyFile, delaySign, fileAlignment, baseAddress, platform, generalDiagnosticOption, warningLevel,
+                   cryptoKeyContainer, cryptoKeyFile, delaySign, fileAlignment, baseAddress, platform, generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind, subsystemVersion, runtimeMetadataVersion, concurrentBuild,
                    xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, MetadataImportOptions.Public, features: ImmutableArray<string>.Empty)
         {
         }
 
         // Expects correct arguments.
-        private CSharpCompilationOptions(
+        internal CSharpCompilationOptions(
             OutputKind outputKind,
             string moduleName,
             string mainTypeName,
@@ -109,7 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind,
                    subsystemVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features)
         {
-            Initialize(usings, allowUnsafe, runtimeMetadataVersion);
+            this.Usings = usings.AsImmutableOrEmpty();
+            this.AllowUnsafe = allowUnsafe;
+            this.RuntimeMetadataVersion = runtimeMetadataVersion;
         }
 
         private CSharpCompilationOptions(CSharpCompilationOptions other) : this(
@@ -144,30 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             metadataImportOptions: other.MetadataImportOptions,
             features: other.Features)
         {
-        }
-
-        private void Initialize(IEnumerable<string> usings, bool allowUnsafe, string runtimeMetadataVersion)
-        {
-            this.Usings = usings.AsImmutableOrEmpty();
-            this.AllowUnsafe = allowUnsafe;
-            this.RuntimeMetadataVersion = runtimeMetadataVersion;
-        }
-
-        private CSharpCompilationOptions(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-            Initialize(
-                (string[])info.GetValue(UsingsString, typeof(string[])),
-                info.GetBoolean(AllowUnsafeString),
-                info.GetString(RuntimeMetadataVersionString));
-        }
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            base.GetObjectData(info, context);
-            info.AddValue(UsingsString, this.Usings.ToArray());
-            info.AddValue(AllowUnsafeString, this.AllowUnsafe);
-            info.AddValue(RuntimeMetadataVersionString, this.RuntimeMetadataVersion);
         }
 
         public new CSharpCompilationOptions WithOutputKind(OutputKind kind)

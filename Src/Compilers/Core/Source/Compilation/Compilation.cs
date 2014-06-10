@@ -1366,7 +1366,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (peStream == null)
             {
-                throw new ArgumentNullException("metadataStream");
+                throw new ArgumentNullException("peStream");
             }
 
             return Emit(

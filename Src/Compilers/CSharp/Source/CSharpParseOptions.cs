@@ -4,19 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// This class stores several source parsing related options and offers access to their values.
     /// </summary>
-    [Serializable]
-    public sealed class CSharpParseOptions : ParseOptions, IEquatable<CSharpParseOptions>, ISerializable
+    public sealed class CSharpParseOptions : ParseOptions, IEquatable<CSharpParseOptions>
     {
         /// <summary>
         /// The default parse options.
@@ -26,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the language version.
         /// </summary>
-        public readonly LanguageVersion LanguageVersion;
+        public LanguageVersion LanguageVersion { get; private set; }
 
-        internal readonly ImmutableArray<string> PreprocessorSymbols;
+        internal ImmutableArray<string> PreprocessorSymbols { get; private set; }
 
         /// <summary>
         /// Gets the names of defined preprocessor symbols.
@@ -38,23 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return PreprocessorSymbols; }
         }
 
-        // NOTE: warnaserror[+|-], warnaserror[+|-]:<warn list>, unsafe[+|-], warn:<n>, nowarn:<warn list>
-
         public CSharpParseOptions(
             LanguageVersion languageVersion = LanguageVersion.CSharp6,
             DocumentationMode documentationMode = DocumentationMode.Parse,
             SourceCodeKind kind = SourceCodeKind.Regular,
-            params string[] preprocessorSymbols)
-            : this(languageVersion, documentationMode, kind, preprocessorSymbols.AsImmutableOrEmpty())
-        {
-        }
-
-        public CSharpParseOptions(
-            LanguageVersion languageVersion = LanguageVersion.CSharp6,
-            DocumentationMode documentationMode = DocumentationMode.Parse,
-            SourceCodeKind kind = SourceCodeKind.Regular,
-            ImmutableArray<string> preprocessorSymbols = default(ImmutableArray<string>))
-            : this(languageVersion, documentationMode, kind, preprocessorSymbols.NullToEmpty(), privateCtor: true)
+            IEnumerable<string> preprocessorSymbols = null)
+            : this(languageVersion, documentationMode, kind, preprocessorSymbols.ToImmutableArrayOrEmpty())
         {
             if (!languageVersion.IsValid())
             {
@@ -66,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentOutOfRangeException("kind");
             }
 
-            if (!preprocessorSymbols.IsDefaultOrEmpty)
+            if (preprocessorSymbols != null)
             {
                 foreach (var preprocessorSymbol in preprocessorSymbols)
                 {
@@ -78,13 +62,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private CSharpParseOptions(CSharpParseOptions other) : this(
+            languageVersion: other.LanguageVersion,
+            documentationMode: other.DocumentationMode,
+            kind: other.Kind,
+            preprocessorSymbols: other.PreprocessorSymbols)
+        {
+        }
+
         // No validation
         internal CSharpParseOptions(
             LanguageVersion languageVersion,
             DocumentationMode documentationMode,
             SourceCodeKind kind,
-            ImmutableArray<string> preprocessorSymbols,
-            bool privateCtor) //dummy param to distinguish from public ctor
+            ImmutableArray<string> preprocessorSymbols)
             : base(kind, documentationMode)
         {
             Debug.Assert(!preprocessorSymbols.IsDefault);
@@ -104,23 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentOutOfRangeException("kind");
             }
 
-            return new CSharpParseOptions(
-                this.LanguageVersion,
-                this.DocumentationMode,
-                kind,
-                this.PreprocessorSymbols,
-                privateCtor: true
-            );
-        }
-
-        protected override ParseOptions CommonWithKind(SourceCodeKind kind)
-        {
-            return WithKind(kind);
-        }
-
-        protected override ParseOptions CommonWithDocumentationMode(DocumentationMode documentationMode)
-        {
-            return WithDocumentationMode(documentationMode);
+            return new CSharpParseOptions(this) { Kind = kind };
         }
 
         public CSharpParseOptions WithLanguageVersion(LanguageVersion version)
@@ -135,13 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentOutOfRangeException("version");
             }
 
-            return new CSharpParseOptions(
-                version,
-                this.DocumentationMode,
-                this.Kind,
-                this.PreprocessorSymbols,
-                privateCtor: true
-            );
+            return new CSharpParseOptions(this) { LanguageVersion = version };
         }
 
         public CSharpParseOptions WithPreprocessorSymbols(IEnumerable<string> preprocessorSymbols)
@@ -151,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CSharpParseOptions WithPreprocessorSymbols(params string[] preprocessorSymbols)
         {
-            return WithPreprocessorSymbols(ImmutableArray.Create<string>(preprocessorSymbols));
+            return WithPreprocessorSymbols(ImmutableArray.Create(preprocessorSymbols));
         }
 
         public CSharpParseOptions WithPreprocessorSymbols(ImmutableArray<string> symbols)
@@ -166,13 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            return new CSharpParseOptions(
-                this.LanguageVersion,
-                this.DocumentationMode,
-                this.Kind,
-                symbols,
-                privateCtor: true
-            );
+            return new CSharpParseOptions(this) { PreprocessorSymbols = symbols };
         }
 
         public new CSharpParseOptions WithDocumentationMode(DocumentationMode documentationMode)
@@ -187,13 +150,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentOutOfRangeException("documentationMode");
             }
 
-            return new CSharpParseOptions(
-                this.LanguageVersion,
-                documentationMode,
-                this.Kind,
-                this.PreprocessorSymbols,
-                privateCtor: true
-            );
+            return new CSharpParseOptions(this) { DocumentationMode = documentationMode };
+        }
+
+        protected override ParseOptions CommonWithKind(SourceCodeKind kind)
+        {
+            return WithKind(kind);
+        }
+
+        protected override ParseOptions CommonWithDocumentationMode(DocumentationMode documentationMode)
+        {
+            return WithDocumentationMode(documentationMode);
         }
 
         public override bool Equals(object obj)
@@ -221,32 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 Hash.Combine(base.GetHashCodeHelper(),
                 Hash.Combine((int)this.LanguageVersion, 0));
-
         }
-
-        #region "serialization"
-
-        private CSharpParseOptions(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-            //public readonly LanguageVersion LanguageVersion;
-            this.LanguageVersion = (LanguageVersion)info.GetValue("LanguageVersion", typeof(LanguageVersion));
-
-            //internal readonly ImmutableArray<string> PreprocessorSymbols;
-            this.PreprocessorSymbols = info.GetArray<string>("PreprocessorSymbols");
-        }
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            base.GetObjectData(info, context);
-
-            //public readonly LanguageVersion LanguageVersion;
-            info.AddValue("LanguageVersion", this.LanguageVersion, typeof(LanguageVersion));
-
-            //internal readonly ImmutableArray<string> PreprocessorSymbols;
-            info.AddArray("PreprocessorSymbols", this.PreprocessorSymbols);
-        }
-
-        #endregion
     }
 }

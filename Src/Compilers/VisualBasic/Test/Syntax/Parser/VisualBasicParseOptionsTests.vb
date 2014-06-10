@@ -1,12 +1,11 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.IO
-Imports System.Runtime.Serialization.Formatters.Binary
 Imports Roslyn.Test.Utilities
 
-<CLSCompliant(False)>
-Public Class ParseOptionsTests
+Public Class VisualBasicParseOptionsTests
+    Inherits BasicTestBase
+
     Private Sub TestProperty(Of T)(factory As Func(Of VisualBasicParseOptions, T, VisualBasicParseOptions), getter As Func(Of VisualBasicParseOptions, T), validValue As T)
         Dim oldOpt1 = VisualBasicParseOptions.Default
         Dim newOpt1 = factory(oldOpt1, validValue)
@@ -44,23 +43,23 @@ Public Class ParseOptionsTests
 
         ' Command line: error BC31030: Project-level conditional compilation constant 'xxx' is not valid: Identifier expected
 
-        Dim syms = ImmutableArray.Create(Of KeyValuePair(Of String, Object))(New KeyValuePair(Of String, Object)("", 1))
+        Dim syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("", 1))
         Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
-        syms = ImmutableArray.Create(Of KeyValuePair(Of String, Object))(New KeyValuePair(Of String, Object)(" ", 1))
+        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)(" ", 1))
         Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
-        syms = ImmutableArray.Create(Of KeyValuePair(Of String, Object))(New KeyValuePair(Of String, Object)("Good", 1),
-                                                                        New KeyValuePair(Of String, Object)(Nothing, 2))
+        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
+                                     New KeyValuePair(Of String, Object)(Nothing, 2))
         Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
-        syms = ImmutableArray.Create(Of KeyValuePair(Of String, Object))(New KeyValuePair(Of String, Object)("Good", 1),
-                                                                        New KeyValuePair(Of String, Object)("Bad.Symbol", 2))
+        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
+                                     New KeyValuePair(Of String, Object)("Bad.Symbol", 2))
         Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
-        syms = ImmutableArray.Create(Of KeyValuePair(Of String, Object))(New KeyValuePair(Of String, Object)("123", 1),
-                                                                        New KeyValuePair(Of String, Object)("Bad/Symbol", 2),
-                                                                        New KeyValuePair(Of String, Object)("Good", 3))
+        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("123", 1),
+                                     New KeyValuePair(Of String, Object)("Bad/Symbol", 2),
+                                     New KeyValuePair(Of String, Object)("Good", 3))
         Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
     End Sub
 
@@ -223,21 +222,10 @@ Public Class ParseOptionsTests
                 "PreprocessorSymbols")
     End Sub
 
-    <Fact, WorkItem(665448, "DevDiv")>
-    Public Sub Serialization()
-        Dim preprocessorSymbols = ImmutableArray.Create(Of KeyValuePair(Of String, Object))(New KeyValuePair(Of String, Object)("Alpha", 1),
-                                                                                           New KeyValuePair(Of String, Object)("Beta", "Foo"))
-        Dim options = New VisualBasicParseOptions(preprocessorSymbols:=preprocessorSymbols)
-        Dim deserializedOptions As VisualBasicParseOptions
-
-        Dim formatter = New BinaryFormatter
-
-        Using stream As New MemoryStream
-            formatter.Serialize(stream, options)
-            stream.Seek(0, SeekOrigin.Begin)
-            deserializedOptions = DirectCast(formatter.Deserialize(stream), VisualBasicParseOptions)
-        End Using
-
-        Assert.Equal(expected:=options, actual:=deserializedOptions)
+    <Fact>
+    Public Sub Serializability()
+        VerifySerializability(New VisualBasicSerializableParseOptions(New VisualBasicParseOptions(
+                    languageVersion:=LanguageVersion.Experimental,
+                    documentationMode:=DocumentationMode.Diagnose)))
     End Sub
 End Class

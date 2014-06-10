@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.Serialization
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -10,45 +9,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Represents Visual Basic parse options.
     ''' </summary>
-    <Serializable>
     Public NotInheritable Class VisualBasicParseOptions
         Inherits ParseOptions
-        Implements IEquatable(Of VisualBasicParseOptions), ISerializable
+        Implements IEquatable(Of VisualBasicParseOptions)
 
         Public Shared ReadOnly [Default] As VisualBasicParseOptions = New VisualBasicParseOptions()
-
-        Private ReadOnly _preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
-        Private ReadOnly _languageVersion As LanguageVersion
-
         Private Shared _defaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
-        Private Shared ReadOnly Property DefaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
-            Get
-                If _defaultPreprocessorSymbols.IsDefaultOrEmpty Then
-                    _defaultPreprocessorSymbols = ImmutableArray.Create(Of KeyValuePair(Of String, Object))(KeyValuePair.Create("_MYTYPE", CObj("Empty")))
-                End If
 
-                Return _defaultPreprocessorSymbols
-            End Get
-        End Property
+        Private _preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
+        Private _languageVersion As LanguageVersion
 
         ''' <summary>
         ''' Creates an instance of VisualBasicParseOptions.
         ''' </summary>
         ''' <param name="languageVersion">The parser language version.</param>
         ''' <param name="documentationMode">The comentation mode.</param>
-        ''' <param name="kind">The kind of source code.<see cref="Microsoft.CodeAnalysis.SourceCodeKind"/></param>
+        ''' <param name="kind">The kind of source code.<see cref="SourceCodeKind"/></param>
         ''' <param name="preprocessorSymbols">An immutable array of KeyValuePair representing pre processor symbols.</param>
         Public Sub New(
             Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic11,
-            Optional documentationMode As DocumentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse,
+            Optional documentationMode As DocumentationMode = DocumentationMode.Parse,
             Optional kind As SourceCodeKind = SourceCodeKind.Regular,
-            Optional preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object)) = Nothing)
+            Optional preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)) = Nothing)
 
             MyClass.New(languageVersion,
                         documentationMode,
                         kind,
-                        If(preprocessorSymbols.IsDefault, DefaultPreprocessorSymbols, preprocessorSymbols),
-                        privateCtor:=True)
+                        If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)))
 
             If Not languageVersion.IsValid Then
                 Throw New ArgumentOutOfRangeException("languageVersion")
@@ -58,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentOutOfRangeException("kind")
             End If
 
-            If Not preprocessorSymbols.IsDefaultOrEmpty Then
+            If preprocessorSymbols IsNot Nothing Then
                 For Each preprocessorSymbol In preprocessorSymbols
 
                     If Not IsValidIdentifier(preprocessorSymbol.Key) OrElse
@@ -83,8 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             languageVersion As LanguageVersion,
             documentationMode As DocumentationMode,
             kind As SourceCodeKind,
-            preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object)),
-            privateCtor As Boolean)
+            preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object)))
 
             MyBase.New(kind, documentationMode)
 
@@ -92,6 +78,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _languageVersion = languageVersion
             _preprocessorSymbols = preprocessorSymbols
         End Sub
+
+        Private Sub New(other As VisualBasicParseOptions)
+            MyClass.New(
+                languageVersion:=other._languageVersion,
+                documentationMode:=other.DocumentationMode,
+                kind:=other.Kind,
+                preprocessorSymbols:=other._preprocessorSymbols)
+        End Sub
+
+        Private Shared ReadOnly Property DefaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
+            Get
+                If _defaultPreprocessorSymbols.IsDefaultOrEmpty Then
+                    _defaultPreprocessorSymbols = ImmutableArray.Create(KeyValuePair.Create("_MYTYPE", CObj("Empty")))
+                End If
+
+                Return _defaultPreprocessorSymbols
+            End Get
+        End Property
 
         ''' <summary>
         ''' Returns the parser language version.
@@ -129,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="version">The parser language version.</param>
         ''' <returns>A new instance of VisualBasicParseOptions if different language version is different; otherwise current instance.</returns>
         Public Shadows Function WithLanguageVersion(version As LanguageVersion) As VisualBasicParseOptions
-            If version = Me.LanguageVersion Then
+            If version = _languageVersion Then
                 Return Me
             End If
 
@@ -137,11 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentOutOfRangeException("version")
             End If
 
-            Return New VisualBasicParseOptions(
-                version,
-                Me.DocumentationMode,
-                Me.Kind,
-                Me.PreprocessorSymbols)
+            Return New VisualBasicParseOptions(Me) With {._languageVersion = version}
         End Function
 
         ''' <summary>
@@ -158,11 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentOutOfRangeException("kind")
             End If
 
-            Return New VisualBasicParseOptions(
-                Me.LanguageVersion,
-                Me.DocumentationMode,
-                kind,
-                Me.PreprocessorSymbols)
+            Return New VisualBasicParseOptions(Me) With {.Kind = kind}
         End Function
 
         ''' <summary>
@@ -179,11 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentOutOfRangeException("documentationMode")
             End If
 
-            Return New VisualBasicParseOptions(
-                Me.LanguageVersion,
-                documentationMode,
-                Me.Kind,
-                Me.PreprocessorSymbols)
+            Return New VisualBasicParseOptions(Me) With {.DocumentationMode = documentationMode}
         End Function
 
         ''' <summary>
@@ -218,11 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            Return New VisualBasicParseOptions(
-                Me.LanguageVersion,
-                Me.DocumentationMode,
-                Me.Kind,
-                symbols)
+            Return New VisualBasicParseOptions(Me) With {._preprocessorSymbols = symbols}
         End Function
 
         ''' <summary>
@@ -284,65 +272,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function GetHashCode() As Integer
             Return Hash.Combine(MyBase.GetHashCodeHelper(), CInt(Me.LanguageVersion))
         End Function
-
-#Region "serialization"
-        Private Sub New(info As SerializationInfo, context As StreamingContext)
-            MyBase.New(info, context)
-
-            ' Private ReadOnly _preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
-
-            ' We serialize keys and values as two separate arrays 
-            ' to avoid the trouble dealing with situations where deserializer may want to deserialize
-            ' an array before its elements (which gets complicated when elements are structs).
-
-            Dim keys() As String = DirectCast(info.GetValue("Keys", GetType(String())), String())
-            Dim values() As Object = DirectCast(info.GetValue("Values", GetType(Object())), Object())
-
-            Dim count As Integer = keys.Length
-            Debug.Assert(values.Length = count)
-
-            Dim builder = ArrayBuilder(Of KeyValuePair(Of String, Object)).GetInstance
-
-            For i As Integer = 0 To count - 1
-                builder.Add(New KeyValuePair(Of String, Object)(keys(i), values(i)))
-            Next
-
-            Me._preprocessorSymbols = builder.ToImmutableAndFree
-
-            ' Private ReadOnly _languageVersion As LanguageVersion
-            Me._languageVersion = DirectCast(info.GetValue("LanguageVersion", GetType(LanguageVersion)), LanguageVersion)
-        End Sub
-
-        ''' <summary>
-        ''' Implements the System.Runtime.Serialization.ISerializable interface and returns the data needed to serialize the VisualBasicParseOptions instance.
-        ''' </summary>
-        ''' <param name="info">A SerializationInfo object that contains the information required to serialize the VisualBasicParseOptions instance. <see cref="System.Runtime.Serialization.SerializationInfo"/> </param>
-        ''' <param name="context">A StreamingContext object that contains the source and destination of the serialized stream associated with the VisualBasicParseOptions instance. <see cref="System.Runtime.Serialization.StreamingContext"/>   </param>
-        Public Overrides Sub GetObjectData(info As SerializationInfo, context As StreamingContext)
-            MyBase.GetObjectData(info, context)
-
-            ' Private ReadOnly _preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
-
-            ' We serialize keys and values as two separate arrays 
-            ' to avoid the trouble dealing with situations where deserializer may want to deserialize
-            ' an array before its elements (which gets complicated when elements are structs).
-
-            Dim ppSymbols = Me._preprocessorSymbols
-            Dim keys(ppSymbols.Length - 1) As String
-            Dim values(ppSymbols.Length - 1) As Object
-
-            For i As Integer = 0 To ppSymbols.Length - 1
-                Dim sym = ppSymbols(i)
-                keys(i) = sym.Key
-                values(i) = sym.Value
-            Next
-
-            info.AddValue("Keys", keys, GetType(String()))
-            info.AddValue("Values", values, GetType(Object()))
-
-            ' Private ReadOnly _languageVersion As LanguageVersion
-            info.AddValue("LanguageVersion", _languageVersion, GetType(LanguageVersion))
-        End Sub
-#End Region
     End Class
 End Namespace

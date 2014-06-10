@@ -1028,11 +1028,10 @@ lVbRuntimePlus:
                 End If
 
                 Dim parseOptions = New VisualBasicParseOptions(
-                    preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
+                    languageVersion:=languageVersion,
                     documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
                     kind:=SourceCodeKind.Regular,
-                    languageVersion:=languageVersion,
-                    privateCtor:=True)
+                    preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()))
 
                 Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 

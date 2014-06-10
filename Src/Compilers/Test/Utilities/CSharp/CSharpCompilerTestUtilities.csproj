@@ -82,8 +82,6 @@
     <Compile Include="BasicCompilationUtils.cs" />
     <Compile Include="CompilationTestUtils.cs" />
     <Compile Include="CompilingTestBase.cs" />
-    <Compile Include="CSharpParser.cs" />
-    <Compile Include="CSharpSyntaxNodeKindProvider.cs" />
     <Compile Include="CSharpTestBase.cs" />
     <Compile Include="CSharpTrackingDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticExtensions.cs" />
