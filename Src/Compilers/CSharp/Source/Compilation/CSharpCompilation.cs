@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Diagnostic> lazyClsComplianceDiagnostics;
 
         /// <summary>
-        /// Used for test purposes only to immulate missing members.
+        /// Used for test purposes only to emulate missing members.
         /// </summary>
         private SmallDictionary<int, bool> lazyMakeMemberMissingMap;
 
