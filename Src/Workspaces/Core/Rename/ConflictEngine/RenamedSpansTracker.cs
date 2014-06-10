@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     if (replacementTextValid)
                     {
-                        var optionSet = solution.Workspace.GetOptions();
+                        var optionSet = solution.Workspace.Options;
                         document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, optionSet, cancellationToken).ConfigureAwait(false);
                         document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
                     }

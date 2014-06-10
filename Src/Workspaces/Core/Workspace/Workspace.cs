@@ -153,11 +153,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Get's the set of all global options.
+        /// Gets or sets the set of all global options.
         /// </summary>
-        public OptionSet GetOptions()
+        public OptionSet Options
         {
-            return this.services.GetService<IOptionService>().GetOptions();
+            get
+            {
+                return this.services.GetService<IOptionService>().GetOptions();
+            }
+
+            set
+            {
+                this.services.GetService<IOptionService>().SetOptions(value);
+            }
         }
 
         /// <summary>

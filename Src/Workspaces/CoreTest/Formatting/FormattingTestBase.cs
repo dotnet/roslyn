@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
 
                 var syntaxTree = document.GetSyntaxTreeAsync().Result;
 
-                var options = workspace.GetOptions();
+                var options = workspace.Options;
                 if (changedOptionSet != null)
                 {
                     foreach (var entry in changedOptionSet)

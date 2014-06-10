@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             OptionSet options = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            options = options ?? workspace.GetOptions();
+            options = options ?? workspace.Options;
             var languageRecommender = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IRecommendationService>();
 
             return languageRecommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken);

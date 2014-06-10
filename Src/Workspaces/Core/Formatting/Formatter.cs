@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();
             if (languageFormatter != null)
             {
-                options = options ?? workspace.GetOptions();
+                options = options ?? workspace.Options;
                 rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
                 return languageFormatter.Format(node, spans, options, rules, cancellationToken).GetFormattedRoot(cancellationToken);
             }
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();
             if (languageFormatter != null)
             {
-                options = options ?? workspace.GetOptions();
+                options = options ?? workspace.Options;
                 rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
                 return languageFormatter.Format(node, spans, options, rules, cancellationToken).GetTextChanges(cancellationToken);
             }
