@@ -83,20 +83,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CreateFromFile()
         {
-            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromFile((string)null));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(""));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile("foo.dll"));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile("c:foo.dll"));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@".\foo.dll"));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"\foo.dll"));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"http://foo.bar"));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"c:\*"));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"\\.\COM1"));
+            Assert.Throws<ArgumentNullException>(() => MetadataFileFactory.CreateModule((string)null));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(""));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule("foo.dll"));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule("c:foo.dll"));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(@".\foo.dll"));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(@"\foo.dll"));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(@"http://foo.bar"));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(@"c:\*"));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateModule(@"\\.\COM1"));
 
-            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(SystemDrive + @":\file_that_does_not_exists.dll"));
-            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(SystemDrive + @":\directory_that_does_not_exists\file_that_does_not_exists.dll"));
-            Assert.Throws<PathTooLongException>(() => ModuleMetadata.CreateFromFile(SystemDrive + @":\" + new string('x', 1000)));
-            Assert.Throws<IOException>(() => ModuleMetadata.CreateFromFile(Environment.GetFolderPath(Environment.SpecialFolder.Windows)));
+            Assert.Throws<FileNotFoundException>(() => MetadataFileFactory.CreateModule(SystemDrive + @":\file_that_does_not_exists.dll"));
+            Assert.Throws<FileNotFoundException>(() => MetadataFileFactory.CreateModule(SystemDrive + @":\directory_that_does_not_exists\file_that_does_not_exists.dll"));
+            Assert.Throws<PathTooLongException>(() => MetadataFileFactory.CreateModule(SystemDrive + @":\" + new string('x', 1000)));
+            Assert.Throws<IOException>(() => MetadataFileFactory.CreateModule(Environment.GetFolderPath(Environment.SpecialFolder.Windows)));
         }
 
         [Fact]

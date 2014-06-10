@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // memory-map all modules of the assembly:
-            assembly = AssemblyMetadata.CreateFromFile(fullPath);
+            assembly = MetadataFileFactory.CreateAssembly(fullPath);
 
             // refresh the timestamp (the file may have changed just before we memory-mapped it):
             bool fault = true;
@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // mempy-map the module:
-            module = ModuleMetadata.CreateFromFile(fullPath);
+            module = MetadataFileFactory.CreateModule(fullPath);
 
             // refresh the timestamp (the file may have changed just before we memory-mapped it):
             bool fault = true;

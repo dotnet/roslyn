@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public sealed partial class AssemblyMetadata
+    public static partial class MetadataFileFactory
     {
         /// <summary>
         /// Finds all modules of an assembly on a specified path and builds an instance of <see cref="AssemblyMetadata"/> that represents them.
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="fullPath"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="fullPath"/> is not an absolute path.</exception>
         /// <exception cref="IOException">Error reading file <paramref name="fullPath"/>. See <see cref="Exception.InnerException"/> for details.</exception>
-        public static AssemblyMetadata CreateFromFile(string fullPath)
+        public static AssemblyMetadata CreateAssembly(string fullPath)
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, "fullPath");
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
             ArrayBuilder<ModuleMetadata> moduleBuilder = null;
 
             // if the file isn't an assembly manifest module an error will be reported later
-            ModuleMetadata manifestModule = ModuleMetadata.CreateFromFile(fullPath);
+            ModuleMetadata manifestModule = CreateModule(fullPath);
 
             string assemblyDir = null;
             foreach (string moduleName in manifestModule.GetModuleNames())
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                     assemblyDir = Path.GetDirectoryName(fullPath);
                 }
 
-                var module = ModuleMetadata.CreateFromFile(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName));
+                var module = CreateModule(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName));
                 moduleBuilder.Add(module);
             }
 

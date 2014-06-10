@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents an immutable snapshot of assembly CLI metadata.
     /// </summary>
-    public sealed partial class AssemblyMetadata : Metadata
+    public sealed class AssemblyMetadata : Metadata
     {
         /// <summary>
         /// Modules comprising this assembly. The first module is the manifest module.
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             this.Assembly = new PEAssembly(this, ImmutableArray.Create(module.Module));
         }
 
-        private AssemblyMetadata(ImmutableArray<ModuleMetadata> modules)
+        internal AssemblyMetadata(ImmutableArray<ModuleMetadata> modules)
         {
             this.Modules = modules;
             this.Assembly = new PEAssembly(this, modules.SelectAsArray(m => m.Module));

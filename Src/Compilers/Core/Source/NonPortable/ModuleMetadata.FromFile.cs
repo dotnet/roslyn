@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public sealed partial class ModuleMetadata
+    public static partial class MetadataFileFactory
     {
         /// <summary>
         /// Creates metadata module from a file containing a portable executable image.
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         /// <exception cref="IOException">Error reading file <paramref name="fullPath"/>. See <see cref="Exception.InnerException"/> for details.</exception>
         /// <exception cref="FileNotFoundException">File <paramref name="fullPath"/> not found.</exception>
-        public static ModuleMetadata CreateFromFile(string fullPath)
+        public static ModuleMetadata CreateModule(string fullPath)
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, "fullPath");
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
                 throw new IOException(e.Message, e);
             }
 
-            return CreateFromImageStream(fileStream);
+            return ModuleMetadata.CreateFromImageStream(fileStream);
         }
     }
 }

@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.Create(ImmutableArray.Create(m1, m2, null)));
             Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.Create(ImmutableArray.Create((ModuleMetadata)null)));
 
-            Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.CreateFromFile((string)null));
-            Assert.Throws<ArgumentException>(() => AssemblyMetadata.CreateFromFile("foo.dll"));
-            Assert.Throws<ArgumentException>(() => AssemblyMetadata.CreateFromFile("c:foo.dll"));
-            Assert.Throws<ArgumentException>(() => AssemblyMetadata.CreateFromFile(@".\foo.dll"));
-            Assert.Throws<ArgumentException>(() => AssemblyMetadata.CreateFromFile(@"\foo.dll"));
+            Assert.Throws<ArgumentNullException>(() => MetadataFileFactory.CreateAssembly((string)null));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateAssembly("foo.dll"));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateAssembly("c:foo.dll"));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateAssembly(@".\foo.dll"));
+            Assert.Throws<ArgumentException>(() => MetadataFileFactory.CreateAssembly(@"\foo.dll"));
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             dir.CreateFile("mod2.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod2);
             dir.CreateFile("mod3.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod3);
 
-            using (var a = AssemblyMetadata.CreateFromFile(mm))
+            using (var a = MetadataFileFactory.CreateAssembly(mm))
             {
                 Assert.Equal(3, a.Modules.Length);
                 Assert.Equal("MultiModule.dll", a.Modules[0].Name);
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void BadImageFormat()
         {
             var invalidModuleName = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.Invalid.InvalidModuleName);
-            Assert.Throws<BadImageFormatException>(() => AssemblyMetadata.CreateFromFile(invalidModuleName.Path));
+            Assert.Throws<BadImageFormatException>(() => MetadataFileFactory.CreateAssembly(invalidModuleName.Path));
         }
 
         [Fact, WorkItem(547015, "DevDiv")]
