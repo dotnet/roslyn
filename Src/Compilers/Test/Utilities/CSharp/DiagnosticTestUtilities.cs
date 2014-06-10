@@ -165,21 +165,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     idx++;
                 }
+
                 if (idx >= actualSortedDesp.Count)
                 {
                     idx = actualSortedDesp.Count - 1;
                 }
+
                 var acterr = actualSortedDesp[idx];
-                //
+
                 Assert.Equal(experr.Code, acterr.Code);
                 if (experr.Line > 0 && experr.Column > 0)
                 {
                     Assert.True(experr.Line == acterr.Line, String.Format("Line {0}!={1}", experr.Line, acterr.Line));
                     Assert.True(experr.Column == acterr.Column, String.Format("Col {0}!={1}", experr.Column, acterr.Column));
                 }
-                Assert.Equal(experr.IsWarning, acterr.IsWarning);
-                //if the expected contains parameters, validate those too.
 
+                Assert.Equal(experr.IsWarning, acterr.IsWarning);
+
+                //if the expected contains parameters, validate those too.
                 if (experr.Parameters != null)
                 {
                     Assert.True(experr.Parameters.SequenceEqual(acterr.Parameters), String.Format("Param: {0}!={1}", experr.Parameters.Count(), acterr.Parameters.Count()));
@@ -187,8 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 idx++;
             }
-
-            actualErrors.VerifySerializability();
         }
 
         /// <summary>

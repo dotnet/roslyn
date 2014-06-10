@@ -1,15 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Globalization
-Imports System.Runtime.InteropServices
-Imports System.Runtime.Serialization
-Imports System.Threading
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -17,31 +8,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' A special Diagnostic info that wraps a particular diagnostic but customized the message with 
         ' the text of the import.
-        <Serializable>
         Private Class ImportDiagnosticInfo
             Inherits DiagnosticInfo
 
             Private _importText As String
             Private _startIndex, _length As Integer
             Private _wrappedDiagnostic As DiagnosticInfo
-
-            Private Sub New(info As SerializationInfo, context As StreamingContext)
-                MyBase.New(info, context)
-
-                Me._importText = DirectCast(info.GetValue("importText", GetType(String)), String)
-                Me._startIndex = DirectCast(info.GetValue("startIndex", GetType(Integer)), Integer)
-                Me._length = DirectCast(info.GetValue("length", GetType(Integer)), Integer)
-                Me._wrappedDiagnostic = DirectCast(info.GetValue("wrappedDiagnostic", GetType(DiagnosticInfo)), DiagnosticInfo)
-            End Sub
-
-            Protected Overrides Sub GetObjectData(info As SerializationInfo, context As StreamingContext)
-                MyBase.GetObjectData(info, context)
-
-                info.AddValue("importText", _importText, GetType(String))
-                info.AddValue("startIndex", _startIndex, GetType(Integer))
-                info.AddValue("length", _length, GetType(Integer))
-                info.AddValue("wrappedDiagnostic", _wrappedDiagnostic, GetType(DiagnosticInfo))
-            End Sub
 
             Private Sub New(reader As ObjectReader)
                 MyBase.New(reader)

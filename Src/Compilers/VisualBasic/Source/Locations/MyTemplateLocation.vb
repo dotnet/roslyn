@@ -8,7 +8,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' A program location in MyTemplate code.
     ''' </summary>
-    <Serializable()>
     Friend NotInheritable Class MyTemplateLocation
         Inherits VBLocation
 

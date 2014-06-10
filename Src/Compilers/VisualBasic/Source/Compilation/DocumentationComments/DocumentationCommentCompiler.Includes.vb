@@ -311,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If Not Me._tagsSupport.ExceptionSupported Then
                                 commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                     ERRID.WRN_XMLDocIllegalTagOnElement2,
-                                                                    elementName,
+                                                                    elementName.LocalName,
                                                                     Me._tagsSupport.SymbolName)
 
                             Else
@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Else
                                     commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                         ERRID.WRN_XMLDocIllegalTagOnElement2,
-                                                                        elementName,
+                                                                        elementName.LocalName,
                                                                         Me._tagsSupport.SymbolName)
                                 End If
                             End If
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If Not Me._tagsSupport.ParamAndParamRefSupported Then
                                 commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                     ERRID.WRN_XMLDocIllegalTagOnElement2,
-                                                                    elementName,
+                                                                    elementName.LocalName,
                                                                     Me._tagsSupport.SymbolName)
                             End If
 
@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If Not Me._tagsSupport.ValueSupported Then
                                 commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                     ERRID.WRN_XMLDocIllegalTagOnElement2,
-                                                                    elementName,
+                                                                    elementName.LocalName,
                                                                     Me._tagsSupport.SymbolName)
                             End If
 
@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If Not Me._tagsSupport.TypeParamSupported Then
                                 commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                     ERRID.WRN_XMLDocIllegalTagOnElement2,
-                                                                    elementName,
+                                                                    elementName.LocalName,
                                                                     Me._tagsSupport.SymbolName)
                             End If
 
@@ -369,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If Not Me._tagsSupport.TypeParamRefSupported Then
                                 commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                     ERRID.WRN_XMLDocIllegalTagOnElement2,
-                                                                    elementName,
+                                                                    elementName.LocalName,
                                                                     Me._tagsSupport.SymbolName)
                             End If
                         End If

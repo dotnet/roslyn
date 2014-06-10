@@ -4,8 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Text;
+using System.Reflection;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -17,9 +16,8 @@ namespace Microsoft.CodeAnalysis
     /// More specialized diagnostics with additional information (e.g., ambiguity errors) can derive from this class to
     /// provide access to additional information about the error, such as what symbols were involved in the ambiguity.
     /// </remarks>
-    [Serializable]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal partial class DiagnosticInfo : ISerializable, IFormattable, IObjectWritable, IObjectReadable
+    internal partial class DiagnosticInfo : IFormattable, IObjectWritable, IObjectReadable, IMessageSerializable
     {
         private static readonly object[] NoArguments = new object[0];
 
@@ -39,19 +37,37 @@ namespace Microsoft.CodeAnalysis
         internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode, params object[] arguments)
             : this(messageProvider, errorCode)
         {
-            Debug.Assert(Array.TrueForAll(arguments, arg => arg != null && (arg is IMessageSerializable || arg.GetType().IsSerializable)));
+            AssertMessageSerializable(arguments);
 
             this.arguments = arguments;
-#if false
-            if (arguments != null)
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertMessageSerializable(object[] args)
+        {
+            foreach (var arg in args)
             {
-                foreach (var arg in arguments)
+                Debug.Assert(arg != null);
+
+                if (arg is IMessageSerializable)
                 {
-                    Debug.Assert(arg != null, "Diagnostic argument is null");
-                    Debug.Assert(!arg.GetType().IsEnum, "Enum used as diagnostic argument");
+                    continue;
                 }
+
+                var type = arg.GetType();
+                if (type == typeof(string) || type == typeof(AssemblyIdentity))
+                {
+                    continue;
+                }
+
+                var info = type.GetTypeInfo();
+                if (info.IsPrimitive || info.IsEnum)
+                {
+                    continue;
+                }
+
+                Debug.Assert(false, "Unexpected type: " + type);
             }
-#endif
         }
 
         // Only the compiler creates instances.
@@ -75,70 +91,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         #region Serialization
-
-        protected DiagnosticInfo(SerializationInfo info, StreamingContext context)
-        {
-            var messageProvider = (CommonMessageProvider)info.GetValue("messageProvider", typeof(CommonMessageProvider));
-            int errorCode = info.GetInt32("errorCode");
-            bool isWarningAsError = info.GetBoolean("isWarningAsError");
-            int argCount = info.GetInt32("argumentCount");
-            object[] arguments;
-
-            if (argCount > 0)
-            {
-                arguments = new object[argCount];
-                for (int i = 0; i < arguments.Length; i++)
-                {
-                    arguments[i] = info.GetValue(i.ToString(), typeof(object));
-                }
-            }
-            else
-            {
-                arguments = null;
-            }
-
-            if (messageProvider == null || errorCode < 0)
-            {
-                throw new SerializationException();
-            }
-
-            this.arguments = arguments;
-            this.messageProvider = messageProvider;
-            this.errorCode = errorCode;
-            this.isWarningAsError = isWarningAsError;
-        }
-
-        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            GetObjectData(info, context);
-        }
-
-        protected virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("messageProvider", messageProvider);
-            info.AddValue("errorCode", errorCode);
-            info.AddValue("isWarningAsError", isWarningAsError);
-
-            if (arguments == null)
-            {
-                info.AddValue("argumentCount", 0);
-            }
-            else
-            {
-                int numArguments = arguments.Length;
-                info.AddValue("argumentCount", numArguments);
-
-                for (int i = 0; i < numArguments; i++)
-                {
-                    object value = arguments[i];
-                    if (value is IMessageSerializable)
-                    {
-                        value = value.ToString();
-                    }
-                    info.AddValue(i.ToString(), value);
-                }
-            }
-        }
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {

@@ -1,16 +1,12 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.CompilerServices
-Imports System.Runtime.Serialization
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Represents a VB location in source code or metadata.
     ''' </summary>
-    <Serializable()>
     Friend MustInherit Class VBLocation
         Inherits Location
 

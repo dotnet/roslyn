@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -10,15 +7,9 @@ namespace Microsoft.CodeAnalysis
     /// A class that represents no location at all. Useful for errors in command line options, for example.
     /// </summary>
     /// <remarks></remarks>
-    [Serializable]
-    internal sealed class NoLocation : Location, IObjectReference
+    internal sealed class NoLocation : Location
     {
         public static readonly Location Singleton = new NoLocation();
-
-        object IObjectReference.GetRealObject(StreamingContext context)
-        {
-            return Singleton;
-        }
 
         private NoLocation()
         {

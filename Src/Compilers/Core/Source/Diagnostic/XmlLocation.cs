@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A program location in an XML file.
     /// </summary>
-    [Serializable]
     internal class XmlLocation : Location, IEquatable<XmlLocation>
     {
         private readonly FileLinePositionSpan positionSpan;

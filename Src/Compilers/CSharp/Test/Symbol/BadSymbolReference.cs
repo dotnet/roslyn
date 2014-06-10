@@ -640,7 +640,7 @@ class D : C, I { }
             // Scenario 2: Projects 1 and 2 are metadata, and project 3 is in source; project 3 does not reference lib.
             {
                 var comp3 = CreateCompilationWithMscorlib(project3Source, new[] { comp1.EmitToImageReference(), comp2.EmitToImageReference() }, assemblyName: "Project3");
-                comp3.VerifyDiagnostics(true,
+                comp3.VerifyDiagnostics(
                     // (2,7): error CS0012: The type 'System.Drawing.Point' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Drawing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                     // class D : C, I { }
                     Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("System.Drawing.Point", "System.Drawing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));

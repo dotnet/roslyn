@@ -1,25 +1,15 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.Serialization
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    <Serializable()>
     Friend NotInheritable Class VBDiagnostic
         Inherits DiagnosticWithInfo
 
         Friend Sub New(info As DiagnosticInfo, location As Location)
             MyBase.New(info, location)
-        End Sub
-
-        Private Sub New(info As SerializationInfo, context As StreamingContext)
-            MyBase.New(info, context)
-        End Sub
-
-        Protected Overrides Sub GetObjectData(info As SerializationInfo, context As StreamingContext)
-            MyBase.GetObjectData(info, context)
         End Sub
 
         Public Overrides Function ToString() As String

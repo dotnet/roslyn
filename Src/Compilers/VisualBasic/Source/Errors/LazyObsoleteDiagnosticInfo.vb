@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    <Serializable>
     Friend NotInheritable Class LazyObsoleteDiagnosticInfo
         Inherits DiagnosticInfo
 

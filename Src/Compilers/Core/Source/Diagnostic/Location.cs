@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -10,21 +9,11 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A program location in source code.
     /// </summary>
-    [Serializable]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public abstract class Location : ISerializable
+    public abstract class Location
     {
         protected Location()
         {
-        }
-
-        /// <summary>
-        /// Serializes the location.
-        /// </summary>
-        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.SetType(typeof(SerializedLocation));
-            SerializedLocation.GetObjectData(this, info);
         }
 
         /// <summary>
@@ -157,11 +146,8 @@ namespace Microsoft.CodeAnalysis
         public static Location None { get { return NoLocation.Singleton; } }
 
         /// <summary>
-        /// Creates an instance of a Location for 
+        /// Creates an instance of a <see cref="Location"/> for a span in a <see cref="SyntaxTree"/>.
         /// </summary>
-        /// <param name="syntaxTree"></param>
-        /// <param name="textSpan"></param>
-        /// <returns></returns>
         public static Location Create(SyntaxTree syntaxTree, TextSpan textSpan)
         {
             if (syntaxTree == null)
@@ -173,11 +159,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates an instance of a Location for 
+        /// Creates an instance of a <see cref="Location"/> for a span in a file.
         /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="textSpan"></param>
-        /// <param name="lineSpan"></param>
         public static Location Create(string filePath, TextSpan textSpan, LinePositionSpan lineSpan)
         {
             if (filePath == null)

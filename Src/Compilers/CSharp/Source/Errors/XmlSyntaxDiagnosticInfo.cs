@@ -2,15 +2,10 @@
 
 using System;
 using System.Globalization;
-using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    [Serializable]
     internal sealed class XmlSyntaxDiagnosticInfo : SyntaxDiagnosticInfo
     {
         private readonly XmlParseErrorCode xmlErrorCode;
@@ -27,18 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #region Serialization
-
-        private XmlSyntaxDiagnosticInfo(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-            xmlErrorCode = (XmlParseErrorCode)info.GetInt32("xmlErrorCode");
-        }
-
-        protected override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            base.GetObjectData(info, context);
-            info.AddValue("xmlErrorCode", (int)xmlErrorCode);
-        }
 
         protected override void WriteTo(ObjectWriter writer)
         {

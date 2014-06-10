@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -10,8 +8,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Immutable span represented by a pair of line number and index within the line.
     /// </summary>
-    [Serializable]
-    public struct LinePositionSpan : IEquatable<LinePositionSpan>, ISerializable
+    public struct LinePositionSpan : IEquatable<LinePositionSpan>
     {
         private readonly LinePosition start;
         private readonly LinePosition end;
@@ -83,23 +80,5 @@ namespace Microsoft.CodeAnalysis.Text
         {
             return string.Format("({0})-({1})", this.start, this.end);
         }
-
-        #region Serialization
-
-        private LinePositionSpan(SerializationInfo info, StreamingContext context)
-            : this(new LinePosition(info.GetInt32("startLine"), info.GetInt32("startCharacter")),
-                   new LinePosition(info.GetInt32("endLine"), info.GetInt32("endCharacter")))
-        {
-        }
-
-        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("startLine", start.Line);
-            info.AddValue("startCharacter", start.Character);
-            info.AddValue("endLine", end.Line);
-            info.AddValue("endCharacter", end.Character);
-        }
-
-        #endregion
     }
 }

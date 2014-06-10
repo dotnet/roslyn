@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A program location in source code.
     /// </summary>
-    [Serializable]
     internal sealed class SourceLocation : Location, IEquatable<SourceLocation>
     {
         private readonly SyntaxTree syntaxTree;

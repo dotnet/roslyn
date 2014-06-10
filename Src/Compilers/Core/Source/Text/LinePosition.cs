@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -10,8 +8,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Immutable representation of a line number and position within a SourceText instance.
     /// </summary>
-    [Serializable]
-    public struct LinePosition : IEquatable<LinePosition>, IComparable<LinePosition>, ISerializable
+    public struct LinePosition : IEquatable<LinePosition>, IComparable<LinePosition>
     {
         /// <summary>
         /// A <see cref="T:LinePositions"/> that represents position 0 at line 0.
@@ -61,21 +58,6 @@ namespace Microsoft.CodeAnalysis.Text
             this.line = -1;
             this.character = character;
         }
-
-        #region Serialization
-
-        private LinePosition(SerializationInfo info, StreamingContext context)
-            : this(info.GetInt32("line"), info.GetInt32("character"))
-        {
-        }
-
-        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("line", line);
-            info.AddValue("character", character);
-        }
-
-        #endregion
 
         /// <summary>
         /// The line number. The first line in a file is defined as line 0 (zero based line numbering).

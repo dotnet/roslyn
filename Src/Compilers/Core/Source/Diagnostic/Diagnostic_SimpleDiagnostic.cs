@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
-using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -16,8 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract partial class Diagnostic
     {
-        [Serializable]
-        internal sealed class SimpleDiagnostic : Diagnostic, ISerializable
+        internal sealed class SimpleDiagnostic : Diagnostic
         {
             private readonly string id;
             private readonly string category;
@@ -55,34 +52,6 @@ namespace Microsoft.CodeAnalysis
                 this.location = location;
                 this.additionalLocations = additionalLocations == null ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations.ToImmutableArray();
                 this.customTags = customTags == null ? SpecializedCollections.EmptyReadOnlyList<string>() : customTags.ToImmutableArray();
-            }
-
-            private SimpleDiagnostic(SerializationInfo info, StreamingContext context)
-            {
-                this.id = info.GetString("id");
-                this.category = info.GetString("category");
-                this.message = info.GetString("message");
-                this.severity = (DiagnosticSeverity)info.GetInt32("severity");
-                this.isEnabledByDefault = info.GetBoolean("isEnabledByDefault");
-                this.warningLevel = info.GetInt32("warningLevel");
-                this.isWarningAsError = info.GetBoolean("isWarningAsError");
-                this.location = (Location)info.GetValue("location", typeof(Location));
-                this.additionalLocations = ((Location[])info.GetValue("additionalLocations", typeof(Location[]))).ToImmutableArrayOrEmpty();
-                this.customTags = ((string[])info.GetValue("customTags", typeof(string[]))).ToImmutableArrayOrEmpty();
-            }
-
-            void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
-            {
-                info.AddValue("id", this.id);
-                info.AddValue("category", this.category);
-                info.AddValue("message", this.message);
-                info.AddValue("severity", (int)this.severity);
-                info.AddValue("isEnabledByDefault", this.isEnabledByDefault);
-                info.AddValue("warningLevel", this.warningLevel);
-                info.AddValue("isWarningAsError", this.isWarningAsError);
-                info.AddValue("location", this.location, typeof(Location));
-                info.AddValue("additionalLocations", this.additionalLocations.ToArray(), typeof(Location[]));
-                info.AddValue("customTags", this.customTags.ToArray(), typeof(string[]));
             }
 
             public override string Id

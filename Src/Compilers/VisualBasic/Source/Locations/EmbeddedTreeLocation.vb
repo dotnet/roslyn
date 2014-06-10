@@ -8,7 +8,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' A program location in source code.
     ''' </summary>
-    <Serializable()>
     Friend NotInheritable Class EmbeddedTreeLocation
         Inherits VBLocation
 

@@ -2060,21 +2060,23 @@ public class C
 
             // Assembly is marked compliant.
             CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef }).VerifyDiagnostics();
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { falseModuleRef }).VerifyDiagnostics(true,
+            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'false.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "false.netmodule"),
                 // false.netmodule: warning CS3017: You cannot specify the CLSCompliant attribute on a module that differs from the CLSCompliant attribute on the assembly
                 Diagnostic(ErrorCode.WRN_CLS_NotOnModules2));
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { noneModuleRef }).VerifyDiagnostics(true, 
+
+            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { noneModuleRef }).VerifyDiagnostics( 
                 // none.netmodule: warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
                 Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS));
 
             // Assembly is marked non-compliant.
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef }).VerifyDiagnostics(true,
+            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'true.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "true.netmodule"));
+
             CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { falseModuleRef }).VerifyDiagnostics(); //CONSIDER: dev11 reports WRN_CLS_NotOnModules (don't know why)
             CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { noneModuleRef }).VerifyDiagnostics();
 
@@ -2093,19 +2095,21 @@ public class C
 
             // Assembly is marked compliant.
             CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef }).VerifyDiagnostics();
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { falseModuleRef }).VerifyDiagnostics(true,
+            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'false.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "false.netmodule"));
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { noneModuleRef }).VerifyDiagnostics(true,
+
+            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { noneModuleRef }).VerifyDiagnostics(
                 // none.netmodule: warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
                 Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS));
 
             // Assembly is marked non-compliant.
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef }).VerifyDiagnostics(true,
+            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'true.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "true.netmodule"));
+
             CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { falseModuleRef }).VerifyDiagnostics(); //CONSIDER: dev11 reports WRN_CLS_NotOnModules (don't know why)
             CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { noneModuleRef }).VerifyDiagnostics();
 
@@ -2121,19 +2125,19 @@ public class C
             var trueModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", compOptions: TestOptions.NetModule, assemblyName: "true").EmitToImageReference();
             var falseModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", compOptions: TestOptions.NetModule, assemblyName: "false").EmitToImageReference();
 
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(true,
+            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'false.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "false.netmodule"),
                 // false.netmodule: warning CS3017: You cannot specify the CLSCompliant attribute on a module that differs from the CLSCompliant attribute on the assembly
                 Diagnostic(ErrorCode.WRN_CLS_NotOnModules2));
 
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(true,
+            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'true.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "true.netmodule"));
 
-            CreateCompilationWithMscorlib("", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(true,
+            CreateCompilationWithMscorlib("", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
                 // error CS7061: Duplicate 'CLSCompliantAttribute' attribute in 'true.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("CLSCompliantAttribute", "true.netmodule"),

@@ -159,7 +159,6 @@
     <Compile Include="Diagnostic\MetadataLocation.cs" />
     <Compile Include="Diagnostic\NoLocation.cs" />
     <Compile Include="Diagnostic\ReportDiagnostic.cs" />
-    <Compile Include="Diagnostic\SerializedLocation.cs" />
     <Compile Include="Diagnostic\SourceLocation.cs" />
     <Compile Include="Diagnostic\XmlLocation.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.cs" />

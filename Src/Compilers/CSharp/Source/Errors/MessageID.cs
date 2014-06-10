@@ -2,10 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -107,24 +103,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     // Message IDs may refer to strings that need to be localized.
     // This struct makes an IFormattable wrapper around a MessageID
-    [Serializable]
-    internal struct LocalizableErrorArgument : IFormattable, ISerializable
+    internal struct LocalizableErrorArgument : IFormattable, IMessageSerializable
     {
         private readonly MessageID id;
 
         internal LocalizableErrorArgument(MessageID id)
         {
             this.id = id;
-        }
-
-        private LocalizableErrorArgument(SerializationInfo info, StreamingContext context)
-            : this((MessageID)info.GetInt32("id"))
-        {
-        }
-
-        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("id", (int)id);
         }
 
         public string ToString(string format, IFormatProvider formatProvider)

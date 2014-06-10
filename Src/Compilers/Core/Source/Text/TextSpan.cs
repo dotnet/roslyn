@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -10,8 +9,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// Immutable abstract representation of a span of text.  For example, in an error diagnostic that reports a
     /// location, it could come from a parsed string, text from a tool editor buffer, etc.
     /// </summary>
-    [Serializable]
-    public struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>, ISerializable
+    public struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
     {
         private readonly int start;
         private readonly int length;
@@ -34,17 +32,6 @@ namespace Microsoft.CodeAnalysis.Text
 
             this.start = start;
             this.length = length;
-        }
-
-        private TextSpan(SerializationInfo info, StreamingContext context)
-            : this(info.GetInt32("start"), info.GetInt32("length"))
-        {
-        }
-
-        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("start", start);
-            info.AddValue("length", length);
         }
 
         /// <summary>

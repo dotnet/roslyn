@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
-Imports System.Runtime.Serialization
 Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -90,16 +86,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Concatenates messages for a set of DiagnosticInfo.
     ''' </summary>
-    <Serializable()>
     Friend Class CompoundDiagnosticInfo
         Inherits DiagnosticInfo
 
         Friend Sub New(arguments As DiagnosticInfo())
             MyBase.New(VisualBasic.MessageProvider.Instance, 0, arguments)
-        End Sub
-
-        Private Sub New(info As SerializationInfo, context As StreamingContext)
-            MyBase.New(info, context)
         End Sub
 
         Public Overrides Function GetMessage(Optional culture As CultureInfo = Nothing) As String

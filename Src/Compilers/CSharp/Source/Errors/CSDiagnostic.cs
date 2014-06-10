@@ -8,22 +8,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A diagnostic, along with the location where it occurred.
     /// </summary>
-    [Serializable]
     internal sealed class CSDiagnostic : DiagnosticWithInfo
     {
         internal CSDiagnostic(DiagnosticInfo info, Location location)
             : base(info, location)
         {
-        }
-
-        private CSDiagnostic(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
-
-        protected override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            base.GetObjectData(info, context);
         }
 
         public override string ToString()

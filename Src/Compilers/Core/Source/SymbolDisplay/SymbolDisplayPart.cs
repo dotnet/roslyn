@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,8 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// <seealso cref="ISymbol.ToDisplayParts"/>
     /// <seealso cref="ISymbol.ToMinimalDisplayParts"/>
     /// <seealso cref="SymbolDisplayPartKind"/>
-    [Serializable]
-    public struct SymbolDisplayPart : ISerializable
+    public struct SymbolDisplayPart
     {
         private const string KindKey = "Kind";
         private const string TextKey = "Text";
@@ -55,17 +53,6 @@ namespace Microsoft.CodeAnalysis
             this.kind = kind;
             this.text = text;
             this.symbol = symbol;
-        }
-
-        private SymbolDisplayPart(SerializationInfo info, StreamingContext context)
-            : this((SymbolDisplayPartKind)info.GetInt32(KindKey), null, info.GetString(TextKey))
-        {
-        }
-
-        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue(KindKey, (int)this.Kind);
-            info.AddValue(TextKey, text);
         }
 
         /// <summary>

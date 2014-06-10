@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         if (diagnosticsOpt != null && messageProviderOpt != null)
                         {
-                            diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.WRN_AnalyzerCannotBeCreated, type, fullPath, e.Message));
+                            diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.WRN_AnalyzerCannotBeCreated, type.FullName, fullPath, e.Message));
                         }
                     }
                 }

@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A program location in metadata.
     /// </summary>
-    [Serializable]
     internal sealed class MetadataLocation : Location, IEquatable<MetadataLocation>
     {
         private readonly IModuleSymbol module;

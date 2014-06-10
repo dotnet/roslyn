@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
-using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -12,8 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a span of text in a source code file in terms of file name, line number, and offset within line.
     /// However, the file is actually whatever was passed in when asked to parse; there may not really be a file.
     /// </summary>
-    [Serializable]
-    public struct FileLinePositionSpan : IEquatable<FileLinePositionSpan>, ISerializable
+    public struct FileLinePositionSpan : IEquatable<FileLinePositionSpan>
     {
         private readonly string path;
         private readonly LinePositionSpan span;
@@ -106,22 +103,6 @@ namespace Microsoft.CodeAnalysis
                 return path != null;
             }
         }
-
-        #region Serialization
-
-        private FileLinePositionSpan(SerializationInfo info, StreamingContext context)
-            : this(info.GetString("path"), (LinePositionSpan)info.GetValue("span", typeof(LinePositionSpan)), info.GetBoolean("hasMappedPath"))
-        {
-        }
-
-        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("path", path);
-            info.AddValue("span", span);
-            info.AddValue("hasMappedPath", hasMappedPath);
-        }
-
-        #endregion
 
         /// <summary>
         /// Determines if two FileLinePositionSpan objects are equal.

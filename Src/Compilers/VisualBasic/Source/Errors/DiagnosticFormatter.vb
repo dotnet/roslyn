@@ -7,7 +7,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' The Diagnostic class allows formatting of Visual Basic diagnostics. 
     ''' </summary>
-    <Serializable>
     Public Class VisualBasicDiagnosticFormatter
         Inherits DiagnosticFormatter
 

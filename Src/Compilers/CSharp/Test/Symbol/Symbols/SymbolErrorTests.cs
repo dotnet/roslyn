@@ -6364,13 +6364,12 @@ namespace NS
 
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
-            comp.VerifyDiagnostics(true,
-    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
-    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-    //             Console.WriteLine(typeof(Util.A));   // CS0101
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
-                );
+            comp.VerifyDiagnostics(
+                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
+                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                //             Console.WriteLine(typeof(Util.A));   // CS0101
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util"));
 
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
@@ -6384,13 +6383,12 @@ namespace NS
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
-            comp.VerifyDiagnostics(true,
-    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
-    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-    //             Console.WriteLine(typeof(Util.A));   // CS0101
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
-                );
+            comp.VerifyDiagnostics(
+                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
+                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                //             Console.WriteLine(typeof(Util.A));   // CS0101
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util"));
 
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
@@ -6404,13 +6402,12 @@ namespace NS
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
             //ErrTestMod01.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
-            comp.VerifyDiagnostics(true,
-    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
-    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-    //             Console.WriteLine(typeof(Util.A));   // CS0101
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
-                );
+            comp.VerifyDiagnostics(
+                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
+                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                //             Console.WriteLine(typeof(Util.A));   // CS0101
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util"));
         }
 
         [Fact()]
@@ -6452,10 +6449,9 @@ namespace NS
 
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
             //ErrTestMod01.netmodule: (Location of symbol related to previous error)
-            comp.VerifyDiagnostics(true,
-    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
-    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS")
-                );
+            comp.VerifyDiagnostics(
+                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS"));
 
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
@@ -6469,10 +6465,9 @@ namespace NS
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
-            comp.VerifyDiagnostics(true,
-    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
-    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS")
-                );
+            comp.VerifyDiagnostics(
+                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS"));
 
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
@@ -6484,10 +6479,9 @@ namespace NS
 
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
             //ErrTestMod01.netmodule: (Location of symbol related to previous error)
-            comp.VerifyDiagnostics(true,
-    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
-    Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS")
-                );
+            comp.VerifyDiagnostics(
+                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS"));
         }
 
         [Fact()]
@@ -17518,7 +17512,7 @@ public class C
         public void CS3013WRN_CLS_ModuleMissingCLS()
         {
             var netModule = CreateCompilation("", compOptions: TestOptions.NetModule, assemblyName: "lib").EmitToImageReference(Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion));
-            CreateCompilationWithMscorlib("[assembly: System.CLSCompliant(true)]", new[] { netModule }).VerifyDiagnostics(true,
+            CreateCompilationWithMscorlib("[assembly: System.CLSCompliant(true)]", new[] { netModule }).VerifyDiagnostics(
                 // lib.netmodule: warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
                 Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS));
         }

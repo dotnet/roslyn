@@ -4,11 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
-using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using Roslyn.Utilities;
 
@@ -20,9 +17,8 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>
     /// May represent assembly definition or assembly reference identity.
     /// </remarks>
-    [Serializable]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public sealed partial class AssemblyIdentity : IEquatable<AssemblyIdentity>, ISerializable
+    public sealed partial class AssemblyIdentity : IEquatable<AssemblyIdentity>
     {
         // determines the binding model (how assembly references are matched to assembly definitions)
         private readonly AssemblyContentType contentType;
@@ -192,28 +188,6 @@ namespace Microsoft.CodeAnalysis
         private static bool IsValidName(string name)
         {
             return !string.IsNullOrEmpty(name) && name.IndexOf('\0') < 0;
-        }
-
-        private AssemblyIdentity(SerializationInfo info, StreamingContext context)
-        {
-            this.name = (string)info.GetValue("name", typeof(string));
-            this.version = (Version)info.GetValue("version", typeof(Version));
-            this.cultureName = (string)info.GetValue("cultureName", typeof(string));
-            this.publicKey = info.GetByteArray("publicKey");
-            this.lazyPublicKeyToken = info.GetByteArray("publicKeyToken");
-            this.isRetargetable = (bool)info.GetValue("isRetargetable", typeof(bool));
-            this.contentType = (AssemblyContentType)info.GetValue("contentType", typeof(AssemblyContentType));
-        }
-
-        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("name", name);
-            info.AddValue("version", version);
-            info.AddValue("cultureName", cultureName);
-            info.AddByteArray("publicKey", publicKey);
-            info.AddByteArray("publicKeyToken", lazyPublicKeyToken);
-            info.AddValue("isRetargetable", isRetargetable);
-            info.AddValue("contentType", contentType);
         }
 
         internal static readonly Version NullVersion = new Version(0, 0, 0, 0);

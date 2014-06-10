@@ -3,13 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -17,8 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// A diagnostic (such as a compiler error or a warning), along with the location where it occurred.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    [Serializable]
-    internal class DiagnosticWithInfo : Diagnostic, ISerializable
+    internal class DiagnosticWithInfo : Diagnostic
     {
         private readonly DiagnosticInfo info;
         private readonly Location location;
@@ -29,23 +23,6 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(location != null);
             this.info = info;
             this.location = location;
-        }
-
-        protected DiagnosticWithInfo(SerializationInfo info, StreamingContext context)
-        {
-            this.info = (DiagnosticInfo)info.GetValue("info", typeof(DiagnosticInfo));
-            this.location = (Location)info.GetValue("location", typeof(Location));
-        }
-
-        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            GetObjectData(info, context);
-        }
-
-        protected virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("info", Info, typeof(DiagnosticInfo));
-            info.AddValue("location", this.location, typeof(Location));
         }
 
         public override Location Location

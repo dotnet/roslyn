@@ -6,12 +6,12 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -53,17 +53,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static void Verify(this IEnumerable<Diagnostic> actual, bool suppressSerializabilityVerification, params DiagnosticDescription[] expected)
-        {
-            Verify(actual, expected, errorCodeOnly: false, suppressSerializabilityVerification: suppressSerializabilityVerification);
-        }
-
-        public static void Verify(this ImmutableArray<Diagnostic> actual, bool suppressSerializabilityVerification, params DiagnosticDescription[] expected)
-        {
-            Verify((IEnumerable<Diagnostic>)actual, suppressSerializabilityVerification, expected);
-        }
-
-        private static void Verify(IEnumerable<Diagnostic> actual, DiagnosticDescription[] expected, bool errorCodeOnly, bool suppressSerializabilityVerification = false)
+        private static void Verify(IEnumerable<Diagnostic> actual, DiagnosticDescription[] expected, bool errorCodeOnly)
         {
             if (expected == null)
             {
@@ -92,34 +82,6 @@ namespace Microsoft.CodeAnalysis
             {
                 Assert.True(false, DiagnosticDescription.GetAssertText(expected, actual));
             }
-
-            // Lastly, verify that all the errors generated are serializable.
-            if (!suppressSerializabilityVerification)
-            {
-                VerifySerializability(actual);
-            }
-        }
-
-        public static void VerifySerializability(this IEnumerable<Diagnostic> diagnostics)
-        {
-            var formatter = new BinaryFormatter();
-            using (var stream = new MemoryStream())
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    formatter.Serialize(stream, diagnostic);
-                    stream.Seek(0, SeekOrigin.Begin);
-                    var deserialized = (Diagnostic)formatter.Deserialize(stream);
-                    stream.Seek(0, SeekOrigin.Begin);
-
-                    string diagnosticStr = diagnostic.ToString();
-                    string deserializedStr = deserialized.ToString();
-                    var invalidCharactersReplaced = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(diagnosticStr));
-
-                    Assert.Equal(invalidCharactersReplaced, deserializedStr);
-                    stream.SetLength(0);
-                }
-            }
         }
 
         public static TCompilation VerifyDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
@@ -130,10 +92,9 @@ namespace Microsoft.CodeAnalysis
             return c;
         }
 
-        public static CSharp.CSharpCompilation VerifyAnalyzerDiagnostics3(
-                this CSharp.CSharpCompilation c, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
+        public static CSharpCompilation VerifyAnalyzerDiagnostics3(this CSharpCompilation c, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
         {
-            return VerifyAnalyzerDiagnostics3<CSharp.CSharpCompilation, CSharp.SyntaxKind>(c, n => n.CSharpKind(), analyzers, expected);
+            return VerifyAnalyzerDiagnostics3(c, n => n.CSharpKind(), analyzers, expected);
         }
 
         public static TCompilation VerifyAnalyzerDiagnostics3<TCompilation, TSyntaxKind>(
@@ -152,14 +113,6 @@ namespace Microsoft.CodeAnalysis
             where TCompilation : Compilation
         {
             AnalyzerDriver.GetDiagnostics(c, analyzers, default(CancellationToken)).Verify(expected);
-            return c;
-        }
-
-        public static TCompilation VerifyDiagnostics<TCompilation>(this TCompilation c, bool suppressSerializabilityVerification, params DiagnosticDescription[] expected)
-            where TCompilation : Compilation
-        {
-            var diagnostics = c.GetDiagnostics();
-            diagnostics.Verify(suppressSerializabilityVerification, expected);
             return c;
         }
 

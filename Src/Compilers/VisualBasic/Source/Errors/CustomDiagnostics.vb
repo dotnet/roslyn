@@ -1,12 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
-Imports System.Runtime.Serialization
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ' If a DiagnosticInfo contains symbols that should be returned through the binding API,
@@ -22,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' 
     ''' Client code can obtain the bad symbol via the BadSymbol property.
     ''' </summary>
-    <Serializable()>
     Friend NotInheritable Class BadSymbolDiagnostic
         Inherits DiagnosticInfo
         Implements IDiagnosticInfoWithSymbols
@@ -41,18 +34,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub New(badSymbol As Symbol, errid As ERRID, ParamArray additionalArgs As Object())
             MyBase.New(VisualBasic.MessageProvider.Instance, errid, additionalArgs)
             m_badSymbol = badSymbol
-        End Sub
-
-        Protected Sub New(info As SerializationInfo, context As StreamingContext)
-            MyBase.New(info, context)
-
-            ' symbol is not exposed publicly and thus not serialized
-        End Sub
-
-        Protected Overrides Sub GetObjectData(info As SerializationInfo, context As StreamingContext)
-            MyBase.GetObjectData(info, context)
-
-            ' symbol is not exposed publicly and thus not serialized
         End Sub
 
         Public ReadOnly Property BadSymbol As Symbol
@@ -81,7 +62,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' 
     ''' Client code can obtain the set of ambiguous symbols via the AmbiguousSymbols property.
     ''' </summary>
-    <Serializable()>
     Friend NotInheritable Class AmbiguousSymbolDiagnostic
         Inherits DiagnosticInfo
         Implements IDiagnosticInfoWithSymbols
@@ -93,18 +73,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub New(errid As ERRID, symbols As ImmutableArray(Of Symbol), ParamArray args As Object())
             MyBase.New(VisualBasic.MessageProvider.Instance, errid, args)
             m_symbols = symbols
-        End Sub
-
-        Protected Sub New(info As SerializationInfo, context As StreamingContext)
-            MyBase.New(info, context)
-
-            ' symbols are not exposed publicly and thus not serialized
-        End Sub
-
-        Protected Overrides Sub GetObjectData(info As SerializationInfo, context As StreamingContext)
-            MyBase.GetObjectData(info, context)
-
-            ' symbols are not exposed publicly and thus not serialized
         End Sub
 
         Public ReadOnly Property AmbiguousSymbols As ImmutableArray(Of Symbol)

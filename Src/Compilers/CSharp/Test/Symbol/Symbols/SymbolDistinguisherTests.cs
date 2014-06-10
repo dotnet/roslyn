@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -328,36 +326,6 @@ public class C
             var distinguisher = new SymbolDistinguisher(dummyComp, errorType, validType);
             Assert.Equal("int [Error, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", distinguisher.First.ToString());
             Assert.Equal("int [mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]", distinguisher.Second.ToString());
-        }
-
-        [Fact]
-        public void TestSerialization()
-        {
-            var tree = Parse("public class C { }", "file.cs");
-            var libRef = CreateCompilationWithMscorlib(tree, assemblyName: "Metadata").EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib(tree, new[] { libRef }, assemblyName: "Source");
-
-            var sourceAssembly = comp.SourceAssembly;
-            var referencedAssembly = (AssemblySymbol)comp.GetAssemblyOrModuleSymbol(libRef);
-
-            var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var referenedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-
-            var distinguisher = new SymbolDistinguisher(comp, sourceType, referenedType);
-            var diagnostic = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoImplicitConv, distinguisher.First, distinguisher.Second), Location.None);
-
-            var before = diagnostic.GetMessage();
-            Assert.Equal("Cannot implicitly convert type 'C [file.cs(1)]' to 'C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'", before);
-
-            using (var stream = new MemoryStream())
-            {
-                var formatter = new BinaryFormatter();
-                formatter.Serialize(stream, diagnostic);
-                stream.Position = 0;
-                diagnostic = (CSDiagnostic)formatter.Deserialize(stream);
-                var after = diagnostic.GetMessage();
-                Assert.Equal(before, after);
-            }
         }
 
         [Fact]
