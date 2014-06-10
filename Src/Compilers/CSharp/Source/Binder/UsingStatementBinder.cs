@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundStatement BindUsingStatementParts(DiagnosticBag diagnostics)
+        internal override BoundStatement BindUsingStatementParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             ExpressionSyntax expressionSyntax = TargetExpressionSyntax;
             VariableDeclarationSyntax declarationSyntax = syntax.Declaration;
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            BoundStatement boundBody = BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
+            BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
 
             return new BoundUsingStatement(
                 syntax,

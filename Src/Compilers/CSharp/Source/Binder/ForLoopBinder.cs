@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        internal override BoundForStatement BindForParts(DiagnosticBag diagnostics)
+        internal override BoundForStatement BindForParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            BoundForStatement result = BindForParts(syntax, diagnostics);
+            BoundForStatement result = BindForParts(syntax, originalBinder, diagnostics);
 
             var initializationBinder = (ForLoopInitializationBinder)this.Next;
             if (!initializationBinder.Locals.IsDefaultOrEmpty)

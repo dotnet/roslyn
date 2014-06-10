@@ -1460,6 +1460,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        protected override void VisitLvaluetDeclarationExpression(BoundDeclarationExpression node)
+        {
+            LocalSymbol localSymbol = node.LocalSymbol;
+            int slot = MakeSlot(localSymbol); // not initially assigned
+            if (initiallyAssignedVariables != null && initiallyAssignedVariables.Contains(localSymbol))
+            {
+                // When data flow analysis determines that the variable is sometimes
+                // used without being assigned first, we want to treat that variable, during region analysis,
+                // as assigned at its point of declaration.
+                Assign(node, node.InitializerOpt);
+            }
+
+            if (node.InitializerOpt != null)
+            {
+                base.VisitLvaluetDeclarationExpression(node);
+                Assign(node, node.InitializerOpt);
+            }
+        }
+
         public override BoundNode VisitLambda(BoundLambda node)
         {
             var oldMethodOrLambda = this.currentMethodOrLambda;
@@ -1604,6 +1623,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.Local:
                     CheckAssigned(((BoundLocal)expr).LocalSymbol, node);
+                    break;
+                case BoundKind.DeclarationExpression:
+                    CheckAssigned(((BoundDeclarationExpression)expr).LocalSymbol, node);
                     break;
                 case BoundKind.Parameter:
                     CheckAssigned(((BoundParameter)expr).ParameterSymbol, node);

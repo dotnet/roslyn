@@ -24,21 +24,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BuildLocals(syntax.Kind == SyntaxKind.WhileStatement ? ((WhileStatementSyntax)syntax).Condition : ((DoStatementSyntax)syntax).Condition);
         }
 
-        internal override BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics)
+        internal override BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             var node = (WhileStatementSyntax)syntax;
 
             var condition = BindBooleanExpression(node.Condition, diagnostics);
-            var body = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+            var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
             return new BoundWhileStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
         }
 
-        internal override BoundDoStatement BindDoParts(DiagnosticBag diagnostics)
+        internal override BoundDoStatement BindDoParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             var node = (DoStatementSyntax)syntax;
 
             var condition = BindBooleanExpression(node.Condition, diagnostics);
-            var body = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+            var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
             return new BoundDoStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
         }
     }

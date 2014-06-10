@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundStatement BindLockStatementParts(DiagnosticBag diagnostics)
+        internal override BoundStatement BindLockStatementParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // Allow method groups during binding and then rule them out when we check that the expression has
             // a reference type.
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            BoundStatement stmt = BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
+            BoundStatement stmt = originalBinder.BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
             return new BoundLockStatement(syntax, this.Locals, expr, stmt, hasErrors);
         }
     }

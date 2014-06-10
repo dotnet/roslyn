@@ -20,17 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BuildLocals(ifStatement.Condition);
         }
 
-        internal override BoundIfStatement BindIfParts(DiagnosticBag diagnostics)
+        internal override BoundIfStatement BindIfParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             {
                 var condition = BindBooleanExpression(ifStatement.Condition, diagnostics);
-                var consequence = BindPossibleEmbeddedStatement(ifStatement.Statement, diagnostics);
+                var consequence = originalBinder.BindPossibleEmbeddedStatement(ifStatement.Statement, diagnostics);
                 if (ifStatement.Else == null)
                 {
                     return new BoundIfStatement(ifStatement, this.Locals, condition, consequence, null);
                 }
 
-                var alternative = BindPossibleEmbeddedStatement(ifStatement.Else.Statement, diagnostics);
+                var alternative = originalBinder.BindPossibleEmbeddedStatement(ifStatement.Else.Statement, diagnostics);
                 return new BoundIfStatement(ifStatement, this.Locals, condition, consequence, alternative);
             }
         }

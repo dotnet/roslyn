@@ -53,10 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind the ForEachStatementSyntax at the root of this binder.
         /// </summary>
-        /// <param name="diagnostics">Will be populated with binding diagnostics.</param>
-        internal override BoundStatement BindForEachParts(DiagnosticBag diagnostics)
+        internal override BoundStatement BindForEachParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            BoundForEachStatement result = BindForEachPartsWorker(diagnostics);
+            BoundForEachStatement result = BindForEachPartsWorker(diagnostics, originalBinder);
 
             var foreachExpressionBinder = (ScopedExpressionBinder)this.Next;
             if (!foreachExpressionBinder.Locals.IsDefaultOrEmpty)
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundForEachStatement BindForEachPartsWorker(DiagnosticBag diagnostics)
+        private BoundForEachStatement BindForEachPartsWorker(DiagnosticBag diagnostics, Binder originalBinder)
         { 
             BoundExpression collectionExpr = this.Next.BindValue(syntax.Expression, diagnostics, BindValueKind.RValue); //bind with next to avoid seeing iteration variable
 
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
             this.IterationVariable.SetTypeSymbol(iterationVariableType);
 
-            BoundStatement body = BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
+            BoundStatement body = originalBinder.BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
 
             hasErrors = hasErrors || iterationVariableType.IsErrorType();
 

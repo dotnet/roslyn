@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         # region "Switch statement binding methods"
 
-        internal override BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, DiagnosticBag diagnostics)
+        internal override BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             Debug.Assert(this.switchSyntax.Equals(node));
 
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Bind switch section
-            ImmutableArray<BoundSwitchSection> boundSwitchSections = BindSwitchSections(node.Sections, diagnostics);
+            ImmutableArray<BoundSwitchSection> boundSwitchSections = BindSwitchSections(node.Sections, originalBinder, diagnostics);
 
             return new BoundSwitchStatement(node, ((ScopedExpressionBinder)this.Next).Locals, boundSwitchExpression, constantTargetOpt, Locals, boundSwitchSections, this.BreakLabel, null);
         }
@@ -412,19 +412,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundLabel;
         }
 
-        private ImmutableArray<BoundSwitchSection> BindSwitchSections(SyntaxList<SwitchSectionSyntax> switchSections, DiagnosticBag diagnostics)
+        private ImmutableArray<BoundSwitchSection> BindSwitchSections(SyntaxList<SwitchSectionSyntax> switchSections, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // Bind switch sections
             var boundSwitchSectionsBuilder = ArrayBuilder<BoundSwitchSection>.GetInstance();
             foreach (var sectionSyntax in switchSections)
             {
-                boundSwitchSectionsBuilder.Add(BindSwitchSection(sectionSyntax, diagnostics));
+                boundSwitchSectionsBuilder.Add(BindSwitchSection(sectionSyntax, originalBinder, diagnostics));
             }
 
             return boundSwitchSectionsBuilder.ToImmutableAndFree();
         }
 
-        private BoundSwitchSection BindSwitchSection(SwitchSectionSyntax node, DiagnosticBag diagnostics)
+        private BoundSwitchSection BindSwitchSection(SwitchSectionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // Bind switch section labels
             var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (var statement in node.Statements)
             {
-                boundStatementsBuilder.Add(BindStatement(statement, diagnostics));
+                boundStatementsBuilder.Add(originalBinder.BindStatement(statement, diagnostics));
             }
 
             return new BoundSwitchSection(node, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());

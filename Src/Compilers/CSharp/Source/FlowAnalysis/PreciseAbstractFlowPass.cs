@@ -486,8 +486,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
-                case BoundKind.DeclarationExpression:
                     // no need for it to be previously assigned: it is on the left.
+                    break;
+
+                case BoundKind.DeclarationExpression:
+                    VisitLvaluetDeclarationExpression((BoundDeclarationExpression)node);
                     break;
 
                 case BoundKind.FieldAccess:
@@ -960,11 +963,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeclarationExpression(BoundDeclarationExpression node)
         {
+            VisitDeclarationExpressionInitializer(node);
+            return null;
+        }
+
+        private void VisitDeclarationExpressionInitializer(BoundDeclarationExpression node)
+        {
             if (node.InitializerOpt != null)
             {
                 VisitRvalue(node.InitializerOpt); // analyze the expression
             }
-            return null;
+        }
+
+        protected virtual void VisitLvaluetDeclarationExpression(BoundDeclarationExpression node)
+        {
+            VisitDeclarationExpressionInitializer(node);
         }
 
         public override BoundNode VisitBlock(BoundBlock node)

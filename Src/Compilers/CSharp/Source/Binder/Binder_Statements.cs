@@ -232,12 +232,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var lockBinder = this.GetBinder(node);
             Debug.Assert(lockBinder != null);
-            return lockBinder.BindLockStatementParts(diagnostics);
+            return lockBinder.BindLockStatementParts(diagnostics, lockBinder);
         }
 
-        internal virtual BoundStatement BindLockStatementParts(DiagnosticBag diagnostics)
+        internal virtual BoundStatement BindLockStatementParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            return this.Next.BindLockStatementParts(diagnostics);
+            return this.Next.BindLockStatementParts(diagnostics, originalBinder);
         }
 
 
@@ -245,15 +245,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var usingBinder = this.GetBinder(node);
             Debug.Assert(usingBinder != null);
-            return usingBinder.BindUsingStatementParts(diagnostics);
+            return usingBinder.BindUsingStatementParts(diagnostics, usingBinder);
         }
 
-        internal virtual BoundStatement BindUsingStatementParts(DiagnosticBag diagnostics)
+        internal virtual BoundStatement BindUsingStatementParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            return this.Next.BindUsingStatementParts(diagnostics);
+            return this.Next.BindUsingStatementParts(diagnostics, originalBinder);
         }
 
-        protected BoundStatement BindPossibleEmbeddedStatement(StatementSyntax node, DiagnosticBag diagnostics)
+        internal BoundStatement BindPossibleEmbeddedStatement(StatementSyntax node, DiagnosticBag diagnostics)
         {
             switch (node.Kind)
             {
@@ -2512,13 +2512,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var ifBinder = this.GetBinder(node);
             Debug.Assert(ifBinder != null);
-            return ifBinder.BindIfParts(diagnostics);
+            return ifBinder.BindIfParts(diagnostics, ifBinder);
         }
 
-        internal virtual BoundIfStatement BindIfParts(DiagnosticBag diagnostics)
-            {
-            return this.Next.BindIfParts(diagnostics);
-            }
+        internal virtual BoundIfStatement BindIfParts(DiagnosticBag diagnostics, Binder originalBinder)
+        {
+            return this.Next.BindIfParts(diagnostics, originalBinder);
+        }
 
         protected BoundExpression BindBooleanExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
@@ -2660,12 +2660,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
             Binder switchBinder = this.GetBinder(node);
-            return switchBinder.BindSwitchExpressionAndSections(node, diagnostics);
+            return switchBinder.BindSwitchExpressionAndSections(node, switchBinder, diagnostics);
         }
 
-        internal virtual BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, DiagnosticBag diagnostics)
+        internal virtual BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
-            return this.Next.BindSwitchExpressionAndSections(node, diagnostics);
+            return this.Next.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
         }
 
 
@@ -2675,40 +2675,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var loopBinder = this.GetBinder(node);
             Debug.Assert(loopBinder != null);
-            return loopBinder.BindWhileParts(diagnostics);
+            return loopBinder.BindWhileParts(diagnostics, loopBinder);
         }
 
-        internal virtual BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics)
+        internal virtual BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            return this.Next.BindWhileParts(diagnostics);
+            return this.Next.BindWhileParts(diagnostics, originalBinder);
         }
 
         public BoundDoStatement BindDo(DoStatementSyntax node, DiagnosticBag diagnostics)
         {
             var loopBinder = this.GetBinder(node);
             Debug.Assert(loopBinder != null);
-            return loopBinder.BindDoParts(diagnostics);
+            return loopBinder.BindDoParts(diagnostics, loopBinder);
         }
 
-        internal virtual BoundDoStatement BindDoParts(DiagnosticBag diagnostics)
+        internal virtual BoundDoStatement BindDoParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            return this.Next.BindDoParts(diagnostics);
+            return this.Next.BindDoParts(diagnostics, originalBinder);
         }
 
         public BoundForStatement BindFor(ForStatementSyntax node, DiagnosticBag diagnostics)
         {
             var loopBinder = this.GetBinder(node);
             Debug.Assert(loopBinder != null);
-            return loopBinder.BindForParts(diagnostics);
+            return loopBinder.BindForParts(diagnostics, loopBinder);
         }
 
-        internal virtual BoundForStatement BindForParts(DiagnosticBag diagnostics)
+        internal virtual BoundForStatement BindForParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            return this.Next.BindForParts(diagnostics);
+            return this.Next.BindForParts(diagnostics, originalBinder);
         }
 
         // TODO: Move this method into ForLoopBinder. Keep it here fo now for better diff.
-        internal BoundForStatement BindForParts(ForStatementSyntax node, DiagnosticBag diagnostics)
+        internal BoundForStatement BindForParts(ForStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             BoundStatement initializer;
             if (node.Declaration != null)
@@ -2724,7 +2724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var condition = (node.Condition != null) ? BindBooleanExpression(node.Condition, diagnostics) : null;
             var increment = BindStatementExpressionList(node.Incrementors, diagnostics);
-            var body = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+            var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             return new BoundForStatement(node,
                                          ImmutableArray<LocalSymbol>.Empty,
@@ -2810,12 +2810,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement BindForEach(ForEachStatementSyntax node, DiagnosticBag diagnostics)
         {
             Binder loopBinder = this.GetBinder(node);
-            return loopBinder.BindForEachParts(diagnostics);
+            return loopBinder.BindForEachParts(diagnostics, loopBinder);
         }
 
-        internal virtual BoundStatement BindForEachParts(DiagnosticBag diagnostics)
+        internal virtual BoundStatement BindForEachParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            return this.Next.BindForEachParts(diagnostics);
+            return this.Next.BindForEachParts(diagnostics, originalBinder);
         }
 
         public BoundStatement BindBreak(BreakStatementSyntax node, DiagnosticBag diagnostics)

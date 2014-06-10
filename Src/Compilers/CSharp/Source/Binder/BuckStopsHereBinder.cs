@@ -133,49 +133,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, DiagnosticBag diagnostics)
+        internal override BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // There's supposed to be a SwitchBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundForStatement BindForParts(DiagnosticBag diagnostics)
+        internal override BoundForStatement BindForParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a ForLoopBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundStatement BindForEachParts(DiagnosticBag diagnostics)
+        internal override BoundStatement BindForEachParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a ForEachLoopBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics)
+        internal override BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a WhileBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundDoStatement BindDoParts(DiagnosticBag diagnostics)
+        internal override BoundDoStatement BindDoParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a WhileBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundStatement BindUsingStatementParts(DiagnosticBag diagnostics)
+        internal override BoundStatement BindUsingStatementParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a UsingStatementBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundStatement BindLockStatementParts(DiagnosticBag diagnostics)
+        internal override BoundStatement BindLockStatementParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a LockBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundIfStatement BindIfParts(DiagnosticBag diagnostics)
+        internal override BoundIfStatement BindIfParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a IfBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;

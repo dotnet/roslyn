@@ -132,6 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgumentList:
                     break;
 
+                case SyntaxKind.PropertyDeclaration:
+                    rootSyntax = ((PropertyDeclarationSyntax)rootSyntax).Initializer.Value;
+                    break;
+
+                case SyntaxKind.ArrowExpressionClause:
+                    rootSyntax = ((ArrowExpressionClauseSyntax)rootSyntax).Expression;
+                    break;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(rootSyntax.Kind);
             }
@@ -154,6 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.VariableDeclarator:
                     equalsValue = ((VariableDeclaratorSyntax)node).Initializer;
+                    break;
+
+                case SyntaxKind.PropertyDeclaration:
+                    equalsValue = ((PropertyDeclarationSyntax)node).Initializer;
                     break;
 
                 case SyntaxKind.Parameter:

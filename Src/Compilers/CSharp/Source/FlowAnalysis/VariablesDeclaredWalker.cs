@@ -72,6 +72,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitDeclarationExpression(node);
         }
 
+        protected override void VisitLvaluetDeclarationExpression(BoundDeclarationExpression node)
+        {
+            if (IsInside)
+            {
+                variablesDeclared.Add(node.LocalSymbol);
+            }
+
+            base.VisitLvaluetDeclarationExpression(node);
+        }
+
         public override BoundNode VisitLambda(BoundLambda node)
         {
             if (IsInside && !node.WasCompilerGenerated)

@@ -111,6 +111,7 @@ public class Cls
             public readonly DeclarationScope DeclScope;
             public readonly CSharpSyntaxNode Node;
             public SemanticModelInfo LocalOrParameterDeclaration;
+            public bool HasReferences;
 
             public SymbolInfo SymInfo;
             public TypeInfo TypeInfo;
@@ -185,6 +186,11 @@ public class Cls
                     if (info.Node.Kind == SyntaxKind.IdentifierName && info.DeclScope != null)
                     {
                         info.LocalOrParameterDeclaration = info.DeclScope.Bind(((IdentifierNameSyntax)info.Node).Identifier.ValueText);
+
+                        if (info.LocalOrParameterDeclaration != null)
+                        {
+                            info.LocalOrParameterDeclaration.HasReferences = true;
+                        }
                     }
                 }
 
@@ -1165,6 +1171,149 @@ public class Cls
                 }
             }
 
+            if (!backwards)
+            {
+                foreach (var info in infos)
+                {
+                    switch (info.Node.Kind)
+                    {
+                        case SyntaxKind.VariableDeclarator:
+                            if (info.Node.Parent.Kind != SyntaxKind.DeclarationExpression)
+                            {
+                                continue;
+                            }
+
+                            break;
+
+                        default:
+                            continue;
+                    }
+
+                    var declExpr = (DeclarationExpressionSyntax)info.Node.Parent;
+
+                    DataFlowAnalysis dataFlow;
+
+                    dataFlow = semanticModel.AnalyzeDataFlow(declExpr);
+
+                    if (!dataFlow.Succeeded)
+                    {
+                        Assert.Null(info.SymInfo.Symbol);
+                    }
+                    else if ((object)info.SymInfo.Symbol != null)
+                    {
+                        Assert.True(dataFlow.VariablesDeclared.Any(s => (object)s == info.SymInfo.Symbol));
+
+                        bool assigned = false;
+
+                        if (declExpr.Variable.Initializer != null)
+                        {
+                            assigned = true;
+                        }
+
+                        Assert.Equal(assigned, dataFlow.AlwaysAssigned.Any(s => (object)s == info.SymInfo.Symbol));
+                        Assert.Equal(assigned, dataFlow.WrittenInside.Any(s => (object)s == info.SymInfo.Symbol));
+
+                        bool isOut = false;
+                        bool isSimpleAssignmentTarget = false;
+                        bool isCompoundAssignmentTarget = false;
+                        bool isInBracketedArgumentList = false;
+                        CSharpSyntaxNode parentToAnalyze = null;
+
+                        CSharpSyntaxNode previous = declExpr;
+                        var parent = previous.Parent;
+
+                        while (parent.Kind == SyntaxKind.ParenthesizedExpression || parent.Kind == SyntaxKind.CheckedExpression || parent.Kind == SyntaxKind.UncheckedExpression)
+                        {
+                            previous = parent;
+                            parent = previous.Parent; 
+                        }
+
+                        if (parent.Kind == SyntaxKind.Argument)
+                        {
+                            if (((ArgumentSyntax)parent).RefOrOutKeyword.CSharpKind() == SyntaxKind.OutKeyword)
+                            {
+                                parent = parent.Parent;
+
+                                if (parent.Kind == SyntaxKind.ArgumentList)
+                                {
+                                    parent = parent.Parent;
+
+                                    if (parent.Kind == SyntaxKind.InvocationExpression)
+                                    {
+                                        parentToAnalyze = parent;
+                                        isOut = true;
+                                    }
+                                    else if (parent is ConstructorInitializerSyntax ||
+                                        parent.Kind == SyntaxKind.BaseClassWithArguments)
+                                    {
+                                        isOut = true;
+                                    }
+                                    else if (parent.Kind == SyntaxKind.ObjectCreationExpression && 
+                                        ((ObjectCreationExpressionSyntax)parent).Type.ToString() != "Action")
+                                    {
+                                        parentToAnalyze = parent;
+                                        isOut = true;
+                                    }
+                                }
+                                else if (parent.Kind == SyntaxKind.BracketedArgumentList )
+                                {
+                                    isInBracketedArgumentList = true;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            switch (parent.Kind)
+                            {
+                                case SyntaxKind.SimpleAssignmentExpression:
+                                    if (((BinaryExpressionSyntax)parent).Left == previous)
+                                    {
+                                        parentToAnalyze = parent;
+                                        isSimpleAssignmentTarget = true;
+                                    }
+                                    break;
+
+                                case SyntaxKind.AddAssignmentExpression:
+                                case SyntaxKind.SubtractAssignmentExpression:
+                                case SyntaxKind.MultiplyAssignmentExpression:
+                                case SyntaxKind.DivideAssignmentExpression:
+                                case SyntaxKind.ModuloAssignmentExpression:
+                                case SyntaxKind.AndAssignmentExpression:
+                                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                                case SyntaxKind.OrAssignmentExpression:
+                                case SyntaxKind.LeftShiftAssignmentExpression:
+                                case SyntaxKind.RightShiftAssignmentExpression:
+                                    if (((BinaryExpressionSyntax)parent).Left == previous)
+                                    {
+                                        parentToAnalyze = parent;
+                                        isCompoundAssignmentTarget = true;
+                                    }
+                                    break;
+                            }
+                        }
+
+                        if (!isInBracketedArgumentList)
+                        {
+                            Assert.Equal(!(isOut || isSimpleAssignmentTarget), dataFlow.ReadInside.Any(s => (object)s == info.SymInfo.Symbol));
+                        }
+
+                        if ((isOut || isSimpleAssignmentTarget || isCompoundAssignmentTarget) && parentToAnalyze != null)
+                        {
+                            dataFlow = semanticModel.AnalyzeDataFlow(parentToAnalyze);
+
+                            Assert.True(dataFlow.Succeeded);
+                            Assert.True(dataFlow.VariablesDeclared.Any(s => (object)s == info.SymInfo.Symbol));
+                            Assert.True(dataFlow.AlwaysAssigned.Any(s => (object)s == info.SymInfo.Symbol));
+                            Assert.True(dataFlow.WrittenInside.Any(s => (object)s == info.SymInfo.Symbol));
+
+                            if (isCompoundAssignmentTarget)
+                            {
+                                Assert.True(dataFlow.ReadInside.Any(s => (object)s == info.SymInfo.Symbol));
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         [Fact]
