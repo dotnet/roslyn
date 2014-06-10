@@ -11,5 +11,10 @@
         /// Indicates that the diagnostic is related to edit and continue.
         /// </summary>
         public const string EditAndContinue = "EditAndContinue";
+
+        /// <summary>
+        /// Indicates that the diagnostic is related to build.
+        /// </summary>
+        public const string Build = "Build";
     }
 }
