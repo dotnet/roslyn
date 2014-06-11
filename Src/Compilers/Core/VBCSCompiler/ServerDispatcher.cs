@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public static int Main(string[] args)
         {
+            CompilerServerLogger.Initialize("SRV");
+            CompilerServerLogger.Log("Process started");
+
             int dieTimeout;
             // Try to get the die timeout from the app.config file.
             // Set to default if any failures
@@ -58,16 +61,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     // seconds, not milliseconds
                     dieTimeout *= 1000;
                 }
+                CompilerServerLogger.Log("Die timeout is: " + dieTimeout + "milliseconds.");
             }
-            catch (ConfigurationErrorsException)
+            catch (ConfigurationErrorsException e)
             {
                 dieTimeout = DefaultServerDieTimeout;
+                CompilerServerLogger.LogException(e, "Could not read AppSettings");
             }
 
             CompilerFatalError.Handler = FailFast.OnFatalException;
 
-            CompilerServerLogger.Initialize("SRV");
-            CompilerServerLogger.Log("Process started");
             var dispatcher = new ServerDispatcher(BuildProtocolConstants.PipeName,
                                                   new CompilerRequestHandler(),
                                                   dieTimeout);
