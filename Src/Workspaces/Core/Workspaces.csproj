@@ -868,7 +868,9 @@
     <Compile Include="Workspace\Solution\ProjectState.cs" />
     <Compile Include="Workspace\Solution\RecoverableTextAndVersion.cs" />
     <Compile Include="Workspace\Solution\SemanticDocument.cs" />
-    <Compile Include="Workspace\Solution\Solution.CompilationTracker.cs" />
+    <Compile Include="Workspace\Solution\Solution.CompilationTracker.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="Workspace\Solution\Solution.CompilationTracker.State.cs" />
     <Compile Include="Workspace\Solution\Solution.CompilationTranslationAction.Actions.cs" />
     <Compile Include="Workspace\Solution\Solution.CompilationTranslationAction.cs" />

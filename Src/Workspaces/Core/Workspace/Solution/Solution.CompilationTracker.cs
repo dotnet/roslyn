@@ -8,10 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -317,48 +315,55 @@ namespace Microsoft.CodeAnalysis
 
             private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(Solution solution, CancellationToken cancellationToken)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                try
                 {
-                    var state = this.ReadState();
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    // we are already in the final stage. just return it.
-                    var compilation = state.FinalCompilation.GetValue(cancellationToken);
-                    if (compilation != null)
+                    using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        return compilation;
-                    }
+                        var state = this.ReadState();
 
-                    compilation = state.Compilation.GetValue(cancellationToken);
-                    if (compilation == null)
-                    {
-                        // let's see whether we have declaration only compilation
-                        if (state.DeclarationOnlyCompilation != null)
+                        // we are already in the final stage. just return it.
+                        var compilation = state.FinalCompilation.GetValue(cancellationToken);
+                        if (compilation != null)
                         {
-                            // okay, move to full declaration state. do this so that declaration only compilation never
-                            // realize symbols.
-                            this.WriteState(new FullDeclarationState(this.Retain(solution, state.DeclarationOnlyCompilation)));
-                            return state.DeclarationOnlyCompilation;
+                            return compilation;
                         }
 
-                        // We've got nothing.  Build it from scratch :(
-                        return await BuildDeclarationCompilationFromScratchAsync(solution, cancellationToken).ConfigureAwait(false);
+                        compilation = state.Compilation.GetValue(cancellationToken);
+                        if (compilation == null)
+                        {
+                            // let's see whether we have declaration only compilation
+                            if (state.DeclarationOnlyCompilation != null)
+                            {
+                                // okay, move to full declaration state. do this so that declaration only compilation never
+                                // realize symbols.
+                                this.WriteState(new FullDeclarationState(this.Retain(solution, state.DeclarationOnlyCompilation)));
+                                return state.DeclarationOnlyCompilation;
+                            }
+
+                            // We've got nothing.  Build it from scratch :(
+                            return await BuildDeclarationCompilationFromScratchAsync(solution, cancellationToken).ConfigureAwait(false);
+                        }
+                        else if (state is FullDeclarationState)
+                        {
+                            // we have full declaration, just use it.
+                            return state.Compilation.GetValue(cancellationToken);
+                        }
+                        else if (state is InProgressState)
+                        {
+                            // We have an in progress compilation.  Build off of that.
+                            return await BuildDeclarationCompilationFromInProgressAsync(solution, state as InProgressState, compilation, cancellationToken).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            throw Contract.Unreachable;
+                        }
                     }
-                    else if (state is FullDeclarationState)
-                    {
-                        // we have full declaration, just use it.
-                        return state.Compilation.GetValue(cancellationToken);
-                    }
-                    else if (state is InProgressState)
-                    {
-                        // We have an in progress compilation.  Build off of that.
-                        return await BuildDeclarationCompilationFromInProgressAsync(solution, state as InProgressState, compilation, cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        throw Contract.Unreachable;
-                    }
+                }
+                catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -367,33 +372,40 @@ namespace Microsoft.CodeAnalysis
                 bool lockGate,
                 CancellationToken cancellationToken)
             {
-                using (Logger.LogBlock(FeatureId.CompilationTracker, FunctionId.CompilationTracker_BuildCompilationAsync,
-                              logBuildCompilationAsync, this.ProjectState, cancellationToken))
+                try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var state = this.ReadState();
-
-                    // Try to get the built compilation.  If it exists, then we can just return that.
-                    var finalCompilation = state.FinalCompilation.GetValue(cancellationToken);
-                    if (finalCompilation != null)
+                    using (Logger.LogBlock(FeatureId.CompilationTracker, FunctionId.CompilationTracker_BuildCompilationAsync,
+                                  logBuildCompilationAsync, this.ProjectState, cancellationToken))
                     {
-                        return finalCompilation;
-                    }
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                    // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
-                    // build this compilation at a time.
-                    if (lockGate)
-                    {
-                        using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                        var state = this.ReadState();
+
+                        // Try to get the built compilation.  If it exists, then we can just return that.
+                        var finalCompilation = state.FinalCompilation.GetValue(cancellationToken);
+                        if (finalCompilation != null)
+                        {
+                            return finalCompilation;
+                        }
+
+                        // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
+                        // build this compilation at a time.
+                        if (lockGate)
+                        {
+                            using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                            {
+                                return await BuildCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
+                            }
+                        }
+                        else
                         {
                             return await BuildCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
                         }
                     }
-                    else
-                    {
-                        return await BuildCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-                    }
+                }
+                catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -450,23 +462,37 @@ namespace Microsoft.CodeAnalysis
             private async Task<Compilation> BuildCompilationFromScratchAsync(
                 Solution solution, State state, CancellationToken cancellationToken)
             {
-                var compilation = await BuildDeclarationCompilationFromScratchAsync(solution, cancellationToken).ConfigureAwait(false);
-                return await FinalizeCompilationAsync(solution, compilation, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    var compilation = await BuildDeclarationCompilationFromScratchAsync(solution, cancellationToken).ConfigureAwait(false);
+                    return await FinalizeCompilationAsync(solution, compilation, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             private async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
                 Solution solution, CancellationToken cancellationToken)
             {
-                var compilation = CreateEmptyCompilation(solution);
-
-                foreach (var document in this.ProjectState.OrderedDocumentStates)
+                try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    compilation = compilation.AddSyntaxTrees(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-                }
+                    var compilation = CreateEmptyCompilation(solution);
 
-                this.WriteState(new FullDeclarationState(this.Retain(solution, compilation)));
-                return compilation;
+                    foreach (var document in this.ProjectState.OrderedDocumentStates)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        compilation = compilation.AddSyntaxTrees(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                    }
+
+                    this.WriteState(new FullDeclarationState(this.Retain(solution, compilation)));
+                    return compilation;
+                }
+                catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             private Compilation CreateEmptyCompilation(Solution solution)
@@ -491,33 +517,47 @@ namespace Microsoft.CodeAnalysis
             private async Task<Compilation> BuildFinalStateFromInProgressStateAsync(
                 Solution solution, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
             {
-                var compilation = await BuildDeclarationCompilationFromInProgressAsync(solution, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
-                return await FinalizeCompilationAsync(solution, compilation, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    var compilation = await BuildDeclarationCompilationFromInProgressAsync(solution, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                    return await FinalizeCompilationAsync(solution, compilation, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             private async Task<Compilation> BuildDeclarationCompilationFromInProgressAsync(
                 Solution solution, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
             {
-                Contract.Requires(inProgressCompilation != null);
-                var intermediateProjects = state.IntermediateProjects;
-
-                while (intermediateProjects.Length > 0)
+                try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    Contract.Requires(inProgressCompilation != null);
+                    var intermediateProjects = state.IntermediateProjects;
 
-                    var intermediateProject = intermediateProjects[0];
-                    var inProgressProject = intermediateProject.Item1;
-                    var action = intermediateProject.Item2;
+                    while (intermediateProjects.Length > 0)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                    inProgressCompilation = await action.InvokeAsync(inProgressCompilation, cancellationToken).ConfigureAwait(false);
-                    intermediateProjects = intermediateProjects.RemoveAt(0);
+                        var intermediateProject = intermediateProjects[0];
+                        var inProgressProject = intermediateProject.Item1;
+                        var action = intermediateProject.Item2;
 
-                    this.WriteState(State.Create(
-                        this.Retain(solution, inProgressCompilation),
-                        intermediateProjects));
+                        inProgressCompilation = await action.InvokeAsync(inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                        intermediateProjects = intermediateProjects.RemoveAt(0);
+
+                        this.WriteState(State.Create(
+                            this.Retain(solution, inProgressCompilation),
+                            intermediateProjects));
+                    }
+
+                    return inProgressCompilation;
                 }
-
-                return inProgressCompilation;
+                catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             // Add all appropriate references to the compilation and set it as our final compilation
@@ -527,52 +567,59 @@ namespace Microsoft.CodeAnalysis
                 Compilation compilation,
                 CancellationToken cancellationToken)
             {
-                var newReferences = new List<MetadataReference>();
-                newReferences.AddRange(this.ProjectState.MetadataReferences);
-
-                foreach (var projectReference in this.ProjectState.ProjectReferences)
+                try
                 {
-                    var referencedProject = solution.GetProject(projectReference.ProjectId);
+                    var newReferences = new List<MetadataReference>();
+                    newReferences.AddRange(this.ProjectState.MetadataReferences);
 
-                    // Even though we're creating a final compilation (vs. an in progress compilation),
-                    // it's possible that the target project has been removed.
-                    if (referencedProject != null)
+                    foreach (var projectReference in this.ProjectState.ProjectReferences)
                     {
-                        // If both projects are submissions, we'll count this as a previous submission link
-                        // instead of a regular metadata reference
-                        if (referencedProject.IsSubmission)
-                        {
-                            // if the referenced project is a submission project must be a submission as well:
-                            Debug.Assert(this.ProjectState.IsSubmission);
+                        var referencedProject = solution.GetProject(projectReference.ProjectId);
 
-                            var previousSubmissionCompilation =
-                                await solution.GetCompilationAsync(projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
-                            compilation = compilation.WithPreviousSubmission(previousSubmissionCompilation);
-                        }
-                        else
+                        // Even though we're creating a final compilation (vs. an in progress compilation),
+                        // it's possible that the target project has been removed.
+                        if (referencedProject != null)
                         {
-                            var metadataReference = await solution.GetMetadataReferenceAsync(
-                                projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
-
-                            // The compilation doesn't want to receive a null entry in the set
-                            // of references it is constructed with. A reference can fail to be
-                            // created if a skeleton assembly could not be constructed.
-                            if (metadataReference != null)
+                            // If both projects are submissions, we'll count this as a previous submission link
+                            // instead of a regular metadata reference
+                            if (referencedProject.IsSubmission)
                             {
-                                newReferences.Add(metadataReference);
+                                // if the referenced project is a submission project must be a submission as well:
+                                Debug.Assert(this.ProjectState.IsSubmission);
+
+                                var previousSubmissionCompilation =
+                                    await solution.GetCompilationAsync(projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
+                                compilation = compilation.WithPreviousSubmission(previousSubmissionCompilation);
+                            }
+                            else
+                            {
+                                var metadataReference = await solution.GetMetadataReferenceAsync(
+                                    projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+
+                                // The compilation doesn't want to receive a null entry in the set
+                                // of references it is constructed with. A reference can fail to be
+                                // created if a skeleton assembly could not be constructed.
+                                if (metadataReference != null)
+                                {
+                                    newReferences.Add(metadataReference);
+                                }
                             }
                         }
                     }
-                }
 
-                if (!Enumerable.SequenceEqual(compilation.References, newReferences))
+                    if (!Enumerable.SequenceEqual(compilation.References, newReferences))
+                    {
+                        compilation = compilation.WithReferences(newReferences);
+                    }
+
+                    this.WriteState(new FinalState(this.Retain(solution, compilation)));
+
+                    return compilation;
+                }
+                catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
                 {
-                    compilation = compilation.WithReferences(newReferences);
+                    throw ExceptionUtilities.Unreachable;
                 }
-
-                this.WriteState(new FinalState(this.Retain(solution, compilation)));
-
-                return compilation;
             }
 
             /// <summary>
@@ -587,26 +634,33 @@ namespace Microsoft.CodeAnalysis
                 ProjectReference projectReference,
                 CancellationToken cancellationToken)
             {
-                Compilation compilation;
+                try
+                {
+                    Compilation compilation;
 
-                // if we already have the compilation and its right kind then use it.
-                if (this.ProjectState.LanguageServices == fromProject.LanguageServices
-                    && this.TryGetCompilation(out compilation))
-                {
-                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-                }
+                    // if we already have the compilation and its right kind then use it.
+                    if (this.ProjectState.LanguageServices == fromProject.LanguageServices
+                        && this.TryGetCompilation(out compilation))
+                    {
+                        return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                    }
 
-                // If same language then we can wrap the other project's compilation into a compilation reference
-                if (this.ProjectState.LanguageServices == fromProject.LanguageServices)
-                {
-                    // otherwise, base it off the compilation by building it first.
-                    compilation = await this.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                    // If same language then we can wrap the other project's compilation into a compilation reference
+                    if (this.ProjectState.LanguageServices == fromProject.LanguageServices)
+                    {
+                        // otherwise, base it off the compilation by building it first.
+                        compilation = await this.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
+                        return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                    }
+                    else
+                    {
+                        // otherwise get a metadata only image reference that is built by emitting the metadata from the referenced project's compilation and re-importing it.
+                        return await this.GetMetadataOnlyImageReferenceAsync(solution, projectReference, cancellationToken).ConfigureAwait(false);
+                    }
                 }
-                else
+                catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
                 {
-                    // otherwise get a metadata only image reference that is built by emitting the metadata from the referenced project's compilation and re-importing it.
-                    return await this.GetMetadataOnlyImageReferenceAsync(solution, projectReference, cancellationToken).ConfigureAwait(false);
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -638,27 +692,34 @@ namespace Microsoft.CodeAnalysis
             private async Task<MetadataReference> GetMetadataOnlyImageReferenceAsync(
                 Solution solution, ProjectReference projectReference, CancellationToken cancellationToken)
             {
-                using (Logger.LogBlock(FeatureId.SkeletonAssembly, FunctionId.SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
+                try
                 {
-                    var projectId = this.ProjectState.Id;
-                    var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-
-                    // get or build compilation up to decleration state. this compilation will be used to provide live xml doc comment
-                    var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                    MetadataReference reference;
-                    if (!MetadataOnlyReference.TryGetReference(solution, projectReference, declarationCompilation, version, out reference))
+                    using (Logger.LogBlock(FeatureId.SkeletonAssembly, FunctionId.SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
                     {
-                        // using async build lock so we don't get multiple consumers attempting to build metadata-only images for the same compilation.
-                        using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                        {
-                            // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
-                            var compilation = await this.GetOrBuildCompilationAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                            reference = MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilation, version, cancellationToken);
-                        }
-                    }
+                        var projectId = this.ProjectState.Id;
+                        var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                    return reference;
+                        // get or build compilation up to decleration state. this compilation will be used to provide live xml doc comment
+                        var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                        MetadataReference reference;
+                        if (!MetadataOnlyReference.TryGetReference(solution, projectReference, declarationCompilation, version, out reference))
+                        {
+                            // using async build lock so we don't get multiple consumers attempting to build metadata-only images for the same compilation.
+                            using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                            {
+                                // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
+                                var compilation = await this.GetOrBuildCompilationAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                                reference = MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilation, version, cancellationToken);
+                            }
+                        }
+
+                        return reference;
+                    }
+                }
+                catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 

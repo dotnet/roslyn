@@ -1719,17 +1719,24 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal async Task<MetadataReference> GetMetadataReferenceAsync(ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
         {
-            // Get the compilation state for this project.  If it's not already created, then this
-            // will create it.  Then force that state to completion and get a metadata reference to it.
-            var tracker = this.GetCompilationTracker(projectReference.ProjectId);
-            var mdref = await tracker.GetMetadataReferenceAsync(this, fromProject, projectReference, cancellationToken).ConfigureAwait(false);
-
-            if (mdref != null)
+            try
             {
-                RecordReferencedProject(mdref, projectReference.ProjectId);
-            }
+                // Get the compilation state for this project.  If it's not already created, then this
+                // will create it.  Then force that state to completion and get a metadata reference to it.
+                var tracker = this.GetCompilationTracker(projectReference.ProjectId);
+                var mdref = await tracker.GetMetadataReferenceAsync(this, fromProject, projectReference, cancellationToken).ConfigureAwait(false);
 
-            return mdref;
+                if (mdref != null)
+                {
+                    RecordReferencedProject(mdref, projectReference.ProjectId);
+                }
+
+                return mdref;
+            }
+            catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         /// <summary>

@@ -313,40 +313,47 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public async Task<SemanticModel> GetSemanticModelAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (!this.SupportsSemanticModel)
+            try
             {
-                return null;
-            }
+                if (!this.SupportsSemanticModel)
+                {
+                    return null;
+                }
 
-            SemanticModel semanticModel;
-            if (this.TryGetSemanticModel(out semanticModel))
-            {
-                return semanticModel;
-            }
+                SemanticModel semanticModel;
+                if (this.TryGetSemanticModel(out semanticModel))
+                {
+                    return semanticModel;
+                }
 
-            var syntaxTree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var result = compilation.GetSemanticModel(syntaxTree);
+                var result = compilation.GetSemanticModel(syntaxTree);
 
-            // first try set the cache if it has not been set
-            var original = Interlocked.CompareExchange(ref this.model, new WeakReference<SemanticModel>(result), null);
+                // first try set the cache if it has not been set
+                var original = Interlocked.CompareExchange(ref this.model, new WeakReference<SemanticModel>(result), null);
 
-            // okay, it is first time.
-            if (original == null)
-            {
+                // okay, it is first time.
+                if (original == null)
+                {
+                    return result;
+                }
+
+                // it looks like someone has set it. try to reuse same semantic model
+                if (original.TryGetTarget(out semanticModel))
+                {
+                    return semanticModel;
+                }
+
+                // it looks like cache is gone. reset the cache.
+                original.SetTarget(result);
                 return result;
             }
-
-            // it looks like someone has set it. try to reuse same semantic model
-            if (original.TryGetTarget(out semanticModel))
+            catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))
             {
-                return semanticModel;
+                throw ExceptionUtilities.Unreachable;
             }
-
-            // it looks like cache is gone. reset the cache.
-            original.SetTarget(result);
-            return result;
         }
 
         /// <summary>
