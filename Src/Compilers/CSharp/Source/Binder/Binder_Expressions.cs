@@ -5407,7 +5407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    leftType = field.Type;
+                                    leftType = field.GetFieldType(this.FieldsBeingBound);
                                 }
                                 break;
                             }
