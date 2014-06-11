@@ -14,6 +14,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -158,6 +159,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 #endif
 
             }
+        }
+
+        private string Rcsc
+        {
+            get { return GetFilePathConsideringShadowCopy("rcsc.exe"); }
+        }
+        
+        private string Rvbc
+        {
+            get { return GetFilePathConsideringShadowCopy("rvbc.exe"); }
         }
 
         private string CompilerServer
@@ -331,6 +342,17 @@ class Hello
 
             var result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "/nologo hello.cs", tempDirectory, files);
             VerifyResultAndOutput(result, tempDirectory, "Hello, world.\r\n");
+        }
+
+        [Fact]
+        [WorkItem(946954)]
+        public void CompilerBinariesAreAnyCPU()
+        {
+            foreach (var dllPath in new[] { Rcsc, Rvbc, CompilerServer })
+            {
+                var assemblyName = AssemblyName.GetAssemblyName(dllPath);
+                Assert.Equal(ProcessorArchitecture.MSIL, assemblyName.ProcessorArchitecture);
+            }
         }
 
         /// <summary>
