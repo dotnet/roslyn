@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.IO;
-using Microsoft.CodeAnalysis.Text;
+using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -26,5 +26,11 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A <see cref="PortableExecutableReference"/> corresponding to the <paramref name="resolvedPath"/> and
         /// <paramref name="properties"/> parameters.</returns>
         public abstract PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties);
+
+        // TODO: workaround for bug #797360; remove
+        internal virtual IEnumerable<PortableExecutableReference> GetFacadeReferences(string mscorlibPath)
+        {
+            return SpecializedCollections.EmptyEnumerable<PortableExecutableReference>();
+        }
     }
 }

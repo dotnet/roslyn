@@ -692,7 +692,10 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Workaround for bug #797360: include facades if we reference a Portable Library:
-                referencesBuilder.AddRange(ResolveFacadeReferences(compilation));
+                if (compilation.Options.MetadataReferenceProvider != null)
+                {
+                    referencesBuilder.AddRange(ResolveFacadeReferences(compilation));
+                }
 
                 // add external reference at the end, so that they are processed first:
                 referencesBuilder.AddRange(compilation.ExternalReferences);
@@ -741,7 +744,7 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerable<MetadataReference>();
             }
 
-            return GetFacadeReferences(mscorlibPath);
+            return compilation.Options.MetadataReferenceProvider.GetFacadeReferences(mscorlibPath);
         }
 
         private bool DetectPortableDependency(CompilationReference compilationReference, ref bool referencesPortableLibrary)
@@ -817,31 +820,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return false;
-        }
-
-        private static IEnumerable<MetadataReference> GetFacadeReferences(string mscorlibPath)
-        {
-            string facadesDirectory = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetDirectoryName(mscorlibPath), @"Facades");
-            string[] files;
-
-            if (!Directory.Exists(facadesDirectory))
-            {
-                yield break;
-            }
-
-            try
-            {
-                files = Directory.GetFiles(facadesDirectory, "*.dll", SearchOption.TopDirectoryOnly);
-            }
-            catch
-            {
-                yield break;
-            }
-
-            foreach (string file in files)
-            {
-                yield return new MetadataFileReference(file, MetadataReferenceProperties.Assembly);
-            }
         }
 
         private static bool IsMscorlib(AssemblyIdentity identity)

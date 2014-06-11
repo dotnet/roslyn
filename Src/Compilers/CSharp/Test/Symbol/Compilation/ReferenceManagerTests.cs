@@ -1910,7 +1910,7 @@ internal class C
         }
 
         [Fact]
-        [WorkItem(531342, "DevDiv")]
+        [WorkItem(531342, "DevDiv"), WorkItem(727122, "DevDiv")]
         public void PortableLibrary()
         {
             var mscorlibPP7 = new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib, display: "mscorlib, PP7");
@@ -1932,7 +1932,7 @@ internal class C
            
             // w/o facades:
 
-            var main = CreateCompilation(mainSource, mainRefs);
+            var main = CreateCompilation(mainSource, mainRefs, compOptions: TestOptions.Dll.WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
             main.VerifyDiagnostics(
                 // (1,18): error CS0012: The type 'System.Object' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("System.Object", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"));
@@ -1947,7 +1947,7 @@ internal class C
             var facades = dir.CreateDirectory("Facades");
             var systemRuntimeFacade = facades.CreateFile("System.Runtime.dll").WriteAllBytes(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime);
 
-            main = CreateCompilation(mainSource, mainRefs);
+            main = CreateCompilation(mainSource, mainRefs, compOptions: TestOptions.Dll.WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
             main.VerifyDiagnostics();
 
             var expectedReferences = new string[] 

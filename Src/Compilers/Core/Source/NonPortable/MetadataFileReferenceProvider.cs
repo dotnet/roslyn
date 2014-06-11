@@ -1,5 +1,9 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.IO;
+using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -23,6 +27,32 @@ namespace Microsoft.CodeAnalysis
         public override PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
         {
             return new MetadataFileReference(resolvedPath, properties);
+        }
+
+        // TODO: workaround for bug #797360; remove
+        internal override IEnumerable<PortableExecutableReference> GetFacadeReferences(string mscorlibPath)
+        {
+            string facadesDirectory = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetDirectoryName(mscorlibPath), @"Facades");
+            string[] files;
+
+            if (!Directory.Exists(facadesDirectory))
+            {
+                yield break;
+            }
+
+            try
+            {
+                files = Directory.GetFiles(facadesDirectory, "*.dll", SearchOption.TopDirectoryOnly);
+            }
+            catch
+            {
+                yield break;
+            }
+
+            foreach (string file in files)
+            {
+                yield return new MetadataFileReference(file, MetadataReferenceProperties.Assembly);
+            }
         }
     }
 }
