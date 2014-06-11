@@ -5326,7 +5326,7 @@ class Program
             AssertFormat(expected, code, parseOptions: parseOptions);
         }
 
-        [WorkItem(956631, "DevDiv")]
+        [WorkItem(924172, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void IgnoreSpacesInDeclarationStatementEnabled()
         {
