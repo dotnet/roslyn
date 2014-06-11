@@ -712,9 +712,19 @@ namespace Microsoft.CodeAnalysis
                 FileKey key = FileKey.Create(fullPath);
 
                 CachedAnalyzers cachedAnalyzers;
-                if (analyzersFromFiles.TryGetValue(key, out cachedAnalyzers) && cachedAnalyzers.Analyzers.IsAlive)
+                if (analyzersFromFiles.TryGetValue(key, out cachedAnalyzers))
                 {
-                    return (ImmutableArray<IDiagnosticAnalyzer>)cachedAnalyzers.Analyzers.Target;
+                    if (cachedAnalyzers.Analyzers.IsAlive)
+                    {
+                        return (ImmutableArray<IDiagnosticAnalyzer>)cachedAnalyzers.Analyzers.Target;
+                    }
+                    else
+                    {
+                        analyzersFromFiles.Remove(key);
+                        var removed = analyzerAssemblyKeys.Remove(key);
+                        Debug.Assert(removed);
+                        Debug.Assert(!analyzerAssemblyKeys.Contains(key));
+                    }
                 }
 
                 // get all analyzers in the assembly:
@@ -726,6 +736,7 @@ namespace Microsoft.CodeAnalysis
                 key = FileKey.Create(fullPath);
 
                 analyzersFromFiles[key] = new CachedAnalyzers(analyzers);
+                Debug.Assert(!analyzerAssemblyKeys.Contains(key));
                 analyzerAssemblyKeys.Add(key);
                 EnableCompactTimer();
 
