@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -45,23 +44,6 @@ namespace Microsoft.CodeAnalysis
 
                     if (emitResult.Success)
                     {
-#if DEBUG
-                        byte[] bytes = stream.ToArray();
-
-                        stream.Position = 0;
-                        File.WriteAllBytes(@"C:\Temp\a\" + compilation.AssemblyName + ".dll", bytes);
-
-                        try
-                        {
-                            var mm = ModuleMetadata.CreateFromImage(bytes);
-                            mm.GetModuleVersionId();
-                            File.AppendAllLines(@"C:\Temp\a\emit.log", new[] { compilation.AssemblyName + ": OK" });
-                        }
-                        catch (Exception e)
-                        {
-                            File.AppendAllLines(@"C:\Temp\a\emit.log", new[] { compilation.AssemblyName + ": ERROR '" + e.Message + "'" });
-                        }
-#endif
                         var storage = service.CreateTemporaryStorage(cancellationToken);
 
                         stream.Position = 0;
