@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.DeclarationExpression:
-                    VisitLvaluetDeclarationExpression((BoundDeclarationExpression)node);
+                    VisitLvalueDeclarationExpression((BoundDeclarationExpression)node);
                     break;
 
                 case BoundKind.FieldAccess:
@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual void VisitLvaluetDeclarationExpression(BoundDeclarationExpression node)
+        protected virtual void VisitLvalueDeclarationExpression(BoundDeclarationExpression node)
         {
             VisitDeclarationExpressionInitializer(node);
         }

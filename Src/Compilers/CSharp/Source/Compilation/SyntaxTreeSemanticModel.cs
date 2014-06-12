@@ -919,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.memberModels.GetOrAdd(node, createMemberModelFunction);
         }
 
-        // Create a the member model for the given declaration syntax. In certain very malformed
+        // Create a member model for the given declaration syntax. In certain very malformed
         // syntax trees, there may not be a symbol that can have a member model associated with it
         // (although we try to minimize such cases). In such cases, null is returned.
         private MemberSemanticModel CreateMemberModel(CSharpSyntaxNode node)

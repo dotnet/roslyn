@@ -3681,7 +3681,8 @@ class C
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind);
 
             var info = model.GetSpeculativeSymbolInfo(position, syntax, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M"), info.Symbol);
+            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M"), info.CandidateSymbols.Single());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
         }
 
         [WorkItem(544651, "DevDiv")]
@@ -3740,7 +3741,8 @@ class C
             Assert.Equal(SyntaxKind.IdentifierName, syntax.Kind);
 
             var info = model.GetSymbolInfo(syntax);
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M"), info.Symbol);
+            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M"), info.CandidateSymbols.Single());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
         }
 
         [WorkItem(546046, "DevDiv")]
@@ -4488,10 +4490,10 @@ class Test
             var structInfo = model.GetSymbolInfo(structMemberAccess);
 
             // Only one candidate.
-            Assert.Equal(CandidateReason.None, classInfo.CandidateReason);
-            Assert.Equal(classType, classInfo.Symbol.ContainingType);
-            Assert.Equal(CandidateReason.None, structInfo.CandidateReason);
-            Assert.Equal(structType, structInfo.Symbol.ContainingType);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, classInfo.CandidateReason);
+            Assert.Equal("System.Int32 C.GetHashCode()", classInfo.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, structInfo.CandidateReason);
+            Assert.Equal("System.Int32 S.GetHashCode()", structInfo.CandidateSymbols.Single().ToTestDisplayString());
         }
 
         [WorkItem(530252, "DevDiv")]
@@ -4535,8 +4537,8 @@ class Program
             var info = model.GetSymbolInfo(memberAccess);
 
             // Only one candidate.
-            Assert.Equal(CandidateReason.None, info.CandidateReason);
-            Assert.Equal(classC, info.Symbol.ContainingType);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
+            Assert.Equal("void C.M()", info.CandidateSymbols.Single().ToTestDisplayString());
         }
 
         [Fact]
@@ -4804,7 +4806,9 @@ void M()
             var equalsNode = equalsToken.Parent;
             var symbolInfo = model.GetSymbolInfo(equalsNode);
             //note that we don't guarantee what symbol will come back on a method group in an is expression.
-            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.True(symbolInfo.CandidateSymbols.Length > 0);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
         [Fact, WorkItem(531304, "DevDiv")]

@@ -1447,14 +1447,12 @@ class Q : P
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "m.M").Single();
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("M", symbolInfo.Symbol.Name);
-            Assert.Equal(SymbolKind.Method, symbolInfo.Symbol.Kind);
-            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal("void I1.M()", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             var node2 = (ExpressionSyntax)SyntaxFactory.SyntaxTree(node).GetRoot();
             symbolInfo = model.GetSpeculativeSymbolInfo(node.Position, node2, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal("M", symbolInfo.Symbol.Name);
-            Assert.Equal(SymbolKind.Method, symbolInfo.Symbol.Kind);
-            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal("void I1.M()", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
         private void TestLookupSymbolsNestedNamespaces(List<ISymbol> actual_lookupSymbols)

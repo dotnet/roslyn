@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!locals.IsDefaultOrEmpty)
                     {
                         result = new BoundBlock(node, locals, ImmutableArray.Create(result)) { WasCompilerGenerated = true };
-            }
+                    }
 
                     return result;
             }
@@ -2707,37 +2707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindForParts(diagnostics, originalBinder);
         }
 
-        // TODO: Move this method into ForLoopBinder. Keep it here fo now for better diff.
-        internal BoundForStatement BindForParts(ForStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
-        {
-            BoundStatement initializer;
-            if (node.Declaration != null)
-            {
-                Debug.Assert(node.Initializers.Count == 0);
-                ImmutableArray<BoundLocalDeclaration> unused;
-                initializer = this.Next.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.For, diagnostics, out unused);
-            }
-            else
-            {
-                initializer = this.Next.BindStatementExpressionList(node.Initializers, diagnostics);
-            }
-
-            var condition = (node.Condition != null) ? BindBooleanExpression(node.Condition, diagnostics) : null;
-            var increment = BindStatementExpressionList(node.Incrementors, diagnostics);
-            var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-
-            return new BoundForStatement(node,
-                                         ImmutableArray<LocalSymbol>.Empty,
-                                         initializer,
-                                         this.Locals,
-                                         condition, 
-                                         increment, 
-                                         body, 
-                                         this.BreakLabel, 
-                                         this.ContinueLabel);
-        }
-
-        protected BoundStatement BindForOrUsingOrFixedDeclarations(VariableDeclarationSyntax nodeOpt, LocalDeclarationKind localDeclarationKind, DiagnosticBag diagnostics, out ImmutableArray<BoundLocalDeclaration> declarations)
+        internal BoundStatement BindForOrUsingOrFixedDeclarations(VariableDeclarationSyntax nodeOpt, LocalDeclarationKind localDeclarationKind, DiagnosticBag diagnostics, out ImmutableArray<BoundLocalDeclaration> declarations)
         {
             if (nodeOpt == null)
             {
@@ -2782,7 +2752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundMultipleLocalDeclarations(nodeOpt, declarations);
         }
 
-        private BoundStatement BindStatementExpressionList(SeparatedSyntaxList<ExpressionSyntax> statements, DiagnosticBag diagnostics)
+        internal BoundStatement BindStatementExpressionList(SeparatedSyntaxList<ExpressionSyntax> statements, DiagnosticBag diagnostics)
         {
             int count = statements.Count;
             if (count == 0)

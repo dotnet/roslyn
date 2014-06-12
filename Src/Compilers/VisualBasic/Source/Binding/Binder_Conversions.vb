@@ -330,11 +330,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return New BoundConversion(node,
                                            argument,
-                                           ConversionKind:=Nothing,
+                                           conversionKind:=Nothing,
                                            checked:=CheckOverflow,
                                            explicitCastInCode:=isExplicit,
-                                           Type:=targetType,
-                                           HasErrors:=True)
+                                           type:=targetType,
+                                           hasErrors:=True)
             End If
 
             If argument.HasErrors Then

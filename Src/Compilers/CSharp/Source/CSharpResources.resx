@@ -3787,10 +3787,10 @@
     <value>Since this type has a primary constructor, all instance constructor declarations must specify a constructor initializer of the form this([argument-list]).</value>
   </data>
   <data name="ERR_PrimaryCtorParameterSameNameAsTypeParam" xml:space="preserve">
-    <value>'{0}': a parameter of a primary constructor cannot have the same name as a type's type parameter '{1}'</value>
+    <value>'{0}': a parameter of a primary constructor cannot have the same name as a type's type parameter '{1}'.</value>
   </data>
   <data name="ERR_PrimaryCtorParameterSameNameAsContainingType" xml:space="preserve">
-    <value>'{0}': a parameter of a primary constructor cannot have the same name as containing type</value>
+    <value>'{0}': a parameter of a primary constructor cannot have the same name as containing type.</value>
   </data>
   <data name="ERR_DuplicatePrimaryCtorBody" xml:space="preserve">
     <value>Primary constructor already has a body.</value>

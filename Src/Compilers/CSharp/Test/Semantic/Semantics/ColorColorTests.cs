@@ -636,10 +636,11 @@ class C
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind);
             var parentInfo = model.GetSymbolInfo(parentExpr);
             Assert.NotNull(parentInfo);
-            Assert.NotNull(parentInfo.Symbol); // the lexically first matching method
-            Assert.Equal("void Color.M()", parentInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
-            Assert.Equal(0, parentInfo.CandidateSymbols.Length);
+            Assert.Null(parentInfo.Symbol); // the lexically first matching method
+            Assert.Equal(2, parentInfo.CandidateSymbols.Length);
+            Assert.Equal("void Color.M()", parentInfo.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("void Color.M(System.Int32 x)", parentInfo.CandidateSymbols[1].ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, parentInfo.CandidateReason);
         }
 
         [Fact]

@@ -1005,5 +1005,94 @@ class TestDataPointBase
     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "integrationService").WithArguments("TestDataPointBase.integrationService", "null").WithLocation(6, 54)
                 );
         }
+
+        [Fact, WorkItem(960755, "DevDiv")]
+        public void Bug960755_01()
+        {
+            var source = @"
+using System.Collections.Generic;
+ 
+class C
+{
+    static void M(IList<C> c)
+    {
+        var tmp = new C();
+        tmp.M((a, b) => c.Add);
+    }
+}
+
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var comp = CreateCompilationWithMscorlib(tree);
+            var model = comp.GetSemanticModel(tree);
+
+            var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single().Body;
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("void System.Collections.Generic.ICollection<C>.Add(C item)", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+        }
+
+        [Fact, WorkItem(960755, "DevDiv")]
+        public void Bug960755_02()
+        {
+            var source = @"
+using System.Collections.Generic;
+ 
+class C
+{
+    static void M(IList<C> c)
+    {
+        int tmp = c.Add;
+    }
+}
+
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var comp = CreateCompilationWithMscorlib(tree);
+            var model = comp.GetSemanticModel(tree);
+
+            var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("void System.Collections.Generic.ICollection<C>.Add(C item)", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+        }
+
+        [Fact, WorkItem(960755, "DevDiv")]
+        public void Bug960755_03()
+        {
+            var source = @"
+using System.Collections.Generic;
+ 
+class C
+{
+    static void M(IList<C> c)
+    {
+        var tmp = new C();
+        tmp.M((a, b) => c.Add);
+    }
+
+    static void M(System.Func<int, int, System.Action<C>> x)
+    {}
+}
+
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var comp = CreateCompilationWithMscorlib(tree);
+            var model = comp.GetSemanticModel(tree);
+
+            var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single().Body;
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+
+            Assert.Equal("void System.Collections.Generic.ICollection<C>.Add(C item)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+        }
     }
 }

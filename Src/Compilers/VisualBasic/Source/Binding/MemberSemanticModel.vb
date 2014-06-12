@@ -2037,10 +2037,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' allow.
             ''' </summary>
             Public Function RecordNode(node As BoundNode, Optional allowCompilerGenerated As Boolean = False) As Boolean
-                If (Not allowCompilerGenerated AndAlso node.WasCompilerGenerated) OrElse node.Kind = BoundKind.UnboundLambda Then
-                    ' Don't cache compiler generated nodes or unbound lambdas (unbound lambda are converted into bound lambdas in VisitUnboundLambda.)
+
+                If Not allowCompilerGenerated AndAlso node.WasCompilerGenerated Then
+                    ' Don't cache compiler generated nodes
                     Return False
                 End If
+
+                Select Case node.Kind
+                    Case BoundKind.UnboundLambda
+                        ' Don't cache unbound lambdas (unbound lambda are converted into bound lambdas in VisitUnboundLambda.)
+                        Return False
+
+                    Case BoundKind.Conversion
+                        If Not allowCompilerGenerated Then
+                            Dim conversion = DirectCast(node, BoundConversion)
+                            If Not conversion.ExplicitCastInCode AndAlso conversion.Operand.WasCompilerGenerated Then
+                                Select Case conversion.Operand.Kind
+                                    Case BoundKind.RValuePlaceholder,
+                                         BoundKind.LValuePlaceholder,
+                                         BoundKind.WithLValueExpressionPlaceholder,
+                                         BoundKind.WithRValueExpressionPlaceholder
+                                        ' Don't cache compiler generated nodes 
+                                        Return False
+                                End Select
+                            End If
+                        End If
+                End Select
 
                 If _thisSyntaxNodeOnly IsNot Nothing AndAlso node.Syntax IsNot _thisSyntaxNodeOnly Then
                     ' Didn't match the syntax node we're trying to handle

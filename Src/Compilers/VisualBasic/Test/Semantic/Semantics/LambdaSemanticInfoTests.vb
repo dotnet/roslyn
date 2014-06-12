@@ -738,6 +738,89 @@ BC30203: Identifier expected.
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
+        <Fact, WorkItem(960755, "DevDiv")>
+        Public Sub Bug960755_01()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="InstantiatingNamespace">
+        <file name="a.vb">
+Imports System.Collections.Generic
+ 
+Class C
+    Sub M(c As IList(Of C))
+        Dim tmp = New C()
+        tmp.M(Function(a, b) AddressOf c.Add) 'BIND:"c.Add"
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            Dim node = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
+
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal("Sub System.Collections.Generic.ICollection(Of C).Add(item As C)", symbolInfo.CandidateSymbols.Single().ToTestDisplayString())
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+        End Sub
+
+        <Fact, WorkItem(960755, "DevDiv")>
+        Public Sub Bug960755_02()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="InstantiatingNamespace">
+        <file name="a.vb">
+Imports System.Collections.Generic
+ 
+Class C
+    Sub M(c As IList(Of C))
+        Dim tmp As Integer = AddressOf c.Add 'BIND:"c.Add"
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            Dim node = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
+
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal("Sub System.Collections.Generic.ICollection(Of C).Add(item As C)", symbolInfo.CandidateSymbols.Single().ToTestDisplayString())
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+        End Sub
+
+        <Fact, WorkItem(960755, "DevDiv")>
+        Public Sub Bug960755_03()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="InstantiatingNamespace">
+        <file name="a.vb">
+Imports System.Collections.Generic
+ 
+Class C
+    Sub M(c As IList(Of C))
+        Dim tmp = New C()
+        tmp.M(Function(a, b) AddressOf c.Add) 'BIND:"c.Add"
+    End Sub
+
+    Sub M(x as System.Func(Of Integer, Integer, System.Action(Of C)))
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            Dim node = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
+
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Equal("Sub System.Collections.Generic.ICollection(Of C).Add(item As C)", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+        End Sub
+
     End Class
 
 End Namespace

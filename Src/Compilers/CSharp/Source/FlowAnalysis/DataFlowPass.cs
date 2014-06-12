@@ -1460,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitLvaluetDeclarationExpression(BoundDeclarationExpression node)
+        protected override void VisitLvalueDeclarationExpression(BoundDeclarationExpression node)
         {
             LocalSymbol localSymbol = node.LocalSymbol;
             int slot = MakeSlot(localSymbol); // not initially assigned
@@ -1474,7 +1474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.InitializerOpt != null)
             {
-                base.VisitLvaluetDeclarationExpression(node);
+                base.VisitLvalueDeclarationExpression(node);
                 Assign(node, node.InitializerOpt);
             }
         }

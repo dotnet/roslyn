@@ -567,5 +567,79 @@ BC42016: Implicit conversion from 'Object' to 'Boolean'.
 </expected>)
         End Sub
 
+        <WorkItem(948019, "DevDiv")>
+        <Fact()>
+        Public Sub Bug948019_01()
+            Dim compilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C
+    Public Sub M(day As DayOfWeek)
+        Dim day2 = day
+        Select Case day 'BIND:"day"
+            Case DayOfWeek.A
+            Case 
+        End Select
+    End Sub
+    Enum DayOfWeek
+        A
+        B
+    End Enum
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim node = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
+
+            Dim typeInfo = semanticModel.GetTypeInfo(node)
+
+            Assert.Equal("C.DayOfWeek", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("C.DayOfWeek", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, semanticModel.GetConversion(node).Kind)
+
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Equal("day As C.DayOfWeek", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.Parameter, symbolInfo.Symbol.Kind)
+        End Sub
+
+        <WorkItem(948019, "DevDiv")>
+        <Fact()>
+        Public Sub Bug948019_02()
+            Dim compilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C
+    Public Sub M(day As DayOfWeek)
+        Dim day2 = day
+        Select Case day 'BIND:"day"
+            Case DayOfWeek.A
+            Case 2
+        End Select
+    End Sub
+    Enum DayOfWeek
+        A
+        B
+    End Enum
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim node = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
+
+            Dim typeInfo = semanticModel.GetTypeInfo(node)
+
+            Assert.Equal("C.DayOfWeek", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("C.DayOfWeek", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, semanticModel.GetConversion(node).Kind)
+
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Equal("day As C.DayOfWeek", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.Parameter, symbolInfo.Symbol.Kind)
+        End Sub
+
     End Class
 End Namespace

@@ -1723,24 +1723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<Symbol> unusedHighestMemberGroup;
                     ImmutableArray<Symbol> highestSymbols = GetSemanticSymbols(highestBoundExpr, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out unusedHighestMemberGroup);
 
-                    // For an expression of the form (x.M is T) where x.M is a method group, we return an
-                    // arbitrary representative of the method group.
-                    if (boundNodeForSyntacticParent != null && boundNodeForSyntacticParent.Kind == BoundKind.IsOperator && boundExpr.Kind == BoundKind.MethodGroup)
-                    {
-                        // Just take the first one that happens to be in our list. This code once tried to sort based
-                        // on the LexicalOrderSymbolComparer, but that assumes that the symbols are in source, which is
-                        // not always the case.
-                        if (symbols.Length >= 1)
-                        {
-                            symbols = ImmutableArray.Create<Symbol>(symbols.First());
-                            resultKind = LookupResultKind.Viable;
-                        }
-                    }
-                    // Generally, we want to use the symbols from the LOWEST node. However, if the
-                    // lowest node doesn't have symbols (or had an overload resolution failure), and
-                    // the highest does, use those instead. Also, if the highest node has a WORSE
-                    // resultKind, use that.
-                    else if ((symbols.Length != 1 || resultKind == LookupResultKind.OverloadResolutionFailure) && highestSymbols.Length > 0)
+                    if ((symbols.Length != 1 || resultKind == LookupResultKind.OverloadResolutionFailure) && highestSymbols.Length > 0)
                     {
                         symbols = highestSymbols;
                         resultKind = highestResultKind;
@@ -3731,6 +3714,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         symbols = methodGroup;
+                        if (symbols.Length > 0)
+                        {
+                            resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
+                        }
+
                         break;
                 }
             }
@@ -3742,6 +3730,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // one candidate, then we should probably succeed.
 
                 symbols = methodGroup;
+                if (symbols.Length > 0)
+                {
+                    resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
+                }
             }
 
             if (!symbols.Any())

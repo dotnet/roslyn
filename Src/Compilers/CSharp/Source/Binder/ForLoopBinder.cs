@@ -62,6 +62,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
+
+        private BoundForStatement BindForParts(ForStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        {
+            BoundStatement initializer;
+            if (node.Declaration != null)
+            {
+                Debug.Assert(node.Initializers.Count == 0);
+                ImmutableArray<BoundLocalDeclaration> unused;
+                initializer = this.Next.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.For, diagnostics, out unused);
+            }
+            else
+            {
+                initializer = this.Next.BindStatementExpressionList(node.Initializers, diagnostics);
+            }
+
+            var condition = (node.Condition != null) ? BindBooleanExpression(node.Condition, diagnostics) : null;
+            var increment = BindStatementExpressionList(node.Incrementors, diagnostics);
+            var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+
+            return new BoundForStatement(node,
+                                         ImmutableArray<LocalSymbol>.Empty,
+                                         initializer,
+                                         this.Locals,
+                                         condition,
+                                         increment,
+                                         body,
+                                         this.BreakLabel,
+                                         this.ContinueLabel);
+        }
+
     }
 
     internal sealed class ForLoopInitializationBinder : LocalScopeBinder

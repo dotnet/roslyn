@@ -8557,11 +8557,9 @@ public class Test
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.NotNull(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("System.Int32 Test.M()", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+            Assert.Equal("System.Int32 Test.M()", semanticInfo.CandidateSymbols.Single().ToTestDisplayString());
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
@@ -8932,12 +8930,9 @@ public class Test
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.NotNull(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Int32 Test.M()", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+            Assert.Equal("System.Int32 Test.M()", semanticInfo.CandidateSymbols.Single().ToTestDisplayString());
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
@@ -14395,7 +14390,8 @@ class C {
 }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
-            Utils.CheckSymbol(semanticInfo.Symbol, "void C.M<T>(T t)");
+            Utils.CheckSymbol(semanticInfo.CandidateSymbols.Single(), "void C.M<T>(T t)");
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Null(semanticInfo.Type);
             Utils.CheckSymbol(semanticInfo.ConvertedType, "D");
         }
