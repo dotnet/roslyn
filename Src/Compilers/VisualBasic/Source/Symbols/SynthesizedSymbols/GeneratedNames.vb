@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Generates the name of a state machine field name for captured me reference of lambda closure
         ''' </summary>
-        Public Shared Function MakeStateMachineCaptiredClosureMeName(closureName As String) As String
+        Public Shared Function MakeStateMachineCapturedClosureMeName(closureName As String) As String
             Return StringConstants.LiftedNonLocalPrefix & closureName
         End Function
 

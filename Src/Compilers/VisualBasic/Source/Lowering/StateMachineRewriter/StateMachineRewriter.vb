@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Method.ContainingType,
                                 Me.Method,
                                 If(isMeOfClosureType,
-                                    GeneratedNames.MakeStateMachineCaptiredClosureMeName(typeName),
+                                    GeneratedNames.MakeStateMachineCapturedClosureMeName(typeName),
                                     GeneratedNames.MakeStateMachineCapturedMeName()),
                                 Accessibility.Friend),
                             parameter)

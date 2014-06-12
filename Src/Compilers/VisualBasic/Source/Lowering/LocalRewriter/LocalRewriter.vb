@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub New(
             topMethod As MethodSymbol,
-            currentMethid As MethodSymbol,
+            currentMethod As MethodSymbol,
             compilationState As TypeCompilationState,
             previousSubmissionFields As SynthesizedSubmissionFields,
             generateDebugInfo As Boolean,
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             flags As RewritingFlags
         )
             Me.topMethod = topMethod
-            Me.currentMethodOrLambda = currentMethid
+            Me.currentMethodOrLambda = currentMethod
             Me.globalGenerateDebugInfo = generateDebugInfo
             Me.emitModule = compilationState.EmitModule
             Me.compilationState = compilationState
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function RewriteNode(node As BoundNode,
                                             topMethod As MethodSymbol,
-                                            currentMethid As MethodSymbol,
+                                            currentMethod As MethodSymbol,
                                             compilationState As TypeCompilationState,
                                             previousSubmissionFields As SynthesizedSubmissionFields,
                                             generateDebugInfo As Boolean,
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(node Is Nothing OrElse Not node.HasErrors, "node has errors")
 
-            Dim rewriter = New LocalRewriter(topMethod, currentMethid, compilationState, previousSubmissionFields, generateDebugInfo, diagnostics, flags)
+            Dim rewriter = New LocalRewriter(topMethod, currentMethod, compilationState, previousSubmissionFields, generateDebugInfo, diagnostics, flags)
 
 #If DEBUG Then
             If rewrittenNodes IsNot Nothing Then
@@ -197,12 +197,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        diagnostics As DiagnosticBag,
                                        <Out()> ByRef rewrittenNodes As HashSet(Of BoundNode),
                                        <Out()> ByRef hasLambdas As Boolean,
-                                       <Out()> ByRef symbolsCapturedWithoutCtor As ISet(Of Symbol),
+                                       <Out()> ByRef symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
                                        Optional flags As RewritingFlags = RewritingFlags.Default,
                                        Optional currentMethod As MethodSymbol = Nothing) As BoundBlock
 
             Debug.Assert(rewrittenNodes Is Nothing)
-            Return DirectCast(RewriteNode(node, topMethod, If(currentMethod, topMethod), compilationState, previousSubmissionFields, generateDebugInfo, diagnostics, rewrittenNodes, hasLambdas, symbolsCapturedWithoutCtor, flags), BoundBlock)
+            Return DirectCast(RewriteNode(node, topMethod, If(currentMethod, topMethod), compilationState, previousSubmissionFields, generateDebugInfo, diagnostics, rewrittenNodes, hasLambdas, symbolsCapturedWithoutCopyCtor, flags), BoundBlock)
         End Function
 
         Public Shared Function Rewrite(node As BoundExpression,
