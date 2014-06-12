@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static async Task FindDeclarationsAsync_Test(string searchTerm, bool ignoreCase, WorkspaceKind workspaceKind, string[] expectedResults)
         {
             var project = GetProject(workspaceKind);
-            var declarations = await SymbolFinder.FindDeclarationsAsync(project, searchTerm, ignoreCase);
+            var declarations = await SymbolFinder.FindDeclarationsAsync(project, searchTerm, ignoreCase).ConfigureAwait(false);
             Verify(searchTerm, ignoreCase, workspaceKind, declarations, expectedResults);
         }
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static async Task FindSourceDeclarationsAsync_Project_Test(string searchTerm, bool ignoreCase, WorkspaceKind workspaceKind, string[] expectedResults)
         {
             var project = GetProject(workspaceKind);
-            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, searchTerm, ignoreCase);
+            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, searchTerm, ignoreCase).ConfigureAwait(false);
             Verify(searchTerm, ignoreCase, workspaceKind, declarations, expectedResults);
         }
 
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static async Task FindSourceDeclarationsAsync_Solution_Test(string searchTerm, bool ignoreCase, WorkspaceKind workspaceKind, string[] expectedResults)
         {
             var solution = GetSolution(workspaceKind);
-            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, searchTerm, ignoreCase);
+            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, searchTerm, ignoreCase).ConfigureAwait(false);
             Verify(searchTerm, ignoreCase, workspaceKind, declarations, expectedResults);
         }
 
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static async Task FindSourceDeclarationsAsync_Project_Func_Test(WorkspaceKind workspaceKind, string[] expectedResults)
         {
             var project = GetProject(workspaceKind);
-            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test"));
+            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test")).ConfigureAwait(false);
             Verify(workspaceKind, declarations, expectedResults);
         }
 
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static async Task FindSourceDeclarationsAsync_Project_Func_Test_AlwaysTruePredicate()
         {
             var project = GetProject(WorkspaceKind.SingleClass);
-            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => true);
+            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => true).ConfigureAwait(false);
             Verify(WorkspaceKind.SingleClass, declarations, "TestCases", "TestCases.TestCase");
         }
 
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static async Task FindSourceDeclarationsAsync_Project_Func_Test_AlwaysFalsePredicate()
         {
             var project = GetProject(WorkspaceKind.SingleClass);
-            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => false);
+            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => false).ConfigureAwait(false);
             Verify(WorkspaceKind.SingleClass, declarations);
         }
 
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static async Task FindSourceDeclarationsAsync_Solution_Func_Test(WorkspaceKind workspaceKind, string[] expectedResult)
         {
             var solution = GetSolution(workspaceKind);
-            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, str => str.Contains("Test"));
+            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, str => str.Contains("Test")).ConfigureAwait(false);
             Verify(workspaceKind, declarations, expectedResult);
         }
 
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static async Task FindSourceDeclarationsAsync_Solution_Func_Test_AlwaysTruePredicate()
         {
             var solution = GetSolution(WorkspaceKind.SingleClass);
-            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, str => true);
+            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, str => true).ConfigureAwait(false);
             Verify(WorkspaceKind.SingleClass, declarations, "TestCases", "TestCases.TestCase");
         }
 
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static async Task FindSourceDeclarationsAsync_Solution_Func_Test_AlwaysFalsePredicate()
         {
             var solution = GetSolution(WorkspaceKind.SingleClass);
-            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, str => false);
+            var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, str => false).ConfigureAwait(false);
             Verify(WorkspaceKind.SingleClass, declarations);
         }
 

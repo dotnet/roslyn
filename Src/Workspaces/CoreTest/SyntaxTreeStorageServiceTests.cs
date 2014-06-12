@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var tree = CSharp.SyntaxFactory.SyntaxTree(root);
 
             // EnqueueStore and EnqueueStoreAsync is basically same thing. only difference is EnqueueStoreAsync returns Task that can be waited.
-            await syntaxTreeStorageService.EnqueueStoreAsync(tree, root, tempStorageService, CancellationToken.None);
+            await syntaxTreeStorageService.EnqueueStoreAsync(tree, root, tempStorageService, CancellationToken.None).ConfigureAwait(false);
 
             Assert.True(syntaxTreeStorageService.CanRetrieve(tree));
         }
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root = CSharp.SyntaxFactory.CompilationUnit();
             var tree = CSharp.SyntaxFactory.SyntaxTree(root);
 
-            await syntaxTreeStorageService.StoreAsync(tree, root, tempStorageService, CancellationToken.None);
+            await syntaxTreeStorageService.StoreAsync(tree, root, tempStorageService, CancellationToken.None).ConfigureAwait(false);
 
             Assert.True(syntaxTreeStorageService.CanRetrieve(tree));
         }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(syntaxTreeStorageService.CanRetrieve(tree));
 
             var syntaxFactoryService = new CSharp.CSharpSyntaxTreeFactoryServiceFactory().CreateLanguageService(provider: null) as ISyntaxTreeFactoryService;
-            var newRoot = await syntaxTreeStorageService.RetrieveAsync(tree, syntaxFactoryService, CancellationToken.None);
+            var newRoot = await syntaxTreeStorageService.RetrieveAsync(tree, syntaxFactoryService, CancellationToken.None).ConfigureAwait(false);
 
             Assert.True(root.IsEquivalentTo(newRoot));
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 GC.Collect();
 
-                await Task.Delay(5);
+                await Task.Delay(5).ConfigureAwait(false);
                 count++;
             }
 

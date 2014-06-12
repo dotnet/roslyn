@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 try
                 {
                     Log("Begin reading request");
-                    request = await BuildRequest.ReadAsync(pipeStream, cancellationTokenSource.Token);
+                    request = await BuildRequest.ReadAsync(pipeStream, cancellationTokenSource.Token).ConfigureAwait(false);
                     Log("End reading request");
                 }
                 catch (IOException e)
@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                });
+                }).ConfigureAwait(false);
 
                 Log("End compilation");
 
                 try
                 {
                     Log("Begin writing response");
-                    await response.WriteAsync(pipeStream, cancellationTokenSource.Token);
+                    await response.WriteAsync(pipeStream, cancellationTokenSource.Token).ConfigureAwait(false);
                     Log("End writing response");
                 }
                 catch (IOException e)
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                     Log("After poking pipe.");
                     // Wait a tenth of a second before trying again
-                    await Task.Delay(100);
+                    await Task.Delay(100).ConfigureAwait(false);
                 }
 
                 Log("Pipe disconnected; cancelling.");

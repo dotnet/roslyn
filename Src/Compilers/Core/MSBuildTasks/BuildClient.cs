@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
                 CompilerServerLogger.Log("After poking pipe.");
                 // Wait a hundredth of a second before trying again
-                await Task.Delay(10);
+                await Task.Delay(10).ConfigureAwait(false);
             }
                 
             if (!cancellationToken.IsCancellationRequested)

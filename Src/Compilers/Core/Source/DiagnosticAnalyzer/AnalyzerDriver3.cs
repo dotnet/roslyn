@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 initialWorker = Task.Run(async () => {
                     try
                     {
-                        await InitialWorker(analyzers, continueOnError, cancellationToken);
+                        await InitialWorker(analyzers, continueOnError, cancellationToken).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException)
                     {
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var q = DiagnosticQueue;
             var allDiagnostics = DiagnosticBag.GetInstance();
-            await q.WhenCompleted;
+            await q.WhenCompleted.ConfigureAwait(false);
             Diagnostic d;
             while (q.TryDequeue(out d))
             {
@@ -108,10 +108,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <returns></returns>
         public async Task WhenCompleted()
         {
-            await CompilationEventQueue.WhenCompleted;
+            await CompilationEventQueue.WhenCompleted.ConfigureAwait(false);
             foreach (var worker in workers)
             {
-                await worker;
+                await worker.ConfigureAwait(false);
             }
         }
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async Task InitialWorker(IDiagnosticAnalyzer[] analyzers, bool continueOnError, CancellationToken cancellationToken)
         {
             // Pull out the first event, which should be the "start compilation" event.
-            var firstEvent = await CompilationEventQueue.DequeueAsync(/*cancellationToken*/);
+            var firstEvent = await CompilationEventQueue.DequeueAsync(/*cancellationToken*/).ConfigureAwait(false);
             var startCompilation = firstEvent as CompilationEvent.CompilationStarted;
             if (startCompilation == null)
             {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DiagnosticQueue.Complete();
                 while (CompilationEventQueue.Count != 0)
                 {
-                    var drainedEvent = await CompilationEventQueue.DequeueAsync();
+                    var drainedEvent = await CompilationEventQueue.DequeueAsync().ConfigureAwait(false);
                 }
                 throw new InvalidOperationException("First event must be CompilationEvent.CompilationStarted, not " + startCompilation.GetType().Name);
             }
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
-                await ProcessEvents(cancellationToken);
+                await ProcessEvents(cancellationToken).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {
@@ -242,8 +242,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 try
                 {
-                    var e = await CompilationEventQueue.DequeueAsync(/*cancellationToken*/);
-                    await ProcessEvent(e, cancellationToken);
+                    var e = await CompilationEventQueue.DequeueAsync(/*cancellationToken*/).ConfigureAwait(false);
+                    await ProcessEvent(e, cancellationToken).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException)
                 {
@@ -264,21 +264,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbolEvent = e as CompilationEvent.SymbolDeclared;
             if (symbolEvent != null)
             {
-                await ProcessSymbolDeclared(symbolEvent, cancellationToken);
+                await ProcessSymbolDeclared(symbolEvent, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
             var completedEvent = e as CompilationEvent.CompilationUnitCompleted;
             if (completedEvent != null)
             {
-                await ProcessCompilationUnitCompleted(completedEvent, cancellationToken);
+                await ProcessCompilationUnitCompleted(completedEvent, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
             var endEvent = e as CompilationEvent.CompilationCompleted;
             if (endEvent != null)
             {
-                await ProcessCompilationCompleted(endEvent, cancellationToken);
+                await ProcessCompilationCompleted(endEvent, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async Task AnalyzeDeclaringReference(CompilationEvent.SymbolDeclared symbolEvent, SyntaxReference decl, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
         {
             var symbol = symbolEvent.Symbol;
-            var syntax = await decl.GetSyntaxAsync();
+            var syntax = await decl.GetSyntaxAsync().ConfigureAwait(false);
             var endedAnalyzers = ArrayBuilder<ICodeBlockEndedAnalyzer>.GetInstance();
             endedAnalyzers.AddRange(CodeBlockEndedAnalyzers);
             var nodeAnalyzers = ArrayBuilder<ISyntaxNodeAnalyzer<TSyntaxKind>>.GetInstance();
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var task in tasks)
             {
-                await task;
+                await task.ConfigureAwait(false);
             }
 
             DiagnosticQueue.Complete();
