@@ -557,7 +557,7 @@ End Class
     <Method Name="M4" CallingConvention="HasThis">
         <MethodFlags>public hidebysig strict virtual instance</MethodFlags>
         <MethodImplFlags>cil managed</MethodImplFlags>
-        <Implements>Sub ComClassTest._ComClassTest.M4([x As System.DateTime = 8/23/1970 12:00:00 AM], [y As System.Decimal = 4.5])</Implements>
+        <Implements>Sub ComClassTest._ComClassTest.M4([x As System.DateTime = #8/23/1970 12:00:00 AM#], [y As System.Decimal = 4.5])</Implements>
         <Parameter Name="x">
             <ParamFlags>[opt]</ParamFlags>
             <Type>Date</Type>

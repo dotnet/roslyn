@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         End Function
 
         Friend Function FormatLiteral(value As DateTime) As String
-            Return value.ToString("M/d/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture)
+            Return value.ToString("#M/d/yyyy hh:mm:ss tt#", CultureInfo.InvariantCulture)
         End Function
 
         Friend Function FormatString(str As String, quote As Boolean, nonPrintableSubstitute As Char, useHexadecimalNumbers As Boolean) As String

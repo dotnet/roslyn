@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Shared Function GenerateDateLiteralExpression(value As Date) As ExpressionSyntax
-            Dim literal = "#" & VisualBasic.SymbolDisplay.FormatPrimitive(value, quoteStrings:=False, useHexadecimalNumbers:=False) & "#"
+            Dim literal = SymbolDisplay.FormatPrimitive(value, quoteStrings:=False, useHexadecimalNumbers:=False)
             Return SyntaxFactory.DateLiteralExpression(
                 SyntaxFactory.DateLiteralToken(literal, value))
         End Function
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             If piece.Kind = StringPieceKind.Normal Then
                 Return SyntaxFactory.CharacterLiteralExpression(SyntaxFactory.CharacterLiteralToken(
-                    VisualBasic.SymbolDisplay.FormatPrimitive(c, quoteStrings:=True, useHexadecimalNumbers:=False), c))
+                    SymbolDisplay.FormatPrimitive(c, quoteStrings:=True, useHexadecimalNumbers:=False), c))
             End If
 
             Return GenerateChrWExpression(c)
