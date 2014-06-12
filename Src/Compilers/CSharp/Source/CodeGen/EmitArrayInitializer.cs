@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                byte[] data = this.GetRawData(initExprs);
+                ImmutableArray<byte> data = this.GetRawData(initExprs);
                 builder.EmitArrayBlockInitializer(data, inits.Syntax, diagnostics);
 
                 if (initializationStyle == ArrayInitializerStyle.Mixed)
@@ -317,21 +317,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// Produces a serialized blob of all constant initializers.
         /// Nonconstat initializers are matched with a zero of corresponding size.
         /// </summary>
-        private byte[] GetRawData(ImmutableArray<BoundExpression> inits)
+        private ImmutableArray<byte> GetRawData(ImmutableArray<BoundExpression> initializers)
         {
             // the initial size is a guess.
             // there is no point to be precise here as MemoryStream always has N + 1 storage 
             // and will need to be trimmed regardless
-            var ms = new Microsoft.Cci.MemoryStream((uint)(inits.Length * 4));
-            var bw = new Microsoft.Cci.BinaryWriter(ms);
+            var stream = new Cci.MemoryStream((uint)(initializers.Length * 4));
+            var writer = new Cci.BinaryWriter(stream);
 
-            SerializeArrayRecursive(bw, inits);
+            SerializeArrayRecursive(writer, initializers);
 
-            byte[] data = ms.Buffer;
-            // trim
-            Array.Resize(ref data, (int)ms.Position);
-
-            return data;
+            return ImmutableArray.Create(stream.Buffer, 0, (int)stream.Position);
         }
 
         private void SerializeArrayRecursive(Microsoft.Cci.BinaryWriter bw, ImmutableArray<BoundExpression> inits)

@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #region Token Mapping
 
-        Cci.IFieldReference ITokenDeferral.GetFieldForData(byte[] data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             Debug.Assert(this.SupportsPrivateImplClass);
 

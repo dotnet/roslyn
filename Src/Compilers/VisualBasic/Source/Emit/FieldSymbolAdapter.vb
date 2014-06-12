@@ -109,9 +109,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private ReadOnly Property IFieldDefinitionFieldMapping As ISectionBlock Implements IFieldDefinition.FieldMapping
+        Private ReadOnly Property IFieldDefinitionFieldMapping As ImmutableArray(Of Byte) Implements IFieldDefinition.MappedData
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return Nothing
             End Get
         End Property
 
@@ -125,13 +125,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return True
                 End If
 
-                Return False
-            End Get
-        End Property
-
-        Private ReadOnly Property IFieldDefinitionIsMapped As Boolean Implements IFieldDefinition.IsMapped
-            Get
-                CheckDefinitionInvariant()
                 Return False
             End Get
         End Property

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -18,7 +19,6 @@ namespace Microsoft.Cci
 
         internal MemoryStream(uint initialSize)
         {
-            // ^ requires initialSize > 0;
             this.Buffer = new byte[initialSize];
         }
 
@@ -80,20 +80,29 @@ namespace Microsoft.Cci
             return result;
         }
 
-        internal void Write(byte[] buffer, uint index, uint count)
+        internal void Write(byte[] buffer, int index, int length)
         {
-            uint p = this.position;
-            this.Position = p + count;
-            byte[] myBuffer = this.Buffer;
-            for (uint i = 0, j = p, k = index; i < count; i++)
-            {
-                myBuffer[j++] = buffer[k++];
-            }
+            int position = (int)this.position;
+
+            // resize, if needed
+            this.Position += (uint)length;
+
+            System.Buffer.BlockCopy(buffer, index, this.Buffer, position, length);
+        }
+
+        internal void Write(ImmutableArray<byte> buffer, int index, int length)
+        {
+            int position = (int)this.position;
+
+            // resize, if needed
+            this.Position += (uint)length;
+
+            buffer.CopyTo(index, this.Buffer, position, length);
         }
 
         internal void WriteTo(MemoryStream stream)
         {
-            stream.Write(this.Buffer, 0, this.Length);
+            stream.Write(this.Buffer, 0, (int)this.Length);
         }
 
         internal void WriteTo(System.IO.Stream stream)

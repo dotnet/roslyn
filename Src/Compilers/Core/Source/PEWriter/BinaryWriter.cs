@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.Cci
@@ -74,7 +75,17 @@ namespace Microsoft.Cci
                 return;
             }
 
-            this.BaseStream.Write(buffer, 0, (uint)buffer.Length);
+            this.BaseStream.Write(buffer, 0, buffer.Length);
+        }
+
+        internal void WriteBytes(ImmutableArray<byte> buffer)
+        {
+            if (buffer.IsDefault)
+            {
+                return;
+            }
+
+            this.BaseStream.Write(buffer, 0, buffer.Length);
         }
 
         /// <summary>

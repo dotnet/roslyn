@@ -120,30 +120,17 @@ namespace Microsoft.Cci
         IMetadataConstant GetCompileTimeValue(EmitContext context);
 
         /// <summary>
-        /// Information of the location where this field is mapped to
+        /// Mapped field data, or null if the field is not mapped.
         /// </summary>
-        ISectionBlock FieldMapping
+        ImmutableArray<byte> MappedData
         {
             get;
-
-            // ^ requires this.IsMapped;
         }
 
         /// <summary>
         /// This field is a compile-time constant. The field has no runtime location and cannot be directly addressed from IL.
         /// </summary>
         bool IsCompileTimeConstant { get; }
-
-        /// <summary>
-        /// This field is mapped to an explicitly initialized (static) memory location.
-        /// </summary>
-        bool IsMapped
-        {
-            get;
-
-            // ^ ensures result ==> this.IsStatic;
-            // ^ ensures !result || this.IsStatic;
-        }
 
         /// <summary>
         /// This field has associated field marshalling information.

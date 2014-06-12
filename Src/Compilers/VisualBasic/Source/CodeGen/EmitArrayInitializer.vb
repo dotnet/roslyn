@@ -59,8 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If initializationStyle = ArrayInitializerStyle.Element Then
                 Me.EmitElementInitializers(arrayType, initExprs, True)
             Else
-                Dim data As Byte() = Me.GetRawData(initExprs)
-                _builder.EmitArrayBlockInitializer(data, inits.Syntax, _diagnostics)
+                _builder.EmitArrayBlockInitializer(Me.GetRawData(initExprs), inits.Syntax, _diagnostics)
 
                 If initializationStyle = ArrayInitializerStyle.Mixed Then
                     EmitElementInitializers(arrayType, initExprs, False)
@@ -274,23 +273,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' Produces a serialized blob of all constant initializers.
         ''' Nonconstat initializers are matched with a zero of corresponding size.
         ''' </summary>
-        Private Function GetRawData(inits As ImmutableArray(Of BoundExpression)) As Byte()
+        Private Function GetRawData(initializers As ImmutableArray(Of BoundExpression)) As ImmutableArray(Of Byte)
             ' the initial size is a guess.
             ' there is no point to be precise here as MemoryStream always has N + 1 storage 
             ' and will need to be trimmed regardless
-            Dim ms As New Microsoft.Cci.MemoryStream(CType((inits.Length * 4), UInt32))
-            Dim bw As New Microsoft.Cci.BinaryWriter(ms)
+            Dim stream As New Cci.MemoryStream(CUInt(initializers.Length * 4))
+            Dim writer As New Cci.BinaryWriter(stream)
 
-            SerializeArrayRecursive(bw, inits)
+            SerializeArrayRecursive(writer, initializers)
 
-            Dim data As Byte() = ms.Buffer
-            ' trim
-            Array.Resize(data, CInt(ms.Position))
-
-            Return data
+            Return ImmutableArray.Create(stream.Buffer, 0, CInt(stream.Position))
         End Function
 
-        Private Sub SerializeArrayRecursive(bw As Microsoft.Cci.BinaryWriter, inits As ImmutableArray(Of BoundExpression))
+        Private Sub SerializeArrayRecursive(bw As Cci.BinaryWriter, inits As ImmutableArray(Of BoundExpression))
             If inits.Length <> 0 Then
                 If inits(0).Kind = BoundKind.ArrayInitialization Then
                     For Each init In inits

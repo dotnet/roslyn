@@ -64,11 +64,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return GetCompileTimeValue(context);
             }
 
-            Cci.ISectionBlock Cci.IFieldDefinition.FieldMapping
+            ImmutableArray<byte> Cci.IFieldDefinition.MappedData
             {
                 get
                 {
-                    return null;
+                    return default(ImmutableArray<byte>);
                 }
             }
 
@@ -76,15 +76,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    return IsCompileTimeConstant; ;
-                }
-            }
-
-            bool Cci.IFieldDefinition.IsMapped
-            {
-                get
-                {
-                    return false;
+                    return IsCompileTimeConstant;
                 }
             }
 

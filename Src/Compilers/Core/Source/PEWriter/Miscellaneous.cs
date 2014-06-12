@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
@@ -344,90 +345,6 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// The data of the resource.
-        /// </summary>
-        IEnumerable<byte> Data { get; }
-    }
-
-    /// <summary>
-    /// Flags for IL No Operation
-    /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1028:EnumStorageShouldBeInt32"), Flags]
-    internal enum OperationCheckFlags : byte
-    {
-        /// <summary>
-        /// No type check needs to be performed for next operation
-        /// </summary>
-        NoTypeCheck = 0x01,
-
-        /// <summary>
-        /// No range check needs to be performed for next operation
-        /// </summary>
-        NoRangeCheck = 0x02,
-
-        /// <summary>
-        /// No null check needs to be performed for next operation
-        /// </summary>
-        NoNullCheck = 0x04,
-    }
-
-    /// <summary>
-    /// An enumeration indicating the section inside the PE File
-    /// </summary>
-    internal enum PESectionKind
-    {
-        /// <summary>
-        /// Section is unrecognized
-        /// </summary>
-        Illegal,
-
-        /// <summary>
-        /// Section for initialized constant data.
-        /// </summary>
-        ConstantData,
-
-        /// <summary>
-        /// Section for code coverage data.
-        /// </summary>
-        CoverageData,
-
-        /// <summary>
-        /// Section for initialized writable data.
-        /// </summary>
-        StaticData,
-
-        /// <summary>
-        /// Section for IL and Metadata.
-        /// </summary>
-        Text,
-
-        /// <summary>
-        /// Section for initialized thread local storage.
-        /// </summary>
-        ThreadLocalStorage,
-    }
-
-    /// <summary>
-    /// Represents a block of data stored at a given offset within a specified section of the PE file.
-    /// </summary>
-    internal interface ISectionBlock
-    {
-        /// <summary>
-        /// Section where the block resides.
-        /// </summary>
-        PESectionKind PESectionKind { get; }
-
-        /// <summary>
-        /// Offset into section where the block resides.
-        /// </summary>
-        uint Offset { get; }
-
-        /// <summary>
-        /// Size of the block.
-        /// </summary>
-        uint Size { get; }
-
-        /// <summary>
-        /// Byte information stored in the block.
         /// </summary>
         IEnumerable<byte> Data { get; }
     }

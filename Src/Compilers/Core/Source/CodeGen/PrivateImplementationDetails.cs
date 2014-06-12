@@ -98,13 +98,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return frozen != 0; }
         }
 
-        internal Cci.IFieldReference CreateDataField(byte[] data)
+        internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data)
         {
             Debug.Assert(!IsFrozen);
 
             Cci.ITypeReference type = this.proxyTypes.GetOrAdd((uint)data.Length, size => GetStorageStruct(size));
-
-            var block = new MetadataBlock(data);
 
             //This object may be accessed concurrently
             //it is not expected to have a lot of contention here so we will just use lock
@@ -112,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             lock (this.mappedFields)
             {
                 var name = GenerateDataFieldName(this.mappedFields.Count);
-                var newField = new MappedField(name, this, type, block);
+                var newField = new MappedField(name, this, type, data);
                 this.mappedFields.Add(newField);
 
                 return newField;
@@ -233,45 +231,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
     }
 
     /// <summary>
-    /// Represents a block in .data
-    /// </summary>
-    internal sealed class MetadataBlock : Cci.ISectionBlock
-    {
-        private readonly byte[] data;
-        private readonly int offset;
-
-        private static int curOffset = 0;
-
-        internal MetadataBlock(byte[] data)
-        {
-            var length = data.Length;
-            offset = Interlocked.Add(ref curOffset, length) - length;
-            this.data = data;
-        }
-
-        public Cci.PESectionKind PESectionKind
-        {
-            //TODO: why this is not "Constant"  ?
-            get { return Cci.PESectionKind.Text; }
-        }
-
-        public uint Offset
-        {
-            get { return (uint)offset; }
-        }
-
-        public uint Size
-        {
-            get { return (uint)data.Length; }
-        }
-
-        public IEnumerable<byte> Data
-        {
-            get { return data; }
-        }
-    }
-
-    /// <summary>
     /// Simple struct type with explicit size and no members.
     /// </summary>
     internal sealed class ExplicitSizeStruct : DefaultTypeDef, Cci.INestedTypeDefinition
@@ -360,11 +319,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         private readonly Cci.INamedTypeDefinition containingType;
         private readonly Cci.ITypeReference type;
-        private readonly Cci.ISectionBlock block;
+        private readonly ImmutableArray<byte> block;
         private readonly string name;
 
-        internal MappedField(string name, Cci.INamedTypeDefinition containingType, Cci.ITypeReference type, Cci.ISectionBlock block)
+        internal MappedField(string name, Cci.INamedTypeDefinition containingType, Cci.ITypeReference type, ImmutableArray<byte> block)
         {
+            Debug.Assert(name != null);
+            Debug.Assert(containingType != null);
+            Debug.Assert(type != null);
+            Debug.Assert(!block.IsDefault);
+
             this.containingType = containingType;
             this.type = type;
             this.block = block;
@@ -381,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return null;
         }
 
-        public Cci.ISectionBlock FieldMapping
+        public ImmutableArray<byte> MappedData
         {
             get { return this.block; }
         }
@@ -389,11 +353,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public bool IsCompileTimeConstant
         {
             get { return false; }
-        }
-
-        public bool IsMapped
-        {
-            get { return true; }
         }
 
         public bool IsNotSerialized

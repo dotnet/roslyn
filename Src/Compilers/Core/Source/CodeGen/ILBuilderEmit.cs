@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentStream().WriteUint(token);
         }
 
-        internal void EmitArrayBlockInitializer(byte[] data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             // get helpers
             var initializeArray = module.GetInitArrayHelper();

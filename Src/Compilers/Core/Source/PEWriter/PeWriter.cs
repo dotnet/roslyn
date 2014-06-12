@@ -543,10 +543,8 @@ namespace Microsoft.Cci
         private readonly SectionHeader rdataSection = new SectionHeader();
         private readonly SectionHeader sdataSection = new SectionHeader();
         private readonly uint sizeOfImportAddressTable;
-        private readonly BinaryWriter textDataWriter = new BinaryWriter(new MemoryStream());
         private readonly SectionHeader textSection = new SectionHeader();
-        private readonly SectionHeader textDataSection = new SectionHeader();
-        private readonly SectionHeader textMethodBodySection = new SectionHeader();
+        
         private readonly SectionHeader tlsSection = new SectionHeader();
         private readonly BinaryWriter tlsDataWriter = new BinaryWriter(new MemoryStream());
 
@@ -579,6 +577,8 @@ namespace Microsoft.Cci
             0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         };
 
+        private const int MappedFieldDataAlignment = 8;
+      
         /// <summary>
         /// Wraps a virtual string table index.
         /// An override to SerializeIndex does the resolving at the right time.
@@ -711,6 +711,8 @@ namespace Microsoft.Cci
             var ilWriter = new BinaryWriter(ilBuffer);
             var metadataBuffer = new MemoryStream(16 * 1024);
             var metadataWriter = new BinaryWriter(metadataBuffer);
+            var mappedFieldDataBuffer = new MemoryStream();
+            var mappedFieldDataWriter = new BinaryWriter(mappedFieldDataBuffer);
 
             // Since we are producing a full assembly, we should not have a module version ID
             // imposed ahead-of time. Instead we will compute a deterministic module version ID
@@ -718,10 +720,18 @@ namespace Microsoft.Cci
             Debug.Assert(this.ModuleVersionId == default(Guid));
 
             uint moduleVersionIdOffsetInMetadataStream;
-            SerializeMetadataAndIL(metadataWriter, ilWriter, separateMethodIL: false, moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream);
+            int mappedFieldDataStreamRva;
+
+            SerializeMetadataAndIL(
+                metadataWriter, 
+                ilWriter, 
+                mappedFieldDataWriter, 
+                separateMethodIL: false,
+                moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream,
+                mappedFieldDataStreamRva: out mappedFieldDataStreamRva);
 
             // fill in header fields.
-            FillInNtHeader((int)ilBuffer.Length);
+            FillInNtHeader((int)ilBuffer.Length, mappedFieldDataStreamRva);
             FillInClrHeader((int)ilBuffer.Length);
 
             // write to pe stream.
@@ -729,7 +739,7 @@ namespace Microsoft.Cci
             WriteHeaders(peStream, out positionOfHeaderTimestamp);
             long startOfMetadataStream;
             long positionOfDebugTableTimestamp;
-            WriteTextSection(peStream, metadataBuffer, ilBuffer, out startOfMetadataStream, out positionOfDebugTableTimestamp);
+            WriteTextSection(peStream, metadataBuffer, ilBuffer, mappedFieldDataBuffer, out startOfMetadataStream, out positionOfDebugTableTimestamp);
             WriteRdataSection(peStream);
             WriteSdataSection(peStream);
             WriteCoverSection(peStream);
@@ -754,6 +764,8 @@ namespace Microsoft.Cci
             var ilWriter = new BinaryWriter(ilBuffer);
             var metadataBuffer = new MemoryStream(4 * 1024);
             var metadataWriter = new BinaryWriter(metadataBuffer);
+            var mappedFieldDataBuffer = new MemoryStream(0);
+            var mappedFieldDataWriter = new BinaryWriter(mappedFieldDataBuffer);
 
             // Add 4B of padding to the start of the separated IL stream, 
             // so that method RVAs, which are offsets to this stream, are never 0.
@@ -766,10 +778,19 @@ namespace Microsoft.Cci
             Debug.Assert(this.ModuleVersionId != default(Guid));
 
             uint moduleVersionIdOffsetInMetadataStream;
-            SerializeMetadataAndIL(metadataWriter, ilWriter, separateMethodIL: true, moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream);
+            int mappedFieldDataStreamRva;
 
+            SerializeMetadataAndIL(
+                metadataWriter, 
+                ilWriter, 
+                mappedFieldDataWriter,
+                separateMethodIL: true, 
+                moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream,
+                mappedFieldDataStreamRva: out mappedFieldDataStreamRva);
+            
             ilBuffer.WriteTo(ilStream);
             metadataBuffer.WriteTo(metadataStream);
+            Debug.Assert(mappedFieldDataBuffer.Length == 0);
         }
 
         /// <summary>
@@ -1010,7 +1031,7 @@ namespace Microsoft.Cci
             return sizeOfPeHeaders;
         }
 
-        private uint ComputeSizeOfTextSection(int ilStreamLength)
+        private uint ComputeSizeOfTextSection(int ilStreamLength, int mappedFieldDataLength)
         {
             uint textSectionLength = this.ComputeOffsetToImportTable(ilStreamLength);
 
@@ -1022,7 +1043,8 @@ namespace Microsoft.Cci
                 textSectionLength += !this.module.Requires64bits ? 8u : 16u; //fixed size of runtime startup stub
             }
 
-            textSectionLength += Aligned(this.textDataWriter.BaseStream.Length, 4);
+            Debug.Assert(mappedFieldDataLength % MappedFieldDataAlignment == 0);
+            textSectionLength += (uint)mappedFieldDataLength;
             this.streamsAreComplete = true;
             return textSectionLength;
         }
@@ -1335,11 +1357,11 @@ namespace Microsoft.Cci
             clrHeader.VTableFixups.Size = 0;
         }
 
-        private void FillInNtHeader(int ilStreamLength)
+        private void FillInNtHeader(int ilStreamLength, int mappedFieldDataStreamRva)
         {
             bool use32bitAddresses = !this.module.Requires64bits;
             NtHeader ntHeader = this.ntHeader;
-            ntHeader.AddressOfEntryPoint = this.emitRuntimeStartupStub ? this.textDataSection.RelativeVirtualAddress - (use32bitAddresses ? 6u : 10u) : 0;
+            ntHeader.AddressOfEntryPoint = this.emitRuntimeStartupStub ? (uint)mappedFieldDataStreamRva - (use32bitAddresses ? 6u : 10u) : 0;
             ntHeader.BaseOfCode = this.textSection.RelativeVirtualAddress;
             ntHeader.BaseOfData = this.rdataSection.RelativeVirtualAddress;
             ntHeader.PointerToSymbolTable = 0;
@@ -1356,8 +1378,10 @@ namespace Microsoft.Cci
 
             ntHeader.ImportAddressTable.RelativeVirtualAddress = (this.emitRuntimeStartupStub) ? this.textSection.RelativeVirtualAddress : 0;
             ntHeader.ImportAddressTable.Size = this.sizeOfImportAddressTable;
+
             ntHeader.CliHeaderTable.RelativeVirtualAddress = this.textSection.RelativeVirtualAddress + ntHeader.ImportAddressTable.Size;
             ntHeader.CliHeaderTable.Size = 72;
+
             ntHeader.ImportTable.RelativeVirtualAddress = this.textSection.RelativeVirtualAddress + this.ComputeOffsetToImportTable(ilStreamLength);
 
             if (!this.emitRuntimeStartupStub)
@@ -1399,10 +1423,10 @@ namespace Microsoft.Cci
             ntHeader.ThreadLocalStorageTable.Size = this.tlsSection.SizeOfRawData;
         }
 
-        private void FillInSectionHeaders(int ilStreamLength)
+        private void FillInSectionHeaders(int ilStreamLength, int mappedFieldDataLength)
         {
             uint sizeOfPeHeaders = this.ComputeSizeOfPeHeaders();
-            uint sizeOfTextSection = this.ComputeSizeOfTextSection(ilStreamLength);
+            uint sizeOfTextSection = this.ComputeSizeOfTextSection(ilStreamLength, mappedFieldDataLength);
 
             this.textSection.Characteristics = 0x60000020; // section is read + execute + code 
             this.textSection.Name = ".text";
@@ -1414,13 +1438,6 @@ namespace Microsoft.Cci
             this.textSection.RelativeVirtualAddress = Aligned(sizeOfPeHeaders, 0x2000);
             this.textSection.SizeOfRawData = Aligned(sizeOfTextSection, this.module.FileAlignment);
             this.textSection.VirtualSize = sizeOfTextSection;
-
-            // Note: the textDataSection is not actually written out. Its data is appended to the text section.
-            // The section exists to make it easier to use a single method to compute all field RVAs.
-            this.textDataSection.RelativeVirtualAddress = this.textSection.RelativeVirtualAddress + this.textSection.VirtualSize - Aligned(this.textDataWriter.BaseStream.Length, 4);
-
-            // likewise for the textMethodBodySection
-            this.textMethodBodySection.RelativeVirtualAddress = this.textSection.RelativeVirtualAddress + this.sizeOfImportAddressTable + 72;
 
             this.rdataSection.Characteristics = 0x40000040; // section is read + initialized
             this.rdataSection.Name = ".rdata";
@@ -1673,46 +1690,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private uint GetDataOffset(ISectionBlock sectionBlock)
-        {
-            BinaryWriter sectionWriter;
-            switch (sectionBlock.PESectionKind)
-            {
-                case PESectionKind.ConstantData:
-                    sectionWriter = this.rdataWriter;
-                    break;
-                case PESectionKind.CoverageData:
-                    sectionWriter = this.coverageDataWriter;
-                    break;
-                case PESectionKind.StaticData:
-                    sectionWriter = this.sdataWriter;
-                    break;
-                case PESectionKind.Text:
-                    sectionWriter = this.textDataWriter;
-                    break;
-                case PESectionKind.ThreadLocalStorage:
-                    sectionWriter = this.tlsDataWriter;
-                    break;
-                default:
-                    // TODO: error
-                    goto case PESectionKind.Text;
-            }
-
-            if (sectionBlock.PESectionKind != PESectionKind.Text)
-            {
-                sectionWriter.BaseStream.Position = sectionBlock.Offset;
-            }
-
-            uint result = sectionWriter.BaseStream.Position;
-            sectionWriter.WriteBytes(new List<byte>(sectionBlock.Data).ToArray());
-            if (sectionWriter.BaseStream.Position == sectionWriter.BaseStream.Length)
-            {
-                sectionWriter.Align(8);
-            }
-
-            return result;
-        }
-
         public static ushort GetEventFlags(IEventDefinition eventDef)
         {
             ushort result = 0;
@@ -1766,7 +1743,7 @@ namespace Microsoft.Cci
                 result |= 0x0080;
             }
 
-            if (fieldDef.IsMapped)
+            if (!fieldDef.MappedData.IsDefault)
             {
                 result |= 0x0100;
             }
@@ -2390,23 +2367,6 @@ namespace Microsoft.Cci
 
             // TODO: error
             return 0;
-        }
-
-        private static uint GetRva(SectionHeader sectionHeader, uint offset)
-        {
-            return sectionHeader.RelativeVirtualAddress + offset;
-        }
-
-        private SectionHeader GetSection(PESectionKind section)
-        {
-            switch (section)
-            {
-                case PESectionKind.ConstantData: return this.rdataSection;
-                case PESectionKind.CoverageData: return this.coverSection;
-                case PESectionKind.StaticData: return this.sdataSection;
-                case PESectionKind.ThreadLocalStorage: return this.tlsSection;
-                default: return this.textDataSection;
-            }
         }
 
         private StringIdx GetStringIndex(string str)
@@ -3116,7 +3076,7 @@ namespace Microsoft.Cci
             offsetFromStartOfMetadata += sizeOfStreamHeap;
         }
 
-        private void SerializeMetadata(BinaryWriter metadataWriter, bool separateMethodIL, out uint moduleVersionIdOffset)
+        private void SerializeMetadata(BinaryWriter metadataWriter, int methodBodyStreamRva, int mappedFieldDataStreamRva, bool separateMethodIL, out uint moduleVersionIdOffset)
         {
             uint metadataStartOffset = metadataWriter.BaseStream.Position;
             uint metadataTablesStartOffset = metadataStartOffset + MetadataHeaderSize;
@@ -3124,7 +3084,7 @@ namespace Microsoft.Cci
             // Leave space for the metadata header. We need to fill in the sizes of all tables and heaps.
             // It's easier to write it at the end then to precalculate the sizes.
             metadataWriter.BaseStream.Position = metadataTablesStartOffset;
-            this.SerializeMetadataTables(metadataWriter, separateMethodIL);
+            this.SerializeMetadataTables(metadataWriter, methodBodyStreamRva, mappedFieldDataStreamRva, separateMethodIL);
 
             uint metadataTablesEndOffset = metadataWriter.BaseStream.Position;
 
@@ -3157,14 +3117,14 @@ namespace Microsoft.Cci
             return guidHeapOffsetInMetadataStream + moduleVersionOffsetInGuidTable;
         }
 
-        private void SerializeMetadataTables(BinaryWriter writer, bool separateMethodIL)
+        private void SerializeMetadataTables(BinaryWriter writer, int methodBodyStreamRva, int mappedFieldDataStreamRva, bool separateMethodIL)
         {
             this.SerializeTablesHeader(writer);
             this.SerializeModuleTable(writer);
             this.SerializeTypeRefTable(writer);
             this.SerializeTypeDefTable(writer);
             this.SerializeFieldTable(writer);
-            this.SerializeMethodTable(writer, separateMethodIL);
+            this.SerializeMethodTable(writer, methodBodyStreamRva, separateMethodIL);
             this.SerializeParamTable(writer);
             this.SerializeInterfaceImplTable(writer);
             this.SerializeMemberRefTable(writer);
@@ -3184,7 +3144,7 @@ namespace Microsoft.Cci
             this.SerializeModuleRefTable(writer);
             this.SerializeTypeSpecTable(writer);
             this.SerializeImplMapTable(writer);
-            this.SerializeFieldRvaTable(writer);
+            this.SerializeFieldRvaTable(writer, mappedFieldDataStreamRva);
             this.SerializeEncLogTable(writer);
             this.SerializeEncMapTable(writer);
             this.SerializeAssemblyTable(writer);
@@ -3278,7 +3238,13 @@ namespace Microsoft.Cci
             return false;
         }
 
-        private void SerializeMetadataAndIL(BinaryWriter metadataWriter, BinaryWriter ilWriter, bool separateMethodIL, out uint moduleVersionIdOffsetInMetadataStream)
+        private void SerializeMetadataAndIL(
+            BinaryWriter metadataWriter, 
+            BinaryWriter ilWriter, 
+            BinaryWriter mappedFieldDataWriter,
+            bool separateMethodIL, 
+            out uint moduleVersionIdOffsetInMetadataStream, 
+            out int mappedFieldDataStreamRva)
         {
             uint[] methodBodyRvas = SerializeMethodBodies(ilWriter);
 
@@ -3287,13 +3253,16 @@ namespace Microsoft.Cci
             // method body serialization adds Stand Alone Signatures
             this.tableIndicesAreComplete = true;
 
-            PopulateTables(methodBodyRvas);
+            PopulateTables(methodBodyRvas, mappedFieldDataWriter);
+
+            int mappedFieldDataLength = (int)mappedFieldDataWriter.BaseStream.Length;
+            int ilStreamLength = (int)ilWriter.BaseStream.Length;
 
             // Do this as soon as table rows are done and before we need to final size of string table
             SerializeStringHeap();
 
             // Do this here so that tables and win32 resources can contain actual RVAs without the need for fixups.
-            FillInSectionHeaders((int)ilWriter.BaseStream.Length);
+            FillInSectionHeaders(ilStreamLength, mappedFieldDataLength);
 
             // Align heaps
             this.OnBeforeHeapsAligned();
@@ -3302,10 +3271,15 @@ namespace Microsoft.Cci
             this.guidWriter.Align(4);
             this.blobWriter.Align(4);
 
-            SerializeMetadata(metadataWriter, separateMethodIL, moduleVersionIdOffset: out moduleVersionIdOffsetInMetadataStream);
+            int methodBodyStreamRva = (int)(this.textSection.RelativeVirtualAddress + this.sizeOfImportAddressTable + 72);
+
+            Debug.Assert(mappedFieldDataLength % MappedFieldDataAlignment == 0);
+            mappedFieldDataStreamRva = (int)(this.textSection.RelativeVirtualAddress + this.textSection.VirtualSize - mappedFieldDataLength);
+            
+            SerializeMetadata(metadataWriter, methodBodyStreamRva, mappedFieldDataStreamRva, separateMethodIL, moduleVersionIdOffset: out moduleVersionIdOffsetInMetadataStream);
         }
 
-        private void PopulateTables(uint[] methodBodyRvas)
+        private void PopulateTables(uint[] methodBodyRvas, BinaryWriter mappedFieldDataWriter)
         {
             this.PopulateAssemblyRefTableRows();
             this.PopulateAssemblyTableRows();
@@ -3317,7 +3291,7 @@ namespace Microsoft.Cci
             this.PopulateExportedTypeTableRows();
             this.PopulateFieldLayoutTableRows();
             this.PopulateFieldMarshalTableRows();
-            this.PopulateFieldRvaTableRows();
+            this.PopulateFieldRvaTableRows(mappedFieldDataWriter);
             this.PopulateFieldTableRows();
             this.PopulateFileTableRows();
             this.PopulateGenericParamTableRows();
@@ -4021,19 +3995,22 @@ namespace Microsoft.Cci
 
         private readonly List<FieldMarshalRow> fieldMarshalTable = new List<FieldMarshalRow>();
 
-        private void PopulateFieldRvaTableRows()
+        private void PopulateFieldRvaTableRows(BinaryWriter mappedFieldDataWriter)
         {
             foreach (IFieldDefinition fieldDef in this.GetFieldDefs())
             {
-                if (!fieldDef.IsMapped)
+                if (fieldDef.MappedData.IsDefault)
                 {
                     continue;
                 }
 
                 uint fieldIndex = this.GetFieldDefIndex(fieldDef);
                 FieldRvaRow r = new FieldRvaRow();
-                r.SectionKind = fieldDef.FieldMapping.PESectionKind;
-                r.Offset = this.GetDataOffset(fieldDef.FieldMapping);
+
+                r.Offset = mappedFieldDataWriter.BaseStream.Position;
+                mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
+                mappedFieldDataWriter.Align(MappedFieldDataAlignment);
+
                 r.Field = fieldIndex;
                 this.fieldRvaTable.Add(r);
             }
@@ -4041,7 +4018,7 @@ namespace Microsoft.Cci
             this.tableSizes[(uint)TableIndex.FieldRva] = (uint)this.fieldRvaTable.Count;
         }
 
-        private struct FieldRvaRow { public PESectionKind SectionKind; public uint Offset; public uint Field; }
+        private struct FieldRvaRow { public uint Offset; public uint Field; }
 
         private readonly List<FieldRvaRow> fieldRvaTable = new List<FieldRvaRow>();
 
@@ -4882,7 +4859,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeMethodTable(BinaryWriter writer, bool separateMethodIL)
+        private void SerializeMethodTable(BinaryWriter writer, int methodBodyStreamRva, bool separateMethodIL)
         {
             foreach (MethodRow method in this.methodTable)
             {
@@ -4898,7 +4875,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    writer.WriteUint(GetRva(this.textMethodBodySection, method.Rva));
+                    writer.WriteUint((uint)methodBodyStreamRva + method.Rva);
                 }
 
                 writer.WriteUshort(method.ImplFlags);
@@ -5090,11 +5067,11 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeFieldRvaTable(BinaryWriter writer)
+        private void SerializeFieldRvaTable(BinaryWriter writer, int mappedFieldDataStreamRva)
         {
             foreach (FieldRvaRow fieldRva in this.fieldRvaTable)
             {
-                writer.WriteUint(GetRva(this.GetSection(fieldRva.SectionKind), fieldRva.Offset));
+                writer.WriteUint((uint)mappedFieldDataStreamRva + fieldRva.Offset);
                 SerializeIndex(writer, fieldRva.Field, this.fieldDefIndexSize);
             }
         }
@@ -7078,22 +7055,32 @@ namespace Microsoft.Cci
             writer.WriteUint(sectionHeader.Characteristics);
         }
 
-        private void WriteTextSection(Stream peStream, MemoryStream metadataStream, MemoryStream ilStream, out long startOfMetadata, out long positionOfTimestamp)
+        private void WriteTextSection(Stream peStream, MemoryStream metadataStream, MemoryStream ilStream, MemoryStream mappedFieldDataStream, out long startOfMetadata, out long positionOfTimestamp)
         {
             peStream.Position = this.textSection.PointerToRawData;
-            if (this.emitRuntimeStartupStub) this.WriteImportAddressTable(peStream);
+            if (this.emitRuntimeStartupStub)
+            {
+                this.WriteImportAddressTable(peStream);
+            }
+
             this.WriteClrHeader(peStream);
             this.WriteIL(peStream, ilStream);
+
             startOfMetadata = peStream.Position;
             this.WriteMetadata(peStream, metadataStream);
+
             this.WriteManagedResources(peStream);
             this.WriteSpaceForHash(peStream);
             this.WriteDebugTable(peStream, out positionOfTimestamp);
-            // this.WriteUnmanagedExportStubs();
-            if (this.emitRuntimeStartupStub) this.WriteImportTable(peStream);
-            if (this.emitRuntimeStartupStub) this.WriteNameTable(peStream);
-            if (this.emitRuntimeStartupStub) this.WriteRuntimeStartupStub(peStream);
-            this.WriteTextData(peStream);
+
+            if (this.emitRuntimeStartupStub)
+            {
+                this.WriteImportTable(peStream);
+                this.WriteNameTable(peStream);
+                this.WriteRuntimeStartupStub(peStream);
+            }
+
+            this.WriteMappedFieldData(peStream, mappedFieldDataStream);            
         }
 
         private void WriteImportAddressTable(Stream peStream)
@@ -7212,9 +7199,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteTextData(Stream peStream)
+        private void WriteMappedFieldData(Stream peStream, MemoryStream dataStream)
         {
-            this.textDataWriter.BaseStream.WriteTo(peStream);
+            dataStream.WriteTo(peStream);
             while (peStream.Position % 4 != 0)
             {
                 peStream.WriteByte(0);

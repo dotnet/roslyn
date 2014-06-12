@@ -153,12 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        Cci.ISectionBlock Cci.IFieldDefinition.FieldMapping
+        ImmutableArray<byte> Cci.IFieldDefinition.MappedData
         {
             get
             {
                 CheckDefinitionInvariant();
-                throw ExceptionUtilities.Unreachable;
+                return default(ImmutableArray<byte>);
             }
         }
 
@@ -170,15 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // A constant field of type decimal is not treated as a compile time value in CLR,
                 // so check if it is a metadata constant, not just a constant to exclude decimals.
                 return this.IsMetadataConstant;
-            }
-        }
-
-        bool Cci.IFieldDefinition.IsMapped
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return false;
             }
         }
 
