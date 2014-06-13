@@ -53,10 +53,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If symbols.FirstOrDefault(Function(entry) IdentifierComparison.Equals(entry.Key, TargetSymbol)).Key Is Nothing Then
-                symbols = symbols.Add(New KeyValuePair(Of String, Object)(TargetSymbol, VisualBasicCommandLineParser.GetTargetString(kind)))
+                symbols = symbols.Add(New KeyValuePair(Of String, Object)(TargetSymbol, GetTargetString(kind)))
             End If
 
             Return symbols
+        End Function
+
+        Friend Function GetTargetString(kind As OutputKind) As String
+            Select Case kind
+                Case OutputKind.ConsoleApplication
+                    Return "exe"
+
+                Case OutputKind.DynamicallyLinkedLibrary
+                    Return "library"
+
+                Case OutputKind.NetModule
+                    Return "module"
+
+                Case OutputKind.WindowsApplication
+                    Return "winexe"
+
+                Case OutputKind.WindowsRuntimeApplication
+                    Return "appcontainerexe"
+
+                Case OutputKind.WindowsRuntimeMetadata
+                    Return "winmdobj"
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(kind)
+            End Select
         End Function
     End Module
 End Namespace

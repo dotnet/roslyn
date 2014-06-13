@@ -392,29 +392,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Remove one set of leading and trailing double quote characters, if both are present.
-        /// </summary>
-        internal static string Unquote(string arg)
-        {
-            bool quoted;
-            return Unquote(arg, out quoted);
-        }
-
-        internal static string Unquote(string arg, out bool quoted)
-        {
-            if (arg.Length > 1 && arg[0] == '"' && arg[arg.Length - 1] == '"')
-            {
-                quoted = true;
-                return arg.Substring(1, arg.Length - 2);
-            }
-            else
-            {
-                quoted = false;
-                return arg;
-            }
-        }
-
-        /// <summary>
         /// Split a command line by the same rules as Main would get the commands.
         /// </summary>
         /// <remarks>
@@ -470,7 +447,7 @@ namespace Microsoft.CodeAnalysis
                 }))
             .Select(arg => arg.Trim())                                                                  // Trim whitespace
             .TakeWhile(arg => (!removeHashComments || !arg.StartsWith("#", StringComparison.Ordinal)))  // If removeHashComments is true, skip all arguments after one that starts with '#'
-            .Select(arg => Unquote(CondenseDoubledBackslashes(arg)))                                    // Remove quotes and handle backslashes.
+            .Select(arg => CondenseDoubledBackslashes(arg).Unquote())                                   // Remove quotes and handle backslashes.
             .Where(arg => !string.IsNullOrEmpty(arg));                        							// Don't produce empty strings.
         }
 

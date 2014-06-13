@@ -185,5 +185,28 @@ namespace Roslyn.Utilities
 
             return true;
         }
+
+        /// <summary>
+        /// Remove one set of leading and trailing double quote characters, if both are present.
+        /// </summary>
+        internal static string Unquote(this string arg)
+        {
+            bool quoted;
+            return Unquote(arg, out quoted);
+        }
+
+        internal static string Unquote(this string arg, out bool quoted)
+        {
+            if (arg.Length > 1 && arg[0] == '"' && arg[arg.Length - 1] == '"')
+            {
+                quoted = true;
+                return arg.Substring(1, arg.Length - 2);
+            }
+            else
+            {
+                quoted = false;
+                return arg;
+            }
+        }
     }
 }

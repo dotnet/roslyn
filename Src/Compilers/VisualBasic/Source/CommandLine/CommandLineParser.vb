@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
 
                             Case "moduleassemblyname"
-                                value = If(value IsNot Nothing, Unquote(value), Nothing)
+                                value = If(value IsNot Nothing, value.Unquote(), Nothing)
                                 Dim identity As AssemblyIdentity = Nothing
 
                                 ' Note that native compiler also extracts public key, but Roslyn doesn't use it.
@@ -998,7 +998,7 @@ lVbRuntimePlus:
                 Debug.Assert(rootNamespace IsNot Nothing)
                 ' NOTE: empty namespace is a valid option
                 If Not String.Empty.Equals(rootNamespace) Then
-                    rootNamespace = Unquote(rootNamespace)
+                    rootNamespace = rootNamespace.Unquote()
                     If String.IsNullOrWhiteSpace(rootNamespace) OrElse Not OptionsValidator.IsValidNamespaceName(rootNamespace) Then
                         AddDiagnostic(diagnostics, ERRID.ERR_BadNamespaceName1, rootNamespace)
                         rootNamespace = "" ' To make it pass compilation options' check
@@ -1258,31 +1258,6 @@ lVbRuntimePlus:
             End Select
         End Function
 
-        Friend Shared Function GetTargetString(kind As OutputKind) As String
-            Select Case kind
-                Case OutputKind.ConsoleApplication
-                    Return "exe"
-
-                Case OutputKind.DynamicallyLinkedLibrary
-                    Return "library"
-
-                Case OutputKind.NetModule
-                    Return "module"
-
-                Case OutputKind.WindowsApplication
-                    Return "winexe"
-
-                Case OutputKind.WindowsRuntimeApplication
-                    Return "appcontainerexe"
-
-                Case OutputKind.WindowsRuntimeMetadata
-                    Return "winmdobj"
-
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(kind)
-            End Select
-        End Function
-
         Private Function ParseAssemblyReferences(name As String, value As String, diagnostics As IList(Of Diagnostic), embedInteropTypes As Boolean) As IEnumerable(Of CommandLineReference)
             If String.IsNullOrEmpty(value) Then
                 ' TODO: localize <file_list>?
@@ -1453,7 +1428,7 @@ lVbRuntimePlus:
             Dim unquotedString As String
             Do
                 unquotedString = symbolList
-                symbolList = Unquote(symbolList)
+                symbolList = symbolList.Unquote()
             Loop While Not String.Equals(symbolList, unquotedString, StringComparison.Ordinal)
 
             ' unescape quotes \" -> "

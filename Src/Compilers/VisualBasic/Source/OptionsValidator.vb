@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function ParseImports(importsClauses As IEnumerable(Of String), diagnostics As DiagnosticBag) As GlobalImport()
             Debug.Assert(diagnostics IsNot Nothing)
 
-            Dim importsClauseArray = importsClauses.Select(Function(name) VisualBasicCommandLineParser.Unquote(name)).ToArray()
+            Dim importsClauseArray = importsClauses.Select(AddressOf StringExtensions.Unquote).ToArray()
 
             If importsClauseArray.Length > 0 Then
                 ' Create a file with Import statement for each imported name, and parse it. Use two newlines

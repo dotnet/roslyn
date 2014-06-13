@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
 
                             case "moduleassemblyname":
-                                value = value != null ? Unquote(value) : null;
+                                value = value != null ? value.Unquote() : null;
 
                                 if (string.IsNullOrEmpty(value))
                                 {
@@ -1429,7 +1429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static IEnumerable<string> ParseWarnings(string value, IList<Diagnostic> diagnostics)
         {
-            value = Unquote(value);
+            value = value.Unquote();
             string[] values = value.Split(new char[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string id in values)
             {
