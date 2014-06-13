@@ -128,7 +128,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (type != null && allSymbols.Count == 0)
             {
-                if (bindLiteralsToUnderlyingType && syntaxFacts.IsLiteral(token))
+                if ((bindLiteralsToUnderlyingType && syntaxFacts.IsLiteral(token)) ||
+                    syntaxFacts.IsAwaitKeyword(token))
                 {
                     yield return type;
                 }

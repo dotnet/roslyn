@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageService(typeof(ISyntaxFactsService), LanguageNames.CSharp)]
     internal class CSharpSyntaxFactsService : ISyntaxFactsService
     {
+        public bool IsAwaitKeyword(SyntaxToken token)
+        {
+            return token.IsKind(SyntaxKind.AwaitKeyword);
+        }
+
         public bool IsIdentifier(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.IdentifierToken);

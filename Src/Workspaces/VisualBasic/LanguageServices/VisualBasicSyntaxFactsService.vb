@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Class VisualBasicSyntaxFactsService
         Implements ISyntaxFactsService
 
+        Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
+            Return token.VisualBasicKind = SyntaxKind.AwaitKeyword
+        End Function
+
         Public Function IsIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsIdentifier
             Return token.VisualBasicKind = SyntaxKind.IdentifierToken
         End Function

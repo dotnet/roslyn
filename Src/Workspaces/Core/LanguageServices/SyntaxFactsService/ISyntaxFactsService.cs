@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         bool IsCaseSensitive { get; }
 
+        bool IsAwaitKeyword(SyntaxToken token);
         bool IsIdentifier(SyntaxToken token);
         bool IsGlobalNamespaceKeyword(SyntaxToken token);
         bool IsVerbatimIdentifier(SyntaxToken token);

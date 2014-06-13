@@ -891,29 +891,44 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return string.IsNullOrEmpty(xmlText) ? DocumentationComment.Empty : DocumentationComment.FromXmlFragment(xmlText);
         }
 
+        /// <summary>
+        /// If the <paramref name="symbol"/> is a method symbol, returns True if the method's return type is "awaitable".
+        /// If the <paramref name="symbol"/> is a type symbol, returns True if that type is "awaitable".
+        /// An "awaitable" is any type that exposes a GetAwaiter method which returns a valid "awaiter". This GetAwaiter method may be an instance method or an extension method.
+        /// </summary>
         public static bool IsAwaitable(this ISymbol symbol, SemanticModel semanticModel, int position)
         {
-            var methodSymbol = symbol as IMethodSymbol;
+            IMethodSymbol methodSymbol = symbol as IMethodSymbol;
+            ITypeSymbol typeSymbol = null;
+
             if (methodSymbol == null)
             {
-                return false;
+                typeSymbol = symbol as ITypeSymbol;
+                if (typeSymbol == null)
+                {
+                    return false;
+                }
             }
-
-            var returnType = methodSymbol.ReturnType;
-            if (returnType == null)
+            else
             {
-                return false;
-            }
+                if (methodSymbol.ReturnType == null)
+                {
+                    return false;
+                }
 
-            // dynamic
-            if (returnType.TypeKind == TypeKind.DynamicType &&
-                methodSymbol.MethodKind != MethodKind.BuiltinOperator)
-            {
-                return true;
+                // dynamic
+                if (methodSymbol.ReturnType.TypeKind == TypeKind.DynamicType &&
+                    methodSymbol.MethodKind != MethodKind.BuiltinOperator)
+                {
+                    return true;
+                }
             }
 
             // otherwise: needs valid GetAwaiter
-            var potentialGetAwaiters = semanticModel.LookupSymbols(position, container: returnType.OriginalDefinition, name: WellKnownMemberNames.GetAwaiter, includeReducedExtensionMethods: true);
+            var potentialGetAwaiters = semanticModel.LookupSymbols(position, 
+                                                                   container: typeSymbol ?? methodSymbol.ReturnType.OriginalDefinition, 
+                                                                   name: WellKnownMemberNames.GetAwaiter, 
+                                                                   includeReducedExtensionMethods: true);
             var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
             return getAwaiters.Any(VerifyGetAwaiter);
         }
