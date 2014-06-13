@@ -830,7 +830,6 @@
     <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.cs" />
     <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.TextFactoryService.cs" />
     <Compile Include="Workspace\Host\HostWorkspaceServices.cs" />
-    <Compile Include="Workspace\InternalsVisibleTo.cs" />
     <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\BuildTargets.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
