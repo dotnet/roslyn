@@ -1389,21 +1389,28 @@ lVbRuntimePlus:
         End Sub
 
         ''' <summary>
-        ''' Converts IReadOnlyDictionary of definitions provided by a caller (public API) into ImmutableDictionary 
-        ''' of definitions used internally, because not all values from 'symbols' are valid constants,
-        ''' the method throws InvalidOperationException if invalid value provided
+        ''' Converts a sequence of definitions provided by a caller (public API) into map 
+        ''' of definitions used internally.
         ''' </summary>
-        Private Shared Function PublicSymbolsToInternalDefines(symbols As IReadOnlyDictionary(Of String, Object)) As ImmutableDictionary(Of String, InternalSyntax.CConst)
-            Dim result = ImmutableDictionary.Create(Of String, InternalSyntax.CConst)(IdentifierComparison.Comparer)
+        ''' <exception cref="ArgumentException">Invalid value provided.</exception>
+        Private Shared Function PublicSymbolsToInternalDefines(symbols As IEnumerable(Of KeyValuePair(Of String, Object)),
+                                                               parameterName As String) As ImmutableDictionary(Of String, InternalSyntax.CConst)
+
+            Dim result = ImmutableDictionary.CreateBuilder(Of String, InternalSyntax.CConst)(IdentifierComparison.Comparer)
 
             If symbols IsNot Nothing Then
-                For Each kvp In symbols
-                    ' NOTE: this will throw if the value type is not supported
-                    result = result.Add(kvp.Key, InternalSyntax.CConst.Create(kvp.Value))
+                For Each symbol In symbols
+                    Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
+
+                    If constant Is Nothing Then
+                        Throw New ArgumentException(String.Format(VBResources.InvalidPreprocessorConstantType, symbol.Key, symbol.Value.GetType()), parameterName)
+                    End If
+
+                    result(symbol.Key) = constant
                 Next
             End If
 
-            Return result
+            Return result.ToImmutable()
         End Function
 
         ''' <summary>
@@ -1411,15 +1418,13 @@ lVbRuntimePlus:
         ''' returned to a caller (of public API)
         ''' </summary>
         Private Shared Function InternalDefinesToPublicSymbols(defines As ImmutableDictionary(Of String, InternalSyntax.CConst)) As IReadOnlyDictionary(Of String, Object)
-            Debug.Assert(defines IsNot Nothing)
-
-            Dim result = ImmutableDictionary.Create(Of String, Object)(IdentifierComparison.Comparer)
+            Dim result = ImmutableDictionary.CreateBuilder(Of String, Object)(IdentifierComparison.Comparer)
 
             For Each kvp In defines
-                result = result.Add(kvp.Key, kvp.Value.ValueAsObject)
+                result(kvp.Key) = kvp.Value.ValueAsObject
             Next
 
-            Return result
+            Return result.ToImmutable()
         End Function
 
         ''' <summary>
@@ -1432,23 +1437,24 @@ lVbRuntimePlus:
         ''' </param>
         ''' <param name="diagnostics">A collection of reported diagnostics during parsing of symbolList, can be empty IEnumerable.</param>
         ''' <param name="symbols">A collection representing existing symbols. Symbols parsed from <paramref name="symbolList"/> will be merged with this dictionary. </param>
+        ''' <exception cref="ArgumentException">Invalid value provided.</exception>
         Public Shared Function ParseConditionalCompilationSymbols(
             symbolList As String,
             <Out> ByRef diagnostics As IEnumerable(Of Diagnostic),
-            Optional symbols As IReadOnlyDictionary(Of String, Object) = Nothing
+            Optional symbols As IEnumerable(Of KeyValuePair(Of String, Object)) = Nothing
         ) As IReadOnlyDictionary(Of String, Object)
 
-            Dim diagnosticBuilder As ArrayBuilder(Of Diagnostic) = ArrayBuilder(Of Diagnostic).GetInstance()
+            Dim diagnosticBuilder = ArrayBuilder(Of Diagnostic).GetInstance()
             Dim parsedTokensAsString As New StringBuilder
 
-            Dim defines As ImmutableDictionary(Of String, InternalSyntax.CConst) = PublicSymbolsToInternalDefines(symbols)
+            Dim defines As ImmutableDictionary(Of String, InternalSyntax.CConst) = PublicSymbolsToInternalDefines(symbols, "symbols")
 
             ' remove quotes around the whole /define argument (incl. nested)
             Dim unquotedString As String
             Do
                 unquotedString = symbolList
                 symbolList = Unquote(symbolList)
-            Loop While symbolList <> unquotedString
+            Loop While Not String.Equals(symbolList, unquotedString, StringComparison.Ordinal)
 
             ' unescape quotes \" -> "
             symbolList = symbolList.Replace("\""", """")

@@ -4228,6 +4228,62 @@ class Outer
             Assert.Equal("Function Outer.Error() As Missing", VisualBasic.SymbolDisplay.ToDisplayString([error], SymbolDisplayFormat.TestFormat))
         End Sub
 
+        <Fact>
+        Sub FormatPrimitive()
+            Assert.Equal("Nothing", SymbolDisplay.FormatPrimitive(Nothing, quoteStrings:=True, useHexadecimalNumbers:=True))
+
+            Assert.Equal("3", SymbolDisplay.FormatPrimitive(OutputKind.NetModule, quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("&H3", SymbolDisplay.FormatPrimitive(OutputKind.NetModule, quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("""x""c", SymbolDisplay.FormatPrimitive("x"c, quoteStrings:=True, useHexadecimalNumbers:=True))
+            Assert.Equal("x", SymbolDisplay.FormatPrimitive("x"c, quoteStrings:=False, useHexadecimalNumbers:=True))
+            Assert.Equal("""x""c", SymbolDisplay.FormatPrimitive("x"c, quoteStrings:=True, useHexadecimalNumbers:=False))
+            Assert.Equal("x", SymbolDisplay.FormatPrimitive("x"c, quoteStrings:=False, useHexadecimalNumbers:=False))
+
+            Assert.Equal("x", SymbolDisplay.FormatPrimitive("x", quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("""x""", SymbolDisplay.FormatPrimitive("x", quoteStrings:=True, useHexadecimalNumbers:=False))
+
+            Assert.Equal("True", SymbolDisplay.FormatPrimitive(True, quoteStrings:=False, useHexadecimalNumbers:=False))
+
+            Assert.Equal("1", SymbolDisplay.FormatPrimitive(1, quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("&H1", SymbolDisplay.FormatPrimitive(1, quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("1", SymbolDisplay.FormatPrimitive(CUInt(1), quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("&H1", SymbolDisplay.FormatPrimitive(CUInt(1), quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("1", SymbolDisplay.FormatPrimitive(CByte(1), quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("&H01", SymbolDisplay.FormatPrimitive(CByte(1), quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("1", SymbolDisplay.FormatPrimitive(CSByte(1), quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("&H01", SymbolDisplay.FormatPrimitive(CSByte(1), quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("1", SymbolDisplay.FormatPrimitive(CShort(1), quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("&H1", SymbolDisplay.FormatPrimitive(CShort(1), quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("1", SymbolDisplay.FormatPrimitive(CUShort(1), quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("&H1", SymbolDisplay.FormatPrimitive(CUShort(1), quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("1", SymbolDisplay.FormatPrimitive(CLng(1), quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("&H1", SymbolDisplay.FormatPrimitive(CLng(1), quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("1", SymbolDisplay.FormatPrimitive(CULng(1), quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("&H1", SymbolDisplay.FormatPrimitive(CULng(1), quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("1.1", SymbolDisplay.FormatPrimitive(1.1, quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("1.1", SymbolDisplay.FormatPrimitive(1.1, quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("1.1", SymbolDisplay.FormatPrimitive(CSng(1.1), quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("1.1", SymbolDisplay.FormatPrimitive(CSng(1.1), quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("1.1", SymbolDisplay.FormatPrimitive(CDec(1.1), quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("1.1", SymbolDisplay.FormatPrimitive(CDec(1.1), quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal("#1/1/2000 12:00:00 AM#", SymbolDisplay.FormatPrimitive(#1/1/2000#, quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("#1/1/2000 12:00:00 AM#", SymbolDisplay.FormatPrimitive(#1/1/2000#, quoteStrings:=False, useHexadecimalNumbers:=True))
+
+            Assert.Equal(Nothing, SymbolDisplay.FormatPrimitive(New Object(), quoteStrings:=False, useHexadecimalNumbers:=False))
+        End Sub
+
 #Region "Helpers"
 
         Private Sub TestSymbolDescription(

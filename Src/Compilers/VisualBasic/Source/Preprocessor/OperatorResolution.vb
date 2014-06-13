@@ -23,47 +23,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' TODO: need to fix the tables and remove the mapping. 
         ' It only exists because tables and enum have different order
-        Private Function TypeCodeToIndex(tc As TypeCode) As Integer
-            Select Case tc
-                Case TypeCode.Empty
+        Private Function TypeCodeToIndex(specialType As SpecialType) As Integer
+            Select Case specialType
+                Case SpecialType.None
                     Return 0
-                Case TypeCode.Boolean
+                Case SpecialType.System_Boolean
                     Return 1
-                Case TypeCode.SByte
+                Case SpecialType.System_SByte
                     Return 2
-                Case TypeCode.Byte
+                Case SpecialType.System_Byte
                     Return 3
-                Case TypeCode.Int16
+                Case SpecialType.System_Int16
                     Return 4
-                Case TypeCode.UInt16
+                Case SpecialType.System_UInt16
                     Return 5
-                Case TypeCode.Int32
+                Case SpecialType.System_Int32
                     Return 6
-                Case TypeCode.UInt32
+                Case SpecialType.System_UInt32
                     Return 7
-                Case TypeCode.Int64
+                Case SpecialType.System_Int64
                     Return 8
-                Case TypeCode.UInt64
+                Case SpecialType.System_UInt64
                     Return 9
-                Case TypeCode.Decimal
+                Case SpecialType.System_Decimal
                     Return 10
-                Case TypeCode.Single
+                Case SpecialType.System_Single
                     Return 11
-                Case TypeCode.Double
+                Case SpecialType.System_Double
                     Return 12
-                Case TypeCode.DateTime
+                Case SpecialType.System_DateTime
                     Return 13
-                Case TypeCode.Char
+                Case SpecialType.System_Char
                     Return 14
-                Case TypeCode.String
+                Case SpecialType.System_String
                     Return 15
-                Case TypeCode.Object
+                Case SpecialType.System_Object
                     Return 16
             End Select
-            Throw ExceptionUtilities.UnexpectedValue(tc)
+            Throw ExceptionUtilities.UnexpectedValue(specialType)
         End Function
 
-        ' PERF: Using Byte instead of TypeCode because we want the compiler to use array literal initialization.
+        ' PERF: Using Byte instead of SpecialType because we want the compiler to use array literal initialization.
         '       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
         Private ReadOnly Table(,,) As Byte
 
@@ -73,25 +73,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' BEGIN intrinsic operator tables
             ' ****************************************************************************************/
 
-            Const t_r4 As Byte = CType(TypeCode.Single, Byte)
-            Const t_r8 As Byte = CType(TypeCode.Double, Byte)
-            Const t_dec As Byte = CType(TypeCode.Decimal, Byte)
-            Const t_str As Byte = CType(TypeCode.String, Byte)
+            Const t_r4 As Byte = CType(SpecialType.System_Single, Byte)
+            Const t_r8 As Byte = CType(SpecialType.System_Double, Byte)
+            Const t_dec As Byte = CType(SpecialType.System_Decimal, Byte)
+            Const t_str As Byte = CType(SpecialType.System_String, Byte)
 
-            Const t_bad As Byte = CType(TypeCode.Empty, Byte)
-            Const t_i1 As Byte = CType(TypeCode.SByte, Byte)
-            Const t_i2 As Byte = CType(TypeCode.Int16, Byte)
-            Const t_i4 As Byte = CType(TypeCode.Int32, Byte)
-            Const t_i8 As Byte = CType(TypeCode.Int64, Byte)
-            Const t_ui1 As Byte = CType(TypeCode.Byte, Byte)
-            Const t_ui2 As Byte = CType(TypeCode.UInt16, Byte)
-            Const t_ui4 As Byte = CType(TypeCode.UInt32, Byte)
-            Const t_ui8 As Byte = CType(TypeCode.UInt64, Byte)
+            Const t_bad As Byte = CType(SpecialType.None, Byte)
+            Const t_i1 As Byte = CType(SpecialType.System_SByte, Byte)
+            Const t_i2 As Byte = CType(SpecialType.System_Int16, Byte)
+            Const t_i4 As Byte = CType(SpecialType.System_Int32, Byte)
+            Const t_i8 As Byte = CType(SpecialType.System_Int64, Byte)
+            Const t_ui1 As Byte = CType(SpecialType.System_Byte, Byte)
+            Const t_ui2 As Byte = CType(SpecialType.System_UInt16, Byte)
+            Const t_ui4 As Byte = CType(SpecialType.System_UInt32, Byte)
+            Const t_ui8 As Byte = CType(SpecialType.System_UInt64, Byte)
 
-            Const t_ref As Byte = CType(TypeCode.Object, Byte)
-            Const t_bool As Byte = CType(TypeCode.Boolean, Byte)
-            Const t_date As Byte = CType(TypeCode.DateTime, Byte)
-            Const t_char As Byte = CType(TypeCode.Char, Byte)
+            Const t_ref As Byte = CType(SpecialType.System_Object, Byte)
+            Const t_bool As Byte = CType(SpecialType.System_Boolean, Byte)
+            Const t_date As Byte = CType(SpecialType.System_DateTime, Byte)
+            Const t_char As Byte = CType(SpecialType.System_Char, Byte)
 
             Const TYPE_NUM As Integer = 17
             Const NUM_OPERATORS As Integer = 10
@@ -293,72 +293,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Friend Function LookupInOperatorTables(
-            Opcode As SyntaxKind,
-            Left As TypeCode,
-            Right As TypeCode
-        ) As TypeCode
+        Friend Function LookupInOperatorTables(opcode As SyntaxKind, left As SpecialType, right As SpecialType) As SpecialType
             Dim whichTable As TableKind
 
-            Select Case (Opcode)
+            Select Case (opcode)
 
                 Case SyntaxKind.AddExpression
                     whichTable = TableKind.Addition
 
-                Case _
-                    SyntaxKind.SubtractExpression,
-                    SyntaxKind.MultiplyExpression,
-                    SyntaxKind.ModuloExpression
-
+                Case SyntaxKind.SubtractExpression,
+                     SyntaxKind.MultiplyExpression,
+                     SyntaxKind.ModuloExpression
                     whichTable = TableKind.SubtractionMultiplicationModulo
 
-                Case _
-                    SyntaxKind.DivideExpression
-
+                Case SyntaxKind.DivideExpression
                     whichTable = TableKind.Division
-                Case _
-                    SyntaxKind.IntegerDivideExpression
 
+                Case SyntaxKind.IntegerDivideExpression
                     whichTable = TableKind.IntegerDivision
-                Case _
-                    SyntaxKind.ExponentiateExpression
 
+                Case SyntaxKind.ExponentiateExpression
                     whichTable = TableKind.Power
-                Case _
-                    SyntaxKind.LeftShiftExpression,
-                    SyntaxKind.RightShiftExpression
 
+                Case SyntaxKind.LeftShiftExpression,
+                     SyntaxKind.RightShiftExpression
                     whichTable = TableKind.Shift
-                Case _
-                    SyntaxKind.OrElseExpression,
-                    SyntaxKind.AndAlsoExpression
 
+                Case SyntaxKind.OrElseExpression,
+                     SyntaxKind.AndAlsoExpression
                     whichTable = TableKind.Logical
-                Case _
-                    SyntaxKind.ConcatenateExpression,
-                    SyntaxKind.LikeExpression
 
+                Case SyntaxKind.ConcatenateExpression,
+                     SyntaxKind.LikeExpression
                     whichTable = TableKind.ConcatenationLike
-                Case _
-                    SyntaxKind.EqualsExpression,
-                    SyntaxKind.NotEqualsExpression,
-                    SyntaxKind.LessThanOrEqualExpression,
-                    SyntaxKind.GreaterThanOrEqualExpression,
-                    SyntaxKind.LessThanExpression,
-                    SyntaxKind.GreaterThanExpression
 
+                Case SyntaxKind.EqualsExpression,
+                     SyntaxKind.NotEqualsExpression,
+                     SyntaxKind.LessThanOrEqualExpression,
+                     SyntaxKind.GreaterThanOrEqualExpression,
+                     SyntaxKind.LessThanExpression,
+                     SyntaxKind.GreaterThanExpression
                     whichTable = TableKind.Relational
-                Case _
-                    SyntaxKind.OrExpression,
-                    SyntaxKind.ExclusiveOrExpression,
-                    SyntaxKind.AndExpression
 
+                Case SyntaxKind.OrExpression,
+                     SyntaxKind.ExclusiveOrExpression,
+                     SyntaxKind.AndExpression
                     whichTable = TableKind.Bitwise
+
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(Opcode)
+                    Throw ExceptionUtilities.UnexpectedValue(opcode)
             End Select
 
-            Return CType(Table(whichTable, TypeCodeToIndex(Left), TypeCodeToIndex(Right)), TypeCode)
+            Return CType(Table(whichTable, TypeCodeToIndex(left), TypeCodeToIndex(right)), SpecialType)
         End Function
     End Module
 

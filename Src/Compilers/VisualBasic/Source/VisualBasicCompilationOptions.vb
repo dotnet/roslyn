@@ -841,7 +841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not Platform.IsValid() Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, Platform, "Platform"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, Platform.ToString(), "Platform"))
             End If
 
             If ModuleName IsNot Nothing Then
@@ -852,11 +852,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not OutputKind.IsValid() Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, OutputKind, "OutputKind"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, OutputKind.ToString(), "OutputKind"))
             End If
 
             If Not DebugInformationKind.IsValid() Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, DebugInformationKind, "DebugInformationKind"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, DebugInformationKind.ToString(), "DebugInformationKind"))
             End If
 
             If Not SubsystemVersion.Equals(SubsystemVersion.None) AndAlso Not SubsystemVersion.IsValid Then
@@ -876,12 +876,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not OptionStrict.IsValid Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, OptionStrict, "OptionStrict"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, OptionStrict.ToString(), "OptionStrict"))
             End If
 
             If Platform = Platform.AnyCpu32BitPreferred AndAlso OutputKind.IsValid() AndAlso
                  Not (OutputKind = OutputKind.ConsoleApplication OrElse OutputKind = OutputKind.WindowsApplication OrElse OutputKind = OutputKind.WindowsRuntimeApplication) Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_LibAnycpu32bitPreferredConflict, Platform, "Platform"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_LibAnycpu32bitPreferredConflict, Platform.ToString(), "Platform"))
             End If
 
             ' TODO: add check for 

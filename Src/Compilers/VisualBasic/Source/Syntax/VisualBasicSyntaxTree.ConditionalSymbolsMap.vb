@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.m_conditionalsMap = New Dictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))(IdentifierComparison.Comparer)
 
                     ' Process command line preprocessor symbol definitions.
-                    Dim preprocessorSymbolsMap As ImmutableDictionary(Of String, InternalSyntax.CConst) = Scanner.AsPreprocessorConstants(options.PreprocessorSymbols)
+                    Dim preprocessorSymbolsMap As ImmutableDictionary(Of String, InternalSyntax.CConst) = Scanner.GetPreprocessorConstants(options)
                     Me.ProcessCommandLinePreprocessorSymbols(preprocessorSymbolsMap)
                     Me.m_preprocessorState = New PreprocessorState(preprocessorSymbolsMap)
 
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(directives IsNot Nothing)
                     ProcessSourceDirectives(directives)
 
-                    Return If(Me.m_conditionalsMap.Any(), ImmutableDictionary.CreateRange(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))(IdentifierComparison.Comparer, Me.m_conditionalsMap), Nothing)
+                    Return If(Me.m_conditionalsMap.Any(), ImmutableDictionary.CreateRange(IdentifierComparison.Comparer, Me.m_conditionalsMap), Nothing)
                 End Function
 
                 Private Sub ProcessCommandLinePreprocessorSymbols(preprocessorSymbolsMap As ImmutableDictionary(Of String, InternalSyntax.CConst))
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         m_conditionalsMap.Add(name, values)
                     End If
 
-                    values.Push(Tuple.Create(Of InternalSyntax.CConst, Integer)(value, position))
+                    values.Push(Tuple.Create(value, position))
                 End Sub
 
                 Private Sub ProcessSourceDirectives(directives As IEnumerable(Of DirectiveTriviaSyntax))
@@ -174,35 +174,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If conditionalSymbolName IsNot Nothing Then
                     Dim constValue As InternalSyntax.CConst = GetPreprocessorSymbolValue(conditionalSymbolName, node)
                     If constValue IsNot Nothing AndAlso Not constValue.IsBad Then
-                        Select Case constValue.TypeCode
-                            Case TypeCode.Boolean
+                        Select Case constValue.SpecialType
+                            Case SpecialType.System_Boolean
                                 Dim value = DirectCast(constValue, InternalSyntax.CConst(Of Boolean))
                                 Return value.Value
-                            Case TypeCode.Byte
+                            Case SpecialType.System_Byte
                                 Dim value = DirectCast(constValue, InternalSyntax.CConst(Of Byte))
                                 Return value.Value <> 0
-                            Case TypeCode.Int16
+                            Case SpecialType.System_Int16
                                 Dim value = DirectCast(constValue, InternalSyntax.CConst(Of Int16))
                                 Return value.Value <> 0
-                            Case TypeCode.Int32
+                            Case SpecialType.System_Int32
                                 Dim value = DirectCast(constValue, InternalSyntax.CConst(Of Int32))
                                 Return value.Value <> 0
-                            Case TypeCode.Int64
+                            Case SpecialType.System_Int64
                                 Dim value = DirectCast(constValue, InternalSyntax.CConst(Of Int64))
                                 Return value.Value <> 0
-                            Case TypeCode.SByte
+                            Case SpecialType.System_SByte
                                 Dim value = DirectCast(constValue, InternalSyntax.CConst(Of SByte))
                                 Return value.Value <> 0
-                            Case TypeCode.UInt16
+                            Case SpecialType.System_UInt16
                                 Dim value = DirectCast(constValue, InternalSyntax.CConst(Of UInt16))
                                 Return value.Value <> 0
-                            Case TypeCode.UInt32
+                            Case SpecialType.System_UInt32
                                 Dim value = DirectCast(constValue, InternalSyntax.CConst(Of UInt32))
                                 Return value.Value <> 0
-                            Case TypeCode.UInt64
+                            Case SpecialType.System_UInt64
                                 Dim value = DirectCast(constValue, InternalSyntax.CConst(Of UInt64))
                                 Return value.Value <> 0
-                            Case TypeCode.String
+                            Case SpecialType.System_String
                                 Debug.Assert(DirectCast(constValue, InternalSyntax.CConst(Of String)).Value IsNot Nothing)
                                 Return True
                         End Select

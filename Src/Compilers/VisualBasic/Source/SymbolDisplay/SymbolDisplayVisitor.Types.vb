@@ -286,50 +286,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function AddSpecialTypeKeyword(symbol As INamedTypeSymbol) As Boolean
             Dim type = symbol.SpecialType
-            Dim specialTypeName As String
-
-            Select Case type
-                Case SpecialType.System_SByte
-                    specialTypeName = "SByte"
-                Case SpecialType.System_Int16
-                    specialTypeName = "Short"
-                Case SpecialType.System_Int32
-                    specialTypeName = "Integer"
-                Case SpecialType.System_Int64
-                    specialTypeName = "Long"
-                Case SpecialType.System_Byte
-                    specialTypeName = "Byte"
-                Case SpecialType.System_UInt16
-                    specialTypeName = "UShort"
-                Case SpecialType.System_UInt32
-                    specialTypeName = "UInteger"
-                Case SpecialType.System_UInt64
-                    specialTypeName = "ULong"
-                Case SpecialType.System_Single
-                    specialTypeName = "Single"
-                Case SpecialType.System_Double
-                    specialTypeName = "Double"
-                Case SpecialType.System_Decimal
-                    specialTypeName = "Decimal"
-                Case SpecialType.System_Char
-                    specialTypeName = "Char"
-                Case SpecialType.System_Boolean
-                    specialTypeName = "Boolean"
-                Case SpecialType.System_String
-                    specialTypeName = "String"
-                Case SpecialType.System_Object
-                    specialTypeName = "Object"
-                Case SpecialType.System_DateTime
-                    specialTypeName = "Date"
-                Case SpecialType.System_Void
-                    specialTypeName = "Void"
-                Case Else
-                    Return False
-            End Select
+            Dim specialTypeName = type.TryGetKeywordText()
+            If specialTypeName Is Nothing Then
+                Return False
+            End If
 
             builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, specialTypeName, False))
             Return True
-
         End Function
 
         Private Sub AddTypeKind(symbol As INamedTypeSymbol)

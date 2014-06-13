@@ -282,7 +282,7 @@ End Class
 
                 If convertableTypes.Contains(testType) Then
                     Assert.NotNull(resultValue)
-                    Assert.Equal(If(testType.IsStringType(), ConstantValueTypeDiscriminator.Nothing, testType.CorrespondingConstantValueTypeDiscriminator()), resultValue.Discriminator)
+                    Assert.Equal(If(testType.IsStringType(), ConstantValueTypeDiscriminator.Nothing, testType.GetConstantValueTypeDiscriminator()), resultValue.Discriminator)
 
                     If testType IsNot dateType Then
                         Assert.Equal(0, Convert.ToInt64(resultValue.Value))
@@ -307,7 +307,7 @@ End Class
 
             For Each integralType In integralTypes
 
-                Dim zero = ConstantValue.Default(integralType.CorrespondingConstantValueTypeDiscriminator())
+                Dim zero = ConstantValue.Default(integralType.GetConstantValueTypeDiscriminator())
                 literal = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), VisualBasicSyntaxNode), zero, integralType)
                 constant = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), literal, ConversionKind.Widening, True, True, zero, integralType, Nothing)
 
@@ -332,7 +332,7 @@ End Class
             For Each convertibleType In convertableTypes
                 If Not integralTypes.Contains(convertibleType) Then
 
-                    Dim zero = ConstantValue.Default(If(convertibleType.IsStringType(), ConstantValueTypeDiscriminator.Nothing, convertibleType.CorrespondingConstantValueTypeDiscriminator()))
+                    Dim zero = ConstantValue.Default(If(convertibleType.IsStringType(), ConstantValueTypeDiscriminator.Nothing, convertibleType.GetConstantValueTypeDiscriminator()))
 
                     If convertibleType.IsStringType() Then
                         literal = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), VisualBasicSyntaxNode), ConstantValue.Null, Nothing), ConversionKind.WideningNothingLiteral, False, True, zero, convertibleType, Nothing)
@@ -363,7 +363,7 @@ End Class
             ' Zero
             For Each type1 In convertableTypes
 
-                Dim zero = ConstantValue.Default(If(type1.IsStringType(), ConstantValueTypeDiscriminator.Nothing, type1.CorrespondingConstantValueTypeDiscriminator()))
+                Dim zero = ConstantValue.Default(If(type1.IsStringType(), ConstantValueTypeDiscriminator.Nothing, type1.GetConstantValueTypeDiscriminator()))
 
                 If type1.IsStringType() Then
                     literal = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), ConstantValue.Null, Nothing), ConversionKind.WideningNothingLiteral, False, True, zero, type1, Nothing)
@@ -441,7 +441,7 @@ End Class
                         Assert.False(integerOverflow)
                         Assert.False(resultValue.IsBad)
 
-                        Assert.Equal(type2.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+                        Assert.Equal(type2.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
                         Assert.Equal(0, Convert.ToDouble(resultValue.Value))
 
                         resultValue = Conversions.TryFoldConstantConversion(constant, type2, integerOverflow)
@@ -450,7 +450,7 @@ End Class
                         Assert.False(integerOverflow)
                         Assert.False(resultValue.IsBad)
 
-                        Assert.Equal(type2.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+                        Assert.Equal(type2.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
                         Assert.Equal(0, Convert.ToDouble(resultValue.Value))
 
                         Dim nullableType2 = nullableType.Construct(type2)
@@ -486,7 +486,7 @@ End Class
                         Assert.False(integerOverflow)
                         Assert.False(resultValue.IsBad)
 
-                        Assert.Equal(type2.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+                        Assert.Equal(type2.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
                         Assert.False(DirectCast(resultValue.Value, Boolean))
 
                         resultValue = Conversions.TryFoldConstantConversion(constant, type2, integerOverflow)
@@ -495,7 +495,7 @@ End Class
                         Assert.False(integerOverflow)
                         Assert.False(resultValue.IsBad)
 
-                        Assert.Equal(type2.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+                        Assert.Equal(type2.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
                         Assert.False(DirectCast(resultValue.Value, Boolean))
                     ElseIf type1 Is stringType AndAlso type2 Is charType Then
                         ' Will test separately   
@@ -619,9 +619,9 @@ End Class
 
             For Each mv In nonZeroValues
 
-                Dim v = ConstantValue.Create(mv.Value, mv.Type.CorrespondingConstantValueTypeDiscriminator())
+                Dim v = ConstantValue.Create(mv.Value, mv.Type.GetConstantValueTypeDiscriminator())
 
-                Assert.Equal(v.Discriminator, mv.Type.CorrespondingConstantValueTypeDiscriminator())
+                Assert.Equal(v.Discriminator, mv.Type.GetConstantValueTypeDiscriminator())
 
                 literal = New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), v, mv.Type)
                 constant = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing),
@@ -648,7 +648,7 @@ End Class
                         Assert.Equal(resultValue2, resultValue)
 
                         If Not resultValue.IsBad Then
-                            Assert.Equal(numericType.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+                            Assert.Equal(numericType.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
                         End If
                     End If
 
@@ -749,7 +749,7 @@ End Class
                     End If
 
                     Dim nullableType2 = nullableType.Construct(numericType)
-                    Dim zero = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), ConstantValue.Null, Nothing), ConversionKind.Widening, True, True, ConstantValue.Default(mv.Type.CorrespondingConstantValueTypeDiscriminator()), mv.Type, Nothing)
+                    Dim zero = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), ConstantValue.Null, Nothing), ConversionKind.Widening, True, True, ConstantValue.Default(mv.Type.GetConstantValueTypeDiscriminator()), mv.Type, Nothing)
 
                     conv = ClassifyConversion(mv.Type, nullableType2) Or
                         (ClassifyConversion(zero, nullableType2, methodBodyBinder) And ConversionKind.InvolvesNarrowingFromNumericConstant)
@@ -837,7 +837,7 @@ End Class
             ' -------  Boolean
             Dim falseValue = ConstantValue.Create(False)
 
-            Assert.Equal(falseValue.Discriminator, booleanType.CorrespondingConstantValueTypeDiscriminator())
+            Assert.Equal(falseValue.Discriminator, booleanType.GetConstantValueTypeDiscriminator())
 
             literal = New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), falseValue, booleanType)
             constant = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), ConstantValue.Null, Nothing), ConversionKind.Widening, True, True, falseValue, booleanType, Nothing)
@@ -862,14 +862,14 @@ End Class
                 Assert.Equal(resultValue.IsBad, resultValue2.IsBad)
 
                 Assert.Equal(resultValue2, resultValue)
-                Assert.Equal(numericType.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+                Assert.Equal(numericType.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
 
                 Assert.Equal(0, Convert.ToInt64(resultValue.Value))
             Next
 
             Dim trueValue = ConstantValue.Create(True)
 
-            Assert.Equal(falseValue.Discriminator, booleanType.CorrespondingConstantValueTypeDiscriminator())
+            Assert.Equal(falseValue.Discriminator, booleanType.GetConstantValueTypeDiscriminator())
 
             literal = New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), trueValue, booleanType)
             constant = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), ConstantValue.Null, Nothing), ConversionKind.Widening, True, True, trueValue, booleanType, Nothing)
@@ -894,7 +894,7 @@ End Class
                 Assert.Equal(resultValue.IsBad, resultValue2.IsBad)
 
                 Assert.Equal(resultValue2, resultValue)
-                Assert.Equal(numericType.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+                Assert.Equal(numericType.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
 
                 'The literal True converts to the literal 255 for Byte, 65535 for UShort, 4294967295 for UInteger, 18446744073709551615 for ULong, 
                 'and to the expression -1 for SByte, Short, Integer, Long, Decimal, Single, and Double
@@ -925,15 +925,15 @@ End Class
             Assert.Equal(resultValue.IsBad, resultValue2.IsBad)
 
             Assert.Equal(resultValue2, resultValue)
-            Assert.Equal(booleanType.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+            Assert.Equal(booleanType.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
 
             Assert.True(DirectCast(resultValue.Value, Boolean))
 
             For Each mv In nonZeroValues
 
-                Dim v = ConstantValue.Create(mv.Value, mv.Type.CorrespondingConstantValueTypeDiscriminator())
+                Dim v = ConstantValue.Create(mv.Value, mv.Type.GetConstantValueTypeDiscriminator())
 
-                Assert.Equal(v.Discriminator, mv.Type.CorrespondingConstantValueTypeDiscriminator())
+                Assert.Equal(v.Discriminator, mv.Type.GetConstantValueTypeDiscriminator())
 
                 literal = New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), v, mv.Type)
                 constant = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), ConstantValue.Null, Nothing), ConversionKind.Widening, True, True, v, mv.Type, Nothing)
@@ -956,7 +956,7 @@ End Class
                 Assert.Equal(integerOverflow, integerOverflow2)
 
                 Assert.Equal(resultValue2, resultValue)
-                Assert.Equal(booleanType.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+                Assert.Equal(booleanType.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
 
                 Assert.True(DirectCast(resultValue.Value, Boolean))
 
@@ -985,7 +985,7 @@ End Class
             Assert.Equal(integerOverflow, integerOverflow2)
 
             Assert.Equal(resultValue2, resultValue)
-            Assert.Equal(charType.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+            Assert.Equal(charType.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
 
             Assert.Equal(ChrW(0), CChar(stringValue.StringValue))
             Assert.Equal(ChrW(0), DirectCast(resultValue.Value, Char))
@@ -1011,7 +1011,7 @@ End Class
             Assert.Equal(integerOverflow, integerOverflow2)
 
             Assert.Equal(resultValue2, resultValue)
-            Assert.Equal(charType.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+            Assert.Equal(charType.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
 
             Assert.Equal(ChrW(0), CChar(""))
             Assert.Equal(ChrW(0), DirectCast(resultValue.Value, Char))
@@ -1035,7 +1035,7 @@ End Class
             Assert.Equal(integerOverflow, integerOverflow2)
 
             Assert.Equal(resultValue2, resultValue)
-            Assert.Equal(charType.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+            Assert.Equal(charType.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
 
             Assert.Equal("a"c, DirectCast(resultValue.Value, Char))
 
@@ -1058,7 +1058,7 @@ End Class
             Assert.Equal(integerOverflow, integerOverflow2)
 
             Assert.Equal(resultValue2, resultValue)
-            Assert.Equal(stringType.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+            Assert.Equal(stringType.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
 
             Assert.Equal("b", DirectCast(resultValue.Value, String))
 
@@ -1183,9 +1183,9 @@ End Class
 
             For Each mv In nonZeroValues
 
-                Dim v = ConstantValue.Create(mv.Value, mv.Type.CorrespondingConstantValueTypeDiscriminator())
+                Dim v = ConstantValue.Create(mv.Value, mv.Type.GetConstantValueTypeDiscriminator())
 
-                Assert.Equal(v.Discriminator, mv.Type.CorrespondingConstantValueTypeDiscriminator())
+                Assert.Equal(v.Discriminator, mv.Type.GetConstantValueTypeDiscriminator())
 
                 literal = New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), v, mv.Type)
                 constant = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing),
@@ -1211,7 +1211,7 @@ End Class
                         Assert.Equal(resultValue2, resultValue)
 
                         If Not resultValue.IsBad Then
-                            Assert.Equal(numericType.CorrespondingConstantValueTypeDiscriminator(), resultValue.Discriminator)
+                            Assert.Equal(numericType.GetConstantValueTypeDiscriminator(), resultValue.Discriminator)
                         End If
                     End If
 
@@ -1320,7 +1320,7 @@ End Class
                     Dim nullableType2 = nullableType.Construct(numericType)
                     Dim zero = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing),
                                                    New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), ConstantValue.Default(ConstantValueTypeDiscriminator.Int32), int32Type),
-                                                   ConversionKind.Widening, True, True, ConstantValue.Default(mv.Type.CorrespondingConstantValueTypeDiscriminator()), mv.Type, Nothing)
+                                                   ConversionKind.Widening, True, True, ConstantValue.Default(mv.Type.GetConstantValueTypeDiscriminator()), mv.Type, Nothing)
 
                     conv = ClassifyConversion(mv.Type, nullableType2) Or
                         (ClassifyConversion(zero, nullableType2, methodBodyBinder) And ConversionKind.InvolvesNarrowingFromNumericConstant)

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
@@ -37,40 +38,72 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Return NullLiteral
             End If
 
-            Select Case System.Type.GetTypeCode(obj.GetType())
-                Case TypeCode.Boolean
-                    Return FormatLiteral(DirectCast(obj, Boolean))
-                Case TypeCode.String
-                    Return FormatLiteral(DirectCast(obj, String), quoteStrings)
-                Case TypeCode.Char
-                    Return FormatLiteral(DirectCast(obj, Char), quoteStrings, useHexadecimalNumbers)
-                Case TypeCode.SByte
-                    Return FormatLiteral(DirectCast(obj, SByte), useHexadecimalNumbers)
-                Case TypeCode.Byte
-                    Return FormatLiteral(DirectCast(obj, Byte), useHexadecimalNumbers)
-                Case TypeCode.Int16
-                    Return FormatLiteral(DirectCast(obj, Short), useHexadecimalNumbers)
-                Case TypeCode.UInt16
-                    Return FormatLiteral(DirectCast(obj, UShort), useHexadecimalNumbers)
-                Case TypeCode.Int32
-                    Return FormatLiteral(DirectCast(obj, Integer), useHexadecimalNumbers)
-                Case TypeCode.UInt32
-                    Return FormatLiteral(DirectCast(obj, UInteger), useHexadecimalNumbers)
-                Case TypeCode.Int64
-                    Return FormatLiteral(DirectCast(obj, Long), useHexadecimalNumbers)
-                Case TypeCode.UInt64
-                    Return FormatLiteral(DirectCast(obj, ULong), useHexadecimalNumbers)
-                Case TypeCode.Double
-                    Return FormatLiteral(DirectCast(obj, Double))
-                Case TypeCode.Single
-                    Return FormatLiteral(DirectCast(obj, Single))
-                Case TypeCode.Decimal
-                    Return FormatLiteral(DirectCast(obj, Decimal))
-                Case TypeCode.DateTime
-                    Return FormatLiteral(DirectCast(obj, DateTime))
-                Case Else
-                    Return Nothing
-            End Select
+            Dim type = obj.GetType()
+            If type.GetTypeInfo().IsEnum Then
+                type = [Enum].GetUnderlyingType(type)
+            End If
+
+            If type Is GetType(Integer) Then
+                Return FormatLiteral(DirectCast(obj, Integer), useHexadecimalNumbers)
+            End If
+
+            If type Is GetType(String) Then
+                Return FormatLiteral(DirectCast(obj, String), quoteStrings)
+            End If
+
+            If type Is GetType(Boolean) Then
+                Return FormatLiteral(DirectCast(obj, Boolean))
+            End If
+
+            If type Is GetType(Char) Then
+                Return FormatLiteral(DirectCast(obj, Char), quoteStrings, useHexadecimalNumbers)
+            End If
+
+            If type Is GetType(Byte) Then
+                Return FormatLiteral(DirectCast(obj, Byte), useHexadecimalNumbers)
+            End If
+
+            If type Is GetType(Short) Then
+                Return FormatLiteral(DirectCast(obj, Short), useHexadecimalNumbers)
+            End If
+
+            If type Is GetType(Long) Then
+                Return FormatLiteral(DirectCast(obj, Long), useHexadecimalNumbers)
+            End If
+
+            If type Is GetType(Double) Then
+                Return FormatLiteral(DirectCast(obj, Double))
+            End If
+
+            If type Is GetType(ULong) Then
+                Return FormatLiteral(DirectCast(obj, ULong), useHexadecimalNumbers)
+            End If
+
+            If type Is GetType(UInteger) Then
+                Return FormatLiteral(DirectCast(obj, UInteger), useHexadecimalNumbers)
+            End If
+
+            If type Is GetType(UShort) Then
+                Return FormatLiteral(DirectCast(obj, UShort), useHexadecimalNumbers)
+            End If
+
+            If type Is GetType(SByte) Then
+                Return FormatLiteral(DirectCast(obj, SByte), useHexadecimalNumbers)
+            End If
+
+            If type Is GetType(Single) Then
+                Return FormatLiteral(DirectCast(obj, Single))
+            End If
+
+            If type Is GetType(Decimal) Then
+                Return FormatLiteral(DirectCast(obj, Decimal))
+            End If
+
+            If type Is GetType(Date) Then
+                Return FormatLiteral(DirectCast(obj, Date))
+            End If
+
+            Return Nothing
         End Function
 
         Friend ReadOnly Property NullLiteral As String

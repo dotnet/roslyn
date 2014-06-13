@@ -695,7 +695,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return source.ConstantValueOpt
                 End If
 
-                Dim dstDiscriminator As ConstantValueTypeDiscriminator = destination.CorrespondingConstantValueTypeDiscriminator()
+                Dim dstDiscriminator As ConstantValueTypeDiscriminator = destination.GetConstantValueTypeDiscriminator()
                 Debug.Assert((dstDiscriminator <> ConstantValueTypeDiscriminator.Bad) AndAlso (dstDiscriminator <> ConstantValueTypeDiscriminator.Nothing))
 
                 Return ConstantValue.Default(dstDiscriminator)
@@ -792,7 +792,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Return ConvertIntegralValue(value,
                                                 sourceValue.Discriminator,
-                                                targetType.CorrespondingConstantValueTypeDiscriminator(),
+                                                targetType.GetConstantValueTypeDiscriminator(),
                                                 integerOverflow)
                 End If
 
@@ -802,7 +802,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim result = ConvertFloatingValue(
                             If(sourceValue.Discriminator = ConstantValueTypeDiscriminator.Double, sourceValue.DoubleValue, sourceValue.SingleValue),
-                            targetType.CorrespondingConstantValueTypeDiscriminator(),
+                            targetType.GetConstantValueTypeDiscriminator(),
                             integerOverflow)
 
                     If result.IsBad Then
@@ -818,7 +818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim result = ConvertDecimalValue(
                             sourceValue.DecimalValue,
-                            targetType.CorrespondingConstantValueTypeDiscriminator(),
+                            targetType.GetConstantValueTypeDiscriminator(),
                             integerOverflow)
 
                     If result.IsBad Then

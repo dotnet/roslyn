@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [Conditional("DEBUG")]
-        private static void AssertMessageSerializable(object[] args)
+        internal static void AssertMessageSerializable(object[] args)
         {
             foreach (var arg in args)
             {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var info = type.GetTypeInfo();
-                if (info.IsPrimitive || info.IsEnum)
+                if (info.IsPrimitive)
                 {
                     continue;
                 }

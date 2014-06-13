@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _curPage = GetPage(0)
             _options = options
 
-            _scannerPreprocessorState = New PreprocessorState(AsPreprocessorConstants(options.PreprocessorSymbols))
+            _scannerPreprocessorState = New PreprocessorState(GetPreprocessorConstants(options))
         End Sub
         Friend Sub Dispose() Implements IDisposable.Dispose
             If Not _isDisposed Then
@@ -134,13 +134,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Friend Shared Function AsPreprocessorConstants(symbols As ImmutableArray(Of KeyValuePair(Of String, Object))) As ImmutableDictionary(Of String, CConst)
-            Dim consts = ImmutableDictionary.CreateBuilder(Of String, CConst)(IdentifierComparison.Comparer)
-            For Each pair In symbols
-                consts(pair.Key) = CConst.Create(pair.Value)
+        Friend Shared Function GetPreprocessorConstants(options As VisualBasicParseOptions) As ImmutableDictionary(Of String, CConst)
+            If options.PreprocessorSymbols.IsDefaultOrEmpty Then
+                Return ImmutableDictionary(Of String, CConst).Empty
+            End If
+
+            Dim result = ImmutableDictionary.CreateBuilder(Of String, CConst)(IdentifierComparison.Comparer)
+            For Each symbol In options.PreprocessorSymbols
+                ' The values in options have already been verified
+                result(symbol.Key) = CConst.CreateChecked(symbol.Value)
             Next
 
-            Return consts.ToImmutable()
+            Return result.ToImmutable()
         End Function
 
         Private Function GetNextToken(Optional allowLeadingMultilineTrivia As Boolean = False) As SyntaxToken

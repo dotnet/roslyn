@@ -16,20 +16,32 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact>
     Public Sub WithXxx()
+        TestProperty(Function(old, value) old.WithKind(value), Function(opt) opt.Kind, SourceCodeKind.Script)
+        TestProperty(Function(old, value) old.WithLanguageVersion(value), Function(opt) opt.LanguageVersion, LanguageVersion.VisualBasic9)
+        TestProperty(Function(old, value) old.WithDocumentationMode(value), Function(opt) opt.DocumentationMode, DocumentationMode.None)
+
+        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithKind(DirectCast(Integer.MaxValue, SourceCodeKind)))
+        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithLanguageVersion(DirectCast(1000, LanguageVersion)))
+    End Sub
+
+    <Fact>
+    Public Sub WithPreprocessorSymbols()
         Dim syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("A", 1),
                                          New KeyValuePair(Of String, Object)("B", 2),
                                          New KeyValuePair(Of String, Object)("C", 3))
 
-        TestProperty(Function(old, value) old.WithKind(value), Function(opt) opt.Kind, SourceCodeKind.Script)
-        TestProperty(Function(old, value) old.WithLanguageVersion(value), Function(opt) opt.LanguageVersion, LanguageVersion.VisualBasic9)
-        TestProperty(Function(old, value) old.WithDocumentationMode(value), Function(opt) opt.DocumentationMode, DocumentationMode.None)
         TestProperty(Function(old, value) old.WithPreprocessorSymbols(value), Function(opt) opt.PreprocessorSymbols, syms)
 
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithKind(DirectCast(Integer.MaxValue, SourceCodeKind)))
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithLanguageVersion(DirectCast(1000, LanguageVersion)))
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(CType(Nothing, ImmutableArray(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, IEnumerable(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, KeyValuePair(Of String, Object)())).PreprocessorSymbols.Length)
+
+        Dim syms2 = {New KeyValuePair(Of String, Object)("A", 1),
+                     New KeyValuePair(Of String, Object)("B", New List(Of String)()),
+                     New KeyValuePair(Of String, Object)("C", 3)}
+
+        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms2))
+        Assert.Throws(Of ArgumentException)(Function() VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms2))
     End Sub
 
     <Fact>

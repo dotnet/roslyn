@@ -13,72 +13,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' do not create
         End Sub
 
-        Friend Shared Function IsNumericType(tc As TypeCode) As Boolean
-            Select Case tc
-                Case TypeCode.Byte, TypeCode.Decimal, TypeCode.Double, TypeCode.Int16, TypeCode.Int32, TypeCode.Int64,
-                    TypeCode.SByte, TypeCode.Single, TypeCode.UInt16, TypeCode.UInt32, TypeCode.UInt64
-
-                    Return True
-                Case Else
-                    Return False
-            End Select
-            Return True
-        End Function
-
-        Friend Shared Function IsIntegralType(tc As TypeCode) As Boolean
-            Select Case tc
-                Case TypeCode.Byte, TypeCode.Int16, TypeCode.Int32, TypeCode.Int64,
-                    TypeCode.SByte, TypeCode.UInt16, TypeCode.UInt32, TypeCode.UInt64
-
-                    Return True
-                Case Else
-                    Return False
-            End Select
-            Return True
-        End Function
-
-        Friend Shared Function IsUnsignedIntegralType(tc As TypeCode) As Boolean
-            Select Case tc
-                Case TypeCode.SByte, TypeCode.UInt16, TypeCode.UInt32, TypeCode.UInt64
-
-                    Return True
-                Case Else
-                    Return False
-            End Select
-            Return True
-        End Function
-
-        Friend Shared Function IsFloatingType(tc As TypeCode) As Boolean
-            Select Case tc
-                Case TypeCode.Double, TypeCode.Single
-
-                    Return True
-                Case Else
-                    Return False
-            End Select
-            Return True
-        End Function
-
         ' TODO: figure how to do this in VB.
 
 #Region "Unchecked"
 
         Friend Shared Function UncheckedCLng(v As CConst) As Long
-            Dim tc = v.TypeCode
+            Dim specialType = v.SpecialType
 
-            If IsIntegralType(tc) Then
+            If specialType.IsIntegralType() Then
                 Return CType(v.ValueAsObject, Long)
             End If
 
-            If tc = TypeCode.Char Then
-                Return CLng(AscW(CChar(v.ValueAsObject)))
+            If specialType = SpecialType.System_Char Then
+                Return AscW(CChar(v.ValueAsObject))
             End If
 
-            If tc = TypeCode.DateTime Then
+            If specialType = SpecialType.System_DateTime Then
                 Return CDate(v.ValueAsObject).ToBinary
             End If
 
-            Throw ExceptionUtilities.UnexpectedValue(tc)
+            Throw ExceptionUtilities.UnexpectedValue(specialType)
         End Function
 
 #End Region
@@ -133,25 +87,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return True
             End Try
             Return False
-        End Function
-
-        Friend Shared Function GetShiftSizeMask(Type As TypeCode) As Integer
-            Select Case Type
-                Case TypeCode.SByte, TypeCode.Byte
-                    Return &H7
-
-                Case TypeCode.Int16, TypeCode.UInt16
-                    Return &HF
-
-                Case TypeCode.Int32, TypeCode.UInt32
-                    Return &H1F
-
-                Case TypeCode.Int64, TypeCode.UInt64
-                    Return &H3F
-
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(Type)
-            End Select
         End Function
     End Class
 End Namespace

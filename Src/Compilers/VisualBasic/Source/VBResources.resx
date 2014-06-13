@@ -4529,4 +4529,7 @@
   <data name="ERR_InvalidFormatSpecifier" xml:space="preserve">
     <value>'{0}' is not a valid format specifier</value>
   </data>
+  <data name="InvalidPreprocessorConstantType" xml:space="preserve">
+    <value>Preprocessor constant '{0}' of type '{1}' is not supported, only primitive types are allowed.</value>
+  </data>
 </root>

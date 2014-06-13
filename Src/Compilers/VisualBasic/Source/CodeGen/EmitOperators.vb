@@ -1,16 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
@@ -31,14 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' check for overflow.
                     Dim targetPrimitiveType = expression.Type.PrimitiveTypeCode
                     Dim useCheckedSubtraction As Boolean = (expression.Checked AndAlso
-                                                     (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int32 OrElse
-                                                      targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int64))
+                                                     (targetPrimitiveType = Cci.PrimitiveTypeCode.Int32 OrElse
+                                                      targetPrimitiveType = Cci.PrimitiveTypeCode.Int64))
 
                     If useCheckedSubtraction Then
                         ' Generate the zero const first.
                         _builder.EmitOpCode(ILOpCode.Ldc_i4_0)
 
-                        If targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int64 Then
+                        If targetPrimitiveType = Cci.PrimitiveTypeCode.Int64 Then
                             _builder.EmitOpCode(ILOpCode.Conv_i8)
                         End If
                     End If
@@ -70,10 +61,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         ' CONSIDER cambecc (8-2-2000): no need to generate a Convert for each of n consecutive
                         '                              Not operations
                         Dim targetPrimitiveType = expression.Type.PrimitiveTypeCode
-                        If targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt8 OrElse
-                           targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt16 Then
+                        If targetPrimitiveType = Cci.PrimitiveTypeCode.UInt8 OrElse
+                           targetPrimitiveType = Cci.PrimitiveTypeCode.UInt16 Then
 
-                            _builder.EmitNumericConversion(Microsoft.Cci.PrimitiveTypeCode.UInt32,
+                            _builder.EmitNumericConversion(Cci.PrimitiveTypeCode.UInt32,
                                                             targetPrimitiveType, False)
                         End If
                     End If
@@ -187,11 +178,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BinaryOperatorKind.Multiply
 
                     If expression.Checked AndAlso
-                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int64) Then
+                        (targetPrimitiveType = Cci.PrimitiveTypeCode.Int32 OrElse targetPrimitiveType = Cci.PrimitiveTypeCode.Int64) Then
                         _builder.EmitOpCode(ILOpCode.Mul_ovf)
 
                     ElseIf expression.Checked AndAlso
-                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt64) Then
+                        (targetPrimitiveType = Cci.PrimitiveTypeCode.UInt32 OrElse targetPrimitiveType = Cci.PrimitiveTypeCode.UInt64) Then
                         _builder.EmitOpCode(ILOpCode.Mul_ovf_un)
                     Else
                         _builder.EmitOpCode(ILOpCode.Mul)
@@ -206,11 +197,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BinaryOperatorKind.Add
                     If expression.Checked AndAlso
-                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int64) Then
+                        (targetPrimitiveType = Cci.PrimitiveTypeCode.Int32 OrElse targetPrimitiveType = Cci.PrimitiveTypeCode.Int64) Then
                         _builder.EmitOpCode(ILOpCode.Add_ovf)
 
                     ElseIf expression.Checked AndAlso
-                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt64) Then
+                        (targetPrimitiveType = Cci.PrimitiveTypeCode.UInt32 OrElse targetPrimitiveType = Cci.PrimitiveTypeCode.UInt64) Then
                         _builder.EmitOpCode(ILOpCode.Add_ovf_un)
                     Else
                         _builder.EmitOpCode(ILOpCode.Add)
@@ -218,11 +209,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BinaryOperatorKind.Subtract
                     If expression.Checked AndAlso
-                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int64) Then
+                        (targetPrimitiveType = Cci.PrimitiveTypeCode.Int32 OrElse targetPrimitiveType = Cci.PrimitiveTypeCode.Int64) Then
                         _builder.EmitOpCode(ILOpCode.Sub_ovf)
 
                     ElseIf expression.Checked AndAlso
-                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt64) Then
+                        (targetPrimitiveType = Cci.PrimitiveTypeCode.UInt32 OrElse targetPrimitiveType = Cci.PrimitiveTypeCode.UInt64) Then
                         _builder.EmitOpCode(ILOpCode.Sub_ovf_un)
                     Else
                         _builder.EmitOpCode(ILOpCode.Sub)
@@ -240,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BinaryOperatorKind.LeftShift
 
                     ' And the right operand with mask corresponding the left operand type
-                    Debug.Assert(expression.Right.Type.PrimitiveTypeCode = Microsoft.Cci.PrimitiveTypeCode.Int32)
+                    Debug.Assert(expression.Right.Type.PrimitiveTypeCode = Cci.PrimitiveTypeCode.Int32)
                     'mask RHS if not a constant or too large
                     Dim shiftMax = GetShiftSizeMask(expression.Left.Type)
                     Dim shiftConst = expression.Right.ConstantValueOpt
@@ -254,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BinaryOperatorKind.RightShift
 
                     ' And the right operand with mask corresponding the left operand type
-                    Debug.Assert(expression.Right.Type.PrimitiveTypeCode = Microsoft.Cci.PrimitiveTypeCode.Int32)
+                    Debug.Assert(expression.Right.Type.PrimitiveTypeCode = Cci.PrimitiveTypeCode.Int32)
 
                     'mask RHS if not a constant or too large
                     Dim shiftMax = GetShiftSizeMask(expression.Left.Type)
@@ -283,69 +274,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub DowncastResultOfArithmeticOperation(
-            targetPrimitiveType As Microsoft.Cci.PrimitiveTypeCode,
+            targetPrimitiveType As Cci.PrimitiveTypeCode,
             isChecked As Boolean
         )
             ' The result of the math operation has either 4 or 8 byte width.
             ' For 1 and 2 byte widths, convert the value back to the original type.
-            If targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int8 OrElse
-               targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt8 OrElse
-               targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int16 OrElse
-               targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt16 Then
+            If targetPrimitiveType = Cci.PrimitiveTypeCode.Int8 OrElse
+               targetPrimitiveType = Cci.PrimitiveTypeCode.UInt8 OrElse
+               targetPrimitiveType = Cci.PrimitiveTypeCode.Int16 OrElse
+               targetPrimitiveType = Cci.PrimitiveTypeCode.UInt16 Then
 
-                _builder.EmitNumericConversion(
-                                                If(targetPrimitiveType.IsUnsigned(),
-                                                   Microsoft.Cci.PrimitiveTypeCode.UInt32,
-                                                   Microsoft.Cci.PrimitiveTypeCode.Int32),
-                                                targetPrimitiveType, isChecked)
+                _builder.EmitNumericConversion(If(targetPrimitiveType.IsUnsigned(), Cci.PrimitiveTypeCode.UInt32, Cci.PrimitiveTypeCode.Int32),
+                                               targetPrimitiveType,
+                                               isChecked)
             End If
 
         End Sub
 
         Public Shared Function GetShiftSizeMask(leftOperandType As TypeSymbol) As Integer
-            Dim result As Integer
-
-            Select Case leftOperandType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode
-                Case Microsoft.Cci.PrimitiveTypeCode.Int8,
-                     Microsoft.Cci.PrimitiveTypeCode.UInt8
-                    result = &H7
-                Case Microsoft.Cci.PrimitiveTypeCode.Int16,
-                     Microsoft.Cci.PrimitiveTypeCode.UInt16
-                    result = &HF
-                Case Microsoft.Cci.PrimitiveTypeCode.UInt32,
-                     Microsoft.Cci.PrimitiveTypeCode.Int32
-                    result = &H1F
-                Case Microsoft.Cci.PrimitiveTypeCode.UInt64,
-                     Microsoft.Cci.PrimitiveTypeCode.Int64
-                    result = &H3F
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(leftOperandType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode)
-            End Select
-
-            Return result
-        End Function
-
-        Public Shared Function GetShiftSizeMask(leftOperandType As System.TypeCode) As Integer
-            Dim result As Integer
-
-            Select Case leftOperandType
-                Case TypeCode.SByte,
-                     TypeCode.Byte
-                    result = &H7
-                Case TypeCode.Int16,
-                     TypeCode.UInt16
-                    result = &HF
-                Case TypeCode.UInt32,
-                     TypeCode.Int32
-                    result = &H1F
-                Case TypeCode.UInt64,
-                     TypeCode.Int64
-                    result = &H3F
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(leftOperandType)
-            End Select
-
-            Return result
+            Return leftOperandType.GetEnumUnderlyingTypeOrSelf.SpecialType.GetShiftSizeMask()
         End Function
 
         Private Sub EmitShortCircuitingOperator(condition As BoundBinaryOperator, sense As Boolean, stopSense As Boolean, stopValue As Boolean)

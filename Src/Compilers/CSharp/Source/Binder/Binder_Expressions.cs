@@ -5273,7 +5273,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!value.GetType().GetTypeInfo().IsEnum);
 
                 var specialType = SpecialTypeExtensions.FromRuntimeTypeOfLiteralValue(value);
-                Debug.Assert(specialType != SpecialType.None);
+
+                // C# literals can't be of type byte, sbyte, short, ushort:
+                Debug.Assert(
+                    specialType != SpecialType.None &&
+                    specialType != SpecialType.System_Byte &&
+                    specialType != SpecialType.System_SByte &&
+                    specialType != SpecialType.System_Int16 &&
+                    specialType != SpecialType.System_UInt16);
 
                 cv = ConstantValue.Create(value, specialType);
                 type = GetSpecialType(specialType, diagnostics, node);

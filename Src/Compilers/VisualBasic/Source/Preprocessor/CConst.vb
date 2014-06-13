@@ -1,80 +1,143 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-'-----------------------------------------------------------------------------
-' Contains types that represent compile time constants.
-'-----------------------------------------------------------------------------
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
+    ''' <summary>
+    ''' Base class of a compile time constant.
+    ''' </summary>
     Friend MustInherit Class CConst
         Protected ReadOnly _errid As ERRID
-        Protected ReadOnly _errargs As Object()
+        Protected ReadOnly _diagnosticArguments As Object()
 
         Sub New()
         End Sub
 
-        Sub New(id As ERRID, ParamArray args As Object())
+        Sub New(id As ERRID, ParamArray diagnosticArguments As Object())
+            DiagnosticInfo.AssertMessageSerializable(diagnosticArguments)
+
             _errid = id
-            _errargs = args
+            _diagnosticArguments = diagnosticArguments
         End Sub
 
-        Public MustOverride ReadOnly Property TypeCode As TypeCode
+        Public MustOverride ReadOnly Property SpecialType As SpecialType
         Public MustOverride ReadOnly Property ValueAsObject As Object
         Public MustOverride Function WithError(id As ERRID) As CConst
 
-        Friend Shared Function Create(value As Object) As CConst
-            If value Is Nothing Then
-                Return Create(Of Object)(Nothing)
-            End If
-
-            Dim tc = System.Type.GetTypeCode(value.GetType)
-            Select Case tc
-                Case TypeCode.Boolean
-                    Return Create(Convert.ToBoolean(value))
-                Case TypeCode.Byte
-                    Return Create(Convert.ToByte(value))
-                Case TypeCode.Char
-                    Return Create(Convert.ToChar(value))
-                Case TypeCode.DateTime
-                    Return Create(Convert.ToDateTime(value))
-                Case TypeCode.Decimal
-                    Return Create(Convert.ToDecimal(value))
-                Case TypeCode.Double
-                    Return Create(Convert.ToDouble(value))
-                Case TypeCode.Int16
-                    Return Create(Convert.ToInt16(value))
-                Case TypeCode.Int32
-                    Return Create(Convert.ToInt32(value))
-                Case TypeCode.Int64
-                    Return Create(Convert.ToInt64(value))
-                Case TypeCode.SByte
-                    Return Create(Convert.ToSByte(value))
-                Case TypeCode.Single
-                    Return Create(Convert.ToSingle(value))
-                Case TypeCode.String
-                    Return Create(Convert.ToString(value))
-                Case TypeCode.UInt16
-                    Return Create(Convert.ToUInt16(value))
-                Case TypeCode.UInt32
-                    Return Create(Convert.ToUInt32(value))
-                Case TypeCode.UInt64
-                    Return Create(Convert.ToUInt64(value))
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(tc)
-            End Select
-
+        Friend Shared Function CreateChecked(value As Object) As CConst
+            Dim constant = TryCreate(value)
+            Debug.Assert(constant IsNot Nothing)
+            Return constant
         End Function
 
-        Friend Shared Function Create(Of T)(value As T) As CConst(Of T)
-            Return New CConst(Of T)(value)
+        Friend Shared Function TryCreate(value As Object) As CConst
+            If value Is Nothing Then
+                Return CreateNothing()
+            End If
+
+            Dim specialType = SpecialTypeExtensions.FromRuntimeTypeOfLiteralValue(value)
+            Select Case specialType
+                Case SpecialType.System_Boolean
+                    Return Create(Convert.ToBoolean(value))
+                Case SpecialType.System_Byte
+                    Return Create(Convert.ToByte(value))
+                Case SpecialType.System_Char
+                    Return Create(Convert.ToChar(value))
+                Case SpecialType.System_DateTime
+                    Return Create(Convert.ToDateTime(value))
+                Case SpecialType.System_Decimal
+                    Return Create(Convert.ToDecimal(value))
+                Case SpecialType.System_Double
+                    Return Create(Convert.ToDouble(value))
+                Case SpecialType.System_Int16
+                    Return Create(Convert.ToInt16(value))
+                Case SpecialType.System_Int32
+                    Return Create(Convert.ToInt32(value))
+                Case SpecialType.System_Int64
+                    Return Create(Convert.ToInt64(value))
+                Case SpecialType.System_SByte
+                    Return Create(Convert.ToSByte(value))
+                Case SpecialType.System_Single
+                    Return Create(Convert.ToSingle(value))
+                Case SpecialType.System_String
+                    Return Create(Convert.ToString(value))
+                Case SpecialType.System_UInt16
+                    Return Create(Convert.ToUInt16(value))
+                Case SpecialType.System_UInt32
+                    Return Create(Convert.ToUInt32(value))
+                Case SpecialType.System_UInt64
+                    Return Create(Convert.ToUInt64(value))
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
+
+        Friend Shared Function CreateNothing() As CConst(Of Object)
+            Return New CConst(Of Object)(Nothing, SpecialType.System_Object)
+        End Function
+
+        Friend Shared Function Create(value As Boolean) As CConst(Of Boolean)
+            Return New CConst(Of Boolean)(value, SpecialType.System_Boolean)
+        End Function
+
+        Friend Shared Function Create(value As Byte) As CConst(Of Byte)
+            Return New CConst(Of Byte)(value, SpecialType.System_Byte)
+        End Function
+
+        Friend Shared Function Create(value As SByte) As CConst(Of SByte)
+            Return New CConst(Of SByte)(value, SpecialType.System_SByte)
+        End Function
+
+        Friend Shared Function Create(value As Char) As CConst(Of Char)
+            Return New CConst(Of Char)(value, SpecialType.System_Char)
+        End Function
+
+        Friend Shared Function Create(value As Short) As CConst(Of Short)
+            Return New CConst(Of Short)(value, SpecialType.System_Int16)
+        End Function
+
+        Friend Shared Function Create(value As UShort) As CConst(Of UShort)
+            Return New CConst(Of UShort)(value, SpecialType.System_UInt16)
+        End Function
+
+        Friend Shared Function Create(value As Integer) As CConst(Of Integer)
+            Return New CConst(Of Integer)(value, SpecialType.System_Int32)
+        End Function
+
+        Friend Shared Function Create(value As UInteger) As CConst(Of UInteger)
+            Return New CConst(Of UInteger)(value, SpecialType.System_UInt32)
+        End Function
+
+        Friend Shared Function Create(value As Long) As CConst(Of Long)
+            Return New CConst(Of Long)(value, SpecialType.System_Int64)
+        End Function
+
+        Friend Shared Function Create(value As ULong) As CConst(Of ULong)
+            Return New CConst(Of ULong)(value, SpecialType.System_UInt64)
+        End Function
+
+        Friend Shared Function Create(value As Decimal) As CConst(Of Decimal)
+            Return New CConst(Of Decimal)(value, SpecialType.System_Decimal)
+        End Function
+
+        Friend Shared Function Create(value As String) As CConst(Of String)
+            Return New CConst(Of String)(value, SpecialType.System_String)
+        End Function
+
+        Friend Shared Function Create(value As Single) As CConst(Of Single)
+            Return New CConst(Of Single)(value, SpecialType.System_Single)
+        End Function
+
+        Friend Shared Function Create(value As Double) As CConst(Of Double)
+            Return New CConst(Of Double)(value, SpecialType.System_Double)
+        End Function
+
+        Friend Shared Function Create(value As Date) As CConst(Of Date)
+            Return New CConst(Of Date)(value, SpecialType.System_DateTime)
         End Function
 
         Public ReadOnly Property IsBad As Boolean
             Get
-                Return TypeCode = TypeCode.Empty
+                Return SpecialType = SpecialType.None
             End Get
         End Property
 
@@ -101,32 +164,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Public ReadOnly Property ErrorArgs As Object()
             Get
-                Return If(_errargs, New Object() {})
+                Return If(_diagnosticArguments, New Object() {})
             End Get
         End Property
     End Class
 
+    ''' <summary>
+    ''' Represents a compile time constant.
+    ''' </summary>
     Friend Class CConst(Of T)
         Inherits CConst
 
-        Private ReadOnly _tc As TypeCode
+        Private ReadOnly _specialType As SpecialType
         Private ReadOnly _value As T
 
-        Friend Sub New(value As T)
+        Friend Sub New(value As T, specialType As SpecialType)
             _value = value
-            _tc = System.Type.GetTypeCode(GetType(T))
+            _specialType = specialType
         End Sub
 
-        Private Sub New(value As T, tc As TypeCode, id As ERRID)
+        Private Sub New(value As T, specialType As SpecialType, id As ERRID)
             MyBase.New(id)
 
             _value = value
-            _tc = tc
+            _specialType = specialType
         End Sub
 
-        Public Overrides ReadOnly Property TypeCode As TypeCode
+        Public Overrides ReadOnly Property SpecialType As SpecialType
             Get
-                Return _tc
+                Return _specialType
             End Get
         End Property
 
@@ -143,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
 
         Public Overrides Function WithError(id As ERRID) As CConst
-            Return New CConst(Of T)(_value, _tc, id)
+            Return New CConst(Of T)(_value, _specialType, id)
         End Function
     End Class
 
@@ -154,9 +220,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(id, args)
         End Sub
 
-        Public Overrides ReadOnly Property TypeCode As TypeCode
+        Public Overrides ReadOnly Property SpecialType As SpecialType
             Get
-                Return TypeCode.Empty
+                Return SpecialType.None
             End Get
         End Property
 

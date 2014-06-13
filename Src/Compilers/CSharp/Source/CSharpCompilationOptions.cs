@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!Platform.IsValid())
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadPlatformType, Platform));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadPlatformType, Platform.ToString()));
             }
 
             if (ModuleName != null)
@@ -569,12 +569,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!OutputKind.IsValid())
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "OutputKind", OutputKind));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "OutputKind", OutputKind.ToString()));
             }
 
             if (!DebugInformationKind.IsValid())
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "DebugInformationKind", DebugInformationKind));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "DebugInformationKind", DebugInformationKind.ToString()));
             }
 
             if (!SubsystemVersion.Equals(SubsystemVersion.None) && !SubsystemVersion.IsValid)

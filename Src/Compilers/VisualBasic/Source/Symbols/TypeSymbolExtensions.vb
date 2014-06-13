@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function CorrespondingConstantValueTypeDiscriminator(this As TypeSymbol) As ConstantValueTypeDiscriminator
+        Public Function GetConstantValueTypeDiscriminator(this As TypeSymbol) As ConstantValueTypeDiscriminator
             If this Is Nothing Then
                 Return ConstantValueTypeDiscriminator.Nothing
             End If
@@ -429,7 +429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Public Function IsValidForConstantValue(this As TypeSymbol, value As ConstantValue) As Boolean
-            Dim discriminator = this.CorrespondingConstantValueTypeDiscriminator()
+            Dim discriminator = this.GetConstantValueTypeDiscriminator()
 
             Return discriminator <> ConstantValueTypeDiscriminator.Bad AndAlso discriminator = value.Discriminator OrElse
                 (value.Discriminator = ConstantValueTypeDiscriminator.Nothing AndAlso this.IsStringType())
@@ -437,12 +437,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Public Function AllowsCompileTimeConversions(this As TypeSymbol) As Boolean
-            Return TypeAllowsCompileTimeConversions(this.CorrespondingConstantValueTypeDiscriminator())
+            Return TypeAllowsCompileTimeConversions(this.GetConstantValueTypeDiscriminator())
         End Function
 
         <Extension()>
         Public Function AllowsCompileTimeOperations(this As TypeSymbol) As Boolean
-            Return TypeAllowsCompileTimeOperations(this.CorrespondingConstantValueTypeDiscriminator())
+            Return TypeAllowsCompileTimeOperations(this.GetConstantValueTypeDiscriminator())
         End Function
 
         <Extension()>

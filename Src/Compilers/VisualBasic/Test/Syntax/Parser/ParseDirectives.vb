@@ -1524,7 +1524,7 @@ Namespace CHDIR48
 
         AssertTheseParseDiagnostics(compilation,
 <expected>
-BC30060: Conversion from 'Int32' to 'Object' cannot occur in a constant expression.
+BC30060: Conversion from 'Integer' to 'Object' cannot occur in a constant expression.
 #Const X = If(True, 1, "2")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30060: Conversion from 'String' to 'Object' cannot occur in a constant expression.
@@ -1533,7 +1533,7 @@ BC30060: Conversion from 'String' to 'Object' cannot occur in a constant express
 BC30059: Constant expression is required.
 #Const V = If(1, "2")
 ~~~~~~~~~~~~~~~~~~~~~
-BC30060: Conversion from 'UInt64' to 'Object' cannot occur in a constant expression.
+BC30060: Conversion from 'ULong' to 'Object' cannot occur in a constant expression.
 #Const X1 = If(True, 1UL, 2L)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30059: Constant expression is required.

@@ -733,7 +733,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Select
 
                     Dim detectedIntegerOverflow = integerOverflow
-                    Dim discriminator = underlyingResultType.CorrespondingConstantValueTypeDiscriminator()
+                    Dim discriminator = underlyingResultType.GetConstantValueTypeDiscriminator()
 
                     result = GetConstantValue(discriminator, NarrowIntegralResult(value, discriminator, discriminator, integerOverflow))
 
@@ -753,7 +753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Select
 
                     Dim overflow As Boolean = False
-                    value = NarrowFloatingResult(value, underlyingResultType.CorrespondingConstantValueTypeDiscriminator(), overflow)
+                    value = NarrowFloatingResult(value, underlyingResultType.GetConstantValueTypeDiscriminator(), overflow)
 
                     ' We have decided to ignore overflows in compile-time evaluation
                     ' of floating expressions.
@@ -1155,8 +1155,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Compute the result in 64-bit arithmetic, and determine if the
                 ' operation overflows the result type.
                 Dim resultValue As Long
-                Dim leftDiscriminator = operandType.CorrespondingConstantValueTypeDiscriminator()
-                Dim resultDiscriminator = resultType.CorrespondingConstantValueTypeDiscriminator()
+                Dim leftDiscriminator = operandType.GetConstantValueTypeDiscriminator()
+                Dim resultDiscriminator = resultType.GetConstantValueTypeDiscriminator()
 
                 Select Case op
                     Case BinaryOperatorKind.Add
@@ -1375,7 +1375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
 
                 Dim overflow As Boolean = False
-                resultValue = NarrowFloatingResult(resultValue, resultType.CorrespondingConstantValueTypeDiscriminator(), overflow)
+                resultValue = NarrowFloatingResult(resultValue, resultType.GetConstantValueTypeDiscriminator(), overflow)
 
                 ' We have decided not to detect overflow in compile-time
                 ' evaluation of floating expressions.

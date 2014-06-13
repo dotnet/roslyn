@@ -1,27 +1,26 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+
 Public Class ConstantExpressionEvaluatorTests
     Inherits BasicTestBase
 
     <Fact>
     Public Sub ConstantValueGetDiscriminatorTest01()
-        Assert.Equal(ConstantValueTypeDiscriminator.Null, CompileTimeCalculations.GetDiscriminator(TypeCode.DBNull))
-        Assert.Equal(ConstantValueTypeDiscriminator.SByte, CompileTimeCalculations.GetDiscriminator(TypeCode.SByte))
-        Assert.Equal(ConstantValueTypeDiscriminator.Byte, CompileTimeCalculations.GetDiscriminator(TypeCode.Byte))
-        Assert.Equal(ConstantValueTypeDiscriminator.Int16, CompileTimeCalculations.GetDiscriminator(TypeCode.Int16))
-        Assert.Equal(ConstantValueTypeDiscriminator.UInt16, CompileTimeCalculations.GetDiscriminator(TypeCode.UInt16))
-        Assert.Equal(ConstantValueTypeDiscriminator.Int32, CompileTimeCalculations.GetDiscriminator(TypeCode.Int32))
-        Assert.Equal(ConstantValueTypeDiscriminator.UInt32, CompileTimeCalculations.GetDiscriminator(TypeCode.UInt32))
-        Assert.Equal(ConstantValueTypeDiscriminator.Int64, CompileTimeCalculations.GetDiscriminator(TypeCode.Int64))
-        Assert.Equal(ConstantValueTypeDiscriminator.UInt64, CompileTimeCalculations.GetDiscriminator(TypeCode.UInt64))
-        Assert.Equal(ConstantValueTypeDiscriminator.Char, CompileTimeCalculations.GetDiscriminator(TypeCode.Char))
-        Assert.Equal(ConstantValueTypeDiscriminator.Boolean, CompileTimeCalculations.GetDiscriminator(TypeCode.Boolean))
-        Assert.Equal(ConstantValueTypeDiscriminator.Single, CompileTimeCalculations.GetDiscriminator(TypeCode.Single))
-        Assert.Equal(ConstantValueTypeDiscriminator.Double, CompileTimeCalculations.GetDiscriminator(TypeCode.Double))
-        Assert.Equal(ConstantValueTypeDiscriminator.Decimal, CompileTimeCalculations.GetDiscriminator(TypeCode.Decimal))
-        Assert.Equal(ConstantValueTypeDiscriminator.DateTime, CompileTimeCalculations.GetDiscriminator(TypeCode.DateTime))
-        Assert.Equal(ConstantValueTypeDiscriminator.String, CompileTimeCalculations.GetDiscriminator(TypeCode.String))
-        Assert.Equal(ConstantValueTypeDiscriminator.Bad, CompileTimeCalculations.GetDiscriminator(TypeCode.Empty))
-        Assert.Equal(ConstantValueTypeDiscriminator.Bad, CompileTimeCalculations.GetDiscriminator(TypeCode.Object))
+        Assert.Equal(ConstantValueTypeDiscriminator.SByte, SpecialType.System_SByte.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.Byte, SpecialType.System_Byte.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.Int16, SpecialType.System_Int16.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.UInt16, SpecialType.System_UInt16.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.Int32, SpecialType.System_Int32.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.UInt32, SpecialType.System_UInt32.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.Int64, SpecialType.System_Int64.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.UInt64, SpecialType.System_UInt64.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.Char, SpecialType.System_Char.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.Boolean, SpecialType.System_Boolean.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.Single, SpecialType.System_Single.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.Double, SpecialType.System_Double.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.Decimal, SpecialType.System_Decimal.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.DateTime, SpecialType.System_DateTime.ToConstantValueDiscriminator())
+        Assert.Equal(ConstantValueTypeDiscriminator.String, SpecialType.System_String.ToConstantValueDiscriminator())
     End Sub
 End Class

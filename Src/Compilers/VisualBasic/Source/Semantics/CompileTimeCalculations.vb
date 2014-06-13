@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CType(v, Byte)
         End Function
 
-        Friend Function UncheckedCByte(v As Int32) As Byte
+        Friend Function UncheckedCByte(v As Integer) As Byte
             Return CType(v, Byte)
         End Function
 
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CType(v, Byte)
         End Function
 
-        Friend Function UncheckedCByte(v As UInt16) As Byte
+        Friend Function UncheckedCByte(v As UShort) As Byte
             Return CType(v, Byte)
         End Function
 
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CType(v, SByte)
         End Function
 
-        Friend Function UncheckedCSByte(v As Int64) As SByte
+        Friend Function UncheckedCSByte(v As Long) As SByte
             Return CType(v, SByte)
         End Function
 
@@ -121,11 +121,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return x * y
         End Function
 
-        Friend Function UncheckedMul(x As Int64, y As Int64) As Int64
+        Friend Function UncheckedMul(x As Long, y As Long) As Long
             Return x * y
         End Function
 
-        Friend Function UncheckedIntegralDiv(x As Int64, y As Int64) As Int64
+        Friend Function UncheckedIntegralDiv(x As Long, y As Long) As Long
             If y = -1 Then
                 Return UncheckedNegate(x)
             End If
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return -x
         End Function
 
-        Friend Function GetConstantValueAsInt64(ByRef value As ConstantValue) As Int64
+        Friend Function GetConstantValueAsInt64(ByRef value As ConstantValue) As Long
             Select Case (value.Discriminator)
                 Case ConstantValueTypeDiscriminator.SByte : Return value.SByteValue
                 Case ConstantValueTypeDiscriminator.Byte : Return value.ByteValue
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Friend Function GetConstantValue(type As ConstantValueTypeDiscriminator, value As Int64) As ConstantValue
+        Friend Function GetConstantValue(type As ConstantValueTypeDiscriminator, value As Long) As ConstantValue
             Dim result As ConstantValue
 
             Select Case (type)
@@ -198,12 +198,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function NarrowIntegralResult(
-            sourceValue As Int64,
+            sourceValue As Long,
             sourceType As ConstantValueTypeDiscriminator,
             resultType As ConstantValueTypeDiscriminator,
             ByRef overflow As Boolean
-        ) As Int64
-            Dim resultValue As Int64 = 0
+        ) As Long
+            Dim resultValue As Long = 0
 
             Select Case (resultType)
 
@@ -269,14 +269,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function NarrowIntegralResult(
-            sourceValue As Int64,
-            sourceType As TypeCode,
-            resultType As TypeCode,
+            sourceValue As Long,
+            sourceType As SpecialType,
+            resultType As SpecialType,
             ByRef overflow As Boolean
-        ) As Int64
+        ) As Long
             Return NarrowIntegralResult(sourceValue,
-                                        GetDiscriminator(sourceType),
-                                        GetDiscriminator(resultType),
+                                        sourceType.ToConstantValueDiscriminator(),
+                                        resultType.ToConstantValueDiscriminator(),
                                         overflow)
         End Function
 
@@ -284,23 +284,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Narrow a quadword result to a specific integral type, setting Overflow true
         ''' if the result value cannot be represented in the result type.
         ''' </summary>
-        Friend Function NarrowIntegralResult( _
-            sourceValue As Int64, _
-            sourceType As TypeSymbol, _
-            sesultType As TypeSymbol, _
-            ByRef overflow As Boolean _
-        ) As Int64
+        Friend Function NarrowIntegralResult(
+                        sourceValue As Long,
+                        sourceType As TypeSymbol,
+                        sesultType As TypeSymbol,
+                        ByRef overflow As Boolean) As Long
+
             Debug.Assert(sourceType.IsIntegralType() OrElse sourceType.IsBooleanType() OrElse sourceType.IsCharType(),
                         "Unexpected source type passed in to conversion function!!!")
 
             Return NarrowIntegralResult(sourceValue,
-                                        sourceType.CorrespondingConstantValueTypeDiscriminator(),
-                                        sesultType.CorrespondingConstantValueTypeDiscriminator(),
+                                        sourceType.GetConstantValueTypeDiscriminator(),
+                                        sesultType.GetConstantValueTypeDiscriminator(),
                                         overflow)
         End Function
 
         Friend Function ConvertIntegralValue(
-            sourceValue As Int64,
+            sourceValue As Long,
             sourceType As ConstantValueTypeDiscriminator,
             targetType As ConstantValueTypeDiscriminator,
             ByRef integerOverflow As Boolean
@@ -357,17 +357,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable()
         End Function
 
-        Friend Function ConvertFloatingValue( _
-            sourceValue As Double, _
-            targetType As ConstantValueTypeDiscriminator,
+        Friend Function ConvertFloatingValue(
+            sourceValue As Double,
+                        targetType As ConstantValueTypeDiscriminator,
             ByRef integerOverflow As Boolean
         ) As ConstantValue
 
             Dim overflow As Boolean = False
 
-            If ( _
-                ConstantValue.IsBooleanType(targetType) _
-            ) Then
+            If (ConstantValue.IsBooleanType(targetType)) Then
+
                 Return ConvertIntegralValue(If(sourceValue = 0.0, 0, 1),
                                             ConstantValueTypeDiscriminator.Int64,
                                             targetType,
@@ -379,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 overflow = DetectFloatingToIntegralOverflow(sourceValue, ConstantValue.IsUnsignedIntegralType(targetType))
 
                 If Not overflow Then
-                    Dim integralValue As Int64
+                    Dim integralValue As Long
                     Dim temporary As Double
                     Dim floor As Double
                     Dim sourceIntegralType As ConstantValueTypeDiscriminator
@@ -451,9 +450,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Structure DecimalData
             Public scale As Byte
             Public sign As Boolean
-            Public Hi32 As UInt32
-            Public Mid32 As UInt32
-            Public Lo32 As UInt32
+            Public Hi32 As UInteger
+            Public Mid32 As UInteger
+            Public Lo32 As UInteger
         End Structure
 
         'Decimal::GetBits Method 
@@ -493,13 +492,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim scale As Integer = decimalBits.scale
 
                 If scale = 0 Then
-                    Dim resultValue As Int64
+                    Dim resultValue As Long
 
                     ' // Easy case: no scale factor.
                     overflow = (decimalBits.Hi32 <> 0)
 
                     If Not overflow Then
-                        resultValue = ((CType(decimalBits.Mid32, Int64)) << 32) Or decimalBits.Lo32
+                        resultValue = ((CType(decimalBits.Mid32, Long)) << 32) Or decimalBits.Lo32
 
                         Dim sourceIntegralType As ConstantValueTypeDiscriminator = Nothing
 
@@ -593,7 +592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Function NarrowFloatingResult(
                 value As Double,
-                resultType As TypeCode,
+                resultType As SpecialType,
                 ByRef overflow As Boolean
             ) As Double
 
@@ -602,15 +601,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Select Case resultType
-                Case TypeCode.Double
+                Case SpecialType.System_Double
                     Return value
 
-                Case TypeCode.Single
+                Case SpecialType.System_Single
                     If value > Single.MaxValue OrElse value < Single.MinValue Then
                         overflow = True
                     End If
 
-                    Return (CType(value, Single))
+                    Return CType(value, Single)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(resultType)
@@ -661,11 +660,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Private Function ConvertFloatingToUI64(sourceValue As Double) As Int64
+        Private Function ConvertFloatingToUI64(sourceValue As Double) As Long
             ' // Conversion from double to uint64 is annoyingly implemented by the
             ' // VC++ compiler as (uint64)(int64)(double)val, so we have to do it by hand.
 
-            Dim result As Int64 = UncheckedCLng(UncheckedCULng(sourceValue))
+            Dim result As Long = UncheckedCLng(UncheckedCULng(sourceValue))
 
             ' // code below stolen from jit...
             Dim two63 As Double = 2147483648.0 * 4294967296.0
@@ -770,25 +769,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function Multiply(
-            leftValue As Int64,
-            rightValue As Int64,
-            sourceType As TypeCode,
-            resultType As TypeCode,
+            leftValue As Long,
+            rightValue As Long,
+            sourceType As SpecialType,
+            resultType As SpecialType,
             ByRef integerOverflow As Boolean
-        ) As Int64
+        ) As Long
             Return Multiply(leftValue, rightValue,
-                            GetDiscriminator(sourceType),
-                            GetDiscriminator(resultType),
+                            sourceType.ToConstantValueDiscriminator(),
+                            resultType.ToConstantValueDiscriminator(),
                             integerOverflow)
         End Function
 
         Friend Function Multiply(
-            leftValue As Int64,
-            rightValue As Int64,
+            leftValue As Long,
+            rightValue As Long,
             sourceType As ConstantValueTypeDiscriminator,
             resultType As ConstantValueTypeDiscriminator,
             ByRef integerOverflow As Boolean
-        ) As Int64
+        ) As Long
 
             Dim ResultValue = NarrowIntegralResult(
                                     UncheckedMul(leftValue, rightValue),
@@ -814,47 +813,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return ResultValue
-        End Function
-
-        Friend Function GetDiscriminator(typeCode As TypeCode) As ConstantValueTypeDiscriminator
-            Select Case typeCode
-                Case TypeCode.DBNull
-                    Return ConstantValueTypeDiscriminator.Null
-                Case TypeCode.SByte
-                    Return ConstantValueTypeDiscriminator.SByte
-                Case TypeCode.Byte
-                    Return ConstantValueTypeDiscriminator.Byte
-                Case TypeCode.Int16
-                    Return ConstantValueTypeDiscriminator.Int16
-                Case TypeCode.UInt16
-                    Return ConstantValueTypeDiscriminator.UInt16
-                Case TypeCode.Int32
-                    Return ConstantValueTypeDiscriminator.Int32
-                Case TypeCode.UInt32
-                    Return ConstantValueTypeDiscriminator.UInt32
-                Case TypeCode.Int64
-                    Return ConstantValueTypeDiscriminator.Int64
-                Case TypeCode.UInt64
-                    Return ConstantValueTypeDiscriminator.UInt64
-                Case TypeCode.Char
-                    Return ConstantValueTypeDiscriminator.Char
-                Case TypeCode.Boolean
-                    Return ConstantValueTypeDiscriminator.Boolean
-                Case TypeCode.Single
-                    Return ConstantValueTypeDiscriminator.Single
-                Case TypeCode.Double
-                    Return ConstantValueTypeDiscriminator.Double
-                Case TypeCode.Decimal
-                    Return ConstantValueTypeDiscriminator.Decimal
-                Case TypeCode.DateTime
-                    Return ConstantValueTypeDiscriminator.DateTime
-                Case TypeCode.String
-                    Return ConstantValueTypeDiscriminator.String
-                Case TypeCode.Empty
-                    Return ConstantValueTypeDiscriminator.Bad
-                Case Else
-                    Return ConstantValueTypeDiscriminator.Bad
-            End Select
         End Function
     End Module
 

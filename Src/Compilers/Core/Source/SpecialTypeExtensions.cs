@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
@@ -145,12 +146,6 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(value != null);
 
-            // literals can't be of these types:
-            Debug.Assert(value.GetType() != typeof(byte));
-            Debug.Assert(value.GetType() != typeof(sbyte));
-            Debug.Assert(value.GetType() != typeof(short));
-            Debug.Assert(value.GetType() != typeof(ushort));
-
             // Perf: Note that JIT optimizes each expression val.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.
 
@@ -202,6 +197,31 @@ namespace Microsoft.CodeAnalysis
             if (value.GetType() == typeof(decimal))
             {
                 return SpecialType.System_Decimal;
+            }
+
+            if (value.GetType() == typeof(short))
+            {
+                return SpecialType.System_Int16;
+            }
+
+            if (value.GetType() == typeof(ushort))
+            {
+                return SpecialType.System_UInt16;
+            }
+
+            if (value.GetType() == typeof(DateTime))
+            {
+                return SpecialType.System_DateTime;
+            }
+
+            if (value.GetType() == typeof(byte))
+            {
+                return SpecialType.System_Byte;
+            }
+
+            if (value.GetType() == typeof(sbyte))
+            {
+                return SpecialType.System_SByte;
             }
 
             return SpecialType.None;

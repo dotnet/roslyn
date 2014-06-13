@@ -45,24 +45,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentOutOfRangeException("kind")
             End If
 
-            If preprocessorSymbols IsNot Nothing Then
-                For Each preprocessorSymbol In preprocessorSymbols
+            ValidatePreprocessorSymbols(preprocessorSymbols, "preprocessorSymbols")
+        End Sub
 
-                    If Not IsValidIdentifier(preprocessorSymbol.Key) OrElse
-                        SyntaxFacts.GetKeywordKind(preprocessorSymbol.Key) <> SyntaxKind.None Then
-
-                        Throw New ArgumentException("preprocessorSymbols")
-                    End If
-
-                    Debug.Assert(SyntaxFactory.ParseTokens(preprocessorSymbol.Key).Select(Function(t) t.VisualBasicKind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
-
-                    Try
-                        InternalSyntax.CConst.Create(preprocessorSymbol.Value)
-                    Catch ex As InvalidOperationException
-                        Throw New ArgumentException("preprocessorSymbols", ex)
-                    End Try
-                Next
+        Private Shared Sub ValidatePreprocessorSymbols(preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)),
+                                                       parameterName As String)
+            If preprocessorSymbols Is Nothing Then
+                Return
             End If
+
+            For Each symbol In preprocessorSymbols
+                If Not IsValidIdentifier(symbol.Key) OrElse
+                   SyntaxFacts.GetKeywordKind(symbol.Key) <> SyntaxKind.None Then
+
+                    Throw New ArgumentException(parameterName)
+                End If
+
+                Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.VisualBasicKind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
+
+                Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
+                If constant Is Nothing Then
+                    Throw New ArgumentException(String.Format(VBResources.InvalidPreprocessorConstantType, symbol.Key, symbol.Value.GetType()), parameterName)
+                End If
+            Next
         End Sub
 
         ' Does not perform validation.
@@ -209,6 +214,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If symbols.Equals(Me.PreprocessorSymbols) Then
                 Return Me
             End If
+
+            ValidatePreprocessorSymbols(symbols, "symbols")
 
             Return New VisualBasicParseOptions(Me) With {._preprocessorSymbols = symbols}
         End Function
