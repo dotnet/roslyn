@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         /// Number of milliseconds that the server will stay alive 
         /// after the last request disconnects.
-        private const int DefaultServerDieTimeout = 3 * 60 * 60 * 1000; // 3 hours
+        private const int DefaultServerDieTimeout = 1; // Minimal timeout
 
         /// <summary>
         /// Main entry point for the process. Initialize the server dispatcher
