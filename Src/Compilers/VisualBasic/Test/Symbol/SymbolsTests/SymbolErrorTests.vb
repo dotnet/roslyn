@@ -5766,7 +5766,7 @@ BC30508: 'R' cannot expose type 'N.A.S' in namespace 'N' through class 'B'.
         End Sub
 
         <WorkItem(528153, "DevDiv")>
-        <Fact(Skip:="528153")>
+        <Fact()>
         Public Sub BC30508ERR_AccessMismatch6_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation>
@@ -5800,13 +5800,13 @@ BC30508: 'R' cannot expose type 'N.A.S' in namespace 'N' through class 'B'.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30508: 'F' cannot expose type 'B' in namespace 'N' through class 'C'.
+BC30508: 'F' cannot expose type 'N.A.B' in namespace 'N' through class 'C'.
                     Function F() As B
                                     ~
-BC30508: 'o' cannot expose type 'B' in namespace 'N' through class 'D'.
+BC30508: 'o' cannot expose type 'N.A.B' in namespace 'N' through class 'D'.
                         Sub M(o As B)
                                    ~
-BC30508: 'F' cannot expose type 'A.B' in namespace 'N' through class 'E'.
+BC30508: 'F' cannot expose type 'N.A.B' in namespace 'N' through class 'E'.
                 Function F() As B
                                 ~
 BC30508: 'o' cannot expose type 'N.A.B' in namespace '<Default>' through class 'F'.
@@ -8076,7 +8076,7 @@ BC30909: 'P' cannot expose type 'FriendEnum' outside the project through interfa
         End Sub
 
         <WorkItem(528153, "DevDiv")>
-        <Fact(Skip:="528153")>
+        <Fact()>
         Public Sub BC30909ERR_AccessMismatchOutsideAssembly4_2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation>
@@ -8118,10 +8118,10 @@ BC30909: 'M' cannot expose type 'FriendInterface' outside the project through st
 BC30909: 'M' cannot expose type 'FriendClass' outside the project through structure 'B'.
             Public Sub M(Of T As FriendInterface, U As FriendClass)()
                                                        ~~~~~~~~~~~
-BC30909: 'F' cannot expose type 'FriendInterface' outside the project through class 'I'.
+BC30909: 'F' cannot expose type 'FriendInterface' outside the project through interface 'I'.
             Function F(Of T As FriendInterface, U As FriendClass)() As Object
                                ~~~~~~~~~~~~~~~
-BC30909: 'F' cannot expose type 'FriendClass' outside the project through class 'I'.
+BC30909: 'F' cannot expose type 'FriendClass' outside the project through interface 'I'.
             Function F(Of T As FriendInterface, U As FriendClass)() As Object
                                                      ~~~~~~~~~~~
 ]]></errors>
@@ -8129,7 +8129,7 @@ BC30909: 'F' cannot expose type 'FriendClass' outside the project through class 
         End Sub
 
         <WorkItem(528153, "DevDiv")>
-        <Fact(Skip:="528153")>
+        <Fact()>
         Public Sub BC30909ERR_AccessMismatchOutsideAssembly4_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation>
@@ -8159,21 +8159,21 @@ BC30909: 'F' cannot expose type 'FriendClass' outside the project through class 
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30909: 'F' cannot expose type 'B' outside the project through interface 'C'.
+BC30909: 'F' cannot expose type 'N.A.B' outside the project through interface 'C'.
                     Function F() As B
                                     ~
-BC30909: 'o' cannot expose type 'B' outside the project through interface 'D'.
+BC30909: 'o' cannot expose type 'N.A.B' outside the project through interface 'D'.
                         Sub M(o As B)
                                    ~
-BC30909: 'F' cannot expose type 'A.B' outside the project through interface 'E'.
+BC30909: 'F' cannot expose type 'N.A.B' outside the project through interface 'E'.
                 Function F() As B
                                 ~
-BC30909: 'o' cannot expose type 'A.B' outside the project through interface 'F'.
+BC30909: 'o' cannot expose type 'N.A.B' outside the project through interface 'F'.
                 Sub M(o As A.B)
                            ~~~
 BC30909: 'F' cannot expose type 'N.A.B' outside the project through interface 'G'.
             Function F() As N.A.B
-                            ~~~
+                            ~~~~~
 ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
