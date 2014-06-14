@@ -3,140 +3,129 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Xml;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal partial class XmlDocumentationCommentTextReader
     {
-        private class XmlStream : Stream
+        internal sealed class Reader : TextReader
         {
-            private string text;    // The XML text
-            private int charIndex;  // Current position (in chars) within the (synthesized) text
+            /// <summary>
+            /// Current text to validate.
+            /// </summary>
+            private string text;    
+
+            private int position;
 
             // Base the root element name on a GUID to avoid accidental (or intentional) collisions. An underscore is
             // prefixed because element names must not start with a number.
-            public static readonly string RootElementName = "_" + Guid.NewGuid().ToString("N");
-            private static readonly string prefix = "<" + RootElementName + ">";
-            private static readonly string suffix = "</" + RootElementName + ">";
+            private static readonly string RootElementName = "_" + Guid.NewGuid().ToString("N");
+            private static readonly string CurrentElementName = "_" + Guid.NewGuid().ToString("N");
+
+            // internal for testing
+            internal static readonly string RootStart = "<" + RootElementName + ">";
+            internal static readonly string CurrentStart = "<" + CurrentElementName + ">";
+            internal static readonly string CurrentEnd = "</" + CurrentElementName + ">";
+
+            public void Reset()
+            {
+                this.text = null;
+                this.position = 0;
+            }
 
             public void SetText(string text)
             {
                 this.text = text;
-                this.charIndex = 0;
-            }
 
-            public bool ReachedEnd
-            {
-                get
+                // The first read shall read the <root>, 
+                // the subsequents reads shall start with <current> element
+                if (this.position > 0)
                 {
-                    return this.text == null;
+                    this.position = RootStart.Length;
                 }
             }
 
-            public override bool CanRead
+            // for testing
+            internal int Position
             {
-                get
-                {
-                    return true;
-                }
+                get { return position; }
             }
 
-            public override bool CanSeek
+            public static bool ReachedEnd(XmlReader reader)
             {
-                get
-                {
-                    return false;
-                }
+                return reader.Depth == 1 
+                    && reader.NodeType == XmlNodeType.EndElement 
+                    && reader.Name == CurrentElementName;
             }
 
-            public override bool CanWrite
+            public override int Read(char[] buffer, int index, int count)
             {
-                get
-                {
-                    return false;
-                }
-            }
-
-            public override long Length
-            {
-                get
-                {
-                    return (prefix.Length + suffix.Length + text.Length) * sizeof(char);
-                }
-            }
-
-            public override long Position
-            {
-                get
-                {
-                    return this.charIndex * sizeof(char);
-                }
-
-                set
-                {
-                    throw new NotSupportedException();
-                }
-            }
-
-            public override void Flush()
-            {
-                throw new NotSupportedException();
-            }
-
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-                // The stream synthesizes an XML document with:
-                // 1. A root element start tag (prefix)
-                // 2. The user text (xml fragments)
-                // 3. The root element end tag (suffix)
-
-                int initialCount = count;
-
-                // Prefix
-                charIndex += EncodeAndAdvance(prefix, charIndex, buffer, ref offset, ref count);
-
-                // Body
-                charIndex += EncodeAndAdvance(text, charIndex - prefix.Length, buffer, ref offset, ref count);
-
-                // Suffix
-                charIndex += EncodeAndAdvance(suffix, charIndex - prefix.Length - text.Length, buffer, ref offset, ref count);
-
-                // Return the number of bytes copied
-                // NOTE: It should be "initialCount - count", but that seems to confuse CLRProfiler.
-                //       Reversing operand somehow fixes the issue.
-                return -count + initialCount;
-            }
-
-            private static int EncodeAndAdvance(string src, int srcIndex, byte[] dest, ref int destOffset, ref int destCount)
-            {
-                if (destCount <= 0 || srcIndex < 0 || srcIndex >= src.Length)
+                if (count == 0)
                 {
                     return 0;
                 }
 
-                int charCount = Math.Min(src.Length - srcIndex, destCount / sizeof(char));
+                // The stream synthesizes an XML document with:
+                // 1. A root element start tag
+                // 2. Current element start tag
+                // 3. The user text (xml fragments)
+                // 4. Current element end tag
+
+                int initialCount = count;
+
+                // <root>
+                position += EncodeAndAdvance(RootStart, position, buffer, ref index, ref count);
+
+                // <current>
+                position += EncodeAndAdvance(CurrentStart, position - RootStart.Length, buffer, ref index, ref count);
+                
+                // text
+                position += EncodeAndAdvance(text, position - RootStart.Length - CurrentStart.Length, buffer, ref index, ref count);
+
+                // </current>
+                position += EncodeAndAdvance(CurrentEnd, position - RootStart.Length - CurrentStart.Length - text.Length, buffer, ref index, ref count);
+
+                // Pretend that the stream is infinite, i.e. never return 0 characters read.
+                if (initialCount == count)
+                {
+                    buffer[index++] = ' ';
+                    count--;
+                }
+
+                return initialCount - count;
+            }
+
+            private static int EncodeAndAdvance(string src, int srcIndex, char[] dest, ref int destIndex, ref int destCount)
+            {
+                if (destCount == 0 || srcIndex < 0 || srcIndex >= src.Length)
+                {
+                    return 0;
+                }
+
+                int charCount = Math.Min(src.Length - srcIndex, destCount);
                 Debug.Assert(charCount > 0);
-                int bytesCopied = Encoding.Unicode.GetBytes(src, srcIndex, charCount, dest, destOffset);
-                destOffset += bytesCopied;
-                destCount -= bytesCopied;
+                src.CopyTo(srcIndex, dest, destIndex, charCount);
+
+                destIndex += charCount;
+                destCount -= charCount;
                 Debug.Assert(destCount >= 0);
                 return charCount;
             }
 
-            public override long Seek(long offset, SeekOrigin origin)
+            public override int Read()
             {
-                throw new NotSupportedException();
+                // XmlReader does not call this API
+                throw ExceptionUtilities.Unreachable;
             }
 
-            public override void SetLength(long value)
+            public override int Peek()
             {
-                throw new NotSupportedException();
-            }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                throw new NotSupportedException();
+                // XmlReader does not call this API
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

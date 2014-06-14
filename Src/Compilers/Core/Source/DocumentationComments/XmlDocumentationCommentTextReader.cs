@@ -8,16 +8,16 @@ namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Used by the DocumentationCommentCompiler(s) to check doc comments for XML parse errors.
-    /// As a performance optimization, this class tries to re-use the same underlying XmlTextReader instance
-    /// when possible.
+    /// As a performance optimization, this class tries to re-use the same underlying <see cref="XmlReader"/> instance
+    /// when possible. 
     /// </summary>
     internal partial class XmlDocumentationCommentTextReader
     {
-        private XmlTextReader reader;
-        private readonly XmlStream stream = new XmlStream();
+        private XmlReader reader;
+        private readonly Reader textReader = new Reader();
 
-        private static readonly ObjectPool<XmlDocumentationCommentTextReader>.Factory factory = () => new XmlDocumentationCommentTextReader();
-        private static readonly ObjectPool<XmlDocumentationCommentTextReader> pool = new ObjectPool<XmlDocumentationCommentTextReader>(factory, size: 2);
+        private static readonly ObjectPool<XmlDocumentationCommentTextReader> pool = 
+            new ObjectPool<XmlDocumentationCommentTextReader>(() => new XmlDocumentationCommentTextReader(), size: 2);
 
         public static XmlException ParseAndGetException(string text)
         {
@@ -27,42 +27,36 @@ namespace Microsoft.CodeAnalysis
             return retVal;
         }
 
-        private XmlException ParseInternal(string text)
+        private static readonly XmlReaderSettings xmlSettings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };
+
+        // internal for testing
+        internal XmlException ParseInternal(string text)
         {
-            stream.SetText(text);
+            textReader.SetText(text);
 
             if (reader == null)
             {
-                reader = new XmlTextReader(stream);
+                reader = XmlReader.Create(textReader, xmlSettings);
             }
 
             try
             {
-                while (!ReachedEnd())
+                do
                 {
                     reader.Read();
                 }
+                while (!Reader.ReachedEnd(reader));
 
-                // No errors. Reset the text reader for next time.
-                reader.ResetState();
                 return null;
             }
             catch (XmlException ex)
             {
-                // The reader is in a bad state and ResetState isn't going to help (because it has already
-                // consumed bad text from the underlying stream and that can't be undone).
-                // So, dispose of it and recreate a new one next time we get called.
+                // The reader is in a bad state, so dispose of it and recreate a new one next time we get called.
                 reader.Dispose();
                 reader = null;
+                textReader.Reset();
                 return ex;
             }
-        }
-
-        private bool ReachedEnd()
-        {
-            return reader.Depth == 0 &&
-                reader.NodeType == XmlNodeType.EndElement &&
-                reader.Name == XmlStream.RootElementName;
-        }
+        }           
     }
 }
