@@ -24,5 +24,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return typeSymbol.Accept(TypeSyntaxGeneratorVisitor.Instance).WithAdditionalAnnotations(Simplifier.Annotation);
         }
+
+        public static bool ContainingTypesOrSelfHasUnsafeKeyword(this ITypeSymbol containingType)
+        {
+            do
+            {
+                foreach (var reference in containingType.DeclaringSyntaxReferences)
+                {
+                    if (reference.GetSyntax().ChildTokens().Any(t => t.IsKind(SyntaxKind.UnsafeKeyword)))
+                    {
+                        return true;
+                    }
+                }
+
+                containingType = containingType.ContainingType;
+            }
+            while (containingType != null);
+            return false;
+        }
     }
 }
