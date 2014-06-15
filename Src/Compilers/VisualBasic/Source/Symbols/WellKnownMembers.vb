@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))
             End If
 
-            useSiteError = DirectCast(Thread.VolatileRead(m_LazyExtensionAttributeConstructorErrorInfo), DiagnosticInfo)
+            useSiteError = DirectCast(Volatile.Read(m_LazyExtensionAttributeConstructorErrorInfo), DiagnosticInfo)
             Return DirectCast(m_LazyExtensionAttributeConstructor, MethodSymbol)
         End Function
 

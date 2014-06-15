@@ -208,5 +208,31 @@ namespace Roslyn.Utilities
                 return arg;
             }
         }
+
+        // String isn't IEnumerable<char> in the current Portable profile. 
+        internal static char First(this string arg)
+        {
+            return arg[0];
+        }
+
+        // String isn't IEnumerable<char> in the current Portable profile. 
+        internal static char Last(this string arg)
+        {
+            return arg[arg.Length - 1];
+        }
+
+        // String isn't IEnumerable<char> in the current Portable profile. 
+        internal static bool All(this string arg, Predicate<char> predicate)
+        {
+            foreach (char c in arg)
+            {
+                if (!predicate(c))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

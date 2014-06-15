@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property IsInitialized As Boolean
             Get
-                Return Thread.VolatileRead(Me._position) >= 0
+                Return Volatile.Read(Me._position) >= 0
             End Get
         End Property
 
@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(other.IsInitialized)
             Me._embeddedKind = other._embeddedKind
             Me._treeOrdinal = other._treeOrdinal
-            Thread.VolatileWrite(Me._position, other._position)
+            Volatile.Write(Me._position, other._position)
         End Sub
 
     End Structure

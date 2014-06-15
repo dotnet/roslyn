@@ -293,7 +293,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim curTask As Task = Nothing
             While tasks.TryPop(curTask)
                 curTask.GetAwaiter().GetResult()
-                curTask.Dispose()
             End While
         End Sub
 

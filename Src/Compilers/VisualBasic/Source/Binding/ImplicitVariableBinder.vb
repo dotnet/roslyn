@@ -223,8 +223,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
-                                                                    options As LookupOptions,
-                                                                    originalBinder As Binder)
+                                                                   options As LookupOptions,
+                                                                   originalBinder As Binder)
 #If DEBUG Then
             CheckVariableDeclarationOnSingleThread()
 #End If
@@ -245,10 +245,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not _frozen Then
                 ' First time we're called, get the thread id. Subsequent times, check it hasn't changed.
                 If _threadIdForDeclaration = -1 Then
-                    Interlocked.CompareExchange(_threadIdForDeclaration, Thread.CurrentThread.ManagedThreadId, -1)
+                    Interlocked.CompareExchange(_threadIdForDeclaration, ThreadingUtilities.GetCurrentThreadId(), -1)
                 End If
 
-                Debug.Assert(_threadIdForDeclaration = Thread.CurrentThread.ManagedThreadId)
+                Debug.Assert(_threadIdForDeclaration = ThreadingUtilities.GetCurrentThreadId())
             End If
         End Sub
 #End If

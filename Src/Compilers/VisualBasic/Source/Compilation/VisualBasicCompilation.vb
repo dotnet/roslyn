@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 m_scriptClass = New Lazy(Of ImplicitNamedTypeSymbol)(AddressOf BindScriptClass)
 
                 If isSubmission Then
-                    Debug.Assert(previousSubmission Is Nothing OrElse previousSubmission.HostObjectType = hostObjectType)
+                    Debug.Assert(previousSubmission Is Nothing OrElse previousSubmission.HostObjectType Is hostObjectType)
                     m_previousSubmission = previousSubmission
                 Else
                     Debug.Assert(previousSubmission Is Nothing AndAlso submissionReturnType Is Nothing AndAlso hostObjectType Is Nothing)

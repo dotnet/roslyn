@@ -266,6 +266,7 @@
     <Compile Include="InternalUtilities\SuppressUnmanagedCodeSecurityAttribute.cs" />
     <Compile Include="InternalUtilities\TextChangeRangeExtensions.cs" />
     <Compile Include="InternalUtilities\TextKeyedCache.cs" />
+    <Compile Include="InternalUtilities\ThreadingUtilities.cs" />
     <Compile Include="InternalUtilities\ThreadSafeFlagOperations.cs" />
     <Compile Include="InternalUtilities\ThreeState.cs" />
     <Compile Include="InternalUtilities\ValueTuple.cs" />

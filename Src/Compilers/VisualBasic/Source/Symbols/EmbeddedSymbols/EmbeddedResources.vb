@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Shared Function GetManifestResourceString(name As String) As String
-            Using reader As New StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(name))
+            Using reader As New StreamReader(GetType(EmbeddedResources).GetTypeInfo().Assembly.GetManifestResourceStream(name))
                 Return reader.ReadToEnd()
             End Using
         End Function
