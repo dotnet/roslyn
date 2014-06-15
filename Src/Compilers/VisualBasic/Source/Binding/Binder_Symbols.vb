@@ -189,8 +189,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 members = ImmutableArray(Of TMember).Empty
             End If
 
-            Dim isProperties As Boolean = (GetType(TMember) = GetType(PropertySymbol))
-            Dim isMethods As Boolean = (GetType(TMember) = GetType(MethodSymbol))
+            Dim isProperties As Boolean = (GetType(TMember) Is GetType(PropertySymbol))
+            Dim isMethods As Boolean = (GetType(TMember) Is GetType(MethodSymbol))
             If Not (isProperties OrElse isMethods) Then
                 Throw New ArgumentException("Must resolve overloads on PropertySymbol or MethodSymbol", "TMember")
             End If

@@ -190,7 +190,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Next
         End Sub
 
-        <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
         Friend Overrides Sub BuildExtensionMethodsMap(
             map As Dictionary(Of String, ArrayBuilder(Of MethodSymbol)),
             appendThrough As NamespaceSymbol
@@ -198,7 +197,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Throw ExceptionUtilities.Unreachable
         End Sub
 
-        <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
         Friend Overrides Sub GetExtensionMethods(methods As ArrayBuilder(Of MethodSymbol), appendThrough As NamespaceSymbol, Name As String)
             Throw ExceptionUtilities.Unreachable
         End Sub
@@ -219,7 +217,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return MyBase.AddExtensionMethodLookupSymbolsInfoViabilityCheck(RetargetingTranslator.Retarget(method), options, originalBinder)
         End Function
 
-        <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
         Friend Overrides Sub AddExtensionMethodLookupSymbolsInfo(nameSet As LookupSymbolsInfo,
                                                                   options As LookupOptions,
                                                                   originalBinder As Binder,

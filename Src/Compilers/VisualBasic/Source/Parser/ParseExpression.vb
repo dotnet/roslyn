@@ -4,10 +4,7 @@
 '============ Methods for parsing portions of executable statements ==
 '
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -1128,14 +1125,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' We should not hit this case since ParseArguments should have
                     ' resynced to the close paren and TryEatNewLineAndGetToken
                     ' above should have succeeded. If we do hit this, add a test case.
-                    Debug.Fail("Unexpected close paren")
+                    Debug.Assert(False, "Unexpected close paren")
                     Dim trash = ResyncAt({SyntaxKind.CloseParenToken})
                     closeParen = DirectCast(CurrentToken, PunctuationSyntax)
                     closeParen = closeParen.AddLeadingSyntax(trash)
 
                     GetNextToken()
                 Else
-
                     closeParen = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.CloseParenToken)
                     closeParen = ReportSyntaxError(closeParen, ERRID.ERR_ExpectedRparen)
                 End If

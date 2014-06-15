@@ -416,20 +416,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return MergedNamespaceSymbol.Create(_assembly, Me, nsSymbols)
             End Function
 
-            <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
             Friend Overrides ReadOnly Property RawContainsAccessibleTypes As ThreeState
                 Get
                     Throw ExceptionUtilities.Unreachable
                 End Get
             End Property
 
-            <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
             Friend Overrides Sub BuildExtensionMethodsMap(map As Dictionary(Of String, ArrayBuilder(Of MethodSymbol)))
                 ' Assembly merged namespace symbols aren't used by binders.
                 Throw ExceptionUtilities.Unreachable
             End Sub
 
-            <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
             Friend Overrides ReadOnly Property TypesToCheckForExtensionMethods As ImmutableArray(Of NamedTypeSymbol)
                 Get
                     ' Assembly merged namespace symbols aren't used by binders.
@@ -571,7 +568,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
             End Sub
 
-            <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
             Friend Overrides ReadOnly Property TypesToCheckForExtensionMethods As ImmutableArray(Of NamedTypeSymbol)
                 Get
                     ' We should override all callers of this function and go through implementation
@@ -625,21 +621,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
             Friend Overrides ReadOnly Property RawContainsAccessibleTypes As ThreeState
                 Get
                     Throw ExceptionUtilities.Unreachable
                 End Get
             End Property
 
-            <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
             Friend Overrides ReadOnly Property TypesToCheckForExtensionMethods As ImmutableArray(Of NamedTypeSymbol)
                 Get
                     Throw ExceptionUtilities.Unreachable
                 End Get
             End Property
 
-            <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
             Friend Overrides Sub BuildExtensionMethodsMap(map As Dictionary(Of String, ArrayBuilder(Of MethodSymbol)))
                 Throw ExceptionUtilities.Unreachable
             End Sub

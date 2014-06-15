@@ -74,13 +74,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case SymbolKind.Event
                     Return "event"
 
-                Case SymbolKind.Assembly, SymbolKind.NetModule, SymbolKind.Label
-                    Debug.Fail("unexpected symbol kind")
-                    Return ""
-
                 Case Else
-                    Debug.Assert(False)
-                    Return "type"
+                    Throw ExceptionUtilities.UnexpectedValue(target.Kind)
             End Select
         End Function
 

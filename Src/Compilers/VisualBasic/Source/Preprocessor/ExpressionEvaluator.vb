@@ -6,6 +6,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.TypeHelpers
 
@@ -537,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim value As Object = op.ValueAsObject
 
             If value IsNot Nothing Then
-                If value.GetType.IsValueType Then
+                If value.GetType().GetTypeInfo().IsValueType Then
                     Return ReportSemanticError(ERRID.ERR_RequiredConstExpr, expr)
                 Else
                     Return op

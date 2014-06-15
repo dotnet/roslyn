@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             CheckSourceLocationSeen(anonymous)
 
             Dim typeDescr As AnonymousTypeDescriptor = anonymous.TypeDescriptor
-            Debug.Assert(typeDescr.IsGood)
+            typeDescr.AssertGood()
 
             ' Get anonymous type template
             Dim template As AnonymousTypeTemplateSymbol = Nothing
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             CheckSourceLocationSeen(anonymous)
 
             Dim delegateDescr As AnonymousTypeDescriptor = anonymous.TypeDescriptor
-            Debug.Assert(delegateDescr.IsGood)
+            delegateDescr.AssertGood()
             Dim parameters As ImmutableArray(Of AnonymousTypeField) = delegateDescr.Parameters
 
             ' Get anonymous template

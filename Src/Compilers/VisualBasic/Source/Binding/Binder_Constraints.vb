@@ -23,12 +23,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case clause.Kind
                 Case SyntaxKind.TypeParameterSingleConstraintClause
                     BindTypeParameterConstraint(containingSymbol, DirectCast(clause, TypeParameterSingleConstraintClauseSyntax).Constraint, constraints, constraintsBuilder, diagnostics)
+
                 Case SyntaxKind.TypeParameterMultipleConstraintClause
                     For Each syntax As ConstraintSyntax In DirectCast(clause, TypeParameterMultipleConstraintClauseSyntax).Constraints
                         BindTypeParameterConstraint(containingSymbol, syntax, constraints, constraintsBuilder, diagnostics)
                     Next
+
                 Case Else
-                    Debug.Fail("Unexpected constraint clause: " & clause.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(clause.Kind)
             End Select
             Return constraintsBuilder.ToImmutableAndFree()
         End Function
@@ -88,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case Else
-                    Debug.Fail("Unexpected constraint: " & syntax.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(syntax.Kind)
 
             End Select
         End Sub

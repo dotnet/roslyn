@@ -566,7 +566,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim curTask As Task = Nothing
                 While tasks.TryPop(curTask)
                     curTask.GetAwaiter().GetResult()
-                    curTask.Dispose()
                 End While
             End If
 
@@ -637,7 +636,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim curTask As Task = Nothing
                 While tasks.TryPop(curTask)
                     curTask.GetAwaiter().GetResult()
-                    curTask.Dispose()
                 End While
             End If
 

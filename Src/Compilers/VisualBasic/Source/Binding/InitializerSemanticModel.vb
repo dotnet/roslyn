@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         '  get field symbol
                         Dim fieldSymbol = DirectCast(Me.MemberSymbol, SourceFieldSymbol)
-                        Dim boundInitializers = ArrayBuilder(Of boundInitializer).GetInstance
+                        Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
                         If initializer IsNot Nothing Then
                             ' bind const and non const field initializers the same to get a bound expression back and not a constant value.
                             binder.BindFieldInitializer(ImmutableArray.Create(Of Symbol)(fieldSymbol), initializer, boundInitializers, diagnostics, bindingForSemanticModel:=True)
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.Property
                     '  get property symbol
                     Dim propertySymbol = DirectCast(Me.MemberSymbol, SourcePropertySymbol)
-                    Dim boundInitializers = ArrayBuilder(Of boundInitializer).GetInstance
+                    Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
                     binder.BindPropertyInitializer(propertySymbol, initializer, boundInitializers, diagnostics)
                     boundInitializer = boundInitializers.First
                     boundInitializers.Free()
@@ -130,8 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case Else
-                    Debug.Fail("Unexpected member symbol kind: " & Me.MemberSymbol.Kind)
-                    Return Nothing
+                    Throw ExceptionUtilities.UnexpectedValue(Me.MemberSymbol.Kind)
             End Select
 
             Return boundInitializer

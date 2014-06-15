@@ -1735,21 +1735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#If DEBUG Then
-        ' Thread id to catch cases where ComputeMembersAndInitializers
-        ' is called recursively. This does not catch all recursive cases,
-        ' only cases where the method is called recursively on the first
-        ' thread that called ComputeMembersAndInitializers.
-        Private m_computingMembersThreadId As Integer
-#End If
-
         Private Function BuildMembersAndInitializers(diagBag As DiagnosticBag) As MembersAndInitializers
-#If DEBUG Then
-            Dim threadId = Thread.CurrentThread.ManagedThreadId
-            Debug.Assert(m_computingMembersThreadId <> threadId)
-            Interlocked.CompareExchange(m_computingMembersThreadId, threadId, 0)
-#End If
-
             ' Get type members
             Dim typeMembers = GetTypeMembersDictionary()
 
@@ -1770,10 +1756,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     membersAndInitializers.Members(name) = nontypeSymbols.Concat(StaticCast(Of Symbol).From(typeSymbols))
                 End If
             Next
-
-#If DEBUG Then
-            Interlocked.CompareExchange(m_computingMembersThreadId, 0, threadId)
-#End If
 
             Return membersAndInitializers
         End Function

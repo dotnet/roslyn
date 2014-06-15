@@ -353,8 +353,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
 
                 Case Else
-                    Debug.Fail("Unexpected statement kind; add to either stand-alone or non-standalone list.")
-                    Return False
+                    ' Unexpected statement kind; add to either stand-alone or non-standalone list.
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
             Return True
         End Function

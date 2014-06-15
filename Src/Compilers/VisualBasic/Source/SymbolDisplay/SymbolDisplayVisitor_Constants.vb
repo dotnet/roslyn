@@ -1,6 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class SymbolDisplayVisitor
@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub AddLiteralValue(type As SpecialType, value As Object)
-            Debug.Assert(value.GetType().IsPrimitive OrElse TypeOf value Is String OrElse TypeOf value Is Decimal OrElse TypeOf value Is DateTime)
+            Debug.Assert(value.GetType().GetTypeInfo().IsPrimitive OrElse TypeOf value Is String OrElse TypeOf value Is Decimal OrElse TypeOf value Is DateTime)
 
             Select Case type
                 Case SpecialType.System_String

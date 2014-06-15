@@ -1,21 +1,10 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Globalization
-Imports System.IO
-Imports System.Text
-Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Instrumentation
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports System.Xml.Linq
-Imports System.Xml
+Imports System.Reflection
 Imports System.Resources
+Imports System.Runtime.InteropServices
+Imports System.Xml
+Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Public Class VisualBasicCompilation
@@ -180,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Function GetDescription(e As XmlException) As String
                 Dim message As String = e.Message
                 Try
-                    Dim manager As New ResourceManager("System.Xml", GetType(XmlException).Assembly)
+                    Dim manager As New ResourceManager("System.Xml", GetType(XmlException).GetTypeInfo().Assembly)
                     Dim locationTemplate As String = manager.GetString("Xml_MessageWithErrorPosition")
                     Dim locationString As String =
                         String.Format(locationTemplate, "", e.LineNumber, e.LinePosition) ' first arg is where the problem description goes

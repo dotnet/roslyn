@@ -400,10 +400,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 Dim pinvoke As DllImportData = methodSymbol.GetDllImportData()
 
                                 Select Case pinvoke.CharacterSet
-                                    Case CharSet.None, CharSet.Ansi
+                                    Case Cci.Constants.CharSet_None, CharSet.Ansi
                                         info.SetMarshalAsSimpleType(UnmanagedType.AnsiBStr)
 
-                                    Case CharSet.Auto
+                                    Case Cci.Constants.CharSet_Auto
                                         info.SetMarshalAsSimpleType(UnmanagedType.TBStr)
 
                                     Case CharSet.Unicode

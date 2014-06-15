@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
+Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.Text
@@ -213,9 +214,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function GetSerializationData() As IEnumerable(Of Object)
             If _serializationData Is Nothing Then
                 Dim data = New Object() {
-                    GetType(Object).Assembly.FullName,
-                    GetType(Microsoft.CodeAnalysis.DiagnosticInfo).Assembly.FullName,
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode).Assembly.FullName,
+                    GetType(Object).GetTypeInfo().Assembly.FullName,
+                    GetType(Microsoft.CodeAnalysis.DiagnosticInfo).GetTypeInfo().Assembly.FullName,
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode).GetTypeInfo().Assembly.FullName,
                     GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxToken.TriviaInfo),
                     GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SimpleIdentifierSyntax),
                     GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ComplexIdentifierSyntax),

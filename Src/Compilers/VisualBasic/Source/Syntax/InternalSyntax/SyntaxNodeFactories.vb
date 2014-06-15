@@ -530,8 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return SyntaxFactory.InterfaceBlock(begin, [inherits], [implements], members, [end])
 
                 Case Else
-                    Debug.Fail("Unsupported TypeBlockSyntax kind")
-                    Return Nothing
+                    Throw ExceptionUtilities.UnexpectedValue(blockKind)
             End Select
         End Function
 
@@ -550,8 +549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return SyntaxFactory.InterfaceStatement(attributes, modifiers, keyword, identifier, typeParameterList)
 
                 Case Else
-                    Debug.Fail("Unsupported TypeStatementSyntax kind")
-                    Return Nothing
+                    Throw ExceptionUtilities.UnexpectedValue(statementKind)
             End Select
         End Function
     End Class

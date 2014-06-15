@@ -54,10 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return sourceEvent.GetImplementingLocation(DirectCast(implementedSym, EventSymbol))
             End If
 
-            ' Shouldn't happen
-            Debug.Fail("should always pass source symbol into this function")
-
-            Return sourceSym.Locations.FirstOrDefault()
+            ' Should always pass source symbol into this function
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         ' Given an implements clause syntax on an implementing symbol, and an implemented symbol, find and return the particular name
@@ -335,8 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return EventSignatureComparer.ExplicitEventImplementationComparer.Equals(DirectCast(implementedSym, EventSymbol), DirectCast(implementingSym, EventSymbol))
 
                 Case Else
-                    Debug.Fail("Unexpected symbol kind")
-                    Return False
+                    Throw ExceptionUtilities.UnexpectedValue(implementingSym.Kind)
             End Select
         End Function
 

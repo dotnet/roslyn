@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(compiler._writer.IndentDepth = 0)
 
                 discardedDiagnostics.Free()
-                writer.Close()
+                writer.Dispose()
                 Return pooled.ToStringAndFree()
             End Function
 

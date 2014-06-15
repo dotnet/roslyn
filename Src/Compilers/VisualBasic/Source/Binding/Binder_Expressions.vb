@@ -3516,7 +3516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If parent Is Nothing Then
-                Debug.Fail("Did not found a NamedArgumentSyntax where one should have been")
+                Debug.Assert(false, "Did not found a NamedArgumentSyntax where one should have been")
                 Return argumentExpression.GetFirstToken() ' since we use this for error reporting, this gives us something close, anyway.
             Else
                 Return parent.IdentifierName.Identifier

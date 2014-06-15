@@ -1,15 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -21,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public ReadOnly TypeDescriptor As AnonymousTypeDescriptor
 
             Protected Sub New(manager As AnonymousTypeManager, typeDescr As AnonymousTypeDescriptor)
-                Debug.Assert(typeDescr.IsGood)
+                typeDescr.AssertGood()
                 Debug.Assert(TypeKind = TypeKind.Class OrElse TypeKind = TypeKind.Delegate)
 
                 Me.Manager = manager

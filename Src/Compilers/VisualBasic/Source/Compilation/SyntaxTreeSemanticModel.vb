@@ -722,7 +722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         resultKind)
 
                             Case Else
-                                Debug.Fail("unexpected place for implements clause")
+                                Throw ExceptionUtilities.UnexpectedValue(implementingMember.Kind)
                         End Select
                     End If
                 End If

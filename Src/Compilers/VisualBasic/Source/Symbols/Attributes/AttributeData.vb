@@ -450,15 +450,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
-        Friend Function DecodeTypeLibTypeAttribute() As TypeLibTypeFlags
+        Friend Function DecodeTypeLibTypeAttribute() As Cci.TypeLibTypeFlags
             Debug.Assert(Not Me.HasErrors)
 
             Dim ctorArgument As TypedConstant = Me.CommonConstructorArguments(0)
             Debug.Assert(ctorArgument.Kind = TypedConstantKind.Enum OrElse ctorArgument.Kind = TypedConstantKind.Primitive)
 
             Return If(ctorArgument.Kind = TypedConstantKind.Enum,
-                      ctorArgument.DecodeValue(Of TypeLibTypeFlags)(SpecialType.System_Enum),
-                      CType(ctorArgument.DecodeValue(Of Short)(SpecialType.System_Int16), TypeLibTypeFlags))
+                      ctorArgument.DecodeValue(Of Cci.TypeLibTypeFlags)(SpecialType.System_Enum),
+                      CType(ctorArgument.DecodeValue(Of Short)(SpecialType.System_Int16), Cci.TypeLibTypeFlags))
         End Function
 
         Friend Sub DecodeGuidAttribute(nodeOpt As AttributeSyntax, diagnostics As DiagnosticBag)

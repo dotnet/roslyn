@@ -771,8 +771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case SyntaxKind.DelegateFunctionStatement,
                      SyntaxKind.DelegateSubStatement : Return DeclarationKind.Delegate
                 Case Else
-                    Debug.Fail("Unexpected syntax kind in declaration builder")
-                    Return DeclarationKind.Class
+                    Throw ExceptionUtilities.UnexpectedValue(kind)
             End Select
         End Function
 
@@ -822,7 +821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case SyntaxKind.IteratorKeyword : bit = DeclarationModifiers.Iterator
 
                     Case Else
-                        Debug.Fail("Unexpected token found in modifier list")
+                        Throw ExceptionUtilities.UnexpectedValue(modifier.VisualBasicKind)
                 End Select
 
                 result = result Or bit

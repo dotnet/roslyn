@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case SymbolKind.Method, SymbolKind.Property, SymbolKind.Event
                     Exit Select
                 Case Else
-                    Debug.Fail("Unexpected symbol kind: " & sym.Kind)
+                    Debug.Assert(False, "Unexpected symbol kind: " & sym.Kind)
             End Select
         End Sub
     End Class

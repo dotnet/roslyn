@@ -1377,7 +1377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If TryCast(compilationRelaxationsAttributeType, MissingMetadataTypeSymbol) Is Nothing Then
                     Dim int32Type = Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32)
                     Debug.Assert(int32Type.GetUseSiteErrorInfo() Is Nothing, "Use site errors should have been checked ahead of time (type int).")
-                    Dim typedConstantNoStringInterning = New TypedConstant(int32Type, TypedConstantKind.Primitive, CInt(CompilationRelaxations.NoStringInterning))
+                    Dim typedConstantNoStringInterning = New TypedConstant(int32Type, TypedConstantKind.Primitive, Cci.Constants.CompilationRelaxations_NoStringInterning)
 
                     AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeAttribute(
                         WellKnownMember.System_Runtime_CompilerServices_CompilationRelaxationsAttribute__ctorInt32,

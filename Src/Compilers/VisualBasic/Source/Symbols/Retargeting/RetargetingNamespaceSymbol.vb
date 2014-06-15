@@ -196,10 +196,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         '''     Public,
         '''     NotApplicable - if there are no types.
         ''' </summary>
-        <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
         Protected Overrides Function GetDeclaredAccessibilityOfMostAccessibleDescendantType() As Accessibility
-            Debug.Assert(False, "Unexpected!") ' We should not be calling this method for Retargeting namespace.
-            Return m_UnderlyingNamespace.DeclaredAccessibilityOfMostAccessibleDescendantType
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Friend Overrides ReadOnly Property DeclaredAccessibilityOfMostAccessibleDescendantType As Accessibility
@@ -224,7 +222,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Next
         End Sub
 
-        <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
         Friend Overrides ReadOnly Property TypesToCheckForExtensionMethods As ImmutableArray(Of NamedTypeSymbol)
             Get
                 ' We should override all callers of this function and go through implementation
@@ -276,7 +273,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return MyBase.AddExtensionMethodLookupSymbolsInfoViabilityCheck(RetargetingTranslator.Retarget(method), options, originalBinder)
         End Function
 
-        <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
         Friend Overrides Sub AddExtensionMethodLookupSymbolsInfo(nameSet As LookupSymbolsInfo,
                                                                   options As LookupOptions,
                                                                   originalBinder As Binder,

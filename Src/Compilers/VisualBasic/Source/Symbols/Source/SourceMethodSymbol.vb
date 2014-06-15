@@ -1599,11 +1599,11 @@ lReportErrorOnTwoTokens:
                 ' This might be different from ContainingType.DefaultMarshallingCharSet. If the charset is not specified on module
                 ' ContainingType.DefaultMarshallingCharSet would be Ansi (the class is emitted with "Ansi" charset metadata flag) 
                 ' while the charset in P/Invoke metadata should be "None".
-                Dim charSet As CharSet = If(Me.EffectiveDefaultMarshallingCharSet, CharSet.None)
+                Dim charSet As CharSet = If(Me.EffectiveDefaultMarshallingCharSet, Cci.Constants.CharSet_None)
 
                 Dim importName As String = Nothing
                 Dim preserveSig As Boolean = True
-                Dim callingConvention As CallingConvention = System.Runtime.InteropServices.CallingConvention.Winapi
+                Dim callingConvention As CallingConvention = CallingConvention.Winapi
                 Dim setLastError As Boolean = False
                 Dim exactSpelling As Boolean = False
                 Dim bestFitMapping As Boolean? = Nothing

@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
 
                 Case Else
-                    Return Char.GetUnicodeCategory(ch) = UnicodeCategory.SpaceSeparator
+                    Return CharUnicodeInfo.GetUnicodeCategory(ch) = UnicodeCategory.SpaceSeparator
             End Select
         End Function
 
@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             c As Char
         ) As Boolean
             'TODO: make easy cases fast (or check if they already are)
-            Dim CharacterProperties As UnicodeCategory = Char.GetUnicodeCategory(c)
+            Dim CharacterProperties As UnicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
 
             Return IsPropAlpha(CharacterProperties) OrElse
             IsPropLetterDigit(CharacterProperties) OrElse
@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function IsWideIdentifierCharacter(c As Char) As Boolean
-            Dim CharacterProperties As UnicodeCategory = Char.GetUnicodeCategory(c)
+            Dim CharacterProperties As UnicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
 
             Return IsPropAlphaNumeric(CharacterProperties) OrElse
                 IsPropLetterDigit(CharacterProperties) OrElse
@@ -453,11 +453,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function IsConnectorPunctuation(c As Char) As Boolean
-            Return Char.GetUnicodeCategory(c) = UnicodeCategory.ConnectorPunctuation
+            Return CharUnicodeInfo.GetUnicodeCategory(c) = UnicodeCategory.ConnectorPunctuation
         End Function
 
         Friend Shared Function IsSpaceSeparator(c As Char) As Boolean
-            Return Char.GetUnicodeCategory(c) = UnicodeCategory.SpaceSeparator
+            Return CharUnicodeInfo.GetUnicodeCategory(c) = UnicodeCategory.SpaceSeparator
         End Function
 
         Friend Shared Function IsPropOtherFormat(CharacterProperties As UnicodeCategory) As Boolean

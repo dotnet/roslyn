@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The 8-byte floating point value to be represented by the returned token.</param>
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Double, trailing As SyntaxTriviaList) As SyntaxToken
-            Return CType(InternalSyntax.SyntaxFactory.FloatingLiteralToken(text, If(text.EndsWith("R", StringComparison.InvariantCultureIgnoreCase), TypeCharacter.DoubleLiteral, TypeCharacter.None), value,
+            Return CType(InternalSyntax.SyntaxFactory.FloatingLiteralToken(text, If(text.EndsWith("R", StringComparison.OrdinalIgnoreCase), TypeCharacter.DoubleLiteral, TypeCharacter.None), value,
                     DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
         End Function
 
@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The decimal value to be represented by the returned token.</param>
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Decimal, trailing As SyntaxTriviaList) As SyntaxToken
-            Return CType(InternalSyntax.SyntaxFactory.DecimalLiteralToken(text, If(text.EndsWith("M", StringComparison.InvariantCultureIgnoreCase), TypeCharacter.DecimalLiteral, TypeCharacter.None), value,
+            Return CType(InternalSyntax.SyntaxFactory.DecimalLiteralToken(text, If(text.EndsWith("M", StringComparison.OrdinalIgnoreCase), TypeCharacter.DecimalLiteral, TypeCharacter.None), value,
                         DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
         End Function
 
@@ -330,8 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SyntaxFactory.InterfaceBlock(DirectCast(begin, InterfaceStatementSyntax), [inherits], [implements], members, [end])
 
                 Case Else
-                    Debug.Fail("Unsupported TypeBlockSyntax kind")
-                    Return Nothing
+                    Throw ExceptionUtilities.UnexpectedValue(blockKind)
             End Select
         End Function
 
@@ -350,8 +349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SyntaxFactory.InterfaceStatement(attributes, modifiers, keyword, identifier, typeParameterList)
 
                 Case Else
-                    Debug.Fail("Unsupported TypeStatementSyntax kind")
-                    Return Nothing
+                    Throw ExceptionUtilities.UnexpectedValue(statementKind)
             End Select
         End Function
 

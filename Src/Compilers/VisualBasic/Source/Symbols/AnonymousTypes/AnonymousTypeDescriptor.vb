@@ -71,24 +71,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' This is ONLY used for debugging purpose
         ''' </summary>
-        <ExcludeFromCodeCoverage()>
-        Friend ReadOnly Property IsGood As Boolean
-            Get
-                ' Fields exist
-                If Fields.IsEmpty Then
-                    Return False
-                End If
+        <Conditional("DEBUG")>
+        Friend Sub AssertGood()
+            ' Fields exist
+            Debug.Assert(Not Fields.IsEmpty)
 
-                ' All fields are good
-                For Each field In Fields
-                    If Not field.IsGood Then
-                        Return False
-                    End If
-                Next
-
-                Return True
-            End Get
-        End Property
+            ' All fields are good
+            For Each field In Fields
+                field.AssertGood()
+            Next
+        End Sub
 
         Public Overloads Function Equals(other As AnonymousTypeDescriptor) As Boolean Implements IEquatable(Of AnonymousTypeDescriptor).Equals
             ' Comparing keys ensures field count, field names and keyness are equal
@@ -201,15 +193,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' This is ONLY used for debugging purpose
         ''' </summary>
-        ''' <value></value>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        <ExcludeFromCodeCoverage()>
-        Friend ReadOnly Property IsGood As Boolean
-            Get
-                Return Name IsNot Nothing AndAlso Me.Type IsNot Nothing AndAlso Me.Location IsNot Nothing
-            End Get
-        End Property
+        <Conditional("DEBUG")>
+        Friend Sub AssertGood()
+            Debug.Assert(Name IsNot Nothing AndAlso Me.Type IsNot Nothing AndAlso Me.Location IsNot Nothing)
+        End Sub
 
         Friend Sub AssignFieldType(newType As TypeSymbol)
             Debug.Assert(newType IsNot Nothing)

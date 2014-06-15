@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     id = DirectCast(node, DelegateStatementSyntax).Identifier
 
                 Case Else
-                    Debug.Fail("Unexpected declaration node.")
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
 
             End Select
 
@@ -2051,8 +2051,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.TypeLibTypeAttribute) Then
                     Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
                     If Not attrdata.HasErrors Then
-                        Dim flags As TypeLibTypeFlags = attrdata.DecodeTypeLibTypeAttribute()
-                        If (flags And TypeLibTypeFlags.FNonExtensible) = 0 Then
+                        Dim flags As Cci.TypeLibTypeFlags = attrdata.DecodeTypeLibTypeAttribute()
+                        If (flags And Cci.TypeLibTypeFlags.FNonExtensible) = 0 Then
                             arguments.GetOrCreateData(Of TypeEarlyWellKnownAttributeData).HasAttributeForExtensibleInterface = True
                         End If
 

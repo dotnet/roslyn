@@ -939,7 +939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
 
                 Case " "c, UCH_TAB, "'"c
-                    Debug.Fail(String.Format("Unexpected char: &H{0:x}", AscW(ch)))
+                    Debug.Assert(False, String.Format("Unexpected char: &H{0:x}", AscW(ch)))
                     Return Nothing ' trivia cannot start a token
 
                 Case "@"c
@@ -1169,7 +1169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
 
                 Case " "c, UCH_TAB, "'"c
-                    Debug.Fail(String.Format("Unexpected char: &H{0:x}", AscW(ch)))
+                    Debug.Assert(False, String.Format("Unexpected char: &H{0:x}", AscW(ch)))
                     Return Nothing ' trivia cannot start a token
 
                 Case "@"c

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -12,31 +13,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared ReadOnly VoidDiagnosticInfo As DiagnosticInfo = ErrorInfo(ERRID.Void)
 
         Public Shared ReadOnly GetErrorInfo_ERR_WithEventsRequiresClass As Func(Of DiagnosticInfo) =
-            Function() ErrorFactory.ErrorInfo(ERRID.ERR_WithEventsRequiresClass)
+            Function() ErrorInfo(ERRID.ERR_WithEventsRequiresClass)
 
         Public Shared ReadOnly GetErrorInfo_ERR_StrictDisallowImplicitObject As Func(Of DiagnosticInfo) =
-            Function() ErrorFactory.ErrorInfo(ERRID.ERR_StrictDisallowImplicitObject)
+            Function() ErrorInfo(ERRID.ERR_StrictDisallowImplicitObject)
 
         Public Shared ReadOnly GetErrorInfo_WRN_ObjectAssumedVar1_WRN_StaticLocalNoInference As Func(Of DiagnosticInfo) =
-            Function() ErrorFactory.ErrorInfo(ERRID.WRN_ObjectAssumedVar1, ErrorFactory.ErrorInfo(ERRID.WRN_StaticLocalNoInference))
+            Function() ErrorInfo(ERRID.WRN_ObjectAssumedVar1, ErrorInfo(ERRID.WRN_StaticLocalNoInference))
 
         Public Shared ReadOnly GetErrorInfo_WRN_ObjectAssumedVar1_WRN_MissingAsClauseinVarDecl As Func(Of DiagnosticInfo) =
-            Function() ErrorFactory.ErrorInfo(ERRID.WRN_ObjectAssumedVar1, ErrorFactory.ErrorInfo(ERRID.WRN_MissingAsClauseinVarDecl))
+            Function() ErrorInfo(ERRID.WRN_ObjectAssumedVar1, ErrorInfo(ERRID.WRN_MissingAsClauseinVarDecl))
 
         Public Shared ReadOnly GetErrorInfo_ERR_StrictDisallowsImplicitProc As Func(Of DiagnosticInfo) =
-            Function() ErrorFactory.ErrorInfo(ERRID.ERR_StrictDisallowsImplicitProc)
+            Function() ErrorInfo(ERRID.ERR_StrictDisallowsImplicitProc)
 
         Public Shared ReadOnly GetErrorInfo_ERR_StrictDisallowsImplicitArgs As Func(Of DiagnosticInfo) =
-            Function() ErrorFactory.ErrorInfo(ERRID.ERR_StrictDisallowsImplicitArgs)
+            Function() ErrorInfo(ERRID.ERR_StrictDisallowsImplicitArgs)
 
         Public Shared ReadOnly GetErrorInfo_WRN_ObjectAssumed1_WRN_MissingAsClauseinFunction As Func(Of DiagnosticInfo) =
-            Function() ErrorFactory.ErrorInfo(ERRID.WRN_ObjectAssumed1, ErrorFactory.ErrorInfo(ERRID.WRN_MissingAsClauseinFunction))
+            Function() ErrorInfo(ERRID.WRN_ObjectAssumed1, ErrorInfo(ERRID.WRN_MissingAsClauseinFunction))
 
         Public Shared ReadOnly GetErrorInfo_WRN_ObjectAssumed1_WRN_MissingAsClauseinOperator As Func(Of DiagnosticInfo) =
-            Function() ErrorFactory.ErrorInfo(ERRID.WRN_ObjectAssumed1, ErrorFactory.ErrorInfo(ERRID.WRN_MissingAsClauseinOperator))
+            Function() ErrorInfo(ERRID.WRN_ObjectAssumed1, ErrorInfo(ERRID.WRN_MissingAsClauseinOperator))
 
         Public Shared ReadOnly GetErrorInfo_WRN_ObjectAssumedProperty1_WRN_MissingAsClauseinProperty As Func(Of DiagnosticInfo) =
-            Function() ErrorFactory.ErrorInfo(ERRID.WRN_ObjectAssumedProperty1, ErrorFactory.ErrorInfo(ERRID.WRN_MissingAsClauseinProperty))
+            Function() ErrorInfo(ERRID.WRN_ObjectAssumedProperty1, ErrorInfo(ERRID.WRN_MissingAsClauseinProperty))
 
         Public Shared Function ErrorInfo(id As ERRID, ParamArray arguments As Object()) As DiagnosticInfo
             Return New DiagnosticInfo(MessageProvider.Instance, id, arguments)
@@ -58,11 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ErrorInfo(id, SyntaxFacts.GetText(syntaxToken.VisualBasicKind), type1, type2)
         End Function
 
-        Private Shared s_resourceManager As System.Resources.ResourceManager
-        Friend Shared ReadOnly Property ResourceManager As System.Resources.ResourceManager
+        Private Shared s_resourceManager As Resources.ResourceManager
+        Friend Shared ReadOnly Property ResourceManager As Resources.ResourceManager
             Get
                 If s_resourceManager Is Nothing Then
-                    s_resourceManager = New System.Resources.ResourceManager("VBResources", GetType(ERRID).Assembly)
+                    s_resourceManager = New Resources.ResourceManager("VBResources", GetType(ERRID).GetTypeInfo().Assembly)
                 End If
 
                 Return s_resourceManager

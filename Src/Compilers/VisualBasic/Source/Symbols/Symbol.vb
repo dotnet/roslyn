@@ -515,8 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return False
 
                     Case Else
-                        Debug.Fail("Unexpected symbol kind: " & Me.Kind.ToString())
-                        Return False
+                        Throw ExceptionUtilities.UnexpectedValue(Me.Kind)
                 End Select
 
                 ' If we are from source, only need to check the first character, because all special

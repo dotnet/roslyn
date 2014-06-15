@@ -71,12 +71,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return CandidateReason.StaticInstanceMismatch
                 Case LookupResultKind.Ambiguous
                     Return CandidateReason.Ambiguous
-                Case LookupResultKind.Good
-                    Debug.Fail("Should not call this on LookupResultKind.Good")
-                    Return CandidateReason.None
+
                 Case Else
-                    Debug.Fail("Unexpected LookupResultKind.")
-                    Return CandidateReason.None
+                    ' Should not call this on LookupResultKind.Good or undefined kind
+                    Throw ExceptionUtilities.UnexpectedValue(resultKind)
             End Select
         End Function
     End Module

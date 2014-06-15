@@ -2624,24 +2624,22 @@ ProduceBoundNode:
                 Dim argumentIsDefaultValue As Boolean = False
 
                 If argument Is Nothing Then
-                    If Not candidate.OptionalArguments.IsEmpty Then
-                        ' Deal with Optional arguments
-                        Dim defaultArgument As OverloadResolution.OptionalArgument = candidate.OptionalArguments(paramIndex)
-                        argument = defaultArgument.DefaultValue
-                        argumentIsDefaultValue = True
-                        Debug.Assert(argument IsNot Nothing)
-                        conversion = defaultArgument.Conversion
+                    Debug.Assert(Not candidate.OptionalArguments.IsEmpty, "Optional arguments expected")
 
-                        Dim argType = argument.Type
-                        If argType IsNot Nothing Then
-                            ' Report usesiteerror if it exists.
-                            Dim useSiteErrorInfo = argType.GetUseSiteErrorInfo
-                            If useSiteErrorInfo IsNot Nothing Then
-                                ReportDiagnostic(diagnostics, argument.Syntax, useSiteErrorInfo)
-                            End If
+                    ' Deal with Optional arguments
+                    Dim defaultArgument As OverloadResolution.OptionalArgument = candidate.OptionalArguments(paramIndex)
+                    argument = defaultArgument.DefaultValue
+                    argumentIsDefaultValue = True
+                    Debug.Assert(argument IsNot Nothing)
+                    conversion = defaultArgument.Conversion
+
+                    Dim argType = argument.Type
+                    If argType IsNot Nothing Then
+                        ' Report usesiteerror if it exists.
+                        Dim useSiteErrorInfo = argType.GetUseSiteErrorInfo
+                        If useSiteErrorInfo IsNot Nothing Then
+                            ReportDiagnostic(diagnostics, argument.Syntax, useSiteErrorInfo)
                         End If
-                    Else
-                        Debug.Fail("Optional arguments expected")
                     End If
                 End If
 

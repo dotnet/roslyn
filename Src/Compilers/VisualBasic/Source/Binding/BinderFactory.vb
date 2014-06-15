@@ -383,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Return Nothing
 
                             Case Else
-                                Debug.Fail("Unhandled method kind with a default parameter.")
+                                Throw ExceptionUtilities.UnexpectedValue(methodSyntax.Kind)
 
                         End Select
 
@@ -395,8 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Nothing
 
                 Case Else
-                    Debug.Fail("Unexpected usage value")
-                    Return containingBinder
+                    Throw ExceptionUtilities.UnexpectedValue(usage)
             End Select
         End Function
 
@@ -589,10 +588,8 @@ lAgain:
                 End If
             Next
 
-            ' Didn't find a namespace of the given name. This may happen in error cases,
-            ' keeping Debug.Fail(...) to catch those to investigate
-            Debug.Fail("Namespace is expected to be found by name in parent binder.")
-            Return containingBinder
+            ' Namespace is expected to be found by name in parent binder.
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         ' Given the name of a method, and the span of the name, and the containing type binder, get the 

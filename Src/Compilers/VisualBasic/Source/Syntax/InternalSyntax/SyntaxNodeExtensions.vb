@@ -362,6 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Select Case trivia(i).Kind
                     Case SyntaxKind.ColonTrivia
                         Return i
+
                     Case SyntaxKind.EndOfLineTrivia
                         If i > 0 Then
                             Select Case trivia(i - 1).Kind
@@ -377,22 +378,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Else
                             Return i
                         End If
-                    Case SyntaxKind.LineContinuationTrivia
-                        Debug.Fail("LineContinuationTrivia")
-                    Case SyntaxKind.IfDirectiveTrivia,
-                        SyntaxKind.ElseIfDirectiveTrivia,
-                        SyntaxKind.ElseDirectiveTrivia,
-                        SyntaxKind.EndIfDirectiveTrivia,
-                        SyntaxKind.RegionDirectiveTrivia,
-                        SyntaxKind.EndRegionDirectiveTrivia,
-                        SyntaxKind.ConstDirectiveTrivia,
-                        SyntaxKind.ExternalSourceDirectiveTrivia,
-                        SyntaxKind.EndExternalSourceDirectiveTrivia,
-                        SyntaxKind.ExternalChecksumDirectiveTrivia,
-                        SyntaxKind.ReferenceDirectiveTrivia,
-                        SyntaxKind.BadDirectiveTrivia
 
-                        Debug.Fail("DirectiveTrivia")
+                    Case SyntaxKind.LineContinuationTrivia,
+                         SyntaxKind.IfDirectiveTrivia,
+                         SyntaxKind.ElseIfDirectiveTrivia,
+                         SyntaxKind.ElseDirectiveTrivia,
+                         SyntaxKind.EndIfDirectiveTrivia,
+                         SyntaxKind.RegionDirectiveTrivia,
+                         SyntaxKind.EndRegionDirectiveTrivia,
+                         SyntaxKind.ConstDirectiveTrivia,
+                         SyntaxKind.ExternalSourceDirectiveTrivia,
+                         SyntaxKind.EndExternalSourceDirectiveTrivia,
+                         SyntaxKind.ExternalChecksumDirectiveTrivia,
+                         SyntaxKind.ReferenceDirectiveTrivia,
+                         SyntaxKind.BadDirectiveTrivia
+
+                        Throw ExceptionUtilities.UnexpectedValue(trivia(i).Kind)
                 End Select
             End If
             Return n

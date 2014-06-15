@@ -652,7 +652,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case SyntaxKind.ColonToken,
                     SyntaxKind.StatementTerminatorToken
-                    Debug.Fail("Unexpected terminator: " & CurrentToken.Kind.ToString())
+                    Debug.Assert(False, "Unexpected terminator: " & CurrentToken.Kind.ToString())
                     Return ParseStatementInMethodBody()
 
                 Case SyntaxKind.IntegerLiteralToken
@@ -1035,7 +1035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case SyntaxKind.ColonToken,
                     SyntaxKind.StatementTerminatorToken
-                    Debug.Fail("Unexpected terminator: " & CurrentToken.Kind.ToString())
+                    Debug.Assert(False, "Unexpected terminator: " & CurrentToken.Kind.ToString())
 
                 Case SyntaxKind.EraseKeyword
                     Return ParseErase()

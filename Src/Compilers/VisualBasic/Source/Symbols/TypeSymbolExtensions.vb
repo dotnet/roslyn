@@ -374,8 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case TypeKind.Error, TypeKind.Class, TypeKind.Submission
                     Return DirectCast(this, NamedTypeSymbol).IsNotInheritable
                 Case Else
-                    Debug.Fail("Unexpected type kind")
-                    Return False
+                    Throw ExceptionUtilities.UnexpectedValue(this.TypeKind)
             End Select
         End Function
 

@@ -296,19 +296,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' return the error id for mismatched arity.
-        Private Shared Function WrongArityErrid(actualArity As Integer,
-                                         arity As Integer) As ERRID
+        Private Shared Function WrongArityErrid(actualArity As Integer, arity As Integer) As ERRID
             If actualArity < arity Then
                 If actualArity = 0 Then
                     Return ERRID.ERR_TypeOrMemberNotGeneric1
                 Else
                     Return ERRID.ERR_TooManyGenericArguments1
                 End If
-            ElseIf actualArity > arity Then
-                Return ERRID.ERR_TooFewGenericArguments1
             Else
-                Debug.Fail("arities shouldn't match")
-                Return Nothing
+                Debug.Assert(actualArity > arity, "arities shouldn't match")
+                Return ERRID.ERR_TooFewGenericArguments1
             End If
         End Function
 
@@ -551,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return
 
                     Case Else
-                        Debug.Fail("unexpected type kind")
+                        Throw ExceptionUtilities.UnexpectedValue(type.TypeKind)
                 End Select
             End Sub
 
@@ -580,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return
 
                     Case Else
-                        Debug.Fail("unexpected type kind")
+                        Throw ExceptionUtilities.UnexpectedValue(container.TypeKind)
                 End Select
             End Sub
 
@@ -1069,8 +1066,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                Debug.Fail("Expected ambiguous symbols")
-                Return Nothing
+                ' Expected ambiguous symbols
+                Throw ExceptionUtilities.Unreachable
             End Function
 
             Private Shared Sub LookupForExtensionMethodsIfNeedTo(

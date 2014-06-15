@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                     Case Else
-                        Debug.Fail("unexpected variance kind")
+                        Throw ExceptionUtilities.UnexpectedValue(variance)
                 End Select
             End If
         End Sub
