@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1273,12 +1274,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             var visType = System.Type.GetType("Roslyn.Test.Utilities.ILBuilderVisualizer, Roslyn.Test.Utilities", false);
             if (visType != null)
             {
-                return (string)visType.InvokeMember(
-                    "ILBuilderToString",
-                    System.Reflection.BindingFlags.InvokeMethod | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static,
-                    null,
-                    null,
-                    new object[] { this });
+                var method = visType.GetTypeInfo().GetDeclaredMethod("ILBuilderToString");
+                return (string)method.Invoke(this, SpecializedCollections.EmptyArray<object>());
             }
 #endif
 

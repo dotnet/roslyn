@@ -23,7 +23,7 @@ namespace Roslyn.Utilities
             Type type;
             if (!this.typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type))
             {
-                Debug.Fail(assemblyName + "/" + typeName + " don't exist");
+                Debug.Assert(false, assemblyName + "/" + typeName + " don't exist");
             }
 
             return type;
@@ -34,7 +34,7 @@ namespace Roslyn.Utilities
             Func<ObjectReader, object> reader;
             if (!this.readerMap.TryGetValue(type, out reader))
             {
-                Debug.Fail(type.ToString() + " reader doesn't exist");
+                Debug.Assert(false, type.ToString() + " reader doesn't exist");
             }
 
             return reader;

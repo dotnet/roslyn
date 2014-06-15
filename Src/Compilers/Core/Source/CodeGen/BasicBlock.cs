@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -670,12 +671,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var visType = System.Type.GetType("Roslyn.Test.Utilities.ILBuilderVisualizer, Roslyn.Test.Utilities", false);
                 if (visType != null)
                 {
-                    return (string)visType.InvokeMember(
-                        "BasicBlockToString",
-                        System.Reflection.BindingFlags.InvokeMethod | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static,
-                        null,
-                        null,
-                        new object[] { this });
+                    var method = visType.GetTypeInfo().GetDeclaredMethod("BasicBlockToString");
+                    return (string)method.Invoke(this, SpecializedCollections.EmptyArray<object>());
                 }
 #endif
 
