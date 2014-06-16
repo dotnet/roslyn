@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Host
             if (taskScheduler == null)
             {
                 taskScheduler = (SynchronizationContext.Current != null)
-                    ? TaskScheduler.FromCurrentSynchronizationContext()
+                    ? RoslynUITaskScheduler.Create()
                     : TaskScheduler.Default;
             }
 
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Host
             if (taskScheduler == null)
             {
                 taskScheduler = (SynchronizationContext.Current != null)
-                    ? TaskScheduler.FromCurrentSynchronizationContext()
+                    ? RoslynUITaskScheduler.Create()
                     : TaskScheduler.Default;
             }
 
