@@ -599,6 +599,9 @@ namespace Roslyn.Utilities.Pdb
                 return;
             }
 
+            // TODO (acasey): looks like we missed some cases (e.g. '$', '#', '&')
+            // See ProcedureContext::LoadImportsAndDefaultNamespaceNormal.
+
             int pos = 0;
             switch (import[pos])
             {
