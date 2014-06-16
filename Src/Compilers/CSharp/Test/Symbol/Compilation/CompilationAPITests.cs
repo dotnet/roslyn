@@ -1877,9 +1877,9 @@ public class C { public static FrameworkName Foo() { return null; }}";
             result.Diagnostics.Verify();
             Assert.True(result.Success);
 
-            var hash1 = Hash.ComputeSha1(Encoding.Unicode.GetBytesWithPreamble(tree1.ToString()));
-            var hash3 = Hash.ComputeSha1(new UTF8Encoding(true, false).GetBytesWithPreamble(tree3.ToString()));
-            var hash4 = Hash.ComputeSha1(new UTF8Encoding(false, false).GetBytesWithPreamble(tree4.ToString()));
+            var hash1 = CryptographicHashProvider.ComputeSha1(Encoding.Unicode.GetBytesWithPreamble(tree1.ToString()));
+            var hash3 = CryptographicHashProvider.ComputeSha1(new UTF8Encoding(true, false).GetBytesWithPreamble(tree3.ToString()));
+            var hash4 = CryptographicHashProvider.ComputeSha1(new UTF8Encoding(false, false).GetBytesWithPreamble(tree4.ToString()));
 
             var checksum1 = string.Concat(hash1.Select(b => string.Format("{0,2:X}", b) + ", "));
             var checksum3 = string.Concat(hash3.Select(b => string.Format("{0,2:X}", b) + ", "));

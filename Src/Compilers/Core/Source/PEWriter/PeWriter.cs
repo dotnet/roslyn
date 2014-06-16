@@ -849,7 +849,7 @@ namespace Microsoft.Cci
         {
             stream.Position = 0; // rewind the stream
 
-            var hashData = Hash.ComputeSha1(stream);
+            var hashData = CryptographicHashProvider.ComputeSha1(stream);
             var guidData = new byte[16];
             for (var i = 0; i < guidData.Length; i++)
             {

@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         internal static string ChecksumToHexQuads(ImmutableArray<byte> checksum)
         {
-            Assert.Equal(Hash.Sha1HashSize, checksum.Length);
+            Assert.Equal(CryptographicHashProvider.Sha1HashSize, checksum.Length);
 
             var builder = new StringBuilder();
 
-            for (int i = 0; i < Hash.Sha1HashSize; i++)
+            for (int i = 0; i < CryptographicHashProvider.Sha1HashSize; i++)
             {
                 if (i > 0 && ((i % 4) == 0))
                 {
@@ -232,7 +232,7 @@ bar baz";
             Assert.Equal("abc", source.ToString());
 
             var checksum = source.GetSha1Checksum();
-            Assert.Equal(new SHA1CryptoServiceProvider().ComputeHash(bytes), checksum);
+            AssertEx.Equal(CryptographicHashProvider.ComputeSha1(bytes), checksum);
         }
 
         [Fact]
@@ -244,7 +244,7 @@ bar baz";
             Assert.Equal("ab?", source.ToString());
 
             var checksum = source.GetSha1Checksum();
-            Assert.Equal(new SHA1CryptoServiceProvider().ComputeHash(bytes), checksum);
+            AssertEx.Equal(CryptographicHashProvider.ComputeSha1(bytes), checksum);
         }
 
         [Fact]
@@ -256,7 +256,7 @@ bar baz";
             Assert.Equal("\u1234", source.ToString());
 
             var checksum = source.GetSha1Checksum();
-            Assert.Equal(new SHA1CryptoServiceProvider().ComputeHash(bytes), checksum);
+            AssertEx.Equal(CryptographicHashProvider.ComputeSha1(bytes), checksum);
         }
 
         [Fact]
@@ -271,7 +271,7 @@ bar baz";
             Assert.Equal("abc", source.ToString());
 
             var checksum = source.GetSha1Checksum();
-            Assert.Equal(new SHA1CryptoServiceProvider().ComputeHash(bytes), checksum);
+            AssertEx.Equal(CryptographicHashProvider.ComputeSha1(bytes), checksum);
         }
     }
 }

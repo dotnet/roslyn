@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        protected abstract ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm);
+        internal abstract ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm);
 
         internal ImmutableArray<byte> GetHash(AssemblyHashAlgorithm algorithmId)
         {
@@ -105,6 +106,35 @@ namespace Microsoft.CodeAnalysis
             }
 
             return lazyHash;
+        }
+
+        internal const int Sha1HashSize = 20;
+
+        internal static ImmutableArray<byte> ComputeSha1(Stream stream)
+        {
+            if (stream != null)
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                using (var hashProvider = new SHA1CryptoServiceProvider())
+                {
+                    return ImmutableArray.Create(hashProvider.ComputeHash(stream));
+                }
+            }
+
+            return ImmutableArray<byte>.Empty;
+        }
+
+        internal static ImmutableArray<byte> ComputeSha1(ImmutableArray<byte> bytes)
+        {
+            return ComputeSha1(bytes.ToArray());
+        }
+
+        internal static ImmutableArray<byte> ComputeSha1(byte[] bytes)
+        {
+            using (var hashProvider = new SHA1CryptoServiceProvider())
+            {
+                return ImmutableArray.Create(hashProvider.ComputeHash(bytes));
+            }
         }
     }
 }

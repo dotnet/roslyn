@@ -1712,9 +1712,9 @@ End Namespace
             result.Diagnostics.Verify()
             Assert.True(result.Success)
 
-            Dim hash1 = Hash.ComputeSha1(Encoding.Unicode.GetBytesWithPreamble(tree1.ToString()))
-            Dim hash3 = Hash.ComputeSha1(New UTF8Encoding(True, False).GetBytesWithPreamble(tree3.ToString()))
-            Dim hash4 = Hash.ComputeSha1(New UTF8Encoding(False, False).GetBytesWithPreamble(tree4.ToString()))
+            Dim hash1 = CryptographicHashProvider.ComputeSha1(Encoding.Unicode.GetBytesWithPreamble(tree1.ToString()))
+            Dim hash3 = CryptographicHashProvider.ComputeSha1(New UTF8Encoding(True, False).GetBytesWithPreamble(tree3.ToString()))
+            Dim hash4 = CryptographicHashProvider.ComputeSha1(New UTF8Encoding(False, False).GetBytesWithPreamble(tree4.ToString()))
 
             Dim checksum1 = String.Concat(hash1.Select(Function(b) String.Format("{0,2:X}", b) + ", "))
             Dim checksum3 = String.Concat(hash3.Select(Function(b) String.Format("{0,2:X}", b) + ", "))

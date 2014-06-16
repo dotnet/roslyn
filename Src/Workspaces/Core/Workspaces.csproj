@@ -68,8 +68,8 @@
     <Compile Include="..\..\Compilers\Core\Source\InternalUtilities\PathUtilities.cs">
       <Link>InternalUtilities\PathUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Source\InternalUtilities\HashFunctions.cs">
-      <Link>InternalUtilities\HashFunctions.cs</Link>
+    <Compile Include="..\..\Compilers\Core\Source\InternalUtilities\Hash.cs">
+      <Link>InternalUtilities\Hash.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Core\Source\InternalUtilities\ImmutableListExtensions.cs">
       <Link>InternalUtilities\ImmutableListExtensions.cs</Link>

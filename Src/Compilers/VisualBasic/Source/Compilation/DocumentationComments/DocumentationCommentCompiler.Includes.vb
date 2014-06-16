@@ -7,7 +7,6 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Xml
 Imports System.Xml.Linq
-Imports System.Xml.XPath
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -504,18 +503,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             Debug.Assert(doc IsNot Nothing)
 
-                            Dim loadedElements As XElement()
+                            Dim errorMessage As String = Nothing
+                            Dim invalidXPath As Boolean = False
+                            Dim loadedElements As XElement() = XmlUtilities.TrySelectElements(doc, xpathValue, errorMessage, invalidXPath)
 
-                            Try
-                                Dim xpathResult = doc.XPathSelectElements(xpathValue)
-
-                                ' Throws InvalidOperationException if the result of the XPath Is an XDocument
-                                loadedElements = If(xpathResult IsNot Nothing, xpathResult.ToArray(), Nothing)
-
-                            Catch ex As Exception When TypeOf ex Is XPathException OrElse TypeOf ex Is InvalidOperationException
+                            If loadedElements Is Nothing Then
                                 commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocInvalidXMLFragment, xpathValue, filePathValue)
                                 Return New XNode() {New XComment(commentMessage)}
-                            End Try
+                            End If
 
                             If loadedElements IsNot Nothing AndAlso loadedElements.Length > 0 Then
                                 ' change the current XML file path for nodes contained in the document

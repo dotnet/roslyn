@@ -3,10 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
-using System.Security.Cryptography;
-using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -297,30 +294,6 @@ namespace Roslyn.Utilities
         internal static int CombineFNVHash(int hashCode, char ch)
         {
             return unchecked((hashCode ^ ch) * Hash.FnvPrime);
-        }
-
-        internal const int Sha1HashSize = 20;
-
-        internal static ImmutableArray<byte> ComputeSha1(Stream stream)
-        {
-            if (stream != null)
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-                using (var hashProvider = new SHA1CryptoServiceProvider())
-                {
-                    return ImmutableArray.Create(hashProvider.ComputeHash(stream));
-                }
-            }
-
-            return ImmutableArray<byte>.Empty;
-        }
-
-        internal static ImmutableArray<byte> ComputeSha1(byte[] bytes)
-        {
-            using (var hashProvider = new SHA1CryptoServiceProvider())
-            {
-                return ImmutableArray.Create(hashProvider.ComputeHash(bytes));
-            }
         }
     }
 }

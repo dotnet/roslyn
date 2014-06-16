@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         protected SourceText(ImmutableArray<byte> sha1Checksum = default(ImmutableArray<byte>), SourceTextContainer container = null)
         {
-            if (!sha1Checksum.IsDefault && sha1Checksum.Length != Hash.Sha1HashSize)
+            if (!sha1Checksum.IsDefault && sha1Checksum.Length != CryptographicHashProvider.Sha1HashSize)
             {
                 throw new ArgumentException(CodeAnalysisResources.InvalidSHA1Hash, "sha1Checksum");
             }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Text
                 text = reader.ReadToEnd();
             }
 
-            return new StringText(text, encoding, Hash.ComputeSha1(stream));
+            return new StringText(text, encoding, CryptographicHashProvider.ComputeSha1(stream));
         }
 
         /// <summary>
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Text
                     this.Write(writer);
                     writer.Flush();
                     stream.Seek(0, SeekOrigin.Begin);
-                    ImmutableInterlocked.InterlockedCompareExchange(ref lazySha1Checksum, Hash.ComputeSha1(stream), default(ImmutableArray<byte>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref lazySha1Checksum, CryptographicHashProvider.ComputeSha1(stream), default(ImmutableArray<byte>));
                 }
             }
 

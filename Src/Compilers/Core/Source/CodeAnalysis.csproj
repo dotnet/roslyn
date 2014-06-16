@@ -231,7 +231,8 @@
     <Compile Include="InternalUtilities\EnumField.cs" />
     <Compile Include="InternalUtilities\EnumUtilties.cs" />
     <Compile Include="InternalUtilities\ExceptionUtilities.cs" />
-    <Compile Include="InternalUtilities\HashFunctions.cs" />
+    <Compile Include="InternalUtilities\HashAlgorithms.cs" />
+    <Compile Include="InternalUtilities\Hash.cs" />
     <Compile Include="InternalUtilities\ImmutableArrayExtensions.cs" />
     <Compile Include="InternalUtilities\ImmutableListExtensions.cs" />
     <Compile Include="InternalUtilities\ImmutableSetWithInsertionOrder`1.cs" />

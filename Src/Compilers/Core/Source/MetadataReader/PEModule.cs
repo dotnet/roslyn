@@ -11,7 +11,6 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis
                 this.peReader = peReader;
             }
 
-            protected override ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm)
+            internal override ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm)
             {
                 IntPtr pointer;
                 int size;

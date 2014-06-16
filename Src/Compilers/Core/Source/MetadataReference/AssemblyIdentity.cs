@@ -371,10 +371,10 @@ namespace Microsoft.CodeAnalysis
         // internal for testing
         internal static ImmutableArray<byte> CalculatePublicKeyToken(ImmutableArray<byte> publicKey)
         {
-            var hash = new SHA1CryptoServiceProvider().ComputeHash(publicKey.ToArray());
+            var hash = CryptographicHashProvider.ComputeSha1(publicKey);
 
             // SHA1 hash is always 160 bits:
-            Debug.Assert(hash.Length == Hash.Sha1HashSize);
+            Debug.Assert(hash.Length == CryptographicHashProvider.Sha1HashSize);
 
             // PublicKeyToken is the low 64 bits of the SHA-1 hash of the public key.
             int l = hash.Length - 1;

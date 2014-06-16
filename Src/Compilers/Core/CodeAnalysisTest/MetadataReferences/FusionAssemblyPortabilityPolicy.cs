@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -21,9 +22,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         // Pointer to unmanaged small CLR struct that must be allocated and deallocated by
         // CLR calls
         private IntPtr assemblyConfigCookie;
-        private readonly byte[] fileHash;
+        private readonly ImmutableArray<byte> fileHash;
         
-        private FusionAssemblyPortabilityPolicy(IntPtr asmConfigCookie, byte[] fileHash)
+        private FusionAssemblyPortabilityPolicy(IntPtr asmConfigCookie, ImmutableArray<byte> fileHash)
         {
             this.assemblyConfigCookie = asmConfigCookie;
             this.fileHash = fileHash;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // May throw CLR exception
             CreateAssemblyConfigCookie(appConfigPath, out asmConfigCookie);
 
-            var hash = (new SHA1CryptoServiceProvider()).ComputeHash(File.ReadAllBytes(appConfigPath));
+            var hash = CryptographicHashProvider.ComputeSha1(File.ReadAllBytes(appConfigPath));
             return new FusionAssemblyPortabilityPolicy(asmConfigCookie, hash);
         }
 

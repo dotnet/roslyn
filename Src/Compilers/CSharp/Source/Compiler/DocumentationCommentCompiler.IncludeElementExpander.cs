@@ -10,10 +10,8 @@ using System.Linq;
 using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
-using System.Xml.XPath;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -345,28 +343,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         Debug.Assert(doc != null);
 
-                        XElement[] loadedElements;
-                        try
+                        string errorMessage;
+                        bool invalidXPath;
+                        XElement[] loadedElements = XmlUtilities.TrySelectElements(doc, xpathValue, out errorMessage, out invalidXPath);
+                        if (loadedElements == null)
                         {
-                            var xpathResult = doc.XPathSelectElements(xpathValue);
+                            includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, errorMessage);
 
-                            // Throws InvalidOperationException if the result of the XPath is an XDocument:
-                            loadedElements = (xpathResult != null) ? xpathResult.ToArray() : null;
-                        }
-                        catch (XPathException e)
-                        {
-                            includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, e.Message);
                             commentMessage = MakeCommentMessage(location, MessageID.IDS_XMLFAILEDINCLUDE);
-                            return null;
-                        }
-                        catch (InvalidOperationException e)
-                        {
-                            includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, e.Message);
+                            if (invalidXPath)
+                            {
+                                // leave the include node as is
+                                return null;
+                            }
 
                             if (location.IsInSource)
                             {
-                                commentMessage = ErrorFacts.GetMessage(MessageID.IDS_XMLFAILEDINCLUDE, CultureInfo.InvariantCulture);
-
                                 // As in Dev11, return only the comment - drop the include element.
                                 return new XNode[] { new XComment(commentMessage) };
                             }
