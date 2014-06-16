@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
     internal interface IProjectFileLoader : ILanguageService
     {
         string Language { get; }
-        bool IsProjectTypeGuid(Guid guid);
-        bool IsProjectFileExtension(string fileExtension);
         Task<IProjectFile> LoadProjectFileAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken);
     }
 }

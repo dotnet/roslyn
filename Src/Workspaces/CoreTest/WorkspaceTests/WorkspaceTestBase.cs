@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -16,29 +15,32 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class MSBuildWorkspaceTests
+    public partial class WorkspaceTestBase : TestBase
     {
-        private readonly TempDirectory solutionDirectory;
+        protected readonly TempDirectory SolutionDirectory;
 
-        private static readonly TimeSpan asyncEventTimeout = TimeSpan.FromMinutes(5);
+        protected static readonly TimeSpan AsyncEventTimeout = TimeSpan.FromMinutes(5);
 
-        public MSBuildWorkspaceTests()
+        public WorkspaceTestBase()
         {
-            solutionDirectory = Temp.CreateDirectory();
+            this.SolutionDirectory = Temp.CreateDirectory();
         }
 
+        /// <summary>
+        /// Gets an absolute file name for a file relative to the tests solution directory.
+        /// </summary>
         public string GetSolutionFileName(string relativeFileName)
         {
-            return Path.Combine(this.solutionDirectory.Path, relativeFileName);
+            return Path.Combine(this.SolutionDirectory.Path, relativeFileName);
         }
 
-        private void CreateFiles(params string[] fileNames)
+        protected void CreateFiles(params string[] fileNames)
         {
             var dictionary = fileNames.ToDictionary(id => id, fileName => (object)GetResourceText(fileName));
             CreateFiles(new FileSet(dictionary));
         }
 
-        private void CreateFiles(IEnumerable<KeyValuePair<string, object>> fileNameAndContentPairs)
+        protected void CreateFiles(IEnumerable<KeyValuePair<string, object>> fileNameAndContentPairs)
         {
             foreach (var pair in fileNameAndContentPairs)
             {
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var subdirectory = Path.GetDirectoryName(pair.Key);
                 var fileName = Path.GetFileName(pair.Key);
 
-                var dir = solutionDirectory;
+                var dir = SolutionDirectory;
 
                 if (!string.IsNullOrEmpty(subdirectory))
                 {
@@ -68,87 +70,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void CreateCSharpFilesWith(string propertyName, string value)
+        protected void CreateCSharpFilesWith(string propertyName, string value)
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_AllOptions.csproj"))
                 .ReplaceFileElement(@"CSharpProject\CSharpProject.csproj", propertyName, value));
         }
 
-        private void CreateVBFilesWith(string propertyName, string value)
+        protected void CreateVBFilesWith(string propertyName, string value)
         {
             CreateFiles(GetMultiProjectSolutionFiles()
                 .ReplaceFileElement(@"VisualBasicProject\VisualBasicProject.vbproj", propertyName, value));
         }
 
-        private void CreateCSharpFiles()
+        protected void CreateCSharpFiles()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
         }
 
-        private void AssertOptions<T>(T expected, Func<Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions, T> actual)
-        {
-            var options = LoadCSharpCompilationOptions();
-            Assert.Equal(expected, actual(options));
-        }
-
-        private void AssertOptions<T>(T expected, Func<Microsoft.CodeAnalysis.CSharp.CSharpParseOptions, T> actual)
-        {
-            var options = LoadCSharpParseOptions();
-            Assert.Equal(expected, actual(options));
-        }
-
-        private void AssertVBOptions<T>(T expected, Func<Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions, T> actual)
-        {
-            var options = LoadVisualBasicCompilationOptions();
-            Assert.Equal(expected, actual(options));
-        }
-
-        private void AssertVBOptions<T>(T expected, Func<Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions, T> actual)
-        {
-            var options = LoadVisualBasicParseOptions();
-            Assert.Equal(expected, actual(options));
-        }
-
-        private Solution LoadSolution(string solutionFilePath, IDictionary<string, string> properties = null)
-        {
-            var ws = MSBuildWorkspace.Create(properties ?? ImmutableDictionary<string, string>.Empty);
-            return ws.OpenSolutionAsync(solutionFilePath).Result;
-        }
-
-        private Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions LoadCSharpCompilationOptions()
-        {
-            var sol = LoadSolution(GetSolutionFileName("TestSolution.sln"));
-            var project = sol.Projects.First();
-            var options = (Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions)project.CompilationOptions;
-            return options;
-        }
-
-        private Microsoft.CodeAnalysis.CSharp.CSharpParseOptions LoadCSharpParseOptions()
-        {
-            var sol = LoadSolution(GetSolutionFileName("TestSolution.sln"));
-            var project = sol.Projects.First();
-            var options = (Microsoft.CodeAnalysis.CSharp.CSharpParseOptions)project.ParseOptions;
-            return options;
-        }
-
-        private Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions LoadVisualBasicCompilationOptions()
-        {
-            var sol = LoadSolution(GetSolutionFileName("TestSolution.sln"));
-            var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions)project.CompilationOptions;
-            return options;
-        }
-
-        private Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions LoadVisualBasicParseOptions()
-        {
-            var sol = LoadSolution(GetSolutionFileName("TestSolution.sln"));
-            var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions)project.ParseOptions;
-            return options;
-        }
-
-        private FileSet GetSimpleCSharpSolutionFiles()
+        protected FileSet GetSimpleCSharpSolutionFiles()
         {
             return new FileSet(new Dictionary<string, object>
             {
@@ -159,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
-        private FileSet GetMultiProjectSolutionFiles()
+        protected FileSet GetMultiProjectSolutionFiles()
         {
             return new FileSet(new Dictionary<string, object>
             {
@@ -179,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
-        private FileSet GetProjectReferenceSolutionFiles()
+        protected FileSet GetProjectReferenceSolutionFiles()
         {
             return new FileSet(new Dictionary<string, object>
             {
@@ -192,7 +132,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
-        private FileSet GetAnalyzerReferenceSolutionFiles()
+        protected FileSet GetAnalyzerReferenceSolutionFiles()
         {
             return new FileSet(new Dictionary<string, object>
             {
@@ -212,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
-        private FileSet GetSolutionWithDuplicatedGuidFiles()
+        protected FileSet GetSolutionWithDuplicatedGuidFiles()
         {
             return new FileSet(new Dictionary<string, object>
             {
@@ -257,36 +197,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void PrepareCrossLanguageProjectWithEmittedMetadata()
-        {
-            // Now try variant of CSharpProject that has an emitted assembly 
-            CreateFiles(GetMultiProjectSolutionFiles()
-                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject_ForEmittedOutput.csproj")));
-
-            var sol = LoadSolution(GetSolutionFileName("TestSolution.sln"));
-            var p1 = sol.Projects.First(p => p.Language == LanguageNames.CSharp);
-            var p2 = sol.Projects.First(p => p.Language == LanguageNames.VisualBasic);
-
-            Assert.NotNull(p1.OutputFilePath);
-            Assert.Equal("EmittedCSharpProject.dll", Path.GetFileName(p1.OutputFilePath));
-
-            // if the assembly doesn't already exist, emit it now
-            if (!File.Exists(p1.OutputFilePath))
-            {
-                var c1 = p1.GetCompilationAsync().Result;
-                var result = c1.Emit(p1.OutputFilePath);
-                Assert.Equal(true, result.Success);
-            }
-        }
-
-        private static string GetParentDirOfParentDirOfContainingDir(string fileName)
+        protected static string GetParentDirOfParentDirOfContainingDir(string fileName)
         {
             string containingDir = Directory.GetParent(fileName).FullName;
             string parentOfContainingDir = Directory.GetParent(containingDir).FullName;
             return Directory.GetParent(parentOfContainingDir).FullName;
         }
 
-        private static void AssertThrows<TException>(Action action)
+        protected static void AssertThrows<TException>(Action action, Action<TException> checker = null)
+            where TException : Exception
         {
             try
             {
@@ -301,10 +220,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 Assert.Equal(typeof(TException), e.GetType());
+
+                if (checker != null)
+                {
+                    checker((TException)e);
+                }
             }
         }
 
-        private int GetMethodInsertionPoint(VB.Syntax.ClassBlockSyntax cb)
+        protected int GetMethodInsertionPoint(VB.Syntax.ClassBlockSyntax cb)
         {
             if (cb.Implements.Count > 0)
             {
@@ -320,7 +244,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private Document AssertSemanticVersionChanged(Document document, SourceText newText)
+        protected Document AssertSemanticVersionChanged(Document document, SourceText newText)
         {
             var docVersion = document.GetTopLevelChangeTextVersionAsync().Result;
             var projVersion = document.Project.GetSemanticVersionAsync().Result;
@@ -337,7 +261,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return newDoc;
         }
 
-        private Document AssertSemanticVersionUnchanged(Document document, SourceText newText)
+        protected Document AssertSemanticVersionUnchanged(Document document, SourceText newText)
         {
             var docVersion = document.GetTopLevelChangeTextVersionAsync().Result;
             var projVersion = document.Project.GetSemanticVersionAsync().Result;

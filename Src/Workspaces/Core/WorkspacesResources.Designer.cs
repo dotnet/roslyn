@@ -115,6 +115,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot open project &apos;{0}&apos; because the file extension &apos;{1}&apos; is not associated with a language..
+        /// </summary>
+        internal static string CannotOpenProjectUnrecognizedFileExtension {
+            get {
+                return ResourceManager.GetString("CannotOpenProjectUnrecognizedFileExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot open project &apos;{0}&apos; because the language &apos;{1}&apos; is not supported..
+        /// </summary>
+        internal static string CannotOpenProjectUnsupportedLanguage {
+            get {
+                return ResourceManager.GetString("CannotOpenProjectUnsupportedLanguage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t resolve analyzer reference: &apos;{0}&apos;..
         /// </summary>
         internal static string CantResolveAnalyzerReference {
@@ -394,6 +412,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid project file path: &apos;{0}&apos;.
+        /// </summary>
+        internal static string InvalidProjectFilePath {
+            get {
+                return ResourceManager.GetString("InvalidProjectFilePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid solution file path: &apos;{0}&apos;.
+        /// </summary>
+        internal static string InvalidSolutionFilePath {
+            get {
+                return ResourceManager.GetString("InvalidSolutionFilePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This submission already references another submission project..
         /// </summary>
         internal static string InvalidSubmissionReference {
@@ -520,6 +556,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project file not found: &apos;{0}&apos;.
+        /// </summary>
+        internal static string ProjectFileNotFound {
+            get {
+                return ResourceManager.GetString("ProjectFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The solution does not contain the specified project..
         /// </summary>
         internal static string ProjectNotInSolution {
@@ -592,6 +637,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Solution file not found: &apos;{0}&apos;.
+        /// </summary>
+        internal static string SolutionFileNotFound {
+            get {
+                return ResourceManager.GetString("SolutionFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &quot;{0}&quot; must be a non-null and non-empty string..
         /// </summary>
         internal static string StringIsNullOrEmpty {
@@ -624,15 +678,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string UnrecognizedLanguageName {
             get {
                 return ResourceManager.GetString("UnrecognizedLanguageName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unrecognized project type..
-        /// </summary>
-        internal static string UnrecognizedProjectType {
-            get {
-                return ResourceManager.GetString("UnrecognizedProjectType", resourceCulture);
             }
         }
         

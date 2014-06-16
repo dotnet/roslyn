@@ -4,8 +4,7 @@ namespace Microsoft.CodeAnalysis
 {
     public enum WorkspaceDiagnosticKind
     {
-        FileAccessFailure,
-
+        Failure,
         Warning
     }
 }

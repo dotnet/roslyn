@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.UnitTests;
+using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -56,6 +58,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static IEnumerable<Project> GetProjectsByName(this Solution solution, string name)
         {
             return solution.Projects.Where(p => string.Compare(p.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
+        }
+
+        internal static EventWaiter VerifyWorkspaceChangedEvent(this Workspace workspace, Action<WorkspaceChangeEventArgs> action)
+        {
+            var wew = new EventWaiter();
+            workspace.WorkspaceChanged += wew.Wrap<WorkspaceChangeEventArgs>((sender, args) => action(args));
+            return wew;
+        }
+
+        internal static EventWaiter VerifyWorkspaceFailedEvent(this Workspace workspace, Action<WorkspaceDiagnosticEventArgs> action)
+        {
+            var wew = new EventWaiter();
+            workspace.WorkspaceFailed += wew.Wrap<WorkspaceDiagnosticEventArgs>((sender, args) => action(args));
+            return wew;
         }
     }
 }

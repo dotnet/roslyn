@@ -26,16 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Shared ReadOnly projectTypeGuid As Guid = New Guid("F184B08F-C81C-45F6-A57F-5ABD9991F28F")
-
-        Public Overrides Function IsProjectTypeGuid(guid As Guid) As Boolean
-            Return guid = projectTypeGuid
-        End Function
-
-        Public Overrides Function IsProjectFileExtension(fileExtension As String) As Boolean
-            Return String.Equals("vbproj", fileExtension, StringComparison.OrdinalIgnoreCase)
-        End Function
-
         Protected Overrides Function CreateProjectFile(loadedProject As MSB.Evaluation.Project) As ProjectFile
             Return New VisualBasicProjectFile(Me, loadedProject, Me._workspaceServices.GetService(Of IMetadataReferenceProviderService))
         End Function
@@ -85,10 +75,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim analyzerReferences As IEnumerable(Of AnalyzerReference) = Nothing
                 GetReferences(compilerInputs, executedProject, metadataReferences, analyzerReferences)
 
+                Dim outputPath = Path.Combine(Me.GetOutputDirectory(), compilerInputs.OutputFileName)
+                Dim assemblyName = Me.GetAssemblyName()
+
                 Return New ProjectFileInfo(
                     Me.Guid,
-                    Me.GetTargetPath(),
-                    Me.GetAssemblyName(),
+                    outputPath,
+                    assemblyName,
                     compilerInputs.CompilationOptions,
                     compilerInputs.ParseOptions.WithPreprocessorSymbols(AddPredefinedPreprocessorSymbols(
                         compilerInputs.CompilationOptions.OutputKind, compilerInputs.ParseOptions.PreprocessorSymbols)),
@@ -275,12 +268,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private _targetCompactFramework As Boolean
                 Private _vbRuntime As String
                 Private _libPaths As IEnumerable(Of String)
+                Private _outputFileName As String
 
                 Public Sub New(projectFile As VisualBasicProjectFile)
                     Me._projectFile = projectFile
                     Me._parseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse)
                     Dim projectDirectory = Path.GetDirectoryName(projectFile.FilePath)
-                    Dim outputDirectory = If(Not String.IsNullOrEmpty(projectFile.GetTargetPath()), Path.GetDirectoryName(projectFile.GetTargetPath()), Nothing)
+                    Dim outputDirectory = projectFile.GetOutputDirectory()
                     Me._compilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication,
                         debugInformationKind:=DebugInformationKind.None,
                         xmlReferenceResolver:=New XmlFileResolver(projectDirectory),
@@ -358,6 +352,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public ReadOnly Property LibPaths As IEnumerable(Of String)
                     Get
                         Return Me._libPaths
+                    End Get
+                End Property
+
+                Public ReadOnly Property OutputFileName As String
+                    Get
+                        Return Me._outputFileName
                     End Get
                 End Property
 
@@ -547,6 +547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetOutputAssembly(outputAssembly As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetOutputAssembly
+                    Me._outputFileName = Path.GetFileName(outputAssembly)
                     Return True
                 End Function
 

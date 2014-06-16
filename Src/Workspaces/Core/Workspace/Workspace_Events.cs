@@ -83,29 +83,17 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private Task RaiseWorkspaceFailedEventAsync(WorkspaceDiagnostic diagnostic)
+        protected internal virtual void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
         {
             var handlers = this.eventMap.GetEventHandlers<EventHandler<WorkspaceDiagnosticEventArgs>>(WorkspaceFailedEventName);
             if (handlers.Length > 0)
             {
-                return this.ScheduleTask(() =>
+                var args = new WorkspaceDiagnosticEventArgs(diagnostic);
+                foreach (var handler in handlers)
                 {
-                    var args = new WorkspaceDiagnosticEventArgs(diagnostic);
-                    foreach (var handler in handlers)
-                    {
-                        handler(this, args);
-                    }
-                }, "Workspace.WorkspaceFailed");
+                    handler(this, args);
+                }
             }
-            else
-            {
-                return SpecializedTasks.EmptyTask;
-            }
-        }
-
-        protected internal virtual void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
-        {
-            this.RaiseWorkspaceFailedEventAsync(diagnostic);
         }
 
         /// <summary>

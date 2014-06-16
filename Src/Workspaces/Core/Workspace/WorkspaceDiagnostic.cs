@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public abstract class WorkspaceDiagnostic
+    public class WorkspaceDiagnostic
     {
         public WorkspaceDiagnosticKind Kind { get; private set; }
         public string Message { get; private set; }

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// </summary>
     public sealed class MSBuildWorkspace : Workspace
     {
-        // used at serialize access to public methods
+        // used to serialize access to public methods
         private readonly NonReentrantLock serializationLock = new NonReentrantLock();
 
         // used to protect access to mutable state
@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly Dictionary<string, IProjectFileLoader> projectPathToLoaderMap = new Dictionary<string, IProjectFileLoader>();
 
         private string solutionFilePath;
-        private bool currentPreferMetadata;
         private ImmutableDictionary<string, string> properties;
 
         private MSBuildWorkspace(
@@ -44,6 +43,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // always make a copy of these build properties (no mutation please!)
             this.properties = properties ?? ImmutableDictionary<string, string>.Empty;
             this.SetSolutionProperties(solutionFilePath: null);
+            this.LoadMetadataForReferencedProjects = false;
+            this.SkipUnrecognizedProjects = true;
         }
 
         /// <summary>
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         /// <param name="properties">The MSBuild properties used when interpretting project files.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
-        /// <param name="hostServices">The feature pack used to configure this workspace.</param>
+        /// <param name="hostServices">The <see cref="HostServices"/> used to configure this workspace.</param>
         public static MSBuildWorkspace Create(IDictionary<string, string> properties, HostServices hostServices)
         {
             if (properties == null)
@@ -99,17 +100,25 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// If the referenced project is already opened, the metadata will not be loaded.
         /// If the metadata assembly cannot be found the referenced project will be opened instead.
         /// </summary>
-        public bool LoadMetadataForReferencedProjects
-        {
-            get { return this.currentPreferMetadata; }
-            set { this.currentPreferMetadata = value; }
-        }
+        public bool LoadMetadataForReferencedProjects { get; set; }
 
         /// <summary>
-        /// Associates a language name with a project file extension.
-        /// Projects with the specified file extension will be opened using the specified language.
+        /// Determines if unrecognized projects are skipped when solutions or projects are opened.
+        /// 
+        /// An project is unrecognized if it either has 
+        ///   a) an invalid file path, 
+        ///   b) a non-existent project file,
+        ///   c) has an unrecognized file extension or 
+        ///   d) a file extension associated with an unsupported language.
+        /// 
+        /// If unrecognized projects cannot be skipped a corresponding exception is thrown.
         /// </summary>
-        public void AssociateLanguageWithExtension(string projectFileExtension, string language)
+        public bool SkipUnrecognizedProjects { get; set; }
+
+        /// <summary>
+        /// Associates a project file extension with a language name.
+        /// </summary>
+        public void AssociateFileExtensionWithLanguage(string projectFileExtension, string language)
         {
             if (language == null)
             {
@@ -206,12 +215,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private IProjectFileLoader GetLoaderFromProjectPath(string projectFilePath)
+        private bool TryGetLoaderFromProjectPath(string projectFilePath, ReportMode mode, out IProjectFileLoader loader)
         {
             using (this.dataGuard.DisposableWait())
             {
                 // check to see if we already know the loader
-                IProjectFileLoader loader;
                 if (!this.projectPathToLoaderMap.TryGetValue(projectFilePath, out loader))
                 {
                     // otherwise try to figure it out from extension
@@ -228,27 +236,111 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         {
                             loader = this.Services.GetLanguageServices(language).GetService<IProjectFileLoader>();
                         }
+                        else
+                        {
+                            this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnsupportedLanguage, projectFilePath, language));
+                            return false;
+                        }
                     }
                     else 
                     {
-                        // note: this forces all language dlls to load
-                        loader = this.Services.SupportedLanguages.Select(lang => this.Services.GetLanguageServices(lang).GetService<IProjectFileLoader>())
-                                    .FirstOrDefault(ld => ld.IsProjectFileExtension(extension));
+                        loader = ProjectFileLoader.GetLoaderForProjectFileExtension(this, extension);
+
+                        if (loader == null)
+                        {
+                            this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnrecognizedFileExtension, projectFilePath, Path.GetExtension(projectFilePath)));
+                            return false;
+                        }
                     }
 
-                    this.projectPathToLoaderMap[projectFilePath] = loader;
+                    if (loader != null)
+                    {
+                        this.projectPathToLoaderMap[projectFilePath] = loader;
+                    }
                 }
 
-                return loader;
+                return loader != null;
             }
         }
 
-        private IProjectFileLoader GetLoaderFromProjectType(Guid projectTypeGuid)
+        private bool TryGetAbsoluteProjectPath(string path, string baseDirectory, ReportMode mode, out string absolutePath)
         {
-            return this.Services.SupportedLanguages.Select(lang => this.Services.GetLanguageServices(lang).GetService<IProjectFileLoader>()).FirstOrDefault(p => p.IsProjectTypeGuid(projectTypeGuid));
+            try
+            {
+                absolutePath = this.GetAbsolutePath(path, baseDirectory);
+            }
+            catch (Exception)
+            {
+                ReportFailure(mode, string.Format(WorkspacesResources.InvalidProjectFilePath, path));
+                absolutePath = null;
+                return false;
+            }
+
+            if (!File.Exists(absolutePath))
+            {
+                ReportFailure(
+                    mode,
+                    string.Format(WorkspacesResources.ProjectFileNotFound, absolutePath),
+                    msg => new FileNotFoundException(msg));
+                return false;
+            }
+
+            return true;
         }
 
-        private static string GetAbsolutePath(string path, string baseDirectoryPath)
+        private string GetAbsoluteSolutionPath(string path, string baseDirectory)
+        {
+            string absolutePath;
+
+            try
+            {
+                absolutePath = GetAbsolutePath(path, baseDirectory);
+            }
+            catch (Exception)
+            {
+                throw new InvalidOperationException(string.Format(WorkspacesResources.InvalidSolutionFilePath, path));
+            }
+
+            if (!File.Exists(absolutePath))
+            {
+                throw new FileNotFoundException(string.Format(WorkspacesResources.SolutionFileNotFound, absolutePath));
+            }
+
+            return absolutePath;
+        }
+
+        private enum ReportMode
+        {
+            Throw,
+            Log,
+            Ignore
+        }
+
+        private void ReportFailure(ReportMode mode, string message, Func<string, Exception> createException = null)
+        {
+            switch (mode)
+            {
+                case ReportMode.Throw:
+                    if (createException != null)
+                    {
+                        throw createException(message);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(message);
+                    }
+
+                case ReportMode.Log:
+                    this.OnWorkspaceFailed(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, message));
+                    break;
+
+                case ReportMode.Ignore:
+                default:
+                    break;
+            }
+        }
+
+        private string GetAbsolutePath(string path, string baseDirectoryPath)
         {
             return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, baseDirectoryPath) ?? path);
         }
@@ -266,65 +358,67 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             this.ClearSolution();
 
-            solutionFilePath = Path.GetFullPath(solutionFilePath);
+            var absoluteSolutionPath = this.GetAbsoluteSolutionPath(solutionFilePath, Environment.CurrentDirectory);
 
             using (this.dataGuard.DisposableWait())
             {
-                this.SetSolutionProperties(solutionFilePath);
+                this.SetSolutionProperties(absoluteSolutionPath);
             }
 
             VersionStamp version = default(VersionStamp);
             SolutionFile solutionFile = null;
 
-            using (var reader = new StreamReader(solutionFilePath))
+            using (var reader = new StreamReader(absoluteSolutionPath))
             {
-                version = VersionStamp.Create(File.GetLastWriteTimeUtc(solutionFilePath));
+                version = VersionStamp.Create(File.GetLastWriteTimeUtc(absoluteSolutionPath));
                 var text = await reader.ReadToEndAsync().ConfigureAwait(false);
                 solutionFile = SolutionFile.Parse(new StringReader(text));
             }
 
-            var solutionFolder = Path.GetDirectoryName(solutionFilePath);
+            var solutionFolder = Path.GetDirectoryName(absoluteSolutionPath);
 
             // seed loaders from known project types
             using (this.dataGuard.DisposableWait())
             {
                 foreach (var projectBlock in solutionFile.ProjectBlocks)
                 {
-                    var absoluteProjectPath = GetAbsolutePath(projectBlock.ProjectPath, solutionFolder);
-                    var loader = GetLoaderFromProjectType(projectBlock.ProjectTypeGuid);
-                    this.projectPathToLoaderMap[absoluteProjectPath] = loader;
+                    string absoluteProjectPath;
+                    if (TryGetAbsoluteProjectPath(projectBlock.ProjectPath, solutionFolder, ReportMode.Ignore, out absoluteProjectPath))
+                    {
+                        var loader = ProjectFileLoader.GetLoaderForProjectTypeGuid(this, projectBlock.ProjectTypeGuid);
+                        if (loader != null)
+                        {
+                            this.projectPathToLoaderMap[absoluteProjectPath] = loader;
+                        }
+                    }
                 }
             }
 
             // a list to accumulate all the loaded projects
             var loadedProjects = new List<ProjectInfo>();
 
+            var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
+
             // load all the projects
             foreach (var projectBlock in solutionFile.ProjectBlocks)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var absoluteProjectPath = GetAbsolutePath(projectBlock.ProjectPath, solutionFolder);
-
-                // don't even try to load project if there is no file
-                if (!File.Exists(absoluteProjectPath))
+                string absoluteProjectPath;
+                if (TryGetAbsoluteProjectPath(projectBlock.ProjectPath, solutionFolder, reportMode, out absoluteProjectPath))
                 {
-                    continue;
-                }
-
-                var loader = GetLoaderFromProjectPath(absoluteProjectPath);
-
-                // only attempt to load project if it can be loaded.
-                if (loader != null)
-                {
-                    // projects get added to pending projects as side-effect
-                    // never perfer metadata when loading solution, all projects get loaded if they can.
-                    var tmp = await GetOrLoadProjectAsync(absoluteProjectPath, loader, preferMetadata: false, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    IProjectFileLoader loader;
+                    if (TryGetLoaderFromProjectPath(absoluteProjectPath, reportMode, out loader))
+                    { 
+                        // projects get added to 'loadedProjects' as side-effect
+                        // never perfer metadata when loading solution, all projects get loaded if they can.
+                        var tmp = await GetOrLoadProjectAsync(absoluteProjectPath, loader, preferMetadata: false, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
 
-            // have the base workspace construct the solution from this info
-            this.OnSolutionAdded(SolutionInfo.Create(SolutionId.CreateNewId(debugName: solutionFilePath), version, solutionFilePath, loadedProjects));
+            // construct workspace from loaded project infos
+            this.OnSolutionAdded(SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects));
 
             return this.CurrentSolution;
         }
@@ -339,26 +433,27 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException("projectFilePath");
             }
 
-            projectFilePath = Path.GetFullPath(projectFilePath);
-
-            var loader = this.GetLoaderFromProjectPath(projectFilePath);
-            if (loader == null)
+            string fullPath;
+            if (this.TryGetAbsoluteProjectPath(projectFilePath, Environment.CurrentDirectory, ReportMode.Throw, out fullPath))
             {
-                throw new InvalidOperationException(WorkspacesResources.UnrecognizedProjectType);
+                IProjectFileLoader loader;
+                if (this.TryGetLoaderFromProjectPath(projectFilePath, ReportMode.Throw, out loader))
+                {
+                    var loadedProjects = new List<ProjectInfo>();
+                    var projectId = await GetOrLoadProjectAsync(fullPath, loader, this.LoadMetadataForReferencedProjects, loadedProjects, cancellationToken).ConfigureAwait(false);
+
+                    // add projects to solution
+                    foreach (var project in loadedProjects)
+                    {
+                        this.OnProjectAdded(project);
+                    }
+
+                    return this.CurrentSolution.GetProject(projectId);
+                }
             }
 
-            projectFilePath = Path.GetFullPath(projectFilePath);
-
-            var loadedProjects = new List<ProjectInfo>();
-            var projectId = await GetOrLoadProjectAsync(projectFilePath, loader, this.currentPreferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
-
-            // add projects to solution
-            foreach (var project in loadedProjects)
-            {
-                this.OnProjectAdded(project);
-            }
-
-            return this.CurrentSolution.GetProject(projectId);
+            // unreachable
+            return null;
         }
 
         private async Task<ProjectId> GetOrLoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, List<ProjectInfo> loadedProjects, CancellationToken cancellationToken)
@@ -381,91 +476,82 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var name = Path.GetFileNameWithoutExtension(projectFilePath);
 
-            try
+            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, this.properties, cancellationToken).ConfigureAwait(false);
+            var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
+
+            VersionStamp version;
+            if (!string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath))
             {
-                var projectFile = await loader.LoadProjectFileAsync(projectFilePath, this.properties, cancellationToken).ConfigureAwait(false);
-                var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
+                version = VersionStamp.Create(File.GetLastWriteTimeUtc(projectFilePath));
+            }
+            else
+            {
+                version = VersionStamp.Create();
+            }
 
-                VersionStamp version;
-                if (!string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath))
-                {
-                    version = VersionStamp.Create(File.GetLastWriteTimeUtc(projectFilePath));
-                }
-                else
-                {
-                    version = VersionStamp.Create();
-                }
+            // Documents
+            var docFileInfos = projectFileInfo.Documents.ToImmutableArrayOrEmpty();
+            CheckDocuments(docFileInfos, projectFilePath, projectId);
 
-                // Documents
-                var docFileInfos = projectFileInfo.Documents.ToImmutableArrayOrEmpty();
-                CheckDocuments(docFileInfos, projectFilePath, projectId);
+            // TODO: is there a way how to specify encoding to msbuild? csc.exe has /codepage command line option.
+            // For now use auto-detection. (bug 941489).
+            Encoding defaultEncoding = null;
 
-                // TODO: is htere a way how to specify encoding to msbuild? csc.exe has /codepage command line option.
-                // For now use auto-detection. (bug 941489).
-                Encoding defaultEncoding = null;
+            var docs = new List<DocumentInfo>();
+            foreach (var docFileInfo in docFileInfos)
+            {
+                docs.Add(DocumentInfo.Create(
+                    DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
+                    Path.GetFileName(docFileInfo.LogicalPath),
+                    GetDocumentFolders(docFileInfo.LogicalPath),
+                    projectFile.GetSourceCodeKind(docFileInfo.FilePath),
+                    new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
+                    docFileInfo.FilePath,
+                    defaultEncoding,
+                    docFileInfo.IsGenerated));
+            }
 
-                var docs = new List<DocumentInfo>();
-                foreach (var docFileInfo in docFileInfos)
-                {
-                    docs.Add(DocumentInfo.Create(
-                        DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
-                        Path.GetFileName(docFileInfo.LogicalPath),
-                        GetDocumentFolders(docFileInfo.LogicalPath),
-                        projectFile.GetSourceCodeKind(docFileInfo.FilePath),
-                        new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
-                        docFileInfo.FilePath,
-                        defaultEncoding,
-                        docFileInfo.IsGenerated));
-                }
+            // project references
+            var resolvedReferences = await this.ResolveProjectReferencesAsync(
+                projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
 
-                // project references
-                var resolvedReferences = await this.ResolveProjectReferencesAsync(
-                    projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
+            var metadataReferences = projectFileInfo.MetadataReferences
+                .Concat(resolvedReferences.MetadataReferences);
 
-                var metadataReferences = projectFileInfo.MetadataReferences
-                    .Concat(resolvedReferences.MetadataReferences);
+            var outputFilePath = projectFileInfo.OutputFilePath;
+            var assemblyName = projectFileInfo.AssemblyName;
 
-                var outputFilePath = projectFileInfo.OutputFilePath;
-                var assemblyName = projectFileInfo.AssemblyName;
+            // if the project file loader couldn't figure out an assembly name, make one using the project's file path.
+            if (string.IsNullOrWhiteSpace(assemblyName))
+            {
+                assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
 
-                // if the project file loader couldn't figure out an assembly name, make one using the project's file path.
+                // if this is still unreasonable, use a fixed name.
                 if (string.IsNullOrWhiteSpace(assemblyName))
                 {
-                    assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
-
-                    // if this is still unreasonable, use a fixed name.
-                    if (string.IsNullOrWhiteSpace(assemblyName))
-                    {
-                        assemblyName = "assembly";
-                    }
+                    assemblyName = "assembly";
                 }
-
-                loadedProjects.Add(
-                    ProjectInfo.Create(
-                        projectId,
-                        version,
-                        name,
-                        assemblyName,
-                        loader.Language,
-                        projectFilePath,
-                        outputFilePath,
-                        projectFileInfo.CompilationOptions,
-                        projectFileInfo.ParseOptions,
-                        docs,
-                        resolvedReferences.ProjectReferences,
-                        metadataReferences,
-                        analyzerReferences: projectFileInfo.AnalyzerReferences,
-                        isSubmission: false,
-                        hostObjectType: null));
-
-                return projectId;
             }
-            catch (System.IO.IOException exception)
-            {
-                this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.FileAccessFailure, exception.Message, projectId));
-                loadedProjects.Add(ProjectInfo.Create(projectId, VersionStamp.Default, name, name, loader.Language, filePath: projectFilePath));
-                return projectId;
-            }
+
+            loadedProjects.Add(
+                ProjectInfo.Create(
+                    projectId,
+                    version,
+                    name,
+                    assemblyName,
+                    loader.Language,
+                    projectFilePath,
+                    outputFilePath,
+                    projectFileInfo.CompilationOptions,
+                    projectFileInfo.ParseOptions,
+                    docs,
+                    resolvedReferences.ProjectReferences,
+                    metadataReferences,
+                    analyzerReferences: projectFileInfo.AnalyzerReferences,
+                    isSubmission: false,
+                    hostObjectType: null));
+
+            return projectId;
         }
 
         private static readonly char[] DirectorySplitChars = new char[] { Path.DirectorySeparatorChar };
@@ -510,41 +596,53 @@ namespace Microsoft.CodeAnalysis.MSBuild
             CancellationToken cancellationToken)
         {
             var resolvedReferences = new ResolvedReferences();
+            var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
 
             foreach (var projectFileReference in projectFileReferences)
             {
-                var fullPath = GetAbsolutePath(projectFileReference.Path, Path.GetDirectoryName(thisProjectPath));
+                string fullPath;
 
-                // if the project is already loaded, then just reference the one we have
-                var existingProjectId = this.GetProjectId(fullPath);
-                if (existingProjectId != null)
-                { 
-                    resolvedReferences.ProjectReferences.Add(new ProjectReference(existingProjectId, projectFileReference.Aliases));
-                    continue;
-                }
-
-                var loader = this.GetLoaderFromProjectPath(fullPath);
-                if (preferMetadata || loader == null)
+                if (TryGetAbsoluteProjectPath(projectFileReference.Path, Path.GetDirectoryName(thisProjectPath), reportMode, out fullPath))
                 {
-                    // attempt to find project's metadata
-                    var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases, this.properties, cancellationToken).ConfigureAwait(false);
-                    if (projectMetadata != null)
+                    // if the project is already loaded, then just reference the one we have
+                    var existingProjectId = this.GetProjectId(fullPath);
+                    if (existingProjectId != null)
                     {
-                        resolvedReferences.MetadataReferences.Add(projectMetadata);
+                        resolvedReferences.ProjectReferences.Add(new ProjectReference(existingProjectId, projectFileReference.Aliases));
                         continue;
                     }
-                    else if (loader == null)
+
+                    IProjectFileLoader loader;
+                    TryGetLoaderFromProjectPath(fullPath, ReportMode.Ignore, out loader);
+
+                    // get metadata if prefered or if loader is unknown
+                    if (preferMetadata || loader == null)
                     {
-                        // cannot find metadata and project cannot be loaded, so leave a project reference to a non-existent project.
-                        var id = this.GetOrCreateProjectId(fullPath);
-                        resolvedReferences.ProjectReferences.Add(new ProjectReference(id, projectFileReference.Aliases));
+                        var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases, this.properties, cancellationToken).ConfigureAwait(false);
+                        if (projectMetadata != null)
+                        {
+                            resolvedReferences.MetadataReferences.Add(projectMetadata);
+                            continue;
+                        }
+                    }
+
+                    // must load, so we really need loader
+                    if (TryGetLoaderFromProjectPath(fullPath, reportMode, out loader))
+                    {
+                        // load the project
+                        var projectId = await this.GetOrLoadProjectAsync(fullPath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
+                        resolvedReferences.ProjectReferences.Add(new ProjectReference(projectId, projectFileReference.Aliases));
                         continue;
                     }
                 }
+                else
+                {
+                    fullPath = projectFileReference.Path;
+                }
 
-                // load the project
-                var projectId = await this.GetOrLoadProjectAsync(fullPath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
-                resolvedReferences.ProjectReferences.Add(new ProjectReference(projectId, projectFileReference.Aliases));
+                // cannot find metadata and project cannot be loaded, so leave a project reference to a non-existent project.
+                var id = this.GetOrCreateProjectId(fullPath);
+                resolvedReferences.ProjectReferences.Add(new ProjectReference(id, projectFileReference.Aliases));
             }
 
             return resolvedReferences;
@@ -555,35 +653,28 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         private async Task<MetadataReference> GetProjectMetadata(string projectFilePath, ImmutableArray<string> aliases, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
-            try
-            {
-                // use loader service to determine output file for project if possible
-                var outputFilePath = await ProjectFileLoader.GetOutputFilePathAsync(projectFilePath, globalProperties, cancellationToken).ConfigureAwait(false);
+            // use loader service to determine output file for project if possible
+            var outputFilePath = await ProjectFileLoader.GetOutputFilePathAsync(projectFilePath, globalProperties, cancellationToken).ConfigureAwait(false);
 
-                if (outputFilePath != null && File.Exists(outputFilePath))
+            if (outputFilePath != null && File.Exists(outputFilePath))
+            {
+                if (Workspace.TestHookStandaloneProjectsDoNotHoldReferences)
                 {
-                    if (Workspace.TestHookStandaloneProjectsDoNotHoldReferences)
-                    {
-                        var documentationService = this.Services.GetService<IDocumentationProviderService>();
-                        var docProvider = documentationService.GetDocumentationProvider(outputFilePath);
+                    var documentationService = this.Services.GetService<IDocumentationProviderService>();
+                    var docProvider = documentationService.GetDocumentationProvider(outputFilePath);
 
-                        return new MetadataImageReference(
-                            AssemblyMetadata.CreateFromImage(ImmutableArray.Create(File.ReadAllBytes(outputFilePath))),
-                            documentation: docProvider,
-                            aliases: aliases,
-                            display: outputFilePath);
-                    }
-                    else
-                    {
-                        var metadataService = this.Services.GetService<IMetadataReferenceProviderService>();
-                        var provider = metadataService.GetProvider();
-                        return provider.GetReference(outputFilePath, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases));
-                    }
+                    return new MetadataImageReference(
+                        AssemblyMetadata.CreateFromImage(ImmutableArray.Create(File.ReadAllBytes(outputFilePath))),
+                        documentation: docProvider,
+                        aliases: aliases,
+                        display: outputFilePath);
                 }
-            }
-            catch (System.IO.IOException exception)
-            {
-                this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.FileAccessFailure, exception.Message, this.GetOrCreateProjectId(projectFilePath)));
+                else
+                {
+                    var metadataService = this.Services.GetService<IMetadataReferenceProviderService>();
+                    var provider = metadataService.GetProvider();
+                    return provider.GetReference(outputFilePath, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases));
+                }
             }
 
             return null;
@@ -627,16 +718,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     projectChanges.GetRemovedDocuments().Any())
                 {
                     var projectPath = project.FilePath;
-                    var loader = this.GetLoaderFromProjectPath(projectPath);
-                    if (loader != null)
-                    {
+                    IProjectFileLoader loader;
+                    if (this.TryGetLoaderFromProjectPath(projectPath, ReportMode.Ignore, out loader))
+                    { 
                         try
                         {
                             this.applyChangesProjectFile = loader.LoadProjectFileAsync(projectPath, this.properties, CancellationToken.None).Result;
                         }
                         catch (System.IO.IOException exception)
                         {
-                            this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.FileAccessFailure, exception.Message, projectChanges.ProjectId));
+                            this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                         }
                     }
                 }
@@ -653,7 +744,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                     catch (System.IO.IOException exception)
                     {
-                        this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.FileAccessFailure, exception.Message, projectChanges.ProjectId));
+                        this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                     }
                 }
             }
@@ -678,27 +769,31 @@ namespace Microsoft.CodeAnalysis.MSBuild
             System.Diagnostics.Debug.Assert(this.applyChangesProjectFile != null);
 
             var project = this.CurrentSolution.GetProject(documentId.ProjectId);
-            var loader = this.GetLoaderFromProjectPath(project.FilePath);
 
-            var extension = this.applyChangesProjectFile.GetDocumentExtension(sourceCodeKind);
-            var fileName = Path.ChangeExtension(name, extension);
-
-            var relativePath = folders != null ? Path.Combine(Path.Combine(folders.ToArray()), fileName) : fileName;
-            var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(project.FilePath));
-            var encoding = (text != null) ? text.Encoding : Encoding.UTF8;
-
-            var documentInfo = DocumentInfo.Create(documentId, fileName, folders, sourceCodeKind, new FileTextLoader(fullPath, encoding), fullPath, encoding, isGenerated: false);
-
-            // add document to project file
-            this.applyChangesProjectFile.AddDocument(relativePath);
-
-            // add to solution
-            this.OnDocumentAdded(documentInfo);
-
-            // save text to disk
-            if (text != null)
+            IProjectFileLoader loader;
+            if (this.TryGetLoaderFromProjectPath(project.FilePath, ReportMode.Ignore, out loader))
             {
-                this.SaveDocumentText(documentId, fullPath, text);
+                var extension = this.applyChangesProjectFile.GetDocumentExtension(sourceCodeKind);
+                var fileName = Path.ChangeExtension(name, extension);
+
+                var relativePath = folders != null ? Path.Combine(Path.Combine(folders.ToArray()), fileName) : fileName;
+
+                var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(project.FilePath));
+                var encoding = (text != null) ? text.Encoding : Encoding.UTF8;
+
+                var documentInfo = DocumentInfo.Create(documentId, fileName, folders, sourceCodeKind, new FileTextLoader(fullPath, encoding), fullPath, encoding, isGenerated: false);
+
+                // add document to project file
+                this.applyChangesProjectFile.AddDocument(relativePath);
+
+                // add to solution
+                this.OnDocumentAdded(documentInfo);
+
+                // save text to disk
+                if (text != null)
+                {
+                    this.SaveDocumentText(documentId, fullPath, text);
+                }
             }
         }
 
@@ -719,7 +814,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (IOException exception)
             {
-                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.FileAccessFailure, exception.Message, id));
+                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, id));
             }
         }
 
@@ -747,7 +842,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (System.IO.IOException exception)
             {
-                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.FileAccessFailure, exception.Message, documentId));
+                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
             }
         }
     }

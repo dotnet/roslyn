@@ -237,9 +237,6 @@
   <data name="FileWasExternallyModified" xml:space="preserve">
     <value>File was externally modified: {0}.</value>
   </data>
-  <data name="UnrecognizedProjectType" xml:space="preserve">
-    <value>Unrecognized project type.</value>
-  </data>
   <data name="UnrecognizedLanguageName" xml:space="preserve">
     <value>Unrecognized language name.</value>
   </data>
@@ -317,5 +314,23 @@
   </data>
   <data name="AbsolutePathExpected" xml:space="preserve">
     <value>Absolute path expected.</value>
+  </data>
+  <data name="CannotOpenProjectUnrecognizedFileExtension" xml:space="preserve">
+    <value>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</value>
+  </data>
+  <data name="CannotOpenProjectUnsupportedLanguage" xml:space="preserve">
+    <value>Cannot open project '{0}' because the language '{1}' is not supported.</value>
+  </data>
+  <data name="InvalidProjectFilePath" xml:space="preserve">
+    <value>Invalid project file path: '{0}'</value>
+  </data>
+  <data name="InvalidSolutionFilePath" xml:space="preserve">
+    <value>Invalid solution file path: '{0}'</value>
+  </data>
+  <data name="ProjectFileNotFound" xml:space="preserve">
+    <value>Project file not found: '{0}'</value>
+  </data>
+  <data name="SolutionFileNotFound" xml:space="preserve">
+    <value>Solution file not found: '{0}'</value>
   </data>
 </root>

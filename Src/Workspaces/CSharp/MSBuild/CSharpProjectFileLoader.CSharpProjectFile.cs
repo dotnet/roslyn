@@ -73,16 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var projectReference in GetProjectReferenceItems(executedProject))
                 {
-                    Guid guid;
-                    if (!Guid.TryParse(projectReference.GetMetadataValue("Project"), out guid))
-                    {
-                        continue;
-                    }
-
                     var filePath = projectReference.EvaluatedInclude;
                     var aliases = GetAliases(projectReference);
 
-                    yield return new ProjectFileReference(guid, filePath, aliases);
+                    yield return new ProjectFileReference(filePath, aliases);
                 }
             }
 
@@ -103,10 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IEnumerable<AnalyzerReference> analyzerRefs;
                 this.GetReferences(compilerInputs, executedProject, out metadataRefs, out analyzerRefs);
 
+                var outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
+                var assemblyName = this.GetAssemblyName();
+
                 return new ProjectFileInfo(
                     this.Guid,
-                    this.GetTargetPath(),
-                    this.GetAssemblyName(),
+                    outputPath,
+                    assemblyName,
                     compilerInputs.CompilationOptions,
                     compilerInputs.ParseOptions,
                     docs,
@@ -273,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal IReadOnlyList<string> LibPaths { get; private set; }
                 internal bool NoStandardLib { get; private set; }
                 internal Dictionary<string, ReportDiagnostic> Warnings { get; private set; }
+                internal string OutputFileName { get; private set; }
 
                 private static readonly CSharpParseOptions defaultParseOptions = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, documentationMode: DocumentationMode.Parse);
 
@@ -280,15 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     this.projectFile = projectFile;
                     var projectDirectory = Path.GetDirectoryName(projectFile.FilePath);
-                    var outputDirectory = projectFile.GetTargetPath();
-                    if (!string.IsNullOrEmpty(outputDirectory) && Path.IsPathRooted(outputDirectory))
-                    {
-                        outputDirectory = Path.GetDirectoryName(outputDirectory);
-                    }
-                    else
-                    {
-                        outputDirectory = projectDirectory;
-                    }
+                    var outputDirectory = projectFile.GetOutputDirectory();
 
                     this.ParseOptions = defaultParseOptions;
                     this.CompilationOptions = new CSharpCompilationOptions(
@@ -620,6 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public bool SetOutputAssembly(string outputAssembly)
                 {
                     // ?? looks to be output file in obj directory not binaries\debug directory
+                    this.OutputFileName = Path.GetFileName(outputAssembly);
                     return true;
                 }
 

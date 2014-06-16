@@ -23,18 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return LanguageNames.CSharp; }
         }
 
-        private static readonly Guid projectTypeGuid = new Guid("FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");
-
-        public override bool IsProjectTypeGuid(Guid guid)
-        {
-            return guid == projectTypeGuid;
-        }
-
-        public override bool IsProjectFileExtension(string fileExtension)
-        {
-            return string.Equals("csproj", fileExtension, StringComparison.OrdinalIgnoreCase);
-        }
-
         protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject)
         {
             return new CSharpProjectFile(this, loadedProject, this.workspaceServices.GetService<IMetadataReferenceProviderService>());

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -21,8 +20,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         }
 
         public abstract string Language { get; }
-        public abstract bool IsProjectTypeGuid(Guid guid);
-        public abstract bool IsProjectFileExtension(string fileExtension);
 
         protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject);
 
@@ -83,6 +80,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             memoryStream.Position = 0;
             return memoryStream;
+        }
+
+        public static IProjectFileLoader GetLoaderForProjectTypeGuid(Workspace workspace, Guid guid)
+        {
+            return workspace.Services.FindLanguageServices<IProjectFileLoader>(
+                d => ((string[])d["ProjectTypeGuid"]).Any(g => guid == new Guid(g)))
+                .FirstOrDefault();
+        }
+
+        public static IProjectFileLoader GetLoaderForProjectFileExtension(Workspace workspace, string extension)
+        {
+            return workspace.Services.FindLanguageServices<IProjectFileLoader>(
+                d => ((string[])d["ProjectFileExtension"]).Any(e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase)))
+                .FirstOrDefault();
         }
     }
 }

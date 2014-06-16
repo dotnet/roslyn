@@ -14,23 +14,14 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         public string ServiceType { get; private set; }
         public string Layer { get; private set; }
 
-        public LanguageServiceMetadata(string language, Type serviceType, string layer) 
-            : this(language, serviceType.AssemblyQualifiedName, layer)
-        {
-        }
-
+        public IReadOnlyDictionary<string, object> Data { get; private set; }
+        
         public LanguageServiceMetadata(IDictionary<string, object> data)
             : base(data)
         {
             this.ServiceType = (string)data.GetValueOrDefault("ServiceType");
             this.Layer = (string)data.GetValueOrDefault("Layer");
-        }
-
-        public LanguageServiceMetadata(string language, string serviceType, string layer)
-            : base(language)
-        {
-            this.ServiceType = serviceType;
-            this.Layer = layer;
+            this.Data = (IReadOnlyDictionary<string, object>)data;
         }
     }
 }

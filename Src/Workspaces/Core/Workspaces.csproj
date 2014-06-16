@@ -834,12 +834,14 @@
     <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\BuildTargets.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileExtensionAttribute.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFile.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFileLoader.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFile.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileInfo.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileLoader.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileReference.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectTypeGuidAttribute.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\LineScanner.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\ProjectBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />

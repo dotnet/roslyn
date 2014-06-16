@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var buildTargets = new BuildTargets(loadedProject, "Compile");
 
             // Don't execute this one. It will build referenced projects.
-            // Even when DesignTimeBuild is defined above, it will still add the referenced project's output to the references list
+            // Even when DesignTimeBuild is defined, it will still add the referenced project's output to the references list
             // which we don't want.
             buildTargets.Remove("ResolveProjectReferences");
 
@@ -103,46 +103,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
+            if (result.Exception != null)
+            {
+                throw result.Exception;
+            }
+
             return new BuildResult(result, executedProject);
         }
 
-        // this lock is static because we are  using the default build manager, and there is only one per process
+        // this lock is static because we are using the default build manager, and there is only one per process
         private static readonly AsyncSemaphore buildManagerLock = new AsyncSemaphore(1);
-
-        private MSB.Execution.BuildResult Build(MSB.Execution.BuildParameters parameters, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
-        {
-            using (buildManagerLock.DisposableWait())
-            {
-                var buildManager = MSB.Execution.BuildManager.DefaultBuildManager;
-
-                buildManager.BeginBuild(parameters);
-
-                // enable cancellation of build
-                CancellationTokenRegistration registration = default(CancellationTokenRegistration);
-                if (cancellationToken.CanBeCanceled)
-                {
-                    registration = cancellationToken.Register(() =>
-                    {
-                        buildManager.CancelAllSubmissions();
-                    });
-                }
-
-                // execute build sync
-                try
-                {
-                    return buildManager.BuildRequest(requestData);
-                }
-                finally
-                {
-                    if (registration != default(CancellationTokenRegistration))
-                    {
-                        registration.Dispose();
-                    }
-
-                    buildManager.EndBuild();
-                }
-            }
-        }
 
         private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildParameters parameters, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
@@ -205,21 +175,34 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return taskSource.Task;
         }
 
-        protected virtual string GetTargetPath()
+        protected virtual string GetOutputDirectory()
         {
-            return this.GetAbsolutePath(this.loadedProject.GetPropertyValue("TargetPath"));
+            var targetPath = this.loadedProject.GetPropertyValue("TargetPath");
+
+            if (string.IsNullOrEmpty(targetPath))
+            {
+                targetPath = loadedProject.DirectoryPath;
+            }
+
+            return Path.GetDirectoryName(this.GetAbsolutePath(targetPath));
         }
 
         protected virtual string GetAssemblyName()
         {
-            return PathUtilities.GetFileName(this.loadedProject.GetPropertyValue("AssemblyName"));
+            var assemblyName = this.loadedProject.GetPropertyValue("AssemblyName");
+
+            if (string.IsNullOrEmpty(assemblyName))
+            {
+                assemblyName = Path.GetFileNameWithoutExtension(loadedProject.FullPath);
+            }
+
+            return PathUtilities.GetFileName(assemblyName);
         }
 
         protected virtual IEnumerable<ProjectFileReference> GetProjectReferences(MSB.Execution.ProjectInstance executedProject)
         {
             return executedProject.GetItems("ProjectReference")
                 .Select(reference => new ProjectFileReference(
-                    guid: Guid.Parse(reference.GetMetadataValue("Project")), 
                     path: reference.EvaluatedInclude,
                     aliases: default(ImmutableArray<string>)));
         }

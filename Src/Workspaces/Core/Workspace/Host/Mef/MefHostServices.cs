@@ -84,9 +84,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             private readonly MefHostServices host;
             private readonly Workspace workspace;
 
+            private readonly ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services;
+
             // map of type name to workspace service
-            private ImmutableDictionary<Type, IWorkspaceService> serviceMap
-                = ImmutableDictionary<Type, IWorkspaceService>.Empty;
+            private ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>> serviceMap
+                = ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>>.Empty;
 
             // accumulated cache for language services
             private ImmutableDictionary<string, MefLanguageServices> languageServicesMap
@@ -96,6 +98,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             {
                 this.host = host;
                 this.workspace = workspace;
+                this.services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
+                    .Concat(host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
+                                .Select(lz => new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata)))
+                    .ToImmutableArray();
             }
 
             public override HostServices HostServices
@@ -110,69 +116,67 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
             public override TWorkspaceService GetService<TWorkspaceService>()
             {
-                IWorkspaceService service;
-
-                var currentMap = this.serviceMap;
-                var key = typeof(TWorkspaceService);
-                if (!currentMap.TryGetValue(key, out service))
+                Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
+                if (TryGetService(typeof(TWorkspaceService), out service))
                 {
-                    service = ImmutableInterlocked.GetOrAdd(ref this.serviceMap, key, _ =>
-                    {
-                        // pick from list of exported factories and instances
-                        var serviceType = key.AssemblyQualifiedName;
-                        return PickWorkspaceService(
-                            this.host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
-                                .Where(lz => lz.Metadata.ServiceType == serviceType)
-                                .Select(lz => new KeyValuePair<string, Func<MefWorkspaceServices, IWorkspaceService>>(lz.Metadata.Layer, ws => lz.Value.CreateService(ws)))
-                                .Concat(
-                            this.host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
-                                .Where(lz => lz.Metadata.ServiceType == serviceType)
-                                .Select(lz => new KeyValuePair<string, Func<MefWorkspaceServices, IWorkspaceService>>(lz.Metadata.Layer, ws => lz.Value))));
-                    });
-                }
-
-                return (TWorkspaceService)service;
-            }
-
-            private IWorkspaceService PickWorkspaceService(IEnumerable<KeyValuePair<string, Func<MefWorkspaceServices, IWorkspaceService>>> services)
-            {
-                // workspace specific kind is best
-                var pair = services.SingleOrDefault(s => s.Key == this.workspace.Kind);
-                if (pair.Key != null)
-                {
-                    return pair.Value(this);
-                }
-
-                // host services override editor or default
-                pair = services.SingleOrDefault(s => s.Key == ServiceLayer.Host);
-                if (pair.Key != null)
-                {
-                    return pair.Value(this);
-                }
-
-                // editor services override default
-                pair = services.SingleOrDefault(s => s.Key == ServiceLayer.Editor);
-                if (pair.Key != null)
-                {
-                    return pair.Value(this);
-                }
-
-                // services marked as any are default
-                pair = services.SingleOrDefault(s => s.Key == ServiceLayer.Default);
-                if (pair.Key != null)
-                {
-                    return pair.Value(this);
-                }
-
-                pair = services.SingleOrDefault();
-                if (pair.Key != null)
-                {
-                    return pair.Value(this);
+                    return (TWorkspaceService)service.Value;
                 }
                 else
                 {
-                    return default(IWorkspaceService);
+                    return default(TWorkspaceService);
                 }
+            }
+
+            private bool TryGetService(Type serviceType, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
+            {
+                if (!this.serviceMap.TryGetValue(serviceType, out service))
+                {
+                    service = ImmutableInterlocked.GetOrAdd(ref this.serviceMap, serviceType, svctype =>
+                    {
+                        // pick from list of exported factories and instances
+                        return PickWorkspaceService(this.services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName));
+                    });
+                }
+
+                return service != default(Lazy<IWorkspaceService, WorkspaceServiceMetadata>);
+            }
+
+            private Lazy<IWorkspaceService, WorkspaceServiceMetadata> PickWorkspaceService(IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
+            {
+                Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
+
+                // workspace specific kind is best
+                if (TryGetServiceByLayer(this.workspace.Kind, services, out service))
+                {
+                    return service;
+                }
+
+                // host layer overrides editor or default
+                if (TryGetServiceByLayer(ServiceLayer.Host, services, out service))
+                {
+                    return service;
+                }
+
+                // editor layer overrides default
+                if (TryGetServiceByLayer(ServiceLayer.Editor, services, out service))
+                {
+                    return service;
+                }
+
+                // that just leaves default
+                if (TryGetServiceByLayer(ServiceLayer.Default, services, out service))
+                {
+                    return service;
+                }
+
+                // no service.
+                return default(Lazy<IWorkspaceService, WorkspaceServiceMetadata>);
+            }
+
+            private bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
+            {
+                service = services.SingleOrDefault(lz => lz.Metadata.Layer == layer);
+                return service != default(Lazy<IWorkspaceService, WorkspaceServiceMetadata>);
             }
 
             public override IEnumerable<string> SupportedLanguages
@@ -205,7 +209,25 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                     return base.GetLanguageServices(languageName);
                 }
             }
+
+            public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
+            {
+                foreach (var language in this.SupportedLanguages)
+                {
+                    var services = (MefLanguageServices)this.GetLanguageServices(language);
+
+                    Lazy<ILanguageService, LanguageServiceMetadata> service;
+                    if (services.TryGetService(typeof(TLanguageService), out service))
+                    {
+                        if (filter(service.Metadata.Data))
+                        {
+                            yield return (TLanguageService)service.Value;
+                        }
+                    }
+                }
+            }
         }
+
         #endregion
 
         #region LanguageServices
@@ -214,9 +236,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             private readonly MefWorkspaceServices workspaceServices;
             private readonly string language;
             private readonly ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> services;
-            private readonly ImmutableArray<Lazy<ILanguageServiceFactory, LanguageServiceMetadata>> factories;
 
-            private ImmutableDictionary<Type, ILanguageService> serviceMap = ImmutableDictionary<Type, ILanguageService>.Empty;
+            private ImmutableDictionary<Type, Lazy<ILanguageService, LanguageServiceMetadata>> serviceMap 
+                = ImmutableDictionary<Type, Lazy<ILanguageService, LanguageServiceMetadata>>.Empty;
 
             public MefLanguageServices(
                 MefWorkspaceServices workspaceServices,
@@ -225,8 +247,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 this.workspaceServices = workspaceServices;
                 this.language = language;
                 var hostServices = (MefHostServices)workspaceServices.HostServices;
-                this.services = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>().Where(lz => lz.Metadata.Language == language).ToImmutableArray();
-                this.factories = hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Where(lz => lz.Metadata.Language == language).ToImmutableArray();
+
+                this.services = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>()
+                        .Concat(hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>()
+                                            .Select(lz => new Lazy<ILanguageService, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata)))
+                        .Where(lz => lz.Metadata.Language == language).ToImmutableArray();
             }
 
             public override HostWorkspaceServices WorkspaceServices
@@ -241,75 +266,71 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
             public bool HasServices
             {
-                get { return this.services.Length > 0 || this.factories.Length > 0; }
+                get { return this.services.Length > 0; }
             }
 
             public override TLanguageService GetService<TLanguageService>()
             {
-                ILanguageService service;
-
-                var currentMap = this.serviceMap;
-                var key = typeof(TLanguageService);
-
-                if (!currentMap.TryGetValue(key, out service))
+                Lazy<ILanguageService, LanguageServiceMetadata> service;
+                if (TryGetService(typeof(TLanguageService), out service))
                 {
-                    service = ImmutableInterlocked.GetOrAdd(ref this.serviceMap, key, _ =>
-                    {
-                        // pick from list of exported factories and instances
-                        var serviceType = key.AssemblyQualifiedName;
-                        return PickLanguageService(
-                            this.factories
-                                .Where(lz => lz.Metadata.ServiceType == serviceType)
-                                .Select(lz => new KeyValuePair<string, Func<MefLanguageServices, ILanguageService>>(lz.Metadata.Layer, ls => lz.Value.CreateLanguageService(ls)))
-                                .Concat(
-                            this.services
-                                .Where(lz => lz.Metadata.ServiceType == serviceType)
-                                .Select(lz => new KeyValuePair<string, Func<MefLanguageServices, ILanguageService>>(lz.Metadata.Layer, ls => lz.Value))));
-                    });
-                }
-
-                return (TLanguageService)service;
-            }
-
-            private ILanguageService PickLanguageService(IEnumerable<KeyValuePair<string, Func<MefLanguageServices, ILanguageService>>> services)
-            {
-                // workspace specific kind is best
-                var pair = services.SingleOrDefault(s => s.Key == this.workspaceServices.Workspace.Kind);
-                if (pair.Key != null)
-                {
-                    return pair.Value(this);
-                }
-
-                // host services override editor or default
-                pair = services.SingleOrDefault(s => s.Key == ServiceLayer.Host);
-                if (pair.Key != null)
-                {
-                    return pair.Value(this);
-                }
-
-                // editor services override default
-                pair = services.SingleOrDefault(s => s.Key == ServiceLayer.Editor);
-                if (pair.Key != null)
-                {
-                    return pair.Value(this);
-                }
-
-                // services marked as any are default
-                pair = services.SingleOrDefault(s => s.Key == ServiceLayer.Default);
-                if (pair.Key != null)
-                {
-                    return pair.Value(this);
-                }
-
-                pair = services.SingleOrDefault();
-                if (pair.Key != null)
-                {
-                    return pair.Value(this);
+                    return (TLanguageService)service.Value;
                 }
                 else
                 {
-                    return default(ILanguageService);
+                    return default(TLanguageService);
                 }
+            }
+
+            internal bool TryGetService(Type serviceType, out Lazy<ILanguageService, LanguageServiceMetadata> service)
+            { 
+                if (!this.serviceMap.TryGetValue(serviceType, out service))
+                {
+                    service = ImmutableInterlocked.GetOrAdd(ref this.serviceMap, serviceType, svctype =>
+                    {
+                        return PickLanguageService(this.services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName));
+                    });
+                }
+
+                return service != default(Lazy<ILanguageService, LanguageServiceMetadata>);
+            }
+
+            private Lazy<ILanguageService, LanguageServiceMetadata> PickLanguageService(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> services)
+            {
+                Lazy<ILanguageService, LanguageServiceMetadata> service;
+
+                // workspace specific kind is best
+                if (TryGetServiceByLayer(this.workspaceServices.Workspace.Kind, services, out service))
+                {
+                    return service;
+                }
+
+                // host layer overrides editor or default
+                if (TryGetServiceByLayer(ServiceLayer.Host, services, out service))
+                {
+                    return service;
+                }
+
+                // editor layer overrides default
+                if (TryGetServiceByLayer(ServiceLayer.Editor, services, out service))
+                {
+                    return service;
+                }
+
+                // that just leaves default
+                if (TryGetServiceByLayer(ServiceLayer.Default, services, out service))
+                {
+                    return service;
+                }
+
+                // no service
+                return default(Lazy<ILanguageService, LanguageServiceMetadata>);
+            }
+
+            private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> services, out Lazy<ILanguageService, LanguageServiceMetadata> service)
+            {
+                service = services.SingleOrDefault(lz => lz.Metadata.Layer == layer);
+                return service != default(Lazy<ILanguageService, LanguageServiceMetadata>);
             }
         }
         #endregion

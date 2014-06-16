@@ -12,6 +12,8 @@ Imports MSB = Microsoft.Build
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageServiceFactory(GetType(IProjectFileLoader), LanguageNames.VisualBasic)>
+    <ProjectFileExtension("vbproj")>
+    <ProjectTypeGuid("F184B08F-C81C-45F6-A57F-5ABD9991F28F")>
     Friend Class VisualBasicProjectFileLoaderFactory
         Implements ILanguageServiceFactory
 

@@ -72,5 +72,12 @@ namespace Microsoft.CodeAnalysis.Host
         {
             throw new NotSupportedException(WorkspacesResources.UnsupportedLanguage);
         }
+
+        public delegate bool MetadataFilter(IReadOnlyDictionary<string, object> metadata);
+
+        /// <summary>
+        /// Finds all language services of the corresponding type across all supported languages that match the filter criteria.
+        /// </summary>
+        public abstract IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter);
     }
 }

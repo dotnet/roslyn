@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var dd = diagnostic as DocumentDiagnostic;
             Assert.NotNull(dd);
             Assert.Equal(did, dd.DocumentId);
-            Assert.Equal(WorkspaceDiagnosticKind.FileAccessFailure, dd.Kind);
+            Assert.Equal(WorkspaceDiagnosticKind.Failure, dd.Kind);
         }
 
         [Fact]

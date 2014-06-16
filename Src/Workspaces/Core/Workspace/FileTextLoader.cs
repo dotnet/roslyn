@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
                 // TODO: remove this once we know how often this can happen.
                 //       I am leaving this here for now for diagnostic purpose.
                 var message = string.Format(WorkspacesResources.FileWasExternallyModified, this.path);
-                workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.FileAccessFailure, message, documentId));
+                workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, documentId));
             }
 
             return textAndVersion;

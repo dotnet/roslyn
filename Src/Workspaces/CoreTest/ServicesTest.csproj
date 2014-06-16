@@ -75,8 +75,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyAttributes.cs" />
-    <Compile Include="AsyncLazyTests.cs" />
-    <Compile Include="AsyncLazyTests.StopTheThreadPoolContext.cs" />
+    <Compile Include="UtilityTest\AsyncLazyTests.cs" />
+    <Compile Include="UtilityTest\AsyncLazyTests.StopTheThreadPoolContext.cs" />
     <Compile Include="CodeCleanup\AddMissingTokensTests.cs" />
     <Compile Include="CodeCleanup\CodeCleanupTests.cs" />
     <Compile Include="CodeCleanup\Extensions.cs" />
@@ -84,18 +84,19 @@
     <Compile Include="CodeCleanup\NormalizeModifiersOrOperatorsTests.cs" />
     <Compile Include="CodeCleanup\ReduceTokenTests.cs" />
     <Compile Include="CodeCleanup\RemoveUnnecessaryLineContinuationTests.cs" />
-    <Compile Include="CommandLineProjectTests.cs" />
+    <Compile Include="WorkspaceTests\CommandLineProjectTests.cs" />
+    <Compile Include="WorkspaceTests\CustomWorkspaceTests.cs" />
     <Compile Include="Differencing\MatchTests.cs" />
     <Compile Include="Differencing\TestNode.cs" />
     <Compile Include="Differencing\TestTreeComparer.cs" />
-    <Compile Include="DocumentationCommentIdTests.cs" />
-    <Compile Include="DocumentationCommentTests.cs" />
-    <Compile Include="EditDistanceTests.cs" />
-    <Compile Include="EtwLoggingTests.cs" />
-    <Compile Include="ExceptionHelpersTests.cs">
+    <Compile Include="UtilityTest\DocumentationCommentIdTests.cs" />
+    <Compile Include="UtilityTest\DocumentationCommentTests.cs" />
+    <Compile Include="UtilityTest\EditDistanceTests.cs" />
+    <Compile Include="UtilityTest\EtwLoggingTests.cs" />
+    <Compile Include="UtilityTest\ExceptionHelpersTests.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
-    <Compile Include="FileSet.cs" />
+    <Compile Include="WorkspaceTests\FileSet.cs" />
     <Compile Include="FindAllDeclarationsTests.cs" />
     <Compile Include="FindAllDeclarationsTests.TestSolutionsAndProject.cs" />
     <Compile Include="FindReferencesTests.cs" />
@@ -105,33 +106,33 @@
     <Compile Include="Host\WorkspaceServices\Caching\TestSyntaxTreeCacheService.cs" />
     <Compile Include="Host\WorkspaceServices\TemporaryStorage\TestTemporaryStorage.cs" />
     <Compile Include="Host\WorkspaceServices\TemporaryStorage\TestTemporaryStorageService.cs" />
-    <Compile Include="LanguageServices\SyntaxTreeFactoryServiceTests.cs" />
-    <Compile Include="MSBuildWorkspaceTests.cs" />
-    <Compile Include="MSBuildWorkspaceTests.Extensions.cs" />
-    <Compile Include="MSBuildWorkspaceTests.HelperMethods.cs" />
-    <Compile Include="NotKeptAliveCompilationCacheServiceFactory.cs" />
-    <Compile Include="NotKeptAliveSyntaxTreeCacheServiceFactory.cs" />
-    <Compile Include="NotKeptAliveTextCacheServiceFactory.cs" />
-    <Compile Include="ProjectDependencyGraphTests.cs" />
-    <Compile Include="ProjectInfoTests.cs" />
+    <Compile Include="LanguageServiceTests\SyntaxTreeFactoryServiceTests.cs" />
+    <Compile Include="WorkspaceTests\MSBuildWorkspaceTests.cs" />
+    <Compile Include="WorkspaceTests\MSBuildWorkspaceTestBase.cs" />
+    <Compile Include="WorkspaceTests\WorkspaceTestBase.cs" />
+    <Compile Include="SolutionTests\NotKeptAliveCompilationCacheServiceFactory.cs" />
+    <Compile Include="SolutionTests\NotKeptAliveSyntaxTreeCacheServiceFactory.cs" />
+    <Compile Include="SolutionTests\NotKeptAliveTextCacheServiceFactory.cs" />
+    <Compile Include="SolutionTests\ProjectDependencyGraphTests.cs" />
+    <Compile Include="SolutionTests\ProjectInfoTests.cs" />
     <Compile Include="ReferencedSymbolTests.cs" />
-    <Compile Include="SerializableBytesTests.cs" />
+    <Compile Include="UtilityTest\SerializableBytesTests.cs" />
     <Compile Include="SerializationTests.cs" />
     <Compile Include="SolutionGeneration.cs" />
-    <Compile Include="SolutionParsingTests.cs" />
-    <Compile Include="SolutionTests.cs" />
+    <Compile Include="WorkspaceTests\SolutionParsingTests.cs" />
+    <Compile Include="SolutionTests\SolutionTests.cs" />
     <Compile Include="SolutionUtilities.cs" />
     <Compile Include="SyntaxNodeTests.cs" />
     <Compile Include="SyntaxPathTests.cs" />
     <Compile Include="SyntaxReferenceTests.cs" />
-    <Compile Include="SyntaxTreeStorageServiceTests.cs" />
-    <Compile Include="TemporaryStorageServiceTests.cs" />
-    <Compile Include="TestOptionService.cs" />
+    <Compile Include="WorkspaceServiceTests\SyntaxTreeStorageServiceTests.cs" />
+    <Compile Include="WorkspaceServiceTests\TemporaryStorageServiceTests.cs" />
+    <Compile Include="Host\WorkspaceServices\TestOptionService.cs" />
     <Compile Include="TestWorkspace.cs" />
-    <Compile Include="WorkspaceExtensions.cs" />
-    <Compile Include="WorkspaceServices\OptionServiceTests.cs" />
-    <Compile Include="WorkspaceServices\TestPersistenceService.cs" />
-    <Compile Include="WorkspaceServices\TestHost.cs" />
+    <Compile Include="WorkspaceTests\WorkspaceExtensions.cs" />
+    <Compile Include="WorkspaceServiceTests\OptionServiceTests.cs" />
+    <Compile Include="Host\WorkspaceServices\TestPersistenceService.cs" />
+    <Compile Include="Host\TestHost.cs" />
     <EmbeddedResource Include="TestFiles\CSharpProject_App.xaml">
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -141,8 +142,6 @@
     <EmbeddedResource Include="TestFiles\CSharpProject_CSharpClass_WithConditionalAttributes.cs" />
     <EmbeddedResource Include="TestFiles\CSharpProject_CSharpConsole.cs" />
     <EmbeddedResource Include="TestFiles\CSharpProject_CSharpExternAlias.cs" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_AssemblyNameIsPath.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_AssemblyNameIsPath2.csproj" />
     <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_BadHintPath.csproj" />
     <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_DuplicateFile.csproj" />
     <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_ExternAlias.csproj" />
@@ -225,6 +224,34 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Host\Utilities\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\TestSolution_InvalidProjectPath.sln" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\TestSolution_NonExistentProject.sln" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_AssemblyNameIsPath.csproj" />
+    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_AssemblyNameIsPath2.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\TestSolution_CSharp_UnknownProjectTypeGuid.sln" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\TestSolution_CSharp_UnknownProjectTypeGuidAndUnknownExtension.sln" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\TestSolution_CSharp_UnknownProjectExtension.sln" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_InvalidProjectReference.vbproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_NonExistentProjectReference.vbproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_UnknownProjectExtension.vbproj" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

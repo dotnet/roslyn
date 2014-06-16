@@ -14,11 +14,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
     internal sealed class ProjectFileReference
     {
         /// <summary>
-        /// The unique GUID of the referenced project.
-        /// </summary>
-        public Guid Guid { get; private set; }
-
-        /// <summary>
         /// The path on disk to the other project file. 
         /// This path may be relative to the referencing project's file or an absolute path.
         /// </summary>
@@ -29,9 +24,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public ImmutableArray<string> Aliases { get; private set; }
 
-        public ProjectFileReference(Guid guid, string path, ImmutableArray<string> aliases)
+        public ProjectFileReference(string path, ImmutableArray<string> aliases)
         {
-            this.Guid = guid;
             this.Path = path;
             this.Aliases = aliases;
         }
