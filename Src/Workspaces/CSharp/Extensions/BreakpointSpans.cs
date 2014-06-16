@@ -147,6 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                    var body = ((AccessorDeclarationSyntax)node).Body;
+                    if (body == null)
+                    {
+                        return CreateSpan(node);
+                    }
+
+                    return TryCreateSpanForNode(body, position);
+
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.UnknownAccessorDeclaration:
