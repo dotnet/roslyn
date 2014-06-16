@@ -888,15 +888,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Protected Sub New(substitution As TypeSubstitution)
                 MyBase.New(substitution)
-
-                Dim tp = OriginalDefinition.TypeParameters
-                Dim ta(tp.Length - 1) As TypeSymbol
-
-                For i = 0 To tp.Length - 1
-                    ta(i) = _substitution.GetSubstitutionFor(tp(i))
-                Next
-
-                _typeArguments = ta.AsImmutableOrNull
+                _typeArguments = OriginalDefinition.TypeParameters.SelectAsArray(Function(tp, s) s.GetSubstitutionFor(tp), substitution)
             End Sub
 
             Public NotOverridable Overrides ReadOnly Property ContainingSymbol As Symbol

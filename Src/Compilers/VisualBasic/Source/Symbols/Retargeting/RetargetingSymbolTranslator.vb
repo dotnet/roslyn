@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Debug.Assert(type.ContainingType Is Nothing OrElse Not type.ContainingType.IsUnboundGenericType)
 
                 Dim genericType As NamedTypeSymbol = type
-                Dim oldArguments As New List(Of TypeSymbol)()
+                Dim oldArguments = ArrayBuilder(Of TypeSymbol).GetInstance()
                 Dim startOfNonInterfaceArguments As Integer = Integer.MaxValue
 
                 ' Collect generic arguments for the type and its containers.
@@ -416,11 +416,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 End While
 
                 ' retarget the arguments
-                Dim newArguments As TypeSymbol() = New TypeSymbol(oldArguments.Count - 1) {}
+                Dim newArguments = ArrayBuilder(Of TypeSymbol).GetInstance(oldArguments.Count)
 
-                For i As Integer = 0 To newArguments.Length - 1 Step 1
+                For Each arg In oldArguments
                     ' generic instantiation is a signature
-                    newArguments(i) = DirectCast(oldArguments(i).Accept(Me, RetargetOptions.RetargetPrimitiveTypesByTypeCode), TypeSymbol)
+                    newArguments.Add(DirectCast(arg.Accept(Me, RetargetOptions.RetargetPrimitiveTypesByTypeCode), TypeSymbol))
                 Next
 
                 ' See if definition or any of the arguments were retargeted
@@ -429,16 +429,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 If Not originalDefinition.Equals(newDefinition) Then
                     anythingRetargeted = True
                 Else
-                    For i As Integer = 0 To newArguments.Length - 1 Step 1
-                        If Not oldArguments(i).Equals(newArguments(i)) Then
-                            anythingRetargeted = True
-                            Exit For
-                        End If
-                    Next
+                    anythingRetargeted = Not newArguments.SequenceEqual(oldArguments)
                 End If
 
                 ' See if it is or its enclosing type is a non-interface closed over NoPia local types.
                 Dim noPiaIllegalGenericInstantiation As Boolean = IsNoPiaIllegalGenericInstantiation(oldArguments, newArguments, startOfNonInterfaceArguments)
+                oldArguments.Free()
                 Dim constructedType As NamedTypeSymbol
 
                 If Not anythingRetargeted Then
@@ -450,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     ' need to collect type parameters in the same order as we have arguments, 
                     ' but this should be done for the new definition.
                     genericType = newDefinition
-                    Dim newParameters = ArrayBuilder(Of TypeParameterSymbol).GetInstance(newArguments.Length)
+                    Dim newParameters = ArrayBuilder(Of TypeParameterSymbol).GetInstance(newArguments.Count)
 
                     ' Collect generic arguments for the type and its containers.
                     While genericType IsNot Nothing
@@ -461,14 +457,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                         genericType = genericType.ContainingType
                     End While
 
-                    Debug.Assert(newParameters.Count = newArguments.Length)
+                    Debug.Assert(newParameters.Count = newArguments.Count)
 
                     newParameters.ReverseContents()
                     newArguments.ReverseContents()
-                    Dim substitution As TypeSubstitution = TypeSubstitution.Create(newDefinition, newParameters.ToImmutableAndFree(), newArguments.AsImmutableOrNull())
+                    Dim substitution As TypeSubstitution = TypeSubstitution.Create(newDefinition, newParameters.ToImmutableAndFree(), newArguments.ToImmutable())
 
                     constructedType = newDefinition.Construct(substitution)
                 End If
+
+                newArguments.Free()
 
                 If noPiaIllegalGenericInstantiation Then
                     constructedType = New NoPiaIllegalGenericInstantiationSymbol(constructedType)
@@ -477,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Return DirectCast(constructedType, NamedTypeSymbol)
             End Function
 
-            Private Function IsNoPiaIllegalGenericInstantiation(oldArguments As List(Of TypeSymbol), newArguments As TypeSymbol(), startOfNonInterfaceArguments As Integer) As Boolean
+            Private Function IsNoPiaIllegalGenericInstantiation(oldArguments As ArrayBuilder(Of TypeSymbol), newArguments As ArrayBuilder(Of TypeSymbol), startOfNonInterfaceArguments As Integer) As Boolean
                 ' TODO: Do we need to check constraints on type parameters as well?
 
                 If UnderlyingModule.ContainsExplicitDefinitionOfNoPiaLocalTypes Then
@@ -501,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Dim linkedAssemblies As ImmutableArray(Of AssemblySymbol) = RetargetingAssembly.GetLinkedReferencedAssemblies()
 
                 If Not linkedAssemblies.IsDefaultOrEmpty Then
-                    For i As Integer = startOfNonInterfaceArguments To newArguments.Length - 1 Step 1
+                    For i As Integer = startOfNonInterfaceArguments To newArguments.Count - 1 Step 1
                         If MetadataDecoder.IsOrClosedOverATypeFromAssemblies(newArguments(i), linkedAssemblies) Then
                             Return True
                         End If

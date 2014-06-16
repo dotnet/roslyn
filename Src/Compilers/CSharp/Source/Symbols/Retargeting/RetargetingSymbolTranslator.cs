@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 // This must be a generic instantiation (i.e. constructed type).
 
                 NamedTypeSymbol genericType = type;
-                List<TypeSymbol> oldArguments = new List<TypeSymbol>();
+                var oldArguments = ArrayBuilder<TypeSymbol>.GetInstance();
                 int startOfNonInterfaceArguments = int.MaxValue;
 
                 // Collect generic arguments for the type and its containers.
@@ -484,11 +484,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
 
                 // retarget the arguments
-                TypeSymbol[] newArguments = new TypeSymbol[oldArguments.Count];
+                var newArguments = ArrayBuilder<TypeSymbol>.GetInstance(oldArguments.Count);
 
-                for (int i = 0; i < newArguments.Length; i++)
+                foreach (var arg in oldArguments)
                 {
-                    newArguments[i] = (TypeSymbol)oldArguments[i].Accept(this, RetargetOptions.RetargetPrimitiveTypesByTypeCode); // generic instantiation is a signature
+                    newArguments.Add((TypeSymbol)arg.Accept(this, RetargetOptions.RetargetPrimitiveTypesByTypeCode)); // generic instantiation is a signature
                 }
 
                 // See if definition or any of the arguments were retargeted
@@ -500,18 +500,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
                 else
                 {
-                    for (int i = 0; i < newArguments.Length; i++)
-                    {
-                        if (!oldArguments[i].Equals(newArguments[i]))
-                        {
-                            anythingRetargeted = true;
-                            break;
-                        }
-                    }
+                    anythingRetargeted = !oldArguments.SequenceEqual(newArguments);
                 }
 
                 // See if it is or its enclosing type is a non-interface closed over NoPia local types. 
                 bool noPiaIllegalGenericInstantiation = IsNoPiaIllegalGenericInstantiation(oldArguments, newArguments, startOfNonInterfaceArguments);
+                oldArguments.Free();
                 NamedTypeSymbol constructedType;
 
                 if (!anythingRetargeted)
@@ -526,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     // need to collect type parameters in the same order as we have arguments, 
                     // but this should be done for the new definition.
                     genericType = newDefinition;
-                    ArrayBuilder<TypeParameterSymbol> newParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance(newArguments.Length);
+                    ArrayBuilder<TypeParameterSymbol> newParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance(newArguments.Count);
 
                     // Collect generic arguments for the type and its containers.
                     while ((object)genericType != null)
@@ -539,12 +533,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         genericType = genericType.ContainingType;
                     }
 
-                    Debug.Assert(newParameters.Count == newArguments.Length);
+                    Debug.Assert(newParameters.Count == newArguments.Count);
 
-                    TypeMap substitution = new TypeMap(newParameters.ToImmutableAndFree(), ImmutableArray.Create<TypeSymbol>(newArguments));
+                    TypeMap substitution = new TypeMap(newParameters.ToImmutableAndFree(), newArguments.ToImmutable());
 
                     constructedType = substitution.SubstituteNamedType(newDefinition);
                 }
+
+                newArguments.Free();
 
                 if (noPiaIllegalGenericInstantiation)
                 {
@@ -554,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 return constructedType;
             }
 
-            private bool IsNoPiaIllegalGenericInstantiation(List<TypeSymbol> oldArguments, TypeSymbol[] newArguments, int startOfNonInterfaceArguments)
+            private bool IsNoPiaIllegalGenericInstantiation(ArrayBuilder<TypeSymbol> oldArguments, ArrayBuilder<TypeSymbol> newArguments, int startOfNonInterfaceArguments)
             {
                 // TODO: Do we need to check constraints on type parameters as well?
 
@@ -586,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 if (!linkedAssemblies.IsDefaultOrEmpty)
                 {
-                    for (int i = startOfNonInterfaceArguments; i < newArguments.Length; i++)
+                    for (int i = startOfNonInterfaceArguments; i < newArguments.Count; i++)
                     {
                         if (MetadataDecoder.IsOrClosedOverATypeFromAssemblies(newArguments[i], linkedAssemblies))
                         {
