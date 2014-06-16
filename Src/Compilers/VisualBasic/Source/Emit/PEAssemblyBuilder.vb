@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Implements Cci.IAssembly
 
         Private ReadOnly m_SourceAssembly As SourceAssemblySymbol
+        Private ReadOnly m_AdditionalTypes As ImmutableArray(Of NamedTypeSymbol)
         Private m_LazyFiles As ImmutableArray(Of Cci.IFileReference)
 
         ''' <summary>
@@ -29,6 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
                        assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity),
+                       additionalTypes As ImmutableArray(Of NamedTypeSymbol),
                        metadataOnly As Boolean)
 
             MyBase.New(DirectCast(sourceAssembly.Modules(0), SourceModuleSymbol),
@@ -43,6 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(manifestResources IsNot Nothing)
 
             Me.m_SourceAssembly = sourceAssembly
+            Me.m_AdditionalTypes = additionalTypes.NullToEmpty()
             Me.m_MetadataName = If(outputName Is Nothing, sourceAssembly.MetadataName, PathUtilities.RemoveExtension(outputName))
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, Me)
         End Sub
@@ -50,6 +53,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Overrides Sub Dispatch(visitor As Cci.MetadataVisitor)
             visitor.Visit(DirectCast(Me, Cci.IAssembly))
         End Sub
+
+        Friend Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
+            Return Me.m_AdditionalTypes
+        End Function
 
         Private Function IAssemblyGetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference) Implements Cci.IAssembly.GetFiles
             If m_LazyFiles.IsDefault Then
@@ -184,9 +191,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
                        Optional assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity) = Nothing,
+                       Optional additionalTypes As ImmutableArray(Of NamedTypeSymbol) = Nothing,
                        Optional metadataOnly As Boolean = False)
 
-            MyBase.New(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, metadataOnly)
+            MyBase.New(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes, metadataOnly)
         End Sub
     End Class
 

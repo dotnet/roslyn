@@ -203,6 +203,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 compiler.WaitForWorkers()
 
                 If moduleBeingBuilt IsNot Nothing Then
+                    Dim additionalTypes = moduleBeingBuilt.GetAdditionalTopLevelTypes()
+                    If Not additionalTypes.IsEmpty Then
+                        compiler.CompileSynthesizedMethods(additionalTypes)
+                    End If
+
                     compilation.AnonymousTypeManager.AssignTemplatesNamesAndCompile(compiler, moduleBeingBuilt, diagnostics)
                     compiler.WaitForWorkers()
 
@@ -419,14 +424,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _cancellationToken.ThrowIfCancellationRequested()
 
             If Me._compilation.Options.ConcurrentBuild Then
-                Dim worker As Task = CompileNamepsaceAsTask(symbol)
+                Dim worker As Task = CompileNamespaceAsTask(symbol)
                 compilerTasks.Push(worker)
             Else
                 CompileNamespace(symbol)
             End If
         End Sub
 
-        Private Function CompileNamepsaceAsTask(symbol As NamespaceSymbol) As Task
+        Private Function CompileNamespaceAsTask(symbol As NamespaceSymbol) As Task
             Return Task.Run(
                 Sub()
                     Try
@@ -762,6 +767,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     _moduleBeingBuilt.SetMethodBody(method, emittedBody)
                 Next
             End If
+        End Sub
+
+        Private Sub CompileSynthesizedMethods(additionalTypes As ImmutableArray(Of NamedTypeSymbol))
+            Dim compilationState As New TypeCompilationState(_compilation, _moduleBeingBuilt, initializeComponent:=Nothing)
+            For Each additionalType In additionalTypes
+                For Each method In additionalType.GetMethodsToEmit()
+                    ' TODO (tomat): C# has an additional check:
+                    ' Debug.Assert(method.SynthesizesLoweredBoundBody)
+
+                    Dim diagnosticsThisMethod = DiagnosticBag.GetInstance()
+
+                    Dim boundBody = method.GetBoundMethodBody(diagnosticsThisMethod)
+                    Dim emittedBody = GenerateMethodBody(_moduleBeingBuilt,
+                                                         method,
+                                                         boundBody,
+                                                         optimize:=True,
+                                                         debugDocumentProvider:=Nothing,
+                                                         diagsForThisMethod:=diagnosticsThisMethod,
+                                                         namespaceScopes:=Nothing)
+
+                    _diagnostics.AddRange(diagnosticsThisMethod)
+                    diagnosticsThisMethod.Free()
+
+                    ' error while generating IL
+                    If emittedBody Is Nothing Then
+                        Exit For
+                    End If
+
+                    _moduleBeingBuilt.SetMethodBody(method, emittedBody)
+                Next
+            Next
+
+            If Not _diagnostics.HasAnyErrors() Then
+                CompileSynthesizedMethods(compilationState)
+            End If
+
+            compilationState.Free()
         End Sub
 
         Private Sub CompileSynthesizedMethods(compilationState As TypeCompilationState)

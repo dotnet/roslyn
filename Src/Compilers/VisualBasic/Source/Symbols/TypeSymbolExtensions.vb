@@ -1075,18 +1075,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Extension>
         Public Function GetAllTypeParameters(type As NamedTypeSymbol) As ImmutableArray(Of TypeParameterSymbol)
-            Dim typeParameters = type.TypeParameters
+            ' Avoid allocating a builder in the common case.
+            If type.ContainingType Is Nothing Then
+                Return type.TypeParameters
+            End If
 
-            While True
-                type = type.ContainingType
-                If type Is Nothing Then
-                    Exit While
-                End If
-                typeParameters = type.TypeParameters.Concat(typeParameters)
-            End While
-
-            Return typeParameters
+            Dim builder = ArrayBuilder(Of TypeParameterSymbol).GetInstance()
+            type.GetAllTypeParameters(builder)
+            Return builder.ToImmutableAndFree()
         End Function
+
+        ''' <summary>
+        ''' Return all of the type parameters in this type and enclosing types,
+        ''' from outer-most to inner-most type.
+        ''' </summary>
+        <Extension>
+        Public Sub GetAllTypeParameters(type As NamedTypeSymbol, builder As ArrayBuilder(Of TypeParameterSymbol))
+            Dim containingType = type.ContainingType
+            If containingType IsNot Nothing Then
+                containingType.GetAllTypeParameters(builder)
+            End If
+
+            builder.AddRange(type.TypeParameters)
+        End Sub
 
         ''' <summary>
         ''' Return all of the type arguments in this type and enclosing types,

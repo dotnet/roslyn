@@ -303,6 +303,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Iterator Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            For Each topLevel In GetAdditionalTopLevelTypes()
+                Yield topLevel
+            Next
+
             Dim embeddedSymbolManager As EmbeddedSymbolManager = SourceModule.ContainingSourceAssembly.DeclaringCompilation.EmbeddedSymbolManager
             Dim stack As New Stack(Of NamespaceOrTypeSymbol)()
 
@@ -332,6 +336,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
             Loop While stack.Count > 0
 
+        End Function
+
+        Friend Overridable Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
+            Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
         Public Overrides Function GetExportedTypes(context As EmitContext) As IEnumerable(Of Cci.ITypeExport)

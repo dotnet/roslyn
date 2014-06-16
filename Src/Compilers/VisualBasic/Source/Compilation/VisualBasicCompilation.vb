@@ -2014,6 +2014,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag,
             metadataOnly As Boolean) As CommonPEModuleBuilder
 
+            Return CreateModuleBuilder(
+                outputName,
+                manifestResources,
+                assemblySymbolMapper,
+                cancellationToken,
+                testData,
+                diagnostics,
+                metadataOnly,
+                ImmutableArray(Of NamedTypeSymbol).Empty)
+        End Function
+
+        Friend Overloads Function CreateModuleBuilder(
+            outputName As String,
+            manifestResources As IEnumerable(Of ResourceDescription),
+            assemblySymbolMapper As Func(Of IAssemblySymbol, AssemblyIdentity),
+            cancellationToken As CancellationToken,
+            testData As CompilationTestData,
+            diagnostics As DiagnosticBag,
+            metadataOnly As Boolean,
+            additionalTypes As ImmutableArray(Of NamedTypeSymbol)) As CommonPEModuleBuilder
+
             Debug.Assert(diagnostics.IsEmptyWithoutResolution) ' True, but not required.
 
             ' Do not waste a slot in the submission chain for submissions that contain no executable code
@@ -2033,6 +2054,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' if there is no stream to write to, then there is no need for a module
             Dim moduleBeingBuilt As PEModuleBuilder
             If Options.OutputKind.IsNetModule() Then
+                Debug.Assert(additionalTypes.IsEmpty)
+
                 moduleBeingBuilt = New PENetModuleBuilder(
                     DirectCast(Me.SourceModule, SourceModuleSymbol),
                     outputName,
@@ -2048,6 +2071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         moduleSerializationProperties,
                         manifestResources,
                         assemblySymbolMapper,
+                        additionalTypes,
                         metadataOnly)
             End If
 
