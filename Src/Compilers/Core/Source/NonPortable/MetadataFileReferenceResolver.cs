@@ -129,5 +129,24 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
             return File.Exists(fullPath);
         }
+
+        public override bool Equals(object obj)
+        {
+            // Explicitly check that we're not comparing against a derived type
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            var other = (MetadataFileReferenceResolver)obj;
+            return string.Equals(this.baseDirectory, other.baseDirectory, StringComparison.Ordinal) &&
+                this.searchPaths.SequenceEqual(other.searchPaths, StringComparer.Ordinal);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(this.baseDirectory != null ? StringComparer.Ordinal.GetHashCode(this.baseDirectory) : 0,
+                   Hash.CombineValues(this.searchPaths, StringComparer.Ordinal));
+        }
     }
 }

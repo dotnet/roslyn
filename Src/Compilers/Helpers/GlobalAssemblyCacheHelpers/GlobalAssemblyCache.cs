@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Represents the current Processor architecture
         /// </summary>
-        public static readonly Func<ProcessorArchitecture, bool> CurrentArchitectureFilter = (IntPtr.Size == 4) ?
-            new Func<ProcessorArchitecture, bool>(a => a == ProcessorArchitecture.None || a == ProcessorArchitecture.MSIL || a == ProcessorArchitecture.X86) :
-            new Func<ProcessorArchitecture, bool>(a => a == ProcessorArchitecture.None || a == ProcessorArchitecture.MSIL || a == ProcessorArchitecture.Amd64);
+        public static readonly ImmutableArray<ProcessorArchitecture> CurrentArchitectures = (IntPtr.Size == 4)
+            ? ImmutableArray.Create(ProcessorArchitecture.None, ProcessorArchitecture.MSIL, ProcessorArchitecture.X86)
+            : ImmutableArray.Create(ProcessorArchitecture.None, ProcessorArchitecture.MSIL, ProcessorArchitecture.Amd64);
 
         #region Interop
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
             GAC_64 = 0x40,            // C:\Windows\Assembly\GAC_64
             ROOT_EX = 0x80,           // C:\Windows\Microsoft.NET\assembly
         }
-
+        
         [DllImport("clr", CharSet = CharSet.Auto, PreserveSig = true)]
         private static extern int CreateAssemblyEnum(out IAssemblyEnum ppEnum, FusionAssemblyIdentity.IApplicationContext pAppCtx, FusionAssemblyIdentity.IAssemblyName pName, ASM_CACHE dwFlags, IntPtr pvReserved);
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="partialName">Optional partial name.</param>
         /// <param name="architectureFilter">Optional architecture filter.</param>
-        public static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(AssemblyName partialName, Func<ProcessorArchitecture, bool> architectureFilter = null)
+        public static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(AssemblyName partialName, ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
         {
             return GetAssemblyIdentities(FusionAssemblyIdentity.ToAssemblyNameObject(partialName), architectureFilter);
         }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="partialName">The optional partial name.</param>
         /// <param name="architectureFilter">The optional architecture filter.</param>
-        public static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName = null, Func<ProcessorArchitecture, bool> architectureFilter = null)
+        public static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName = null, ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
         {
             FusionAssemblyIdentity.IAssemblyName nameObj;
             if (partialName != null)
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="architectureFilter">Optional architecture filter.</param>
         /// <returns>Unique simple names of GAC assemblies.</returns>
-        public static IEnumerable<string> GetAssemblySimpleNames(Func<ProcessorArchitecture, bool> architectureFilter = null)
+        public static IEnumerable<string> GetAssemblySimpleNames(ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
         {
             var q = from nameObject in GetAssemblyObjects(partialNameFilter: null, architectureFilter: architectureFilter)
                     select FusionAssemblyIdentity.GetName(nameObject);
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis
 
         private static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(
             FusionAssemblyIdentity.IAssemblyName partialName,
-            Func<ProcessorArchitecture, bool> architectureFilter)
+            ImmutableArray<ProcessorArchitecture> architectureFilter)
         {
             return from nameObject in GetAssemblyObjects(partialName, architectureFilter)
                    select FusionAssemblyIdentity.ToAssemblyIdentity(nameObject);
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis
         // Internal for testing.
         internal static IEnumerable<FusionAssemblyIdentity.IAssemblyName> GetAssemblyObjects(
             FusionAssemblyIdentity.IAssemblyName partialNameFilter,
-            Func<ProcessorArchitecture, bool> architectureFilter)
+            ImmutableArray<ProcessorArchitecture> architectureFilter)
         {
             IAssemblyEnum enumerator;
             FusionAssemblyIdentity.IApplicationContext applicationContext = null;
@@ -230,10 +230,10 @@ namespace Microsoft.CodeAnalysis
                     break;
                 }
 
-                if (architectureFilter != null)
+                if (!architectureFilter.IsDefault)
                 {
                     var assemblyArchitecture = FusionAssemblyIdentity.GetProcessorArchitecture(nameObject);
-                    if (!architectureFilter(assemblyArchitecture))
+                    if (!architectureFilter.Contains(assemblyArchitecture))
                     {
                         continue;
                     }
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="displayName"/> is null.</exception>
         public static AssemblyIdentity ResolvePartialName(
             string displayName,
-            Func<ProcessorArchitecture, bool> architectureFilter = null,
+            ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>),
             CultureInfo preferredCulture = null)
         {
             string location;
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis
         public static AssemblyIdentity ResolvePartialName(
             string displayName,
             out string location,
-            Func<ProcessorArchitecture, bool> architectureFilter = null,
+            ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>),
             CultureInfo preferredCulture = null)
         {
             return ResolvePartialName(displayName, architectureFilter, preferredCulture, out location, resolveLocation: true);
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis
 
         private static AssemblyIdentity ResolvePartialName(
             string displayName,
-            Func<ProcessorArchitecture, bool> architectureFilter,
+            ImmutableArray<ProcessorArchitecture> architectureFilter,
             CultureInfo preferredCulture,
             out string location,
             bool resolveLocation)

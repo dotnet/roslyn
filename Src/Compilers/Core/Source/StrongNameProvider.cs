@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        public abstract override bool Equals(object other);
+        public abstract override int GetHashCode();
+
         internal abstract Stream CreateInputStream();
 
         internal abstract StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider);

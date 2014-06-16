@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        public abstract override bool Equals(object other);
+        public abstract override int GetHashCode();
+
         /// <summary>
         /// Normalizes specified source path with respect to base file path.
         /// </summary>

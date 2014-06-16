@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        public abstract override bool Equals(object other);
+        public abstract override int GetHashCode();
+
         /// <summary>
         /// Resolves specified XML reference with respect to base file path.
         /// </summary>

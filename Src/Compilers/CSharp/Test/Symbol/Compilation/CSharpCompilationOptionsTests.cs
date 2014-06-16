@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CSharpCompilationOptionsTests : CSharpTestBase
     {
         private void TestProperty<T>(
-            Func<CSharpCompilationOptions, T, CSharpCompilationOptions> factory, 
+            Func<CSharpCompilationOptions, T, CSharpCompilationOptions> factory,
             Func<CSharpCompilationOptions, T> getter,
             T validNonDefaultValue)
         {
@@ -223,29 +223,29 @@ Parameter name: ModuleName")
                 );
 
             TestOptions.Dll.WithModuleName("a\uD800b").VerifyErrors(
-                // error CS7087: Name contains invalid characters.
-                // Parameter name: ModuleName
+    // error CS7087: Name contains invalid characters.
+    // Parameter name: ModuleName
     Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(@"Name contains invalid characters.
 Parameter name: ModuleName")
                 );
 
             TestOptions.Dll.WithModuleName("a\\b").VerifyErrors(
-                // error CS7087: Name contains invalid characters.
-                // Parameter name: ModuleName
+    // error CS7087: Name contains invalid characters.
+    // Parameter name: ModuleName
     Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(@"Name contains invalid characters.
 Parameter name: ModuleName")
                 );
 
             TestOptions.Dll.WithModuleName("a/b").VerifyErrors(
-                // error CS7087: Name contains invalid characters.
-                // Parameter name: ModuleName
+    // error CS7087: Name contains invalid characters.
+    // Parameter name: ModuleName
     Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(@"Name contains invalid characters.
 Parameter name: ModuleName")
                 );
 
             TestOptions.Dll.WithModuleName("a:b").VerifyErrors(
-                // error CS7087: Name contains invalid characters.
-                // Parameter name: ModuleName
+    // error CS7087: Name contains invalid characters.
+    // Parameter name: ModuleName
     Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(@"Name contains invalid characters.
 Parameter name: ModuleName")
                 );
@@ -255,53 +255,53 @@ Parameter name: ModuleName")
         public void ConstructorValidation()
         {
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, usings: new string[] { null }).VerifyErrors(
-                // error CS7088: Invalid 'Usings' value: 'null'.
+    // error CS7088: Invalid 'Usings' value: 'null'.
     Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "null")
                 );
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, usings: new string[] { "" }).VerifyErrors(
-                // error CS7088: Invalid 'Usings' value: ''.
+    // error CS7088: Invalid 'Usings' value: ''.
     Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "")
                 );
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, usings: new string[] { "blah\0foo" }).VerifyErrors(
-                // error CS7088: Invalid 'Usings' value: 'blah\0foo'.
+    // error CS7088: Invalid 'Usings' value: 'blah\0foo'.
     Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0foo")
                 );
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: null).VerifyErrors(
-                // error CS7088: Invalid 'ScriptClassName' value: 'null'.
+    // error CS7088: Invalid 'ScriptClassName' value: 'null'.
     Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "null")
                 );
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: "blah\0foo").VerifyErrors(
-                // error CS7088: Invalid 'ScriptClassName' value: 'blah\0foo'.
+    // error CS7088: Invalid 'ScriptClassName' value: 'blah\0foo'.
     Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "blah\0foo")
                 );
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: "").VerifyErrors(
-                // error CS7088: Invalid 'ScriptClassName' value: ''.
+    // error CS7088: Invalid 'ScriptClassName' value: ''.
     Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "")
                 );
 
             Assert.Equal(0, new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: null).Errors.Length);
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: "blah\0foo").VerifyErrors(
-                // error CS7088: Invalid 'MainTypeName' value: 'blah\0foo'.
+    // error CS7088: Invalid 'MainTypeName' value: 'blah\0foo'.
     Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "blah\0foo")
                 );
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: "").VerifyErrors(
-                // error CS7088: Invalid 'MainTypeName' value: ''.
+    // error CS7088: Invalid 'MainTypeName' value: ''.
     Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "")
                 );
 
             new CSharpCompilationOptions(outputKind: (OutputKind)Int32.MaxValue).VerifyErrors(
-                // error CS7088: Invalid 'OutputKind' value: 'Int32.MaxValue'.
+    // error CS7088: Invalid 'OutputKind' value: 'Int32.MaxValue'.
     Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OutputKind", Int32.MaxValue.ToString())
                 );
 
             new CSharpCompilationOptions(outputKind: (OutputKind)Int32.MinValue).VerifyErrors(
-                // error CS7088: Invalid 'OutputKind' value: 'Int32.MinValue'.
+    // error CS7088: Invalid 'OutputKind' value: 'Int32.MinValue'.
     Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OutputKind", Int32.MinValue.ToString())
                 );
 
@@ -358,6 +358,50 @@ Parameter name: ModuleName")
                 "AllowUnsafe",
                 "RuntimeMetadataVersion",
                 "Usings");
+        }
+
+        [Fact]
+        public void TestEqualitySemantics()
+        {
+            Assert.Equal(CreateCSharpCompilationOptions(), CreateCSharpCompilationOptions());
+        }
+
+        public CSharpCompilationOptions CreateCSharpCompilationOptions()
+        {
+            string moduleName = null;
+            string mainTypeName = null;
+            string scriptClassName = null;
+            IEnumerable<string> usings = null;
+            bool optimize = false;
+            bool checkOverflow = false;
+            bool allowUnsafe = false;
+            string cryptoKeyContainer = null;
+            string cryptoKeyFile = null;
+            bool? delaySign = null;
+            int fileAlignment = 0;
+            ulong baseAddress = 0;
+            Platform platform = 0;
+            ReportDiagnostic generalDiagnosticOption = 0;
+            int warningLevel = 0;
+            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null;
+            bool highEntropyVirtualAddressSpace = false;
+            DebugInformationKind debugInformationKind = 0;
+            SubsystemVersion subsystemVersion = default(SubsystemVersion);
+            string runtimeMetadataVersion = null;
+            bool concurrentBuild = false;
+            XmlReferenceResolver xmlReferenceResolver = new XmlFileResolver(null);
+            SourceReferenceResolver sourceReferenceResolver = new SourceFileResolver(ImmutableArray<string>.Empty, null);
+            MetadataReferenceResolver metadataReferenceResolver = new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, null);
+            MetadataReferenceProvider metadataReferenceProvider = MetadataFileReferenceProvider.Default;    // Currently uses reference equality
+            AssemblyIdentityComparer assemblyIdentityComparer = AssemblyIdentityComparer.Default;           // Currently uses reference equality
+            StrongNameProvider strongNameProvider = new DesktopStrongNameProvider();
+            MetadataImportOptions metadataImportOptions = 0;
+            ImmutableArray<string> features = ImmutableArray<string>.Empty;
+            return new CSharpCompilationOptions(OutputKind.ConsoleApplication, moduleName, mainTypeName, scriptClassName, usings,
+                optimize, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, delaySign, fileAlignment, baseAddress,
+                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind,
+                subsystemVersion, runtimeMetadataVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider,
+                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features);
         }
 
         [Fact]

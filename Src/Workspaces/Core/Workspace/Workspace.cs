@@ -141,15 +141,13 @@ namespace Microsoft.CodeAnalysis
         {
             using (this.stateLock.DisposableWrite())
             {
-                Solution curSol = this.latestSolution;
+                if (solution != this.latestSolution)
+                {
+                    this.latestSolution = solution.WithNewWorkspace(this, this.latestSolution.WorkspaceVersion + 1);
+                }
 
-                Solution sol = solution;
-                solution = sol.WithNewWorkspace(this, curSol.WorkspaceVersion + 1);
-
-                this.latestSolution = solution;
+                return this.latestSolution;
             }
-
-            return solution;
         }
 
         /// <summary>

@@ -83,5 +83,22 @@ namespace Microsoft.CodeAnalysis
         {
             return File.Exists(resolvedPath);
         }
+
+        public override bool Equals(object obj)
+        {
+            // Explicitly check that we're not comparing against a derived type
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            var other = (XmlFileResolver)obj;
+            return string.Equals(this.baseDirectory, other.baseDirectory, StringComparison.Ordinal);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.baseDirectory != null ? StringComparer.Ordinal.GetHashCode(this.baseDirectory) : 0;
+        }
     }
 }

@@ -38,6 +38,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException("newSolution");
             }
 
+            if (oldSolution == newSolution)
+            {
+                return SpecializedTasks.EmptyTask;
+            }
+
             if (projectId == null && documentId != null)
             {
                 projectId = documentId.ProjectId;

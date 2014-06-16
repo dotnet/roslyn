@@ -5,6 +5,8 @@
     /// </summary>
     public abstract class MetadataReferenceResolver
     {
+        public abstract override bool Equals(object other);
+        public abstract override int GetHashCode();
         public abstract string ResolveReference(string reference, string baseFilePath);
     }
 }

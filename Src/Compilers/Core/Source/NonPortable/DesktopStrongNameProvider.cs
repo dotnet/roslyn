@@ -406,5 +406,22 @@ namespace Microsoft.CodeAnalysis
                 throw new IOException(ex.Message, ex);
             }
         }
+
+        public override bool Equals(object obj)
+        {
+            // Explicitly check that we're not comparing against a derived type
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            var other = (DesktopStrongNameProvider)obj;
+            return this.keyFileSearchPaths.SequenceEqual(other.keyFileSearchPaths, StringComparer.Ordinal);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.CombineValues(this.keyFileSearchPaths, StringComparer.Ordinal);
+        }
     }
 }
