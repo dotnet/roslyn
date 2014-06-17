@@ -299,14 +299,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
         {
-            using (this.stateLock.DisposableWrite())
+            using (this.serializationLock.DisposableWait())
             {
-                bufferToDocumentInCurrentContextMap[container] = documentId;
-            }
+                using (this.stateLock.DisposableWrite())
+                {
+                    bufferToDocumentInCurrentContextMap[container] = documentId;
+                }
 
-            var document = CurrentSolution.GetDocument(documentId);
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, this.CurrentSolution, this.CurrentSolution, documentId: documentId);
-            var task = this.RaiseDocumentActiveContextChangedEventAsync(document); // don't await this
+                // fire and forget
+                this.RaiseDocumentActiveContextChangedEventAsync(this.CurrentSolution.GetDocument(documentId));
+            }
         }
 
         protected void CheckDocumentIsClosed(DocumentId documentId)

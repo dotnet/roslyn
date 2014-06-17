@@ -269,20 +269,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionAdded(SolutionInfo solutionInfo)
         {
-            var oldSolution = this.CurrentSolution;
-            var solutionId = solutionInfo.Id;
-
             using (this.serializationLock.DisposableWait())
             {
+                var oldSolution = this.CurrentSolution;
+                var solutionId = solutionInfo.Id;
+
                 CheckSolutionIsEmpty();
                 this.SetCurrentSolution(this.CreateSolution(solutionInfo));
+
+                solutionInfo.Projects.Do(p => OnProjectAdded_NoLock(p, silent: true));
+
+                var newSolution = this.CurrentSolution;
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionAdded, oldSolution, newSolution);
             }
-
-            solutionInfo.Projects.Do(p => OnProjectAdded(p, silent: true));
-
-            var newSolution = this.CurrentSolution;
-
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionAdded, oldSolution, newSolution);
         }
 
         /// <summary>
@@ -290,18 +289,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionReloaded(SolutionInfo reloadedSolutionInfo)
         {
-            var oldSolution = this.CurrentSolution;
-
-            Solution newSolution;
-
             using (this.serializationLock.DisposableWait())
             {
-                newSolution = this.CreateSolution(reloadedSolutionInfo);
-                newSolution = this.SetCurrentSolution(newSolution);
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(this.CreateSolution(reloadedSolutionInfo));
 
                 reloadedSolutionInfo.Projects.Do(pi => OnProjectAdded_NoLock(pi, silent: true));
 
-                newSolution = this.AdjustReloadedSolution(oldSolution, this.latestSolution);
+                newSolution = this.AdjustReloadedSolution(oldSolution, this.CurrentSolution);
                 newSolution = this.SetCurrentSolution(newSolution);
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionReloaded, oldSolution, newSolution);
