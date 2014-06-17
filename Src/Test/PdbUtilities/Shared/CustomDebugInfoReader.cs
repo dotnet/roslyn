@@ -429,6 +429,39 @@ namespace Roslyn.Utilities.Pdb
             return resultBuilder.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Get the import strings for a given method, following forward pointers as necessary.
+        /// </summary>
+        /// <returns>
+        /// A list of import strings.  There should always be at least one entry, for the global namespace.
+        /// </returns>
+        public static ImmutableArray<string> GetVisualBasicImportStrings(this ISymUnmanagedReader reader, int methodToken)
+        {
+            bool seenForward = false;
+
+            RETRY:
+
+            ImmutableArray<string> importStrings = GetImportStrings(reader.GetBaselineMethod(methodToken));
+
+            // Follow at most one forward link.
+            if (!seenForward && importStrings.Length == 1)
+            {
+                string importString = importStrings[0];
+                if (importString.Length >= 2 && importString[0] == '@' && char.IsNumber(importString[1]))
+                {
+                    int tempMethodToken;
+                    if (int.TryParse(importString.Substring(1), out tempMethodToken))
+                    {
+                        methodToken = tempMethodToken;
+                        seenForward = true;
+                        goto RETRY;
+                    }
+                }
+            }
+
+            return importStrings;
+        }
+
         private static void CheckVersion(byte globalVersion, int methodToken)
         {
             if (globalVersion != CdiVersion)

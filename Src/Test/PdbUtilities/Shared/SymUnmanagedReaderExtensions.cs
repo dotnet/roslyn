@@ -28,6 +28,20 @@ namespace Roslyn.Utilities.Pdb
             return method;
         }
 
+        /// <summary>
+        /// Returns local names indexed by slot.
+        /// </summary>
+        internal static ImmutableArray<string> GetLocalNames(this ISymUnmanagedReader symReader, int methodToken, int ilOffset)
+        {
+            if (symReader == null)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+            
+            var symMethod = symReader.GetBaselineMethod(methodToken);
+            return symMethod.GetLocalVariableSlots(ilOffset);
+        }
+
         internal static ImmutableArray<string> GetLocalVariableSlots(this ISymUnmanagedMethod method, int offset = -1)
         {
             char[] nameBuffer = null;
@@ -270,6 +284,17 @@ namespace Roslyn.Utilities.Pdb
             int endOffset;
             scope.GetEndOffset(out endOffset);
             return endOffset;
+        }
+
+        internal static byte[] ToLocalSignature(this ISymUnmanagedVariable variable)
+        {
+            int n;
+            variable.GetSignature(0, out n, null);
+            var bytes = new byte[n];
+            variable.GetSignature(n, out n, bytes);
+            int slot;
+            variable.GetAddressField1(out slot);
+            return bytes;
         }
     }
 }
