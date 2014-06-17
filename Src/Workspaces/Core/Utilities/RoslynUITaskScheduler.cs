@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         private readonly SynchronizationContext context;
         private readonly ConcurrentQueue<Task> tasks = new ConcurrentQueue<Task>();
+        private readonly ConcurrentQueue<Task> failed = new ConcurrentQueue<Task>();
+
+        private Task current;
 
         public static TaskScheduler Create()
         {
@@ -40,10 +43,12 @@ namespace Microsoft.CodeAnalysis.Utilities
 
             context.Post(t =>
             {
-                Task item;
-                if (tasks.TryDequeue(out item))
+                if (tasks.TryDequeue(out current))
                 {
-                    this.TryExecuteTask(item);
+                    if (!this.TryExecuteTask(current))
+                    {
+                        failed.Enqueue(current);
+                    }
                 }
             }, tasks);
         }
