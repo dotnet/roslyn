@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="locals">The set of locals declared in the original version of this statement</param>
         /// <param name="wrapped">A delegate to return the translation of the body of this statement</param>
-        private BoundNode PossibleIteratorScope(ImmutableArray<LocalSymbol> locals, Func<BoundStatement> wrapped)
+        private BoundStatement PossibleIteratorScope(ImmutableArray<LocalSymbol> locals, Func<BoundStatement> wrapped)
         {
             if (locals.IsDefaultOrEmpty) return wrapped();
             var proxyFields = ArrayBuilder<SynthesizedFieldSymbolBase>.GetInstance();
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // wrap the node in an iterator scope for debugging
             if (proxyFields.Count != 0)
             {
-                translatedStatement = new BoundIteratorScope(F.Syntax, proxyFields.ToImmutable(), translatedStatement);
+                translatedStatement = F.Block(new BoundIteratorScope(F.Syntax, proxyFields.ToImmutable(), translatedStatement));
             }
             proxyFields.Free();
 

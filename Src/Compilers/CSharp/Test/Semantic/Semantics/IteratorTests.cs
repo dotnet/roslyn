@@ -186,5 +186,103 @@ public class Program
 }";
             CompileAndVerify(text).VerifyDiagnostics();
         }
+
+        [WorkItem(888254, "DevDiv")]
+        [Fact]
+        public void IteratorWithTryCatch()
+        {
+            var text =
+@"using System;
+using System.Collections.Generic;
+
+namespace RoslynYield
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+        private IEnumerable<int> Failure()
+        {
+            // int x;
+            try
+            {
+                int x;  // int x = 3;
+                switch (1)
+                {
+                    default:
+                        x = 4;
+                        break;
+                }
+                Console.Write(x);
+            }
+            catch (Exception)
+            {
+            }
+
+            yield break;
+        }
+    }
+}";
+            CompileAndVerify(text).VerifyDiagnostics();
+        }
+
+        [WorkItem(888254, "DevDiv")]
+        [Fact]
+        public void IteratorWithTryCatchFinally()
+        {
+            var text =
+@"using System;
+using System.Collections.Generic;
+
+namespace RoslynYield
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+        private IEnumerable<int> Failure()
+        {
+            try
+            {
+                int x;
+                switch (1)
+                {
+                    default:
+                        x = 4;
+                        break;
+                }
+                Console.Write(x);
+            }
+            catch (Exception)
+            {
+                int x;
+                switch (1)
+                {
+                    default:
+                        x = 4;
+                        break;
+                }
+                Console.Write(x);
+            }
+            finally
+            {
+                int x;
+                switch (1)
+                {
+                    default:
+                        x = 4;
+                        break;
+                }
+                Console.Write(x);
+            }
+
+            yield break;
+        }
+    }
+}";
+            CompileAndVerify(text).VerifyDiagnostics();
+        }
     }
 }
