@@ -166,25 +166,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool hasAnalyzers = false;
             foreach (var type in types)
             {
-                if (type.GetTypeInfo().ImplementedInterfaces.Contains(typeof(IDiagnosticAnalyzer)) && type.IsDefined(typeof(DiagnosticAnalyzerAttribute)))
+                try
                 {
-                    hasAnalyzers = true;
-
-                    try
+                    if (type.GetTypeInfo().ImplementedInterfaces.Contains(typeof(IDiagnosticAnalyzer)) && type.IsDefined(typeof(DiagnosticAnalyzerAttribute)))
                     {
-                        builder.Add((IDiagnosticAnalyzer)Activator.CreateInstance(type));
+                        hasAnalyzers = true;
+                        builder.Add((IDiagnosticAnalyzer)Activator.CreateInstance(type));                    
                     }
-                    catch (Exception e)
+                }
+                catch (Exception e)
+                {
+                    if (diagnosticsOpt != null && messageProviderOpt != null)
                     {
-                        if (diagnosticsOpt != null && messageProviderOpt != null)
-                        {
-                            diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.WRN_AnalyzerCannotBeCreated, type.FullName, fullPath, e.Message));
-                        }
+                        diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.WRN_AnalyzerCannotBeCreated, type.FullName, fullPath, e.Message));
                     }
                 }
             }
 
-            if (!hasAnalyzers && diagnosticsOpt != null && messageProviderOpt != null)
+            if (!hasAnalyzers && ex == null && diagnosticsOpt != null && messageProviderOpt != null)
             {
                 // If there are no analyzers in this assembly, let the user know.
                 diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.WRN_NoAnalyzerInAssembly, fullPath));
