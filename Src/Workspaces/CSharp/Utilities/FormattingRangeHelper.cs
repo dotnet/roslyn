@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                         // format whole node that containing the end token + its previous one
                         // to do indentation
-                        return ValueTuple.Create(GetPreviousTokenIfFirstTokenOnLine(parent.GetFirstToken()), parent.GetLastToken());
+                        return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
                     }
             }
         }
@@ -120,9 +121,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 (parent is DelegateDeclarationSyntax) ||
                 (parent is FieldDeclarationSyntax) ||
                 (parent is EventFieldDeclarationSyntax) ||
-                (parent is AccessorDeclarationSyntax))
+                (parent is AccessorDeclarationSyntax) ||
+                (parent is MethodDeclarationSyntax))
             {
-                return ValueTuple.Create(GetPreviousTokenIfFirstTokenOnLine(parent.GetFirstToken()), parent.GetLastToken());
+                return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
             }
 
             if (parent is StatementSyntax && !endToken.IsSemicolonInForStatement())
@@ -130,15 +132,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var container = GetTopContainingNode(parent);
                 if (container == null)
                 {
-                    return ValueTuple.Create(GetPreviousTokenIfFirstTokenOnLine(parent.GetFirstToken()), parent.GetLastToken());
+                    return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
                 }
 
                 if (IsSpecialContainingNode(container))
                 {
-                    return ValueTuple.Create(GetPreviousTokenIfFirstTokenOnLine(container.GetFirstToken()), container.GetLastToken());
+                    return ValueTuple.Create(GetAppropriatePreviousToken(container.GetFirstToken()), container.GetLastToken());
                 }
 
-                return ValueTuple.Create(GetPreviousTokenIfFirstTokenOnLine(parent.GetFirstToken()), parent.GetLastToken());
+                return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
             }
 
             // don't do anything
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             if (parent is MemberDeclarationSyntax ||
                 parent is SwitchStatementSyntax)
             {
-                return ValueTuple.Create(GetPreviousTokenIfFirstTokenOnLine(parent.GetFirstToken()), parent.GetLastToken());
+                return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
             }
 
             // property decl body or initializer
@@ -168,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var containerOfList = parent.Parent;
                 if (containerOfList == null)
                 {
-                    return ValueTuple.Create(GetPreviousTokenIfFirstTokenOnLine(parent.GetFirstToken()), parent.GetLastToken());
+                    return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
                 }
 
                 return ValueTuple.Create(containerOfList.GetFirstToken(), containerOfList.GetLastToken());
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var parentOfParent = parent.Parent;
                 if (parentOfParent == null)
                 {
-                    return ValueTuple.Create(GetPreviousTokenIfFirstTokenOnLine(parent.GetFirstToken()), parent.GetLastToken());
+                    return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
                 }
 
                 // double initializer case such as
@@ -213,14 +215,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var containerOfBlock = GetTopContainingNode(parent);
                 if (containerOfBlock == null)
                 {
-                    return ValueTuple.Create(GetPreviousTokenIfFirstTokenOnLine(parent.GetFirstToken()), parent.GetLastToken());
+                    return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
                 }
 
                 // things like method, constructor, etc and special cases
                 if (containerOfBlock is MemberDeclarationSyntax ||
                     IsSpecialContainingNode(containerOfBlock))
                 {
-                    return ValueTuple.Create(GetPreviousTokenIfFirstTokenOnLine(containerOfBlock.GetFirstToken()), containerOfBlock.GetLastToken());
+                    return ValueTuple.Create(GetAppropriatePreviousToken(containerOfBlock.GetFirstToken()), containerOfBlock.GetLastToken());
                 }
 
                 // double block case on single line case
@@ -286,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return CommonFormattingHelpers.GetTextBetween(token1, token2).GetNumberOfLineBreaks() == 0;
         }
 
-        private static SyntaxToken GetPreviousTokenIfFirstTokenOnLine(SyntaxToken startToken)
+        private static SyntaxToken GetAppropriatePreviousToken(SyntaxToken startToken, bool canTokenBeFirstInABlock = false)
         {
             var previousToken = startToken.GetPreviousToken();
             if (previousToken.CSharpKind() == SyntaxKind.None)
@@ -297,6 +299,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             if (AreTwoTokensOnSameLine(previousToken, startToken))
             {
+                // The previous token can be '{' of a block and type declaration
+                // { int s = 0;
+                if (canTokenBeFirstInABlock)
+                {
+                    if (IsOpenBraceTokenOfABlockOrTypeOrNamespace(previousToken))
+                    {
+                        return previousToken;
+                    }
+                }
+
                 // there is another token on same line.
                 return startToken;
             }
@@ -307,10 +319,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             if (previousToken.IsLastTokenInLabelStatement())
             {
                 var labelNode = previousToken.Parent.Parent;
-                return GetPreviousTokenIfFirstTokenOnLine(labelNode.GetFirstToken());
+                return GetAppropriatePreviousToken(labelNode.GetFirstToken());
             }
 
             return previousToken;
+        }
+
+        private static bool IsOpenBraceTokenOfABlockOrTypeOrNamespace(SyntaxToken previousToken)
+        {
+            return previousToken.IsKind(SyntaxKind.OpenBraceToken) &&
+                                    (previousToken.IsParentKind(SyntaxKind.Block) ||
+                                     (previousToken.Parent != null && (previousToken.Parent is TypeDeclarationSyntax || previousToken.Parent is NamespaceDeclarationSyntax)));
         }
 
         private static bool IsSpecialContainingNode(SyntaxNode node)
