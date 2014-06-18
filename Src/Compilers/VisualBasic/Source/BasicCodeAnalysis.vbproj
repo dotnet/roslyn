@@ -966,7 +966,8 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Syntax.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Test.Utilities2" />
-    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />

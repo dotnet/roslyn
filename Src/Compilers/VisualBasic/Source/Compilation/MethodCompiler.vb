@@ -782,7 +782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim emittedBody = GenerateMethodBody(_moduleBeingBuilt,
                                                          method,
                                                          boundBody,
-                                                         optimize:=True,
+                                                         optimize:=_compilation.Options.Optimize,
                                                          debugDocumentProvider:=Nothing,
                                                          diagsForThisMethod:=diagnosticsThisMethod,
                                                          namespaceScopes:=Nothing)
