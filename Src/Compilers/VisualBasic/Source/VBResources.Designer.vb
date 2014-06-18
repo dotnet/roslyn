@@ -5008,7 +5008,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &quot;&apos;If&apos; operator requires either two or three operands.&quot;.
+        '''  Looks up a localized string similar to &apos;If&apos; operator requires either two or three operands..
         '''</summary>
         Friend ReadOnly Property ERR_IllegalOperandInIIFCount() As String
             Get

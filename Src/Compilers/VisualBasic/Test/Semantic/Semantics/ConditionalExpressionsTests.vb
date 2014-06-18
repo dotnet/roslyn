@@ -441,7 +441,7 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC33104: "'If' operator requires either two or three operands."
+BC33104: 'If' operator requires either two or three operands.
     Public F1 As Integer = If(True, 2, 3, 4, 5)
                                         ~~~~~~
 BC30199: '(' expected.
@@ -456,7 +456,7 @@ BC30201: Expression expected.
 BC30198: ')' expected.
     Public F4 As Integer = If(True, 2
                                      ~
-BC33104: "'If' operator requires either two or three operands."
+BC33104: 'If' operator requires either two or three operands.
     Public F5 As Integer = If(True, 2, 3, 4
                                         ~~~
 BC30198: ')' expected.
@@ -504,19 +504,19 @@ BC30198: ')' expected.
 BC30201: Expression expected.
     Public F14 As Integer = If( 
                                 ~
-BC33104: "'If' operator requires either two or three operands."
+BC33104: 'If' operator requires either two or three operands.
     Public F14 As Integer = If( 
                                 ~
-BC33104: "'If' operator requires either two or three operands."
+BC33104: 'If' operator requires either two or three operands.
     Public F15 As Integer = If() 
                                ~
 BC30198: ')' expected.
     Public F16 As Integer = If(True
                                    ~
-BC33104: "'If' operator requires either two or three operands."
+BC33104: 'If' operator requires either two or three operands.
     Public F16 As Integer = If(True
                                    ~
-BC33104: "'If' operator requires either two or three operands."
+BC33104: 'If' operator requires either two or three operands.
     Public F17 As Integer = If(True)
                                    ~
 </expected>)

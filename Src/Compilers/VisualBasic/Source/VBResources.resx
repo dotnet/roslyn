@@ -3785,7 +3785,7 @@
     <value>Auto-implemented properties cannot have parameters.</value>
   </data>
   <data name="ERR_IllegalOperandInIIFCount" xml:space="preserve">
-    <value>"'If' operator requires either two or three operands."</value>
+    <value>'If' operator requires either two or three operands.</value>
   </data>
   <data name="ERR_NotACollection1" xml:space="preserve">
     <value>Cannot initialize the type '{0}' with a collection initializer because it is not a collection type.</value>

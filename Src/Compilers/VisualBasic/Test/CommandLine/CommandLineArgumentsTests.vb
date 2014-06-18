@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(
                 Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("')' expected.", "X=IF(1,,,,,RRR=1 ^^ ^^ "),
-                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("""'If' operator requires either two or three operands.""", "X=IF(1,,,,,RRR=1 ^^ ^^ "),
+                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("'If' operator requires either two or three operands.", "X=IF(1,,,,,RRR=1 ^^ ^^ "),
                 Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Expression expected.", "X=IF(1,,,,,RRR=1 ^^ ^^ "))
 
             text = "A=CHR(128)"
