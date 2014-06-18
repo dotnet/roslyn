@@ -25,8 +25,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(containingBinder As Binder, typeSymbol As NamedTypeSymbol)
             MyBase.New(containingBinder)
             Debug.Assert(typeSymbol IsNot Nothing)
-            Debug.Assert(Not (TypeOf typeSymbol Is Symbols.Metadata.PE.PENamedTypeSymbol))
-            Debug.Assert(typeSymbol.IsFromCompilation(Me.Compilation))
+            ' The constraints apply during normal binding, but not in the expression compiler.
+            '   Debug.Assert(Not (TypeOf typeSymbol Is Symbols.Metadata.PE.PENamedTypeSymbol))
+            '   Debug.Assert(typeSymbol.IsFromCompilation(Me.Compilation))
             m_typeSymbol = typeSymbol
         End Sub
 

@@ -45,6 +45,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private m_lazyIsExtensionMethod As Byte = ThreeState.Unknown
         Private m_lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
 
+        Private m_lazyMeParameter As ParameterSymbol
+
 
 #Region "Signature data"
         Private m_lazySignature As SignatureData
@@ -957,6 +959,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property MeParameter As ParameterSymbol
+            Get
+                Dim meParam = m_lazyMeParameter
+                If meParam IsNot Nothing OrElse Me.IsShared Then
+                    Return meParam
+                End If
+
+                Interlocked.CompareExchange(m_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
+                Return m_lazyMeParameter
             End Get
         End Property
     End Class
