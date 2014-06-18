@@ -33,11 +33,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         // the file might still be memory-mapped, delete on close:
                         FileUtilities.DeleteFileOnClose(Path);
                     }
-                    catch (IOException)
+                    catch (IOException ex)
                     {
                         throw new InvalidOperationException(string.Format(@"
 The file '{0}' seems to have been opened in a way that prevents us from deleting it on close.
-Is the file loaded as an assembly (e.g. via Assembly.LoadFile)?", Path));
+Is the file loaded as an assembly (e.g. via Assembly.LoadFile)?
+
+{1}: {2}", Path, ex.GetType().Name, ex.Message), ex);
                     }
                     catch (UnauthorizedAccessException)
                     {
