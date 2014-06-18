@@ -117,6 +117,7 @@
     <Compile Include="DocumentationComments\PropertyDocumentationCommentTests.vb" />
     <Compile Include="DocumentationComments\TypeDocumentationCommentTests.vb" />
     <Compile Include="StaticLocalDeclarationTests.vb" />
+    <Compile Include="SymbolDisplay\ObjectDisplayTests.vb" />
     <Compile Include="SymbolDisplay\SymbolDisplayTests.vb" />
     <Compile Include="SymbolsTests\AnonymousDelegates\AnonymousDelegates_CreationAndEmit.vb" />
     <Compile Include="SymbolsTests\AnonymousTypes\AnonymousTypesEmittedSymbolsTests.vb" />

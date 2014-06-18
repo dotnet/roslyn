@@ -114,6 +114,7 @@
     <Compile Include="DocumentationComments\PartialTypeDocumentationCommentTests.cs" />
     <Compile Include="DocumentationComments\PropertyDocumentationCommentTests.cs" />
     <Compile Include="DocumentationComments\TypeDocumentationCommentTests.cs" />
+    <Compile Include="SymbolDisplay\ObjectDisplayTests.cs" />
     <Compile Include="SymbolDisplay\SymbolDisplayTests.cs" />
     <Compile Include="Symbols\AccessorOverriddenOrHiddenMembersTests.cs" />
     <Compile Include="Symbols\AnonymousTypesSemanticsTests.cs" />
