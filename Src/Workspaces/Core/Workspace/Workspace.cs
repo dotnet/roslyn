@@ -261,6 +261,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected virtual void Dispose(bool finalize)
         {
+            if (!finalize)
+            {
+                this.ClearSolutionData();
+            }
         }
 
         #region Host API

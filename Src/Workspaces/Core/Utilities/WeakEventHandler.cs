@@ -1,0 +1,32 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+
+namespace Roslyn.Utilities
+{
+    internal static class WeakEventHandler<TArgs>
+    {
+        /// <summary>
+        /// Creates an event handler that holds onto the target weakly.
+        /// </summary>
+        /// <param name="target">The target that is held weakly, and passed as an argument to the invoker.</param>
+        /// <param name="invoker">An action that will recieve the event arguments as well as the target instance. 
+        /// The invoker itself must not capture any state.</param>
+        public static EventHandler<TArgs> Create<TTarget>(TTarget target, Action<TTarget, object, TArgs> invoker)
+            where TTarget : class
+        {
+            System.Diagnostics.Debug.Assert(invoker.Target == null);
+
+            WeakReference<TTarget> weakTarget = new WeakReference<TTarget>(target);
+
+            return (sender, args) =>
+            {
+                TTarget targ;
+                if (weakTarget.TryGetTarget(out targ))
+                {
+                    invoker(targ, sender, args);
+                }
+            };
+        }
+    }
+}

@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis
             private readonly Workspace workspace;
             private readonly DocumentId documentId;
             internal readonly SourceTextContainer TextContainer;
+            private EventHandler<TextChangeEventArgs> weakOnTextChanged;
 
             internal TextTracker(
                 Workspace workspace,
@@ -26,26 +28,19 @@ namespace Microsoft.CodeAnalysis
                 this.workspace = workspace;
                 this.documentId = documentId;
                 this.TextContainer = textContainer;
-            }
 
-#if DEBUG
-            ~TextTracker()
-            {
-                Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " collected without having Disconnect called");
+                // use weak event so TextContainer cannot accidently keep workspace alive.
+                this.weakOnTextChanged = WeakEventHandler<TextChangeEventArgs>.Create(this, (target, sender, args) => target.OnTextChanged(sender, args));
             }
-#endif
 
             public void Connect()
             {
-                this.TextContainer.TextChanged += OnTextChanged;
+                this.TextContainer.TextChanged += this.weakOnTextChanged;
             }
 
             public void Disconnect()
             {
-                this.TextContainer.TextChanged -= OnTextChanged;
-#if DEBUG
-                GC.SuppressFinalize(this);
-#endif
+                this.TextContainer.TextChanged -= this.weakOnTextChanged;
             }
 
             private void OnTextChanged(object sender, TextChangeEventArgs e)
