@@ -162,7 +162,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
-                    return property.AccessorList.Accessors.Select(a => TryCreateSpanForNode(a, position)).FirstOrDefault();
+                    if (property.Initializer != null)
+                    {
+                        if (position >= property.Initializer.FullSpan.Start)
+                        {
+                            var span = property.Initializer.Value.FullSpan;
+                            return TextSpan.FromBounds(span.Start, span.End);
+                        }                        
+                    }
+
+                    return CreateSpanForAccessors(property.AccessorList.Accessors, position);
 
                 case SyntaxKind.EventDeclaration:
                     var evnt = (EventDeclarationSyntax)node;
@@ -703,6 +712,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return ((ConstructorDeclarationSyntax)memberDeclaration).Body;
                     case SyntaxKind.DestructorDeclaration:
                         return ((DestructorDeclarationSyntax)memberDeclaration).Body;
+                }
+            }
+
+            return null;
+        }
+
+        private static TextSpan? CreateSpanForAccessors(SyntaxList<AccessorDeclarationSyntax> accessors, int position)
+        {
+            for (var i = 0; i < accessors.Count; i++)
+            {
+                if (position <= accessors[i].FullSpan.End || i == accessors.Count - 1)
+                {
+                    return TryCreateSpanForNode(accessors[i], position);
                 }
             }
 

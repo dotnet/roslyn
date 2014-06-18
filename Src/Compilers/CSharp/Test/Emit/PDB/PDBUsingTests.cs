@@ -2,16 +2,14 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Xml;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    public class PDBUsingTests : CSharpTestBase
+    public class PDBUsingTests : CSharpPDBTestBase
     {
         #region Helpers
 
@@ -21,50 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 "public class C { }",
                 assemblyName: assemblyName,
                 compOptions: TestOptions.Dll);
-        }
-
-        private static void TestSequencePoints(string markup, CSharpCompilationOptions compilationOptions, string methodName = "")
-        {
-            int? position;
-            TextSpan? expectedSpan;
-            string source;
-            MarkupTestFile.GetPositionAndSpan(markup, out source, out position, out expectedSpan);
-            var pdb = GetPdbXml(source, compilationOptions, methodName);
-            bool hasBreakpoint = CheckIfSpanWithinSequencePoints(expectedSpan.Value, source, pdb);
-
-            Assert.True(hasBreakpoint);
-        }
-
-        private static bool CheckIfSpanWithinSequencePoints(TextSpan span, string source, string pdb)
-        {
-            // calculate row and column from span
-            var text = SourceText.From(source);
-            var startLine = text.Lines.GetLineFromPosition(span.Start);
-            var startRow = startLine.LineNumber + 1;
-            var startColumn = span.Start - startLine.Start + 1;
-
-            var endLine = text.Lines.GetLineFromPosition(span.End);
-            var endRow = endLine.LineNumber + 1;
-            var endColumn = span.End - endLine.Start + 1;
-
-            var doc = new XmlDocument();
-            doc.LoadXml(pdb);
-
-            foreach (XmlNode entry in doc.GetElementsByTagName("sequencepoints"))
-            {
-                foreach (XmlElement item in entry.ChildNodes)
-                {
-                    if (startRow.ToString() == item.GetAttribute("start_row") &&
-                        startColumn.ToString() == item.GetAttribute("start_column") &&
-                        endRow.ToString() == item.GetAttribute("end_row") &&
-                        endColumn.ToString() == item.GetAttribute("end_column"))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         #endregion
@@ -1841,7 +1795,7 @@ public class Test : IDisposable
 
     public void Dispose() { }
 
-}", TestOptions.Exe, "Test.Main");
+}", TestOptions.Exe, methodName: "Test.Main");
         }
 
         [Fact]
@@ -1862,7 +1816,7 @@ public class Test : IDisposable
 
     public void Dispose() { }
 
-}", TestOptions.Exe, "Test.Main");
+}", TestOptions.Exe, methodName: "Test.Main");
         }
     }
 }

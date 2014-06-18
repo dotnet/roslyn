@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    public class PDBTests : CSharpTestBase
+    public class PDBTests : CSharpPDBTestBase
     {
         private CultureInfo testCulture = new CultureInfo("en-US");
 
@@ -4733,6 +4733,41 @@ class C
                 Assert.False(result.Success);
             }
         }
+
+        [Fact]
+        public void PropertyDeclaration()
+        {
+            TestSequencePoints(
+@"using System;
+
+public class C
+{
+    int P { [|get;|] set; }
+}", TestOptions.Dll);
+
+            TestSequencePoints(
+@"using System;
+
+public class C
+{
+    int P { get; [|set;|] }
+}", TestOptions.Dll);
+
+            TestSequencePoints(
+@"using System;
+
+public class C
+{
+    int P { get [|{|] return 0; } }
+}", TestOptions.Dll);
+
+            TestSequencePoints(
+@"using System;
+
+public class C
+{
+    int P { get; } = [|int.Parse(""42"")|];
+}", TestOptions.Dll, TestOptions.ExperimentalParseOptions);
+        }
     }
 }
-

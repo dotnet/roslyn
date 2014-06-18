@@ -21,10 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundStatement AddSequencePoint(PropertyDeclarationSyntax declarationSyntax, BoundStatement rewrittenStatement)
         {
-            SyntaxTokenList modifiers = declarationSyntax.Modifiers;
-            // Skip attributes
-            int start = modifiers.Any() ? modifiers[0].SpanStart : declarationSyntax.Type.SpanStart;
-            int end = declarationSyntax.Span.End;
+            Debug.Assert(declarationSyntax.Initializer != null);
+            int start = declarationSyntax.Initializer.Value.SpanStart;
+            int end = declarationSyntax.Initializer.Span.End;
             TextSpan part = TextSpan.FromBounds(start, end);
 
             var result = BoundSequencePoint.Create(declarationSyntax, part, rewrittenStatement);

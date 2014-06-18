@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         #region PDB Validation
 
-        public static string GetPdbXml(string source, CSharpCompilationOptions compilationOptions, string methodName = "", IEnumerable<MetadataReference> references = null)
+        public static string GetPdbXml(string source, CSharpCompilationOptions compilationOptions, string methodName = "", CSharpParseOptions parseOptions = null, IEnumerable<MetadataReference> references = null)
         {
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
@@ -990,7 +990,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source,
                 references,
                 assemblyName: GetUniqueName(),
-                compOptions: compilationOptions);
+                compOptions: compilationOptions,
+                parseOptions: parseOptions
+                );
             
             compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
