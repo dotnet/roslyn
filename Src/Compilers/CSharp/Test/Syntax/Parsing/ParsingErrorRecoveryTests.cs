@@ -6856,5 +6856,78 @@ static
             Assert.Equal(numTokens, eofToken.FullWidth);
             Assert.Equal(numTokens, eofToken.LeadingTrivia.Count); // Confirm that we built a list.
         }
+
+
+        [WorkItem(947819, "DevDiv")]
+        [Fact]
+        public void MissingOpenBraceForClass()
+        {
+            var source = @"namespace n
+{
+    class c
+}
+";
+            var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
+
+            Assert.Equal(source, root.ToFullString());
+            var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            Assert.Equal(new Text.TextSpan(20, 9), classDecl.Span);
+            Assert.Equal(new Text.TextSpan(16, 13), classDecl.FullSpan);
+        }
+
+        [WorkItem(947819, "DevDiv")]
+        [Fact]
+        public void MissingOpenBraceForStruct()
+        {
+            var source = @"namespace n
+{
+    struct c : I
+}
+";
+            var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
+
+            Assert.Equal(source, root.ToFullString());
+            var structDecl = root.DescendantNodes().OfType<StructDeclarationSyntax>().Single();
+            Assert.Equal(new Text.TextSpan(20, 14), structDecl.Span);
+            Assert.Equal(new Text.TextSpan(16, 18), structDecl.FullSpan);
+        }
+
+        [WorkItem(947819, "DevDiv")]
+        [Fact]
+        public void MissingNameForStruct()
+        {
+            var source = @"namespace n
+{
+    struct : I
+    {
+    }
+}
+";
+            var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
+
+            Assert.Equal(source, root.ToFullString());
+            var structDecl = root.DescendantNodes().OfType<StructDeclarationSyntax>().Single();
+            Assert.Equal(new Text.TextSpan(20, 24), structDecl.Span);
+            Assert.Equal(new Text.TextSpan(16, 30), structDecl.FullSpan);
+        }
+
+        [WorkItem(947819, "DevDiv")]
+        [Fact]
+        public void MissingNameForClass()
+        {
+            var source = @"namespace n
+{
+    class
+    {
+    }
+}
+";
+            var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
+
+            Assert.Equal(source, root.ToFullString());
+            var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            Assert.Equal(new Text.TextSpan(20, 19), classDecl.Span);
+            Assert.Equal(new Text.TextSpan(16, 25), classDecl.FullSpan);
+        }
     }
 }

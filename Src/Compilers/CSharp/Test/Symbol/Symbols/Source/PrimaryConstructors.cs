@@ -176,13 +176,19 @@ class Test() : object(
             comp.VerifyDiagnostics(
     // (2,23): error CS1001: Identifier expected
     // class Test() : object(
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ""),
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 23),
     // (3,2): error CS1026: ) expected
     // {}
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "}"),
+    Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 2),
     // (3,2): error CS1514: { expected
     // {}
-    Diagnostic(ErrorCode.ERR_LbraceExpected, "}")
+    Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(3, 2),
+    // (3,2): error CS1513: } expected
+    // {}
+    Diagnostic(ErrorCode.ERR_RbraceExpected, "}").WithLocation(3, 2),
+    // (3,2): error CS1022: Type or namespace definition, or end-of-file expected
+    // {}
+    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(3, 2)
                 );
         }
 
