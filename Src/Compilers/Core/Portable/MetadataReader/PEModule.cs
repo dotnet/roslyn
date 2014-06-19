@@ -1740,16 +1740,16 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                foreach (var attributeHande in MetadataReader.GetCustomAttributes(typeDef))
+                foreach (var attributeHandle in MetadataReader.GetCustomAttributes(typeDef))
                 {
-                    int signatureIndex = IsTypeIdentifierAttribute(attributeHande);
+                    int signatureIndex = IsTypeIdentifierAttribute(attributeHandle);
                     if (signatureIndex != -1)
                     {
                         // We found a match
                         lazyContainsNoPiaLocalTypes = ThreeState.True;
 
-                        RegisterNoPiaLocalType(typeDef, attributeHande, signatureIndex);
-                        attributeInfo = new AttributeInfo(attributeHande, signatureIndex);
+                        RegisterNoPiaLocalType(typeDef, attributeHandle, signatureIndex);
+                        attributeInfo = new AttributeInfo(attributeHandle, signatureIndex);
                         return true;
                     }
                 }
