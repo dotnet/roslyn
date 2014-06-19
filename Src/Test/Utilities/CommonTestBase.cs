@@ -715,39 +715,6 @@ Example app.config:
                 configureToExecuteInAppContainer: false,
                 subsystemVersion: default(SubsystemVersion));
         }
-
-        /// <summary>
-        /// Given a list of compilers to look for, determines which is the first to actually appear on the Filesystem.
-        /// </summary>
-        /// <param name="compilerPriority">A list of assembly names that may exist in the system.</param>
-        /// <returns>The compiler which had the highest priority and was found.</returns>
-        protected static string FindCompiler(IEnumerable<string> compilerPriority)
-        {
-            string highestPriorityCompiler = string.Empty;
-            var versionCheck = true;
-            var testVersion = Assembly.GetAssembly(typeof(CommonTestBase)).GetName().Version;
-
-            foreach (string path in compilerPriority)
-            {
-                try
-                {
-                    var compilerAssembly = Assembly.LoadFile(path);
-
-                    if (!versionCheck || compilerAssembly.GetName().Version.Equals(testVersion))
-                    {
-                        highestPriorityCompiler = path;
-                    }
-                    break;
-                }
-                catch
-                {
-                    continue;
-                }
-            }
-
-            return highestPriorityCompiler;
-        }
-
         #endregion
 
         private static MetadataReference scriptingRef = null;      

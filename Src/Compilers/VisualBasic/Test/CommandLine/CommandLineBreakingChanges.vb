@@ -27,7 +27,7 @@ End Module
 </text>.Value).Path
         Dim tempBinary = Temp.CreateFile()
         Dim tempLog = Temp.CreateFile()
-        Dim output = RunAndGetOutput("cmd", "/C """ & BasicCompilerCommand & " /nologo /warnaserror+ /warnaserror- /out:" & tempBinary.Path & " " & src & " > " & tempLog.Path & """", expectedRetCode:=0)
+        Dim output = RunAndGetOutput("cmd", "/C """ & BasicCompilerExecutable & """ /nologo /warnaserror+ /warnaserror- /out:" & tempBinary.Path & " " & src & " > " & tempLog.Path, expectedRetCode:=0)
         Assert.Equal("", output.Trim())
 
         'See bug 15593. This is not strictly a 'breaking' change.
@@ -58,7 +58,7 @@ Module M1
 End Module
 </text>.Value).Path
         Dim tempOut = Temp.CreateFile()
-        Dim output = RunAndGetOutput("cmd", "/C """ & BasicCompilerCommand & " /nologo /optionstrict:custom /nowarn:41008 /warnaserror+ " & src & " > " & tempOut.Path & """", expectedRetCode:=1)
+        Dim output = RunAndGetOutput("cmd", "/C """ & BasicCompilerExecutable & """ /nologo /optionstrict:custom /nowarn:41008 /warnaserror+ " & src & " > " & tempOut.Path, expectedRetCode:=1)
         Assert.Equal("", output.Trim())
 
         'See bug 16673.
@@ -98,7 +98,7 @@ Module M1
 End Module
 </text>.Value).Path
         Dim tempOut = Temp.CreateFile()
-        Dim output = RunAndGetOutput("cmd", "/C """ & BasicCompilerCommand & " /nologo /optionstrict:custom /warnaserror-:42025 /warnaserror+ " & src & " > " & tempOut.Path & """", expectedRetCode:=1)
+        Dim output = RunAndGetOutput("cmd", "/C """ & BasicCompilerExecutable & """ /nologo /optionstrict:custom /warnaserror-:42025 /warnaserror+ " & src & " > " & tempOut.Path, expectedRetCode:=1)
         Assert.Equal("", output.Trim())
 
         'See bug 16673.
