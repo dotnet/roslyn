@@ -105,10 +105,11 @@ namespace Microsoft.CodeAnalysis.Emit
             this.localMap = new Dictionary<IMethodDefinition, MethodLocals>();
         }
 
-        private ImmutableArray<int> GetDeltaTableSizes()
+        private ImmutableArray<int> GetDeltaTableSizes(ImmutableArray<int> rowCounts)
         {
             var sizes = new int[MetadataTokens.TableCount];
-            this.GetTableSizes(sizes);
+
+            rowCounts.CopyTo(sizes);
 
             sizes[(int)TableIndex.TypeRef] = this.typeRefIndex.Rows.Count;
             sizes[(int)TableIndex.TypeDef] = this.typeDefs.GetAdded().Count;
@@ -131,10 +132,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return ImmutableArray.Create(sizes);
         }
 
-        internal EmitBaseline GetDelta(
-            EmitBaseline baseline,
-            Microsoft.CodeAnalysis.Compilation compilation,
-            Guid encId)
+        internal EmitBaseline GetDelta(EmitBaseline baseline, Compilation compilation, Guid encId, MetadataSizes metadataSizes)
         {
             Debug.Assert(this.unalignedStringStreamLength > 0); // OnSerializedMetadataTables should have been called.
 
@@ -150,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             var previousTableSizes = this.previousGeneration.TableEntriesAdded;
-            var deltaTableSizes = this.GetDeltaTableSizes();
+            var deltaTableSizes = this.GetDeltaTableSizes(metadataSizes.RowCounts);
             var tableSizes = new int[MetadataTokens.TableCount];
 
             for (int i = 0; i < tableSizes.Length; i++)
@@ -656,13 +654,13 @@ namespace Microsoft.CodeAnalysis.Emit
             this.unalignedStringStreamLength = this.stringWriter.BaseStream.Length;
         }
 
-        protected override void PopulateEncLogTableRows(List<EncLogRow> table)
+        protected override void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts)
         {
             // The EncLog table is a log of all the operations needed
             // to update the previous metadata. That means all
             // new references must be added to the EncLog.
             var previousSizes = this.previousGeneration.TableSizes;
-            var deltaSizes = this.GetDeltaTableSizes();
+            var deltaSizes = this.GetDeltaTableSizes(rowCounts);
 
             PopulateEncLogTableRows(table, TableIndex.AssemblyRef, previousSizes, deltaSizes);
             PopulateEncLogTableRows(table, TableIndex.ModuleRef, previousSizes, deltaSizes);
@@ -787,7 +785,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        protected override void PopulateEncMapTableRows(List<EncMapRow> table)
+        protected override void PopulateEncMapTableRows(List<EncMapRow> table, ImmutableArray<int> rowCounts)
         {
             // The EncMap table maps from offset in each table in the delta
             // metadata to token. As such, the EncMap is a concatenated
@@ -795,7 +793,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // and, within each table, sorted by row.
             var tokens = ArrayBuilder<uint>.GetInstance();
             var previousSizes = this.previousGeneration.TableSizes;
-            var deltaSizes = this.GetDeltaTableSizes();
+            var deltaSizes = this.GetDeltaTableSizes(rowCounts);
 
             AddReferencedTokens(tokens, TableIndex.AssemblyRef, previousSizes, deltaSizes);
             AddReferencedTokens(tokens, TableIndex.ModuleRef, previousSizes, deltaSizes);
@@ -883,15 +881,14 @@ namespace Microsoft.CodeAnalysis.Emit
                 TableIndex.GenericParamConstraint,
             };
 
-            var tableSizes = new int[MetadataTokens.TableCount];
-            this.GetTableSizes(tableSizes);
-            for (uint i = 0; i < tableSizes.Length; i++)
+            for (int i = 0; i < rowCounts.Length; i++)
             {
                 if (handledTables.Contains((TableIndex)i))
                 {
                     continue;
                 }
-                Debug.Assert(tableSizes[i] == 0);
+
+                Debug.Assert(rowCounts[i] == 0);
             }
 #endif
         }

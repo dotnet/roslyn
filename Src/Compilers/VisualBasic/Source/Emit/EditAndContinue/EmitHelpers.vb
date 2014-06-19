@@ -86,13 +86,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             changes,
                             cancellationToken)
 
-                        writer.WriteMetadataAndIL(metadataStream, ilStream)
+                        Dim metadataSizes As Cci.MetadataSizes = Nothing
+                        writer.WriteMetadataAndIL(metadataStream, ilStream, metadataSizes)
                         writer.GetMethodTokens(updatedMethodTokens)
 
                         Return New EmitDifferenceResult(
                             success:=True,
                             diagnostics:=diagnostics.ToReadOnlyAndFree(),
-                            baseline:=writer.GetDelta(baseline, compilation, encId))
+                            baseline:=writer.GetDelta(baseline, compilation, encId, metadataSizes))
 
                     Catch e As Cci.PdbWritingException
                         diagnostics.Add(ERRID.ERR_PDBWritingFailed, Location.None, e.Message)

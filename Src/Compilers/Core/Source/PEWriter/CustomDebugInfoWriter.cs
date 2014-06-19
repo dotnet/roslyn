@@ -293,7 +293,7 @@ namespace Microsoft.Cci
                 cmw.WriteByte(0); // kind: UsingInfo
                 cmw.Align(4);
 
-                cmw.WriteUint(streamLength = PeWriter.Aligned((uint)usingCounts.Count * 2 + 10, 4));
+                cmw.WriteUint(streamLength = BitArithmeticUtilities.Align((uint)usingCounts.Count * 2 + 10, 4));
                 cmw.WriteUshort((ushort)usingCounts.Count);
                 foreach (ushort uc in usingCounts)
                 {

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
@@ -295,11 +296,11 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override void PopulateEncLogTableRows(List<EncLogRow> table)
+        protected override void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts)
         {
         }
 
-        protected override void PopulateEncMapTableRows(List<EncMapRow> table)
+        protected override void PopulateEncMapTableRows(List<EncMapRow> table, ImmutableArray<int> rowCounts)
         {
         }
 

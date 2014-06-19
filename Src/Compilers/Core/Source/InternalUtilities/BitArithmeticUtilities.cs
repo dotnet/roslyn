@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Roslyn.Utilities
 {
     internal static class BitArithmeticUtilities
@@ -42,6 +44,33 @@ namespace Roslyn.Utilities
                 v = (v & MASK_11111111111111111111111111111111) + ((v >> 32) & MASK_11111111111111111111111111111111);
                 return (int)v;
             }
+        }
+
+        internal static uint Align(uint position, uint alignment)
+        {
+            Debug.Assert(CountBits(alignment) == 1);
+
+            uint result = position & ~(alignment - 1);
+            if (result == position)
+            {
+                return result;
+            }
+
+            return result + alignment;
+        }
+
+        internal static int Align(int position, int alignment)
+        {
+            Debug.Assert(position >= 0 && alignment >= 0);
+            Debug.Assert(CountBits(alignment) == 1);
+
+            int result = position & ~(alignment - 1);
+            if (result == position)
+            {
+                return result;
+            }
+
+            return result + alignment;
         }
     }
 }

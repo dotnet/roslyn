@@ -96,14 +96,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             definitionMap,
                             changes,
                             cancellationToken);
-                    
-                        writer.WriteMetadataAndIL(metadataStream, ilStream);
+
+                        Cci.MetadataSizes metadataSizes;
+                        writer.WriteMetadataAndIL(metadataStream, ilStream, out metadataSizes);
                         writer.GetMethodTokens(updatedMethodTokens);
 
                         return new EmitDifferenceResult(
                             success: true,
                             diagnostics: diagnostics.ToReadOnlyAndFree(),
-                            baseline: writer.GetDelta(baseline, compilation, encId));
+                            baseline: writer.GetDelta(baseline, compilation, encId, metadataSizes));
                     }
                     catch (Cci.PdbWritingException e)
                     {

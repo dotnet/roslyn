@@ -378,6 +378,7 @@
     <Compile Include="PEWriter\MemberRefComparer.cs" />
     <Compile Include="PEWriter\Members.cs" />
     <Compile Include="PEWriter\MemoryStream.cs" />
+    <Compile Include="PEWriter\MetadataSizes.cs" />
     <Compile Include="PEWriter\MetadataVisitor.cs" />
     <Compile Include="PEWriter\MethodSpecComparer.cs" />
     <Compile Include="PEWriter\Miscellaneous.cs" />
