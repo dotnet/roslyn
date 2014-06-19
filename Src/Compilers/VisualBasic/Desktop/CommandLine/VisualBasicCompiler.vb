@@ -229,6 +229,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                   assembly. (Short form: /r)
 /analyzer:<file_list>             Run the analyzers from this assembly
                                   (Short form: /a)
+/additionalfile:<file list>       Additional files that don't directly affect code
+                                  generation but may be used by analyzers for producing
+                                  errors or warnings.
 
                                   - RESOURCES -
 /linkresource:<resinfo>           Links the specified file as an external 
@@ -261,6 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 /warnaserror[+|-]:<number_list>   Treat a list of warnings as errors.
 /ruleset:<file>                   Specify a ruleset file that disables specific
                                   diagnostics.
+/option:<name>=<value>            Specify an option that can be passed to analyzers.
 
                                   - LANGUAGE -
 /define:<symbol_list>             Declare global conditional compilation 

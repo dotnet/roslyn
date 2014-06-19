@@ -330,6 +330,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                assembly files (Short form: /l)
 /analyzer:<file list>          Run the analyzers from this assembly
                                (Short form: /a)
+/additionalfile:<file list>    Additional files that don't directly affect code
+                               generation but may be used by analyzers for producing
+                               errors or warnings.
 
                         - RESOURCES -
 /win32res:<file>               Specify a Win32 resource file (.res)
@@ -355,6 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 /nowarn:<warn list>            Disable specific warning messages
 /ruleset:<file>                Specify a ruleset file that disables specific
                                diagnostics.
+/option:<name>=<value>         Specify an option that can be passed to analyzers.
 
                         - LANGUAGE -
 /checked[+|-]                  Generate overflow checks

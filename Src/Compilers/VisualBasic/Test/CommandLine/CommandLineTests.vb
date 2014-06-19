@@ -5843,6 +5843,123 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
         Assert.Equal("Test,", args.CompilationOptions.Features.Single())
     End Sub
 
+    <Fact>
+    Public Sub ParseAdditionalFile()
+        Dim args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalStreams.Single().Path)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config", "a.vb", "/additionalfile:app.manifest"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal(2, args.AdditionalStreams.Length)
+        Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalStreams(0).Path)
+        Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalStreams(1).Path)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config", "a.vb", "/additionalfile:web.config"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal(2, args.AdditionalStreams.Length)
+        Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalStreams(0).Path)
+        Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalStreams(1).Path)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:..\web.config", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal(Path.Combine(_baseDirectory, "..\web.config"), args.AdditionalStreams.Single().Path)
+
+        Dim baseDir = Temp.CreateDirectory()
+        baseDir.CreateFile("web1.config")
+        baseDir.CreateFile("web2.config")
+        baseDir.CreateFile("web3.config")
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web*.config", "a.vb"}, baseDir.Path)
+        args.Errors.Verify()
+        Assert.Equal(3, args.AdditionalStreams.Length)
+        Assert.Equal(Path.Combine(baseDir.Path, "web1.config"), args.AdditionalStreams(0).Path)
+        Assert.Equal(Path.Combine(baseDir.Path, "web2.config"), args.AdditionalStreams(1).Path)
+        Assert.Equal(Path.Combine(baseDir.Path, "web3.config"), args.AdditionalStreams(2).Path)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config;app.manifest", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal(2, args.AdditionalStreams.Length)
+        Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalStreams(0).Path)
+        Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalStreams(1).Path)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config,app.manifest", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal(2, args.AdditionalStreams.Length)
+        Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalStreams(0).Path)
+        Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalStreams(1).Path)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config:app.manifest", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal(1, args.AdditionalStreams.Length)
+        Assert.Equal(Path.Combine(_baseDirectory, "web.config:app.manifest"), args.AdditionalStreams(0).Path)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile", "a.vb"}, _baseDirectory)
+        args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("additionalfile", ":<file_list>"))
+        Assert.Equal(0, args.AdditionalStreams.Length)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:", "a.vb"}, _baseDirectory)
+        args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("additionalfile", ":<file_list>"))
+        Assert.Equal(0, args.AdditionalStreams.Length)
+    End Sub
+
+    <Fact>
+    Public Sub ParseOptions()
+        Dim args = VisualBasicCommandLineParser.Default.Parse({"/option:a=b", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("a", args.AdditionalOptions.Keys.Single())
+        Assert.Equal("b", args.AdditionalOptions.Values.Single())
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option:a=b", "/option:d=e", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("b", args.AdditionalOptions("a"))
+        Assert.Equal("e", args.AdditionalOptions("d"))
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option", "a.vb"}, _baseDirectory)
+        args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
+        Assert.Equal(0, args.AdditionalOptions.Count)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option:", "a.vb"}, _baseDirectory)
+        args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
+        Assert.Equal(0, args.AdditionalOptions.Count)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option:a", "a.vb"}, _baseDirectory)
+        args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
+        Assert.Equal(0, args.AdditionalOptions.Count)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option:a=", "a.vb"}, _baseDirectory)
+        args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
+        Assert.Equal(0, args.AdditionalOptions.Count)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option:a:b", "a.vb"}, _baseDirectory)
+        args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
+        Assert.Equal(0, args.AdditionalOptions.Count)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option:=b", "a.vb"}, _baseDirectory)
+        args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
+        Assert.Equal(0, args.AdditionalOptions.Count)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option:a=b=c", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("b=c", args.AdditionalOptions("a"))
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option:a==b", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("=b", args.AdditionalOptions("a"))
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option:""a b""=""c d""", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("c d", args.AdditionalOptions("a b"))
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option:""a b=c d""", "a.cs"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("c d", args.AdditionalOptions("a b"))
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/option:a=b", "/option:a=c", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("c", args.AdditionalOptions("a"))
+    End Sub
+
     Private Shared Sub Verify(actual As IEnumerable(Of Diagnostic), ParamArray expected As DiagnosticDescription())
         actual.Verify(expected)
     End Sub

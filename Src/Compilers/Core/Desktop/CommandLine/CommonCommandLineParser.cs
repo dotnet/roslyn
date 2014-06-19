@@ -622,6 +622,21 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal IEnumerable<AdditionalStream> ParseAdditionalFiles(string value, string baseDirectory, IList<Diagnostic> errors)
+        {
+            var additionalFiles = new List<AdditionalStream>();
+
+            foreach (string path in ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)))
+            {
+                foreach (var arg in ParseFileArgument(path, baseDirectory, errors))
+                {
+                    additionalFiles.Add(new AdditionalFileStream(arg.Path));
+                }
+            }
+
+            return additionalFiles;
+        }
+
         internal IEnumerable<CommandLineSourceFile> ParseRecurseArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
         {
             return ExpandFileNamePattern(arg, baseDirectory, SearchOption.AllDirectories, errors);

@@ -107,6 +107,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim managedResources = New List(Of ResourceDescription)()
                 Dim sourceFiles = New List(Of CommandLineSourceFile)()
                 Dim hasSourceFiles = False
+                Dim additionalFiles = New List(Of AdditionalStream)()
+                Dim additionalOptions = New Dictionary(Of String, String)()
                 Dim codepage As Encoding = Nothing
                 Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
                 Dim metadataReferences = New List(Of CommandLineReference)()
@@ -934,6 +936,36 @@ lVbRuntimePlus:
                                 End If
                                 Continue For
 
+                            Case "additionalfile"
+                                If String.IsNullOrEmpty(value) Then
+                                    AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
+                                    Continue For
+                                End If
+
+                                additionalFiles.AddRange(ParseAdditionalFiles(value, baseDirectory, diagnostics))
+                                Continue For
+
+                            Case "option"
+                                Dim unquoted = RemoveAllQuotes(value)
+                                If String.IsNullOrEmpty(unquoted) Then
+                                    AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<name>=<value>")
+                                    Continue For
+                                End If
+
+
+                                Dim parts = unquoted.Split({"="}, 2, StringSplitOptions.None)
+                                If parts.Length <> 2 OrElse String.IsNullOrEmpty(parts(0)) OrElse String.IsNullOrEmpty(parts(1)) Then
+                                    AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<name>=<value>")
+                                    Continue For
+                                End If
+
+                                If (additionalOptions.ContainsKey(parts(0))) Then
+                                    additionalOptions(parts(0)) = parts(1)
+                                Else
+                                    additionalOptions.Add(parts(0), parts(1))
+                                End If
+
+                                Continue For
                         End Select
                     End If
 
@@ -1086,6 +1118,8 @@ lVbRuntimePlus:
                     .Encoding = codepage,
                     .MetadataReferences = metadataReferences.AsImmutable(),
                     .AnalyzerReferences = analyzers.AsImmutable(),
+                    .AdditionalStreams = additionalFiles.AsImmutable(),
+                    .AdditionalOptions = additionalOptions.ToImmutableDictionary(),
                     .ReferencePaths = searchPaths,
                     .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
                     .Win32ResourceFile = win32ResourceFile,

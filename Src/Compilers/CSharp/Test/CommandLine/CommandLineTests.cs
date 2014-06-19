@@ -6231,6 +6231,125 @@ using System.Diagnostics; // Unused.
             args.Errors.Verify();
             Assert.Equal("Test,", args.CompilationOptions.Features.Single());
         }
+
+        [Fact]
+        public void ParseAdditionalFile()
+        {
+            var args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams.Single().Path);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", "a.cs", "/additionalfile:app.manifest" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.AdditionalStreams.Length);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams[0].Path);
+            Assert.Equal(Path.Combine(baseDirectory, "app.manifest"), args.AdditionalStreams[1].Path);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", "a.cs", "/additionalfile:web.config" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.AdditionalStreams.Length);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams[0].Path);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams[1].Path);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:..\\web.config", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(Path.Combine(baseDirectory, "..\\web.config"), args.AdditionalStreams.Single().Path);
+
+            var baseDir = Temp.CreateDirectory();
+            baseDir.CreateFile("web1.config");
+            baseDir.CreateFile("web2.config");
+            baseDir.CreateFile("web3.config");
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web*.config", "a.cs" }, baseDir.Path);
+            args.Errors.Verify();
+            Assert.Equal(3, args.AdditionalStreams.Length);
+            Assert.Equal(Path.Combine(baseDir.Path, "web1.config"), args.AdditionalStreams[0].Path);
+            Assert.Equal(Path.Combine(baseDir.Path, "web2.config"), args.AdditionalStreams[1].Path);
+            Assert.Equal(Path.Combine(baseDir.Path, "web3.config"), args.AdditionalStreams[2].Path);
+            
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config;app.manifest", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.AdditionalStreams.Length);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams[0].Path);
+            Assert.Equal(Path.Combine(baseDirectory, "app.manifest"), args.AdditionalStreams[1].Path);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config,app.manifest", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.AdditionalStreams.Length);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams[0].Path);
+            Assert.Equal(Path.Combine(baseDirectory, "app.manifest"), args.AdditionalStreams[1].Path);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config:app.manifest", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(1, args.AdditionalStreams.Length);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config:app.manifest"), args.AdditionalStreams[0].Path);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile", "a.cs" }, baseDirectory);
+            args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "additionalfile"));
+            Assert.Equal(0, args.AdditionalStreams.Length);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:", "a.cs" }, baseDirectory);
+            args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "additionalfile"));
+            Assert.Equal(0, args.AdditionalStreams.Length);
+        }
+
+        [Fact]
+        public void ParseOptions()
+        {
+            var args = CSharpCommandLineParser.Default.Parse(new[] { "/option:a=b", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal("a", args.AdditionalOptions.Keys.Single());
+            Assert.Equal("b", args.AdditionalOptions.Values.Single());
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option:a=b", "/option:d=e", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal("b", args.AdditionalOptions["a"]);
+            Assert.Equal("e", args.AdditionalOptions["d"]);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option", "a.cs" }, baseDirectory);
+            args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<name>=<value>", "option"));
+            Assert.Equal(0, args.AdditionalOptions.Count);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option:", "a.cs" }, baseDirectory);
+            args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<name>=<value>", "option"));
+            Assert.Equal(0, args.AdditionalOptions.Count);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option:a", "a.cs" }, baseDirectory);
+            args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<name>=<value>", "option"));
+            Assert.Equal(0, args.AdditionalOptions.Count);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option:a=", "a.cs" }, baseDirectory);
+            args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<name>=<value>", "option"));
+            Assert.Equal(0, args.AdditionalOptions.Count);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option:a:b", "a.cs" }, baseDirectory);
+            args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<name>=<value>", "option"));
+            Assert.Equal(0, args.AdditionalOptions.Count);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option:=b", "a.cs" }, baseDirectory);
+            args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<name>=<value>", "option"));
+            Assert.Equal(0, args.AdditionalOptions.Count);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option:a=b=c", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal("b=c", args.AdditionalOptions["a"]);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option:a==b", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal("=b", args.AdditionalOptions["a"]);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option:\"a b\"=\"c d\"", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal("c d", args.AdditionalOptions["a b"]);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option:\"a b=c d\"", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal("c d", args.AdditionalOptions["a b"]);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/option:a=b", "/option:a=c", "a.cs" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal("c", args.AdditionalOptions["a"]);
+        }
     }
 
     [DiagnosticAnalyzer]
