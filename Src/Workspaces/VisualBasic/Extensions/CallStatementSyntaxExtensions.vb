@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 nextToken.IsParentKind(SyntaxKind.PredefinedType)) AndAlso
                Not SyntaxFacts.GetContextualKeywordKind(nextToken.ToString()) = SyntaxKind.MidKeyword Then
                 Return True
-            End If
+            End If 
 
             ' Only keywords starting "invocable" expressions
             If nextToken.IsKindOrHasMatchingText(SyntaxKind.CBoolKeyword) OrElse

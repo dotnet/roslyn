@@ -910,7 +910,7 @@ public class E : bar::C { }
                 var compilation = CSharpCompilation.Create("foo", options: TestOptions.Dll,
                     references: new MetadataReference[] { m1, m2 });
 
-                // We don't deeduplicate references based on file path on the compilation level.
+                // We don't deduplicate references based on file path on the compilation level.
                 // The host (command line compiler and msbuild workspace) is responsible for such de-duplication, if needed.
 
                 compilation.VerifyDiagnostics(

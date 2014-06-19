@@ -21,11 +21,19 @@
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Source\CodeAnalysis.csproj">
+    <ProjectReference Include="..\..\..\Core\Desktop\CodeAnalysis.Desktop.csproj">
+      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
+      <Name>CodeAnalysis.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualBasic\Source\BasicCodeAnalysis.vbproj">
+    <ProjectReference Include="..\..\..\VisualBasic\Desktop\BasicCodeAnalysis.Desktop.vbproj">
+      <Project>{73f3e2c5-d742-452e-b9e1-20732ddbc75d}</Project>
+      <Name>BasicCodeAnalysis.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
@@ -86,7 +94,22 @@
     <Reference Include="System.Collections" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <!-- workaround for bug 967430 -->
     <Reference Include="System.Runtime" />
+    <Reference Include="System.Resources.ResourceManager" />
+    <Reference Include="System.Xml.ReaderWriter" />
+    <Reference Include="System.Xml.XDocument" />
+    <Reference Include="System.Linq" />
+    <Reference Include="System.Runtime.InteropServices" />
+    <Reference Include="System.Runtime.Extensions" />
+    <Reference Include="System.Collections.Concurrent" />
+    <Reference Include="System.Reflection" />
+    <Reference Include="System.Reflection.Primitives" />
+    <Reference Include="System.Globalization" />
+    <Reference Include="System.IO" />
+    <Reference Include="System.Collections" />
+    <Reference Include="System.Threading.Tasks" />
+    <Reference Include="System.Text.Encoding" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />

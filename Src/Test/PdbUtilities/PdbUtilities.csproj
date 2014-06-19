@@ -19,22 +19,22 @@
     <OutDir>..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\Compilers\Core\Source\Collections\ArrayBuilder.cs">
+    <Compile Include="..\..\Compilers\Core\Portable\Collections\ArrayBuilder.cs">
       <Link>Collections\ArrayBuilder.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Source\Collections\ArrayBuilder.ArrayBuilderEnumerator.cs">
+    <Compile Include="..\..\Compilers\Core\Portable\Collections\ArrayBuilder.ArrayBuilderEnumerator.cs">
       <Link>Collections\ArrayBuilder.ArrayBuilderEnumerator.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Source\Collections\PooledStringBuilder.cs">
+    <Compile Include="..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Source\InternalUtilities\ExceptionUtilities.cs">
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>InternalUtilities\ExceptionUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Source\InternalUtilities\ComStreamWrapper.cs">
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
       <Link>InternalUtilities\ComStreamWrapper.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Source\InternalUtilities\ObjectPool`1.cs">
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ObjectPool`1.cs">
       <Link>InternalUtilities\ObjectPool`1.cs</Link>
     </Compile>
   </ItemGroup>
@@ -82,9 +82,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.IO" />
-    <Reference Include="System.Reflection.Primitives" />
-    <Reference Include="System.Runtime" />
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>

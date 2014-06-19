@@ -58,7 +58,7 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\..\..\Open\Compilers\VisualBasic\Source\Syntax\Syntax.xml">
+    <Content Include="..\..\..\..\..\Open\Compilers\VisualBasic\Portable\Syntax\Syntax.xml">
       <Link>XML\Syntax.xml</Link>
     </Content>
   </ItemGroup>
