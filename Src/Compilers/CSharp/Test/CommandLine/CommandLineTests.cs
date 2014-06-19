@@ -179,7 +179,7 @@ d.cs
 
             AssertEx.Equal(new[] { "first.cs", "second.cs", "b.cs", "a.cs", "c.cs", "d.cs", "last.cs" }.Select(prependBasePath), resolvedSourceFiles);
             AssertEx.Equal(new[] { typeof(object).Assembly.Location, @"..\v4.0.30319\System.dll", @".\System.Data.dll" }, references);
-            AssertEx.Equal(new[] { FrameworkDirectory }.Concat(new[] { @"x", @"..\foo", @"../bar", @"a b" }.Select(prependBasePath)), args.ReferencePaths.ToArray());
+            AssertEx.Equal(new[] { RuntimeEnvironment.GetRuntimeDirectory() }.Concat(new[] { @"x", @"..\foo", @"../bar", @"a b" }.Select(prependBasePath)), args.ReferencePaths.ToArray());
             Assert.Equal(basePath, args.BaseDirectory);
         }
 
@@ -4681,7 +4681,7 @@ public class C
 
         private string GetDefaultResponseFilePath()
         {
-            return Path.Combine(Path.GetFullPath(CSharpCompilerExecutable), Path.GetFileNameWithoutExtension(CSharpCompilerExecutable) + ".rsp");
+            return Path.Combine(Path.GetDirectoryName(CSharpCompilerExecutable), Path.GetFileNameWithoutExtension(CSharpCompilerExecutable) + ".rsp");
         }
 
         [Fact, WorkItem(530359, "DevDiv")]

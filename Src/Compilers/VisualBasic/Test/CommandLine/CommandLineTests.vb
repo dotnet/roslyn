@@ -5274,7 +5274,7 @@ Imports System
     End Sub
 
     Private Function GetDefaultResponseFilePath() As String
-        Return Path.Combine(Path.GetFullPath(BasicCompilerExecutable), Path.GetFileNameWithoutExtension(BasicCompilerExecutable) & ".rsp")
+        Return Path.Combine(Path.GetDirectoryName(BasicCompilerExecutable), Path.GetFileNameWithoutExtension(BasicCompilerExecutable) & ".rsp")
     End Function
 
     <Fact()>

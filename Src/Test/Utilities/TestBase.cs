@@ -830,7 +830,7 @@ namespace Roslyn.Test.Utilities
             {
                 try
                 {
-                    if (File.Exists(path) && (FileVersionInfo.GetVersionInfo(path) == FileVersionInfo.GetVersionInfo(typeof(TestBase).Assembly.Location)))
+                    if (File.Exists(path) && (FileVersionInfo.GetVersionInfo(path).FileVersion == FileVersionInfo.GetVersionInfo(typeof(TestBase).Assembly.Location).FileVersion))
                     {
                         highestPriorityCompiler = path;
                     }
