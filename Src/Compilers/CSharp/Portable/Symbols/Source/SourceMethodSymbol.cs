@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // syntax may not be available (some symbols have just signature, others body, or no syntax at all)
         protected readonly SyntaxReference syntaxReference;
-        protected readonly SyntaxReference blockSyntaxReference;
+        protected readonly SyntaxReference bodySyntaxReference;
         protected ImmutableArray<Location> locations;
         protected string lazyDocComment;
 
@@ -106,19 +106,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return cachedDiagnostics;
         }
 
-        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReference, SyntaxReference blockSyntaxReference, Location location)
-            : this(containingType, syntaxReference, blockSyntaxReference, ImmutableArray.Create(location))
+        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReference, SyntaxReference bodySyntaxReference, Location location)
+            : this(containingType, syntaxReference, bodySyntaxReference, ImmutableArray.Create(location))
         {
         }
 
-        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReference, SyntaxReference blockSyntaxReference, ImmutableArray<Location> locations)
+        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReference, SyntaxReference bodySyntaxReference, ImmutableArray<Location> locations)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert(!locations.IsEmpty);
 
             this.containingType = containingType;
             this.syntaxReference = syntaxReference;
-            this.blockSyntaxReference = blockSyntaxReference;
+            this.bodySyntaxReference = bodySyntaxReference;
             this.locations = locations;
         }
 
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (this.blockSyntaxReference == null) ? null : this.blockSyntaxReference.GetSyntax() as BlockSyntax;
+                return (this.bodySyntaxReference == null) ? null : this.bodySyntaxReference.GetSyntax() as BlockSyntax;
             }
         }
 
@@ -1509,5 +1509,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        /// <summary>
+        /// Checks to see if a body is legal given the current modifiers.
+        /// If it is not, a diagnostic is added with the current type.
+        /// </summary>
+        protected void CheckModifiersForBody( Location location, DiagnosticBag diagnostics)
+        {
+            if (containingType.IsInterface)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterfaceMemberHasBody, location, this);
+            }
+            else if (IsExtern && !IsAbstract)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
+            }
+            else if (IsAbstract && !IsExtern)
+            {
+                diagnostics.Add(ErrorCode.ERR_AbstractHasBody, location, this);
+            }
+            // Do not report error for IsAbstract && IsExtern. Dev10 reports CS0180 only
+            // in that case ("member cannot be both extern and abstract").
+        }
+
+        /// <summary>
+        /// Returns true if the method body is an expression, as expressed
+        /// by the <see cref="ArrowExpressionClauseSyntax"/> syntax. False
+        /// otherwise.
+        /// </summary>
+        /// <remarks>
+        /// If the method has both block body and an expression body
+        /// present, this is not treated as expression-bodied.
+        /// </remarks>
+        internal abstract bool IsExpressionBodied { get; }
     }
 }

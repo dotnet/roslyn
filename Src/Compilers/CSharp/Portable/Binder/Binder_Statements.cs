@@ -3224,7 +3224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // statement expression.
 
                     bool errors = false;
-                    if (!IsValidStatementExpression(node, expression))
+                    if (!IsValidStatementExpression(syntax, expression))
                     {
                         Error(diagnostics, ErrorCode.ERR_IllegalStatement, node);
                         errors = true;
@@ -3256,10 +3256,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Bind a lambda expression or an expression-bodied member with
-        /// expression e and binds it either as { return e;} or { e; }.
+        /// Binds an expression-bodied member with expression e as either { return e;} or { e; }.
         /// </summary>
-        public BoundBlock BindExpressionBodyAsBlock(ExpressionSyntax body, DiagnosticBag diagnostics)
+        public BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
+                                                    DiagnosticBag diagnostics)
+        {
+            BoundExpression expression = this.BindValue(expressionBody.Expression, diagnostics, BindValueKind.RValue);
+            return CreateBlockFromExpression(this.Locals, expression, expressionBody, diagnostics);
+        }
+
+        /// <summary>
+        /// Binds a lambda with expression e as either { return e;} or { e; }.
+        /// </summary>
+        public BoundBlock BindLambdaExpressionAsBlock(ExpressionSyntax body, DiagnosticBag diagnostics)
         {
             BoundExpression expression = this.BindValue(body, diagnostics, BindValueKind.RValue);
             return CreateBlockFromExpression(this.Locals, expression, body, diagnostics);

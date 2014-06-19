@@ -11083,6 +11083,25 @@ class C
         }
 
         [Fact]
+        public void RealProp()
+        {
+            var text = @"
+public class C
+{
+    public static void Main()
+    {
+        var x = new C();
+        System.Console.WriteLine(x.P);
+    }
+
+    int P { get { return (int x = 10) + x / 2; } }
+}";
+            var comp = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            comp.VerifyDiagnostics();
+            TestSemanticModelAPI(comp);
+        }
+
+        [Fact]
         public void ArrowExpression_01()
         {
             var text = @"

@@ -2150,6 +2150,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Methods cannot combine block bodies with expression bodies..
+        /// </summary>
+        internal static string ERR_BlockBodyAndExpressionBody {
+            get {
+                return ResourceManager.GetString("ERR_BlockBodyAndExpressionBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement &apos;{1}&apos; because it is not supported by the language.
         /// </summary>
         internal static string ERR_BogusExplicitImpl {

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
                 lambdaBodyBinder = new ScopedExpressionBinder(lambdaBodyBinder, body);
-                return lambdaBodyBinder.BindExpressionBodyAsBlock(body, diagnostics);
+                return lambdaBodyBinder.BindLambdaExpressionAsBlock(body, diagnostics);
             })
             { }
 

@@ -25,6 +25,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             return blockOpt != null && IsBeforeToken(position, blockOpt, blockOpt.CloseBraceToken);
         }
 
+        internal static bool IsInExpressionBody(
+            int position,
+            ArrowExpressionClauseSyntax expressionBodyOpt,
+            SyntaxToken semicolonToken)
+        {
+            return expressionBodyOpt != null
+                && IsBeforeToken(position, expressionBodyOpt, semicolonToken);
+        }
+
+        /// <summary>
+        /// A position is inside a body if it is inside the block or expression
+        /// body. 
+        ///
+        /// A position is considered to be inside a block if it is on or after
+        /// the open brace and strictly before the close brace. A position is
+        /// considered to be inside an expression body if it is on or after
+        /// the '=>' and strictly before the semicolon.
+        /// </summary>
+        internal static bool IsInBody(int position, BaseMethodDeclarationSyntax method)
+        {
+            ArrowExpressionClauseSyntax expressionBodyOpt = null;
+            switch (method.Kind)
+            {
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    expressionBodyOpt = ((ConversionOperatorDeclarationSyntax)method).ExpressionBody;
+                    break;
+                case SyntaxKind.OperatorDeclaration:
+                    expressionBodyOpt = ((OperatorDeclarationSyntax)method).ExpressionBody;
+                    break;
+                case SyntaxKind.MethodDeclaration:
+                    expressionBodyOpt = ((MethodDeclarationSyntax)method).ExpressionBody;
+                    break;
+                default:
+                    break;
+            }
+            return IsInExpressionBody(position, expressionBodyOpt, method.SemicolonToken)
+                || IsInBlock(position, method.Body);
+        }
+
         internal static bool IsBetweenTokens(int position, SyntaxToken firstIncluded, SyntaxToken firstExcluded)
         {
             return position >= firstIncluded.SpanStart && IsBeforeToken(position, firstExcluded);

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -16,12 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Dev11 includes the explicit/implicit keyword, but we don't have a good way to include
             // Narrowing/Widening in VB and we want the languages to be consistent.
             var location = syntax.Type.Location;
-            string name = syntax.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ImplicitKeyword) ?
-                WellKnownMemberNames.ImplicitConversionName :
-                WellKnownMemberNames.ExplicitConversionName;
+            string name = syntax.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ImplicitKeyword)
+                ? WellKnownMemberNames.ImplicitConversionName
+                : WellKnownMemberNames.ExplicitConversionName;
 
             return new SourceUserDefinedConversionSymbol(
-                containingType, name, location, syntax, diagnostics);
+                containingType, name, location, syntax, diagnostics,
+                syntax.Body == null && syntax.ExpressionBody != null);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
@@ -32,16 +34,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             ConversionOperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics) :
+            DiagnosticBag diagnostics,
+            bool isExpressionBodied) :
             base(
                 MethodKind.Conversion,
                 name,
                 containingType,
                 location,
                 syntax.GetReference(),
-                syntax.Body.GetReferenceOrNull(),
+                syntax.Body.GetReferenceOrNull()
+                ?? syntax.ExpressionBody.GetReferenceOrNull(),
                 syntax.Modifiers,
-                diagnostics)
+                diagnostics,
+                isExpressionBodied)
         {
         }
 

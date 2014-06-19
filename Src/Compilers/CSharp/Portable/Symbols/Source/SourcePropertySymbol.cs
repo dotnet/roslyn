@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SynthesizedBackingFieldSymbol backingField;
         private readonly TypeSymbol explicitInterfaceType;
         private readonly ImmutableArray<PropertySymbol> explicitInterfaceImplementations;
-        private readonly bool hasExpressionBody;
+        private readonly bool isExpressionBodied;
 
         private SymbolCompletionState state;
         private ImmutableArray<ParameterSymbol> lazyParameters;
@@ -104,22 +104,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out this.explicitInterfaceType, out aliasQualifierOpt);
             this.sourceName = this.sourceName ?? memberName; //sourceName may have been set while loading attributes
             this.name = isIndexer ? ExplicitInterfaceHelpers.GetMemberName(WellKnownMemberNames.Indexer, this.explicitInterfaceType, aliasQualifierOpt) : this.sourceName;
-            this.hasExpressionBody = false;
+            this.isExpressionBodied = false;
 
             bool hasAccessorList = syntax.AccessorList != null;
             var propertySyntax = syntax as PropertyDeclarationSyntax;
             var arrowExpression = propertySyntax != null 
                 ? propertySyntax.ExpressionBody
-                : null;
-            bool hasExpressionBody = !isIndexer && arrowExpression != null;
+                : ((IndexerDeclarationSyntax)syntax).ExpressionBody;
+            bool hasExpressionBody = arrowExpression != null;
             bool hasInitializer = !isIndexer && propertySyntax.Initializer != null;
 
-            if (hasAccessorList && hasExpressionBody)
-            {
-                diagnostics.Add(ErrorCode.ERR_AccessorListAndExpressionBody, location, this);
-            }
-
-            bool generateBackingField = (!IsAbstract && !IsExtern && !isIndexer && !hasExpressionBody);
+            bool generateBackingField = (!IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
             AccessorDeclarationSyntax getSyntax = null;
             AccessorDeclarationSyntax setSyntax = null;
             if (hasAccessorList)
@@ -245,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (hasExpressionBody)
                 {
-                    this.hasExpressionBody = true;
+                    this.isExpressionBodied = true;
                     this.getMethod = SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                         containingType,
                         this,
@@ -335,11 +330,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<PropertySymbol>(explicitlyImplementedProperty);
         }
 
-        internal bool HasExpressionBody
+        internal bool IsExpressionBodied
         {
             get
             {
-                return this.hasExpressionBody;
+                return this.isExpressionBodied;
             }
         }
 

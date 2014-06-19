@@ -7,12 +7,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class SourceUserDefinedOperatorSymbolBase : SourceMethodSymbol
     {
         private readonly string name;
+        private readonly bool isExpressionBodied;
         private ImmutableArray<ParameterSymbol> lazyParameters;
         private TypeSymbol lazyReturnType;
 
@@ -22,12 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             Location location,
             SyntaxReference syntaxReference,
-            SyntaxReference blockSyntaxReference,
+            SyntaxReference bodySyntaxReference,
             SyntaxTokenList modifiersSyntax,
-            DiagnosticBag diagnostics) :
-            base(containingType, syntaxReference, blockSyntaxReference, location)
+            DiagnosticBag diagnostics,
+            bool isExpressionBodied) :
+            base(containingType, syntaxReference, bodySyntaxReference, location)
         {
             this.name = name;
+            this.isExpressionBodied = isExpressionBodied;
 
             var defaultAccess = DeclarationModifiers.Private;
             var allowedModifiers =
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.flags = MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false);
 
-            if (this.ContainingType.IsInterfaceType())
+            if (this.ContainingType.IsInterface)
             {
                 // If we have an operator in an interface, we already have reported that fact as 
                 // an error. No need to cascade the error further.
@@ -78,13 +82,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // SPEC: Because an external operator provides no actual implementation, 
-            // SPEC: its operator body consists of a semicolon. For all other operators,
+            // SPEC: its operator body consists of a semicolon. For expression-bodied
+            // SPEC: operators, the body is an expression. For all other operators,
             // SPEC: the operator body consists of a block...
-            if (blockSyntaxReference != null && IsExtern)
+            if (bodySyntaxReference != null && IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
             }
-            else if (blockSyntaxReference == null && !IsExtern && !IsAbstract && !IsPartial)
+            else if (bodySyntaxReference == null && !IsExtern && !IsAbstract && !IsPartial)
             {
                 // Do not report that the body is missing if the operator is marked as
                 // partial or abstract; we will already have given an error for that so
@@ -618,6 +623,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LazyMethodChecks();
                 return this.lazyReturnType;
             }
+        }
+
+        internal override bool IsExpressionBodied
+        {
+            get { return this.isExpressionBodied; }
         }
 
         internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()

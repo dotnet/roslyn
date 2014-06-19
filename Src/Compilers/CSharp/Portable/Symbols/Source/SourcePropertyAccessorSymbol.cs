@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -92,11 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        internal bool HasExpressionBody
+        internal override bool IsExpressionBodied
         {
             get
             {
-                return property.HasExpressionBody;
+                return property.IsExpressionBodied;
             }
         }
 
@@ -141,21 +142,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             ArrowExpressionClauseSyntax syntax,
             DiagnosticBag diagnostics) :
-            // Since expression-bodied properties don't have a block syntax,
-            // we set the block syntax to null
-            base(containingType, syntax.GetReference(), null, location)
+            base(containingType, syntax.GetReference(), syntax.GetReference(), location)
         {
             this.property = property;
             this.explicitInterfaceImplementations = explicitInterfaceImplementations;
             this.name = name;
             this.isAutoPropertyAccessor = false;
 
+            // The modifiers for the accessor are the same as the modifiers for the property,
+            // minus the indexer bit
+            var declarationModifiers = propertyModifiers & ~DeclarationModifiers.Indexer;
+
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
-            this.flags = MakeFlags(MethodKind.PropertyGet, propertyModifiers, returnsVoid: false, isExtensionMethod: false,
+            this.flags = MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            CheckModifiersForBody(containingType, location, diagnostics);
+            CheckModifiersForBody(location, diagnostics);
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
             if (info != null)
@@ -216,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var bodyOpt = syntax.Body;
             if (bodyOpt != null)
             {
-                CheckModifiersForBody(containingType, location, diagnostics);
+                CheckModifiersForBody(location, diagnostics);
             }
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
@@ -241,25 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.name = overriddenMethod.Name;
                 }
             }
-        }
-
-        private void CheckModifiersForBody(NamedTypeSymbol containingType,
-            Location location, DiagnosticBag diagnostics)
-        {
-            if (containingType.IsInterface)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterfaceMemberHasBody, location, this);
-            }
-            else if (IsExtern && !IsAbstract)
-            {
-                diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
-            }
-            else if (IsAbstract && !IsExtern)
-            {
-                diagnostics.Add(ErrorCode.ERR_AbstractHasBody, location, this);
-            }
-            // Do not report error for IsAbstract && IsExtern. Dev10 reports CS0180 only
-            // in that case ("member cannot be both extern and abstract").
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
@@ -432,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed class '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (blockSyntaxReference == null && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied)
+            else if (bodySyntaxReference == null && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }

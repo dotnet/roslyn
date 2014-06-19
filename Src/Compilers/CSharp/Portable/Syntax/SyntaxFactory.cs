@@ -1850,5 +1850,93 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(ArrowExpressionClauseSyntax),
                 default(EqualsValueClauseSyntax));
         }
+
+        public static MethodDeclarationSyntax MethodDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            SyntaxToken identifier,
+            TypeParameterListSyntax typeParameterList,
+            ParameterListSyntax parameterList,
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            BlockSyntax body,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.MethodDeclaration(
+                attributeLists,
+                modifiers,
+                returnType,
+                explicitInterfaceSpecifier,
+                identifier,
+                typeParameterList,
+                parameterList,
+                constraintClauses,
+                body,
+                default(ArrowExpressionClauseSyntax),
+                semicolonToken);
+        }
+
+        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            SyntaxToken implicitOrExplicitKeyword,
+            SyntaxToken operatorKeyword,
+            TypeSyntax type,
+            ParameterListSyntax parameterList,
+            BlockSyntax body,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.ConversionOperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
+                operatorKeyword: operatorKeyword,
+                type: type,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: default(ArrowExpressionClauseSyntax),
+                semicolonToken: semicolonToken);
+        }
+
+        public static OperatorDeclarationSyntax OperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            SyntaxToken operatorKeyword,
+            SyntaxToken operatorToken,
+            ParameterListSyntax parameterList,
+            BlockSyntax body,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.OperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                returnType: returnType,
+                operatorKeyword: operatorKeyword,
+                operatorToken: operatorToken,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: default(ArrowExpressionClauseSyntax),
+                semicolonToken: semicolonToken);
+        }
+
+        public static IndexerDeclarationSyntax IndexerDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax type,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            BracketedParameterListSyntax parameterList,
+            AccessorListSyntax accessorList)
+        {
+            return SyntaxFactory.IndexerDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                type: type,
+                explicitInterfaceSpecifier: explicitInterfaceSpecifier,
+                parameterList: parameterList,
+                accessorList: accessorList,
+                expressionBody: default(ArrowExpressionClauseSyntax));
+        }
     }
 }

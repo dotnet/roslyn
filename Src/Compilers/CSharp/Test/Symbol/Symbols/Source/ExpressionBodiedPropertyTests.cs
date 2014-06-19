@@ -36,12 +36,12 @@ class C
     public int P { get; } => 1;
 }");
             comp.VerifyDiagnostics(
-    // (4,16): error CS8055: Properties cannot combine accessor lists with expression bodies.
+    // (4,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
     //     public int P { get; } => 1;
-    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, "P").WithArguments("C.P").WithLocation(4, 16),
-    // (4,20): error CS0501: 'C.P.get' must declare a body because it is not marked abstract, extern, or partial
+    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, "public int P { get; } => 1;").WithLocation(4, 5),
+    // (4,20): error CS8051: Auto-implemented properties must have set accessors or initializers.
     //     public int P { get; } => 1;
-    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.P.get").WithLocation(4, 20));
+    Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, "get").WithArguments("C.P.get").WithLocation(4, 20));
         }
 
         [Fact]
@@ -122,6 +122,117 @@ class C
         }
 
         [Fact]
+        public void Syntax08()
+        {
+            CreateExperimentalCompilationWithMscorlib45(@"
+interface I
+{
+    int P { get; };
+}").VerifyDiagnostics(
+    // (4,19): error CS1597: Semicolon after method or accessor block is not valid
+    //     int P { get; };
+    Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(4, 19));
+        }
+
+        [Fact]
+        public void Syntax09()
+        {
+            CreateExperimentalCompilationWithMscorlib45(@"
+class C
+{
+    int P => 2
+}").VerifyDiagnostics(
+    // (4,15): error CS1002: ; expected
+    //     int P => 2
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 15));
+        }
+
+        [Fact]
+        public void Syntax10()
+        {
+            CreateExperimentalCompilationWithMscorlib45(@"
+interface I
+{
+    int this[int i]
+}").VerifyDiagnostics(
+    // (4,20): error CS1514: { expected
+    //     int this[int i]
+    Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(4, 20),
+    // (5,2): error CS1513: } expected
+    // }
+    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2),
+    // (4,9): error CS0548: 'I.this[int]': property or indexer must have at least one accessor
+    //     int this[int i]
+    Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("I.this[int]").WithLocation(4, 9));
+        }
+
+        [Fact]
+        public void Syntax11()
+        {
+            CreateExperimentalCompilationWithMscorlib45(@"
+interface I
+{
+    int this[int i];
+}").VerifyDiagnostics(
+    // (4,20): error CS1514: { expected
+    //     int this[int i];
+    Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(4, 20),
+    // (4,20): error CS1014: A get or set accessor expected
+    //     int this[int i];
+    Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(4, 20),
+    // (5,2): error CS1513: } expected
+    // }
+    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 2),
+    // (4,9): error CS0548: 'I.this[int]': property or indexer must have at least one accessor
+    //     int this[int i];
+    Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("I.this[int]").WithLocation(4, 9));
+        }
+
+        [Fact]
+        public void Syntax12()
+        {
+            CreateExperimentalCompilationWithMscorlib45(@"
+interface I
+{
+    int this[int i] { get; };
+}").VerifyDiagnostics(
+    // (4,29): error CS1597: Semicolon after method or accessor block is not valid
+    //     int this[int i] { get; };
+    Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(4, 29));
+        }
+
+        [Fact]
+        public void Syntax13()
+        {
+            // End the property declaration at the semicolon after the accessor list
+            CreateExperimentalCompilationWithMscorlib45(@"
+class C
+{
+    int P { get; set; }; => 2;
+}").VerifyDiagnostics(
+    // (4,24): error CS1597: Semicolon after method or accessor block is not valid
+    //     int P { get; set; }; => 2;
+    Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(4, 24),
+    // (4,26): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+    //     int P { get; set; }; => 2;
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(4, 26));
+        }
+
+        [Fact]
+        public void Syntax14()
+        {
+            CreateExperimentalCompilationWithMscorlib45(@"
+class C
+{
+    int this[int i] => 2
+}").VerifyDiagnostics(
+    // (4,25): error CS1002: ; expected
+    //     int this[int i] => 2
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 25));
+
+        }
+
+        [Fact]
         public void LambdaTest01()
         {
             var comp = CreateExperimentalCompilationWithMscorlib45(@"
@@ -140,6 +251,7 @@ class C
 class C
 {
     public int P => 2 * 2;
+    public int this[int i] => P;
 }";
             var comp = CreateExperimentalCompilationWithMscorlib45(text);
             var global = comp.GlobalNamespace;
@@ -149,6 +261,19 @@ class C
             Assert.Null(p.SetMethod);
             Assert.NotNull(p.GetMethod);
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
+            Assert.True(p.IsExpressionBodied);
+
+            var indexer = c.GetMember<SourcePropertySymbol>("this[]");
+            Assert.Null(indexer.SetMethod);
+            Assert.NotNull(indexer.GetMethod);
+            Assert.False(indexer.GetMethod.IsImplicitlyDeclared);
+            Assert.True(indexer.IsExpressionBodied);
+            Assert.True(indexer.IsIndexer);
+
+            Assert.Equal(1, indexer.ParameterCount);
+            var i = indexer.Parameters[0];
+            Assert.Equal(SpecialType.System_Int32, i.Type.SpecialType);
+            Assert.Equal("i", i.Name);
         }
 
         [Fact]

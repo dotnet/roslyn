@@ -2506,7 +2506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 return this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                             }
                             goto default;
-                            
+
                         default:
                             // treat anything else as a method.
                             return this.ParseMethodDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
@@ -2756,6 +2756,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return syntaxFactory.DestructorDeclaration(attributes, modifiers.ToTokenList(), tilde, name, parameterList, body, semicolon);
         }
 
+        /// <summary>
+        /// Parses any block or expression bodies that are present. Also parses
+        /// the trailing semicolon if one is present.
+        /// </summary>
+        /// <remarks>
+        /// The language version must be experimental to parse expression bodies.
+        /// </remarks>
+        private void ParseBlockAndExpressionBodiesWithSemicolon(
+            out BlockSyntax blockBody,
+            out ArrowExpressionClauseSyntax expressionBody,
+            out SyntaxToken semicolon)
+        {
+            // Check for 'forward' declarations with no block of any kind
+            if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+            {
+                blockBody = null;
+                expressionBody = null;
+                semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+                return;
+            }
+
+            blockBody = null;
+            expressionBody = null;
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+            {
+                blockBody = this.ParseBlock(isMethodBody: true);
+            }
+
+            if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
+                && this.Options.LanguageVersion == LanguageVersion.Experimental)
+            {
+                expressionBody = this.ParseArrowExpressionClause();
+            }
+
+            semicolon = null;
+            // Expression-bodies need semicolons and native behavior
+            // expects a semicolon if there is no body
+            if (expressionBody != null || blockBody == null)
+            {
+                semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+            }
+            // Check for bad semicolon after block body
+            else if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+            {
+                semicolon = this.EatTokenWithPrejudice(ErrorCode.ERR_UnexpectedSemicolon);
+            }
+        }
+
+        private T CheckForBlockAndExpressionBody<T>(
+            CSharpSyntaxNode block,
+            CSharpSyntaxNode expression,
+            T syntax)
+            where T : CSharpSyntaxNode
+        {
+            if (block != null && expression != null)
+            {
+                ErrorCode code;
+                if (syntax is BaseMethodDeclarationSyntax)
+                {
+                    code = ErrorCode.ERR_BlockBodyAndExpressionBody;
+                }
+                else
+                {
+                    Debug.Assert(syntax is BasePropertyDeclarationSyntax);
+                    code = ErrorCode.ERR_AccessorListAndExpressionBody;
+                }
+                return AddError(syntax, code);
+            }
+            return syntax;
+        }
+
         private void ParseBodyOrSemicolon(out BlockSyntax body, out SyntaxToken semicolon)
         {
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
@@ -2877,7 +2949,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 this.termState = saveTerm;
 
-                BlockSyntax body;
+                BlockSyntax blockBody;
+                ArrowExpressionClauseSyntax expressionBody;
                 SyntaxToken semicolon;
 
                 // Method declarations cannot be nested or placed inside async lambdas, and so cannot occur in an
@@ -2887,11 +2960,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 IsInAsync = modifiers.Any(SyntaxKind.AsyncKeyword);
 
-                this.ParseBodyOrSemicolon(out body, out semicolon);
+                this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
 
                 IsInAsync = false;
 
-                return syntaxFactory.MethodDeclaration(
+                var decl = syntaxFactory.MethodDeclaration(
                     attributes,
                     modifiers.ToTokenList(),
                     type,
@@ -2900,8 +2973,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     typeParameterList,
                     paramList,
                     constraints,
-                    body,
+                    blockBody,
+                    expressionBody,
                     semicolon);
+
+                return CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
             }
             finally
             {
@@ -2956,11 +3032,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 paramList = this.AddErrorToFirstToken(paramList, ErrorCode.ERR_OvlUnaryOperatorExpected);
             }
 
-            BlockSyntax body;
+            BlockSyntax blockBody;
+            ArrowExpressionClauseSyntax expressionBody;
             SyntaxToken semicolon;
-            this.ParseBodyOrSemicolon(out body, out semicolon);
+            this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
 
-            return syntaxFactory.ConversionOperatorDeclaration(attributes, modifiers.ToTokenList(), style, opKeyword, type, paramList, body, semicolon);
+            var decl = syntaxFactory.ConversionOperatorDeclaration(
+                attributes,
+                modifiers.ToTokenList(),
+                style,
+                opKeyword,
+                type,
+                paramList,
+                blockBody,
+                expressionBody,
+                semicolon);
+
+            return CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
         }
 
         private OperatorDeclarationSyntax ParseOperatorDeclaration(
@@ -3069,9 +3157,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
             }
 
-            BlockSyntax body;
+            BlockSyntax blockBody;
+            ArrowExpressionClauseSyntax expressionBody;
             SyntaxToken semicolon;
-            this.ParseBodyOrSemicolon(out body, out semicolon);
+            this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
 
             //if the operator is invalid, then switch it to plus (which will work either way) so that
             //we can finish building the tree
@@ -3080,7 +3169,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 opToken = ConvertToMissingWithTrailingTrivia(opToken, SyntaxKind.PlusToken);
             }
 
-            return syntaxFactory.OperatorDeclaration(attributes, modifiers.ToTokenList(), type, opKeyword, opToken, paramList, body, semicolon);
+            var decl = syntaxFactory.OperatorDeclaration(
+                attributes,
+                modifiers.ToTokenList(),
+                type,
+                opKeyword,
+                opToken,
+                paramList,
+                blockBody,
+                expressionBody,
+                semicolon);
+
+            return CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
         }
 
         private MemberDeclarationSyntax ParseIndexerDeclaration(
@@ -3107,7 +3207,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 parameterList = this.AddErrorToLastToken(parameterList, ErrorCode.ERR_IndexerNeedsParam);
             }
 
-            var accessorList = this.ParseAccessorList(isEvent: false);
+            AccessorListSyntax accessorList = null;
+            ArrowExpressionClauseSyntax expressionBody = null;
+            SyntaxToken semicolon = null;
+            // Try to parse accessor list unless there is an expression
+            // body and no accessor list
+            if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
+                && this.Options.LanguageVersion == LanguageVersion.Experimental)
+            {
+                expressionBody = this.ParseArrowExpressionClause();
+                semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+            }
+            else
+            {
+                accessorList = this.ParseAccessorList(isEvent: false);
+                if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                {
+                    semicolon = this.EatTokenWithPrejudice(ErrorCode.ERR_UnexpectedSemicolon);
+                }
+            }
+
+            // If the user has erroneously provided both an accessor list
+            // and an expression body, but no semicolon, we want to parse
+            // the expression body and report the error (which is done later)
+            if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
+                && this.Options.LanguageVersion == LanguageVersion.Experimental
+                && semicolon == null)
+            {
+                expressionBody = this.ParseArrowExpressionClause();
+                semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+            }
 
             var decl = syntaxFactory.IndexerDeclaration(
                 attributes,
@@ -3116,11 +3245,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 explicitInterfaceOpt,
                 thisKeyword,
                 parameterList,
-                accessorList);
+                accessorList,
+                expressionBody,
+                semicolon);
 
-            decl = EatUnexpectedTrailingSemicolon(decl);
-
-            return decl;
+            return CheckForBlockAndExpressionBody(accessorList, expressionBody, decl);
         }
 
         private PropertyDeclarationSyntax ParsePropertyDeclaration(
@@ -3156,7 +3285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Check for expression body
                 if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
                 {
-                    expressionBody = this.ParseArrowValueClause();
+                    expressionBody = this.ParseArrowExpressionClause();
                 }
                 // Check if we have an initializer
                 else if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
@@ -3173,6 +3302,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
+            else if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+            {
+                semicolon = this.EatTokenWithPrejudice(ErrorCode.ERR_UnexpectedSemicolon);
+            }
 
             var decl = syntaxFactory.PropertyDeclaration(
                 attributes,
@@ -3185,14 +3318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 initializer,
                 semicolon);
 
-            // If no initializer or expression body is specified there
-            // should be no semicolon
-            if (expressionBody == null && initializer == null)
-            {
-                decl = this.EatUnexpectedTrailingSemicolon(decl);
-            }
-
-            return decl;
+            return CheckForBlockAndExpressionBody(accessorList, expressionBody, decl);
         }
 
         private AccessorListSyntax ParseAccessorList(bool isEvent)
@@ -3239,7 +3365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return syntaxFactory.AccessorList(openBrace, accessors, closeBrace);
         }
 
-        private ArrowExpressionClauseSyntax ParseArrowValueClause()
+        private ArrowExpressionClauseSyntax ParseArrowExpressionClause()
         {
             var arrowToken = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
             return syntaxFactory.ArrowExpressionClause(arrowToken, this.ParseExpression());
@@ -3990,107 +4116,107 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var flags = ParamFlags.None;
 
             while (IsParameterModifier(this.CurrentToken.Kind, allowThisKeyword))
-            {
-                var mod = this.EatToken();
-
-                if (mod.Kind == SyntaxKind.ThisKeyword ||
-                    mod.Kind == SyntaxKind.RefKeyword ||
-                    mod.Kind == SyntaxKind.OutKeyword ||
-                    mod.Kind == SyntaxKind.ParamsKeyword)
                 {
-                    if (mod.Kind == SyntaxKind.ThisKeyword)
-                    {
-                        mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureExtensionMethod);
+                    var mod = this.EatToken();
 
-                        if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
-                        }
-                        else if ((flags & ParamFlags.Out) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadOutWithThis);
-                        }
-                        else if ((flags & ParamFlags.Ref) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadRefWithThis);
-                        }
-                        else if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.This;
-                        }
-                    }
-                    else if (mod.Kind == SyntaxKind.RefKeyword)
+                    if (mod.Kind == SyntaxKind.ThisKeyword ||
+                        mod.Kind == SyntaxKind.RefKeyword ||
+                        mod.Kind == SyntaxKind.OutKeyword ||
+                        mod.Kind == SyntaxKind.ParamsKeyword)
                     {
-                        if ((flags & ParamFlags.Ref) != 0)
+                        if (mod.Kind == SyntaxKind.ThisKeyword)
                         {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.RefKeyword));
-                        }
-                        else if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadRefWithThis);
-                        }
-                        else if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeRefOut);
-                        }
-                        else if ((flags & ParamFlags.Out) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.Ref;
-                        }
-                    }
-                    else if (mod.Kind == SyntaxKind.OutKeyword)
-                    {
-                        if ((flags & ParamFlags.Out) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.OutKeyword));
-                        }
-                        else if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadOutWithThis);
-                        }
-                        else if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeRefOut);
-                        }
-                        else if ((flags & ParamFlags.Ref) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.Out;
-                        }
-                    }
-                    else if (mod.Kind == SyntaxKind.ParamsKeyword)
-                    {
-                        if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword));
-                        }
-                        else if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
-                        }
-                        else if ((flags & (ParamFlags.Ref | ParamFlags.Out | ParamFlags.This)) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.Params;
-                        }
-                    }
-                }
+                            mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureExtensionMethod);
 
-                modifiers.Add(mod);
+                            if ((flags & ParamFlags.This) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                            }
+                            else if ((flags & ParamFlags.Out) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadOutWithThis);
+                            }
+                            else if ((flags & ParamFlags.Ref) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadRefWithThis);
+                            }
+                            else if ((flags & ParamFlags.Params) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
+                            }
+                            else
+                            {
+                                flags |= ParamFlags.This;
+                            }
+                        }
+                        else if (mod.Kind == SyntaxKind.RefKeyword)
+                        {
+                            if ((flags & ParamFlags.Ref) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                            }
+                            else if ((flags & ParamFlags.This) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadRefWithThis);
+                            }
+                            else if ((flags & ParamFlags.Params) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeRefOut);
+                            }
+                            else if ((flags & ParamFlags.Out) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
+                            }
+                            else
+                            {
+                                flags |= ParamFlags.Ref;
+                            }
+                        }
+                        else if (mod.Kind == SyntaxKind.OutKeyword)
+                        {
+                            if ((flags & ParamFlags.Out) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                            }
+                            else if ((flags & ParamFlags.This) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadOutWithThis);
+                            }
+                            else if ((flags & ParamFlags.Params) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeRefOut);
+                            }
+                            else if ((flags & ParamFlags.Ref) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
+                            }
+                            else
+                            {
+                                flags |= ParamFlags.Out;
+                            }
+                        }
+                        else if (mod.Kind == SyntaxKind.ParamsKeyword)
+                        {
+                            if ((flags & ParamFlags.Params) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword));
+                            }
+                            else if ((flags & ParamFlags.This) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
+                            }
+                            else if ((flags & (ParamFlags.Ref | ParamFlags.Out | ParamFlags.This)) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
+                            }
+                            else
+                            {
+                                flags |= ParamFlags.Params;
+                            }
+                        }
+                    }
+
+                    modifiers.Add(mod);
             }
         }
 
@@ -7688,12 +7814,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (Options.LanguageVersion != LanguageVersion.Experimental)
             {
-            bool condition1 = st == ScanTypeFlags.MustBeType && this.CurrentToken.Kind != SyntaxKind.DotToken;
-            bool condition2 = st != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
-            bool condition3 = st == ScanTypeFlags.NonGenericTypeOrExpression || this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
+                bool condition1 = st == ScanTypeFlags.MustBeType && this.CurrentToken.Kind != SyntaxKind.DotToken;
+                bool condition2 = st != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
+                bool condition3 = st == ScanTypeFlags.NonGenericTypeOrExpression || this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
 
-            return condition1 || (condition2 && condition3);
-        }
+                return condition1 || (condition2 && condition3);
+            }
 
             SyntaxKind nextTokenKind;
 
@@ -8234,7 +8360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private ExpressionSyntax ParseTerm(uint precedence, bool contextRequiresVariable)
-            {
+        {
             ExpressionSyntax expr = null;
 
             var tk = this.CurrentToken.Kind;

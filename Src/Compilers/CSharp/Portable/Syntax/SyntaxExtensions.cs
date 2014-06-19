@@ -16,6 +16,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal const string DefaultIndentation = "    ";
 
         /// <summary>
+        /// Gets the expression-body syntax from an expression-bodied member. The
+        /// given syntax must be for an expression-bodied member.
+        /// </summary>
+        internal static ArrowExpressionClauseSyntax GetExpressionBodySyntax(this CSharpSyntaxNode node)
+        {
+            ArrowExpressionClauseSyntax arrowExpr = null;
+            switch (node.Kind)
+            {
+                // The ArrowExpressionClause is the declaring syntax for the
+                // 'get' SourcePropertyAccessorSymbol of properties and indexers.
+                case SyntaxKind.ArrowExpressionClause:
+                    arrowExpr = (ArrowExpressionClauseSyntax)node;
+                    break;
+                case SyntaxKind.MethodDeclaration:
+                    arrowExpr = ((MethodDeclarationSyntax)node).ExpressionBody;
+                    break;
+                case SyntaxKind.OperatorDeclaration:
+                    arrowExpr = ((OperatorDeclarationSyntax)node).ExpressionBody;
+                    break;
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    arrowExpr = ((ConversionOperatorDeclarationSyntax)node).ExpressionBody;
+                    break;
+                case SyntaxKind.PropertyDeclaration:
+                    arrowExpr = ((PropertyDeclarationSyntax)node).ExpressionBody;
+                    break;
+                case SyntaxKind.IndexerDeclaration:
+                    arrowExpr = ((IndexerDeclarationSyntax)node).ExpressionBody;
+                    break;
+                default:
+                    // Don't throw, just use for the assert in case this is used in the semantic model
+                    ExceptionUtilities.UnexpectedValue(node.Kind);
+                    break;
+            }
+            return arrowExpr;
+        }
+
+        /// <summary>
         /// Creates a new syntax token with all whitespace and end of line trivia replaced with
         /// regularly formatted trivia.
         /// </summary>
@@ -156,6 +193,78 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return node.Parent != null && IsInContextWhichNeedsDynamicAttribute(node.Parent);
             }
+        }
+
+        public static IndexerDeclarationSyntax Update(
+            this IndexerDeclarationSyntax syntax,
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax type,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            SyntaxToken thisKeyword,
+            BracketedParameterListSyntax parameterList,
+            AccessorListSyntax accessorList)
+        {
+            return syntax.Update(
+                attributeLists,
+                modifiers,
+                type,
+                explicitInterfaceSpecifier,
+                thisKeyword,
+                parameterList,
+                accessorList,
+                default(ArrowExpressionClauseSyntax),
+                default(SyntaxToken));
+        }
+
+        public static OperatorDeclarationSyntax Update(
+            this OperatorDeclarationSyntax syntax,
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            SyntaxToken operatorKeyword,
+            SyntaxToken operatorToken,
+            ParameterListSyntax parameterList,
+            BlockSyntax block,
+            SyntaxToken semicolonToken)
+        {
+            return syntax.Update(
+                attributeLists,
+                modifiers,
+                returnType,
+                operatorKeyword,
+                operatorToken,
+                parameterList,
+                block,
+                default(ArrowExpressionClauseSyntax),
+                semicolonToken);
+        }
+
+        public static MethodDeclarationSyntax Update(
+            this MethodDeclarationSyntax syntax,
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            SyntaxToken identifier,
+            TypeParameterListSyntax typeParameterList,
+            ParameterListSyntax parameterList,
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            BlockSyntax block,
+            SyntaxToken semicolonToken)
+        {
+            return syntax.Update(
+                attributeLists,
+                modifiers,
+                returnType,
+                explicitInterfaceSpecifier,
+                identifier,
+                typeParameterList,
+                parameterList,
+                constraintClauses,
+                block,
+                default(ArrowExpressionClauseSyntax),
+                semicolonToken);
         }
     }
 }

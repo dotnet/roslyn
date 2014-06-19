@@ -31,13 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.factory.CurrentMethod is LambdaSymbol)
+                var method = this.factory.CurrentMethod;
+                if (method is LambdaSymbol)
                 {
                     return true;
                 }
-                var property = this.factory.CurrentMethod as SourcePropertyAccessorSymbol;
-                return property != null
-                    && property.HasExpressionBody;
+                var sourceMethod = method as SourceMethodSymbol;
+                return sourceMethod != null
+                    && sourceMethod.IsExpressionBodied;
             }
         }
     }

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 NodeUsage usage;
-                if (LookupPosition.IsInBlock(position, methodDecl.Body))
+                if (LookupPosition.IsInBody(position, methodDecl))
                 {
                     usage = NodeUsage.MethodBody;
                 }
@@ -323,8 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCore(parent.Parent);
                 }
 
-                bool inBody = LookupPosition.IsInBlock(position, parent.Body);
-                var extraInfo = inBody ? NodeUsage.AccessorBody : NodeUsage.Normal;  // extra info for the cache.
+                bool inBlock = LookupPosition.IsInBlock(position, parent.Body);
+                var extraInfo = inBlock ? NodeUsage.AccessorBody : NodeUsage.Normal;  // extra info for the cache.
                 var key = CreateBinderCacheKey(parent, extraInfo);
 
                 Binder resultBinder;
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     resultBinder = VisitCore(parent.Parent);
 
-                    if (inBody)
+                    if (inBlock)
                     {
                         var propertyOrEventDecl = parent.Parent.Parent;
                         MethodSymbol accessor = null;
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCore(parent.Parent);
                 }
 
-                bool inBody = LookupPosition.IsInBlock(position, parent.Body);
+                bool inBody = LookupPosition.IsInBody(position, parent);
                 var extraInfo = inBody ? NodeUsage.OperatorBody : NodeUsage.Normal;  // extra info for the cache.
                 var key = CreateBinderCacheKey(parent, extraInfo);
 

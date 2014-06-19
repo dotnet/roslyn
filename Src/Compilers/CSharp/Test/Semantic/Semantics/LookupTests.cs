@@ -133,6 +133,92 @@ class C(int i)
             Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
         }
 
+        [Fact]
+        public void LookupExpressionBodiedMethod01()
+        {
+            var text = @"
+class C
+{
+    public int M() => /*<bind>*/10/*</bind>*/;
+}";
+            var actual = GetExperimentalLookupNames(text).ListToSortedString();
+
+            var expected_lookupNames = new List<string>
+            {
+                "C",
+                "Equals",
+                "Finalize",
+                "GetHashCode",
+                "GetType",
+                "MemberwiseClone",
+                "Microsoft",
+                "M",
+                "ReferenceEquals",
+                "System",
+                "ToString"
+            };
+
+            Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
+        }
+
+        [Fact]
+        public void LookupExpressionBodiedMethod02()
+        {
+            var text = @"
+class C(int i)
+{
+    public int M() => /*<bind>*/10/*</bind>*/;
+}";
+            var actual = GetExperimentalLookupNames(text).ListToSortedString();
+
+            var expected_lookupNames = new List<string>
+            {
+                "C",
+                "Equals",
+                "Finalize",
+                "GetHashCode",
+                "GetType",
+                "MemberwiseClone",
+                "Microsoft",
+                "M",
+                "ReferenceEquals",
+                "System",
+                "ToString"
+            };
+
+            Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
+        }
+
+        [Fact]
+        public void LookupExpressionBodiedMethod03()
+        {
+            var text = @"
+class C(int i)
+{
+    public int f = 1;
+    public int M(int f) => /*<bind>*/f/*</bind>*/);
+}";
+            var actual = GetExperimentalLookupNames(text).ListToSortedString();
+
+            var expected_lookupNames = new List<string>
+            {
+                "C",
+                "Equals",
+                "f",
+                "Finalize",
+                "GetHashCode",
+                "GetType",
+                "MemberwiseClone",
+                "Microsoft",
+                "M",
+                "ReferenceEquals",
+                "System",
+                "ToString"
+            };
+
+            Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
+        }
+ 
         [WorkItem(538262, "DevDiv")]
         [Fact]
         public void LookupCompilationUnitSyntax()

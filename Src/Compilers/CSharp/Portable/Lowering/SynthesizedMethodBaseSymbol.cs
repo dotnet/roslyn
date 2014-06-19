@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -129,6 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsImplicitlyDeclared
         {
             get { return true; }
+        }
+
+        internal override bool IsExpressionBodied
+        {
+            get { return false; }
         }
     }
 }

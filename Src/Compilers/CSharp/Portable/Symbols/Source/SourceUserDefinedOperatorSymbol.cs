@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
 
             return new SourceUserDefinedOperatorSymbol(
-                containingType, name, location, syntax, diagnostics);
+                containingType, name, location, syntax, diagnostics,
+                syntax.Body == null && syntax.ExpressionBody != null);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
@@ -28,16 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             OperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics) :
+            DiagnosticBag diagnostics,
+            bool isExpressionBodied) :
             base(
                 MethodKind.UserDefinedOperator,
                 name,
                 containingType,
                 location,
                 syntax.GetReference(),
-                syntax.Body.GetReferenceOrNull(),
+                syntax.Body.GetReferenceOrNull()
+                ?? syntax.ExpressionBody.GetReferenceOrNull(),
                 syntax.Modifiers,
-                diagnostics)
+                diagnostics,
+                isExpressionBodied)
         {
         }
 

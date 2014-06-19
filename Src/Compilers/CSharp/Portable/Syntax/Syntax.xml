@@ -2763,6 +2763,7 @@
       </PropertyComment>
     </Field>
     <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <PropertyComment>
         <summary>Gets the optional semicolon token.</summary>
@@ -2818,6 +2819,7 @@
     </Field>
     <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
     <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="SemicolonToken"/>
     </Field>
@@ -2850,6 +2852,7 @@
     </Field>
     <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
     <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <PropertyComment>
         <summary>Gets the optional semicolon token.</summary>
@@ -3015,7 +3018,11 @@
         <summary>Gets the parameter list.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="AccessorList" Type="AccessorListSyntax" Override="true"/>
+    <Field Name="AccessorList" Type="AccessorListSyntax" Override="true" Optional="true"/>
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true"/>
+    <Field Name="Semicolon" Type="SyntaxToken" Optional="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
   </Node>
   <Node Name="AccessorListSyntax" Base="CSharpSyntaxNode">
     <Kind Name="AccessorList"/>

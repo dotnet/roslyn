@@ -193,6 +193,7 @@
     <Compile Include="Symbols\Source\DelegateTests.cs" />
     <Compile Include="Symbols\Source\EnumTests.cs" />
     <Compile Include="Symbols\Source\EventTests.cs" />
+    <Compile Include="Symbols\Source\ExpressionBodiedMethodTests.cs" />
     <Compile Include="Symbols\Source\ExternAliasTests.cs" />
     <Compile Include="Symbols\Source\FieldTests.cs" />
     <Compile Include="Symbols\Source\IndexedTypeParameterTests.cs" />

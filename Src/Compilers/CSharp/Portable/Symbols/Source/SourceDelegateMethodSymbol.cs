@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DelegateDeclarationSyntax syntax,
             MethodKind methodKind,
             DeclarationModifiers declarationModifiers)
-            : base(delegateType, syntax.GetReference(), blockSyntaxReference: null, location: syntax.Identifier.GetLocation())
+            : base(delegateType, syntax.GetReference(), bodySyntaxReference: null, location: syntax.Identifier.GetLocation())
         {
             this.returnType = returnType;
             this.flags = MakeFlags(methodKind, declarationModifiers, this.returnType.SpecialType == SpecialType.System_Void, isExtensionMethod: false);
@@ -146,6 +147,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
+        }
+
+        internal override bool IsExpressionBodied
+        {
+            get { return false; }
         }
 
         internal override bool GenerateDebugInfo

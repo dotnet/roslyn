@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckModifiers(MethodKind methodKind, Location location, DiagnosticBag diagnostics)
         {
-            if (blockSyntaxReference == null && !IsExtern && !IsPrimaryCtor)
+            if (bodySyntaxReference == null && !IsExtern && !IsPrimaryCtor)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -288,6 +289,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return base.AttributeOwner;
             }
+        }
+
+        internal override bool IsExpressionBodied
+        {
+            get { return false; }
         }
     }
 }

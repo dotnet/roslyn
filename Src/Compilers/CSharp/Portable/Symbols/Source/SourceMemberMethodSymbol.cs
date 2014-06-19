@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> typeParameters;
         private readonly TypeSymbol explicitInterfaceType;
         private readonly string name;
+        private readonly bool isExpressionBodied;
 
         private ImmutableArray<MethodSymbol> lazyExplicitInterfaceImplementations;
         private ImmutableArray<CustomModifier> lazyReturnTypeCustomModifiers;
@@ -77,7 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodDeclarationSyntax syntax,
             MethodKind methodKind,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body.GetReferenceOrNull(), location)
+            base(containingType,
+                 syntax.GetReference(),
+                 // Prefer a block body if both exist
+                 syntax.Body.GetReferenceOrNull()
+                 ?? syntax.ExpressionBody.GetReferenceOrNull(),
+                 location)
         {
             this.name = name;
             this.explicitInterfaceType = explicitInterfaceType;
@@ -121,23 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.typeParameters = MakeTypeParameters(syntax, diagnostics);
             }
 
-            var bodyOpt = syntax.Body;
-            if (bodyOpt != null)
+            bool hasBlockBody = syntax.Body != null;
+            this.isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+
+            if (hasBlockBody || this.isExpressionBodied)
             {
-                if (containingType.IsInterface)
-                {
-                    diagnostics.Add(ErrorCode.ERR_InterfaceMemberHasBody, location, this);
-                }
-                else if (IsExtern && !IsAbstract)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
-                }
-                else if (IsAbstract && !IsExtern)
-                {
-                    diagnostics.Add(ErrorCode.ERR_AbstractHasBody, location, this);
-                }
-                // Do not report error for IsAbstract && IsExtern. Dev10 reports CS0180 only
-                // in that case ("member cannot be both extern and abstract").
+                CheckModifiersForBody(location, diagnostics);
             }
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
@@ -609,7 +605,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && this.BlockSyntax == null;
+                return this.IsPartial
+                    && this.BlockSyntax == null
+                    && !this.IsExpressionBodied;
             }
         }
 
@@ -620,7 +618,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && this.BlockSyntax != null;
+                return this.IsPartial
+                    && this.BlockSyntax != null
+                    && !this.IsExpressionBodied;
             }
         }
 
@@ -746,6 +746,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return default(SyntaxList<AttributeListSyntax>);
             }
+        }
+
+        internal override bool IsExpressionBodied
+        {
+            get { return this.isExpressionBodied; }
         }
 
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
@@ -931,11 +936,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed class '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (blockSyntaxReference == null && IsAsync)
+            else if (bodySyntaxReference == null && IsAsync)
             {
                 diagnostics.Add(ErrorCode.ERR_BadAsyncLacksBody, location);
             }
-            else if (blockSyntaxReference == null && !IsExtern && !IsAbstract && !IsPartial)
+            else if (bodySyntaxReference == null && !IsExtern && !IsAbstract && !IsPartial && !IsExpressionBodied)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
