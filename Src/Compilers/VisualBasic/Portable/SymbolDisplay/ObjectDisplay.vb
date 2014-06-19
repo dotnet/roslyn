@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
         Friend Function FormatLiteral(value As SByte, useHexadecimalNumbers As Boolean) As String
             If useHexadecimalNumbers Then
-                Return "&H" & If(value >= 0, value.ToString("X2"), CType(value, Integer).ToString("X8"))
+                Return "&H" & If(value >= 0, value.ToString("X2"), CInt(value).ToString("X8"))
             Else
                 Return value.ToString(CultureInfo.InvariantCulture)
             End If
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
         Friend Function FormatLiteral(value As Short, useHexadecimalNumbers As Boolean) As String
             If useHexadecimalNumbers Then
-                Return "&H" & If(value >= 0, value.ToString("X4"), CType(value, Integer).ToString("X8"))
+                Return "&H" & If(value >= 0, value.ToString("X4"), CInt(value).ToString("X8"))
             Else
                 Return value.ToString(CultureInfo.InvariantCulture)
             End If
