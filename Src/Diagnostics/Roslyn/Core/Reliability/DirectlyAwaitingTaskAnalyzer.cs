@@ -19,7 +19,7 @@ namespace Roslyn.Diagnostics.Analyzers
             get { return ImmutableArray.Create(DirectlyAwaitingTaskAnalyzerRule.Rule); }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             if (compilation.AssemblyName.Contains("FxCopAnalyzer") ||
                 compilation.AssemblyName.Contains("FxCopDiagnosticFixers"))
@@ -59,12 +59,12 @@ namespace Roslyn.Diagnostics.Analyzers
                 get { return ImmutableArray.Create(DirectlyAwaitingTaskAnalyzerRule.Rule); }
             }
 
-            public ICodeBlockEndedAnalyzer OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public ICodeBlockEndedAnalyzer OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 return new SyntaxNodeAnalyzer(analyzer, taskTypes);
             }
 
-            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
             }
         }
@@ -96,7 +96,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 var expression = analyzer.GetAwaitedExpression(node);
                 var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
@@ -107,7 +107,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            public void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
             }
         }
