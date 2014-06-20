@@ -30,8 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Try
 
             Dim pdbName = FileNameUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb")
-
-
             Dim diagnostics = DiagnosticBag.GetInstance()
             Dim runtimeMDVersion = compilation.GetRuntimeMetadataVersion()
             Dim serializationProperties = compilation.ConstructModuleSerializationProperties(runtimeMDVersion, moduleVersionId)

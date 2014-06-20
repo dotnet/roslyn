@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             var pdbName = FileNameUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb");
-
-
             var diagnostics = DiagnosticBag.GetInstance();
             string runtimeMDVersion = compilation.GetRuntimeMetadataVersion(diagnostics);
             var serializationProperties = compilation.ConstructModuleSerializationProperties(runtimeMDVersion, moduleVersionId);

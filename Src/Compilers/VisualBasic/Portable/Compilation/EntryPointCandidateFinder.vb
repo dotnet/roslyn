@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 For Each member In symbol.GetMembersUnordered()
-                    ' process all members that are not methods as usual                     
+                    ' process all members that are not methods as usual
                     If member.Kind = SymbolKind.NamedType Then
                         If Me._visitNestedTypes Then
                             member.Accept(Me, filter)
