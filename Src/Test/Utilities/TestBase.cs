@@ -931,7 +931,7 @@ namespace Roslyn.Test.Utilities
 
                     if (string.IsNullOrEmpty(foundCompiler))
                     {
-                        foundCompiler = "csc.exe";
+                        foundCompiler = "rcsc.exe";
                     }
                     csharpCompilerExecutable = foundCompiler;
                 }
@@ -974,7 +974,7 @@ namespace Roslyn.Test.Utilities
 
                     if (string.IsNullOrEmpty(foundCompiler))
                     {
-                        foundCompiler = "vbc.exe";
+                        foundCompiler = "rvbc.exe";
                     }
                     basicCompilerExecutable = foundCompiler;
                 }

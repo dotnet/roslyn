@@ -88,8 +88,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         // kill it after each test.
         private void KillCompilerServer()
         {
-            string path = Path.Combine(BinariesDirectory, CompilerServerExecutable);
-            KillProcess(path);
+            KillProcess(CompilerServerExecutable);
         }
 
         private ProcessResult RunCommandLineCompiler(string compilerPath, string arguments, string currentDirectory, Dictionary<string, string> additionalEnvironmentVars = null)
