@@ -44,34 +44,40 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         protected abstract void OnInterfaceMember(SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName]string callerName = null);
+        protected virtual void OnOptions(AnalyzerOptions options, [CallerMemberName]string callerName=null) { }
 
         #region Implementation
 
-        ICodeBlockEndedAnalyzer ICodeBlockStartedAnalyzer.OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        ICodeBlockEndedAnalyzer ICodeBlockStartedAnalyzer.OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember(codeBlock, ownerSymbol);
+            OnOptions(options);
             return this;
         }
 
-        void ICodeBlockEndedAnalyzer.OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        void ICodeBlockEndedAnalyzer.OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember(codeBlock, ownerSymbol);
+            OnOptions(options);
         }
 
-        ICompilationEndedAnalyzer ICompilationStartedAnalyzer.OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        ICompilationEndedAnalyzer ICompilationStartedAnalyzer.OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember();
+            OnOptions(options);
             return this;
         }
 
-        void ICompilationEndedAnalyzer.OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        void ICompilationEndedAnalyzer.OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember();
+            OnOptions(options);
         }
 
-        void ISemanticModelAnalyzer.AnalyzeSemanticModel(SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        void ISemanticModelAnalyzer.AnalyzeSemanticModel(SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember();
+            OnOptions(options);
         }
 
         ImmutableArray<DiagnosticDescriptor> IDiagnosticAnalyzer.SupportedDiagnostics
@@ -92,14 +98,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        void ISymbolAnalyzer.AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        void ISymbolAnalyzer.AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember(symbol: symbol);
+            OnOptions(options);
         }
 
-        void ISyntaxTreeAnalyzer.AnalyzeSyntaxTree(SyntaxTree tree, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        void ISyntaxTreeAnalyzer.AnalyzeSyntaxTree(SyntaxTree tree, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember();
+            OnOptions(options);
         }
 
         ImmutableArray<TSyntaxKind> ISyntaxNodeAnalyzer<TSyntaxKind>.SyntaxKindsOfInterest
@@ -111,9 +119,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        void ISyntaxNodeAnalyzer<TSyntaxKind>.AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        void ISyntaxNodeAnalyzer<TSyntaxKind>.AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember(node);
+            OnOptions(options);
         }
 
         #endregion

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
         
         protected abstract AbstractAnalyzer GetAnalyzer(INamedTypeSymbol disposableType);
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var disposableType = compilation.GetSpecialType(SpecialType.System_IDisposable);
             return disposableType != null ? GetAnalyzer(disposableType) : null;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 }
             }
 
-            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 foreach (var item in this.fieldDisposedMap)
                 {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 }
             }
 
-            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 Debug.Assert(symbol.Kind == SymbolKind.Field);
                 var fieldSymbol = (IFieldSymbol)symbol;

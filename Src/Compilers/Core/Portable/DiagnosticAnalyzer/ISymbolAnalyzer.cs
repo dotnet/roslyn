@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbol">The declared symbol</param>
         /// <param name="compilation">The compilation in which the symbol is declared</param>
         /// <param name="addDiagnostic">A delegate to be used to emit diagnostics</param>
+        /// <param name="options">A set of options passed in from the host.</param>
         /// <param name="cancellationToken">A token for cancelling the computation</param>
-        void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken);
+        void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken);
     }
 }

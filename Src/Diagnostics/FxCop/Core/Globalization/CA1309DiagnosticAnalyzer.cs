@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
             }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var stringComparisonType = compilation.GetTypeByMetadataName(StringComparisonTypeName);
             return stringComparisonType != null ? GetAnalyzer(stringComparisonType) : null;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
                 }
             }
 
-            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
             }
 

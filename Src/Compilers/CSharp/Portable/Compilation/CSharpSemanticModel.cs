@@ -4676,10 +4676,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TextSpan span,
             ImmutableArray<IDiagnosticAnalyzer> analyzers,
             Action<Diagnostic> addDiagnostic,
+            AnalyzerOptions options,
             bool continueOnError,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            AnalyzerDriver.RunAnalyzersCore(this, span, analyzers, n => n.CSharpKind(), addDiagnostic, continueOnError, cancellationToken);
+            AnalyzerDriver.RunAnalyzersCore(this, span, analyzers, n => n.CSharpKind(), addDiagnostic, options, continueOnError, cancellationToken);
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupSymbolsCore(int position, INamespaceOrTypeSymbol container, string name, bool includeReducedExtensionMethods)

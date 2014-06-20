@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
             }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var globalNamespaces = compilation.GlobalNamespace.GetNamespaceMembers()
                 .Where(item => item.ContainingAssembly == compilation.Assembly);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
             return null;
         }
         
-        public override void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public override void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             // Do not descent into non-publicly visible types
             // Note: This is the behavior of FxCop, it might be more correct to descend into internal but not private

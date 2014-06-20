@@ -27,8 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
                 End Get
             End Property
 
-            Private Sub BasicAnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-                AnalyzeNode(node, semanticModel, addDiagnostic, cancellationToken)
+            Private Sub BasicAnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
+                AnalyzeNode(node, semanticModel, addDiagnostic, options, cancellationToken)
             End Sub
 
             Protected Overrides Function GetDiagnosticLocation(node As SyntaxNode) As Location

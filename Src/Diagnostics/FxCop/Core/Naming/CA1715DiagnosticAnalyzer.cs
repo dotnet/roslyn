@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
             }
         }
 
-        public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             switch (symbol.Kind)
             {

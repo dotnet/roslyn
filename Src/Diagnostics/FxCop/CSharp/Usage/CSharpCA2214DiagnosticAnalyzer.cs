@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
                 }
             }
 
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 // TODO: For this to be correct, we need flow analysis to determine if a given method
                 // is actually invoked inside the current constructor. A method may be assigned to a

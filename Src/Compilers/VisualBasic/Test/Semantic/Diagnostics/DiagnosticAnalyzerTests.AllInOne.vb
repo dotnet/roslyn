@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -41,7 +42,21 @@ End Enum
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
-                Function(analyzer) AnalyzerDriver.GetDiagnostics(compilation, {analyzer}, CancellationToken.None), GetType(AnalyzerDriver).Name)
+                Function(analyzer) AnalyzerDriver.GetDiagnostics(compilation, {analyzer}, Nothing, CancellationToken.None), GetType(AnalyzerDriver).Name)
+        End Sub
+
+        <Fact>
+        Public Sub AnalyzerOptionsArePassedToAllAnalyzers()
+
+            Dim options = New AnalyzerOptions({New AdditionalFileStream("myfilepath")},
+                                              New Dictionary(Of String, String) From {{"optionName", "optionValue"}})
+
+            Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
+            Dim analyzer = New OptionsDiagnosticAnalyzer(Of SyntaxKind)(options)
+            AnalyzerDriver.GetDiagnostics(compilation, {analyzer}, options, CancellationToken.None)
+            analyzer.VerifyAnalyzerOptions()
+
+            ' TODO: Repeat with AnalyzerDriver3
         End Sub
     End Class
 End Namespace

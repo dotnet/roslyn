@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="tree">A tree of the compilation</param>
         /// <param name="addDiagnostic">A delegate to be used to emit diagnostics</param>
+        /// <param name="options">A set of options passed in by the host.</param>
         /// <param name="cancellationToken">A token for cancelling the computation</param>
-        void AnalyzeSyntaxTree(SyntaxTree tree, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken);
+        void AnalyzeSyntaxTree(SyntaxTree tree, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken);
     }
 }

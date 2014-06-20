@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
             }
         }
 
-        public override void AnalyzeSymbol(INamedTypeSymbol namedType, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public override void AnalyzeSymbol(INamedTypeSymbol namedType, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             if (namedType.IsAbstract || namedType.IsSealed || !namedType.IsAttribute())
             {

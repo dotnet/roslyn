@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get { return kindsOfInterest; } }
 
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 var id = (IdentifierNameSyntax)node;
                 if (id.Identifier.ValueText.StartsWith("x"))
@@ -392,7 +392,7 @@ public class C : NotFound
                 }
             }
 
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 switch (node.CSharpKind())
                 {
@@ -413,7 +413,7 @@ public class C : NotFound
                 }
             }
 
-            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 var diag1 = CodeAnalysis.Diagnostic.Create(descriptor, symbol.Locations[0], "NamedType");
                 addDiagnostic(diag1);

@@ -383,7 +383,8 @@ namespace Microsoft.CodeAnalysis
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var analyzerDiagnostics = AnalyzerDriver.GetDiagnostics(compilation, analyzers, default(CancellationToken));
+                var analyzerOptions = new AnalyzerOptions(Arguments.AdditionalStreams, Arguments.AdditionalOptions);
+                var analyzerDiagnostics = AnalyzerDriver.GetDiagnostics(compilation, analyzers, analyzerOptions, default(CancellationToken));
                 if (PrintErrors(analyzerDiagnostics, consoleOutput))
                 {
                     return Failed;

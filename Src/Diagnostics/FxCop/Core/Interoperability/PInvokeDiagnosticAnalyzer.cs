@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
             }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var dllImportType = compilation.GetTypeByMetadataName("System.Runtime.InteropServices.DllImportAttribute");
             if (dllImportType == null)
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                 }
             }
 
-            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 var methodSymbol = (IMethodSymbol)symbol;
                 if (methodSymbol == null)
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                 }
             }
 
-            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
             }
 

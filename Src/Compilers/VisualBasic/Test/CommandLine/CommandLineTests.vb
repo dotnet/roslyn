@@ -5960,8 +5960,8 @@ MustInherit Class MockAbstractDiagnosticAnalyzer
     Implements ICompilationStartedAnalyzer, ICompilationEndedAnalyzer
 
     Public MustOverride ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
-    Public MustOverride Function OnCompilationStarted(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) As ICompilationEndedAnalyzer Implements ICompilationStartedAnalyzer.OnCompilationStarted
-    Public MustOverride Sub OnCompilationEnded(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) Implements ICompilationEndedAnalyzer.OnCompilationEnded
+    Public MustOverride Function OnCompilationStarted(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) As ICompilationEndedAnalyzer Implements ICompilationStartedAnalyzer.OnCompilationStarted
+    Public MustOverride Sub OnCompilationEnded(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ICompilationEndedAnalyzer.OnCompilationEnded
 End Class
 
 <DiagnosticAnalyzer>
@@ -5972,11 +5972,11 @@ Class MockDiagnosticAnalyzer
     Friend Shared Test01 As DiagnosticDescriptor = New DiagnosticDescriptor("Test01", "", "Throwing a test1 diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
     Friend Shared Test03 As DiagnosticDescriptor = New DiagnosticDescriptor("Test03", "", "Throwing a test3 diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
-    Public Overrides Function OnCompilationStarted(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) As ICompilationEndedAnalyzer
+    Public Overrides Function OnCompilationStarted(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) As ICompilationEndedAnalyzer
         Return Nothing
     End Function
 
-    Public Overrides Sub OnCompilationEnded(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken)
+    Public Overrides Sub OnCompilationEnded(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken)
     End Sub
 
     Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -5991,7 +5991,7 @@ Class MockDiagnosticAnalyzer
         End Get
     End Property
 
-    Public Sub AnalyzeSymbol(symbol As ISymbol, compilation As Compilation, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) Implements ISymbolAnalyzer.AnalyzeSymbol
+    Public Sub AnalyzeSymbol(symbol As ISymbol, compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISymbolAnalyzer.AnalyzeSymbol
         addDiagnostic(Diagnostic.Create(Test01, symbol.Locations.First()))
         addDiagnostic(Diagnostic.Create(Test03, symbol.Locations.First()))
     End Sub

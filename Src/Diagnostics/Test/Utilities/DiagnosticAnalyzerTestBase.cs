@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ICompilationEndedAnalyzer compilationEndedAnalyzer = null;
                 if (compilationStartedAnalyzer != null)
                 {
-                    compilationEndedAnalyzer = compilationStartedAnalyzer.OnCompilationStarted(compilation, diagnostics.Add, default(CancellationToken));
+                    compilationEndedAnalyzer = compilationStartedAnalyzer.OnCompilationStarted(compilation, diagnostics.Add, null, default(CancellationToken));
                 }
 
                 for (int i = 0; i < documents.Length; i++)
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 if (compilationEndedAnalyzer != null)
                 {
-                    compilationEndedAnalyzer.OnCompilationEnded(compilation, diagnostics.Add, default(CancellationToken));
+                    compilationEndedAnalyzer.OnCompilationEnded(compilation, diagnostics.Add, null, default(CancellationToken));
                 }
             }
 
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             TextSpan spanToTest = span.HasValue ? span.Value : document.GetSyntaxRootAsync().Result.FullSpan;
             var semanticModel = document.GetSemanticModelAsync().Result;
-            AnalyzerDriver.RunAnalyzers(semanticModel, spanToTest, ImmutableArray.Create(analyzer), addDiagnostic, continueOnError: continueOnError);
+            AnalyzerDriver.RunAnalyzers(semanticModel, spanToTest, ImmutableArray.Create(analyzer), addDiagnostic, null, continueOnError: continueOnError);
         }
 
         protected static Diagnostic[] GetSortedDiagnostics(IEnumerable<Diagnostic> diagnostics)

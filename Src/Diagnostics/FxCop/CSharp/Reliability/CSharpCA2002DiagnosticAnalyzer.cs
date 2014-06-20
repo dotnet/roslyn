@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Reliability
             }
         }
 
-        public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var lockStatement = (LockStatementSyntax)node;
             GetDiagnosticsForNode(lockStatement.Expression, semanticModel, addDiagnostic);

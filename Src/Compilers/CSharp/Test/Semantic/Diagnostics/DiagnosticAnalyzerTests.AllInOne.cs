@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -86,7 +88,27 @@ public class C
         {
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer => 
-                AnalyzerDriver.GetDiagnostics(compilation, new[] { analyzer }, CancellationToken.None), typeof(AnalyzerDriver).Name);
+                AnalyzerDriver.GetDiagnostics(compilation, new[] { analyzer }, null, CancellationToken.None), typeof(AnalyzerDriver).Name);
+        }
+
+        [Fact]
+        public void AnalyzerOptionsArePassedToAllAnalyzers()
+        {
+            AnalyzerOptions options = new AnalyzerOptions
+            (
+                new[] { new AdditionalFileStream("myfilepath") },
+                new Dictionary<string, string> { { "optionName", "optionValue" } }
+            );
+
+            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
+            AnalyzerDriver.GetDiagnostics(compilation, new[] { analyzer }, options, CancellationToken.None);
+            analyzer.VerifyAnalyzerOptions();
+
+            // Repeat with AnalyzerDriver3
+            analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
+            CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyAnalyzerDiagnostics3<Compilation, SyntaxKind>(n=> n.CSharpKind(), options, new[] { analyzer });
+            analyzer.VerifyAnalyzerOptions();
         }
     }
 }

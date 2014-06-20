@@ -91,6 +91,7 @@
   <ItemGroup>
     <Compile Include="CSReflectionBasedKindProvider.cs" />
     <Compile Include="Diagnostics\DiagnosticsHelper.cs" />
+    <Compile Include="Diagnostics\OptionsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\TestDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\ThrowingDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\TrackingDiagnosticAnalyzer.cs" />

@@ -42,7 +42,7 @@ namespace Roslyn.Diagnostics.Analyzers
             get { return ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule); }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var specializedCollectionsSymbol = compilation.GetTypeByMetadataName(SpecializedCollectionsMetadataName);
             if (specializedCollectionsSymbol == null)
@@ -97,7 +97,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             protected abstract AbstractSyntaxAnalyzer GetSyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol);
 
-            public ICodeBlockEndedAnalyzer OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public ICodeBlockEndedAnalyzer OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 var methodSymbol = ownerSymbol as IMethodSymbol;
                 if (methodSymbol != null &&
@@ -109,7 +109,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 return null;
             }
 
-            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
             }
         }
@@ -130,7 +130,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 get { return ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule); }
             }
 
-            public void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
             }
 

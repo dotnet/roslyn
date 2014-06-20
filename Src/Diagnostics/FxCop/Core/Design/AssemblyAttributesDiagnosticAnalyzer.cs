@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var assemblyVersionAttributeSymbol = WellKnownTypes.AssemblyVersionAttribute(compilation);
             var assemblyComplianceAttributeSymbol = WellKnownTypes.CLSCompliantAttribute(compilation);

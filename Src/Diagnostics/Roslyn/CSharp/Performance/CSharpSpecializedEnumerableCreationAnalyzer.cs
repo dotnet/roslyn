@@ -44,7 +44,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
                 get { return ImmutableArray.Create(SyntaxKind.ReturnStatement); }
             }
 
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 var expressionsToAnalyze = node.DescendantNodes().Where(n => ShouldAnalyzeExpression(n, semanticModel));
 

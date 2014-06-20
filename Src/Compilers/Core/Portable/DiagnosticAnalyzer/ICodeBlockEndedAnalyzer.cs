@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="ownerSymbol">The method or field</param>
         /// <param name="semanticModel">A SemanticModel for the compilation unit</param>
         /// <param name="addDiagnostic">A delegate to be used to emit diagnostics</param>
+        /// <param name="options">A set of options passed in from the host.</param>
         /// <param name="cancellationToken">A token for cancelling the computation</param>
-        void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken);
+        void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken);
     }
 }

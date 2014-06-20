@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="node">A node of a kind of interest</param>
         /// <param name="semanticModel">A SemanticModel for the compilation unit</param>
         /// <param name="addDiagnostic">A delegate to be used to emit diagnostics</param>
+        /// <param name="options">A set of options passed in from the host.</param>
         /// <param name="cancellationToken">A token for cancelling the computation</param>
-        void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken);
+        void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken);
     }
 }

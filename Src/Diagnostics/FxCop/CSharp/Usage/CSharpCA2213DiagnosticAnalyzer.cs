@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
                 }
             }
 
-            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 if (node.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression)
                 {

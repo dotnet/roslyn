@@ -94,15 +94,15 @@ namespace Microsoft.CodeAnalysis
 
         public static CSharpCompilation VerifyAnalyzerDiagnostics3(this CSharpCompilation c, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
         {
-            return VerifyAnalyzerDiagnostics3(c, n => n.CSharpKind(), analyzers, expected);
+            return VerifyAnalyzerDiagnostics3(c, n => n.CSharpKind(), null, analyzers, expected);
         }
 
         public static TCompilation VerifyAnalyzerDiagnostics3<TCompilation, TSyntaxKind>(
-                this TCompilation c, Func<SyntaxNode, TSyntaxKind> getKind, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
+                this TCompilation c, Func<SyntaxNode, TSyntaxKind> getKind, AnalyzerOptions options, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
             where TSyntaxKind : struct
         {
-            var driver = new AnalyzerDriver3<TSyntaxKind>(analyzers, getKind, default(CancellationToken));
+            var driver = new AnalyzerDriver3<TSyntaxKind>(analyzers, getKind, options, default(CancellationToken));
             c = (TCompilation)c.WithEventQueue(driver.CompilationEventQueue);
             var discarded = c.GetDiagnostics();
             driver.DiagnosticsAsync().Result.Verify(expected);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(this TCompilation c, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            AnalyzerDriver.GetDiagnostics(c, analyzers, default(CancellationToken)).Verify(expected);
+            AnalyzerDriver.GetDiagnostics(c, analyzers, null, default(CancellationToken)).Verify(expected);
             return c;
         }
 

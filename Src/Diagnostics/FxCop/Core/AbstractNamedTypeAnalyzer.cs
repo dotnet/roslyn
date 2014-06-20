@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
 
         public abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
-        public abstract void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken);
+        public abstract void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken);
 
-        void ISymbolAnalyzer.AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        void ISymbolAnalyzer.AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            AnalyzeSymbol((INamedTypeSymbol)symbol, compilation, addDiagnostic, cancellationToken);
+            AnalyzeSymbol((INamedTypeSymbol)symbol, compilation, addDiagnostic, options, cancellationToken);
         }
     }
 }
