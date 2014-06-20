@@ -178,7 +178,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             AddKeyword(SyntaxKind.CompareKeyword, 0, 0, 0, 0)
             AddKeyword(SyntaxKind.CustomKeyword, 0, 0, 0, 0)
             AddKeyword(SyntaxKind.DescendingKeyword, 0, 0, 0, 1)
+            AddKeyword(SyntaxKind.DisableKeyword, 0, 0, 0, 0)
             AddKeyword(SyntaxKind.DistinctKeyword, 0, 0, 1, 1)
+            AddKeyword(SyntaxKind.EnableKeyword, 0, 0, 0, 0)
             AddKeyword(SyntaxKind.EqualsKeyword, 0, 0, 0, 1)
             AddKeyword(SyntaxKind.ExplicitKeyword, 0, 0, 0, 0)
             AddKeyword(SyntaxKind.ExternalSourceKeyword, 0, 0, 0, 0)
@@ -203,6 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             AddKeyword(SyntaxKind.TakeKeyword, 0, 0, 1, 1)
             AddKeyword(SyntaxKind.UnicodeKeyword, 0, 0, 0, 0)
             AddKeyword(SyntaxKind.UntilKeyword, 0, 0, 0, 0)
+            AddKeyword(SyntaxKind.WarningKeyword, 0, 0, 0, 0)
             AddKeyword(SyntaxKind.WhereKeyword, 0, 0, 1, 1)
 
             ' Visual Basic 11.0 keywords

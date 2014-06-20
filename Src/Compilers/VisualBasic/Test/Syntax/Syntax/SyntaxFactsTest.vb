@@ -115,7 +115,7 @@ Public Class SyntaxFactsTests
         Assert.Equal(SyntaxKind.None, SyntaxFacts.GetContextualKeywordKind(String.Empty))
         Assert.Equal(SyntaxKind.None, SyntaxFacts.GetBaseTypeStatementKind(SyntaxKind.ForKeyword))
 
-        Dim expected = New String() {"aggregate", "all", "ansi", "ascending", "assembly", "async", "auto", "await", "binary", "by", "compare", "custom", "descending", "distinct", "equals", "explicit", "externalsource", "externalchecksum", "from", "group", "infer", "into", "isfalse", "istrue", "iterator", "join", "key", "mid", "off", "order", "out", "preserve", "region", "skip", "strict", "take", "text", "unicode", "until", "where", "type", "xml", "yield"}
+        Dim expected = New String() {"aggregate", "all", "ansi", "ascending", "assembly", "async", "auto", "await", "binary", "by", "compare", "custom", "descending", "distinct", "equals", "explicit", "externalsource", "externalchecksum", "from", "group", "infer", "into", "isfalse", "istrue", "iterator", "join", "key", "mid", "off", "order", "out", "preserve", "region", "skip", "strict", "take", "text", "unicode", "until", "where", "type", "xml", "yield", "enable", "disable", "warning"}
         For Each item In expected
             Assert.NotEqual(SyntaxKind.None, SyntaxFacts.GetContextualKeywordKind(item))
         Next
@@ -150,20 +150,23 @@ Public Class SyntaxFactsTests
     <Fact>
     Public Sub GetPreprocessorKeywordKind()
         Dim item As String
-        For Each item In New String() {"if", "elseif", "else", "endif", "region", "end", "const", "externalsource", "externalchecksum"}
+        For Each item In New String() {"if", "elseif", "else", "endif", "region", "end", "const", "externalsource", "externalchecksum", "enable", "disable"}
             Assert.NotEqual(SyntaxKind.None, SyntaxFacts.GetPreprocessorKeywordKind(item))
         Next
         Assert.Equal(SyntaxKind.ExternalSourceKeyword, SyntaxFacts.GetPreprocessorKeywordKind("externalsource"))
         Assert.Equal(SyntaxKind.EndKeyword, SyntaxFacts.GetPreprocessorKeywordKind("end"))
+        Assert.Equal(SyntaxKind.DisableKeyword, SyntaxFacts.GetPreprocessorKeywordKind("disable"))
+        Assert.Equal(SyntaxKind.EnableKeyword, SyntaxFacts.GetPreprocessorKeywordKind("enable"))
         Assert.Equal(SyntaxKind.None, SyntaxFacts.GetPreprocessorKeywordKind(String.Empty))
         Assert.Equal(SyntaxKind.None, SyntaxFacts.GetPreprocessorKeywordKind("d"))
-        Assert.Equal(Of Integer)(9, Enumerable.Count(Of SyntaxKind)(SyntaxFacts.GetPreprocessorKeywordKinds))
     End Sub
 
     <Fact>
     Public Sub GetPreprocessorKeywordKinds()
-        Assert.NotEqual(Of Integer)(0, Enumerable.Count(Of SyntaxKind)(SyntaxFacts.GetPreprocessorKeywordKinds))
         Assert.Contains(Of SyntaxKind)(SyntaxKind.RegionKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
+        Assert.Contains(Of SyntaxKind)(SyntaxKind.EnableKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
+        Assert.Contains(Of SyntaxKind)(SyntaxKind.WarningKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
+        Assert.Contains(Of SyntaxKind)(SyntaxKind.DisableKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
         Assert.DoesNotContain(Of SyntaxKind)(SyntaxKind.PublicKeyword, SyntaxFacts.GetPreprocessorKeywordKinds)
     End Sub
 
@@ -845,6 +848,8 @@ End Namespace
     <Fact>
     Public Sub IsPreProcessorKeyword()
         Assert.True(SyntaxFacts.IsPreprocessorKeyword(SyntaxKind.ExternalSourceKeyword))
+        Assert.True(SyntaxFacts.IsPreprocessorKeyword(SyntaxKind.EnableKeyword))
+        Assert.True(SyntaxFacts.IsPreprocessorKeyword(SyntaxKind.DisableKeyword))
         Assert.True(SyntaxFacts.IsPreprocessorKeyword(SyntaxKind.IfKeyword))
         Assert.False(SyntaxFacts.IsPreprocessorKeyword(SyntaxKind.FromKeyword))
     End Sub

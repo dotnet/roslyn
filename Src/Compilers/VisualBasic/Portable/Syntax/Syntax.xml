@@ -8317,10 +8317,18 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="DescendingKeyword" />
         <native-equiv name="" />
       </node-kind>
+	    <node-kind name="DisableKeyword" token-text="Disable">
+		    <lm-equiv name="DisableKeyword" />
+		    <native-equiv name="" />
+	    </node-kind>
       <node-kind name="DistinctKeyword" token-text="Distinct">
         <lm-equiv name="DistinctKeyword" />
         <native-equiv name="" />
       </node-kind>
+	    <node-kind name="EnableKeyword" token-text="Enable">
+		    <lm-equiv name="EnableKeyword" />
+		    <native-equiv name="" />
+	    </node-kind>
       <node-kind name="EqualsKeyword" token-text="Equals">
         <lm-equiv name="EqualsKeyword" />
         <native-equiv name="" />
@@ -8417,6 +8425,10 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="UntilKeyword" />
         <native-equiv name="" />
       </node-kind>
+  	  <node-kind name="WarningKeyword" token-text="Warning">
+	    	<lm-equiv name="WarningKeyword" />
+		    <native-equiv name="" />
+	    </node-kind>
       <node-kind name="WhereKeyword" token-text="Where">
         <lm-equiv name="WhereKeyword" />
         <native-equiv name="" />
@@ -9205,6 +9217,22 @@ Unify Enum declarations with other block type declarations.
       <child name="Checksum" kind="StringLiteralToken"></child>
       <child name="CloseParenToken" kind="CloseParenToken"></child>
     </node-structure>
+	
+	  <node-structure name="EnableWarningDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
+	    <descrption>Represents #Enable Warning pre-processing directive appearing in source.</descrption>
+	    <node-kind name="EnableWarningDirectiveTrivia"></node-kind>
+        <child name="EnableKeyword" kind="EnableKeyword"></child>
+	    <child name="WarningKeyword" kind="WarningKeyword"></child>
+	    <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@ExpressionSyntax"/>
+	  </node-structure>
+	  
+	  <node-structure name="DisableWarningDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
+	    <descrption>Represents #Disable Warning pre-processing directive appearing in source.</descrption>
+	    <node-kind name="DisableWarningDirectiveTrivia"></node-kind>
+        <child name="DisableKeyword" kind="DisableKeyword"></child>
+	    <child name="WarningKeyword" kind="WarningKeyword"></child>
+	    <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@ExpressionSyntax"/>
+	  </node-structure>
 
     <node-structure name="ReferenceDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
       <description>Represents an #r directive appearing in scripts.</description>

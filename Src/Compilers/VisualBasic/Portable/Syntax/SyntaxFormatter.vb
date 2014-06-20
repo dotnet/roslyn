@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             Try
                 Dim newToken As SyntaxToken
-                If useDefaultCasing AndAlso IsKeyword(token) Then
+                If useDefaultCasing AndAlso token.IsKeyword() Then
                     newToken = SyntaxFactory.Token(token.VisualBasicKind)
                 Else
                     newToken = token
@@ -365,6 +365,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     SyntaxKind.ExternalSourceDirectiveTrivia,
                     SyntaxKind.EndExternalSourceDirectiveTrivia,
                     SyntaxKind.ExternalChecksumDirectiveTrivia,
+                    SyntaxKind.EnableWarningDirectiveTrivia,
+                    SyntaxKind.DisableWarningDirectiveTrivia,
                     SyntaxKind.ReferenceDirectiveTrivia,
                     SyntaxKind.BadDirectiveTrivia
 
@@ -623,10 +625,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 OrElse ch = "\u0085" _
                 OrElse ch = "\u2028" _
                 OrElse ch = "\u2029"
-        End Function
-
-        Private Function IsKeyword(token As SyntaxToken) As Boolean
-            Return token.IsReservedKeyword() OrElse SyntaxFacts.IsPreprocessorDirective(token.VisualBasicKind)
         End Function
 
         Private Overloads Function VisitStructuredTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
@@ -1157,6 +1155,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             AddLinebreaksAfterTokenIfNeeded(node.GetLastToken(), 1)
 
             Return MyBase.VisitExternalChecksumDirectiveTrivia(node)
+        End Function
+
+        Public Overrides Function VisitEnableWarningDirectiveTrivia(node As EnableWarningDirectiveTriviaSyntax) As SyntaxNode
+            AddLinebreaksAfterTokenIfNeeded(node.GetLastToken(), 1)
+
+            Return MyBase.VisitEnableWarningDirectiveTrivia(node)
+        End Function
+
+        Public Overrides Function VisitDisableWarningDirectiveTrivia(node As DisableWarningDirectiveTriviaSyntax) As SyntaxNode
+            AddLinebreaksAfterTokenIfNeeded(node.GetLastToken(), 1)
+
+            Return MyBase.VisitDisableWarningDirectiveTrivia(node)
         End Function
 
         Public Overrides Function VisitReferenceDirectiveTrivia(node As ReferenceDirectiveTriviaSyntax) As SyntaxNode

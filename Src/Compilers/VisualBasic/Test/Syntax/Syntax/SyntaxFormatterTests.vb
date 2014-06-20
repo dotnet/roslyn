@@ -155,139 +155,139 @@ end module
 
         <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestAssignmentStatements()
-            TestFormatBlock("module m1" + vbCrLf + _
-                            "sub s1()" + vbCrLf + _
-                            "Dim x as Integer()" + vbCrLf + _
-                            "x(2)=23" + vbCrLf + _
-                            "Dim s as string=""boo""&""ya""" + vbCrLf + _
-                            "end sub" + vbCrLf + _
+            TestFormatBlock("module m1" + vbCrLf +
+                            "sub s1()" + vbCrLf +
+                            "Dim x as Integer()" + vbCrLf +
+                            "x(2)=23" + vbCrLf +
+                            "Dim s as string=""boo""&""ya""" + vbCrLf +
+                            "end sub" + vbCrLf +
                             "end module", _
  _
-                            "module m1" + vbCrLf + vbCrLf + _
-                            "  sub s1()" + vbCrLf + _
-                            "    Dim x as Integer()" + vbCrLf + _
-                            "    x(2) = 23" + vbCrLf + _
-                            "    Dim s as string = ""boo"" & ""ya""" + vbCrLf + _
-                            "  end sub" + vbCrLf + _
+                            "module m1" + vbCrLf + vbCrLf +
+                            "  sub s1()" + vbCrLf +
+                            "    Dim x as Integer()" + vbCrLf +
+                            "    x(2) = 23" + vbCrLf +
+                            "    Dim s as string = ""boo"" & ""ya""" + vbCrLf +
+                            "  end sub" + vbCrLf +
                             "end module" + vbCrLf)
 
-            TestFormatBlock("module m1" + vbCrLf + vbCrLf + _
-                            "sub s1()" + vbCrLf + _
-                            "Dim x as Integer" + vbCrLf + _
-                            "x^=23" + vbCrLf + _
-                            "x*=23" + vbCrLf + _
-                            "x/=23" + vbCrLf + _
-                            "x\=23" + vbCrLf + _
-                            "x+=23" + vbCrLf + _
-                            "x-=23" + vbCrLf + _
-                            "x<<=23" + vbCrLf + _
-                            "x>>=23" + vbCrLf + _
-                            "Dim y as string" + vbCrLf + _
-                            "y &=""a""" + vbCrLf + _
-                            "end sub" + vbCrLf + _
+            TestFormatBlock("module m1" + vbCrLf + vbCrLf +
+                            "sub s1()" + vbCrLf +
+                            "Dim x as Integer" + vbCrLf +
+                            "x^=23" + vbCrLf +
+                            "x*=23" + vbCrLf +
+                            "x/=23" + vbCrLf +
+                            "x\=23" + vbCrLf +
+                            "x+=23" + vbCrLf +
+                            "x-=23" + vbCrLf +
+                            "x<<=23" + vbCrLf +
+                            "x>>=23" + vbCrLf +
+                            "Dim y as string" + vbCrLf +
+                            "y &=""a""" + vbCrLf +
+                            "end sub" + vbCrLf +
                             "end module", _
  _
-                            "module m1" + vbCrLf + vbCrLf + _
-                            "  sub s1()" + vbCrLf + _
-                            "    Dim x as Integer" + vbCrLf + _
-                            "    x ^= 23" + vbCrLf + _
-                            "    x *= 23" + vbCrLf + _
-                            "    x /= 23" + vbCrLf + _
-                            "    x \= 23" + vbCrLf + _
-                            "    x += 23" + vbCrLf + _
-                            "    x -= 23" + vbCrLf + _
-                            "    x <<= 23" + vbCrLf + _
-                            "    x >>= 23" + vbCrLf + _
-                            "    Dim y as string" + vbCrLf + _
-                            "    y &= ""a""" + vbCrLf + _
-                            "  end sub" + vbCrLf + _
+                            "module m1" + vbCrLf + vbCrLf +
+                            "  sub s1()" + vbCrLf +
+                            "    Dim x as Integer" + vbCrLf +
+                            "    x ^= 23" + vbCrLf +
+                            "    x *= 23" + vbCrLf +
+                            "    x /= 23" + vbCrLf +
+                            "    x \= 23" + vbCrLf +
+                            "    x += 23" + vbCrLf +
+                            "    x -= 23" + vbCrLf +
+                            "    x <<= 23" + vbCrLf +
+                            "    x >>= 23" + vbCrLf +
+                            "    Dim y as string" + vbCrLf +
+                            "    y &= ""a""" + vbCrLf +
+                            "  end sub" + vbCrLf +
                             "end module" + vbCrLf)
 
-            TestFormatBlock("module m1" + vbCrLf + _
-                            "sub s1()" + vbCrLf + _
-                            "Dim s1 As String=""a""" + vbCrLf + _
-                            "Dim s2 As String=""b""" + vbCrLf + _
-                            "Mid$(s1,3,3)=s2" + vbCrLf + _
-                            "end sub" + vbCrLf + _
+            TestFormatBlock("module m1" + vbCrLf +
+                            "sub s1()" + vbCrLf +
+                            "Dim s1 As String=""a""" + vbCrLf +
+                            "Dim s2 As String=""b""" + vbCrLf +
+                            "Mid$(s1,3,3)=s2" + vbCrLf +
+                            "end sub" + vbCrLf +
                             "end module", _
  _
-                            "module m1" + vbCrLf + vbCrLf + _
-                            "  sub s1()" + vbCrLf + _
-                            "    Dim s1 As String = ""a""" + vbCrLf + _
-                            "    Dim s2 As String = ""b""" + vbCrLf + _
-                            "    Mid$(s1, 3, 3) = s2" + vbCrLf + _
-                            "  end sub" + vbCrLf + _
+                            "module m1" + vbCrLf + vbCrLf +
+                            "  sub s1()" + vbCrLf +
+                            "    Dim s1 As String = ""a""" + vbCrLf +
+                            "    Dim s2 As String = ""b""" + vbCrLf +
+                            "    Mid$(s1, 3, 3) = s2" + vbCrLf +
+                            "  end sub" + vbCrLf +
                             "end module" + vbCrLf)
         End Sub
 
         <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestCallStatements()
-            TestFormatBlock("module m1" + vbCrLf + _
-                            "sub s2()" + vbCrLf + _
-                            "s1 ( 23 )" + vbCrLf + _
-                            "s1 ( p1:=23 , p2:=23)" + vbCrLf + _
-                            "end sub" + vbCrLf + _
+            TestFormatBlock("module m1" + vbCrLf +
+                            "sub s2()" + vbCrLf +
+                            "s1 ( 23 )" + vbCrLf +
+                            "s1 ( p1:=23 , p2:=23)" + vbCrLf +
+                            "end sub" + vbCrLf +
                             "end module", _
  _
-                            "module m1" + vbCrLf + vbCrLf + _
-                            "  sub s2()" + vbCrLf + _
-                            "    s1(23)" + vbCrLf + _
-                            "    s1(p1:=23, p2:=23)" + vbCrLf + _
-                            "  end sub" + vbCrLf + _
+                            "module m1" + vbCrLf + vbCrLf +
+                            "  sub s2()" + vbCrLf +
+                            "    s1(23)" + vbCrLf +
+                            "    s1(p1:=23, p2:=23)" + vbCrLf +
+                            "  end sub" + vbCrLf +
                             "end module" + vbCrLf)
 
-            TestFormatBlock("module m1" + vbCrLf + vbCrLf + _
-                            "sub s2 ( Of   T ) (   optional x As T=nothing  )" + vbCrLf + _
-                            "N1.M2.S2 ( ) " + vbCrLf + _
-                            "end sub" + vbCrLf + _
+            TestFormatBlock("module m1" + vbCrLf + vbCrLf +
+                            "sub s2 ( Of   T ) (   optional x As T=nothing  )" + vbCrLf +
+                            "N1.M2.S2 ( ) " + vbCrLf +
+                            "end sub" + vbCrLf +
                             "end module", _
  _
-                            "module m1" + vbCrLf + vbCrLf + _
-                            "  sub s2(Of T)(optional x As T = nothing)" + vbCrLf + _
-                            "    N1.M2.S2()" + vbCrLf + _
-                            "  end sub" + vbCrLf + _
+                            "module m1" + vbCrLf + vbCrLf +
+                            "  sub s2(Of T)(optional x As T = nothing)" + vbCrLf +
+                            "    N1.M2.S2()" + vbCrLf +
+                            "  end sub" + vbCrLf +
                             "end module" + vbCrLf)
         End Sub
 
         <Fact()>
         Public Sub TestNewStatements()
-            TestFormatBlock("Dim zipState=New With {   Key .ZipCode=98112, .State=""WA""   }", _
+            TestFormatBlock("Dim zipState=New With {   Key .ZipCode=98112, .State=""WA""   }",
                             "Dim zipState = New With {Key .ZipCode = 98112, .State = ""WA""}" + vbCrLf)
         End Sub
 
         <Fact(), WorkItem(546397, "DevDiv"), WorkItem(546514, "DevDiv")>
         Public Sub TestXmlAccessStatements()
-            TestFormatBlock("Imports <xmlns:db=""http://example.org/database"">" + vbCrLf + _
-                            "Module Test" + vbCrLf + _
-                            "Sub Main ( )" + vbCrLf + _
-                            "Dim x=<db:customer><db:Name>Bob</db:Name></db:customer>" + vbCrLf + _
-                            "Console . WriteLine ( x .<   db:Name  > )" + vbCrLf + _
-                            "End Sub" + vbCrLf + _
+            TestFormatBlock("Imports <xmlns:db=""http://example.org/database"">" + vbCrLf +
+                            "Module Test" + vbCrLf +
+                            "Sub Main ( )" + vbCrLf +
+                            "Dim x=<db:customer><db:Name>Bob</db:Name></db:customer>" + vbCrLf +
+                            "Console . WriteLine ( x .<   db:Name  > )" + vbCrLf +
+                            "End Sub" + vbCrLf +
                             "End Module",
  _
-                            "Imports <xmlns:db=""http://example.org/database"">" + vbCrLf + _
-                            "" + vbCrLf + _
-                            "Module Test" + vbCrLf + vbCrLf + _
-                            "  Sub Main()" + vbCrLf + _
-                            "    Dim x = <db:customer><db:Name>Bob</db:Name></db:customer>" + vbCrLf + _
-                            "    Console.WriteLine(x.<db:Name>)" + vbCrLf + _
-                            "  End Sub" + vbCrLf + _
+                            "Imports <xmlns:db=""http://example.org/database"">" + vbCrLf +
+                            "" + vbCrLf +
+                            "Module Test" + vbCrLf + vbCrLf +
+                            "  Sub Main()" + vbCrLf +
+                            "    Dim x = <db:customer><db:Name>Bob</db:Name></db:customer>" + vbCrLf +
+                            "    Console.WriteLine(x.<db:Name>)" + vbCrLf +
+                            "  End Sub" + vbCrLf +
                             "End Module" + vbCrLf)
         End Sub
 
         <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestNamespaceStatements()
-            TestFormatBlock("Imports I1.I2" + vbCrLf + _
-                            "Namespace N1" + vbCrLf + _
-                            "Namespace N2.N3" + vbCrLf + _
-                            "end Namespace" + vbCrLf + _
+            TestFormatBlock("Imports I1.I2" + vbCrLf +
+                            "Namespace N1" + vbCrLf +
+                            "Namespace N2.N3" + vbCrLf +
+                            "end Namespace" + vbCrLf +
                             "end Namespace", _
  _
-                            "Imports I1.I2" + vbCrLf + _
-                            "" + vbCrLf + _
-                            "Namespace N1" + vbCrLf + _
-                            "  Namespace N2.N3" + vbCrLf + _
-                            "  end Namespace" + vbCrLf + _
+                            "Imports I1.I2" + vbCrLf +
+                            "" + vbCrLf +
+                            "Namespace N1" + vbCrLf +
+                            "  Namespace N2.N3" + vbCrLf +
+                            "  end Namespace" + vbCrLf +
                             "end Namespace" + vbCrLf)
         End Sub
 
@@ -308,154 +308,154 @@ end module
 
         <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestInterfaceStatements()
-            TestFormatBlock("namespace N1" + vbCrLf + _
-                            "Interface I1" + vbCrLf + _
-                            "public Function F1() As Object" + vbCrLf + _
-                            "End Interface" + vbCrLf + _
-                            "Interface I2" + vbCrLf + _
-                            "Function F2() As Integer" + vbCrLf + _
-                            "End Interface" + vbCrLf + _
-                            "Structure S1" + vbCrLf + _
-                            "Implements I1,I2" + vbCrLf + _
-                            "public Function F1() As Object" + vbCrLf + _
-                            "Dim x as Integer=23" + vbCrLf + _
-                            "return x" + vbCrLf + _
-                            "end function" + vbCrLf + _
-                            "End Structure" + vbCrLf + _
+            TestFormatBlock("namespace N1" + vbCrLf +
+                            "Interface I1" + vbCrLf +
+                            "public Function F1() As Object" + vbCrLf +
+                            "End Interface" + vbCrLf +
+                            "Interface I2" + vbCrLf +
+                            "Function F2() As Integer" + vbCrLf +
+                            "End Interface" + vbCrLf +
+                            "Structure S1" + vbCrLf +
+                            "Implements I1,I2" + vbCrLf +
+                            "public Function F1() As Object" + vbCrLf +
+                            "Dim x as Integer=23" + vbCrLf +
+                            "return x" + vbCrLf +
+                            "end function" + vbCrLf +
+                            "End Structure" + vbCrLf +
                             "End Namespace", _
  _
-                            "namespace N1" + vbCrLf + vbCrLf + _
-                            "  Interface I1" + vbCrLf + vbCrLf + _
-                            "    public Function F1() As Object" + vbCrLf + vbCrLf + _
-                            "  End Interface" + vbCrLf + vbCrLf + _
-                            "  Interface I2" + vbCrLf + vbCrLf + _
-                            "    Function F2() As Integer" + vbCrLf + vbCrLf + _
-                            "  End Interface" + vbCrLf + vbCrLf + _
-                            "  Structure S1" + vbCrLf + _
-                            "    Implements I1, I2" + vbCrLf + vbCrLf + _
-                            "    public Function F1() As Object" + vbCrLf + _
-                            "      Dim x as Integer = 23" + vbCrLf + _
-                            "      return x" + vbCrLf + _
-                            "    end function" + vbCrLf + _
-                            "  End Structure" + vbCrLf + _
+                            "namespace N1" + vbCrLf + vbCrLf +
+                            "  Interface I1" + vbCrLf + vbCrLf +
+                            "    public Function F1() As Object" + vbCrLf + vbCrLf +
+                            "  End Interface" + vbCrLf + vbCrLf +
+                            "  Interface I2" + vbCrLf + vbCrLf +
+                            "    Function F2() As Integer" + vbCrLf + vbCrLf +
+                            "  End Interface" + vbCrLf + vbCrLf +
+                            "  Structure S1" + vbCrLf +
+                            "    Implements I1, I2" + vbCrLf + vbCrLf +
+                            "    public Function F1() As Object" + vbCrLf +
+                            "      Dim x as Integer = 23" + vbCrLf +
+                            "      return x" + vbCrLf +
+                            "    end function" + vbCrLf +
+                            "  End Structure" + vbCrLf +
                             "End Namespace" + vbCrLf)
         End Sub
 
         <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestEnumStatements()
-            TestFormatBlock("Module M1" + vbCrLf + vbCrLf + _
-                            "ENUM E1 as long" + vbCrLf + _
-                            "         foo=23" + vbCrLf + _
-                            "bar        " + vbCrLf + _
-                            "boo=foo" + vbCrLf + _
-                            "booya=1.4" + vbCrLf + _
-                            "end enum" + vbCrLf + _
+            TestFormatBlock("Module M1" + vbCrLf + vbCrLf +
+                            "ENUM E1 as long" + vbCrLf +
+                            "         foo=23" + vbCrLf +
+                            "bar        " + vbCrLf +
+                            "boo=foo" + vbCrLf +
+                            "booya=1.4" + vbCrLf +
+                            "end enum" + vbCrLf +
                             "end         MODule", _
  _
-                            "Module M1" + vbCrLf + vbCrLf + _
-                            "  ENUM E1 as long" + vbCrLf + _
-                            "    foo = 23" + vbCrLf + _
-                            "    bar" + vbCrLf + _
-                            "    boo = foo" + vbCrLf + _
-                            "    booya = 1.4" + vbCrLf + _
-                            "  end enum" + vbCrLf + _
+                            "Module M1" + vbCrLf + vbCrLf +
+                            "  ENUM E1 as long" + vbCrLf +
+                            "    foo = 23" + vbCrLf +
+                            "    bar" + vbCrLf +
+                            "    boo = foo" + vbCrLf +
+                            "    booya = 1.4" + vbCrLf +
+                            "  end enum" + vbCrLf +
                             "end MODule" + vbCrLf)
 
-            TestFormatBlock("class c1" + vbCrLf + _
-                            "ENUM E1 as long" + vbCrLf + _
-                            "         foo=23" + vbCrLf + _
-                            "bar        " + vbCrLf + _
-                            "boo=foo" + vbCrLf + _
-                            "booya=1.4" + vbCrLf + _
-                            "end enum" + vbCrLf + _
+            TestFormatBlock("class c1" + vbCrLf +
+                            "ENUM E1 as long" + vbCrLf +
+                            "         foo=23" + vbCrLf +
+                            "bar        " + vbCrLf +
+                            "boo=foo" + vbCrLf +
+                            "booya=1.4" + vbCrLf +
+                            "end enum" + vbCrLf +
                             "end         class", _
  _
-                            "class c1" + vbCrLf + vbCrLf + _
-                            "  ENUM E1 as long" + vbCrLf + _
-                            "    foo = 23" + vbCrLf + _
-                            "    bar" + vbCrLf + _
-                            "    boo = foo" + vbCrLf + _
-                            "    booya = 1.4" + vbCrLf + _
-                            "  end enum" + vbCrLf + _
+                            "class c1" + vbCrLf + vbCrLf +
+                            "  ENUM E1 as long" + vbCrLf +
+                            "    foo = 23" + vbCrLf +
+                            "    bar" + vbCrLf +
+                            "    boo = foo" + vbCrLf +
+                            "    booya = 1.4" + vbCrLf +
+                            "  end enum" + vbCrLf +
                             "end class" + vbCrLf)
 
-            TestFormatBlock("public class c1" + vbCrLf + vbCrLf + _
-                            "ENUM E1 as long" + vbCrLf + _
-                            "         foo=23" + vbCrLf + _
-                            "bar        " + vbCrLf + _
-                            "boo=foo" + vbCrLf + _
-                            "booya=1.4" + vbCrLf + _
-                            "end enum" + vbCrLf + _
+            TestFormatBlock("public class c1" + vbCrLf + vbCrLf +
+                            "ENUM E1 as long" + vbCrLf +
+                            "         foo=23" + vbCrLf +
+                            "bar        " + vbCrLf +
+                            "boo=foo" + vbCrLf +
+                            "booya=1.4" + vbCrLf +
+                            "end enum" + vbCrLf +
                             "end         class", _
  _
-                            "public class c1" + vbCrLf + vbCrLf + _
-                            "  ENUM E1 as long" + vbCrLf + _
-                            "    foo = 23" + vbCrLf + _
-                            "    bar" + vbCrLf + _
-                            "    boo = foo" + vbCrLf + _
-                            "    booya = 1.4" + vbCrLf + _
-                            "  end enum" + vbCrLf + _
+                            "public class c1" + vbCrLf + vbCrLf +
+                            "  ENUM E1 as long" + vbCrLf +
+                            "    foo = 23" + vbCrLf +
+                            "    bar" + vbCrLf +
+                            "    boo = foo" + vbCrLf +
+                            "    booya = 1.4" + vbCrLf +
+                            "  end enum" + vbCrLf +
                             "end class" + vbCrLf)
 
-            TestFormatBlock("class c1" + vbCrLf + _
-                            "public     ENUM E1 as long" + vbCrLf + _
-                            "         foo=23" + vbCrLf + _
-                            "bar        " + vbCrLf + _
-                            "boo=foo" + vbCrLf + _
-                            "booya=1.4" + vbCrLf + _
-                            "end enum" + vbCrLf + _
+            TestFormatBlock("class c1" + vbCrLf +
+                            "public     ENUM E1 as long" + vbCrLf +
+                            "         foo=23" + vbCrLf +
+                            "bar        " + vbCrLf +
+                            "boo=foo" + vbCrLf +
+                            "booya=1.4" + vbCrLf +
+                            "end enum" + vbCrLf +
                             "end         class", _
  _
-                            "class c1" + vbCrLf + vbCrLf + _
-                            "  public ENUM E1 as long" + vbCrLf + _
-                            "    foo = 23" + vbCrLf + _
-                            "    bar" + vbCrLf + _
-                            "    boo = foo" + vbCrLf + _
-                            "    booya = 1.4" + vbCrLf + _
-                            "  end enum" + vbCrLf + _
+                            "class c1" + vbCrLf + vbCrLf +
+                            "  public ENUM E1 as long" + vbCrLf +
+                            "    foo = 23" + vbCrLf +
+                            "    bar" + vbCrLf +
+                            "    boo = foo" + vbCrLf +
+                            "    booya = 1.4" + vbCrLf +
+                            "  end enum" + vbCrLf +
                             "end class" + vbCrLf)
         End Sub
 
         <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestDelegateStatements()
 
-            TestFormatBlock("Module M1" + vbCrLf + _
-                            "Dim x=Function( x ,y )x+y" + vbCrLf + _
-                            "Dim y As Func ( Of Integer ,Integer ,Integer )=x" + vbCrLf + _
+            TestFormatBlock("Module M1" + vbCrLf +
+                            "Dim x=Function( x ,y )x+y" + vbCrLf +
+                            "Dim y As Func ( Of Integer ,Integer ,Integer )=x" + vbCrLf +
                             "end MODule", _
  _
-                            "Module M1" + vbCrLf + vbCrLf + _
-                            "  Dim x = Function(x, y) x + y" + vbCrLf + vbCrLf + _
-                            "  Dim y As Func(Of Integer, Integer, Integer) = x" + vbCrLf + _
+                            "Module M1" + vbCrLf + vbCrLf +
+                            "  Dim x = Function(x, y) x + y" + vbCrLf + vbCrLf +
+                            "  Dim y As Func(Of Integer, Integer, Integer) = x" + vbCrLf +
                             "end MODule" + vbCrLf)
 
-            TestFormatBlock("Module M1" + vbCrLf + _
-                            "Dim x=Function( x ,y )" + vbCrLf + _
-                            "return    x+y" + vbCrLf + _
-                            "end function" + vbCrLf + _
-                            "Dim y As Func ( Of Integer ,Integer ,Integer )=x" + vbCrLf + _
+            TestFormatBlock("Module M1" + vbCrLf +
+                            "Dim x=Function( x ,y )" + vbCrLf +
+                            "return    x+y" + vbCrLf +
+                            "end function" + vbCrLf +
+                            "Dim y As Func ( Of Integer ,Integer ,Integer )=x" + vbCrLf +
                             "end MODule", _
  _
-                            "Module M1" + vbCrLf + vbCrLf + _
-                            "  Dim x = Function(x, y)" + vbCrLf + _
-                            "    return x + y" + vbCrLf + _
-                            "  end function" + vbCrLf + vbCrLf + _
-                            "  Dim y As Func(Of Integer, Integer, Integer) = x" + vbCrLf + _
+                            "Module M1" + vbCrLf + vbCrLf +
+                            "  Dim x = Function(x, y)" + vbCrLf +
+                            "    return x + y" + vbCrLf +
+                            "  end function" + vbCrLf + vbCrLf +
+                            "  Dim y As Func(Of Integer, Integer, Integer) = x" + vbCrLf +
                             "end MODule" + vbCrLf)
 
-            TestFormatBlock("Module M1" + vbCrLf + _
-                            "Dim x=Sub( x ,y )" + vbCrLf + _
-                            "dim x as integer" + vbCrLf + _
-                            "end sub" + vbCrLf + _
-                            "Dim y As Action ( Of Integer ,Integer)=x" + vbCrLf + _
+            TestFormatBlock("Module M1" + vbCrLf +
+                            "Dim x=Sub( x ,y )" + vbCrLf +
+                            "dim x as integer" + vbCrLf +
+                            "end sub" + vbCrLf +
+                            "Dim y As Action ( Of Integer ,Integer)=x" + vbCrLf +
                             "end MODule", _
  _
-                            "Module M1" + vbCrLf + vbCrLf + _
-                            "  Dim x = Sub(x, y)" + vbCrLf + _
-                            "    dim x as integer" + vbCrLf + _
-                            "  end sub" + vbCrLf + _
-                            vbCrLf + _
-                            "  Dim y As Action(Of Integer, Integer) = x" + vbCrLf + _
+                            "Module M1" + vbCrLf + vbCrLf +
+                            "  Dim x = Sub(x, y)" + vbCrLf +
+                            "    dim x as integer" + vbCrLf +
+                            "  end sub" + vbCrLf +
+                            vbCrLf +
+                            "  Dim y As Action(Of Integer, Integer) = x" + vbCrLf +
                             "end MODule" + vbCrLf)
 
         End Sub
@@ -463,43 +463,43 @@ end module
         <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestSelectStatements()
 
-            TestFormatBlock("    Module M1" + vbCrLf + _
-                            "sub s1()" + vbCrLf + _
-                            "select case foo" + vbCrLf + _
-                            "case    23 " + vbCrLf + _
-                            "return    foo       " + vbCrLf + _
-                            "case    42,11 " + vbCrLf + _
-                            "return    foo       " + vbCrLf + _
-                            "case    > 100 " + vbCrLf + _
-                            "return    foo       " + vbCrLf + _
-                            "case   200 to  300 " + vbCrLf + _
-                            "return    foo       " + vbCrLf + _
-                            "case    12," + vbCrLf + _
-                            "13" + vbCrLf + _
-                            "return    foo       " + vbCrLf + _
-                            "case else" + vbCrLf + _
-                            "return   foo       " + vbCrLf + _
-                            "end   select  " + vbCrLf + _
-                            "end   sub  " + vbCrLf + _
+            TestFormatBlock("    Module M1" + vbCrLf +
+                            "sub s1()" + vbCrLf +
+                            "select case foo" + vbCrLf +
+                            "case    23 " + vbCrLf +
+                            "return    foo       " + vbCrLf +
+                            "case    42,11 " + vbCrLf +
+                            "return    foo       " + vbCrLf +
+                            "case    > 100 " + vbCrLf +
+                            "return    foo       " + vbCrLf +
+                            "case   200 to  300 " + vbCrLf +
+                            "return    foo       " + vbCrLf +
+                            "case    12," + vbCrLf +
+                            "13" + vbCrLf +
+                            "return    foo       " + vbCrLf +
+                            "case else" + vbCrLf +
+                            "return   foo       " + vbCrLf +
+                            "end   select  " + vbCrLf +
+                            "end   sub  " + vbCrLf +
                             "end   module  ", _
  _
-                            "Module M1" + vbCrLf + vbCrLf + _
-                            "  sub s1()" + vbCrLf + _
-                            "    select case foo" + vbCrLf + _
-                            "      case 23" + vbCrLf + _
-                            "        return foo" + vbCrLf + _
-                            "      case 42, 11" + vbCrLf + _
-                            "        return foo" + vbCrLf + _
-                            "      case > 100" + vbCrLf + _
-                            "        return foo" + vbCrLf + _
-                            "      case 200 to 300" + vbCrLf + _
-                            "        return foo" + vbCrLf + _
-                            "      case 12, 13" + vbCrLf + _
-                            "        return foo" + vbCrLf + _
-                            "      case else" + vbCrLf + _
-                            "        return foo" + vbCrLf + _
-                            "    end select" + vbCrLf + _
-                            "  end sub" + vbCrLf + _
+                            "Module M1" + vbCrLf + vbCrLf +
+                            "  sub s1()" + vbCrLf +
+                            "    select case foo" + vbCrLf +
+                            "      case 23" + vbCrLf +
+                            "        return foo" + vbCrLf +
+                            "      case 42, 11" + vbCrLf +
+                            "        return foo" + vbCrLf +
+                            "      case > 100" + vbCrLf +
+                            "        return foo" + vbCrLf +
+                            "      case 200 to 300" + vbCrLf +
+                            "        return foo" + vbCrLf +
+                            "      case 12, 13" + vbCrLf +
+                            "        return foo" + vbCrLf +
+                            "      case else" + vbCrLf +
+                            "        return foo" + vbCrLf +
+                            "    end select" + vbCrLf +
+                            "  end sub" + vbCrLf +
                             "end module" + vbCrLf)
         End Sub
 
@@ -546,98 +546,98 @@ end module
         Public Sub TestLoopStatements()
             TestFormatStatement("while a<b" + vbCrLf + "c                  " + vbCrLf + "end while", "while a < b" + vbCrLf + "  c" + vbCrLf + "end while")
 
-            TestFormatStatement("DO until a(2)<>12" + vbCrLf + _
-                            "Dim x = 12" + vbCrLf + _
+            TestFormatStatement("DO until a(2)<>12" + vbCrLf +
+                            "Dim x = 12" + vbCrLf +
                             "   loop", _
  _
-                            "DO until a(2) <> 12" + vbCrLf + _
-                            "  Dim x = 12" + vbCrLf + _
+                            "DO until a(2) <> 12" + vbCrLf +
+                            "  Dim x = 12" + vbCrLf +
                             "loop")
 
-            TestFormatStatement("DO while a(2)<>12" + vbCrLf + _
-                            "Dim x = 12" + vbCrLf + _
+            TestFormatStatement("DO while a(2)<>12" + vbCrLf +
+                            "Dim x = 12" + vbCrLf +
                             "   loop", _
  _
-                            "DO while a(2) <> 12" + vbCrLf + _
-                            "  Dim x = 12" + vbCrLf + _
+                            "DO while a(2) <> 12" + vbCrLf +
+                            "  Dim x = 12" + vbCrLf +
                             "loop")
 
-            TestFormatStatement("DO               " + vbCrLf + _
-                            "Dim x = 12" + vbCrLf + _
+            TestFormatStatement("DO               " + vbCrLf +
+                            "Dim x = 12" + vbCrLf +
                             "   loop", _
  _
-                            "DO" + vbCrLf + _
-                            "  Dim x = 12" + vbCrLf + _
+                            "DO" + vbCrLf +
+                            "  Dim x = 12" + vbCrLf +
                             "loop")
 
-            TestFormatStatement("DO               " + vbCrLf + _
-                            "Dim x = 12" + vbCrLf + _
+            TestFormatStatement("DO               " + vbCrLf +
+                            "Dim x = 12" + vbCrLf +
                             "   loop until a ( 2 )  <>    12   ", _
  _
-                            "DO" + vbCrLf + _
-                            "  Dim x = 12" + vbCrLf + _
+                            "DO" + vbCrLf +
+                            "  Dim x = 12" + vbCrLf +
                             "loop until a(2) <> 12")
 
-            TestFormatStatement("For     Each   i  In   x" + vbCrLf + _
-                            "Dim x = 12" + vbCrLf + _
+            TestFormatStatement("For     Each   i  In   x" + vbCrLf +
+                            "Dim x = 12" + vbCrLf +
                             "   next", _
  _
-                            "For Each i In x" + vbCrLf + _
-                            "  Dim x = 12" + vbCrLf + _
+                            "For Each i In x" + vbCrLf +
+                            "  Dim x = 12" + vbCrLf +
                             "next")
 
-            TestFormatStatement("For     Each   i  In   x" + vbCrLf + _
-                                "For     Each   j  In   x" + vbCrLf + _
-                                "Dim x = 12" + vbCrLf + _
+            TestFormatStatement("For     Each   i  In   x" + vbCrLf +
+                                "For     Each   j  In   x" + vbCrLf +
+                                "Dim x = 12" + vbCrLf +
                                 "   next j,i", _
  _
-                            "For Each i In x" + vbCrLf + _
-                            "  For Each j In x" + vbCrLf + _
-                            "    Dim x = 12" + vbCrLf + _
+                            "For Each i In x" + vbCrLf +
+                            "  For Each j In x" + vbCrLf +
+                            "    Dim x = 12" + vbCrLf +
                             "next j, i")
         End Sub
 
         <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestExceptionsStatements()
 
-            TestFormatStatement("   try" + vbCrLf + _
-                            "dim x =23" + vbCrLf + _
-                            "Catch  e1 As Exception When 1>2" + vbCrLf + _
-                            "dim x =23" + vbCrLf + _
-                            "Catch" + vbCrLf + _
-                            "dim x =23" + vbCrLf + _
-                            "finally" + vbCrLf + _
-                            "dim x =23" + vbCrLf + _
+            TestFormatStatement("   try" + vbCrLf +
+                            "dim x =23" + vbCrLf +
+                            "Catch  e1 As Exception When 1>2" + vbCrLf +
+                            "dim x =23" + vbCrLf +
+                            "Catch" + vbCrLf +
+                            "dim x =23" + vbCrLf +
+                            "finally" + vbCrLf +
+                            "dim x =23" + vbCrLf +
                             " end try", _
  _
-                            "try" + vbCrLf + _
-                            "  dim x = 23" + vbCrLf + _
-                            "Catch e1 As Exception When 1 > 2" + vbCrLf + _
-                            "  dim x = 23" + vbCrLf + _
-                            "Catch" + vbCrLf + _
-                            "  dim x = 23" + vbCrLf + _
-                            "finally" + vbCrLf + _
-                            "  dim x = 23" + vbCrLf + _
+                            "try" + vbCrLf +
+                            "  dim x = 23" + vbCrLf +
+                            "Catch e1 As Exception When 1 > 2" + vbCrLf +
+                            "  dim x = 23" + vbCrLf +
+                            "Catch" + vbCrLf +
+                            "  dim x = 23" + vbCrLf +
+                            "finally" + vbCrLf +
+                            "  dim x = 23" + vbCrLf +
                             "end try")
         End Sub
 
         <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestUsingStatements()
 
-            TestFormatStatement("  Using   r1  As  R =  New R ( ) ,   r2 As R = New R( )" + vbCrLf + _
-                            "dim x =23" + vbCrLf + _
+            TestFormatStatement("  Using   r1  As  R =  New R ( ) ,   r2 As R = New R( )" + vbCrLf +
+                            "dim x =23" + vbCrLf +
                             "end using", _
  _
-                            "Using r1 As R = New R(), r2 As R = New R()" + vbCrLf + _
-                            "  dim x = 23" + vbCrLf + _
+                            "Using r1 As R = New R(), r2 As R = New R()" + vbCrLf +
+                            "  dim x = 23" + vbCrLf +
                             "end using")
         End Sub
 
         <Fact()>
         Public Sub TestQueryExpressions()
 
-            TestFormatStatement("  Dim waCusts = _" + vbCrLf + _
-                            "From cust As Customer In Customers _" + vbCrLf + _
+            TestFormatStatement("  Dim waCusts = _" + vbCrLf +
+                            "From cust As Customer In Customers _" + vbCrLf +
                             "Where    cust.State    =  ""WA""", _
  _
                             "Dim waCusts = From cust As Customer In Customers Where cust.State = ""WA""")
@@ -645,9 +645,9 @@ end module
 
         <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestDefaultCasingForKeywords()
-            Dim expected = "Module m1" + vbCrLf + vbCrLf + _
-                            "  Dim x = Function(x, y) x + y" + vbCrLf + vbCrLf + _
-                            "  Dim y As func(Of Integer, Integer, Integer) = x" + vbCrLf + _
+            Dim expected = "Module m1" + vbCrLf + vbCrLf +
+                            "  Dim x = Function(x, y) x + y" + vbCrLf + vbCrLf +
+                            "  Dim y As func(Of Integer, Integer, Integer) = x" + vbCrLf +
                             "End Module" + vbCrLf
 
             Dim node As CompilationUnitSyntax = SyntaxFactory.ParseCompilationUnit(expected.ToLowerInvariant)
@@ -663,29 +663,29 @@ end module
             ' of structured trivia. Because of that there is now a space at the end of structured trivia before the next token
             ' whitespace before comments get reduced to one (see comment after code), whitespace in trivia is maintained (see same comment)
             ' xml doc comments somehow contain \n in the XmlTextLiterals ... will not spend time to work around
-            Dim input = "Module m1" + vbCrLf + _
-                            "  ' a nice comment" + vbCrLf + _
-                            "  ''' even more comments" + vbCrLf + _
-                            "' and more comments " + vbCrLf + _
-                            "#if false   " + vbCrLf + _
-                            " whatever? " + vbCrLf + _
-                            "#end if" + vbCrLf + _
-                            "' and more comments" + vbCrLf + _
-                            " ''' structured trivia before code" + vbCrLf + _
-                            "Dim x = Function(x, y) x + y      '  trivia after code" + vbCrLf + _
+            Dim input = "Module m1" + vbCrLf +
+                            "  ' a nice comment" + vbCrLf +
+                            "  ''' even more comments" + vbCrLf +
+                            "' and more comments " + vbCrLf +
+                            "#if false   " + vbCrLf +
+                            " whatever? " + vbCrLf +
+                            "#end if" + vbCrLf +
+                            "' and more comments" + vbCrLf +
+                            " ''' structured trivia before code" + vbCrLf +
+                            "Dim x = Function(x, y) x + y      '  trivia after code" + vbCrLf +
                             "End Module"
 
-            Dim expected = "Module m1" + vbCrLf + vbCrLf + _
-                            "  ' a nice comment" + vbCrLf + _
-                            "  ''' even more comments" + vbCrLf + _
-                            vbCrLf + _
-                            "  ' and more comments " + vbCrLf + _
-                            "#if false" + vbCrLf + _
-                            " whatever? " + vbCrLf + _
-                            "#end if" + vbCrLf + _
-                            "  ' and more comments" + vbCrLf + _
-                            "  ''' structured trivia before code" + vbCrLf + _
-                            "  Dim x = Function(x, y) x + y '  trivia after code" + vbCrLf + _
+            Dim expected = "Module m1" + vbCrLf + vbCrLf +
+                            "  ' a nice comment" + vbCrLf +
+                            "  ''' even more comments" + vbCrLf +
+                            vbCrLf +
+                            "  ' and more comments " + vbCrLf +
+                            "#if false" + vbCrLf +
+                            " whatever? " + vbCrLf +
+                            "#end if" + vbCrLf +
+                            "  ' and more comments" + vbCrLf +
+                            "  ''' structured trivia before code" + vbCrLf +
+                            "  Dim x = Function(x, y) x + y '  trivia after code" + vbCrLf +
                             "End Module" + vbCrLf
 
             Dim node As CompilationUnitSyntax = SyntaxFactory.ParseCompilationUnit(input)
@@ -701,20 +701,20 @@ end module
             ' of structured trivia. Because of that there is now a space at the end of structured trivia before the next token
             ' whitespace before comments get reduced to one (see comment after code), whitespace in trivia is maintained (see same comment)
             ' xml doc comments somehow contain \n in the XmlTextLiterals ... will not spend time to work around
-            Dim input = "Module m1" + vbCrLf + _
-                        "Sub Main(args As String())" + vbCrLf + _
-                        "Sub1(Function(p As Integer)" + vbCrLf + _
-                        "Sub2()" + vbCrLf + _
-                        "End Function)" + vbCrLf + _
-                        "End Sub" + vbCrLf + _
+            Dim input = "Module m1" + vbCrLf +
+                        "Sub Main(args As String())" + vbCrLf +
+                        "Sub1(Function(p As Integer)" + vbCrLf +
+                        "Sub2()" + vbCrLf +
+                        "End Function)" + vbCrLf +
+                        "End Sub" + vbCrLf +
                         "End Module"
 
-            Dim expected = "Module m1" + vbCrLf + vbCrLf + _
-                            "  Sub Main(args As String())" + vbCrLf + _
-                            "    Sub1(Function(p As Integer)" + vbCrLf + _
-                            "      Sub2()" + vbCrLf + _
-                            "    End Function)" + vbCrLf + _
-                            "  End Sub" + vbCrLf + _
+            Dim expected = "Module m1" + vbCrLf + vbCrLf +
+                            "  Sub Main(args As String())" + vbCrLf +
+                            "    Sub1(Function(p As Integer)" + vbCrLf +
+                            "      Sub2()" + vbCrLf +
+                            "    End Function)" + vbCrLf +
+                            "  End Sub" + vbCrLf +
                             "End Module" + vbCrLf
 
             Dim node As CompilationUnitSyntax = SyntaxFactory.ParseCompilationUnit(input)
@@ -759,18 +759,18 @@ End Property
 
         <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestStructuredTriviaAndAttributes()
-            Dim source = "Module m1" + vbCrLf + _
-                            " '''<x>...</x>" + vbCrLf + _
-                            "  <foo()>" + vbCrLf + _
-                            "  sub a()" + vbCrLf + _
-                            "  end sub" + vbCrLf + _
+            Dim source = "Module m1" + vbCrLf +
+                            " '''<x>...</x>" + vbCrLf +
+                            "  <foo()>" + vbCrLf +
+                            "  sub a()" + vbCrLf +
+                            "  end sub" + vbCrLf +
                             "End Module" + vbCrLf + vbCrLf
 
-            Dim expected = "Module m1" + vbCrLf + vbCrLf + _
-                            "  '''<x>...</x>" + vbCrLf + _
-                            "  <foo()>" + vbCrLf + _
-                            "  sub a()" + vbCrLf + _
-                            "  end sub" + vbCrLf + _
+            Dim expected = "Module m1" + vbCrLf + vbCrLf +
+                            "  '''<x>...</x>" + vbCrLf +
+                            "  <foo()>" + vbCrLf +
+                            "  sub a()" + vbCrLf +
+                            "  end sub" + vbCrLf +
                             "End Module" + vbCrLf
 
             Dim node As CompilationUnitSyntax = SyntaxFactory.ParseCompilationUnit(source)
@@ -860,6 +860,47 @@ End Property
             Assert.Equal(expected, actual)
         End Sub
 
-    End Class
+        <Fact>
+        Public Sub TestEnableWarningDirective()
+            Dim text = <![CDATA[         #  enable           warning[BC000],123,             "456",_789$'          comment
+# enable   warning
+# enable   warning ,]]>.Value.Replace(vbLf, vbCrLf)
 
+            Dim root = Parse(text).GetRoot()
+            Dim formattedRoot = SyntaxFormatter.Format(root, "    ", useElasticTrivia:=True, useDefaultCasing:=True)
+
+            Dim expected = <![CDATA[#Enable Warning [BC000], 123, "456", _789$ '          comment
+#Enable Warning
+#Enable Warning ,
+]]>.Value.Replace(vbLf, vbCrLf)
+
+            Assert.Equal(expected, formattedRoot.ToFullString())
+        End Sub
+
+        <Fact>
+        Public Sub TestDisableWarningDirective()
+            Dim text = <![CDATA[Module Program
+#   disable warning
+    Sub Main()
+        #disable       warning          "123",            bc456,789
+    End Sub
+#   disable   warning 123,   '   Comment
+End Module]]>.Value.Replace(vbLf, vbCrLf)
+
+            Dim root = Parse(text).GetRoot()
+            Dim formattedRoot = SyntaxFormatter.Format(root, "    ", useElasticTrivia:=True, useDefaultCasing:=True)
+
+            Dim expected = <![CDATA[Module Program
+
+#Disable Warning
+    Sub Main()
+#Disable Warning "123", bc456, 789
+    End Sub
+#Disable Warning 123, '   Comment
+ End Module
+]]>.Value.Replace(vbLf, vbCrLf)
+
+            Assert.Equal(expected, formattedRoot.ToFullString())
+        End Sub
+    End Class
 End Namespace

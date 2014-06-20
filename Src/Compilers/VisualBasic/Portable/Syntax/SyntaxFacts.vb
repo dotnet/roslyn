@@ -78,6 +78,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SyntaxKind.RegionKeyword,
                     SyntaxKind.EndKeyword,
                     SyntaxKind.ConstKeyword,
+                    SyntaxKind.EnableKeyword,
+                    SyntaxKind.DisableKeyword,
                     SyntaxKind.ExternalSourceKeyword,
                     SyntaxKind.ExternalChecksumKeyword
                     Return True
@@ -127,9 +129,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             SyntaxKind.ThenKeyword,
                                                             SyntaxKind.ElseIfKeyword,
                                                             SyntaxKind.ElseKeyword,
+                                                            SyntaxKind.EndIfKeyword,
                                                             SyntaxKind.EndKeyword,
                                                             SyntaxKind.RegionKeyword,
                                                             SyntaxKind.ConstKeyword,
+                                                            SyntaxKind.EnableKeyword,
+                                                            SyntaxKind.DisableKeyword,
+                                                            SyntaxKind.WarningKeyword,
                                                             SyntaxKind.ExternalSourceKeyword,
                                                             SyntaxKind.ExternalChecksumKeyword}
 
@@ -314,6 +320,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SyntaxKind.ExternalSourceDirectiveTrivia,
                     SyntaxKind.EndExternalSourceDirectiveTrivia,
                     SyntaxKind.ExternalChecksumDirectiveTrivia,
+                    SyntaxKind.EnableWarningDirectiveTrivia,
+                    SyntaxKind.DisableWarningDirectiveTrivia,
                     SyntaxKind.ReferenceDirectiveTrivia,
                     SyntaxKind.BadDirectiveTrivia
                     Return True
@@ -1019,7 +1027,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    {"compare", SyntaxKind.CompareKeyword},
                    {"custom", SyntaxKind.CustomKeyword},
                    {"descending", SyntaxKind.DescendingKeyword},
+                   {"disable", SyntaxKind.DisableKeyword},
                    {"distinct", SyntaxKind.DistinctKeyword},
+                   {"enable", SyntaxKind.EnableKeyword},
                    {"equals", SyntaxKind.EqualsKeyword},
                    {"explicit", SyntaxKind.ExplicitKeyword},
                    {"externalsource", SyntaxKind.ExternalSourceKeyword},
@@ -1044,6 +1054,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    {"text", SyntaxKind.TextKeyword},
                    {"unicode", SyntaxKind.UnicodeKeyword},
                    {"until", SyntaxKind.UntilKeyword},
+                   {"warning", SyntaxKind.WarningKeyword},
                    {"where", SyntaxKind.WhereKeyword},
                    {"type", SyntaxKind.TypeKeyword},
                    {"xml", SyntaxKind.XmlKeyword},
@@ -1070,7 +1081,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    {"end", SyntaxKind.EndKeyword},
                    {"const", SyntaxKind.ConstKeyword},
                    {"externalsource", SyntaxKind.ExternalSourceKeyword},
-                   {"externalchecksum", SyntaxKind.ExternalChecksumKeyword}
+                   {"externalchecksum", SyntaxKind.ExternalChecksumKeyword},
+                   {"enable", SyntaxKind.EnableKeyword},
+                   {"disable", SyntaxKind.DisableKeyword}
             }
 
         Public Shared Function GetPreprocessorKeywordKind(text As String) As SyntaxKind
@@ -1170,7 +1183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function IsLanguagePunctuation(kind As SyntaxKind) As Boolean
-            Return IsPunctuation(kind) AndAlso Not IsPreprocessorKeyword(kind)
+            Return IsPunctuation(kind) AndAlso Not IsPreprocessorPunctuation(kind)
         End Function
 
         Public Shared Function IsName(kind As SyntaxKind) As Boolean

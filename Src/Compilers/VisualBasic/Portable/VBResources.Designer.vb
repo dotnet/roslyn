@@ -3729,7 +3729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;If&apos;, &apos;ElseIf&apos;, &apos;Else&apos;, &apos;End If&apos;, &apos;Const&apos;, or &apos;Region&apos; expected..
+        '''  Looks up a localized string similar to &apos;If&apos;, &apos;ElseIf&apos;, &apos;Else&apos;, &apos;Const&apos;, &apos;Region&apos;, &apos;ExternalSource&apos;, &apos;ExternalChecksum&apos;, &apos;Enable&apos;, &apos;Disable&apos;, or &apos;End&apos; expected..
         '''</summary>
         Friend ReadOnly Property ERR_ExpectedConditionalDirective() As String
             Get
@@ -3950,6 +3950,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_ExpectedEquals() As String
             Get
                 Return ResourceManager.GetString("ERR_ExpectedEquals", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Integer constant, string constant, or identifier expected..
+        '''</summary>
+        Friend ReadOnly Property ERR_ExpectedErrorCode() As String
+            Get
+                Return ResourceManager.GetString("ERR_ExpectedErrorCode", resourceCulture)
             End Get
         End Property
         
@@ -4274,6 +4283,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_ExpectedSubOrFunction() As String
             Get
                 Return ResourceManager.GetString("ERR_ExpectedSubOrFunction", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;Warning&apos; expected..
+        '''</summary>
+        Friend ReadOnly Property ERR_ExpectedWarningKeyword() As String
+            Get
+                Return ResourceManager.GetString("ERR_ExpectedWarningKeyword", resourceCulture)
             End Get
         End Property
         

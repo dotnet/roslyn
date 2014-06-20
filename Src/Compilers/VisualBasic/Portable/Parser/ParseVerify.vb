@@ -133,6 +133,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.XmlNameToken
                     Return ERRID.ERR_ExpectedXmlName
 
+                Case SyntaxKind.WarningKeyword
+                    Return ERRID.ERR_ExpectedWarningKeyword
+
                 Case Else
                     Return ERRID.ERR_Syntax
             End Select

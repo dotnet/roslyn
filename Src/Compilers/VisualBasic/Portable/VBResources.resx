@@ -721,7 +721,7 @@
     <value>'{0}' is not valid on a local variable declaration.</value>
   </data>
   <data name="ERR_ExpectedConditionalDirective" xml:space="preserve">
-    <value>'If', 'ElseIf', 'Else', 'End If', 'Const', or 'Region' expected.</value>
+    <value>'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected.</value>
   </data>
   <data name="ERR_ExpectedEQ" xml:space="preserve">
     <value>'=' expected.</value>
@@ -4531,5 +4531,11 @@
   </data>
   <data name="InvalidPreprocessorConstantType" xml:space="preserve">
     <value>Preprocessor constant '{0}' of type '{1}' is not supported, only primitive types are allowed.</value>
+  </data>
+  <data name="ERR_ExpectedErrorCode" xml:space="preserve">
+    <value>Integer constant, string constant, or identifier expected.</value>
+  </data>
+  <data name="ERR_ExpectedWarningKeyword" xml:space="preserve">
+    <value>'Warning' expected.</value>
   </data>
 </root>

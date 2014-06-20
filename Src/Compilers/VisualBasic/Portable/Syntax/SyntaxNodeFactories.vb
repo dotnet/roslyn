@@ -573,7 +573,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SyntaxKind.CompareKeyword,
                 SyntaxKind.CustomKeyword,
                 SyntaxKind.DescendingKeyword,
+                SyntaxKind.DisableKeyword,
                 SyntaxKind.DistinctKeyword,
+                SyntaxKind.EnableKeyword,
                 SyntaxKind.EqualsKeyword,
                 SyntaxKind.ExplicitKeyword,
                 SyntaxKind.ExternalSourceKeyword,
@@ -597,6 +599,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SyntaxKind.TakeKeyword,
                 SyntaxKind.UnicodeKeyword,
                 SyntaxKind.UntilKeyword,
+                SyntaxKind.WarningKeyword,
                 SyntaxKind.WhereKeyword
                     ' These are identifiers that have a contextual kind
                     Return SyntaxFactory.MissingIdentifier(kind)

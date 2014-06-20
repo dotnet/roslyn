@@ -5479,6 +5479,8 @@ checkNullable:
                             SyntaxKind.ExternalSourceDirectiveTrivia,
                             SyntaxKind.EndExternalSourceDirectiveTrivia,
                             SyntaxKind.ExternalChecksumDirectiveTrivia,
+                            SyntaxKind.EnableWarningDirectiveTrivia,
+                            SyntaxKind.DisableWarningDirectiveTrivia,
                             SyntaxKind.ReferenceDirectiveTrivia,
                             SyntaxKind.BadDirectiveTrivia
                             Return True

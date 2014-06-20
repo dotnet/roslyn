@@ -3870,5 +3870,51 @@ End Class</text>.Value)
             Dim actual = document.GetTextAsync().Result.ToString()
             Assert.Equal(actual, actual)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub TestWarningDirectives()
+            Dim text = <Code>
+                           #  enable           warning[BC000],123,             "456",_789$'          comment
+Module Program
+        #   disable     warning   'Comment
+    Sub Main()
+        #disable       warning          "123",            bc456,789
+    End Sub
+End Module
+        #   enable     warning    
+</Code>
+
+            Dim expected = <Code>
+#enable warning [BC000], 123, "456", _789$'          comment
+Module Program
+#disable warning   'Comment
+    Sub Main()
+#disable warning "123", bc456, 789
+    End Sub
+End Module
+#enable warning
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub TestIncompleteWarningDirectives()
+            Dim text = <Code>
+#   disable
+Module M1
+        #   enable     warning"123",   ' Comment   
+End Module
+</Code>
+
+            Dim expected = <Code>
+#disable
+Module M1
+#enable warning "123",   ' Comment   
+End Module
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
     End Class
 End Namespace

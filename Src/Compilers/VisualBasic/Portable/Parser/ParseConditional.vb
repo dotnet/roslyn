@@ -75,6 +75,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Case SyntaxKind.RegionKeyword
                             statement = ParseRegionDirective(hashToken)
 
+                        Case SyntaxKind.EnableKeyword, SyntaxKind.DisableKeyword
+                            statement = ParseWarningDirective(hashToken)
+
                         Case Else
                             statement = ParseBadDirective(hashToken)
                     End Select
@@ -379,6 +382,80 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Return statement
 
+        End Function
+
+        Private Function ParseWarningDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken,
+                         "ParseWarningDirective called with token that is not an IdentifierToken")
+            Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
+
+            Debug.Assert((identifier.PossibleKeywordKind = SyntaxKind.EnableKeyword) OrElse
+                         (identifier.PossibleKeywordKind = SyntaxKind.DisableKeyword),
+                         "ParseWarningDirective called with token that is neither EnableKeyword nor DisableKeyword")
+            Dim enableOrDisableKeyword = _scanner.MakeKeyword(identifier)
+
+            GetNextToken()
+
+            Dim warningKeyword As KeywordSyntax = Nothing
+            TryGetContextualKeyword(SyntaxKind.WarningKeyword, warningKeyword, createIfMissing:=True)
+            If warningKeyword.ContainsDiagnostics Then
+                warningKeyword = ResyncAt(warningKeyword,
+                                          SyntaxKind.StringLiteralToken,
+                                          SyntaxKind.IntegerLiteralToken)
+            End If
+
+            Dim errorCodes = Me._pool.AllocateSeparated(Of ExpressionSyntax)()
+            Dim errorCode As ExpressionSyntax = Nothing
+
+            If Not SyntaxFacts.IsTerminator(CurrentToken.Kind) Then
+                Do
+                    Select Case CurrentToken.Kind
+                        Case SyntaxKind.StringLiteralToken
+                            errorCode = ParseStringLiteral()
+                        Case SyntaxKind.IntegerLiteralToken
+                            errorCode = ParseIntLiteral()
+                        Case SyntaxKind.IdentifierToken
+                            errorCode = ParseIdentifierNameAllowingKeyword()
+                        Case Else
+                            errorCode = InternalSyntaxFactory.MissingExpression()
+                            errorCode = ReportSyntaxError(errorCode, ERRID.ERR_ExpectedErrorCode)
+                    End Select
+
+                    If errorCode.ContainsDiagnostics Then
+                        errorCode = ResyncAt(errorCode, SyntaxKind.CommaToken)
+                    End If
+                    errorCodes.Add(errorCode)
+
+                    Dim comma As PunctuationSyntax = Nothing
+                    If Not TryGetToken(SyntaxKind.CommaToken, comma) Then
+                        If SyntaxFacts.IsTerminator(CurrentToken.Kind) Then
+                            Exit Do
+                        Else
+                            comma = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.CommaToken)
+                            comma = ReportSyntaxError(comma, ERRID.ERR_ExpectedComma)
+                        End If
+                    End If
+
+                    If comma.ContainsDiagnostics Then
+                        comma = ResyncAt(comma,
+                                         SyntaxKind.StringLiteralToken,
+                                         SyntaxKind.IntegerLiteralToken)
+                    End If
+                    errorCodes.AddSeparator(comma)
+                Loop
+            End If
+
+            Dim statement As DirectiveTriviaSyntax = Nothing
+            If enableOrDisableKeyword.Kind = SyntaxKind.EnableKeyword Then
+                statement = SyntaxFactory.EnableWarningDirectiveTrivia(
+                    hashToken, enableOrDisableKeyword, warningKeyword, errorCodes.ToList)
+            ElseIf enableOrDisableKeyword.Kind = SyntaxKind.DisableKeyword Then
+                statement = SyntaxFactory.DisableWarningDirectiveTrivia(
+                    hashToken, enableOrDisableKeyword, warningKeyword, errorCodes.ToList)
+            End If
+
+            Me._pool.Free(errorCodes)
+            Return statement
         End Function
 
         Private Shared Function ParseBadDirective(hashToken As PunctuationSyntax) As BadDirectiveTriviaSyntax

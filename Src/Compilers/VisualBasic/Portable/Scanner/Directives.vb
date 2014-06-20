@@ -208,7 +208,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     preprocessorState = preprocessorState.InterpretEndExternalSourceDirective(statement)
 
                 Case SyntaxKind.ExternalChecksumDirectiveTrivia,
-                    SyntaxKind.BadDirectiveTrivia
+                    SyntaxKind.BadDirectiveTrivia,
+                    SyntaxKind.EnableWarningDirectiveTrivia, 'TODO: Add support for processing #Enable and #Disable
+                    SyntaxKind.DisableWarningDirectiveTrivia
 
                     ' These directives require no processing
 

@@ -381,17 +381,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Case SyntaxKind.LineContinuationTrivia,
                          SyntaxKind.IfDirectiveTrivia,
-                         SyntaxKind.ElseIfDirectiveTrivia,
-                         SyntaxKind.ElseDirectiveTrivia,
-                         SyntaxKind.EndIfDirectiveTrivia,
-                         SyntaxKind.RegionDirectiveTrivia,
-                         SyntaxKind.EndRegionDirectiveTrivia,
-                         SyntaxKind.ConstDirectiveTrivia,
-                         SyntaxKind.ExternalSourceDirectiveTrivia,
-                         SyntaxKind.EndExternalSourceDirectiveTrivia,
-                         SyntaxKind.ExternalChecksumDirectiveTrivia,
-                         SyntaxKind.ReferenceDirectiveTrivia,
-                         SyntaxKind.BadDirectiveTrivia
+                        SyntaxKind.ElseIfDirectiveTrivia,
+                        SyntaxKind.ElseDirectiveTrivia,
+                        SyntaxKind.EndIfDirectiveTrivia,
+                        SyntaxKind.RegionDirectiveTrivia,
+                        SyntaxKind.EndRegionDirectiveTrivia,
+                        SyntaxKind.ConstDirectiveTrivia,
+                        SyntaxKind.ExternalSourceDirectiveTrivia,
+                        SyntaxKind.EndExternalSourceDirectiveTrivia,
+                        SyntaxKind.ExternalChecksumDirectiveTrivia,
+                        SyntaxKind.EnableWarningDirectiveTrivia,
+                        SyntaxKind.DisableWarningDirectiveTrivia,
+                        SyntaxKind.ReferenceDirectiveTrivia,
+                        SyntaxKind.BadDirectiveTrivia
 
                         Throw ExceptionUtilities.UnexpectedValue(trivia(i).Kind)
                 End Select
@@ -424,6 +426,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         SyntaxKind.EndExternalSourceDirectiveTrivia,
                         SyntaxKind.ExternalChecksumDirectiveTrivia,
                         SyntaxKind.ReferenceDirectiveTrivia,
+                        SyntaxKind.EnableWarningDirectiveTrivia,
+                        SyntaxKind.DisableWarningDirectiveTrivia,
                         SyntaxKind.BadDirectiveTrivia
                         Return True
                 End Select

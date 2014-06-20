@@ -143,6 +143,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                         SyntaxKind.EndExternalSourceDirectiveTrivia,
                         SyntaxKind.ExternalChecksumDirectiveTrivia,
                         SyntaxKind.ReferenceDirectiveTrivia,
+                        SyntaxKind.EnableWarningDirectiveTrivia,
+                        SyntaxKind.DisableWarningDirectiveTrivia,
                         SyntaxKind.BadDirectiveTrivia
 
                         ClassifyDirectiveSyntax(DirectCast(trivia.GetStructure(), DirectiveTriviaSyntax))
@@ -188,7 +190,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                              SyntaxKind.ThenKeyword,
                              SyntaxKind.ConstKeyword,
                              SyntaxKind.ExternalSourceKeyword,
-                             SyntaxKind.ExternalChecksumKeyword
+                             SyntaxKind.ExternalChecksumKeyword,
+                             SyntaxKind.EnableKeyword,
+                             SyntaxKind.WarningKeyword,
+                             SyntaxKind.DisableKeyword
 
                             Dim token = child.AsToken()
 
