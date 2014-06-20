@@ -1236,8 +1236,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // implicit control flow
             EnsureOnlyEvalStack();
 
+            // switch sections
             ImmutableArray<BoundSwitchSection> switchSections = this.VisitList(node.SwitchSections);
-            var result = node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocalsOpt, switchSections, node.BreakLabel, node.StringEquality);
+
+            // break label
+            var breakLabel = node.BreakLabel;
+            if (breakLabel != null)
+            {
+                this.RecordLabel(breakLabel);
+            }
+
+            var result = node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocalsOpt, switchSections, breakLabel, node.StringEquality);
 
             // implicit control flow
             EnsureOnlyEvalStack();

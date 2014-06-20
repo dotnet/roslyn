@@ -6546,6 +6546,101 @@ public class Test
 ");
         }
 
+        [WorkItem(947580, "DevDiv")]
+        [Fact]
+        public void Regress947580()
+        {
+            var text = @"
+using System;
+
+class Program {
+    static string boo(int i) {
+        switch (i) {
+            case 42:
+                var x = ""foo"";
+                if (x != ""bar"")
+                break;
+            return x;
+        }
+        return null;
+    }
+    static void Main()
+    {
+        boo(42);
+    }
+}
+
+";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "");
+            compVerifier.VerifyIL("Program.boo",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (string V_0) //x
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  bne.un.s   IL_001a
+  IL_0005:  ldstr      ""foo""
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldstr      ""bar""
+  IL_0011:  call       ""bool string.op_Inequality(string, string)""
+  IL_0016:  brtrue.s   IL_001a
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+  IL_001a:  ldnull
+  IL_001b:  ret
+}
+"
+            );
+        }
+
+        [WorkItem(947580, "DevDiv")]
+        [Fact]
+        public void Regress947580a()
+        {
+            var text = @"
+using System;
+
+class Program {
+    static string boo(int i) {
+        switch (i) {
+            case 42:
+                var x = ""foo"";
+                if (x != ""bar"")
+                break;
+             break;
+        }
+        return null;
+    }
+    static void Main()
+    {
+        boo(42);
+    }
+}
+
+";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "");
+            compVerifier.VerifyIL("Program.boo",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  bne.un.s   IL_0015
+  IL_0005:  ldstr      ""foo""
+  IL_000a:  ldstr      ""bar""
+  IL_000f:  call       ""bool string.op_Inequality(string, string)""
+  IL_0014:  pop
+  IL_0015:  ldnull
+  IL_0016:  ret
+}
+"
+            );
+        }
+
         #endregion
     }
 }

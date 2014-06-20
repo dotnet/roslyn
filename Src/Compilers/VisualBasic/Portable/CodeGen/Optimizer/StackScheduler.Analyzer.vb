@@ -903,10 +903,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Me.evalStack = origStack
 
                 EnsureOnlyEvalStack()
+
+                ' case blocks
                 Dim caseBlocks As ImmutableArray(Of BoundCaseBlock) = Me.VisitList(node.CaseBlocks)
 
+                ' exit label
+                Dim exitLabel = node.ExitLabel
+                If exitLabel IsNot Nothing Then
+                    Me.RecordLabel(exitLabel)
+                End If
+
                 EnsureOnlyEvalStack()
-                Return node.Update(expressionStatement, exprPlaceholderOpt, caseBlocks, node.RecommendSwitchTable, node.ExitLabel)
+                Return node.Update(expressionStatement, exprPlaceholderOpt, caseBlocks, node.RecommendSwitchTable, exitLabel)
             End Function
 
             Public Overrides Function VisitCaseBlock(node As BoundCaseBlock) As BoundNode

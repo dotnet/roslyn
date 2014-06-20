@@ -4884,6 +4884,115 @@ End Module
             VerifySynthesizedStringHashMethod(compVerifier, expected:=True)
         End Sub
 
+        <Fact>
+        Public Sub Regression947580()
+            Dim compVerifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System        
+Module Module1
+
+    Sub Main()
+        boo(42)
+    End Sub
+
+    Function boo(i As Integer) As String
+        Select Case i
+            Case 42
+                Dim x = "foo"
+                If x <> "bar" Then
+                    Exit Select
+                End If
+
+                Return x
+        End Select
+
+        Return Nothing
+    End Function
+
+End Module
+    ]]></file>
+</compilation>, expectedOutput:="").VerifyIL("Module1.boo", <![CDATA[
+{
+  // Code size       35 (0x23)
+  .maxstack  3
+  .locals init (String V_0, //boo
+  Integer V_1,
+  String V_2) //x
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloc.1
+  IL_0003:  ldc.i4.s   42
+  IL_0005:  bne.un.s   IL_001f
+  IL_0007:  ldstr      "foo"
+  IL_000c:  stloc.2
+  IL_000d:  ldloc.2
+  IL_000e:  ldstr      "bar"
+  IL_0013:  ldc.i4.0
+  IL_0014:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer"
+  IL_0019:  brtrue.s   IL_001f
+  IL_001b:  ldloc.2
+  IL_001c:  stloc.0
+  IL_001d:  br.s       IL_0021
+  IL_001f:  ldnull
+  IL_0020:  stloc.0
+  IL_0021:  ldloc.0
+  IL_0022:  ret
+}
+]]>)
+            VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
+        End Sub
+
+        <Fact>
+        Public Sub Regression947580a()
+            Dim compVerifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System        
+Module Module1
+
+    Sub Main()
+        boo(42)
+    End Sub
+
+    Function boo(i As Integer) As String
+        Select Case i
+            Case 42
+                Dim x = "foo"
+                If x <> "bar" Then
+                    Exit Select
+                End If
+
+                Exit Select
+        End Select
+
+        Return Nothing
+    End Function
+
+End Module
+    ]]></file>
+</compilation>, expectedOutput:="").VerifyIL("Module1.boo", <![CDATA[
+{
+  // Code size       26 (0x1a)
+  .maxstack  3
+  .locals init (Integer V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.s   42
+  IL_0005:  bne.un.s   IL_0018
+  IL_0007:  ldstr      "foo"
+  IL_000c:  ldstr      "bar"
+  IL_0011:  ldc.i4.0
+  IL_0012:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer"
+  IL_0017:  pop
+  IL_0018:  ldnull
+  IL_0019:  ret
+}
+]]>)
+            VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
+        End Sub
+
 #End Region
 
     End Class
