@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 
@@ -437,24 +438,22 @@ namespace Roslyn.Utilities.Pdb
         /// </returns>
         public static ImmutableArray<string> GetVisualBasicImportStrings(this ISymUnmanagedReader reader, int methodToken)
         {
-            bool seenForward = false;
-
-            RETRY:
-
             ImmutableArray<string> importStrings = GetImportStrings(reader.GetBaselineMethod(methodToken));
 
             // Follow at most one forward link.
-            if (!seenForward && importStrings.Length == 1)
+            if (importStrings.Length == 1)
             {
                 string importString = importStrings[0];
-                if (importString.Length >= 2 && importString[0] == '@' && char.IsNumber(importString[1]))
+                if (importString.Length >= 2 && importString[0] == '@')
                 {
-                    int tempMethodToken;
-                    if (int.TryParse(importString.Substring(1), out tempMethodToken))
+                    char ch1 = importString[1];
+                    if ('0' <= ch1 && ch1 <= '9')
                     {
-                        methodToken = tempMethodToken;
-                        seenForward = true;
-                        goto RETRY;
+                        int tempMethodToken;
+                        if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out tempMethodToken))
+                        {
+                            return GetImportStrings(reader.GetBaselineMethod(tempMethodToken));
+                        }
                     }
                 }
             }
