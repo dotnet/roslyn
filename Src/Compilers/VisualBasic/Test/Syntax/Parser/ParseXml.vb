@@ -4461,4 +4461,20 @@ End Module]]>.Value.Replace("~"c, FULLWIDTH_COL))
 
     End Sub
 
+    <WorkItem(969980)>
+    <Fact(Skip:="969980")>
+    Public Sub UnaliasedXmlImport_Local()
+        Dim source = "
+Imports <xmlns = ""http://xml"">
+"
+        CreateCompilationWithMscorlib({source}, compOptions:=OptionsDll).VerifyDiagnostics(
+            Diagnostic(ERRID.INF_UnusedImportStatement, "Imports <xmlns = ""http://xml"">").WithLocation(2, 1))
+    End Sub
+
+    <WorkItem(969980)>
+    <Fact(Skip:="969980")>
+    Public Sub UnaliasedXmlImport_Project()
+        CreateCompilationWithMscorlib({""}, compOptions:=OptionsDll.WithGlobalImports(GlobalImport.Parse("<xmlns = ""http://xml"">"))).VerifyDiagnostics()
+    End Sub
+
 End Class
