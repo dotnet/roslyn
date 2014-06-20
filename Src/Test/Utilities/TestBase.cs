@@ -1014,7 +1014,7 @@ namespace Roslyn.Test.Utilities
                     {
                         foundCompiler = "vbcscompiler.exe";
                     }
-                    basicCompilerExecutable = foundCompiler;
+                    compilerServerExecutable = foundCompiler;
                 }
                 return compilerServerExecutable;
             }
@@ -1027,13 +1027,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (msbuildExecutable == null)
                 {
-                    var foundCompiler = FindBinary("MSBuild.exe");
-
-                    if (string.IsNullOrEmpty(foundCompiler))
-                    {
-                        foundCompiler = "MSBuild.exe";
-                    }
-                    msbuildExecutable = foundCompiler;
+                    msbuildExecutable = Path.Combine(MSBuildDirectory, "MSBuild.exe");
                 }
                 return msbuildExecutable;
             }
