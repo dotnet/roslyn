@@ -2131,7 +2131,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     methodBodyDiagnosticBag,
                     cancellationToken)
 
-                DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, outputName, xmlDocStream, methodBodyDiagnosticBag, cancellationToken)
+
+                Dim assemblyName = FileNameUtilities.ChangeExtension(outputName, extension:=Nothing)
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, methodBodyDiagnosticBag, cancellationToken)
                 Me.ReportUnusedImports(Nothing, methodBodyDiagnosticBag, cancellationToken)
 
                 SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag)

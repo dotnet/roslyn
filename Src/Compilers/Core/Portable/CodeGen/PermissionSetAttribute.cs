@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public PermissionSetAttributeWithFileReference(Cci.ICustomAttribute sourceAttribute, string resolvedPermissionSetFilePath)
         {
-            Debug.Assert(!String.IsNullOrEmpty(resolvedPermissionSetFilePath));
-            Debug.Assert(PathUtilities.IsAbsolute(resolvedPermissionSetFilePath));
+            Debug.Assert(resolvedPermissionSetFilePath != null);
 
             this.sourceAttribute = sourceAttribute;
             this.resolvedPermissionSetFilePath = resolvedPermissionSetFilePath;

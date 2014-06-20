@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     string moduleName = MetadataReader.GetString(file.Name);
-                    if (!PathUtilities.IsFileName(moduleName))
+                    if (!MetadataHelpers.IsValidMetadataFileName(moduleName))
                     {
                         throw new BadImageFormatException(string.Format(CodeAnalysisResources.InvalidModuleName, this.Name, moduleName));
                     }

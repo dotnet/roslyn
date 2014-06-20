@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Throw
             End Try
 
-            Dim pdbName = PathUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb")
+            Dim pdbName = FileNameUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb")
 
 
             Dim diagnostics = DiagnosticBag.GetInstance()

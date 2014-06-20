@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
                 if (outputFileName != null)
                 {
                     // normalize file
-                    outputFileName = PathUtilities.RemoveTrailingSpacesAndDots(outputFileName);
+                    outputFileName = RemoveTrailingSpacesAndDots(outputFileName);
                 }
             }
 
@@ -133,6 +133,29 @@ namespace Microsoft.CodeAnalysis
             {
                 outputFileName = null;
             }
+        }
+
+        /// <summary>
+        /// Trims all '.' and whitespaces from the end of the path
+        /// </summary>
+        internal static string RemoveTrailingSpacesAndDots(string path)
+        {
+            if (path == null)
+            {
+                return path;
+            }
+
+            int length = path.Length;
+            for (int i = length - 1; i >= 0; i--)
+            {
+                char c = path[i];
+                if (!char.IsWhiteSpace(c) && c != '.')
+                {
+                    return i == (length - 1) ? path : path.Substring(0, i + 1);
+                }
+            }
+
+            return string.Empty;
         }
 
         internal void ParseOutputFile(
@@ -170,7 +193,7 @@ namespace Microsoft.CodeAnalysis
             string unquoted = RemoveAllQuotes(value);
             ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
             if (outputFileName == null ||
-                PathUtilities.RemoveExtension(outputFileName).Length == 0)
+                PathUtilities.ChangeExtension(outputFileName, extension: null).Length == 0)
             {
                 errors.Add(Diagnostic.Create(messageProvider, messageProvider.FTL_InputFileNameTooLong, invalidPath));
             }

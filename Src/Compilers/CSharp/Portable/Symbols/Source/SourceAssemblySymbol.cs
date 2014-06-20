@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)fileRef != null && (object)fileRef.FilePath != null)
                 {
-                    string fileName = PathUtilities.GetFileName(fileRef.FilePath);
+                    string fileName = FileNameUtilities.GetFileName(fileRef.FilePath);
                     string moduleName = modules[pair.Value].Name;
 
                     if (!string.Equals(fileName, moduleName, StringComparison.OrdinalIgnoreCase))

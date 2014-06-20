@@ -18,205 +18,29 @@ namespace Roslyn.Utilities
             DirectorySeparatorChar, AltDirectorySeparatorChar, VolumeSeparatorChar
         };
 
-        private static readonly char[] InvalidFileNameChars =
-        {
-            '\"', '<', '>', '|', '\0', (char)1, (char)2, (char)3, (char)4, (char)5, (char)6, (char)7,
-            (char)8, (char)9, (char)10, (char)11, (char)12, (char)13, (char)14, (char)15, (char)16,
-            (char)17, (char)18, (char)19, (char)20, (char)21, (char)22, (char)23, (char)24, (char)25,
-            (char)26, (char)27, (char)28, (char)29, (char)30, (char)31, ':', '*', '?', '\\', '/'
-        };
-
-        internal static bool IsValidFileName(string fileName)
-        {
-            return fileName.IndexOfAny(InvalidFileNameChars) < 0;
-        }
-
         internal static bool HasDirectorySeparators(string path)
         {
             return path.IndexOfAny(DirectorySeparators) >= 0;
         }
 
-        /// <summary>
-        /// Trims all '.' and whitespaces from the end of the path
-        /// </summary>
-        internal static string RemoveTrailingSpacesAndDots(string path)
-        {
-            if (path == null)
-            {
-                return path;
-            }
-
-            int length = path.Length;
-            for (int i = length - 1; i >= 0; i--)
-            {
-                char c = path[i];
-                if (!char.IsWhiteSpace(c) && c != '.')
-                {
-                    return i == (length - 1) ? path : path.Substring(0, i + 1);
-                }
-            }
-
-            return string.Empty;
-        }
-
-        /// <summary>
-        /// Returns the offset in <paramref name="path"/> where the dot that starts an extension is, or -1 if the path doesn't have an extension.
-        /// </summary>
-        /// <remarks>
-        /// Returns 0 for path ".foo".
-        /// Returns -1 for path "foo.".
-        /// </remarks>
-        private static int IndexOfExtension(string path)
-        {
-            if (path == null)
-            {
-                return -1;
-            }
-
-            int length = path.Length;
-            int i = length;
-
-            while (--i >= 0)
-            {
-                char c = path[i];
-                if (c == '.')
-                {
-                    if (i != length - 1)
-                    {
-                        return i;
-                    }
-
-                    return -1;
-                }
-
-                if (c == DirectorySeparatorChar || c == AltDirectorySeparatorChar || c == VolumeSeparatorChar)
-                {
-                    break;
-                }
-            }
-
-            return -1;
-        }
-
-        /// <summary>
-        /// Returns an extension of the specified path string.
-        /// </summary>
-        /// <remarks>
-        /// The same functionality as <see cref="M:System.IO.Path.GetExtension(string)"/> but doesn't throw an exception
-        /// if there are invalid characters in the path.
-        /// </remarks>
         internal static string GetExtension(string path)
         {
-            if (path == null)
-            {
-                return null;
-            }
-
-            int index = IndexOfExtension(path);
-            return (index >= 0) ? path.Substring(index) : string.Empty;
+            return FileNameUtilities.GetExtension(path);
         }
 
-        /// <summary>
-        /// Removes extension from path.
-        /// </summary>
-        /// <remarks>
-        /// Returns "foo" for path "foo.".
-        /// Returns "foo.." for path "foo...".
-        /// </remarks>
-        internal static string RemoveExtension(string path)
-        {
-            if (path == null)
-            {
-                return null;
-            }
-
-            int index = IndexOfExtension(path);
-            if (index >= 0)
-            {
-                return path.Substring(0, index);
-            }
-
-            // trim last ".", if present
-            if (path.Length > 0 && path[path.Length - 1] == '.')
-            {
-                return path.Substring(0, path.Length - 1);
-            }
-
-            return path;
-        }
-
-        /// <summary>
-        /// Returns path with the extenion changed to <paramref name="extension"/>.
-        /// </summary>
-        /// <returns>
-        /// Equivalent of <see cref="M:System.IO.Path.ChangeExtension"/>
-        /// 
-        /// If <paramref name="path"/> is null, returns null. 
-        /// If path does not end with an extension, the new extension is appended to the path.
-        /// If extension is null, equivalent to <see cref="RemoveExtension"/>.
-        /// </returns>
         internal static string ChangeExtension(string path, string extension)
         {
-            if (path == null)
-            {
-                return null;
-            }
-
-            var pathWithoutExtension = RemoveExtension(path);
-            if (extension == null || path.Length == 0)
-            {
-                return pathWithoutExtension;
-            }
-
-            if (extension.Length == 0 || extension[0] != '.')
-            {
-                return pathWithoutExtension + "." + extension;
-            }
-
-            return pathWithoutExtension + extension;
+            return FileNameUtilities.ChangeExtension(path, extension);
         }
 
-        /// <summary>
-        /// Returns the position in given path where the file name starts.
-        /// </summary>
-        /// <returns>-1 if path is null.</returns>
-        private static int IndexOfFileName(string path)
+        internal static string RemoveExtension(string path)
         {
-            if (path == null)
-            {
-                return -1;
-            }
-
-            for (int i = path.Length - 1; i >= 0; i--)
-            {
-                char ch = path[i];
-                if (ch == DirectorySeparatorChar || ch == AltDirectorySeparatorChar || ch == VolumeSeparatorChar)
-                {
-                    return i + 1;
-                }
-            }
-
-            return 0;
+            return FileNameUtilities.ChangeExtension(path, extension: null);
         }
 
-        /// <summary>
-        /// Returns true if the string represents an unqualified file name.
-        /// </summary>
-        /// <param name="path">Path.</param>
-        /// <returns>True if <paramref name="path"/> is a simple file name, false if it is null or includes a directory specification.</returns>
-        internal static bool IsFileName(string path)
-        {
-            return IndexOfFileName(path) == 0;
-        }
-
-        /// <summary>
-        /// Get file name from path.
-        /// </summary>
-        /// <remarks>Unlike <see cref="M:System.IO.Path.GetFileName"/> doesn't check for invalid path characters.</remarks>
         internal static string GetFileName(string path)
         {
-            int fileNameStart = IndexOfFileName(path);
-            return (fileNameStart <= 0) ? path : path.Substring(fileNameStart);
+            return FileNameUtilities.GetFileName(path);
         }
 
         /// <summary>
@@ -231,7 +55,7 @@ namespace Roslyn.Utilities
         /// <returns>Prefix of path that represents a directory. </returns>
         internal static string GetDirectoryName(string path)
         {
-            int fileNameStart = IndexOfFileName(path);
+            int fileNameStart = FileNameUtilities.IndexOfFileName(path);
             if (fileNameStart < 0)
             {
                 return null;
@@ -501,7 +325,7 @@ namespace Roslyn.Utilities
         {
             Debug.Assert(assemblyDisplayNameOrPath != null);
 
-            string extension = GetExtension(assemblyDisplayNameOrPath);
+            string extension = FileNameUtilities.GetExtension(assemblyDisplayNameOrPath);
             return string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(extension, ".exe", StringComparison.OrdinalIgnoreCase)
                 || assemblyDisplayNameOrPath.IndexOf(DirectorySeparatorChar) != -1

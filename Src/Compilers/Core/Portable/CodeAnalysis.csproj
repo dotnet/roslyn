@@ -222,7 +222,6 @@
     <Compile Include="InternalUtilities\ArrayExtensions.cs" />
     <Compile Include="InternalUtilities\BitArithmeticUtilities.cs" />
     <Compile Include="InternalUtilities\CompilerFatalError.cs" />
-    <Compile Include="InternalUtilities\CompilerPathUtilities.cs" />
     <Compile Include="InternalUtilities\ComStreamWrapper.cs" />
     <Compile Include="InternalUtilities\ConcurrentDictionaryExtensions.cs" />
     <Compile Include="InternalUtilities\ConcurrentLruCache.cs" />
@@ -235,6 +234,7 @@
     <Compile Include="InternalUtilities\EnumField.cs" />
     <Compile Include="InternalUtilities\EnumUtilties.cs" />
     <Compile Include="InternalUtilities\ExceptionUtilities.cs" />
+    <Compile Include="InternalUtilities\FileNameUtilities.cs" />
     <Compile Include="InternalUtilities\HashAlgorithms.cs" />
     <Compile Include="InternalUtilities\Hash.cs" />
     <Compile Include="InternalUtilities\ImmutableArrayExtensions.cs" />
@@ -246,7 +246,6 @@
     <Compile Include="InternalUtilities\ObjectPool`1.cs" />
     <Compile Include="InternalUtilities\OneOrMany.cs" />
     <Compile Include="InternalUtilities\PathKind.cs" />
-    <Compile Include="InternalUtilities\PathUtilities.cs" />
     <Compile Include="InternalUtilities\ReaderWriterLockSlimExtensions.cs" />
     <Compile Include="InternalUtilities\ReadOnlyUnmanagedMemoryStream.cs" />
     <Compile Include="InternalUtilities\ReferenceEqualityComparer.cs" />

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             this.sourceAssembly = sourceAssembly;
             this.additionalTypes = additionalTypes.NullToEmpty();
-            this.metadataName = outputName == null ? sourceAssembly.MetadataName : PathUtilities.RemoveExtension(outputName);
+            this.metadataName = outputName == null ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(outputName, extension: null);
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }

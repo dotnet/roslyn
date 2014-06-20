@@ -69,7 +69,10 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\EnumUtilties.cs">
       <Link>InternalUtilities\EnumUtilties.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PathUtilities.cs">
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs">
+      <Link>InternalUtilities\PathUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Desktop\PathUtilities.cs">
       <Link>InternalUtilities\PathUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">

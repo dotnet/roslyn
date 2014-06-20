@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             new ResourceDescription("res", "file", data, isPublic: true);
             new ResourceDescription("re/s", "file", data, isPublic: true);
             new ResourceDescription("re\\s", "file", data, isPublic: true);
+            new ResourceDescription("re\\s", "fil*<>|e", data, isPublic: true);
 
             // null:
             Assert.Throws<ArgumentNullException>(() => new ResourceDescription(null, "file", data, isPublic: true));
@@ -39,10 +40,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => new ResourceDescription("x", "\0", data, isPublic: true));
             Assert.Throws<ArgumentException>(() => new ResourceDescription("", "x", data, isPublic: true));
             Assert.Throws<ArgumentException>(() => new ResourceDescription("xxx\0xxxx", "", data, isPublic: true));
+            Assert.Throws<ArgumentException>(() => new ResourceDescription("xxx\uD800asdas", "", data, isPublic: true));
+            Assert.Throws<ArgumentException>(() => new ResourceDescription("xxx", "xxx\uD800asdas", data, isPublic: true));
 
             // Now checked during emit.
-            Assert.DoesNotThrow(() => new ResourceDescription(new String('e', 1024), data, true));
-            Assert.DoesNotThrow(() => new ResourceDescription("x", new String('e', 260), data, true));
+            Assert.DoesNotThrow(() => new ResourceDescription(new string('e', 1024), data, true));
+            Assert.DoesNotThrow(() => new ResourceDescription("x", new string('e', 260), data, true));
         }
     }
 }

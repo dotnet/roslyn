@@ -52,14 +52,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Traverses the symbol table processing XML documentation comments and optionally writing them to a provided stream.
             ''' </summary>
             ''' <param name="compilation">Compilation that owns the symbol table.</param>
-            ''' <param name="assemblyOutputName">Assembly/module name override, if present.</param>
-            ''' <param name="xmlDocStream">Stream to which XML will be written, if non-null.</param>
+            ''' <param name="assemblyName">Assembly name override, if specified. Otherwise the <see cref="ISymbol.Name"/> of the source assembly is used.</param>
+            ''' <param name="xmlDocStream">Stream to which XML will be written, if specified.</param>
             ''' <param name="diagnostics">Will be supplemented with documentation comment diagnostics.</param>
             ''' <param name="cancellationToken">To stop traversing the symbol table early.</param>
             ''' <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
             ''' <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and filterSpanWithinTree is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
             Friend Shared Sub WriteDocumentationCommentXml(compilation As VisualBasicCompilation,
-                                                           assemblyOutputName As String,
+                                                           assemblyName As String,
                                                            xmlDocStream As Stream,
                                                            diagnostics As DiagnosticBag,
                                                            cancellationToken As CancellationToken,
@@ -69,10 +69,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Using Logger.LogBlock(FunctionId.VisualBasic_DocumentationCommentCompiler_WriteDocumentationCommentXml,
                                       message:=compilation.AssemblyName, cancellationToken:=cancellationToken)
 
-                    Dim assemblyName = If(assemblyOutputName Is Nothing,
-                                          compilation.SourceAssembly.Name,
-                                          PathUtilities.RemoveExtension(assemblyOutputName))
-
                     Dim writer As StreamWriter = Nothing
                     If xmlDocStream IsNot Nothing AndAlso xmlDocStream.CanWrite Then
                         writer = New StreamWriter(xmlDocStream, New UTF8Encoding(True, False), bufferSize:=&H400, leaveOpen:=True)
@@ -80,8 +76,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Using writer
                         ' TODO: get preferred culture from compilation(?)
-                        Dim compiler As New DocumentationCommentCompiler(assemblyName, compilation, writer, True, False,
+                        Dim compiler As New DocumentationCommentCompiler(If(assemblyName, compilation.SourceAssembly.Name), compilation, writer, True, False,
                                                                          diagnostics, filterTree, filterSpanWithinTree, cancellationToken, preferredCulture:=Nothing)
+
                         compiler.Visit(compilation.SourceAssembly.GlobalNamespace)
                         Debug.Assert(compiler._writer.IndentDepth = 0)
                     End Using

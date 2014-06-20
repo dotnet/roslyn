@@ -2381,7 +2381,9 @@ namespace Microsoft.CodeAnalysis.CSharp
           
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             DiagnosticBag xmlDiagnostics = DiagnosticBag.GetInstance();
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, outputName, xmlDocStream, xmlDiagnostics, cancellationToken);
+
+            string assemblyName = FileNameUtilities.ChangeExtension(outputName, extension: null);
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
             if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics))
             {

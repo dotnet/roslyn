@@ -1200,7 +1200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim fileRef = TryCast(pair.Key, PortableExecutableReference)
 
                 If fileRef IsNot Nothing AndAlso fileRef.FilePath IsNot Nothing Then
-                    Dim fileName As String = PathUtilities.GetFileName(fileRef.FilePath)
+                    Dim fileName As String = FileNameUtilities.GetFileName(fileRef.FilePath)
                     Dim moduleName As String = m_Modules(pair.Value).Name
 
                     If Not String.Equals(fileName, moduleName, StringComparison.OrdinalIgnoreCase) Then

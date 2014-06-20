@@ -73,20 +73,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// a provided stream.
         /// </summary>
         /// <param name="compilation">Compilation that owns the symbol table.</param>
-        /// <param name="assemblyOutputName">Assembly/module name override, if present.</param>
-        /// <param name="xmlDocStream">Stream to which XML will be written, if non-null.</param>
+        /// <param name="assemblyName">Assembly name override, if specified. Otherwise the <see cref="ISymbol.Name"/> of the source assembly is used.</param>
+        /// <param name="xmlDocStream">Stream to which XML will be written, if specified.</param>
         /// <param name="diagnostics">Will be supplemented with documentation comment diagnostics.</param>
         /// <param name="cancellationToken">To stop traversing the symbol table early.</param>
         /// <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and filterSpanWithinTree is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string assemblyOutputName, Stream xmlDocStream, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
+        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string assemblyName, Stream xmlDocStream, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
         {
             using (Logger.LogBlock(FunctionId.CSharp_DocumentationCommentCompiler_WriteDocumentationCommentXml, message: compilation.AssemblyName, cancellationToken: cancellationToken))
             {
-                var assemblyName = assemblyOutputName == null
-                    ? compilation.SourceAssembly.Name
-                    : PathUtilities.RemoveExtension(assemblyOutputName);
-
                 StreamWriter writer = null;
                 if (xmlDocStream != null && xmlDocStream.CanWrite)
                 {
@@ -99,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 using (writer)
                 {
-                    var compiler = new DocumentationCommentCompiler(assemblyName, compilation, writer, filterTree, filterSpanWithinTree,
+                    var compiler = new DocumentationCommentCompiler(assemblyName ?? compilation.SourceAssembly.Name, compilation, writer, filterTree, filterSpanWithinTree,
                         processIncludes: true, isForSingleSymbol: false, diagnostics: diagnostics, cancellationToken: cancellationToken);
                     compiler.Visit(compilation.SourceAssembly.GlobalNamespace);
                     Debug.Assert(compiler.indentDepth == 0);

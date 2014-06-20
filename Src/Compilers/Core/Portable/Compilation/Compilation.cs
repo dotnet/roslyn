@@ -1301,7 +1301,7 @@ namespace Microsoft.CodeAnalysis
         /// Emit the IL for the compiled source code into the specified stream.
         /// </summary>
         /// <param name="peStream">Stream to which the compilation will be written.</param>
-        /// <param name="outputName">Name of the compilation: file name and extension.  Null to use the existing output name.
+        /// <param name="outputName">Name of the compilation: file name and extension.  Null to use the compilation name.
         /// CAUTION: If this is set to a (non-null) value other than the existing compilation output name, then internals-visible-to
         /// and assembly references may not work as expected.  In particular, things that were visible at bind time, based on the 
         /// name of the compilation, may not be visible at runtime and vice-versa.
@@ -1551,7 +1551,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (pdbStream != null)
                     {
-                        pdbWriter = new Cci.PdbWriter(pdbFileName ?? PathUtilities.ChangeExtension(SourceModule.Name, "pdb"), pdbStream, testSymWriterFactory);
+                        pdbWriter = new Cci.PdbWriter(pdbFileName ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"), pdbStream, testSymWriterFactory);
                     }
 
                     // Signing can only be done to on-disk files. This is a limitation of the CLR APIs which we use 

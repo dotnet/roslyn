@@ -74,6 +74,7 @@
     <Compile Include="CommandLine\RuleSet\RuleSetInclude.cs" />
     <Compile Include="CommandLine\RuleSet\RuleSetProcessor.cs" />
     <Compile Include="CommandLine\TouchedFileLogger.cs" />
+    <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="FileSystemExtensions.cs" />
     <Compile Include="DesktopAssemblyIdentityComparer.cs" />
     <Compile Include="DesktopAssemblyIdentityComparer.Fx.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="MetadataFileReferenceProvider.cs" />
     <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="ModuleMetadata.FromFile.cs" />
+    <Compile Include="PathUtilities.cs" />
     <Compile Include="SerializableCompilationOptions.cs" />
     <Compile Include="SerializableParseOptions.cs" />
     <Compile Include="SerializationInfoExtensions.cs" />

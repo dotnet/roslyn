@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 throw;
             }
 
-            var pdbName = PathUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb");
+            var pdbName = FileNameUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb");
 
 
             var diagnostics = DiagnosticBag.GetInstance();

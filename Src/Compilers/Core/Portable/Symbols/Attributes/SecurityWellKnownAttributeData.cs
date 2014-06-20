@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis
         public void SetPathForPermissionSetAttributeFixup(int attributeIndex, string resolvedFilePath, int totalSourceAttributes)
         {
             Debug.Assert(attributeIndex >= 0 && attributeIndex < totalSourceAttributes);
-            Debug.Assert(!String.IsNullOrEmpty(resolvedFilePath));
-            Debug.Assert(PathUtilities.IsAbsolute(resolvedFilePath));
+            Debug.Assert(resolvedFilePath != null);
 
             if (lazyPathsForPermissionSetFixup == null)
             {

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentNullException("resourceName");
                 }
 
-                if (resourceName.Length == 0 || resourceName.IndexOf('\0') >= 0)
+                if (!MetadataHelpers.IsValidMetadataIdentifier(resourceName))
                 {
                     throw new ArgumentException(CodeAnalysisResources.EmptyOrInvalidResourceName, "resourceName");
                 }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
                         throw new ArgumentNullException("fileName");
                     }
 
-                    if (fileName.Length == 0 || !PathUtilities.IsValidFileName(fileName))
+                    if (!MetadataHelpers.IsValidMetadataFileName(fileName))
                     {
                         throw new ArgumentException(CodeAnalysisResources.EmptyOrInvalidFileName, "fileName");
                     }
