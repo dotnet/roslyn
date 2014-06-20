@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DirectlyAwaitingTaskDescription" xml:space="preserve">
+    <value>Do not directly await a Task</value>
+  </data>
+  <data name="DirectlyAwaitingTaskMessage" xml:space="preserve">
+    <value>Do not directly await a Task without calling ConfigureAwait</value>
+  </data>
   <data name="UseEmptyEnumerableDescription" xml:space="preserve">
     <value>Use SpecializedCollections.EmptyEnumerable&lt;T&gt;()</value>
   </data>

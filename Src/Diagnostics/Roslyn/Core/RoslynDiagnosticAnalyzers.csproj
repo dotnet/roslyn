@@ -53,6 +53,9 @@
   <ItemGroup />
   <ItemGroup>
     <Compile Include="Performance\SpecializedEnumerableCreationAnalyzer.cs" />
+    <Compile Include="Reliability\DirectlyAwaitingTaskAnalyzer.cs" />
+    <Compile Include="Reliability\DirectlyAwaitingTaskAnalyzerRule.cs" />
+    <Compile Include="Reliability\DirectlyAwaitingTaskFix.cs" />
     <Compile Include="RoslynDiagnosticsResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
