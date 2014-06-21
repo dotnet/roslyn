@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         public static readonly EtwLogger Instance = new EtwLogger();
         private readonly Func<FeatureId, FunctionId, bool> loggingChecker;
+        private readonly RoslynEventSource source = RoslynEventSource.Instance;
 
         // Use an object pool since we may be logging up to 1-10k events/second
         private readonly ObjectPool<RoslynEtwLogBlock> etwBlocksPool;
@@ -41,18 +42,18 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public bool IsEnabled(FeatureId featureId, FunctionId functionId)
         {
-            return RoslynEventSource.Instance.IsEnabled() && (this.loggingChecker == null || this.loggingChecker(featureId, functionId));
+            return source.IsEnabled() && (this.loggingChecker == null || this.loggingChecker(featureId, functionId));
         }
 
         public bool IsVerbose()
         {
             // "-1" makes this to work with any keyword
-            return RoslynEventSource.Instance.IsEnabled(EventLevel.Verbose, (EventKeywords)(-1));
+            return source.IsEnabled(EventLevel.Verbose, (EventKeywords)(-1));
         }
 
         public void Log(FeatureId featureId, FunctionId functionId, string message)
         {
-            RoslynEventSource.Instance.Log(message, featureId, functionId);
+            source.Log(message, featureId, functionId);
         }
 
         public IDisposable LogBlock(FeatureId featureId, FunctionId functionId, string message, int blockId, CancellationToken cancellationToken)
