@@ -1585,11 +1585,11 @@
     <Field Name="CaseOrDefaultKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="CaseKeyword"/>
       <Kind Name="DefaultKeyword"/>
-      <ProprtyComment>
+      <PropertyComment>
         <summary>
           Gets a SyntaxToken that represents the case or default keywords if any exists.
         </summary>
-      </ProprtyComment>
+      </PropertyComment>
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax" Optional="true">
       <PropertyComment>
@@ -1863,7 +1863,7 @@
       </summary>
     </TypeComment>
     <FactoryComment>
-      <summmary>Creates an IfStatementSyntax node</summmary>
+      <summary>Creates an IfStatementSyntax node</summary>
     </FactoryComment>
   </Node>
   <Node Name="ElseClauseSyntax" Base="CSharpSyntaxNode">
@@ -2102,7 +2102,7 @@
       </summary>
     </TypeComment>
     <FactoryComment>
-      <summmary>Creates an ExternAliasDirectiveSyntax node</summmary>
+      <summary>Creates an ExternAliasDirectiveSyntax node</summary>
     </FactoryComment>
   </Node>
   <Node Name="UsingDirectiveSyntax" Base="CSharpSyntaxNode">
