@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         public static readonly EtwLogger Instance = new EtwLogger();
         private readonly Func<FeatureId, FunctionId, bool> loggingChecker;
+
+        // Due to ETW specifics, RoslynEventSource.Instance needs to be initialized during EtwLogger construction 
+        // so that we can enable the listeners synchronously before any events are logged.
         private readonly RoslynEventSource source = RoslynEventSource.Instance;
 
         // Use an object pool since we may be logging up to 1-10k events/second
