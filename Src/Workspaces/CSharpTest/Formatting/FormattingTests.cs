@@ -5282,6 +5282,46 @@ class Program
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
+        [WorkItem(962416, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void TestCheckedAndUncheckedStatement()
+        {
+            var code = @"
+class Program
+{
+    public void Method()
+    {
+        checked
+            {
+        // foo
+}
+            unchecked 
+                    {
+            }
+    }
+}";
+
+            var expected = @"
+class Program
+{
+    public void Method()
+    {
+        checked {
+            // foo
+        }
+        unchecked {
+        }
+    }
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { CSharpFormattingOptions.OpenBracesInNewLineForControl, false }
+            };
+
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
         [WorkItem(953535, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ConditionalMemberAccess()
