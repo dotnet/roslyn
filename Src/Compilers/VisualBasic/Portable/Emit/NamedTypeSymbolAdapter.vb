@@ -294,6 +294,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                sourceNamedType As SourceNamedTypeSymbol,
                                                moduleBeingBuilt As PEModuleBuilder)
 
+            Debug.Assert(implementingMethod.PartialDefinitionPart Is Nothing) ' must be definition
+
             For Each implemented In implementingMethod.ExplicitInterfaceImplementations
                 ' If signature doesn't match, we have created a stub with matching signature that delegates to the implementingMethod.
                 ' The stub will implement the implemented method in metadata.
@@ -670,7 +672,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each member In Me.GetMembersForCci()
                 If member.Kind = SymbolKind.Method Then
                     Dim method As MethodSymbol = DirectCast(member, MethodSymbol)
-                    Dim sourceAssembly = DirectCast(Me.ContainingAssembly, SourceAssemblySymbol)
 
                     ' Don't emit:
                     '  (a) Partial methods without an implementation part

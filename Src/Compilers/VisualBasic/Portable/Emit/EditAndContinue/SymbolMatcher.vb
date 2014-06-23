@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Private ReadOnly anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             Private ReadOnly sourceAssembly As SourceAssemblySymbol
             Private ReadOnly otherAssembly As AssemblySymbol
-            Private ReadOnly comparer As MatchSymbols.SymbolComparer
+            Private ReadOnly comparer As SymbolComparer
             Private ReadOnly matches As ConcurrentDictionary(Of Symbol, Symbol)
 
             ' A cache of members per type, populated when the first member for a given
@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Me.anonymousTypeMap = anonymousTypeMap
                 Me.sourceAssembly = sourceAssembly
                 Me.otherAssembly = otherAssembly
-                Me.comparer = New MatchSymbols.SymbolComparer(Me)
+                Me.comparer = New SymbolComparer(Me)
                 Me.matches = New ConcurrentDictionary(Of Symbol, Symbol)()
                 Me.typeMembers = New ConcurrentDictionary(Of NamedTypeSymbol, IReadOnlyDictionary(Of String, ImmutableArray(Of Symbol)))()
             End Sub
@@ -283,17 +283,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Public Overrides Function VisitEvent(symbol As EventSymbol) As Symbol
-                Return Me.VisitNamedTypeMember(Of EventSymbol)(symbol, AddressOf Me.AreEventsEqual)
+                Return Me.VisitNamedTypeMember(symbol, AddressOf Me.AreEventsEqual)
             End Function
 
             Public Overrides Function VisitField(symbol As FieldSymbol) As Symbol
-                Return Me.VisitNamedTypeMember(Of FieldSymbol)(symbol, AddressOf Me.AreFieldsEqual)
+                Return Me.VisitNamedTypeMember(symbol, AddressOf Me.AreFieldsEqual)
             End Function
 
             Public Overrides Function VisitMethod(symbol As MethodSymbol) As Symbol
                 ' Not expecting constructed method.
                 Debug.Assert(symbol.IsDefinition)
-                Return Me.VisitNamedTypeMember(Of MethodSymbol)(symbol, AddressOf Me.AreMethodsEqual)
+                Return Me.VisitNamedTypeMember(symbol, AddressOf Me.AreMethodsEqual)
             End Function
 
             Public Overrides Function VisitModule([module] As ModuleSymbol) As Symbol
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Throw ExceptionUtilities.UnexpectedValue(kind)
                 End If
 
-                Return MatchSymbols.VisitNamespaceMembers(Of NamespaceSymbol)(DirectCast(otherContainer, NamespaceSymbol), [namespace], Function(s As NamespaceSymbol, o As NamespaceSymbol) True)
+                Return VisitNamespaceMembers(DirectCast(otherContainer, NamespaceSymbol), [namespace], Function(s As NamespaceSymbol, o As NamespaceSymbol) True)
             End Function
 
             Public Overrides Function VisitNamedType(type As NamedTypeSymbol) As Symbol
@@ -356,11 +356,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         ElseIf type.IsAnonymousType Then
                             Return Me.Visit(AnonymousTypeManager.TranslateAnonymousTypeSymbol(type))
                         Else
-                            Return MatchSymbols.VisitNamespaceMembers(Of NamedTypeSymbol)(DirectCast(otherContainer, NamespaceSymbol), type, AddressOf Me.AreNamedTypesEqual)
+                            Return VisitNamespaceMembers(DirectCast(otherContainer, NamespaceSymbol), type, AddressOf Me.AreNamedTypesEqual)
                         End If
 
                     Case SymbolKind.NamedType
-                        Return Me.VisitNamedTypeMembers(Of NamedTypeSymbol)(DirectCast(otherContainer, NamedTypeSymbol), type, AddressOf Me.AreNamedTypesEqual)
+                        Return Me.VisitNamedTypeMembers(DirectCast(otherContainer, NamedTypeSymbol), type, AddressOf Me.AreNamedTypesEqual)
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(kind)
@@ -372,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Public Overrides Function VisitProperty(symbol As PropertySymbol) As Symbol
-                Return Me.VisitNamedTypeMember(Of PropertySymbol)(symbol, AddressOf Me.ArePropertiesEqual)
+                Return Me.VisitNamedTypeMember(symbol, AddressOf Me.ArePropertiesEqual)
             End Function
 
             Public Overrides Function VisitTypeParameter(symbol As TypeParameterSymbol) As Symbol
@@ -433,12 +433,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If otherType Is Nothing Then
                     Return Nothing
                 End If
-                Return Me.VisitNamedTypeMembers(Of T)(otherType, member, predicate)
+                Return Me.VisitNamedTypeMembers(otherType, member, predicate)
             End Function
 
             Private Function VisitNamedTypeMembers(Of T As Symbol)(otherType As NamedTypeSymbol, member As T, predicate As Func(Of T, T, Boolean)) As T
                 Dim otherMembers As ImmutableArray(Of Symbol) = Nothing
-                If Me.typeMembers.GetOrAdd(otherType, AddressOf MatchSymbols.GetTypeMembers).TryGetValue(member.Name, otherMembers) Then
+                If Me.typeMembers.GetOrAdd(otherType, AddressOf GetTypeMembers).TryGetValue(member.Name, otherMembers) Then
                     For Each otherMember In otherMembers
                         If member.Kind = otherMember.Kind Then
                             Dim other As T = DirectCast(otherMember, T)
@@ -473,8 +473,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Debug.Assert(method.IsDefinition)
                 Debug.Assert(other.IsDefinition)
 
-                method = MatchSymbols.SubstituteTypeParameters(method)
-                other = MatchSymbols.SubstituteTypeParameters(other)
+                method = SubstituteTypeParameters(method)
+                other = SubstituteTypeParameters(other)
 
                 Return Me.comparer.Equals(method.ReturnType, other.ReturnType) AndAlso
                     method.Parameters.SequenceEqual(other.Parameters, AddressOf Me.AreParametersEqual) AndAlso

@@ -511,6 +511,34 @@ class Program
 
         }
 
+        [WorkItem(529262)]
+        [Fact]
+        public void PartialMethod_ParameterAndTypeParameterNames()
+        {
+            var source =
+@"using System;
+using System.Reflection;
+partial class C
+{
+    static partial void M<T, U>(T x, U y);
+    static partial void M<T1, T2>(T1 y, T2 x)
+    {
+        Console.Write(""{0}, {1} | "", x, y);
+        var m = typeof(C).GetMethod(""M"", BindingFlags.Static | BindingFlags.NonPublic);
+        var tp = m.GetGenericArguments();
+        Console.Write(""{0}, {1} | "", tp[0].Name, tp[1].Name);
+        var p = m.GetParameters();
+        Console.Write(""{0}, {1}"", p[0].Name, p[1].Name);
+    }
+    static void Main()
+    {
+        M(x: 1, y: 2);
+    }
+}";
+            // Dev12 would emit "2, 1 | T1, T2 | x, y".
+            CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug, expectedOutput: "2, 1 | T, U | x, y");
+        }
+
         [Fact, WorkItem(529279, "DevDiv")]
         public void NewCS0029_ImplicitlyUnwrapGenericNullable()
         {

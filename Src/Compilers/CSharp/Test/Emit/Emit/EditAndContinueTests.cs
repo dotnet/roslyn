@@ -133,6 +133,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [WorkItem(962219)]
+        [Fact]
+        public void PartialMethod()
+        {
+            var source =
+@"partial class C
+{
+    static partial void M1();
+    static partial void M2();
+    static partial void M3();
+    static partial void M1() { }
+    static partial void M2() { }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
+            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
+
+            var bytes0 = compilation0.EmitToArray(debug: true);
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var reader0 = md0.MetadataReader;
+                CheckNames(reader0, reader0.GetMethodDefNames(), "M1", "M2", ".ctor");
+
+                var method0 = compilation0.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
+                var method1 = compilation1.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
+                var generation0 = EmitBaseline.CreateInitialBaseline(
+                    md0,
+                    EmptyLocalsProvider);
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
+
+                var methods = diff1.TestData.Methods;
+                Assert.Equal(methods.Count, 1);
+                Assert.True(methods.ContainsKey("C.M2()"));
+
+               using (var md1 = diff1.GetMetadata())
+                {
+                    var reader1 = md1.Reader;
+                    var readers = new[] { reader0, reader1 };
+                    EncValidation.VerifyModuleMvid(1, reader0, reader1);
+                    CheckNames(readers, reader1.GetMethodDefNames(), "M2");
+                    CheckEncLog(reader1,
+                        Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                    CheckEncMap(reader1,
+                        Handle(4, TableIndex.TypeRef),
+                        Handle(2, TableIndex.MethodDef),
+                        Handle(2, TableIndex.AssemblyRef));
+                }
+            }
+        }
+
         /// <summary>
         /// Add a method that requires entries in the ParameterDefs table.
         /// Specifically, normal parameters or return types with attributes.

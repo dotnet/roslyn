@@ -62,8 +62,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) ' Implements IReference.Dispatch
-            Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(visitor.Context.Module, PEModuleBuilder)
-
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
             If Not Me.IsDefinition Then
@@ -75,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     visitor.Visit(DirectCast(Me, Cci.ISpecializedMethodReference))
                 End If
             Else
+                Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(visitor.Context.Module, PEModuleBuilder)
                 If Me.ContainingModule = moduleBeingBuilt.SourceModule Then
                     Debug.Assert((DirectCast(Me, Cci.IMethodReference)).GetResolvedMethod(visitor.Context) IsNot Nothing)
                     visitor.Visit(DirectCast(Me, Cci.IMethodDefinition))
@@ -124,7 +123,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Can't be generic instantiation
             ' must be declared in the module we are building
             If Me.IsDefinition AndAlso
-               Me.ContainingModule = moduleBeingBuilt.SourceModule Then
+                Me.ContainingModule = moduleBeingBuilt.SourceModule Then
+                Debug.Assert(Me.PartialDefinitionPart Is Nothing) ' must be definition
                 Return Me
             End If
 

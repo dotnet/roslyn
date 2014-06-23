@@ -615,8 +615,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal Cci.IMethodBody GetMethodBody(TMethodSymbol methodSymbol)
         {
-            Debug.Assert(((IMethodSymbol)methodSymbol).ContainingModule == this.SourceModule &&
-                ((IMethodSymbol)methodSymbol).IsDefinition);
+            Debug.Assert(((IMethodSymbol)methodSymbol).ContainingModule == this.SourceModule);
+            Debug.Assert(((IMethodSymbol)methodSymbol).IsDefinition);
+            Debug.Assert(((IMethodSymbol)methodSymbol).PartialDefinitionPart == null); // Must be definition.
 
             Cci.IMethodBody body;
 
@@ -630,8 +631,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public void SetMethodBody(TMethodSymbol methodSymbol, Cci.IMethodBody body)
         {
-            Debug.Assert(((IMethodSymbol)methodSymbol).ContainingModule == this.SourceModule &&
-                ((IMethodSymbol)methodSymbol).IsDefinition);
+            Debug.Assert(((IMethodSymbol)methodSymbol).ContainingModule == this.SourceModule);
+            Debug.Assert(((IMethodSymbol)methodSymbol).IsDefinition);
+            Debug.Assert(((IMethodSymbol)methodSymbol).PartialDefinitionPart == null); // Must be definition.
             Debug.Assert(body == null || (object)methodSymbol == body.MethodDefinition);
 
             methodBodyMap.Add(methodSymbol, body);

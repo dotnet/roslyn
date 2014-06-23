@@ -215,28 +215,23 @@ End Module
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Imports System        
-
+Imports System
+Imports System.Reflection
 Class C
-    Partial Private Sub S(A As Integer)
+    Partial Private Shared Sub M(Of T, U)(X As T, Y As U)
     End Sub
-
-    Private Sub s(a As Integer)
-        Dim method = GetType(C).GetMethod("S", Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic)
+    Private Shared Sub m(Of t, u)(x As t, y As u)
+        Dim method = GetType(C).GetMethod("M", BindingFlags.Static Or BindingFlags.NonPublic)
         Console.Write(method.ToString())
-        Console.Write("|")
-        Dim param = method.GetParameters()(0)
-        Console.Write(param.ToString())
+        Dim params = method.GetParameters()
+        Console.Write(" | {0}, {1}", params(0), params(1))
     End Sub
-
     Shared Sub Main(args As String())
-        Dim a As New C
-        a.S(1)
+        M(1, 2)
     End Sub
 End Class
-
     </file>
-</compilation>, expectedOutput:="Void S(Int32)|Int32 A") 'Dev10 would emit "Void s(Int32)|Int32 a"
+</compilation>, expectedOutput:="Void M[T,U](T, U) | T X, U Y") 'Dev10 would emit "Void m[t,u](t, u) | t x, u y"
         End Sub
 
         <WorkItem(529261, "DevDiv")>

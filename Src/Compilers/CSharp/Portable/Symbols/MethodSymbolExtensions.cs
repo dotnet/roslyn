@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -15,18 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsParams(this MethodSymbol method)
         {
             return method.ParameterCount != 0 && method.Parameters[method.ParameterCount - 1].IsParams;
-        }
-
-        public static bool IsPartial(this MethodSymbol method)
-        {
-            var sms = method as SourceMethodSymbol;
-            return (object)sms != null && sms.IsPartial;
-        }
-
-        public static SourceMemberMethodSymbol PartialImplementation(this MethodSymbol method)
-        {
-            var sms = method as SourceMemberMethodSymbol;
-            return (object)sms != null ? sms.SourcePartialImplementation : null;
         }
 
         /// <summary>

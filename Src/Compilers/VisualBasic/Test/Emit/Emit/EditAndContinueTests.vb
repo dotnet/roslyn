@@ -20,6 +20,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EditAndContinueTests
         Inherits BasicTestBase
 
+        <WorkItem(962219)>
+        <Fact>
+        Public Sub PartialMethod()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Partial Class C
+    Private Shared Partial Sub M1()
+    End Sub
+    Private Shared Partial Sub M2()
+    End Sub
+    Private Shared Partial Sub M3()
+    End Sub
+    Private Shared Sub M1()
+    End Sub
+    Private Shared Sub M2()
+    End Sub
+End Class
+</file>
+</compilation>
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, UnoptimizedDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, UnoptimizedDll)
+
+            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+                Dim reader0 = md0.MetadataReader
+                CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "M1", "M2")
+
+                Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M2").PartialImplementationPart
+                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M2").PartialImplementationPart
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+                Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+
+                Dim methods = diff1.TestData.Methods
+                Assert.Equal(methods.Count, 1)
+                Assert.True(methods.ContainsKey("C.M2()"))
+
+                Using md1 = diff1.GetMetadata()
+                    Dim reader1 = md1.Reader
+                    Dim readers = {reader0, reader1}
+                    CheckNames(readers, reader1.GetMethodDefNames(), "M2")
+                    CheckEncLog(reader1,
+                        Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                    CheckEncMap(reader1,
+                        Handle(4, TableIndex.TypeRef),
+                        Handle(3, TableIndex.MethodDef),
+                        Handle(2, TableIndex.AssemblyRef))
+                End Using
+            End Using
+        End Sub
+
         <Fact>
         Public Sub AddThenModifyExplicitImplementation()
             Dim source0 =

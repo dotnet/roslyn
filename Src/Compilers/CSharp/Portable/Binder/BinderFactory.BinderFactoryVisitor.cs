@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If this is a partial method, the method represents the defining part,
                         // not the implementation (method.Locations includes both parts). If the
                         // span is in fact in the implementation, return that method instead.
-                        var implementation = ((MethodSymbol)sym).PartialImplementation();
+                        var implementation = ((MethodSymbol)sym).PartialImplementationPart;
                         if ((object)implementation != null)
                         {
                             if (InSpan(implementation.Locations[0], this.syntaxTree, memberSpan))

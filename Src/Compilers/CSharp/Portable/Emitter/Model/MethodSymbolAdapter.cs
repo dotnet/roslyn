@@ -59,8 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
-            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-
             Debug.Assert(this.IsDefinitionOrDistinct());
 
             var synthesizedGlobalMethod = this as SynthesizedGlobalMethodSymbol;
@@ -71,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsDefinition)
             {
+                PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
                 return moduleBeingBuilt.Translate(this.ContainingType,
                                                   syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                   diagnostics: context.Diagnostics);
@@ -81,8 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
-            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)visitor.Context.Module;
-
             Debug.Assert(this.IsDefinitionOrDistinct());
 
             if (!this.IsDefinition)
@@ -100,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
+                PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)visitor.Context.Module;
                 if (this.ContainingModule == moduleBeingBuilt.SourceModule)
                 {
                     Debug.Assert(((Cci.IMethodReference)this).GetResolvedMethod(visitor.Context) != null);
@@ -162,7 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsDefinition && // can't be generic instantiation
                 this.ContainingModule == moduleBeingBuilt.SourceModule) // must be declared in the module we are building
             {
-                return this.PartialImplementation() ?? this;
+                Debug.Assert((object)this.PartialDefinitionPart == null); // must be definition
+                return this;
             }
 
             return null;

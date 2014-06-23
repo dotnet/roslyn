@@ -254,8 +254,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(Arguments.CompilationOptions.OutputKind.IsApplication());
 
-                ISymbol entryPoint = (ISymbol)compilation.ScriptClass ?? compilation.GetEntryPoint(cancellationToken);
-                if (entryPoint != null)
+                var comp = (CSharpCompilation)compilation;
+
+                Symbol entryPoint = comp.ScriptClass;
+                if ((object)entryPoint == null)
+                {
+                    var method = comp.GetEntryPoint(cancellationToken);
+                    if ((object)method != null)
+                    {
+                        entryPoint = method.PartialImplementationPart ?? method;
+                    }
+                }
+
+                if ((object)entryPoint != null)
                 {
                     string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree.FilePath);
                     return Path.ChangeExtension(entryPointFileName, ".exe");

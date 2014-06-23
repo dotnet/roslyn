@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override object VisitNamespace(NamespaceSymbol symbol, TypeCompilationState arg)
         {
-            if ((this.filterOpt != null) && !this.filterOpt(symbol))
+            if (!PassesFilter(this.filterOpt, symbol))
             {
                 return null;
             }
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override object VisitNamedType(NamedTypeSymbol symbol, TypeCompilationState arg)
         {
-            if ((this.filterOpt != null) && !this.filterOpt(symbol))
+            if (!PassesFilter(this.filterOpt, symbol))
             {
                 return null;
             }
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var member in symbol.GetMembers())
             {
                 //When a filter is supplied, limit the compilation of members passing the filter.
-                if ((this.filterOpt != null) && !this.filterOpt(member))
+                if (!PassesFilter(this.filterOpt, member))
                 {
                     continue;
                 }
@@ -417,12 +417,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            if (method.IsPartial())
+                            if (method.IsPartialDefinition())
                             {
-                                if (method.IsPartialDefinition())
-                                {
-                                    method = method.PartialImplementation();
-                                }
+                                method = method.PartialImplementationPart;
                                 if ((object)method == null)
                                 {
                                     continue;
@@ -512,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (init.Kind == BoundKind.FieldInitializer) && !((BoundFieldInitializer)init).Field.IsMetadataConstant));
 
                 MethodSymbol method = new SynthesizedStaticConstructor(sourceTypeSymbol);
-                if ((this.filterOpt == null) || this.filterOpt(method))
+                if (PassesFilter(this.filterOpt, method))
                 {
                     CompileMethod(method, ref processedStaticInitializers, synthesizedSubmissionFields, compilationState);
                     // If this method has been successfully built, we emit it.
@@ -1066,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         debugDocumentProvider,
                         GetNamespaceScopes(methodSymbol, debugImports));
 
-                    moduleBeingBuiltOpt.SetMethodBody(methodSymbol, emittedBody);
+                    moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
                 }
 
                 this.diagnostics.AddRange(diagsForCurrentMethod);
@@ -1239,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Only compiler-generated MoveNext methods have iterator scopes.  See if this is one.
                 bool hasIteratorScopes =
-                    method.Locations.IsEmpty && method.Name == "MoveNext" &&
+                    method.Locations.IsEmpty && method.Name == WellKnownMemberNames.MoveNextMethodName &&
                     (method.ExplicitInterfaceImplementations.Contains(compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext) as MethodSymbol) ||
                      method.ExplicitInterfaceImplementations.Contains(compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext) as MethodSymbol));
 
@@ -1248,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MethodBody(
                     builder.RealizedIL,
                     builder.MaxStack,
-                    method,
+                    method.PartialDefinitionPart ?? method,
                     localVariables,
                     builder.RealizedSequencePoints,
                     debugDocumentProvider,
@@ -1259,8 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     namespaceScopes,
                     (stateMachineTypeOpt != null) ? stateMachineTypeOpt.Name : null,
                     iteratorScopes,
-                    asyncMethodDebugInfo: asyncDebugInfo
-                );
+                    asyncMethodDebugInfo: asyncDebugInfo);
             }
             finally
             {
@@ -1768,6 +1764,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Cci.DebugSourceDocument CreateDebugDocumentForFile(string normalizedPath)
         {
             return new Cci.DebugSourceDocument(normalizedPath, Cci.DebugSourceDocument.CorSymLanguageTypeCSharp);
+        }
+
+        private static bool PassesFilter(Predicate<Symbol> filterOpt, Symbol symbol)
+        {
+            return (filterOpt == null) || filterOpt(symbol);
         }
     }
 }

@@ -321,6 +321,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (member.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)member;
+                    Debug.Assert((object)method.PartialDefinitionPart == null); // must be definition
+
                     var explicitImplementations = method.ExplicitInterfaceImplementations;
                     if (explicitImplementations.Length != 0)
                     {
@@ -369,6 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         foreach (var implemented in method.ExplicitInterfaceImplementations)
                         {
+                            Debug.Assert((object)method.PartialDefinitionPart == null); // must be definition
                             yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                         }
 
@@ -647,26 +650,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var method = (MethodSymbol)m;
 
-                    var sourceMethod = method as SourceMemberMethodSymbol;
-                    if ((object)sourceMethod != null && sourceMethod.IsPartial)
+                    if (method.IsPartialDefinition())
                     {
-                        // implementations are not listed in the members:
-                        Debug.Assert(sourceMethod.IsPartialDefinition);
-
                         // Don't emit partial methods without an implementation part.
-                        if (!sourceMethod.IsPartialWithoutImplementation)
+                        if ((object)method.PartialImplementationPart == null)
                         {
-                            yield return sourceMethod.PartialImplementation();
+                            continue;
                         }
                     }
                     // Don't emit the default value type constructor - the runtime handles that
-                    else if (!method.IsParameterlessValueTypeConstructor(requireSynthesized: true))
+                    else if (method.IsParameterlessValueTypeConstructor(requireSynthesized: true))
                     {
+                        continue;
+                    }
+
                         yield return method;
                     }
                 }
             }
-        }
 
         IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(EmitContext context)
         {

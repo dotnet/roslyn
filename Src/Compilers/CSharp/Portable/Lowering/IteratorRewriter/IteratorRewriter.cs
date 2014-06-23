@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
             {
                 var disposeMethod = OpenMethodImplementation(IDisposable_Dispose, debuggerHidden: true, hasMethodBodyDependency: true);
-                var moveNextMethod = OpenMethodImplementation(IEnumerator_MoveNext, methodName: "MoveNext", hasMethodBodyDependency: true);
+                var moveNextMethod = OpenMethodImplementation(IEnumerator_MoveNext, methodName: WellKnownMemberNames.MoveNextMethodName, hasMethodBodyDependency: true);
                 GenerateMoveNextAndDispose(moveNextMethod, disposeMethod);
             }
 

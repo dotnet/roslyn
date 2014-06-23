@@ -444,9 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub CompileNamespace(symbol As NamespaceSymbol)
-            Dim filter = Me._filter
-
-            If filter Is Nothing OrElse filter(symbol) Then
+            If PassesFilter(_filter, symbol) Then
                 For Each member In symbol.GetMembersUnordered()
                     member.Accept(Me)
                 Next
@@ -455,14 +453,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Sub VisitNamedType(symbol As NamedTypeSymbol)
             _cancellationToken.ThrowIfCancellationRequested()
-            Dim filter = Me._filter
-
-            If filter Is Nothing OrElse filter(symbol) Then
+            If PassesFilter(_filter, symbol) Then
                 If Me._compilation.Options.ConcurrentBuild Then
-                    Dim worker As Task = CompileNamedTypeAsTask(symbol, filter)
+                    Dim worker As Task = CompileNamedTypeAsTask(symbol, _filter)
                     compilerTasks.Push(worker)
                 Else
-                    CompileNamedType(symbol, filter)
+                    CompileNamedType(symbol, _filter)
                 End If
             End If
         End Sub
@@ -537,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' should not be part of the type's member list. If there is not already a shared constructor, we're 
                 ' creating one and call CompileMethod to rewrite the field initializers. 
                 Dim sharedDefaultConstructor = sourceTypeSymbol.CreateSharedConstructorsForConstFieldsIfRequired(sourceTypeBinder, _diagnostics)
-                If sharedDefaultConstructor IsNot Nothing Then
+                If sharedDefaultConstructor IsNot Nothing AndAlso PassesFilter(filter, sharedDefaultConstructor) Then
                     CompileMethod(sharedDefaultConstructor, filter, compilationState, processedStaticInitializers, sourceTypeBinder, synthesizedSubmissionFields)
 
                     If _moduleBeingBuilt IsNot Nothing Then
@@ -550,11 +546,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim constructorCallMap As Dictionary(Of MethodSymbol, MethodSymbol) = Nothing
 
             For Each member In symbol.GetMembers()
-                If filter IsNot Nothing AndAlso Not filter(member) Then
+                If Not PassesFilter(filter, member) Then
                     Continue For
                 End If
 
-                ' process all members that are not methods as usual                     
+                ' process all members that are not methods as usual
                 If member.Kind = SymbolKind.NamedType Then
                     member.Accept(Me)
                 ElseIf member.Kind = SymbolKind.Method Then
@@ -992,10 +988,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             previousSubmissionFields As SynthesizedSubmissionFields,
             Optional ByRef referencedConstructor As MethodSymbol = Nothing
         )
-            If filter IsNot Nothing AndAlso Not filter(method) Then
-                Return
-            End If
-
             If Not CanBindMethod(method) Then
                 Return
             End If
@@ -1670,6 +1662,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function CreateDebugDocumentForFile(normalizedPath As String) As Cci.DebugSourceDocument
             Return New Cci.DebugSourceDocument(normalizedPath, Cci.DebugSourceDocument.CorSymLanguageTypeBasic)
+        End Function
+
+        Private Shared Function PassesFilter(filterOpt As Predicate(Of Symbol), symbol As Symbol) As Boolean
+            Return filterOpt Is Nothing OrElse filterOpt(symbol)
         End Function
     End Class
 End Namespace

@@ -4,7 +4,6 @@ using Microsoft.Cci;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -140,6 +139,24 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 var member = edit.NewSymbol;
+
+                // Partial methods are supplied as implementations but recorded
+                // internally as definitions since definitions are used in emit.
+                if (member.Kind == SymbolKind.Method)
+                {
+                    var method = (IMethodSymbol)member;
+
+                    // Partial methods should be implementations, not definitions.
+                    Debug.Assert(method.PartialImplementationPart == null);
+                    Debug.Assert((edit.OldSymbol == null) || (((IMethodSymbol)edit.OldSymbol).PartialImplementationPart == null));
+
+                    var definitionPart = method.PartialDefinitionPart;
+                    if (definitionPart != null)
+                    {
+                        member = definitionPart;
+                    }
+                }
+
                 AddContainingTypes(changes, member);
                 changes.Add(member, change);
             }

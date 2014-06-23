@@ -1860,7 +1860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Handle the case of the implementation of a partial method.
                 var partial = symbol.Kind == SymbolKind.Method
-                    ? ((MethodSymbol)symbol).PartialImplementation()
+                    ? ((MethodSymbol)symbol).PartialImplementationPart
                     : null;
                 if ((object)partial != null)
                 {
