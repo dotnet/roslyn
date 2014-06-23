@@ -296,7 +296,6 @@
     <Compile Include="Emitter\Model\GenericNamespaceTypeInstanceReference.cs" />
     <Compile Include="Emitter\Model\GenericNestedTypeInstanceReference.cs" />
     <Compile Include="Emitter\Model\GenericTypeInstanceReference.cs" />
-    <Compile Include="Emitter\Model\MethodImplementation.cs" />
     <Compile Include="Emitter\Model\MethodReference.cs" />
     <Compile Include="Emitter\Model\MethodSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\ModuleReference.cs" />

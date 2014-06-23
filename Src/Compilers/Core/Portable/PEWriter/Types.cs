@@ -342,29 +342,31 @@ namespace Microsoft.Cci
     /// <summary>
     /// Models an explicit implemenation or override of a base class virtual method or an explicit implementation of an interface method.
     /// </summary>
-    internal interface IMethodImplementation
+    internal struct MethodImplementation
     {
         /// <summary>
         /// The type that is explicitly implementing or overriding the base class virtual method or explicitly implementing an interface method.
         /// </summary>
-        ITypeDefinition ContainingType { get; }
-
-        /// <summary>
-        /// Calls the visitor.Visit(T) method where T is the most derived object model node interface type implemented by the concrete type
-        /// of the object implementing IDefinition. The dispatch method does not invoke Dispatch on any child objects. If child traversal
-        /// is desired, the implementations of the Visit methods should do the subsequent dispatching.
-        /// </summary>
-        void Dispatch(MetadataVisitor visitor);
-
-        /// <summary>
-        /// A reference to the method whose implementation is being provided or overridden.
-        /// </summary>
-        IMethodReference ImplementedMethod { get; }
+        public readonly Cci.IMethodDefinition ImplementingMethod;
 
         /// <summary>
         /// A reference to the method that provides the implementation.
         /// </summary>
-        IMethodReference ImplementingMethod { get; }
+        public readonly Cci.IMethodReference ImplementedMethod;
+
+        public MethodImplementation(Cci.IMethodDefinition ImplementingMethod, Cci.IMethodReference ImplementedMethod)
+        {
+            this.ImplementingMethod = ImplementingMethod;
+            this.ImplementedMethod = ImplementedMethod;
+        }
+        
+        /// <summary>
+        /// The type that is explicitly implementing or overriding the base class virtual method or explicitly implementing an interface method.
+        /// </summary>
+        public Cci.ITypeDefinition ContainingType
+        {
+            get { return ImplementingMethod.ContainingTypeDefinition; }
+        }
     }
 
     /// <summary>
@@ -431,7 +433,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more implementation overrides provided by the class.
         /// </summary>
-        IEnumerable<IMethodImplementation> GetExplicitImplementationOverrides(EmitContext context);
+        IEnumerable<MethodImplementation> GetExplicitImplementationOverrides(EmitContext context);
 
         /// <summary>
         /// Zero or more fields defined by this type.

@@ -360,7 +360,7 @@ namespace Microsoft.Cci
                 }
             }
 
-            foreach (IMethodImplementation methodImplementation in typeDef.GetExplicitImplementationOverrides(Context))
+            foreach (MethodImplementation methodImplementation in typeDef.GetExplicitImplementationOverrides(Context))
             {
                 this.methodImplList.Add(methodImplementation);
             }

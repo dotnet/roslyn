@@ -385,7 +385,6 @@
     <Compile Include="Emit\GenericNamespaceTypeInstanceReference.vb" />
     <Compile Include="Emit\GenericNestedTypeInstanceReference.vb" />
     <Compile Include="Emit\GenericTypeInstanceReference.vb" />
-    <Compile Include="Emit\MethodImplementation.vb" />
     <Compile Include="Emit\MethodReference.vb" />
     <Compile Include="Emit\MethodSymbolAdapter.vb" />
     <Compile Include="Emit\ModuleReference.vb" />

@@ -259,9 +259,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            IEnumerable<Cci.IMethodImplementation> Cci.ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context)
+            IEnumerable<Cci.MethodImplementation> Cci.ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context)
             {
-                return SpecializedCollections.EmptyEnumerable<Cci.IMethodImplementation>();
+                return SpecializedCollections.EmptyEnumerable<Cci.MethodImplementation>();
             }
 
             IEnumerable<Cci.IFieldDefinition> Cci.ITypeDefinition.GetFields(EmitContext context)

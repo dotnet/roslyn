@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.IMethodImplementation> Cci.ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context)
+        IEnumerable<Cci.MethodImplementation> Cci.ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context)
         {
             CheckDefinitionInvariant();
 
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         foreach (var implemented in method.ExplicitInterfaceImplementations)
                         {
-                            yield return new MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                            yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                         }
                     }
 
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // specify the override explicitly.
                         // This mostly affects accessors - C# ignores method interactions
                         // between accessors and non-accessors, whereas the runtime does not.
-                        yield return new MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(method.OverriddenMethod, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                        yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(method.OverriddenMethod, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                     }
                     else if (method.MethodKind == MethodKind.Destructor && this.SpecialType != SpecialType.System_Object)
                     {
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             MethodSymbol objectMethod = objectMember as MethodSymbol;
                             if ((object)objectMethod != null && objectMethod.MethodKind == MethodKind.Destructor)
                             {
-                                yield return new MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(objectMethod, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                                yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(objectMethod, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                             }
                         }
                     }
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         foreach (var implemented in method.ExplicitInterfaceImplementations)
                         {
-                            yield return new MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                            yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                         }
 
                         Debug.Assert(!method.RequiresExplicitOverride());

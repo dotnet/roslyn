@@ -471,9 +471,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return SpecializedCollections.EmptyEnumerable<Cci.IEventDefinition>(); }
         }
 
-        public IEnumerable<Cci.IMethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
+        public IEnumerable<Cci.MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
         {
-            return SpecializedCollections.EmptyEnumerable<Cci.IMethodImplementation>();
+            return SpecializedCollections.EmptyEnumerable<Cci.MethodImplementation>();
         }
 
         virtual public IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)

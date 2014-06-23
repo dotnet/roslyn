@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             var implementingMethods = ArrayBuilder<uint>.GetInstance();
 
-            // First, visit all IMethodImplementations and add to this.methodImplList.
+            // First, visit all MethodImplementations and add to this.methodImplList.
             foreach (var methodImpl in typeDef.GetExplicitImplementationOverrides(Context))
             {
                 var methodDef = (IMethodDefinition)methodImpl.ImplementingMethod.AsDefinition(this.Context);
@@ -1402,7 +1402,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 base.Visit(method);
             }
 
-            public override void Visit(IMethodImplementation methodImplementation)
+            public override void Visit(MethodImplementation methodImplementation)
             {
                 // Unless the implementing method was added,
                 // the method implementation already exists.

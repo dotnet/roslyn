@@ -307,15 +307,15 @@ namespace Microsoft.Cci
             }
         }
 
-        public void Visit(IEnumerable<IMethodImplementation> methodImplementations)
+        public void Visit(IEnumerable<MethodImplementation> methodImplementations)
         {
-            foreach (IMethodImplementation methodImplementation in methodImplementations)
+            foreach (MethodImplementation methodImplementation in methodImplementations)
             {
                 this.Visit(methodImplementation);
             }
         }
 
-        public virtual void Visit(IMethodImplementation methodImplementation)
+        public virtual void Visit(MethodImplementation methodImplementation)
         {
             this.Visit(methodImplementation.ImplementedMethod);
             this.Visit(methodImplementation.ImplementingMethod);

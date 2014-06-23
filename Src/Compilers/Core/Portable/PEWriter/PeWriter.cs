@@ -501,7 +501,7 @@ namespace Microsoft.Cci
         private readonly Dictionary<IFieldReference, uint> fieldSignatureIndex = new Dictionary<IFieldReference, uint>();
         private readonly Dictionary<ISignature, uint> signatureIndex;
         private readonly Dictionary<IMarshallingInformation, uint> marshallingDescriptorIndex = new Dictionary<IMarshallingInformation, uint>();
-        protected readonly List<IMethodImplementation> methodImplList = new List<IMethodImplementation>();
+        protected readonly List<MethodImplementation> methodImplList = new List<MethodImplementation>();
         private readonly Dictionary<IGenericMethodInstanceReference, uint> methodInstanceSignatureIndex = new Dictionary<IGenericMethodInstanceReference, uint>();
         // A map of method body to RVA. 
         private readonly Dictionary<byte[], uint> possiblyDuplicateMethodBodies;
@@ -4101,7 +4101,7 @@ namespace Microsoft.Cci
         {
             this.methodImplTable.Capacity = this.methodImplList.Count;
 
-            foreach (IMethodImplementation methodImplementation in this.methodImplList)
+            foreach (MethodImplementation methodImplementation in this.methodImplList)
             {
                 MethodImplRow r = new MethodImplRow();
                 r.Class = this.GetTypeDefIndex(methodImplementation.ContainingType);

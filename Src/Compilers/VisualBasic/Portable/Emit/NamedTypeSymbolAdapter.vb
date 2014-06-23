@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Function
 
-        Private Function ITypeDefinitionGetExplicitImplementationOverrides(context As EmitContext) As IEnumerable(Of IMethodImplementation) Implements ITypeDefinition.GetExplicitImplementationOverrides
+        Private Function ITypeDefinitionGetExplicitImplementationOverrides(context As EmitContext) As IEnumerable(Of MethodImplementation) Implements ITypeDefinition.GetExplicitImplementationOverrides
             Debug.Assert(Not Me.IsAnonymousType)
             'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
@@ -262,12 +262,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             CheckDefinitionInvariant()
 
             If Me.IsInterface Then
-                Return SpecializedCollections.EmptyEnumerable(Of IMethodImplementation)()
+                Return SpecializedCollections.EmptyEnumerable(Of MethodImplementation)()
             End If
 
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
             Dim sourceNamedType = TryCast(Me, SourceNamedTypeSymbol)
-            Dim explicitImplements As ArrayBuilder(Of IMethodImplementation) = ArrayBuilder(Of IMethodImplementation).GetInstance()
+            Dim explicitImplements As ArrayBuilder(Of MethodImplementation) = ArrayBuilder(Of MethodImplementation).GetInstance()
 
             For Each member In Me.GetMembersForCci()
                 If member.Kind = SymbolKind.Method Then
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub AddExplicitImplementations(context As EmitContext,
                                                implementingMethod As MethodSymbol,
-                                               explicitImplements As ArrayBuilder(Of IMethodImplementation),
+                                               explicitImplements As ArrayBuilder(Of MethodImplementation),
                                                sourceNamedType As SourceNamedTypeSymbol,
                                                moduleBeingBuilt As PEModuleBuilder)
 

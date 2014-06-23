@@ -54,9 +54,9 @@ namespace Microsoft.Cci
             get { return SpecializedCollections.EmptyEnumerable<IEventDefinition>(); }
         }
 
-        public IEnumerable<IMethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
+        public IEnumerable<MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
         {
-            return SpecializedCollections.EmptyEnumerable<IMethodImplementation>();
+            return SpecializedCollections.EmptyEnumerable<MethodImplementation>();
         }
 
         public IEnumerable<IFieldDefinition> GetFields(EmitContext context)
