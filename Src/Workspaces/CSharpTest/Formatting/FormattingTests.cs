@@ -4762,6 +4762,13 @@ class Program
         {
             default: break;
         }
+
+        do {} while (true);
+
+        try
+        { }
+        catch (System.Exception e)
+        { }
     }
 }";
             var expected = @"
@@ -4786,6 +4793,13 @@ class Program
         {
             default: break;
         }
+
+        do { } while ( true );
+
+        try
+        { }
+        catch ( System.Exception e )
+        { }
     }
 }";
             var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.OtherParenControlFlow, true } };

@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For Spacing b/n control flow keyword and paren. Parent check not needed.
-            if ((previousKind == SyntaxKind.IfKeyword || previousKind == SyntaxKind.WhileKeyword || previousKind == SyntaxKind.SwitchKeyword ||
-                previousKind == SyntaxKind.ForKeyword || previousKind == SyntaxKind.ForEachKeyword)
-                && (currentKind == SyntaxKind.OpenParenToken))
+            if (currentKind == SyntaxKind.OpenParenToken &&
+                (previousKind == SyntaxKind.IfKeyword || previousKind == SyntaxKind.WhileKeyword || previousKind == SyntaxKind.SwitchKeyword ||
+                previousKind == SyntaxKind.ForKeyword || previousKind == SyntaxKind.ForEachKeyword))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.OtherAfterControlFlowKeyword);
             }
@@ -91,16 +91,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing between the parenthesis and the expression inside the control flow expression
-            if ((previousParentKind == SyntaxKind.IfStatement || previousParentKind == SyntaxKind.WhileStatement || previousParentKind == SyntaxKind.SwitchStatement ||
-                previousParentKind == SyntaxKind.ForStatement || previousParentKind == SyntaxKind.ForEachStatement)
-                && previousKind == SyntaxKind.OpenParenToken)
+            if (previousKind == SyntaxKind.OpenParenToken &&
+                (previousParentKind == SyntaxKind.IfStatement || previousParentKind == SyntaxKind.WhileStatement || previousParentKind == SyntaxKind.SwitchStatement ||
+                previousParentKind == SyntaxKind.ForStatement || previousParentKind == SyntaxKind.ForEachStatement || previousParentKind == SyntaxKind.DoStatement ||
+                previousParentKind == SyntaxKind.CatchDeclaration))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.OtherParenControlFlow);
             }
 
-            if ((currentParentKind == SyntaxKind.IfStatement || currentParentKind == SyntaxKind.WhileStatement || currentParentKind == SyntaxKind.SwitchStatement ||
-                currentParentKind == SyntaxKind.ForStatement || currentParentKind == SyntaxKind.ForEachStatement)
-                && currentKind == SyntaxKind.CloseParenToken)
+            if (currentKind == SyntaxKind.CloseParenToken &&
+                (currentParentKind == SyntaxKind.IfStatement || currentParentKind == SyntaxKind.WhileStatement || currentParentKind == SyntaxKind.SwitchStatement ||
+                currentParentKind == SyntaxKind.ForStatement || currentParentKind == SyntaxKind.ForEachStatement || currentParentKind == SyntaxKind.DoStatement ||
+                previousParentKind == SyntaxKind.CatchDeclaration))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.OtherParenControlFlow);
             }
