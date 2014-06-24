@@ -6,9 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -19,9 +17,10 @@ namespace Roslyn.Test.Utilities
     public static class AssertEx
     {
         #region AssertEqualityComparer<T>
+
         private class AssertEqualityComparer<T> : IEqualityComparer<T>
         {
-            private readonly static IEqualityComparer<T> instance = new AssertEqualityComparer<T>();
+            private static readonly IEqualityComparer<T> instance = new AssertEqualityComparer<T>();
 
             private static bool CanBeNull()
             {
@@ -53,6 +52,7 @@ namespace Roslyn.Test.Utilities
                     {
                         return object.Equals(y, default(T));
                     }
+
                     if (object.Equals(y, default(T)))
                     {
                         return false;
@@ -97,7 +97,7 @@ namespace Roslyn.Test.Utilities
 
                         if (!hasNextX || !hasNextY)
                         {
-                            return (hasNextX == hasNextY);
+                            return hasNextX == hasNextY;
                         }
 
                         if (!Equals(enumeratorX.Current, enumeratorY.Current))
@@ -114,8 +114,8 @@ namespace Roslyn.Test.Utilities
             {
                 throw new NotImplementedException();
             }
-
         }
+
         #endregion
 
         public static void AreEqual<T>(T expected, T actual, string message = null, IEqualityComparer<T> comparer = null)
@@ -135,7 +135,7 @@ namespace Roslyn.Test.Utilities
             }
             else
             {
-                if (!(comparer != null ? 
+                if (!(comparer != null ?
                     comparer.Equals(expected, actual) :
                     AssertEqualityComparer<T>.Equals(expected, actual)))
                 {
@@ -176,7 +176,7 @@ namespace Roslyn.Test.Utilities
             Equal((IEnumerable<T>)expected, (IEnumerable<T>)actual, comparer, message, itemSeparator);
         }
 
-        public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null, 
+        public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null,
             string itemSeparator = ",\r\n", Func<T, string> itemInspector = null)
         {
             if (ReferenceEquals(expected, actual))
@@ -314,7 +314,7 @@ namespace Roslyn.Test.Utilities
 
         public static void Fail(string format, params object[] args)
         {
-            Assert.False(true, String.Format(format, args));
+            Assert.False(true, string.Format(format, args));
         }
 
         public static void Null<T>(T @object, string message = null)

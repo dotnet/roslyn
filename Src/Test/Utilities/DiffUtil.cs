@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public IEnumerable<string> CalculateDiff(IList<T> sequenceA, IList<T> sequenceB, Func<T, string> toString)
             {
-                foreach (var edit in base.GetEdits(sequenceA, sequenceA.Count, sequenceB, sequenceB.Count).Reverse())
+                foreach (var edit in GetEdits(sequenceA, sequenceA.Count, sequenceB, sequenceB.Count).Reverse())
                 {
                     switch (edit.Kind)
                     {
@@ -266,6 +266,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return d;
             }
         }
-
     }
 }
