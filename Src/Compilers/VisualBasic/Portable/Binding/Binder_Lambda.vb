@@ -570,8 +570,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 localBuilder.AddRange(implicitVariablesBinder.ImplicitlyDeclaredVariables)
             End If
 
-            If Not block.LocalsOpt.IsDefaultOrEmpty Then
-                localBuilder.AddRange(block.LocalsOpt)
+            If Not block.Locals.IsEmpty Then
+                localBuilder.AddRange(block.Locals)
             End If
 
             block = block.Update(block.StatementListSyntax, localBuilder.ToImmutableAndFree(), statements.ToImmutableAndFree)

@@ -70,11 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void AddLocals(ImmutableArray<LocalSymbol> locals, ArrayBuilder<LocalSymbol> newLocals)
         {
-            if (locals.IsDefault)
-            {
-                return;
-            }
-
             foreach (var local in locals)
             {
                 LocalSymbol newLocal;
@@ -115,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ImmutableArray<LocalSymbol> RewriteLocalList(ImmutableArray<LocalSymbol> locals)
         {
-            if (locals.IsDefaultOrEmpty) return locals;
+            if (locals.IsEmpty) return locals;
             var newLocals = ArrayBuilder<LocalSymbol>.GetInstance();
             AddLocals(locals, newLocals);
             return newLocals.ToImmutableAndFree();
@@ -142,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            var newLocals = RewriteLocalList(node.LocalsOpt);
+            var newLocals = RewriteLocalList(node.Locals);
             var newStatements = VisitList(node.Statements);
             return node.Update(newLocals, newStatements);
         }
@@ -159,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             var newOuterLocals = RewriteLocalList(node.OuterLocals);
-            var newInnerLocals = RewriteLocalList(node.InnerLocalsOpt);
+            var newInnerLocals = RewriteLocalList(node.InnerLocals);
             BoundExpression boundExpression = (BoundExpression)this.Visit(node.BoundExpression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
             return node.Update(newOuterLocals, boundExpression, node.ConstantTargetOpt, newInnerLocals, switchSections, node.BreakLabel, node.StringEquality);

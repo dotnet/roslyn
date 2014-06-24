@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             statement = new BoundSequencePoint(accessor.SyntaxNode, statement) { WasCompilerGenerated = true };
 
-            return new BoundBlock(syntax, default(ImmutableArray<LocalSymbol>), ImmutableArray.Create<BoundStatement>(statement)) { WasCompilerGenerated = true };
+            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundStatement>(statement)) { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)compareExchangeMethod == null)
             {
                 return new BoundBlock(syntax,
-                    localsOpt: default(ImmutableArray<LocalSymbol>),
+                    locals: ImmutableArray<LocalSymbol>.Empty,
                     statements: ImmutableArray.Create<BoundStatement>(
                         new BoundReturnStatement(syntax,
                             expressionOpt: null)
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
 
             return new BoundBlock(syntax,
-                localsOpt: tmps.AsImmutableOrNull(),
+                locals: tmps.AsImmutable(),
                 statements: ImmutableArray.Create<BoundStatement>(
                     tmp0Init,
                     loopStart,
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundBlock(
                     syntax,
-                    default(ImmutableArray<LocalSymbol>),
+                    ImmutableArray<LocalSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(
                         new BoundTryStatement(
                             syntax,
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ImmutableArray<BoundCatchBlock>.Empty,
                             new BoundBlock(
                                 syntax,
-                                default(ImmutableArray<LocalSymbol>),
+                                ImmutableArray<LocalSymbol>.Empty,
                                 ImmutableArray.Create<BoundStatement>(
                                     baseFinalizeCall)
                             )

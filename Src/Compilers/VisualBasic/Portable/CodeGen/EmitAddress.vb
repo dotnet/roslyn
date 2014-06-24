@@ -122,11 +122,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Function
 
         Private Function EmitSequenceAddress(sequence As BoundSequence, addressKind As AddressKind) As LocalDefinition
-            Dim hasLocals As Boolean = Not sequence.LocalsOpt.IsDefaultOrEmpty
+            Dim hasLocals As Boolean = Not sequence.Locals.IsEmpty
             If hasLocals Then
                 _builder.OpenLocalScope()
 
-                For Each local In sequence.LocalsOpt
+                For Each local In sequence.Locals
                     Me.DefineLocal(local, sequence.Syntax)
                 Next
             End If
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If hasLocals Then
                 _builder.CloseLocalScope()
 
-                For Each local In sequence.LocalsOpt
+                For Each local In sequence.Locals
                     If (local IsNot doNotRelease) Then
                         FreeLocal(local)
                     Else

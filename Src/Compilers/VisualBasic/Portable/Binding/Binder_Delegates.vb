@@ -1264,7 +1264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim lambdaBody = New BoundBlock(syntaxNode,
                                             Nothing,
-                                            Nothing,
+                                            ImmutableArray(Of LocalSymbol).Empty,
                                             statementList)
             lambdaBody.SetWasCompilerGenerated()
 

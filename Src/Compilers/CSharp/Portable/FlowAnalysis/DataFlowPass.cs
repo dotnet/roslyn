@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.RangeVariable:
                     AssignImpl(((BoundRangeVariable)node).Value, value, refKind, written, read);
-                        break;
+                    break;
 
                 case BoundKind.ForEachStatement:
                     {
@@ -1209,18 +1209,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            DeclareVariables(node.LocalsOpt);
+            DeclareVariables(node.Locals);
             var result = base.VisitBlock(node);
-            ReportUnusedVariables(node.LocalsOpt);
+            ReportUnusedVariables(node.Locals);
             return result;
         }
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             DeclareVariables(node.OuterLocals);
-            DeclareVariables(node.InnerLocalsOpt);
+            DeclareVariables(node.InnerLocals);
             var result = base.VisitSwitchStatement(node);
-            ReportUnusedVariables(node.InnerLocalsOpt);
+            ReportUnusedVariables(node.InnerLocals);
             ReportUnusedVariables(node.OuterLocals);
             return result;
         }
@@ -1246,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)
         {
             DeclareVariables(node.InnerLocals);
-            var result = base.VisitWhileStatement(node); 
+            var result = base.VisitWhileStatement(node);
             ReportUnusedVariables(node.InnerLocals);
             return result;
         }
@@ -1296,17 +1296,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     Debug.Assert(local.DeclarationKind == LocalDeclarationKind.Using);
-                int slot = MakeSlot(local);
-                if (slot >= 0)
-                {
-                    SetSlotAssigned(slot);
-                    NoteWrite(local, value: null, read: true);
+                    int slot = MakeSlot(local);
+                    if (slot >= 0)
+                    {
+                        SetSlotAssigned(slot);
+                        NoteWrite(local, value: null, read: true);
+                    }
+                    else
+                    {
+                        Debug.Assert(emptyStructTypeCache.IsEmptyStructType(local.Type));
+                    }
                 }
-                else
-                {
-                    Debug.Assert(emptyStructTypeCache.IsEmptyStructType(local.Type));
-                }
-            }
             }
 
             var result = base.VisitUsingStatement(node);
@@ -1319,8 +1319,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                NoteRead(local); // At the end of the statement, there's an implied read when the local is disposed
-            }
+                    NoteRead(local); // At the end of the statement, there's an implied read when the local is disposed
+                }
             }
             Debug.Assert(localsOpt.All(usedVariables.Contains));
 
@@ -1365,12 +1365,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void DeclareVariables(ImmutableArray<LocalSymbol> locals)
         {
-            if (!locals.IsDefaultOrEmpty)
+            foreach (var symbol in locals)
             {
-                foreach (var symbol in locals)
-                {
-                    DeclareVariable(symbol);
-                }
+                DeclareVariable(symbol);
             }
         }
 
@@ -1386,7 +1383,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportUnusedVariables(ImmutableArray<LocalSymbol> locals)
         {
-            if (locals.IsDefault) return;
             foreach (var symbol in locals)
             {
                 ReportIfUnused(symbol, assigned: true);

@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitSequence(node As BoundSequence) As BoundNode
-            If Not node.LocalsOpt.IsEmpty AndAlso Me.IsInExpressionLambda Then
+            If Not node.Locals.IsEmpty AndAlso Me.IsInExpressionLambda Then
                 ' All such cases are not supported, note that some cases of invalid
                 ' sequences are handled in DiagnosticsPass, but we still want to catch
                 ' here those sequences created in lowering
@@ -223,7 +223,7 @@ lSelect:
 
                                     Case BoundKind.Block
                                         Dim innerBlock = DirectCast(stmt, BoundBlock)
-                                        If innerBlock.LocalsOpt.IsDefaultOrEmpty AndAlso innerBlock.Statements.Length = 1 Then
+                                        If innerBlock.Locals.IsEmpty AndAlso innerBlock.Statements.Length = 1 Then
                                             stmt = innerBlock.Statements(0)
                                             GoTo lSelect
                                         End If

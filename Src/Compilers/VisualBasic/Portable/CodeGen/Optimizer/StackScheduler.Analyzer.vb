@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 ' normally we would not allow stack locals
                 ' when evaluation stack is not empty.
-                DeclareLocals(node.LocalsOpt, 0)
+                DeclareLocals(node.Locals, 0)
 
                 Return MyBase.VisitBlock(node)
             End Function
@@ -344,8 +344,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 '    
                 Dim declarationStack As Integer = Me.evalStack
 
-                Dim locals = node.LocalsOpt
-                If Not locals.IsDefaultOrEmpty Then
+                Dim locals = node.Locals
+                If Not locals.IsEmpty Then
                     If Me.context = ExprContext.Sideeffects Then
                         DeclareLocals(locals, declarationStack)
 
@@ -396,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Dim value As BoundExpression = Me.VisitExpression(node.ValueOpt, origContext)
 
-                Return node.Update(node.LocalsOpt,
+                Return node.Update(node.Locals,
                                    If(rewrittenSideeffects IsNot Nothing, rewrittenSideeffects.ToImmutableAndFree(), sideeffects),
                                    value, node.Type)
             End Function
@@ -656,11 +656,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Private Shared Function IsVerifierRef(type As TypeSymbol) As Boolean
-                Return Not type.TypeKind = TYPEKIND.TypeParameter AndAlso type.IsReferenceType
+                Return Not type.TypeKind = TypeKind.TypeParameter AndAlso type.IsReferenceType
             End Function
 
             Private Shared Function IsVerifierVal(type As TypeSymbol) As Boolean
-                Return Not type.TypeKind = TYPEKIND.TypeParameter AndAlso type.IsValueType
+                Return Not type.TypeKind = TypeKind.TypeParameter AndAlso type.IsValueType
             End Function
 
             Public Overrides Function VisitCall(node As BoundCall) As BoundNode
@@ -1175,11 +1175,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Private Sub DeclareLocals(locals As ImmutableArray(Of LocalSymbol), stack As Integer)
-                If Not locals.IsDefaultOrEmpty Then
-                    For Each local In locals
-                        DeclareLocal(local, stack)
-                    Next
-                End If
+                For Each local In locals
+                    DeclareLocal(local, stack)
+                Next
             End Sub
 
             Private Sub DeclareLocal(local As LocalSymbol, stack As Integer)

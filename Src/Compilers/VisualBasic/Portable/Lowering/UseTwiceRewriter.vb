@@ -82,14 +82,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim boundTemp As BoundLocal = Nothing
                 Dim capture As BoundAssignmentOperator = CaptureInATemp(containingMember, receiverOpt.MakeRValue(), temporaries, boundTemp)
                 boundTemp = boundTemp.Update(boundTemp.LocalSymbol, isLValue:=True, type:=boundTemp.Type)
-                receiver = New Result(New BoundSequence(capture.Syntax, Nothing, ImmutableArray.Create(Of BoundExpression)(capture), boundTemp, boundTemp.Type),
+                receiver = New Result(New BoundSequence(capture.Syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(capture), boundTemp, boundTemp.Type),
                                       boundTemp)
             ElseIf Not receiverOpt.IsLValue AndAlso Not receiverOpt.Type.IsReferenceType AndAlso Not receiverOpt.Type.IsValueType Then
                 Dim boundTemp As BoundLocal = Nothing
                 Dim capture As BoundAssignmentOperator = CaptureInATemp(containingMember, receiverOpt.MakeRValue(), temporaries, boundTemp)
                 boundTemp = boundTemp.Update(boundTemp.LocalSymbol, isLValue:=True, type:=boundTemp.Type)
 
-                receiver = New Result(New BoundSequence(capture.Syntax, Nothing, ImmutableArray.Create(Of BoundExpression)(capture), boundTemp, boundTemp.Type),
+                receiver = New Result(New BoundSequence(capture.Syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(capture), boundTemp, boundTemp.Type),
                                       boundTemp)
             Else
                 receiver = UseTwiceExpression(containingMember, receiverOpt, temporaries)
@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim capture As BoundAssignmentOperator = CaptureInATemp(containingMember, receiverOpt.MakeRValue(), arg, boundTemp)
                 boundTemp = boundTemp.Update(boundTemp.LocalSymbol, isLValue:=True, type:=boundTemp.Type)
 
-                receiver = New Result(New BoundSequence(capture.Syntax, Nothing, ImmutableArray.Create(Of BoundExpression)(capture), boundTemp, boundTemp.Type),
+                receiver = New Result(New BoundSequence(capture.Syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(capture), boundTemp, boundTemp.Type),
                                       boundTemp)
             Else
                 receiver = UseTwiceExpression(containingMember, receiverOpt, arg)

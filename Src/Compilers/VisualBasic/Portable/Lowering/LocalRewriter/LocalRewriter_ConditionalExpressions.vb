@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New BoundSequence(result.Syntax,
-                                     localsOpt:=ImmutableArray.Create(Of LocalSymbol)(tempVariableSymbol),
+                                     locals:=ImmutableArray.Create(Of LocalSymbol)(tempVariableSymbol),
                                      sideEffects:=ImmutableArray(Of BoundExpression).Empty,
                                      valueOpt:=result,
                                      type:=result.Type)

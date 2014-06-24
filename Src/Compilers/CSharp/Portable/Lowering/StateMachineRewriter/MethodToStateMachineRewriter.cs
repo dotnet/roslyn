@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="wrapped">A delegate to return the translation of the body of this statement</param>
         private BoundStatement PossibleIteratorScope(ImmutableArray<LocalSymbol> locals, Func<BoundStatement> wrapped)
         {
-            if (locals.IsDefaultOrEmpty) return wrapped();
+            if (locals.IsEmpty) return wrapped();
             var proxyFields = ArrayBuilder<SynthesizedFieldSymbolBase>.GetInstance();
             foreach (var local in locals)
             {
@@ -444,13 +444,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            return PossibleIteratorScope(node.LocalsOpt, () => (BoundStatement)base.VisitBlock(node));
+            return PossibleIteratorScope(node.Locals, () => (BoundStatement)base.VisitBlock(node));
         }
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             Debug.Assert(node.OuterLocals.IsEmpty);
-            return PossibleIteratorScope(node.InnerLocalsOpt, () => (BoundStatement)base.VisitSwitchStatement(node));
+            return PossibleIteratorScope(node.InnerLocals, () => (BoundStatement)base.VisitSwitchStatement(node));
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)

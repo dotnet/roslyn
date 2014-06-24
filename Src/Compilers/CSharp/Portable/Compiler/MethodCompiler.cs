@@ -417,8 +417,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            if (method.IsPartialDefinition())
-                            {
+                                if (method.IsPartialDefinition())
+                                {
                                 method = method.PartialImplementationPart;
                                 if ((object)method == null)
                                 {
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (initializationScopeLocals.IsDefaultOrEmpty)
                             {
-                            body = body.Update(body.LocalsOpt, body.Statements.Insert(0, analyzedInitializers));
+                                body = body.Update(body.Locals, body.Statements.Insert(0, analyzedInitializers));
                             }
                             else
                             {
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         var block = (BoundBlock)initializer;
 
-                                        if (block.LocalsOpt == initializationScopeLocals)
+                                        if (block.Locals == initializationScopeLocals)
                                         {
                                             if (blockToUpdate != null)
                                             {
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 blockBuilder.Add(body);
 
                                 Debug.Assert(blockBuilder.Count == analyzedInitializers.Statements.Length + initializationScopeStatements);
-                                body = blockToUpdate.Update(blockToUpdate.LocalsOpt, blockBuilder.ToImmutableAndFree());
+                                body = blockToUpdate.Update(blockToUpdate.Locals, blockBuilder.ToImmutableAndFree());
                             }
 
                             includeInitializersInBody = false;
@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
                         // Add locals
                         binder = new ScopedExpressionBinder(binder, arrowExpression.Expression);
-                        return binder.BindExpressionBodyAsBlock(
+                            return binder.BindExpressionBodyAsBlock(
                             arrowExpression, diagnostics);
                     }
 
@@ -1438,7 +1438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    block = new BoundBlock(syntax, default(ImmutableArray<LocalSymbol>), statements.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                    block = new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements.ToImmutableAndFree()) { WasCompilerGenerated = true };
                 }
             }
             else

@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' NOTE: inside expression lambdas.
                     Dim sequence = DirectCast(rewrittenObjectCreationExpression, BoundSequence)
                     Debug.Assert(sequence.ValueOpt IsNot Nothing AndAlso sequence.ValueOpt.Kind = BoundKind.ObjectCreationExpression)
-                    Return sequence.Update(sequence.LocalsOpt,
+                    Return sequence.Update(sequence.Locals,
                                            sequence.SideEffects,
                                            ReplaceObjectOrCollectionInitializer(sequence.ValueOpt, rewrittenInitializer),
                                            sequence.Type)

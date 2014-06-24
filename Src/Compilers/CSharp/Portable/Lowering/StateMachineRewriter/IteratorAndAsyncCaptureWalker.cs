@@ -253,18 +253,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            AddVariables(node.LocalsOpt);
+            AddVariables(node.Locals);
             return base.VisitBlock(node);
         }
 
         private void AddVariables(ImmutableArray<LocalSymbol> locals)
         {
-            if (!locals.IsDefaultOrEmpty)
+            foreach (var local in locals)
             {
-                foreach (var local in locals)
-                {
-                    AddVariable(local);
-                }
+                AddVariable(local);
             }
         }
 

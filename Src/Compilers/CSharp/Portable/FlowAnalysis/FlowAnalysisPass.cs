@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.Block:
                     var block = (BoundBlock)node;
-                    return block.Update(block.LocalsOpt, block.Statements.Add(ret));
+                    return block.Update(block.Locals, block.Statements.Add(ret));
 
                 default:
                     return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(ret, node));

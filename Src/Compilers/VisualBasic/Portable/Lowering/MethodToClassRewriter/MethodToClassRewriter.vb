@@ -333,31 +333,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         prologue As ArrayBuilder(Of BoundExpression),
                                         newLocals As ArrayBuilder(Of LocalSymbol)) As BoundBlock
 
-            If Not node.LocalsOpt.IsDefault Then
-                For Each v In node.LocalsOpt
-                    If Not Me.Proxies.ContainsKey(v) Then
-                        Dim vType = VisitType(v.Type)
-                        If vType = v.Type Then
+            For Each v In node.Locals
+                If Not Me.Proxies.ContainsKey(v) Then
+                    Dim vType = VisitType(v.Type)
+                    If vType = v.Type Then
 
-                            Dim replacement As LocalSymbol = Nothing
-                            Dim wasReplaced As Boolean = False
-                            If Not LocalMap.TryGetValue(v, replacement) Then
-                                replacement = CreateReplacementLocalOrReturnSelf(v, vType, onlyReplaceIfFunctionValue:=True, wasReplaced:=wasReplaced)
-                            End If
+                        Dim replacement As LocalSymbol = Nothing
+                        Dim wasReplaced As Boolean = False
+                        If Not LocalMap.TryGetValue(v, replacement) Then
+                            replacement = CreateReplacementLocalOrReturnSelf(v, vType, onlyReplaceIfFunctionValue:=True, wasReplaced:=wasReplaced)
+                        End If
 
-                            If wasReplaced Then
-                                LocalMap.Add(v, replacement)
-                            End If
-
-                            newLocals.Add(replacement)
-                        Else
-                            Dim replacement As LocalSymbol = CreateReplacementLocalOrReturnSelf(v, vType)
-                            newLocals.Add(replacement)
+                        If wasReplaced Then
                             LocalMap.Add(v, replacement)
                         End If
+
+                        newLocals.Add(replacement)
+                    Else
+                        Dim replacement As LocalSymbol = CreateReplacementLocalOrReturnSelf(v, vType)
+                        newLocals.Add(replacement)
+                        LocalMap.Add(v, replacement)
                     End If
-                Next
-            End If
+                End If
+            Next
 
             Dim newStatements = ArrayBuilder(Of BoundStatement).GetInstance
             Dim start As Integer = 0
@@ -470,23 +468,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            prologue As ArrayBuilder(Of BoundExpression),
                                            newLocals As ArrayBuilder(Of LocalSymbol)) As BoundSequence
 
-            Dim origLocals = node.LocalsOpt
+            Dim origLocals = node.Locals
 
             ' merge locals new and rewritten original
-            If Not origLocals.IsDefaultOrEmpty Then
-                For Each v In origLocals
-                    If Not Me.Proxies.ContainsKey(v) Then
-                        Dim vType = VisitType(v.Type)
-                        If vType = v.Type Then
-                            newLocals.Add(v)
-                        Else
-                            Dim replacement = CreateReplacementLocalOrReturnSelf(v, vType)
-                            newLocals.Add(replacement)
-                            LocalMap.Add(v, replacement)
-                        End If
+            For Each v In origLocals
+                If Not Me.Proxies.ContainsKey(v) Then
+                    Dim vType = VisitType(v.Type)
+                    If vType = v.Type Then
+                        newLocals.Add(v)
+                    Else
+                        Dim replacement = CreateReplacementLocalOrReturnSelf(v, vType)
+                        newLocals.Add(replacement)
+                        LocalMap.Add(v, replacement)
                     End If
-                Next
-            End If
+                End If
+            Next
 
             ' merge sideeffects - prologue followed by rewritten original sideeffects
             For Each s In node.SideEffects

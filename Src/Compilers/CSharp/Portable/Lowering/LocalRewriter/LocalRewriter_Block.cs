@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.WasCompilerGenerated || !this.generateDebugInfo)
             {
-                return node.Update(node.LocalsOpt, VisitList(node.Statements));
+                return node.Update(node.Locals, VisitList(node.Statements));
             }
 
             BlockSyntax syntax = node.Syntax as BlockSyntax;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(new BoundSequencePointWithSpan(syntax, null, cBspan));
             }
 
-            return new BoundBlock(syntax, node.LocalsOpt, builder.ToImmutableAndFree(), node.HasErrors);
+            return new BoundBlock(syntax, node.Locals, builder.ToImmutableAndFree(), node.HasErrors);
         }
 
         public override BoundNode VisitNoOpStatement(BoundNoOpStatement node)

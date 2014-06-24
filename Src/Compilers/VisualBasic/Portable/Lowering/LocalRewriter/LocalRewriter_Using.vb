@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             newBody = New BoundBlock(syntaxNode,
                                      Nothing,
-                                     Nothing,
+                                     ImmutableArray(Of LocalSymbol).Empty,
                                      ImmutableArray.Create(Of BoundStatement)(boundResourceInitializationAssignment,
                                                                                  tryFinally))
 

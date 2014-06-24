@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindMethodBlock(methodBlock As MethodBlockBaseSyntax, diagnostics As DiagnosticBag) As BoundBlock
             Dim statements As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance
-            Dim locals As ImmutableArray(Of LocalSymbol) = Nothing
+            Dim locals As ImmutableArray(Of LocalSymbol) = ImmutableArray(Of LocalSymbol).Empty
 
             Dim localForFunctionValue As LocalSymbol = Me.GetLocalForFunctionValue()
 
@@ -301,13 +301,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If InitializerRewriter.HasExplicitMeConstructorCall(body, ContainingMember.ContainingType, hasMyBaseConstructorCall) OrElse hasMyBaseConstructorCall Then
                             ' Move the explicit constructor call out of the block
                             statements.Add(body.Statements(0))
-                            body = body.Update(body.StatementListSyntax, body.LocalsOpt, body.Statements.RemoveAt(0))
+                            body = body.Update(body.StatementListSyntax, body.Locals, body.Statements.RemoveAt(0))
                         End If
                     End If
 
                     ' The implicit exitLabelStatement should be the last statement inside BoundUnstructuredExceptionHandlingStatement
                     ' in order to make sure that explicit returns do not bypass a call to Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError.
-                    body = body.Update(body.StatementListSyntax, body.LocalsOpt, body.Statements.Add(exitLabelStatement))
+                    body = body.Update(body.StatementListSyntax, body.Locals, body.Statements.Add(exitLabelStatement))
 
                     statements.Add(New BoundUnstructuredExceptionHandlingStatement(methodBlock,
                                                                                    containsOnError,
@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                    containsLineNumberLabel,
                                                                                    body.MakeCompilerGenerated()).MakeCompilerGenerated())
                 Else
-                    locals = body.LocalsOpt
+                    locals = body.Locals
                     statements.AddRange(body.Statements)
                     statements.Add(exitLabelStatement)
                 End If
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Add implicitly declared variables, if any.
                 Dim implicitLocals = Me.ImplicitlyDeclaredVariables
                 If implicitLocals.Length > 0 Then
-                    If locals = Nothing Then
+                    If locals.IsEmpty Then
                         locals = implicitLocals
                     Else
                         locals = implicitLocals.Concat(locals)
@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' add indirect return sequence
             ' and maybe an indirect result local (if this is a function)
             If localForFunctionValue IsNot Nothing Then
-                If locals.IsDefaultOrEmpty Then
+                If locals.IsEmpty Then
                     locals = ImmutableArray.Create(localForFunctionValue)
                 Else
                     Dim localBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
@@ -2007,7 +2007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next i
 
             If locals Is Nothing Then
-                Return New BoundBlock(syntax, stmtList, Nothing, boundStatements.AsImmutableOrNull())
+                Return New BoundBlock(syntax, stmtList, ImmutableArray(Of LocalSymbol).Empty, boundStatements.AsImmutableOrNull())
             End If
 
             Return New BoundBlock(syntax, stmtList, locals.ToImmutableAndFree, boundStatements.AsImmutableOrNull())

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function MakeRValue() As BoundSequence
             If Me.IsLValue Then
                 Debug.Assert(Me.ValueOpt IsNot Nothing)
-                Return Update(_LocalsOpt, _SideEffects, Me.ValueOpt.MakeRValue(), Type)
+                Return Update(_Locals, _SideEffects, Me.ValueOpt.MakeRValue(), Type)
             End If
 
             Return Me

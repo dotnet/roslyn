@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 statements.Add(New BoundReturnStatement(syntax, Nothing, Nothing, Nothing).MakeCompilerGenerated())
 
                 ' Create a bound block 
-                Return New BoundBlock(syntax, Nothing, Nothing, statements.ToImmutableAndFree()).MakeCompilerGenerated()
+                Return New BoundBlock(syntax, Nothing, ImmutableArray(Of LocalSymbol).Empty, statements.ToImmutableAndFree()).MakeCompilerGenerated()
             End Function
 
         End Class

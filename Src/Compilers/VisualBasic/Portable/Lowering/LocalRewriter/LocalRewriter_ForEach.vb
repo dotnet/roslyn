@@ -458,7 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                   Nothing,
                                                                   If(node.DeclaredOrInferredLocalOpt IsNot Nothing,
                                                                      ImmutableArray.Create(Of LocalSymbol)(node.DeclaredOrInferredLocalOpt),
-                                                                     Nothing),
+                                                                     ImmutableArray(Of LocalSymbol).Empty),
                                                                   rewrittenBodyStatements)
 
             Dim booleanType = GetSpecialTypeWithUseSiteDiagnostics(SpecialType.System_Boolean, syntaxNode)
@@ -609,7 +609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' declare the control variable inside of the while loop to capture it for each
             ' iteration of this loop with a copy constructor
-            Dim rewrittenBodyBlock As BoundBlock = New BoundBlock(syntaxNode, Nothing, If(node.DeclaredOrInferredLocalOpt IsNot Nothing, ImmutableArray.Create(Of LocalSymbol)(node.DeclaredOrInferredLocalOpt), Nothing), rewrittenBodyStatements)
+            Dim rewrittenBodyBlock As BoundBlock = New BoundBlock(syntaxNode, Nothing, If(node.DeclaredOrInferredLocalOpt IsNot Nothing, ImmutableArray.Create(Of LocalSymbol)(node.DeclaredOrInferredLocalOpt), ImmutableArray(Of LocalSymbol).Empty), rewrittenBodyStatements)
 
             Dim bodyEpilogue As BoundStatement = New BoundLabelStatement(syntaxNode, node.ContinueLabel)
 
@@ -661,12 +661,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     Dim boundTryFinally = New BoundTryStatement(syntaxNode,
                                                                 New BoundBlock(syntaxNode,
-                                                                               Nothing, Nothing,
+                                                                               Nothing, ImmutableArray(Of LocalSymbol).Empty,
                                                                                ImmutableArray.Create(Of BoundStatement)(boundEnumeratorAssignment,
                                                                                                                        visitedWhile)),
                                                                 ImmutableArray(Of BoundCatchBlock).Empty,
                                                                 New BoundBlock(syntaxNode,
-                                                                               Nothing, Nothing,
+                                                                               Nothing, ImmutableArray(Of LocalSymbol).Empty,
                                                                                ImmutableArray.Create(Of BoundStatement)(disposalStatement)),
                                                                            exitLabelOpt:=Nothing)
                     boundTryFinally.SetWasCompilerGenerated() ' used to not create sequence points

@@ -1204,7 +1204,7 @@ lReportErrorOnTwoTokens:
                 Return DirectCast(boundStatement, BoundBlock)
             End If
 
-            Return New BoundBlock(methodBlock, methodBlock.Statements, Nothing, ImmutableArray.Create(Of boundStatement)(boundStatement))
+            Return New BoundBlock(methodBlock, methodBlock.Statements, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundStatement)(boundStatement))
         End Function
 #End Region
 

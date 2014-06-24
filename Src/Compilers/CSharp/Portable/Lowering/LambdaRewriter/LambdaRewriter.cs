@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected BoundBlock RewriteBlock(BoundBlock node, ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals)
         {
-            AddLocals(node.LocalsOpt, newLocals);
+            AddLocals(node.Locals, newLocals);
 
             var newStatements = ArrayBuilder<BoundStatement>.GetInstance();
 
