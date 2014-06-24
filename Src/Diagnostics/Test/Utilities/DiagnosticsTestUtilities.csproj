@@ -88,6 +88,8 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeFixTestBase.cs" />
+    <Compile Include="CodeFixTests.Extensions.cs" />
     <Compile Include="DiagnosticAnalyzerTestBase.cs" />
     <Compile Include="DiagnosticAnalyzerTests.Extensions.cs" />
     <Compile Include="DiagnosticResult.cs" />

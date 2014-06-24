@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractNamedTypeAnalyzer.cs" />
+    <Compile Include="CodeFixProviderBase.cs" />
     <Compile Include="Design\AssemblyAttributesDiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1001DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1003DiagnosticAnalyzer.cs" />
@@ -94,21 +95,35 @@
     <Compile Include="Design\CA1019DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1024DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1060DiagnosticAnalyzer.cs" />
+    <Compile Include="Design\CodeFixes\CA1001CodeFixProviderBase.cs" />
+    <Compile Include="Design\CodeFixes\CA1008CodeFixProviderBase.cs" />
+    <Compile Include="Design\CodeFixes\CA1012CodeFixProvider.cs" />
+    <Compile Include="Design\CodeFixes\EnumWithFlagsCodeFixProviderBase.cs" />
     <Compile Include="Design\EnumWithFlagsDiagnosticAnalyzer.cs" />
     <Compile Include="Design\StaticTypeRulesDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticKind.cs" />
     <Compile Include="FxCopDiagnosticCategory.cs" />
+    <Compile Include="FxCopFixersResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FxCopFixersResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="FxCopRulesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>FxCopRulesResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Globalization\CA1309DiagnosticAnalyzer.cs" />
+    <Compile Include="Globalization\CodeFixes\CA1309CodeFixProviderBase.cs" />
+    <Compile Include="Globalization\CodeFixes\CA2101CodeFixProviderBase.cs" />
     <Compile Include="Interoperability\PInvokeDiagnosticAnalyzer.cs" />
+    <Compile Include="MultipleCodeFixProviderBase.cs" />
     <Compile Include="Naming\CA1708DiagnosticAnalyzer.cs" />
     <Compile Include="Naming\CA1715DiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CA1813DiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CA1821DiagnosticAnalyzer.cs" />
+    <Compile Include="Performance\CodeFixes\CA1813CodeFixProviderBase.cs" />
+    <Compile Include="Performance\CodeFixes\CA1821CodeFixProvider.cs" />
     <Compile Include="Reliability\CA2002DiagnosticAnalyzer.cs" />
     <Compile Include="Shared\CommonAccessibilityUtilities.cs" />
     <Compile Include="Shared\DiagnosticHelpers.cs" />
@@ -125,9 +140,19 @@
     <Compile Include="Usage\CA2213DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CA2214DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CA2231DiagnosticAnalyzer.cs" />
+    <Compile Include="Usage\CodeFixes\CA2213CodeFixProviderBase.cs" />
+    <Compile Include="Usage\CodeFixes\CA2229CodeFixProvider.cs" />
+    <Compile Include="Usage\CodeFixes\CA2231CodeFixProviderBase.cs" />
+    <Compile Include="Usage\CodeFixes\CA2235CodeFixProviderBase.cs" />
+    <Compile Include="Usage\CodeFixes\CA2237CodeFixProvider.cs" />
     <Compile Include="Usage\SerializationRulesDiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="FxCopFixersResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>FxCopFixersResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="FxCopRulesResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
