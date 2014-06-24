@@ -1895,7 +1895,7 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !").
   IL_000e:  ldsfld     "C2._ClosureCache$__5 As <generated method>"
   IL_0013:  br.s       IL_0027
   IL_0015:  ldnull
-  IL_0016:  ldftn      "Function C2._Lambda$__2() As C2.ABC"
+  IL_0016:  ldftn      "Function C2._Lambda$__2(Object) As C2.ABC"
   IL_001c:  newobj     "Sub VB$AnonymousDelegate_0(Of C2.ABC)..ctor(Object, System.IntPtr)"
   IL_0021:  dup
   IL_0022:  stsfld     "C2._ClosureCache$__5 As <generated method>"
@@ -2322,7 +2322,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?").
   IL_000e:  ldsfld     "C2._ClosureCache$__5 As <generated method>"
   IL_0013:  br.s       IL_0027
   IL_0015:  ldnull
-  IL_0016:  ldftn      "Sub C2._Lambda$__2()"
+  IL_0016:  ldftn      "Sub C2._Lambda$__2(Object)"
   IL_001c:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_0021:  dup
   IL_0022:  stsfld     "C2._ClosureCache$__5 As <generated method>"

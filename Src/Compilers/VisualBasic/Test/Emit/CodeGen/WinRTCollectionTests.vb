@@ -274,7 +274,7 @@ End Class
   IL_001c:  ldsfld     "A._ClosureCache$__2 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
   IL_0021:  br.s       IL_0035
   IL_0023:  ldnull
-  IL_0024:  ldftn      "Function A._Lambda$__1(Windows.Data.Json.IJsonValue) As Boolean"
+  IL_0024:  ldftn      "Function A._Lambda$__1(Object, Windows.Data.Json.IJsonValue) As Boolean"
   IL_002a:  newobj     "Sub System.Func(Of Windows.Data.Json.IJsonValue, Boolean)..ctor(Object, System.IntPtr)"
   IL_002f:  dup
   IL_0030:  stsfld     "A._ClosureCache$__2 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
@@ -284,7 +284,7 @@ End Class
   IL_0041:  ldsfld     "A._ClosureCache$__4 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
   IL_0046:  br.s       IL_005a
   IL_0048:  ldnull
-  IL_0049:  ldftn      "Function A._Lambda$__3(Windows.Data.Json.IJsonValue) As Windows.Data.Json.IJsonValue"
+  IL_0049:  ldftn      "Function A._Lambda$__3(Object, Windows.Data.Json.IJsonValue) As Windows.Data.Json.IJsonValue"
   IL_004f:  newobj     "Sub System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)..ctor(Object, System.IntPtr)"
   IL_0054:  dup
   IL_0055:  stsfld     "A._ClosureCache$__4 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
@@ -292,7 +292,8 @@ End Class
   IL_005f:  call       "Function System.Linq.Enumerable.Count(Of Windows.Data.Json.IJsonValue)(System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue)) As Integer"
   IL_0064:  call       "Sub System.Console.WriteLine(Integer)"
   IL_0069:  ret
-}]]>.Value)
+}
+]]>.Value)
         End Sub
 
         <Fact()>
@@ -4449,7 +4450,7 @@ End Class
   IL_0084:  ldsfld     "AllMembers._ClosureCache$__5 As System.Func(Of Integer, Integer)"
   IL_0089:  br.s       IL_009d
   IL_008b:  ldnull
-  IL_008c:  ldftn      "Function AllMembers._Lambda$__4(Integer) As Integer"
+  IL_008c:  ldftn      "Function AllMembers._Lambda$__4(Object, Integer) As Integer"
   IL_0092:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_0097:  dup
   IL_0098:  stsfld     "AllMembers._ClosureCache$__5 As System.Func(Of Integer, Integer)"
@@ -4492,7 +4493,7 @@ End Class
   IL_010e:  ldsfld     "AllMembers._ClosureCache$__7 As System.Func(Of Integer, Boolean)"
   IL_0113:  br.s       IL_0127
   IL_0115:  ldnull
-  IL_0116:  ldftn      "Function AllMembers._Lambda$__6(Integer) As Boolean"
+  IL_0116:  ldftn      "Function AllMembers._Lambda$__6(Object, Integer) As Boolean"
   IL_011c:  newobj     "Sub System.Func(Of Integer, Boolean)..ctor(Object, System.IntPtr)"
   IL_0121:  dup
   IL_0122:  stsfld     "AllMembers._ClosureCache$__7 As System.Func(Of Integer, Boolean)"
@@ -4502,7 +4503,7 @@ End Class
   IL_0133:  ldsfld     "AllMembers._ClosureCache$__9 As System.Func(Of Integer, Integer)"
   IL_0138:  br.s       IL_014c
   IL_013a:  ldnull
-  IL_013b:  ldftn      "Function AllMembers._Lambda$__8(Integer) As Integer"
+  IL_013b:  ldftn      "Function AllMembers._Lambda$__8(Object, Integer) As Integer"
   IL_0141:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_0146:  dup
   IL_0147:  stsfld     "AllMembers._ClosureCache$__9 As System.Func(Of Integer, Integer)"

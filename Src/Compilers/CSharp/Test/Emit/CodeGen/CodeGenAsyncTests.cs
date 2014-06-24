@@ -6003,7 +6003,7 @@ class Test
   IL_0019:  brtrue.s   IL_002e
   IL_001b:  pop
   IL_001c:  ldnull
-  IL_001d:  ldftn      ""int Test.<F>b__0()""
+  IL_001d:  ldftn      ""int Test.<F>b__0(object)""
   IL_0023:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0028:  dup
   IL_0029:  stsfld     ""System.Func<int> Test.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -6169,7 +6169,7 @@ class Test
   IL_0021:  brtrue.s   IL_0036
   IL_0023:  pop
   IL_0024:  ldnull
-  IL_0025:  ldftn      ""int Test.<F>b__0()""
+  IL_0025:  ldftn      ""int Test.<F>b__0(object)""
   IL_002b:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0030:  dup
   IL_0031:  stsfld     ""System.Func<int> Test.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -6323,7 +6323,7 @@ class Test
   IL_0019:  brtrue.s   IL_002e
   IL_001b:  pop
   IL_001c:  ldnull
-  IL_001d:  ldftn      ""int Test.<F>b__0()""
+  IL_001d:  ldftn      ""int Test.<F>b__0(object)""
   IL_0023:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0028:  dup
   IL_0029:  stsfld     ""System.Func<int> Test.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -6465,7 +6465,7 @@ class Test
   IL_0019:  brtrue.s   IL_002e
   IL_001b:  pop
   IL_001c:  ldnull
-  IL_001d:  ldftn      ""void Test.<F>b__0()""
+  IL_001d:  ldftn      ""void Test.<F>b__0(object)""
   IL_0023:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0028:  dup
   IL_0029:  stsfld     ""System.Action Test.CS$<>9__CachedAnonymousMethodDelegate1""

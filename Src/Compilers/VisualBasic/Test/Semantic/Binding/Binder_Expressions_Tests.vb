@@ -1817,7 +1817,7 @@ End Module
   IL_0007:  ldsfld     "Module1.Test._ClosureCache$__3 As System.Action(Of Integer)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Module1.Test._Lambda$__2(Integer)"
+  IL_000f:  ldftn      "Sub Module1.Test._Lambda$__2(Object, Integer)"
   IL_0015:  newobj     "Sub System.Action(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Module1.Test._ClosureCache$__3 As System.Action(Of Integer)"

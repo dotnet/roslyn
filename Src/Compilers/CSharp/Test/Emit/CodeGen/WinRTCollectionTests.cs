@@ -5301,7 +5301,7 @@ class AllMembers
   IL_00e8:  brtrue.s   IL_00fd
   IL_00ea:  pop
   IL_00eb:  ldnull
-  IL_00ec:  ldftn      ""bool AllMembers.<TestLINQ>b__3(int)""
+  IL_00ec:  ldftn      ""bool AllMembers.<TestLINQ>b__3(object, int)""
   IL_00f2:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
   IL_00f7:  dup
   IL_00f8:  stsfld     ""System.Func<int, bool> AllMembers.CS$<>9__CachedAnonymousMethodDelegate4""
@@ -5340,7 +5340,8 @@ class AllMembers
   IL_0161:  leave.s    IL_0163
 }
   IL_0163:  ret
-}");
+}
+");
         }
 
         [Fact]

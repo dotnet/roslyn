@@ -318,7 +318,7 @@ F1
   IL_0061:  ldsfld     "Program._ClosureCache$__2 As Program.DT1"
   IL_0066:  br.s       IL_007a
   IL_0068:  ldnull
-  IL_0069:  ldftn      "Function Program._Lambda$__1() As Integer"
+  IL_0069:  ldftn      "Function Program._Lambda$__1(Object) As Integer"
   IL_006f:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_0074:  dup
   IL_0075:  stsfld     "Program._ClosureCache$__2 As Program.DT1"
@@ -329,7 +329,7 @@ F1
   IL_0087:  ldsfld     "Program._ClosureCache$__4 As Program.DT1"
   IL_008c:  br.s       IL_00a0
   IL_008e:  ldnull
-  IL_008f:  ldftn      "Function Program._Lambda$__3() As Integer"
+  IL_008f:  ldftn      "Function Program._Lambda$__3(Object) As Integer"
   IL_0095:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_009a:  dup
   IL_009b:  stsfld     "Program._ClosureCache$__4 As Program.DT1"
@@ -340,7 +340,7 @@ F1
   IL_00ad:  ldsfld     "Program._ClosureCache$__6 As Program.DT1"
   IL_00b2:  br.s       IL_00c6
   IL_00b4:  ldnull
-  IL_00b5:  ldftn      "Function Program._Lambda$__5() As Integer"
+  IL_00b5:  ldftn      "Function Program._Lambda$__5(Object) As Integer"
   IL_00bb:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_00c0:  dup
   IL_00c1:  stsfld     "Program._ClosureCache$__6 As Program.DT1"
@@ -351,7 +351,7 @@ F1
   IL_00d3:  ldsfld     "Program._ClosureCache$__8 As Program.DT1"
   IL_00d8:  br.s       IL_00ec
   IL_00da:  ldnull
-  IL_00db:  ldftn      "Function Program._Lambda$__7() As Integer"
+  IL_00db:  ldftn      "Function Program._Lambda$__7(Object) As Integer"
   IL_00e1:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_00e6:  dup
   IL_00e7:  stsfld     "Program._ClosureCache$__8 As Program.DT1"
@@ -362,7 +362,7 @@ F1
   IL_00f9:  ldsfld     "Program._ClosureCache$__10 As Program.DT1"
   IL_00fe:  br.s       IL_0112
   IL_0100:  ldnull
-  IL_0101:  ldftn      "Function Program._Lambda$__9() As Integer"
+  IL_0101:  ldftn      "Function Program._Lambda$__9(Object) As Integer"
   IL_0107:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_010c:  dup
   IL_010d:  stsfld     "Program._ClosureCache$__10 As Program.DT1"
@@ -373,7 +373,7 @@ F1
   IL_011f:  ldsfld     "Program._ClosureCache$__12 As <generated method>"
   IL_0124:  br.s       IL_0138
   IL_0126:  ldnull
-  IL_0127:  ldftn      "Function Program._Lambda$__11() As Integer"
+  IL_0127:  ldftn      "Function Program._Lambda$__11(Object) As Integer"
   IL_012d:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0132:  dup
   IL_0133:  stsfld     "Program._ClosureCache$__12 As <generated method>"
@@ -529,7 +529,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_0025:  ldsfld     "Program._ClosureCache$__2 As Program.DT1"
   IL_002a:  br.s       IL_003e
   IL_002c:  ldnull
-  IL_002d:  ldftn      "Function Program._Lambda$__1() As Integer"
+  IL_002d:  ldftn      "Function Program._Lambda$__1(Object) As Integer"
   IL_0033:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_0038:  dup
   IL_0039:  stsfld     "Program._ClosureCache$__2 As Program.DT1"
@@ -549,7 +549,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_0062:  ldsfld     "Program._ClosureCache$__4 As Program.DT1"
   IL_0067:  br.s       IL_007b
   IL_0069:  ldnull
-  IL_006a:  ldftn      "Function Program._Lambda$__3() As Integer"
+  IL_006a:  ldftn      "Function Program._Lambda$__3(Object) As Integer"
   IL_0070:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_0075:  dup
   IL_0076:  stsfld     "Program._ClosureCache$__4 As Program.DT1"
@@ -570,7 +570,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_009d:  ldsfld     "Program._ClosureCache$__6 As <generated method>"
   IL_00a2:  br.s       IL_00b6
   IL_00a4:  ldnull
-  IL_00a5:  ldftn      "Function Program._Lambda$__5() As Integer"
+  IL_00a5:  ldftn      "Function Program._Lambda$__5(Object) As Integer"
   IL_00ab:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_00b0:  dup
   IL_00b1:  stsfld     "Program._ClosureCache$__6 As <generated method>"
@@ -581,7 +581,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_00c3:  ldsfld     "Program._ClosureCache$__8 As <generated method>"
   IL_00c8:  br.s       IL_00dc
   IL_00ca:  ldnull
-  IL_00cb:  ldftn      "Function Program._Lambda$__7() As Integer"
+  IL_00cb:  ldftn      "Function Program._Lambda$__7(Object) As Integer"
   IL_00d1:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_00d6:  dup
   IL_00d7:  stsfld     "Program._ClosureCache$__8 As <generated method>"
@@ -598,7 +598,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_00f9:  ldsfld     "Program._ClosureCache$__10 As <generated method>"
   IL_00fe:  br.s       IL_0112
   IL_0100:  ldnull
-  IL_0101:  ldftn      "Function Program._Lambda$__9() As Integer"
+  IL_0101:  ldftn      "Function Program._Lambda$__9(Object) As Integer"
   IL_0107:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_010c:  dup
   IL_010d:  stsfld     "Program._ClosureCache$__10 As <generated method>"
@@ -610,7 +610,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_011d:  ldsfld     "Program._ClosureCache$__12 As <generated method>"
   IL_0122:  br.s       IL_0136
   IL_0124:  ldnull
-  IL_0125:  ldftn      "Function Program._Lambda$__11() As Integer"
+  IL_0125:  ldftn      "Function Program._Lambda$__11(Object) As Integer"
   IL_012b:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0130:  dup
   IL_0131:  stsfld     "Program._ClosureCache$__12 As <generated method>"
@@ -656,7 +656,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__2 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Function Program._Lambda$__1() As Integer"
+  IL_000f:  ldftn      "Function Program._Lambda$__1(Object) As Integer"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__2 As <generated method>"

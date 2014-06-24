@@ -24,6 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected ReadOnly LocalMap As Dictionary(Of LocalSymbol, LocalSymbol) = New Dictionary(Of LocalSymbol, LocalSymbol)()
 
+        ''' <summary>
+        ''' A mapping from every parameter to its replacement parameter. Local variables 
+        ''' are replaced when their types change due to being inside of a lambda.
+        ''' </summary>
+        Protected ReadOnly ParameterMap As Dictionary(Of ParameterSymbol, ParameterSymbol) = New Dictionary(Of ParameterSymbol, ParameterSymbol)()
+
         Protected ReadOnly PlaceholderReplacementMap As New Dictionary(Of BoundValuePlaceholderBase, BoundExpression)
 
         ''' <summary>
@@ -146,22 +152,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim proxy As TProxy = Nothing
             If Proxies.TryGetValue(node.ParameterSymbol, proxy) Then
                 Return Me.MaterializeProxy(node, proxy)
-            Else
-                ' In an expression lambda. Note that in C#, this is handled instead by having an empty parameter map 
-                ' This might be a worth-while change once iterators and async are introduced.
-                Return If(MapNotLiftedParameterToLambdaParameter(node), MyBase.VisitParameter(node))
             End If
+
+            Dim replacementParameter As ParameterSymbol = Nothing
+            If Me.ParameterMap.TryGetValue(node.ParameterSymbol, replacementParameter) Then
+                Return New BoundParameter(node.Syntax, replacementParameter, node.IsLValue, replacementParameter.Type, node.HasErrors)
+            End If
+
+            Return MyBase.VisitParameter(node)
         End Function
 
         Protected MustOverride Function MaterializeProxy(origExpression As BoundExpression, proxy As TProxy) As BoundNode
-
-        ''' <summary>
-        ''' Maps not-lifted parameter, since the parameter was not lifted, it must be an actual lambda's parameter 
-        ''' whose actual representation is the current method's parameter at the same ordinal position.
-        ''' 
-        ''' Returns Nothing if no such mapping exists
-        ''' </summary>
-        Protected MustOverride Function MapNotLiftedParameterToLambdaParameter(node As BoundParameter) As BoundExpression
 
         Public NotOverridable Overrides Function VisitLocal(node As BoundLocal) As BoundNode
             Dim local As LocalSymbol = node.LocalSymbol

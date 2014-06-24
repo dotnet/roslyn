@@ -52,7 +52,7 @@ class C : I
   IL_0009:  brtrue.s   IL_001e
   IL_000b:  pop
   IL_000c:  ldnull
-  IL_000d:  ldftn      ""I C.<Tester>b__2()""
+  IL_000d:  ldftn      ""I C.<Tester>b__2(object)""
   IL_0013:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0018:  dup
   IL_0019:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
@@ -62,7 +62,7 @@ class C : I
   IL_0026:  brtrue.s   IL_003b
   IL_0028:  pop
   IL_0029:  ldnull
-  IL_002a:  ldftn      ""I C.<Tester>b__0()""
+  IL_002a:  ldftn      ""I C.<Tester>b__0(object)""
   IL_0030:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0035:  dup
   IL_0036:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -70,7 +70,8 @@ class C : I
   IL_003c:  br.s       IL_003e
   IL_003e:  ldloc.0
   IL_003f:  ret
-}");
+}
+");
 
             verify = CompileAndVerify(src,
                 expectedOutput: "C");
@@ -85,7 +86,7 @@ class C : I
   IL_0009:  brtrue.s   IL_003a
   IL_000b:  pop
   IL_000c:  ldnull
-  IL_000d:  ldftn      ""I C.<Tester>b__2()""
+  IL_000d:  ldftn      ""I C.<Tester>b__2(object)""
   IL_0013:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0018:  dup
   IL_0019:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
@@ -95,12 +96,13 @@ class C : I
   IL_0025:  brtrue.s   IL_003a
   IL_0027:  pop
   IL_0028:  ldnull
-  IL_0029:  ldftn      ""I C.<Tester>b__0()""
+  IL_0029:  ldftn      ""I C.<Tester>b__0(object)""
   IL_002f:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0034:  dup
   IL_0035:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
   IL_003a:  ret
-}");
+}
+");
         }
 
         [Fact, WorkItem(638289, "DevDiv")]
@@ -149,7 +151,7 @@ class C : I
   IL_000a:  brtrue.s   IL_001f
   IL_000c:  pop
   IL_000d:  ldnull
-  IL_000e:  ldftn      ""I C.<Tester>b__4()""
+  IL_000e:  ldftn      ""I C.<Tester>b__4(object)""
   IL_0014:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0019:  dup
   IL_001a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
@@ -162,7 +164,7 @@ class C : I
   IL_002b:  brtrue.s   IL_0040
   IL_002d:  pop
   IL_002e:  ldnull
-  IL_002f:  ldftn      ""I C.<Tester>b__2()""
+  IL_002f:  ldftn      ""I C.<Tester>b__2(object)""
   IL_0035:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_003a:  dup
   IL_003b:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
@@ -172,7 +174,7 @@ class C : I
   IL_0048:  brtrue.s   IL_005d
   IL_004a:  pop
   IL_004b:  ldnull
-  IL_004c:  ldftn      ""I C.<Tester>b__0()""
+  IL_004c:  ldftn      ""I C.<Tester>b__0(object)""
   IL_0052:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0057:  dup
   IL_0058:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -180,7 +182,8 @@ class C : I
   IL_005e:  br.s       IL_0060
   IL_0060:  ldloc.0
   IL_0061:  ret
-}");
+}
+");
             verify = CompileAndVerify(src,
                 expectedOutput: "A");
             verify.VerifyIL("C.Tester", @"
@@ -195,7 +198,7 @@ class C : I
   IL_000a:  brtrue.s   IL_005b
   IL_000c:  pop
   IL_000d:  ldnull
-  IL_000e:  ldftn      ""I C.<Tester>b__4()""
+  IL_000e:  ldftn      ""I C.<Tester>b__4(object)""
   IL_0014:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0019:  dup
   IL_001a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
@@ -208,7 +211,7 @@ class C : I
   IL_002a:  brtrue.s   IL_005b
   IL_002c:  pop
   IL_002d:  ldnull
-  IL_002e:  ldftn      ""I C.<Tester>b__2()""
+  IL_002e:  ldftn      ""I C.<Tester>b__2(object)""
   IL_0034:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0039:  dup
   IL_003a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
@@ -218,12 +221,13 @@ class C : I
   IL_0046:  brtrue.s   IL_005b
   IL_0048:  pop
   IL_0049:  ldnull
-  IL_004a:  ldftn      ""I C.<Tester>b__0()""
+  IL_004a:  ldftn      ""I C.<Tester>b__0(object)""
   IL_0050:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0055:  dup
   IL_0056:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
   IL_005b:  ret
-}");
+}
+");
         }
 
         [Fact, WorkItem(638289, "DevDiv")]
@@ -275,7 +279,7 @@ class C : I
   IL_000e:  brtrue.s   IL_0023
   IL_0010:  pop
   IL_0011:  ldnull
-  IL_0012:  ldftn      ""I C.<Tester>b__4()""
+  IL_0012:  ldftn      ""I C.<Tester>b__4(object)""
   IL_0018:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_001d:  dup
   IL_001e:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
@@ -285,7 +289,7 @@ class C : I
   IL_002b:  brtrue.s   IL_0040
   IL_002d:  pop
   IL_002e:  ldnull
-  IL_002f:  ldftn      ""I C.<Tester>b__2()""
+  IL_002f:  ldftn      ""I C.<Tester>b__2(object)""
   IL_0035:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_003a:  dup
   IL_003b:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
@@ -295,7 +299,7 @@ class C : I
   IL_0048:  brtrue.s   IL_005d
   IL_004a:  pop
   IL_004b:  ldnull
-  IL_004c:  ldftn      ""I C.<Tester>b__0()""
+  IL_004c:  ldftn      ""I C.<Tester>b__0(object)""
   IL_0052:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0057:  dup
   IL_0058:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -303,7 +307,8 @@ class C : I
   IL_005e:  br.s       IL_0060
   IL_0060:  ldloc.0
   IL_0061:  ret
-}");
+}
+");
             verify = CompileAndVerify(src,
                 expectedOutput: "B");
             verify.VerifyIL("C.Tester", @"
@@ -321,7 +326,7 @@ class C : I
   IL_000e:  brtrue.s   IL_005b
   IL_0010:  pop
   IL_0011:  ldnull
-  IL_0012:  ldftn      ""I C.<Tester>b__4()""
+  IL_0012:  ldftn      ""I C.<Tester>b__4(object)""
   IL_0018:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_001d:  dup
   IL_001e:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
@@ -331,7 +336,7 @@ class C : I
   IL_002a:  brtrue.s   IL_005b
   IL_002c:  pop
   IL_002d:  ldnull
-  IL_002e:  ldftn      ""I C.<Tester>b__2()""
+  IL_002e:  ldftn      ""I C.<Tester>b__2(object)""
   IL_0034:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0039:  dup
   IL_003a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
@@ -341,7 +346,7 @@ class C : I
   IL_0046:  brtrue.s   IL_005b
   IL_0048:  pop
   IL_0049:  ldnull
-  IL_004a:  ldftn      ""I C.<Tester>b__0()""
+  IL_004a:  ldftn      ""I C.<Tester>b__0(object)""
   IL_0050:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0055:  dup
   IL_0056:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -402,7 +407,7 @@ class C : I
   IL_000e:  brtrue.s   IL_0023
   IL_0010:  pop
   IL_0011:  ldnull
-  IL_0012:  ldftn      ""I C.<Tester>b__6()""
+  IL_0012:  ldftn      ""I C.<Tester>b__6(object)""
   IL_0018:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_001d:  dup
   IL_001e:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate7""
@@ -412,7 +417,7 @@ class C : I
   IL_002b:  brtrue.s   IL_0040
   IL_002d:  pop
   IL_002e:  ldnull
-  IL_002f:  ldftn      ""I C.<Tester>b__4()""
+  IL_002f:  ldftn      ""I C.<Tester>b__4(object)""
   IL_0035:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_003a:  dup
   IL_003b:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
@@ -425,7 +430,7 @@ class C : I
   IL_004c:  brtrue.s   IL_0061
   IL_004e:  pop
   IL_004f:  ldnull
-  IL_0050:  ldftn      ""I C.<Tester>b__2()""
+  IL_0050:  ldftn      ""I C.<Tester>b__2(object)""
   IL_0056:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_005b:  dup
   IL_005c:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
@@ -435,7 +440,7 @@ class C : I
   IL_0069:  brtrue.s   IL_007e
   IL_006b:  pop
   IL_006c:  ldnull
-  IL_006d:  ldftn      ""I C.<Tester>b__0()""
+  IL_006d:  ldftn      ""I C.<Tester>b__0(object)""
   IL_0073:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0078:  dup
   IL_0079:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -443,7 +448,8 @@ class C : I
   IL_007f:  br.s       IL_0081
   IL_0081:  ldloc.0
   IL_0082:  ret
-}");
+}
+");
             verify = CompileAndVerify(src,
                 expectedOutput: "D");
             verify.VerifyIL("C.Tester", @"
@@ -461,7 +467,7 @@ class C : I
   IL_000e:  brtrue.s   IL_007b
   IL_0010:  pop
   IL_0011:  ldnull
-  IL_0012:  ldftn      ""I C.<Tester>b__6()""
+  IL_0012:  ldftn      ""I C.<Tester>b__6(object)""
   IL_0018:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_001d:  dup
   IL_001e:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate7""
@@ -471,7 +477,7 @@ class C : I
   IL_002a:  brtrue.s   IL_007b
   IL_002c:  pop
   IL_002d:  ldnull
-  IL_002e:  ldftn      ""I C.<Tester>b__4()""
+  IL_002e:  ldftn      ""I C.<Tester>b__4(object)""
   IL_0034:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0039:  dup
   IL_003a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate5""
@@ -484,7 +490,7 @@ class C : I
   IL_004a:  brtrue.s   IL_007b
   IL_004c:  pop
   IL_004d:  ldnull
-  IL_004e:  ldftn      ""I C.<Tester>b__2()""
+  IL_004e:  ldftn      ""I C.<Tester>b__2(object)""
   IL_0054:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0059:  dup
   IL_005a:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate3""
@@ -494,12 +500,13 @@ class C : I
   IL_0066:  brtrue.s   IL_007b
   IL_0068:  pop
   IL_0069:  ldnull
-  IL_006a:  ldftn      ""I C.<Tester>b__0()""
+  IL_006a:  ldftn      ""I C.<Tester>b__0(object)""
   IL_0070:  newobj     ""System.Func<I>..ctor(object, System.IntPtr)""
   IL_0075:  dup
   IL_0076:  stsfld     ""System.Func<I> C.CS$<>9__CachedAnonymousMethodDelegate1""
   IL_007b:  ret
-}");
+}
+");
         }
 
         [Fact(), WorkItem(638289, "DevDiv")]
@@ -1009,7 +1016,7 @@ class C
   IL_0012:  brtrue.s   IL_002a
   IL_0014:  pop
   IL_0015:  ldnull
-  IL_0016:  ldftn      ""int C.<Main>b__0(int)""
+  IL_0016:  ldftn      ""int C.<Main>b__0(object, int)""
   IL_001c:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_0021:  dup
   IL_0022:  stsfld     ""System.Func<int, int> C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -1024,13 +1031,14 @@ class C
   IL_003a:  brtrue.s   IL_004f
   IL_003c:  pop
   IL_003d:  ldnull
-  IL_003e:  ldftn      ""int C.<Main>b__2(int)""
+  IL_003e:  ldftn      ""int C.<Main>b__2(object, int)""
   IL_0044:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_0049:  dup
   IL_004a:  stsfld     ""System.Func<int, int> C.CS$<>9__CachedAnonymousMethodDelegate3""
   IL_004f:  call       ""void System.Console.WriteLine(object)""
   IL_0054:  ret
-}");
+}
+");
         }
 
         [Fact]

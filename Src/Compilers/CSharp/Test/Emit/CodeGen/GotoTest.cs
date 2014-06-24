@@ -542,13 +542,14 @@ class C
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
   IL_0009:  ldnull
-  IL_000a:  ldftn      ""int C.<Main>b__0(int)""
+  IL_000a:  ldftn      ""int C.<Main>b__0(object, int)""
   IL_0010:  newobj     ""del..ctor(object, System.IntPtr)""
   IL_0015:  dup
   IL_0016:  stsfld     ""del C.CS$<>9__CachedAnonymousMethodDelegate1""
   IL_001b:  call       ""void System.Console.WriteLine(object)""
   IL_0020:  ret
-}";
+}
+";
             CompileAndVerify(text).
                 VerifyIL("C.Main", expectedIL);
         }
@@ -592,7 +593,7 @@ class C
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
   IL_0009:  ldnull
-  IL_000a:  ldftn      ""int C.<Main>b__0(int)""
+  IL_000a:  ldftn      ""int C.<Main>b__0(object, int)""
   IL_0010:  newobj     ""del..ctor(object, System.IntPtr)""
   IL_0015:  dup
   IL_0016:  stsfld     ""del C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -602,13 +603,14 @@ class C
   IL_0026:  brtrue.s   IL_003b
   IL_0028:  pop
   IL_0029:  ldnull
-  IL_002a:  ldftn      ""int C.<Main>b__2(int)""
+  IL_002a:  ldftn      ""int C.<Main>b__2(object, int)""
   IL_0030:  newobj     ""del..ctor(object, System.IntPtr)""
   IL_0035:  dup
   IL_0036:  stsfld     ""del C.CS$<>9__CachedAnonymousMethodDelegate3""
   IL_003b:  call       ""void System.Console.WriteLine(object)""
   IL_0040:  ret
-}";
+}
+";
             CompileAndVerify(text).
                 VerifyIL("C.Main", expectedIL);
         }

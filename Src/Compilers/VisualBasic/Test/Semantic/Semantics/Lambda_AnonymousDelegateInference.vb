@@ -492,7 +492,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__2 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(Integer)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, Integer)"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__2 As <generated method>"
@@ -503,7 +503,7 @@ End Module
   IL_002d:  ldsfld     "Program._ClosureCache$__4 As <generated method>"
   IL_0032:  br.s       IL_0046
   IL_0034:  ldnull
-  IL_0035:  ldftn      "Sub Program._Lambda$__3(Integer)"
+  IL_0035:  ldftn      "Sub Program._Lambda$__3(Object, Integer)"
   IL_003b:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0040:  dup
   IL_0041:  stsfld     "Program._ClosureCache$__4 As <generated method>"
@@ -514,7 +514,7 @@ End Module
   IL_0053:  ldsfld     "Program._ClosureCache$__6 As <generated method>"
   IL_0058:  br.s       IL_006c
   IL_005a:  ldnull
-  IL_005b:  ldftn      "Function Program._Lambda$__5() As Integer"
+  IL_005b:  ldftn      "Function Program._Lambda$__5(Object) As Integer"
   IL_0061:  newobj     "Sub VB$AnonymousDelegate_1(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0066:  dup
   IL_0067:  stsfld     "Program._ClosureCache$__6 As <generated method>"

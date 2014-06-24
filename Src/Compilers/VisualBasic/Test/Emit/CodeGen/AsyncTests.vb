@@ -420,28 +420,31 @@ Module Form1
 End Module
     </file>
 </compilation>, useLatestFramework:=True, expectedOutput:="0 2 3 123 1").
-            VerifyIL("Form1._Lambda$__1()",
+            VerifyIL("Form1._Lambda$__1(Object)",
             <![CDATA[
 {
-  // Code size       55 (0x37)
+  // Code size       63 (0x3f)
   .maxstack  2
   .locals init (Form1.VB$StateMachine_0__Lambda$__1 V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "Form1.VB$StateMachine_0__Lambda$__1"
   IL_0008:  ldloca.s   V_0
-  IL_000a:  ldc.i4.m1
-  IL_000b:  stfld      "Form1.VB$StateMachine_0__Lambda$__1.$State As Integer"
+  IL_000a:  ldarg.0
+  IL_000b:  stfld      "Form1.VB$StateMachine_0__Lambda$__1.$VB$Local_ As Object"
   IL_0010:  ldloca.s   V_0
-  IL_0012:  call       "Function System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).Create() As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-  IL_0017:  stfld      "Form1.VB$StateMachine_0__Lambda$__1.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-  IL_001c:  ldloca.s   V_0
-  IL_001e:  ldflda     "Form1.VB$StateMachine_0__Lambda$__1.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).Start(Of Form1.VB$StateMachine_0__Lambda$__1)(ByRef Form1.VB$StateMachine_0__Lambda$__1)"
-  IL_002a:  ldloca.s   V_0
-  IL_002c:  ldflda     "Form1.VB$StateMachine_0__Lambda$__1.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-  IL_0031:  call       "Function System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).get_Task() As System.Threading.Tasks.Task(Of Integer)"
-  IL_0036:  ret
+  IL_0012:  ldc.i4.m1
+  IL_0013:  stfld      "Form1.VB$StateMachine_0__Lambda$__1.$State As Integer"
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  call       "Function System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).Create() As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_001f:  stfld      "Form1.VB$StateMachine_0__Lambda$__1.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  ldflda     "Form1.VB$StateMachine_0__Lambda$__1.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_002b:  ldloca.s   V_0
+  IL_002d:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).Start(Of Form1.VB$StateMachine_0__Lambda$__1)(ByRef Form1.VB$StateMachine_0__Lambda$__1)"
+  IL_0032:  ldloca.s   V_0
+  IL_0034:  ldflda     "Form1.VB$StateMachine_0__Lambda$__1.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_0039:  call       "Function System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).get_Task() As System.Threading.Tasks.Task(Of Integer)"
+  IL_003e:  ret
 }
 ]]>)
         End Sub

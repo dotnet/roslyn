@@ -494,7 +494,7 @@ class Test
   IL_0017:  brtrue.s   IL_002c
   IL_0019:  pop
   IL_001a:  ldnull
-  IL_001b:  ldftn      ""char Test.<Main>b__0(char)""
+  IL_001b:  ldftn      ""char Test.<Main>b__0(object, char)""
   IL_0021:  newobj     ""System.Func<char, char>..ctor(object, System.IntPtr)""
   IL_0026:  dup
   IL_0027:  stsfld     ""System.Func<char, char> Test.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -518,7 +518,8 @@ class Test
   IL_0050:  ldstr      ""After""
   IL_0055:  call       ""void System.Console.WriteLine(string)""
   IL_005a:  ret
-}");
+}
+");
         }
 
         [Fact]

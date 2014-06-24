@@ -199,7 +199,8 @@ class C
     }
 }
 ";
-            var expectedIL = @"{
+            var expectedIL = @"
+{
   // Code size       73 (0x49)
   .maxstack  3
   .locals init (System.Delegate[] V_0) //del
@@ -209,7 +210,7 @@ class C
   IL_0007:  brtrue.s   IL_001c
   IL_0009:  pop
   IL_000a:  ldnull
-  IL_000b:  ldftn      ""void C.<Main>b__0(int)""
+  IL_000b:  ldftn      ""void C.<Main>b__0(object, int)""
   IL_0011:  newobj     ""boo..ctor(object, System.IntPtr)""
   IL_0016:  dup
   IL_0017:  stsfld     ""boo C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -229,7 +230,8 @@ class C
   IL_0042:  castclass  ""boo""
   IL_0047:  pop
   IL_0048:  ret
-}";
+}
+";
             CompileAndVerify(text, expectedOutput:"10").VerifyIL("C.Main", expectedIL);
         }
 
@@ -254,7 +256,8 @@ class C
     }
 }
 ";
-            var expectedIL = @"{
+            var expectedIL = @"
+{
   // Code size       76 (0x4c)
   .maxstack  3
   .locals init (System.Delegate[] V_0) //del
@@ -264,7 +267,7 @@ class C
   IL_0007:  brtrue.s   IL_001c
   IL_0009:  pop
   IL_000a:  ldnull
-  IL_000b:  ldftn      ""void C.<Main>b__0(string)""
+  IL_000b:  ldftn      ""void C.<Main>b__0(object, string)""
   IL_0011:  newobj     ""boo..ctor(object, System.IntPtr)""
   IL_0016:  dup
   IL_0017:  stsfld     ""boo C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -284,7 +287,8 @@ class C
   IL_0045:  castclass  ""boo""
   IL_004a:  pop
   IL_004b:  ret
-}";
+}
+";
             CompileAndVerify(text, expectedOutput:"Hello").VerifyIL("C.Main()", expectedIL);
         }
 

@@ -3426,7 +3426,7 @@ End Class
   IL_0010:  ldsfld     "C._ClosureCache$__2 As <generated method>"
   IL_0015:  br.s       IL_0029
   IL_0017:  ldnull
-  IL_0018:  ldftn      "Function C._Lambda$__1(Object) As Object"
+  IL_0018:  ldftn      "Function C._Lambda$__1(Object, Object) As Object"
   IL_001e:  newobj     "Sub VB$AnonymousDelegate_4(Of Object, Object)..ctor(Object, System.IntPtr)"
   IL_0023:  dup
   IL_0024:  stsfld     "C._ClosureCache$__2 As <generated method>"
@@ -3436,7 +3436,7 @@ End Class
   IL_0032:  ldsfld     "C._ClosureCache$__4 As <generated method>"
   IL_0037:  br.s       IL_004b
   IL_0039:  ldnull
-  IL_003a:  ldftn      "Sub C._Lambda$__3(Object)"
+  IL_003a:  ldftn      "Sub C._Lambda$__3(Object, Object)"
   IL_0040:  newobj     "Sub VB$AnonymousDelegate_3(Of Object)..ctor(Object, System.IntPtr)"
   IL_0045:  dup
   IL_0046:  stsfld     "C._ClosureCache$__4 As <generated method>"
@@ -3446,7 +3446,7 @@ End Class
   IL_0054:  ldsfld     "C._ClosureCache$__6 As <generated method>"
   IL_0059:  br.s       IL_006d
   IL_005b:  ldnull
-  IL_005c:  ldftn      "Sub C._Lambda$__5(C)"
+  IL_005c:  ldftn      "Sub C._Lambda$__5(Object, C)"
   IL_0062:  newobj     "Sub VB$AnonymousDelegate_3(Of C)..ctor(Object, System.IntPtr)"
   IL_0067:  dup
   IL_0068:  stsfld     "C._ClosureCache$__6 As <generated method>"

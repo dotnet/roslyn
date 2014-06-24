@@ -254,7 +254,7 @@ D";
   IL_0008:  brtrue.s   IL_001d
   IL_000a:  pop
   IL_000b:  ldnull
-  IL_000c:  ldftn      ""void Program.<Main>b__0()""
+  IL_000c:  ldftn      ""void Program.<Main>b__0(object)""
   IL_0012:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
   IL_0017:  dup
   IL_0018:  stsfld     ""D<Base> Program.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -264,7 +264,7 @@ D";
   IL_0024:  brtrue.s   IL_0039
   IL_0026:  pop
   IL_0027:  ldnull
-  IL_0028:  ldftn      ""void Program.<Main>b__2()""
+  IL_0028:  ldftn      ""void Program.<Main>b__2(object)""
   IL_002e:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
   IL_0033:  dup
   IL_0034:  stsfld     ""D<Derived> Program.CS$<>9__CachedAnonymousMethodDelegate3""
@@ -366,7 +366,7 @@ class Program
   IL_0008:  brtrue.s   IL_001d
   IL_000a:  pop
   IL_000b:  ldnull
-  IL_000c:  ldftn      ""void Program.<Main>b__0()""
+  IL_000c:  ldftn      ""void Program.<Main>b__0(object)""
   IL_0012:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
   IL_0017:  dup
   IL_0018:  stsfld     ""D<Base> Program.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -376,7 +376,7 @@ class Program
   IL_0024:  brtrue.s   IL_0039
   IL_0026:  pop
   IL_0027:  ldnull
-  IL_0028:  ldftn      ""void Program.<Main>b__2()""
+  IL_0028:  ldftn      ""void Program.<Main>b__2(object)""
   IL_002e:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
   IL_0033:  dup
   IL_0034:  stsfld     ""D<Derived> Program.CS$<>9__CachedAnonymousMethodDelegate3""

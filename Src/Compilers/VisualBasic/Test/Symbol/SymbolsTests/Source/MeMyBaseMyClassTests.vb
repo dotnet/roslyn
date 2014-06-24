@@ -1142,7 +1142,7 @@ End Module
   IL_000d:  ldsfld     "Module1.Class2._ClosureCache$__2 As System.Func(Of Char, Char)"
   IL_0012:  br.s       IL_0026
   IL_0014:  ldnull
-  IL_0015:  ldftn      "Function Module1.Class2._Lambda$__1(Char) As Char"
+  IL_0015:  ldftn      "Function Module1.Class2._Lambda$__1(Object, Char) As Char"
   IL_001b:  newobj     "Sub System.Func(Of Char, Char)..ctor(Object, System.IntPtr)"
   IL_0020:  dup
   IL_0021:  stsfld     "Module1.Class2._ClosureCache$__2 As System.Func(Of Char, Char)"

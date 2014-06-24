@@ -164,10 +164,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Protected Overrides Function MapNotLiftedParameterToLambdaParameter(node As BoundParameter) As BoundExpression
-                Return Nothing
-            End Function
-
             Protected Overrides ReadOnly Property ResumeLabelName As String
                 Get
                     Return "iteratorLabel"

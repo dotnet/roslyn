@@ -60,7 +60,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Shared Function WithNewContainerAndType(
                              newContainer As Symbol,
                              newType As TypeSymbol,
-                             origParameter As ParameterSymbol) As ParameterSymbol
+                             origParameter As ParameterSymbol,
+                             Optional ordinalAdjustment As Integer = 0) As ParameterSymbol
 
                 Dim flags As SourceParameterFlags = Nothing
 
@@ -81,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SourceComplexParameterSymbol.Create(
                     newContainer,
                     origParameter.Name,
-                    origParameter.Ordinal,
+                    origParameter.Ordinal + ordinalAdjustment,
                     newType,
                     origParameter.Locations.FirstOrDefault,
                     syntaxRef:=Nothing,

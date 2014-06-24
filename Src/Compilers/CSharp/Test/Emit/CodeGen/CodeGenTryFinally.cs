@@ -1684,7 +1684,7 @@ class C
   IL_0025:  brtrue.s   IL_003a
   IL_0027:  pop
   IL_0028:  ldnull
-  IL_0029:  ldftn      ""bool C.<Main>b__0()""
+  IL_0029:  ldftn      ""bool C.<Main>b__0(object)""
   IL_002f:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
   IL_0034:  dup
   IL_0035:  stsfld     ""System.Func<bool> C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -1709,7 +1709,8 @@ class C
   IL_0065:  endfinally
 }
   IL_0066:  ret
-}");
+}
+");
         }
 
         [Fact]

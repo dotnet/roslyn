@@ -68,7 +68,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As System.Action(Of Integer)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(Integer)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, Integer)"
   IL_0015:  newobj     "Sub System.Action(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As System.Action(Of Integer)"
@@ -80,7 +80,7 @@ End Module
 
             verifier.VerifyIL("Program._Lambda$__1",
             <![CDATA[
-    {
+{
   // Code size       44 (0x2c)
   .maxstack  2
   IL_0000:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
@@ -88,15 +88,15 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object, Object)"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Object)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
-  IL_0020:  ldarg.0
+  IL_0020:  ldarg.1
   IL_0021:  box        "Integer"
   IL_0026:  callvirt   "Sub VB$AnonymousDelegate_0(Of Object).Invoke(Object)"
   IL_002b:  ret
-    }
+}
     ]]>)
 
             verifier.VerifyIL("Program._Lambda$__2",
@@ -104,7 +104,7 @@ End Module
     {
       // Code size       12 (0xc)
       .maxstack  1
-      IL_0000:  ldarg.0
+      IL_0000:  ldarg.1
       IL_0001:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
       IL_0006:  call       "Sub System.Console.WriteLine(Object)"
       IL_000b:  ret
@@ -183,7 +183,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As System.Action(Of Integer)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(Integer)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, Integer)"
   IL_0015:  newobj     "Sub System.Action(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As System.Action(Of Integer)"
@@ -203,11 +203,11 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object, Object)"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Object)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
-  IL_0020:  ldarg.0
+  IL_0020:  ldarg.1
   IL_0021:  box        "Integer"
   IL_0026:  callvirt   "Sub VB$AnonymousDelegate_0(Of Object).Invoke(Object)"
   IL_002b:  ret
@@ -219,7 +219,7 @@ End Module
 {
     // Code size       12 (0xc)
     .maxstack  1
-    IL_0000:  ldarg.0
+    IL_0000:  ldarg.1
     IL_0001:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
     IL_0006:  call       "Sub System.Console.WriteLine(Object)"
     IL_000b:  ret
@@ -281,7 +281,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As System.Action(Of Integer)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(Integer)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, Integer)"
   IL_0015:  newobj     "Sub System.Action(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As System.Action(Of Integer)"
@@ -301,11 +301,11 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object, Object)"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Object)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
-  IL_0020:  ldarg.0
+  IL_0020:  ldarg.1
   IL_0021:  box        "Integer"
   IL_0026:  callvirt   "Sub VB$AnonymousDelegate_0(Of Object).Invoke(Object)"
   IL_002b:  ret
@@ -317,7 +317,7 @@ End Module
 {
     // Code size       12 (0xc)
     .maxstack  1
-    IL_0000:  ldarg.0
+    IL_0000:  ldarg.1
     IL_0001:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
     IL_0006:  call       "Sub System.Console.WriteLine(Object)"
     IL_000b:  ret
@@ -379,7 +379,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As System.Action(Of Integer)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(Integer)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, Integer)"
   IL_0015:  newobj     "Sub System.Action(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As System.Action(Of Integer)"
@@ -399,11 +399,11 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object, Object)"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Object)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
-  IL_0020:  ldarg.0
+  IL_0020:  ldarg.1
   IL_0021:  box        "Integer"
   IL_0026:  callvirt   "Sub VB$AnonymousDelegate_0(Of Object).Invoke(Object)"
   IL_002b:  ret
@@ -415,7 +415,7 @@ End Module
 {
     // Code size       12 (0xc)
     .maxstack  1
-    IL_0000:  ldarg.0
+    IL_0000:  ldarg.1
     IL_0001:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
     IL_0006:  call       "Sub System.Console.WriteLine(Object)"
     IL_000b:  ret
@@ -475,7 +475,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As System.Action(Of Object)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, Object)"
   IL_0015:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As System.Action(Of Object)"
@@ -488,7 +488,7 @@ End Module
 
             verifier.VerifyIL("Program._Lambda$__1",
             <![CDATA[
-    {
+{
   // Code size       44 (0x2c)
   .maxstack  2
   IL_0000:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
@@ -496,15 +496,15 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__2(Integer)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object, Integer)"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
-  IL_0020:  ldarg.0
+  IL_0020:  ldarg.1
   IL_0021:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_0026:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
   IL_002b:  ret
-    }
+}
     ]]>)
 
             verifier.VerifyIL("Program._Lambda$__2",
@@ -512,7 +512,7 @@ End Module
     {
       // Code size        7 (0x7)
       .maxstack  1
-      IL_0000:  ldarg.0
+      IL_0000:  ldarg.1
       IL_0001:  call       "Sub System.Console.WriteLine(Integer)"
       IL_0006:  ret
     }
@@ -613,7 +613,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As System.Action(Of Object)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, Object)"
   IL_0015:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As System.Action(Of Object)"
@@ -634,11 +634,11 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__2(Integer)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object, Integer)"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
-  IL_0020:  ldarg.0
+  IL_0020:  ldarg.1
   IL_0021:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_0026:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
   IL_002b:  ret
@@ -650,7 +650,7 @@ End Module
 {
     // Code size        7 (0x7)
     .maxstack  1
-    IL_0000:  ldarg.0
+    IL_0000:  ldarg.1
     IL_0001:  call       "Sub System.Console.WriteLine(Integer)"
     IL_0006:  ret
 }
@@ -697,7 +697,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As System.Action(Of Object)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, Object)"
   IL_0015:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As System.Action(Of Object)"
@@ -718,11 +718,11 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__2(Integer)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object, Integer)"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
-  IL_0020:  ldarg.0
+  IL_0020:  ldarg.1
   IL_0021:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_0026:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
   IL_002b:  ret
@@ -734,7 +734,7 @@ End Module
 {
     // Code size        7 (0x7)
     .maxstack  1
-    IL_0000:  ldarg.0
+    IL_0000:  ldarg.1
     IL_0001:  call       "Sub System.Console.WriteLine(Integer)"
     IL_0006:  ret
 }
@@ -781,7 +781,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As System.Action(Of Object)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, Object)"
   IL_0015:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As System.Action(Of Object)"
@@ -802,11 +802,11 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__2(Integer)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object, Integer)"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
-  IL_0020:  ldarg.0
+  IL_0020:  ldarg.1
   IL_0021:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_0026:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
   IL_002b:  ret
@@ -818,7 +818,7 @@ End Module
 {
     // Code size        7 (0x7)
     .maxstack  1
-    IL_0000:  ldarg.0
+    IL_0000:  ldarg.1
     IL_0001:  call       "Sub System.Console.WriteLine(Integer)"
     IL_0006:  ret
 }
@@ -880,7 +880,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__2 As System.Action(Of System.Collections.Generic.IEnumerable(Of Integer))"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(System.Collections.IEnumerable)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, System.Collections.IEnumerable)"
   IL_0015:  newobj     "Sub System.Action(Of System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__2 As System.Action(Of System.Collections.Generic.IEnumerable(Of Integer))"
@@ -896,7 +896,7 @@ End Module
 {
   // Code size        7 (0x7)
   .maxstack  1
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  call       "Sub System.Console.WriteLine(Object)"
   IL_0006:  ret
 }
@@ -1070,7 +1070,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As System.Action"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1()"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object)"
   IL_0015:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As System.Action"
@@ -1080,7 +1080,7 @@ End Module
   IL_0028:  ldsfld     "Program._ClosureCache$__8 As System.Action"
   IL_002d:  br.s       IL_0041
   IL_002f:  ldnull
-  IL_0030:  ldftn      "Sub Program._Lambda$__5()"
+  IL_0030:  ldftn      "Sub Program._Lambda$__5(Object)"
   IL_0036:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_003b:  dup
   IL_003c:  stsfld     "Program._ClosureCache$__8 As System.Action"
@@ -1093,7 +1093,7 @@ End Module
 
                 verifier.VerifyIL("Program._Lambda$__1",
                 <![CDATA[
-        {
+{
   // Code size       39 (0x27)
   .maxstack  2
   IL_0000:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
@@ -1101,14 +1101,14 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Function Program._Lambda$__2() As Integer"
+  IL_000f:  ldftn      "Function Program._Lambda$__2(Object) As Integer"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_0020:  callvirt   "Function VB$AnonymousDelegate_0(Of Integer).Invoke() As Integer"
   IL_0025:  pop
   IL_0026:  ret
-        }
+}
         ]]>)
 
                 verifier.VerifyIL("Program._Lambda$__2",
@@ -1123,7 +1123,7 @@ End Module
 
                 verifier.VerifyIL("Program._Lambda$__5",
                 <![CDATA[
-        {
+{
   // Code size       39 (0x27)
   .maxstack  2
   IL_0000:  ldsfld     "Program._ClosureCache$__7 As <generated method>"
@@ -1131,14 +1131,14 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__7 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Function Program._Lambda$__6() As Integer"
+  IL_000f:  ldftn      "Function Program._Lambda$__6(Object) As Integer"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__7 As <generated method>"
   IL_0020:  callvirt   "Function VB$AnonymousDelegate_0(Of Integer).Invoke() As Integer"
   IL_0025:  pop
   IL_0026:  ret
-        }
+}
         ]]>)
 
                 verifier.VerifyIL("Program._Lambda$__6",
@@ -1338,7 +1338,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__2 As System.Func(Of Integer)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Function Program._Lambda$__1() As Integer"
+  IL_000f:  ldftn      "Function Program._Lambda$__1(Object) As Integer"
   IL_0015:  newobj     "Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__2 As System.Func(Of Integer)"
@@ -1348,7 +1348,7 @@ End Module
   IL_0028:  ldsfld     "Program._ClosureCache$__6 As System.Func(Of Integer)"
   IL_002d:  br.s       IL_0041
   IL_002f:  ldnull
-  IL_0030:  ldftn      "Function Program._Lambda$__3() As Integer"
+  IL_0030:  ldftn      "Function Program._Lambda$__3(Object) As Integer"
   IL_0036:  newobj     "Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)"
   IL_003b:  dup
   IL_003c:  stsfld     "Program._ClosureCache$__6 As System.Func(Of Integer)"
@@ -1375,7 +1375,7 @@ End Module
 
             verifier.VerifyIL("Program._Lambda$__3",
             <![CDATA[
-        {
+{
   // Code size       43 (0x2b)
   .maxstack  2
   IL_0000:  ldsfld     "Program._ClosureCache$__5 As <generated method>"
@@ -1383,14 +1383,14 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__5 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Function Program._Lambda$__4() As Object"
+  IL_000f:  ldftn      "Function Program._Lambda$__4(Object) As Object"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Object)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__5 As <generated method>"
   IL_0020:  callvirt   "Function VB$AnonymousDelegate_0(Of Object).Invoke() As Object"
   IL_0025:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_002a:  ret
-        }
+}
         ]]>)
 
             verifier.VerifyIL("Program._Lambda$__4",
@@ -1548,7 +1548,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As System.Func(Of Object)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Function Program._Lambda$__1() As Object"
+  IL_000f:  ldftn      "Function Program._Lambda$__1(Object) As Object"
   IL_0015:  newobj     "Sub System.Func(Of Object)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As System.Func(Of Object)"
@@ -1569,7 +1569,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Function Program._Lambda$__2() As Integer"
+  IL_000f:  ldftn      "Function Program._Lambda$__2(Object) As Integer"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
@@ -1647,7 +1647,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__2 As System.Func(Of System.Collections.IEnumerable)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Function Program._Lambda$__1() As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_000f:  ldftn      "Function Program._Lambda$__1(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
   IL_0015:  newobj     "Sub System.Func(Of System.Collections.IEnumerable)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__2 As System.Func(Of System.Collections.IEnumerable)"
@@ -1791,7 +1791,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As System.Func(Of Integer, Integer)"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Function Program._Lambda$__1(Integer) As Integer"
+  IL_000f:  ldftn      "Function Program._Lambda$__1(Object, Integer) As Integer"
   IL_0015:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As System.Func(Of Integer, Integer)"
@@ -1801,7 +1801,7 @@ End Module
   IL_0028:  ldsfld     "Program._ClosureCache$__8 As System.Func(Of Integer, Integer)"
   IL_002d:  br.s       IL_0041
   IL_002f:  ldnull
-  IL_0030:  ldftn      "Function Program._Lambda$__5(Integer) As Integer"
+  IL_0030:  ldftn      "Function Program._Lambda$__5(Object, Integer) As Integer"
   IL_0036:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_003b:  dup
   IL_003c:  stsfld     "Program._ClosureCache$__8 As System.Func(Of Integer, Integer)"
@@ -1826,7 +1826,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Function Program._Lambda$__2() As Integer"
+  IL_000f:  ldftn      "Function Program._Lambda$__2(Object) As Integer"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
@@ -1855,7 +1855,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__7 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Function Program._Lambda$__6() As Integer"
+  IL_000f:  ldftn      "Function Program._Lambda$__6(Object) As Integer"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__7 As <generated method>"
@@ -2085,7 +2085,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__4 As d1"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(ByRef String)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, ByRef String)"
   IL_0015:  newobj     "Sub d1..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__4 As d1"
@@ -2110,16 +2110,16 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__2(ByRef Object)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__2(Object, ByRef Object)"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0(Of Object)..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__3 As <generated method>"
-  IL_0020:  ldarg.0
+  IL_0020:  ldarg.1
   IL_0021:  ldind.ref
   IL_0022:  stloc.0
   IL_0023:  ldloca.s   V_0
   IL_0025:  callvirt   "Sub VB$AnonymousDelegate_0(Of Object).Invoke(ByRef Object)"
-  IL_002a:  ldarg.0
+  IL_002a:  ldarg.1
   IL_002b:  ldloc.0
   IL_002c:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Object) As String"
   IL_0031:  stind.ref
@@ -2132,11 +2132,11 @@ End Module
 {
   // Code size       20 (0x14)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldind.ref
   IL_0002:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_0007:  call       "Sub System.Console.WriteLine(Object)"
-  IL_000c:  ldarg.0
+  IL_000c:  ldarg.1
   IL_000d:  ldstr      "2"
   IL_0012:  stind.ref
   IL_0013:  ret
@@ -2260,7 +2260,7 @@ End Module
   IL_0007:  ldsfld     "Program._ClosureCache$__2 As d1"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub Program._Lambda$__1(ByRef Object)"
+  IL_000f:  ldftn      "Sub Program._Lambda$__1(Object, ByRef Object)"
   IL_0015:  newobj     "Sub d1..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "Program._ClosureCache$__2 As d1"
@@ -2280,11 +2280,11 @@ End Module
 {
   // Code size       20 (0x14)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldind.ref
   IL_0002:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_0007:  call       "Sub System.Console.WriteLine(Object)"
-  IL_000c:  ldarg.0
+  IL_000c:  ldarg.1
   IL_000d:  ldstr      "2"
   IL_0012:  stind.ref
   IL_0013:  ret

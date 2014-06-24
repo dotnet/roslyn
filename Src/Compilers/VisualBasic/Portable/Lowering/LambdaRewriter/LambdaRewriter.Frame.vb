@@ -647,16 +647,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                Dim params(m_lambda.ParameterCount - 1) As ParameterSymbol
-                For i = 0 To params.Count - 1
-                    Dim curParam = m_lambda.Parameters(i)
-                    params(i) = WithNewContainerAndType(
+                Dim params = ArrayBuilder(Of ParameterSymbol).GetInstance
+
+                Dim ordinalAdjustment = 0
+                If isShared Then
+                    ' add dummy "this"
+                    params.Add(New SynthesizedParameterSymbol(Me, DeclaringCompilation.GetSpecialType(SpecialType.System_Object), 0, False))
+                    ordinalAdjustment = 1
+                End If
+
+                For Each curParam In m_lambda.Parameters
+                    params.Add(
+                        WithNewContainerAndType(
                         Me,
                         curParam.Type.InternalSubstituteTypeParameters(TypeMap),
-                        curParam)
+                        curParam,
+                        ordinalAdjustment:=ordinalAdjustment))
                 Next
 
-                Me.m_parameters = params.AsImmutableOrNull()
+                Me.m_parameters = params.ToImmutableAndFree
 
                 If Me.m_lambda.IsAsync Then
                     Dim binder As binder = lambdaNode.LambdaBinderOpt

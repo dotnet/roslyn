@@ -217,13 +217,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End Get
             End Property
-
-            Protected Overrides Function MapNotLiftedParameterToLambdaParameter(node As BoundParameter) As BoundExpression
-                Return Nothing
-            End Function
-
         End Class
-
     End Class
-
 End Namespace

@@ -941,7 +941,7 @@ End Class
   IL_0018:  ldsfld     "C._ClosureCache$__2 As System.Func(Of Integer, String)"
   IL_001d:  br.s       IL_0031
   IL_001f:  ldnull
-  IL_0020:  ldftn      "Function C._Lambda$__1(Integer) As String"
+  IL_0020:  ldftn      "Function C._Lambda$__1(Object, Integer) As String"
   IL_0026:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
   IL_002b:  dup
   IL_002c:  stsfld     "C._ClosureCache$__2 As System.Func(Of Integer, String)"
@@ -2825,7 +2825,7 @@ End Module
   IL_0012:  ldsfld     "m1._ClosureCache$__3 As <generated method>"
   IL_0017:  br.s       IL_002b
   IL_0019:  ldnull
-  IL_001a:  ldftn      "Function m1._Lambda$__2(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_001a:  ldftn      "Function m1._Lambda$__2(Object, Object) As System.Collections.Generic.IEnumerable(Of Integer)"
   IL_0020:  newobj     "Sub VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
   IL_0025:  dup
   IL_0026:  stsfld     "m1._ClosureCache$__3 As <generated method>"
@@ -2981,7 +2981,7 @@ End Module
   IL_0065:  ldsfld     "m1._ClosureCache$__8 As System.Action"
   IL_006a:  br.s       IL_007e
   IL_006c:  ldnull
-  IL_006d:  ldftn      "Sub m1._Lambda$__7()"
+  IL_006d:  ldftn      "Sub m1._Lambda$__7(Object)"
   IL_0073:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0078:  dup
   IL_0079:  stsfld     "m1._ClosureCache$__8 As System.Action"

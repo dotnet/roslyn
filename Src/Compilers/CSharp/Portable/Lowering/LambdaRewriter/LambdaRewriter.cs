@@ -795,9 +795,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod);
             }
 
-            for (int i = 0; i < node.Symbol.ParameterCount; i++)
+            foreach(var parameter in node.Symbol.Parameters)
             {
-                parameterMap.Add(node.Symbol.Parameters[i], synthesizedMethod.Parameters[i]);
+                var ordinal = parameter.Ordinal;
+                if (lambdaIsStatic)
+                {
+                    // adjust for a dummy "this" parameter at the beginning of synthesized method signature
+                    ordinal += 1;
+                }
+                parameterMap.Add(parameter, synthesizedMethod.Parameters[ordinal]);
             }
 
             // rewrite the lambda body as the generated method's body
@@ -853,15 +859,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
             NamedTypeSymbol constructedFrame = (translatedLambdaContainer is LambdaFrame) ? translatedLambdaContainer.ConstructIfGeneric(StaticCast<TypeSymbol>.From(currentTypeParameters)) : translatedLambdaContainer;
-            BoundExpression receiver = lambdaIsStatic ? new BoundTypeExpression(node.Syntax, null, constructedFrame) : FrameOfType(node.Syntax, constructedFrame);
+
+            // for instance lambdas, receiver is the frame
+            // for static lambdas, just use null to match the first (dummy) parameter of the synthetic method
+            BoundExpression receiver = lambdaIsStatic ? 
+                new BoundLiteral(node.Syntax, ConstantValue.Null, synthesizedMethod.Parameters[0].Type) : 
+                FrameOfType(node.Syntax, constructedFrame);
+
             MethodSymbol referencedMethod = synthesizedMethod.AsMember(constructedFrame);
             if (referencedMethod.IsGenericMethod) referencedMethod = referencedMethod.Construct(StaticCast<TypeSymbol>.From(currentTypeParameters));
             TypeSymbol type = this.VisitType(node.Type);
+
+            // static lambdas are emitted as extension methods off a "null" receiver
+            // receiver is not used by the lambda method, but since 
+            // invoke dispatch does not need to adgust the signature for the missing "this"
+            // the invocation is considerably cheaper to do.
             BoundExpression result = new BoundDelegateCreationExpression(
                 node.Syntax,
                 receiver,
                 referencedMethod,
-                isExtensionMethod: false,
+                isExtensionMethod: lambdaIsStatic,
                 type: type);
 
             // if the block containing the lambda is not the innermost block,

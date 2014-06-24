@@ -239,7 +239,7 @@ End Class
   IL_0013:  ldsfld     "C._ClosureCache$__2 As <generated method>"
   IL_0018:  br.s       IL_002c
   IL_001a:  ldnull
-  IL_001b:  ldftn      "Sub C._Lambda$__1()"
+  IL_001b:  ldftn      "Sub C._Lambda$__1(Object)"
   IL_0021:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_0026:  dup
   IL_0027:  stsfld     "C._ClosureCache$__2 As <generated method>"
@@ -249,7 +249,7 @@ End Class
   IL_0034:  ldsfld     "C._ClosureCache$__4 As <generated method>"
   IL_0039:  br.s       IL_004d
   IL_003b:  ldnull
-  IL_003c:  ldftn      "Sub C._Lambda$__3(String)"
+  IL_003c:  ldftn      "Sub C._Lambda$__3(Object, String)"
   IL_0042:  newobj     "Sub VB$AnonymousDelegate_1(Of String)..ctor(Object, System.IntPtr)"
   IL_0047:  dup
   IL_0048:  stsfld     "C._ClosureCache$__4 As <generated method>"
@@ -259,7 +259,7 @@ End Class
   IL_0055:  ldsfld     "C._ClosureCache$__6 As <generated method>"
   IL_005a:  br.s       IL_006e
   IL_005c:  ldnull
-  IL_005d:  ldftn      "Sub C._Lambda$__5(Object)"
+  IL_005d:  ldftn      "Sub C._Lambda$__5(Object, Object)"
   IL_0063:  newobj     "Sub VB$AnonymousDelegate_2(Of Object)..ctor(Object, System.IntPtr)"
   IL_0068:  dup
   IL_0069:  stsfld     "C._ClosureCache$__6 As <generated method>"
@@ -269,7 +269,7 @@ End Class
   IL_0077:  ldsfld     "C._ClosureCache$__8 As <generated method>"
   IL_007c:  br.s       IL_0090
   IL_007e:  ldnull
-  IL_007f:  ldftn      "Sub C._Lambda$__7(EventLibrary.voidVoidDelegate)"
+  IL_007f:  ldftn      "Sub C._Lambda$__7(Object, EventLibrary.voidVoidDelegate)"
   IL_0085:  newobj     "Sub VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate)..ctor(Object, System.IntPtr)"
   IL_008a:  dup
   IL_008b:  stsfld     "C._ClosureCache$__8 As <generated method>"
@@ -435,7 +435,8 @@ End Class
   IL_02d8:  newobj     "Sub EventLibrary.voidDelegateDelegate..ctor(Object, System.IntPtr)"
   IL_02dd:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler(Of EventLibrary.voidDelegateDelegate)(System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventLibrary.voidDelegateDelegate)"
   IL_02e2:  ret
-}]]>.Value)
+}
+]]>.Value)
         End Sub
 
         <Fact()>
@@ -496,7 +497,7 @@ Public Partial Class A
   IL_0007:  ldsfld     "A._ClosureCache$__2 As <generated method>"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub A._Lambda$__1()"
+  IL_000f:  ldftn      "Sub A._Lambda$__1(Object)"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "A._ClosureCache$__2 As <generated method>"
@@ -526,7 +527,8 @@ Public Partial Class A
   IL_0070:  ldnull
   IL_0071:  ceq
   IL_0073:  ret
-}]]>.Value)
+}
+]]>.Value)
             verifier.VerifyIL("A.Scenario2", <![CDATA[
 {
   // Code size      118 (0x76)
@@ -540,7 +542,7 @@ Public Partial Class A
   IL_0009:  ldsfld     "A._ClosureCache$__4 As <generated method>"
   IL_000e:  br.s       IL_0022
   IL_0010:  ldnull
-  IL_0011:  ldftn      "Sub A._Lambda$__3()"
+  IL_0011:  ldftn      "Sub A._Lambda$__3(Object)"
   IL_0017:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001c:  dup
   IL_001d:  stsfld     "A._ClosureCache$__4 As <generated method>"
@@ -570,7 +572,8 @@ Public Partial Class A
   IL_0072:  ldnull
   IL_0073:  ceq
   IL_0075:  ret
-}]]>.Value)
+}
+]]>.Value)
         End Sub
 
         ''' <summary>

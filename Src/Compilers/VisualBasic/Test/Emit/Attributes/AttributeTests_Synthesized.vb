@@ -335,11 +335,11 @@ End Class
                     Signature("C", "_Lambda$__1",
                         ".method " & expected & " private specialname instance System.Void _Lambda$__1(System.Int32 a0) cil managed"),
                     Signature("C", "_Lambda$__2",
-                        ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int64 _Lambda$__2() cil managed"),
+                        ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int64 _Lambda$__2(System.Object) cil managed"),
                     Signature("C", "_Lambda$__4",
-                        ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Boolean _Lambda$__4(System.Int32 a) cil managed"),
+                        ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Boolean _Lambda$__4(System.Object, System.Int32 a) cil managed"),
                     Signature("C", "_Lambda$__6",
-                        ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int32 _Lambda$__6(System.Int32 a) cil managed")
+                        ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int32 _Lambda$__6(System.Object, System.Int32 a) cil managed")
                 })
             Next
         End Sub
@@ -371,9 +371,9 @@ End Class
                 CompileAndVerify(comp, expectedSignatures:=
                 {
                     Signature("C", "_Lambda$__1",
-                        ".method " & expected & " private specialname static System.Int32 _Lambda$__1(System.String a0) cil managed"),
+                        ".method " & expected & " private specialname static System.Int32 _Lambda$__1(System.Object, System.String a0) cil managed"),
                     Signature("C", "_Lambda$__2",
-                        ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int32 _Lambda$__2(System.Int32 y) cil managed")
+                        ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int32 _Lambda$__2(System.Object, System.Int32 y) cil managed")
                 })
             Next
         End Sub

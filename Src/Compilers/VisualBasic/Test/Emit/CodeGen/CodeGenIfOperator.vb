@@ -162,7 +162,7 @@ End Module
   IL_000e:  ldsfld     "C._ClosureCache$__2 As <generated method>"
   IL_0013:  br.s       IL_0027
   IL_0015:  ldnull
-  IL_0016:  ldftn      "Function C._Lambda$__1(Integer) As Integer"
+  IL_0016:  ldftn      "Function C._Lambda$__1(Object, Integer) As Integer"
   IL_001c:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_0021:  dup
   IL_0022:  stsfld     "C._ClosureCache$__2 As <generated method>"

@@ -49,7 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: keep this in sync with BaseMethodParameters { get; }
             get
             {
-                return this.BaseMethod.ParameterCount;
+                var cnt = this.BaseMethod.ParameterCount;
+                if (this.IsStatic)
+                {
+                    // account for dummy "this", see BaseMethodParameters for explanation.
+                    cnt++;
+                }
+
+                return cnt;
             }
         }
 
@@ -68,7 +75,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // UNDONE: In the native compiler in this scenario we make up new names for
                 // UNDONE: synthetic parameters; in this implementation we use the parameter
                 // UNDONE: names from the delegate. Does it really matter?
-                return this.BaseMethod.Parameters;
+                var parameters = this.BaseMethod.Parameters;
+                if (this.IsStatic)
+                {
+                    // add dummy "this"
+                    // delegate Invoke works better when methods have "this"
+                    // since the argument list does not need to be left-shifted
+                    // only "this" argument needs to be substututed from the delegate instance to
+                    // the enclosed receiver, which will be "null" in our case and will not be used by the method
+                    parameters = parameters.Insert(0, new SynthesizedParameterSymbol(this, this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object), 0, RefKind.None));
+                }
+
+                return parameters;
             }
         }
 

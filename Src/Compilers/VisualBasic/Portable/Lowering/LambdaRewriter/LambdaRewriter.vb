@@ -472,7 +472,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim proxy As FieldSymbol = Nothing
                 If Proxies.TryGetValue(origParameter, proxy) AndAlso Not _analysis.declaredInsideExpressionLambda.Contains(origParameter) Then
                     ' parameter needs to be accessed in the context of current method
-                    Dim actualParameter = _currentMethod.Parameters(origParameter.Ordinal)
+                    Dim actualParameter As ParameterSymbol = Nothing
+                    If Not ParameterMap.TryGetValue(origParameter, actualParameter) Then
+                        actualParameter = origParameter
+                    End If
+
                     Dim parameterAccess = New BoundParameter(syntaxNode,
                                                            actualParameter,
                                                            isLValue:=False,
@@ -524,21 +528,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                       If(_currentMethod.ContainingType Is _topLevelMethod.ContainingType,
                          New BoundMyBaseReference(node.Syntax, node.Type),
                          FramePointer(node.Syntax, TryCast(_topLevelMethod.ContainingType, NamedTypeSymbol))))
-        End Function
-
-        Protected Overrides Function MapNotLiftedParameterToLambdaParameter(node As BoundParameter) As BoundExpression
-            ' the symbol should not be lifted
-            Debug.Assert(Not Proxies.ContainsKey(node.ParameterSymbol))
-
-            If Not inExpressionLambda Then
-                ' since it was not lifted, it must be an actual lambda's parameter
-                ' their actual representation is the current method's parameter at the same 
-                ' ordinal position.
-                Dim actualParameter = _currentMethod.Parameters(node.ParameterSymbol.Ordinal)
-                Return node.Update(actualParameter, node.IsLValue, actualParameter.Type)
-            End If
-
-            Return Nothing
         End Function
 
         Public Overrides Function VisitRangeVariable(node As BoundRangeVariable) As BoundNode
@@ -851,6 +840,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CompilationState.EmitModule.AddSynthesizedDefinition(translatedLambdaContainer, generatedMethod)
             End If
 
+            For Each parameter In node.LambdaSymbol.Parameters
+                Dim ordinal = parameter.Ordinal
+                If lambdaIsStatic Then
+                    ' adjust for a dummy "this" parameter at the beginning of synthesized method signature
+                    ordinal += 1
+                End If
+                ParameterMap.Add(parameter, generatedMethod.Parameters(ordinal))
+            Next
+
             Dim oldMethod = _currentMethod
             Dim oldFrameThis = currentFrameThis
             Dim oldTypeParameters = currentTypeParameters
@@ -898,7 +896,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 constructedFrame = ConstructFrameType(containerAsFrame, currentTypeParameters)
             End If
 
-            Dim receiver As BoundExpression = If(lambdaIsStatic, New BoundTypeExpression(node.Syntax, constructedFrame), FrameOfType(node.Syntax, constructedFrame))
+            ' for instance lambdas, receiver is the frame
+            ' for static lambdas, just use null to match the first (dummy) parameter of the synthetic method
+            Dim receiver As BoundExpression = If(lambdaIsStatic,
+                New BoundLiteral(node.Syntax, ConstantValue.Nothing, generatedMethod.Parameters(0).Type),
+                FrameOfType(node.Syntax, constructedFrame))
+
             Dim referencedMethod As MethodSymbol = generatedMethod.AsMember(constructedFrame)
 
             If referencedMethod.IsGenericMethod Then

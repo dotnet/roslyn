@@ -341,8 +341,9 @@ Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2"));
                     dynamicCommonRef
                 },
                 emitOptions: EmitOptions.RefEmitBug);
-            verifer.VerifyIL("C.Main", 
-@"{
+            verifer.VerifyIL("C.Main",
+@"
+{
   // Code size     6203 (0x183b)
   .maxstack  13
   .locals init (A V_0, //a
@@ -361,7 +362,7 @@ Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2"));
   IL_0012:  brtrue.s   IL_0027
   IL_0014:  pop
   IL_0015:  ldnull
-  IL_0016:  ldftn      ""void C.<Main>b__72()""
+  IL_0016:  ldftn      ""void C.<Main>b__72(object)""
   IL_001c:  newobj     ""EventLibrary.voidDelegate..ctor(object, System.IntPtr)""
   IL_0021:  dup
   IL_0022:  stsfld     ""EventLibrary.voidDelegate C.CS$<>9__CachedAnonymousMethodDelegate73""
@@ -371,7 +372,7 @@ Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2"));
   IL_002e:  brtrue.s   IL_0043
   IL_0030:  pop
   IL_0031:  ldnull
-  IL_0032:  ldftn      ""object C.<Main>b__74(object)""
+  IL_0032:  ldftn      ""object C.<Main>b__74(object, object)""
   IL_0038:  newobj     ""EventLibrary.genericDelegate<object>..ctor(object, System.IntPtr)""
   IL_003d:  dup
   IL_003e:  stsfld     ""EventLibrary.genericDelegate<object> C.CS$<>9__CachedAnonymousMethodDelegate75""
@@ -381,7 +382,7 @@ Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2"));
   IL_004a:  brtrue.s   IL_005f
   IL_004c:  pop
   IL_004d:  ldnull
-  IL_004e:  ldftn      ""dynamic C.<Main>b__76(dynamic)""
+  IL_004e:  ldftn      ""dynamic C.<Main>b__76(object, dynamic)""
   IL_0054:  newobj     ""EventLibrary.dynamicDelegate..ctor(object, System.IntPtr)""
   IL_0059:  dup
   IL_005a:  stsfld     ""EventLibrary.dynamicDelegate C.CS$<>9__CachedAnonymousMethodDelegate77""
@@ -2279,7 +2280,8 @@ Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2"));
   IL_1834:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, EventLibrary.genericDelegate<object>, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, EventLibrary.genericDelegate<object>)""
   IL_1839:  pop
   IL_183a:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -2330,7 +2332,8 @@ public partial class A : I
                 //     public event dynamicDelegate d3;
     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d3").WithArguments("A.d3"));
             verifier.VerifyIL("A.Scenario1",
-@"{
+@"
+{
   // Code size      117 (0x75)
   .maxstack  3
   .locals init (EventLibrary.voidDelegate V_0) //testDelegate
@@ -2339,7 +2342,7 @@ public partial class A : I
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
   IL_0009:  ldnull
-  IL_000a:  ldftn      ""void A.<Scenario1>b__0()""
+  IL_000a:  ldftn      ""void A.<Scenario1>b__0(object)""
   IL_0010:  newobj     ""EventLibrary.voidDelegate..ctor(object, System.IntPtr)""
   IL_0015:  dup
   IL_0016:  stsfld     ""EventLibrary.voidDelegate A.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -2372,9 +2375,11 @@ public partial class A : I
   IL_0071:  ldnull
   IL_0072:  ceq
   IL_0074:  ret
-}");
+}
+");
             verifier.VerifyIL("A.Scenario2",
-@"{
+@"
+{
   // Code size      119 (0x77)
   .maxstack  3
   .locals init (A V_0, //d
@@ -2386,7 +2391,7 @@ public partial class A : I
   IL_0008:  brtrue.s   IL_001d
   IL_000a:  pop
   IL_000b:  ldnull
-  IL_000c:  ldftn      ""void A.<Scenario2>b__2()""
+  IL_000c:  ldftn      ""void A.<Scenario2>b__2(object)""
   IL_0012:  newobj     ""EventLibrary.voidDelegate..ctor(object, System.IntPtr)""
   IL_0017:  dup
   IL_0018:  stsfld     ""EventLibrary.voidDelegate A.CS$<>9__CachedAnonymousMethodDelegate3""
@@ -2419,7 +2424,8 @@ public partial class A : I
   IL_0073:  ldnull
   IL_0074:  ceq
   IL_0076:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -2464,13 +2470,14 @@ public partial class A : I
   IL_0022:  brtrue.s   IL_0037
   IL_0024:  pop
   IL_0025:  ldnull
-  IL_0026:  ldftn      ""void abcdef.<foo>b__0(object, Windows.ApplicationModel.SuspendingEventArgs)""
+  IL_0026:  ldftn      ""void abcdef.<foo>b__0(object, object, Windows.ApplicationModel.SuspendingEventArgs)""
   IL_002c:  newobj     ""Windows.UI.Xaml.SuspendingEventHandler..ctor(object, System.IntPtr)""
   IL_0031:  dup
   IL_0032:  stsfld     ""Windows.UI.Xaml.SuspendingEventHandler abcdef.CS$<>9__CachedAnonymousMethodDelegate1""
   IL_0037:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler<Windows.UI.Xaml.SuspendingEventHandler>(System.Func<Windows.UI.Xaml.SuspendingEventHandler, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, Windows.UI.Xaml.SuspendingEventHandler)""
   IL_003c:  ret
-}";
+}
+";
 
             cv.VerifyIL("abcdef.foo()", ExpectedIl);
         }

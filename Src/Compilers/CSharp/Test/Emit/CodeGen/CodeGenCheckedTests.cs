@@ -1348,7 +1348,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1376,7 +1376,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.2
   IL_0002:  mul.ovf
   IL_0003:  ret
@@ -1401,7 +1401,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.2
   IL_0002:  mul.ovf
   IL_0003:  ret
@@ -1428,7 +1428,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1454,7 +1454,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1480,7 +1480,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1507,7 +1507,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1535,7 +1535,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1563,7 +1563,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1591,7 +1591,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1620,7 +1620,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1648,7 +1648,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add
   IL_0003:  ret
@@ -1676,7 +1676,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add
   IL_0003:  ret
@@ -1704,7 +1704,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add
   IL_0003:  ret
@@ -1732,7 +1732,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add
   IL_0003:  ret
@@ -1755,7 +1755,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1779,7 +1779,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1802,7 +1802,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret
@@ -1827,7 +1827,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add
   IL_0003:  ret
@@ -1852,7 +1852,7 @@ class C
 {
   // Code size        4 (0x4)
   .maxstack  2
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  add.ovf
   IL_0003:  ret

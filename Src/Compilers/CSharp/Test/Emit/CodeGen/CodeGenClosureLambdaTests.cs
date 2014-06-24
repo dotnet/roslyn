@@ -27,7 +27,8 @@ class C
             var compilation = CompileAndVerify(source, expectedOutput: @"12");
 
             compilation.VerifyIL("C.Main",
-@"{
+@"
+{
   // Code size       65 (0x41)
   .maxstack  2
   IL_0000:  ldsfld     ""D C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -35,7 +36,7 @@ class C
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
   IL_0009:  ldnull
-  IL_000a:  ldftn      ""void C.<Main>b__0()""
+  IL_000a:  ldftn      ""void C.<Main>b__0(object)""
   IL_0010:  newobj     ""D..ctor(object, System.IntPtr)""
   IL_0015:  dup
   IL_0016:  stsfld     ""D C.CS$<>9__CachedAnonymousMethodDelegate1""
@@ -45,13 +46,14 @@ class C
   IL_0026:  brtrue.s   IL_003b
   IL_0028:  pop
   IL_0029:  ldnull
-  IL_002a:  ldftn      ""void C.<Main>b__2()""
+  IL_002a:  ldftn      ""void C.<Main>b__2(object)""
   IL_0030:  newobj     ""D..ctor(object, System.IntPtr)""
   IL_0035:  dup
   IL_0036:  stsfld     ""D C.CS$<>9__CachedAnonymousMethodDelegate3""
   IL_003b:  callvirt   ""void D.Invoke()""
   IL_0040:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -4099,7 +4101,7 @@ class Test
             CompileAndVerify(source, expectedSignatures: new[] 
             {
                 Signature("Test+<>c__DisplayClass0", "<Foo>b__2", ".method assembly hidebysig instance System.String <Foo>b__2(System.String a) cil managed"),
-                Signature("Test", "<.ctor>b__3", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Int32 <.ctor>b__3(System.Int32 x) cil managed")
+                Signature("Test", "<.ctor>b__3", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Int32 <.ctor>b__3(System.Object, System.Int32 x) cil managed")
             });
         }
 
@@ -4158,14 +4160,14 @@ class Test
             //IMPORTANT!!! we should not be caching static lambda in static initializer.
             CompileAndVerify(source, expectedOutput: "(1,-1)", expectedSignatures: new[]
             {
-                Signature("Test", "<Main>b__1", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Int32 <Main>b__1() cil managed"),
-                Signature("Test", "<.cctor>b__0", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Int32 <.cctor>b__0() cil managed")
+                Signature("Test", "<.cctor>b__0", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Int32 <.cctor>b__0(System.Object) cil managed"),
+                Signature("Test", "<Main>b__1", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Int32 <Main>b__1(System.Object) cil managed"),
             }).VerifyIL("Test..cctor", @"
 {
   // Code size       24 (0x18)
   .maxstack  2
   IL_0000:  ldnull
-  IL_0001:  ldftn      ""int Test.<.cctor>b__0()""
+  IL_0001:  ldftn      ""int Test.<.cctor>b__0(object)""
   IL_0007:  newobj     ""D..ctor(object, System.IntPtr)""
   IL_000c:  stsfld     ""D Test.field""
   IL_0011:  ldc.i4.m1
@@ -4565,7 +4567,7 @@ class D
   IL_0025:  brtrue.s   IL_003a
   IL_0027:  pop
   IL_0028:  ldnull
-  IL_0029:  ldftn      ""System.Func<int> Program.<Test>b__6(int)""
+  IL_0029:  ldftn      ""System.Func<int> Program.<Test>b__6(object, int)""
   IL_002f:  newobj     ""System.Func<int, System.Func<int>>..ctor(object, System.IntPtr)""
   IL_0034:  dup
   IL_0035:  stsfld     ""System.Func<int, System.Func<int>> Program.CS$<>9__CachedAnonymousMethodDelegate9""
@@ -4574,7 +4576,7 @@ class D
   IL_0040:  pop
   IL_0041:  ret
 }
-").VerifyIL("Program.<Test>b__6(int)",
+").VerifyIL("Program.<Test>b__6(object, int)",
 @"
 {
   // Code size       44 (0x2c)
@@ -4583,7 +4585,7 @@ class D
   IL_0000:  newobj     ""Program.<>c__DisplayClass1..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  ldarg.0
+  IL_0007:  ldarg.1
   IL_0008:  stfld      ""int Program.<>c__DisplayClass1.x""
   IL_000d:  ldloc.0
   IL_000e:  ldfld      ""int Program.<>c__DisplayClass1.x""

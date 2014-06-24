@@ -155,7 +155,7 @@ End Module
   IL_0007:  ldsfld     "M1._ClosureCache$__2 As System.Action"
   IL_000c:  br.s       IL_0020
   IL_000e:  ldnull
-  IL_000f:  ldftn      "Sub M1._Lambda$__1()"
+  IL_000f:  ldftn      "Sub M1._Lambda$__1(Object)"
   IL_0015:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001a:  dup
   IL_001b:  stsfld     "M1._ClosureCache$__2 As System.Action"
@@ -165,7 +165,7 @@ End Module
   IL_002c:  ldsfld     "M1._ClosureCache$__4 As System.Action"
   IL_0031:  br.s       IL_0045
   IL_0033:  ldnull
-  IL_0034:  ldftn      "Sub M1._Lambda$__3()"
+  IL_0034:  ldftn      "Sub M1._Lambda$__3(Object)"
   IL_003a:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_003f:  dup
   IL_0040:  stsfld     "M1._ClosureCache$__4 As System.Action"
@@ -1060,8 +1060,8 @@ End Module
 {
   // Code size       36 (0x24)
   .maxstack  3
-  IL_0000:  ldnull    
-  IL_0001:  ldftn      "Sub M1.C1._Lambda$__1(Of T)()"
+  IL_0000:  ldnull
+  IL_0001:  ldftn      "Sub M1.C1._Lambda$__1(Of T)(Object)"
   IL_0007:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_000c:  dup
   IL_000d:  callvirt   "Sub System.Action.Invoke()"
@@ -2933,15 +2933,15 @@ End Class
 
             CompileAndVerify(source, expectedSignatures:=
             {
-                 Signature("Test", "_Lambda$__1", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int32 _Lambda$__1() cil managed"),
-                 Signature("Test", "_Lambda$__2", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int32 _Lambda$__2() cil managed")
+                 Signature("Test", "_Lambda$__1", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int32 _Lambda$__1(System.Object) cil managed"),
+                 Signature("Test", "_Lambda$__2", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private specialname static System.Int32 _Lambda$__2(System.Object) cil managed")
             }).VerifyIL("Test..cctor",
             <![CDATA[
 {
   // Code size       24 (0x18)
   .maxstack  2
   IL_0000:  ldnull
-  IL_0001:  ldftn      "Function Test._Lambda$__1() As Integer"
+  IL_0001:  ldftn      "Function Test._Lambda$__1(Object) As Integer"
   IL_0007:  newobj     "Sub D..ctor(Object, System.IntPtr)"
   IL_000c:  stsfld     "Test.field As D"
   IL_0011:  ldc.i4.m1
