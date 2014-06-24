@@ -664,7 +664,7 @@ End Class
         ''' Verify that WinRT events compile into the IL that we 
         ''' would expect.
         ''' </summary>
-        <ConditionalFact(GetType(OSVersionWin8))>
+        <Fact>
         Public Sub WinMdEventLambda()
 
             Dim source =
@@ -713,7 +713,7 @@ End Class
   IL_0023:  ldsfld     "abcdef._ClosureCache$__2 As Windows.UI.Xaml.SuspendingEventHandler"
   IL_0028:  br.s       IL_003c
   IL_002a:  ldnull
-  IL_002b:  ldftn      "Sub abcdef._Lambda$__1(Object, Windows.ApplicationModel.SuspendingEventArgs)"
+  IL_002b:  ldftn      "Sub abcdef._Lambda$__1(Object, Object, Windows.ApplicationModel.SuspendingEventArgs)"
   IL_0031:  newobj     "Sub Windows.UI.Xaml.SuspendingEventHandler..ctor(Object, System.IntPtr)"
   IL_0036:  dup
   IL_0037:  stsfld     "abcdef._ClosureCache$__2 As Windows.UI.Xaml.SuspendingEventHandler"
