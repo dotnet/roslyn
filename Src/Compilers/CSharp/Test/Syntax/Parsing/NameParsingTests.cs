@@ -613,6 +613,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(SyntaxFacts.ContainsDroppedIdentifierCharacters(tok.ValueText));
         }
 
+        [WorkItem(959148, "DevDiv")]
+        [Fact]
+        public void TestSoftHyphen()
+        {
+            var text = "x\u00ady";
+            var tok = SyntaxFactory.ParseToken(text);
+
+            Assert.NotNull(tok);
+            Assert.Equal(text, tok.ToString());
+            Assert.NotEqual(text, tok.ValueText);
+            Assert.Equal("xy", tok.ValueText); // formatting character SOFT HYPHEN (U+00AD) removed
+
+            Assert.True(SyntaxFacts.ContainsDroppedIdentifierCharacters(text));
+            Assert.False(SyntaxFacts.ContainsDroppedIdentifierCharacters(tok.ValueText));
+        }
+
         [WorkItem(545778, "DevDiv")]
         [Fact]
         public void ContainsDroppedIdentifierCharacters()

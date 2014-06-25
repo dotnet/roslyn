@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // There are no FormattingChars in ASCII range
 
-            return ch > 255 && IsFormattingChar(CharUnicodeInfo.GetUnicodeCategory(ch));
+            return ch > 127 && IsFormattingChar(CharUnicodeInfo.GetUnicodeCategory(ch));
         }
 
         /// <summary>
