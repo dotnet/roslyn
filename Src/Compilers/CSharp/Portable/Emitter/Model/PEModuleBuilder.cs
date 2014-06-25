@@ -129,7 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (asmIdentity.IsStrongName && !refIdentity.IsStrongName &&
                 ((Cci.IAssemblyReference)asmRef).ContentType != System.Reflection.AssemblyContentType.WindowsRuntime)
             {
-                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton);
+                // Dev12 reported error, we have changed it to a warning to allow referencing libraries 
+                // built for platforms that don't support strong names.
+                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton);
             }
 
             if (OutputKind != OutputKind.NetModule &&

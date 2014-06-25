@@ -4310,7 +4310,7 @@
   <data name="ERR_CmdOptionConflictsSource" xml:space="preserve">
     <value>Attribute '{0}' given in a source file conflicts with option '{1}'.</value>
   </data>
-  <data name="ERR_ReferencedAssemblyDoesNotHaveStrongName" xml:space="preserve">
+  <data name="WRN_ReferencedAssemblyDoesNotHaveStrongName" xml:space="preserve">
     <value>Referenced assembly '{0}' does not have a strong name.</value>
   </data>
   <data name="ERR_InvalidSignaturePublicKey" xml:space="preserve">

@@ -7172,15 +7172,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Referenced assembly &apos;{0}&apos; does not have a strong name..
-        /// </summary>
-        internal static string ERR_ReferencedAssemblyDoesNotHaveStrongName {
-            get {
-                return ResourceManager.GetString("ERR_ReferencedAssemblyDoesNotHaveStrongName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to #r is only allowed in scripts.
         /// </summary>
         internal static string ERR_ReferenceDirectiveOnlyAllowedInScripts {
@@ -10687,6 +10678,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_RefCultureMismatch {
             get {
                 return ResourceManager.GetString("WRN_RefCultureMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Referenced assembly &apos;{0}&apos; does not have a strong name..
+        /// </summary>
+        internal static string WRN_ReferencedAssemblyDoesNotHaveStrongName {
+            get {
+                return ResourceManager.GetString("WRN_ReferencedAssemblyDoesNotHaveStrongName", resourceCulture);
             }
         }
         

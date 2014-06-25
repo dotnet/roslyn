@@ -2,6 +2,7 @@
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
+Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
@@ -85,10 +86,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             If asmIdentity.IsStrongName AndAlso Not refIdentity.IsStrongName AndAlso
                DirectCast(asmRef, Cci.IAssemblyReference).ContentType <> Reflection.AssemblyContentType.WindowsRuntime Then
-                diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton)
+                ' Dev12 reported error, we have changed it to a warning to allow referencing libraries 
+                ' built for platforms that don't support strong names.
+                diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.WRN_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton)
             End If
 
-            If OutputKind <> CodeAnalysis.OutputKind.NetModule AndAlso
+            If OutputKind <> OutputKind.NetModule AndAlso
                Not String.IsNullOrEmpty(refIdentity.CultureName) AndAlso
                Not String.Equals(refIdentity.CultureName, asmIdentity.CultureName, StringComparison.OrdinalIgnoreCase) Then
                 diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.WRN_RefCultureMismatch, assembly, refIdentity.CultureName), NoLocation.Singleton)
@@ -102,10 +105,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' specified.A reference to the default mscorlib should always succeed without
             ' warning so we ignore it here.
             If assembly IsNot assembly.CorLibrary AndAlso
-               Not (refMachine = System.Reflection.PortableExecutable.Machine.I386 AndAlso Not assembly.Bit32Required) Then
+               Not (refMachine = Machine.I386 AndAlso Not assembly.Bit32Required) Then
                 Dim machine = SourceModule.Machine
 
-                If Not (machine = System.Reflection.PortableExecutable.Machine.I386 AndAlso Not SourceModule.Bit32Required) AndAlso
+                If Not (machine = Machine.I386 AndAlso Not SourceModule.Bit32Required) AndAlso
                     machine <> refMachine Then
                     ' Different machine types, and neither is agnostic
                     diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.WRN_ConflictingMachineAssembly, assembly), NoLocation.Singleton)

@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         {
             Assert.Equal(ProcessorArchitecture.MSIL, AssemblyName.GetAssemblyName(CSharpCompilerExecutable).ProcessorArchitecture);
         }
-
+       
         [Fact]
         public void ResponseFiles1()
         {

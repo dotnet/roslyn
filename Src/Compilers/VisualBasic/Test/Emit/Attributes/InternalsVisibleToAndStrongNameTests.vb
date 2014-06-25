@@ -1321,11 +1321,6 @@ End Class
 </compilation>,
         options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
-        Dim expected =
-<expected>
-BC37208: Referenced assembly 'Unsigned, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' does not have a strong name.
-</expected>
-
         Dim comps = {other.WithReferences({other.References(0), New VisualBasicCompilationReference(unsigned)}),
                      other.WithReferences({other.References(0), New MetadataImageReference(unsigned.EmitToArray)})}
 
@@ -1333,9 +1328,13 @@ BC37208: Referenced assembly 'Unsigned, Version=0.0.0.0, Culture=neutral, Public
             Dim outStrm = New MemoryStream()
             Dim emitResult = comp.Emit(outStrm)
 
-            Assert.False(emitResult.Success)
+            ' Dev12 reports an error
+            Assert.True(emitResult.Success)
 
-            AssertTheseDiagnostics(emitResult.Diagnostics, expected)
+            AssertTheseDiagnostics(emitResult.Diagnostics,
+<expected>
+BC41997: Referenced assembly 'Unsigned, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' does not have a strong name.
+</expected>)
         Next
     End Sub
 

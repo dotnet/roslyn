@@ -1218,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MetadataReferencesNotSupported = 7099,
 
         WRN_UnimplementedCommandLineSwitch = 8001,
-        ERR_ReferencedAssemblyDoesNotHaveStrongName = 8002,
+        WRN_ReferencedAssemblyDoesNotHaveStrongName = 8002,
         ERR_InvalidSignaturePublicKey = 8003,
         ERR_ExportedTypeConflictsWithDeclaration = 8004,
         ERR_ExportedTypesConflict = 8005,

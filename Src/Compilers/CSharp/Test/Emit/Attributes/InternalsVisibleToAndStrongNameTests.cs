@@ -1551,11 +1551,12 @@ public class C
             var outStrm = new MemoryStream();
             var emitResult = comp.Emit(outStrm);
 
-            Assert.False(emitResult.Success);
+            // Dev12 reports an error
+            Assert.True(emitResult.Success);
 
             emitResult.Diagnostics.Verify(
-                // error CS8002: Referenced assembly 'Unsigned, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' does not have a strong name.
-                Diagnostic(ErrorCode.ERR_ReferencedAssemblyDoesNotHaveStrongName).WithArguments("Unsigned, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+                // warning CS8002: Referenced assembly 'Unsigned, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' does not have a strong name.
+                Diagnostic(ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName).WithArguments("Unsigned, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
     }
 

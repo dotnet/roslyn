@@ -1624,7 +1624,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NetModuleNameMismatch = 37205
         ERR_BadCompilationOption = 37206
         ERR_CmdOptionConflictsSource = 37207
-        ERR_ReferencedAssemblyDoesNotHaveStrongName = 37208
+        ' unused 37208   
         ERR_InvalidSignaturePublicKey = 37209
         ERR_CollisionWithPublicTypeInModule = 37210
         ERR_ExportedTypeConflictsWithDeclaration = 37211
@@ -1729,6 +1729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_UseSwitchInsteadOfAttribute = 41008
 
         '// AVAILABLE                             41009 - 41199
+        WRN_ReferencedAssemblyDoesNotHaveStrongName = 41997
         WRN_RecursiveAddHandlerCall = 41998
         WRN_ImplicitConversionCopyBack = 41999
         WRN_MustShadowOnMultipleInheritance2 = 42000
