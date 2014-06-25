@@ -36,177 +36,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             base.Dispose();
         }
 
-        private static string csharpCompilerClientExecutable;
-        protected static string CSharpCompilerClientExecutable
-        {
-            get
-            {
-                if (csharpCompilerClientExecutable == null)
-                {
-                    var foundCompiler = FindBinary("csc2.exe");
-
-                    if (string.IsNullOrEmpty(foundCompiler))
-                    {
-                        foundCompiler = "csc2.exe";
-                    }
-                    csharpCompilerClientExecutable = foundCompiler;
-                }
-                return csharpCompilerClientExecutable;
-            }
-        }
-
-        private static string basicCompilerClientExecutable;
-        protected static string BasicCompilerClientExecutable
-        {
-            get
-            {
-                if (basicCompilerClientExecutable == null)
-                {
-                    var foundCompiler = FindBinary("vbc2.exe");
-
-                    if (string.IsNullOrEmpty(foundCompiler))
-                    {
-                        foundCompiler = "vbc2.exe";
-                    }
-                    basicCompilerClientExecutable = foundCompiler;
-                }
-                return basicCompilerClientExecutable;
-            }
-        }
-
-        private static string compilerServerExecutable;
-        protected static string CompilerServerExecutable
-        {
-            get
-            {
-                if (compilerServerExecutable == null)
-                {
-                    var foundCompiler = FindBinary("vbcscompiler.exe");
-
-                    if (string.IsNullOrEmpty(foundCompiler))
-                    {
-                        foundCompiler = "vbcscompiler.exe";
-                    }
-                    compilerServerExecutable = foundCompiler;
-                }
-                return compilerServerExecutable;
-            }
-        }
-
-        private static string msbuildExecutable;
-        protected static string MSBuildExecutable
-        {
-            get
-            {
-                if (msbuildExecutable == null)
-                {
-                    msbuildExecutable = Path.Combine(MSBuildDirectory, "MSBuild.exe");
-                }
-                return msbuildExecutable;
-            }
-        }
-
-        private static string msbuildDirectory;
-        protected static string MSBuildDirectory
-        {
-            get
-            {
-                if (msbuildDirectory == null)
-                {
-                    var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false);
-
-                    if (key != null)
-                    {
-                        var toolsPath = key.GetValue("MSBuildToolsPath");
-                        if (toolsPath != null)
-                        {
-                            msbuildDirectory = toolsPath.ToString();
-                        }
-                    }
-                }
-                return msbuildDirectory;
-            }
-        }
-
-        /// <summary>
-        /// Given a binary to look for, determines which is the first to actually exist on the filesystem.
-        /// </summary>
-        /// <param name="binaryFile">The binary file name that may exist in the system at <see cref="TestBase.ApplicationDirectory"/>, <see cref="TestBase.WorkingDirectory"/>, or <see cref="TestBase.MSBuildDirectory"/>.</param>
-        /// <returns>The binary which had the highest priority and was found.</returns>
-        protected static string FindBinary(string binaryFile)
-        {
-            IEnumerable<string> searchPaths = new[] {
-                Path.Combine(BinariesDirectory, binaryFile),
-                Path.Combine(ApplicationDirectory, binaryFile),
-                Path.Combine(WorkingDirectory, binaryFile),
-                Path.Combine(MSBuildDirectory, binaryFile)
-            };
-
-            return FindBinary(searchPaths);
-        }
-
-        /// <summary>
-        /// Given a list of binaries to look for, determines which is the first to actually appear on the Filesystem.
-        /// </summary>
-        /// <param name="binaryPriority">A list of binary file names that may exist in the system.</param>
-        /// <returns>The binary which had the highest priority and was found.</returns>
-        private static string FindBinary(IEnumerable<string> binaryPriority)
-        {
-            string highestPriorityCompiler = string.Empty;
-
-            foreach (string path in binaryPriority)
-            {
-                try
-                {
-                    if (File.Exists(path) && (FileVersionInfo.GetVersionInfo(path).FileVersion == FileVersionInfo.GetVersionInfo(typeof(TestBase).Assembly.Location).FileVersion))
-                    {
-                        highestPriorityCompiler = path;
-                    }
-                    break;
-                }
-                catch
-                {
-                    continue;
-                }
-            }
-
-            return highestPriorityCompiler;
-        }
-
-        private static string applicationDirectory;
-        protected static string ApplicationDirectory
-        {
-            get
-            {
-                if (applicationDirectory == null)
-                {
-                    applicationDirectory = Path.GetDirectoryName(typeof(CommonCompiler).Assembly.Location);
-                }
-                return applicationDirectory;
-            }
-        }
-
-        private static string binariesDirectory;
-        protected static string BinariesDirectory
-        {
-            get
-            {
-                if (binariesDirectory == null)
-                {
-                    binariesDirectory = Path.GetDirectoryName(typeof(TestBase).Assembly.Location);
-                }
-                return binariesDirectory;
-            }
-        }
-
-        protected static string WorkingDirectory
-        {
-            get
-            {
-                return Environment.CurrentDirectory;
-            }
-        }
-
         private Dictionary<string, string> AddForLoggingEnvironmentVars(Dictionary<string, string> vars)
         {
             var dict = vars == null ? new Dictionary<string, string>() : vars;
@@ -217,12 +46,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             return dict;
         }
 
-        private void KillProcess(string exeName)
+        private void KillProcess(string path)
         {
-            var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(exeName));
+            var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(path));
             foreach (Process p in processes)
             {
-                int pathSize = exeName.Length * 2;
+                int pathSize = path.Length * 2;
                 var exeNameBuffer = new StringBuilder(pathSize);
 
                 if (QueryFullProcessImageName(p.Handle,
@@ -230,7 +59,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                                               exeNameBuffer,
                                               ref pathSize) &&
                     string.Equals(exeNameBuffer.ToString(),
-                                  exeName,
+                                  path,
                                   StringComparison.OrdinalIgnoreCase))
                 {
                     p.Kill();
@@ -254,6 +83,55 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             int flags,
             StringBuilder exeNameBuffer,
             ref int bufferSize);
+
+        private static string WorkingDirectory
+        {
+            get
+            {
+                return Environment.CurrentDirectory;
+            }
+        }
+
+        private static string msbuildExecutable;
+        private static string MSBuildExecutable
+        {
+            get
+            {
+                if (msbuildExecutable == null)
+                {
+                    msbuildExecutable = Path.Combine(MSBuildDirectory, "MSBuild.exe");
+                }
+                return msbuildExecutable;
+            }
+        }
+
+        private static string msbuildDirectory;
+        private static string MSBuildDirectory
+        {
+            get
+            {
+                if (msbuildDirectory == null)
+                {
+                    var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false);
+
+                    if (key != null)
+                    {
+                        var toolsPath = key.GetValue("MSBuildToolsPath");
+                        if (toolsPath != null)
+                        {
+                            msbuildDirectory = toolsPath.ToString();
+                        }
+                    }
+                }
+                return msbuildDirectory;
+            }
+        }
+
+        private static string CompilerServerExecutable = Path.Combine(WorkingDirectory, "VBCSCompiler.exe");
+        private static string CSharpCompilerClientExecutable = Path.Combine(WorkingDirectory, "csc2.exe");
+        private static string BasicCompilerClientExecutable = Path.Combine(WorkingDirectory, "vbc2.exe");
+        private static string CSharpCompilerExecutable = Path.Combine(WorkingDirectory, "csc.exe");
+        private static string BasicCompilerExecutable = Path.Combine(WorkingDirectory, "vbc.exe");
 
         // In order that the compiler server doesn't stay around and prevent future builds, we explicitly
         // kill it after each test.
@@ -1220,7 +1098,7 @@ End Class
             };
         }
 
-        [Fact()]
+        [Fact(Skip = "Need to figure out how to test local build task")]
         public void SimpleMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
