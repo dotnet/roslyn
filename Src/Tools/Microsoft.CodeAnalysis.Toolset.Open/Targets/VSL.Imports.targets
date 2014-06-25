@@ -29,7 +29,7 @@
       <Choose>
         <!-- Shipping binaries in an "official" build are delay-signed with the MS key; later, the signing
              system will finish the strong-name signing. -->
-        <When Condition="'$(NonShipping)' != 'true' AND ('$(RealSignBuild)' == 'true' OR '$(DelaySignBuild)' == 'true')">
+        <When Condition="'$(NonShipping)' != 'true' AND ('$(RealSignBuild)' == 'true' OR '$(DelaySignBuild)' == 'true' OR '$(SignType)' == 'real')">
           <PropertyGroup>
             <AssemblyOriginatorKeyFile>$(VSLToolsPath)\Strong Name Keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
             <DelaySign>true</DelaySign>
@@ -80,7 +80,7 @@
   </PropertyGroup>
 
   <Target Name="VerifyBuildFlags">
-    <Error Condition="'$(RealSignBuild)' == 'true' AND '$(BuildVersion)' == '42.42.42.42'"
+    <Error Condition="('$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real') AND '$(BuildVersion)' == '42.42.42.42'"
            Text="Must specify a build version in order to real sign a build." />
   </Target>
 
