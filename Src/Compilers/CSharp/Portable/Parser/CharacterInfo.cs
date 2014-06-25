@@ -148,10 +148,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   letter-character
             //   _ (the underscore character U+005F)
 
-            return (ch >= 'a' && ch <= 'z')
-                || (ch >= 'A' && ch <= 'Z')
-                || (ch == '_')
-                || IsLetterChar(CharUnicodeInfo.GetUnicodeCategory(ch));
+            if (ch < 'a') // '\u0061'
+            {
+                if (ch < 'A') // '\u0041'
+                {
+                    return false;
+                }
+
+                return ch <= 'Z'  // '\u005A'
+                    || ch == '_'; // '\u005F'
+            }
+
+            if (ch <= 'z') // '\u007A'
+            {
+                return true;
+            }
+
+            if (ch <= '\u007F') // max ASCII
+            {
+                return false;
+            }
+
+            return IsLetterChar(CharUnicodeInfo.GetUnicodeCategory(ch));
         }
 
         /// <summary>
@@ -167,13 +185,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   combining-character
             //   formatting-character
 
-            UnicodeCategory cat;
+            if (ch < 'a') // '\u0061'
+            {
+                if (ch < 'A') // '\u0041'
+                {
+                    return ch >= '0'  // '\u0030'
+                        && ch <= '9'; // '\u0039'
+                }
 
-            return (ch >= 'a' && ch <= 'z')
-                || (ch >= 'A' && ch <= 'Z')
-                || (ch >= '0' && ch <= '9')
-                || (ch == '_')
-                || IsLetterChar(cat = CharUnicodeInfo.GetUnicodeCategory(ch))
+                return ch <= 'Z'  // '\u005A'
+                    || ch == '_'; // '\u005F'
+            }
+
+            if (ch <= 'z') // '\u007A'
+            {
+                return true;
+            }
+
+            if (ch <= '\u007F') // max ASCII
+            {
+                return false;
+            }
+
+            UnicodeCategory cat = CharUnicodeInfo.GetUnicodeCategory(ch);
+            return IsLetterChar(cat)
                 || IsDecimalDigitChar(cat)
                 || IsConnectingChar(cat)
                 || IsCombiningChar(cat)
