@@ -1273,8 +1273,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // available = 8044,
         // available = 8045,
-        // available = 8046,
 
+        ERR_ExpressionTreeContainsDeclarationExpression = 8046,
         ERR_DeclarationExpressionOutOfContext = 8047,
         ERR_VariableUsedInTheSameArgumentList = 8048,
 

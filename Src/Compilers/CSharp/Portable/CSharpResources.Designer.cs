@@ -3797,6 +3797,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a Declaration Expression..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsDeclarationExpression {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsDeclarationExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain a dynamic operation.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsDynamicOperation {

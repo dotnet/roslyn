@@ -436,6 +436,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NoteRead(((BoundLocal)n).LocalSymbol);
                         return;
 
+                    case BoundKind.DeclarationExpression:
+                        NoteRead(((BoundDeclarationExpression)n).LocalSymbol);
+                        return;
+
                     case BoundKind.Parameter:
                         NoteRead(((BoundParameter)n).ParameterSymbol);
                         return;
@@ -558,6 +562,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     usedVariables.Add(((BoundLocal)n).LocalSymbol);
                                 }
+                                else if (n.Kind == BoundKind.DeclarationExpression)
+                                {
+                                    usedVariables.Add(((BoundDeclarationExpression)n).LocalSymbol);
+                                }
                                 continue;
                             }
                             else
@@ -593,6 +601,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.Local:
                         NoteWrite(((BoundLocal)n).LocalSymbol, value, read);
+                        return;
+
+                    case BoundKind.DeclarationExpression:
+                        NoteWrite(((BoundDeclarationExpression)n).LocalSymbol, value, read);
                         return;
 
                     case BoundKind.Parameter:
@@ -686,6 +698,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MakeSlot(MethodThisParameter);
                 case BoundKind.Local:
                     return MakeSlot(((BoundLocal)node).LocalSymbol);
+                case BoundKind.DeclarationExpression:
+                    return MakeSlot(((BoundDeclarationExpression)node).LocalSymbol);
                 case BoundKind.Parameter:
                     return MakeSlot(((BoundParameter)node).ParameterSymbol);
                 case BoundKind.RangeVariable:
@@ -807,6 +821,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.DeclarationExpression:
+                    {
+                        unassignedSlot = MakeSlot(((BoundDeclarationExpression)node).LocalSymbol);
+                        break;
+                    }
+
                 case BoundKind.FieldAccess:
                     {
                         var fieldAccess = (BoundFieldAccess)node;
@@ -892,6 +912,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var result = ((BoundLocal)expression).LocalSymbol;
                         usedVariables.Add(result);
                         return result;
+                    case BoundKind.DeclarationExpression:
+                        var local = ((BoundDeclarationExpression)expression).LocalSymbol;
+                        usedVariables.Add(local);
+                        return local;
                     case BoundKind.RangeVariable:
                         return ((BoundRangeVariable)expression).RangeVariableSymbol;
                     case BoundKind.Parameter:

@@ -2573,5 +2573,41 @@ class Test
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
+        [WorkItem(949118, "DevDiv")]
+        [WorkItem(152, "CodePlex")]
+        [Fact(Skip = "949118")]
+        public void Bug949118()
+        {
+            string source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Globalization;
+class Program
+{
+  static void Main()
+  {
+   var x = Foo.F1;
+   var y = new Foo().F2;
+  }
+}
+public class Foo
+{
+  static object Test([CallerMemberName] string bar = null)
+  {
+    Console.WriteLine(bar);
+    return null;
+  }
+  
+  public static readonly object F1 = Test();
+  public readonly object F2 = Test();
+}
+";
+
+            string expected = @"F1
+F2";
+            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.Exe);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
     }
 }

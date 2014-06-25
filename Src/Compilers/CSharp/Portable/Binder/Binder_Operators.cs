@@ -1976,6 +1976,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // such locals are not moveable.
                             return true;
                         }
+                    case BoundKind.DeclarationExpression:
+                        {
+                            var declaration = (BoundDeclarationExpression)expr;
+                            LocalSymbol localSymbol = declaration.LocalSymbol;
+                            Debug.Assert(localSymbol.RefKind == RefKind.None);
+                            accessedLocalOrParameterOpt = localSymbol;
+                            // NOTE: The spec says that this is moveable if it is captured by an anonymous function,
+                            // but that will be reported separately and error-recovery is better if we say that
+                            // such locals are not moveable.
+                            return true;
+                        }
                     case BoundKind.PointerIndirectionOperator: //Covers ->, since the receiver will be one of these.
                     case BoundKind.PointerElementAccess:
                     case BoundKind.StackAllocArrayCreation:

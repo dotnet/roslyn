@@ -134,6 +134,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         readOrWritten.Add(((BoundLocal)receiver).LocalSymbol);
                     }
                     break;
+                case BoundKind.DeclarationExpression:
+                    if (RegionContains(receiverSyntax.Span))
+                    {
+                        readOrWritten.Add(((BoundDeclarationExpression)receiver).LocalSymbol);
+                    }
+                    break;
                 case BoundKind.ThisReference:
                     if (RegionContains(receiverSyntax.Span))
                     {

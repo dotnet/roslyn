@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -1215,6 +1216,7 @@ public class Cls
 
                         bool isOut = false;
                         bool isSimpleAssignmentTarget = false;
+                        bool isFixedStatementAddressOfTarget = false;
                         bool isCompoundAssignmentTarget = false;
                         bool isInBracketedArgumentList = false;
                         CSharpSyntaxNode parentToAnalyze = null;
@@ -1289,12 +1291,25 @@ public class Cls
                                         isCompoundAssignmentTarget = true;
                                     }
                                     break;
+
+                                case SyntaxKind.AddressOfExpression:
+                                    if (((PrefixUnaryExpressionSyntax)parent).Operand == previous)
+                                    {
+                                        var fixedStmt = parent.Ancestors().OfType<FixedStatementSyntax>().FirstOrDefault();
+
+                                        if (fixedStmt != null && fixedStmt.Declaration.Variables.Where(v => v.Initializer != null && v.Initializer.Value == parent).Any())
+                                        {
+                                            isFixedStatementAddressOfTarget = true;
+                                        }
+                                    }
+                                    break;
+
                             }
                         }
 
                         if (!isInBracketedArgumentList)
                         {
-                            Assert.Equal(!(isOut || isSimpleAssignmentTarget), dataFlow.ReadInside.Any(s => (object)s == info.SymInfo.Symbol));
+                            Assert.Equal(!(isOut || isSimpleAssignmentTarget || isFixedStatementAddressOfTarget), dataFlow.ReadInside.Any(s => (object)s == info.SymInfo.Symbol));
                         }
 
                         if ((isOut || isSimpleAssignmentTarget || isCompoundAssignmentTarget) && parentToAnalyze != null)
@@ -3046,8 +3061,10 @@ public class Cls
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "c4").WithArguments("c4").WithLocation(50, 17),
     // (55,58): error CS0128: A local variable named 'd1' is already defined in this scope
     //             System.Console.WriteLine((int d1 = 1) + (int d1 = 1));
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "d1").WithArguments("d1").WithLocation(55, 58)
-
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "d1").WithArguments("d1").WithLocation(55, 58),
+    // (6,16): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+    //         while ((int j = 10) < j)
+    Diagnostic(ErrorCode.WRN_ComparisonToSelf, "(int j = 10) < j").WithLocation(6, 16)
                 );
 
             TestSemanticModelAPI(compilation, diagnostics);
@@ -3321,7 +3338,10 @@ public class Cls
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "c4").WithArguments("c4").WithLocation(69, 17),
     // (75,58): error CS0128: A local variable named 'd1' is already defined in this scope
     //             System.Console.WriteLine((int d1 = 1) + (int d1 = 1));
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "d1").WithArguments("d1").WithLocation(75, 58)
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "d1").WithArguments("d1").WithLocation(75, 58),
+    // (8,16): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+    //         while ((int j = 10) < j);
+    Diagnostic(ErrorCode.WRN_ComparisonToSelf, "(int j = 10) < j").WithLocation(8, 16)
                 );
 
             TestSemanticModelAPI(compilation, diagnostics);
@@ -3652,7 +3672,16 @@ public class Cls
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "c1").WithArguments("c1").WithLocation(135, 58),
     // (137,58): error CS0128: A local variable named 'c2' is already defined in this scope
     //             System.Console.WriteLine((int c2 = 1) + (int c2 = 1));
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "c2").WithArguments("c2").WithLocation(137, 58)
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "c2").WithArguments("c2").WithLocation(137, 58),
+    // (6,13): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+    //         if ((int j = 2) > j)
+    Diagnostic(ErrorCode.WRN_ComparisonToSelf, "(int j = 2) > j").WithLocation(6, 13),
+    // (11,13): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+    //         if ((int j = 2) > j)
+    Diagnostic(ErrorCode.WRN_ComparisonToSelf, "(int j = 2) > j").WithLocation(11, 13),
+    // (18,13): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+    //         if ((int j = 2) > j)
+    Diagnostic(ErrorCode.WRN_ComparisonToSelf, "(int j = 2) > j").WithLocation(18, 13)
             );
 
             TestSemanticModelAPI(compilation, diagnostics);
@@ -11130,6 +11159,132 @@ public class Cls
 643").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
+        }
+
+        [Fact, WorkItem(915603, "DevDiv"), WorkItem(7, "CodePlex")]
+        public void Bug915603()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        Expression<Func<int>> e = () => (int x = 1) * x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyEmitDiagnostics(
+    // (8,42): error CS8046: An expression tree may not contain a Declaration Expression.
+    //         Expression<Func<int>> e = () => (int x = 1) * x;
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDeclarationExpression, "int x = 1").WithLocation(8, 42)
+                );
+
+            TestSemanticModelAPI(compilation);
+        }
+
+        [Fact, WorkItem(915606, "DevDiv"), WorkItem(10, "CodePlex")]
+        public void Bug915606()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+struct S
+{
+    S(int a) : this(() => (S s).GetType()) { }
+    S(Expression<Action> e) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyEmitDiagnostics(
+    // (6,28): error CS8046: An expression tree may not contain a Declaration Expression.
+    //     S(int a) : this(() => (S s).GetType()) { }
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDeclarationExpression, "S s").WithLocation(6, 28)
+                );
+
+            TestSemanticModelAPI(compilation);
+        }
+
+        [Fact, WorkItem(915613, "DevDiv"), WorkItem(20, "CodePlex")]
+        public void Bug915613_1()
+        {
+            var text = @"
+class C
+{
+    unsafe static void Main()
+    {
+        fixed(int* p = &(int x = 1)) { }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (6,24): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+    //         fixed(int* p = &(int x = 1)) { }
+    Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&(int x = 1)").WithLocation(6, 24)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact, WorkItem(915613, "DevDiv"), WorkItem(20, "CodePlex")]
+        public void Bug915613_2()
+        {
+            var text = @"
+class C
+{
+    unsafe static void Main()
+    {
+        int* p = &(int x = 1);
+        System.Func<int> y = ()=> x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (6,18): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+    //         int* p = &(int x = 1);
+    Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&(int x = 1)").WithArguments("x").WithLocation(6, 18)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact]
+        public void SelfComparisonOrAssignment()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        if ((int x =1) == x){}
+
+        (int y =1) = y;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (6,13): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+    //         if ((int x =1) == x){}
+    Diagnostic(ErrorCode.WRN_ComparisonToSelf, "(int x =1) == x").WithLocation(6, 13),
+    // (8,9): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+    //         (int y =1) = y;
+    Diagnostic(ErrorCode.WRN_AssignmentToSelf, "(int y =1) = y").WithLocation(8, 9)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
         }
 
     }

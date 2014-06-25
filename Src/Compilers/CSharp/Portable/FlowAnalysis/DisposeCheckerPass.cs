@@ -126,6 +126,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         break;
+                    case BoundKind.DeclarationExpression:
+                        {
+                            var local = (BoundDeclarationExpression)expr;
+                            Value value;
+                            pass.State.variables.TryGetValue(local.LocalSymbol, out value);
+                            if (value != null)
+                            {
+                                creations = value.creations;
+                            }
+                        }
+                        break;
                     case BoundKind.Parameter:
                         {
                             var parameter = (BoundParameter)expr;
@@ -393,6 +404,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     {
                         var left = (BoundLocal)node.Left;
+                        this.State.variables[left.LocalSymbol] = rvalue.value;
+                    }
+                    break;
+                case BoundKind.DeclarationExpression:
+                    {
+                        var left = (BoundDeclarationExpression)node.Left;
                         this.State.variables[left.LocalSymbol] = rvalue.value;
                     }
                     break;
