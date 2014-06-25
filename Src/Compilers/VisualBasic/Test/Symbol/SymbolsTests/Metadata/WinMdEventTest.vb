@@ -664,7 +664,7 @@ End Class
         ''' Verify that WinRT events compile into the IL that we 
         ''' would expect.
         ''' </summary>
-        <Fact>
+        <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub WinMdEventLambda()
 
             Dim source =
@@ -695,30 +695,30 @@ End Class
             Dim expectedIL =
             <output>
 {
-  // Code size       66 (0x42)
+  // code size       66 (0x42)
   .maxstack  4
-  .locals init (Windows.UI.Xaml.Application V_0) //application
-  IL_0000:  ldnull
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  dup
-  IL_0004:  ldvirtftn  "Sub Windows.UI.Xaml.Application.add_Suspending(Windows.UI.Xaml.SuspendingEventHandler) As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"
-  IL_000a:  newobj     "Sub System.Func(Of Windows.UI.Xaml.SuspendingEventHandler, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_000f:  ldloc.0
-  IL_0010:  dup
-  IL_0011:  ldvirtftn  "Sub Windows.UI.Xaml.Application.remove_Suspending(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
-  IL_0017:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
-  IL_001c:  ldsfld     "abcdef._ClosureCache$__2 As Windows.UI.Xaml.SuspendingEventHandler"
-  IL_0021:  brfalse.s  IL_002a
-  IL_0023:  ldsfld     "abcdef._ClosureCache$__2 As Windows.UI.Xaml.SuspendingEventHandler"
-  IL_0028:  br.s       IL_003c
-  IL_002a:  ldnull
-  IL_002b:  ldftn      "Sub abcdef._Lambda$__1(Object, Object, Windows.ApplicationModel.SuspendingEventArgs)"
-  IL_0031:  newobj     "Sub Windows.UI.Xaml.SuspendingEventHandler..ctor(Object, System.IntPtr)"
-  IL_0036:  dup
-  IL_0037:  stsfld     "abcdef._ClosureCache$__2 As Windows.UI.Xaml.SuspendingEventHandler"
-  IL_003c:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of Windows.UI.Xaml.SuspendingEventHandler)(System.Func(Of Windows.UI.Xaml.SuspendingEventHandler, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), Windows.UI.Xaml.SuspendingEventHandler)"
-  IL_0041:  ret
+  .locals init (windows.ui.xaml.application v_0) //application
+  il_0000:  ldnull
+  il_0001:  stloc.0
+  il_0002:  ldloc.0
+  il_0003:  dup
+  il_0004:  ldvirtftn  "sub windows.ui.xaml.application.add_suspending(windows.ui.xaml.suspendingeventhandler) as system.runtime.interopservices.windowsruntime.eventregistrationtoken"
+  il_000a:  newobj     "sub system.func(of windows.ui.xaml.suspendingeventhandler, system.runtime.interopservices.windowsruntime.eventregistrationtoken)..ctor(object, system.intptr)"
+  il_000f:  ldloc.0
+  il_0010:  dup
+  il_0011:  ldvirtftn  "sub windows.ui.xaml.application.remove_suspending(system.runtime.interopservices.windowsruntime.eventregistrationtoken)"
+  il_0017:  newobj     "sub system.action(of system.runtime.interopservices.windowsruntime.eventregistrationtoken)..ctor(object, system.intptr)"
+  il_001c:  ldsfld     "abcdef._closurecache$__2 as windows.ui.xaml.suspendingeventhandler"
+  il_0021:  brfalse.s  il_002a
+  il_0023:  ldsfld     "abcdef._closurecache$__2 as windows.ui.xaml.suspendingeventhandler"
+  il_0028:  br.s       il_003c
+  il_002a:  ldnull
+  il_002b:  ldftn      "sub abcdef._lambda$__1(object, windows.applicationmodel.suspendingeventargs)"
+  il_0031:  newobj     "sub windows.ui.xaml.suspendingeventhandler..ctor(object, system.intptr)"
+  il_0036:  dup
+  il_0037:  stsfld     "abcdef._closurecache$__2 as windows.ui.xaml.suspendingeventhandler"
+  il_003c:  call       "sub system.runtime.interopservices.windowsruntime.windowsruntimemarshal.addeventhandler(of windows.ui.xaml.suspendingeventhandler)(system.func(of windows.ui.xaml.suspendingeventhandler, system.runtime.interopservices.windowsruntime.eventregistrationtoken), system.action(of system.runtime.interopservices.windowsruntime.eventregistrationtoken), windows.ui.xaml.suspendingeventhandler)"
+  il_0041:  ret
 }
                     </output>
 
