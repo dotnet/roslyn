@@ -3273,20 +3273,6 @@ Dim b = Loc
         ~~~
 </text>, output)
 
-        output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /nostdlib /r:mscorlib.dll /vbruntime- /t:library /d:_MyType=\""Empty\"" " & src.ToString(), expectedRetCode:=1)
-        AssertOutput(
-<text>
-src.vb(2) : warning BC40056: Namespace or type specified in the Imports 'Microsoft.VisualBasic' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
-Imports Microsoft.VisualBasic
-        ~~~~~~~~~~~~~~~~~~~~~
-src.vb(4) : error BC30451: 'vbLf' is not declared. It may be inaccessible due to its protection level.
-Dim a = vbLf
-        ~~~~
-src.vb(5) : error BC30451: 'Loc' is not declared. It may be inaccessible due to its protection level.
-Dim b = Loc
-        ~~~
-</text>, output)
-
         output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /vbruntime* /t:library /r:System.dll " & src.ToString(), expectedRetCode:=1)
         AssertOutput(
 <text>
@@ -3320,6 +3306,37 @@ Dim b = Loc
         ~~~
 </text>, output)
 
+
+        CleanupAllGeneratedFiles(src.Path)
+    End Sub
+
+    <Fact(Skip:="")>
+    Public Sub VbRuntime02()
+
+        Dim dir = Temp.CreateDirectory()
+        Dim src = dir.CreateFile("src.vb")
+        src.WriteAllText(
+<text>
+Imports Microsoft.VisualBasic
+Class C
+Dim a = vbLf
+Dim b = Loc
+End Class
+</text>.Value.Replace(vbLf, vbCrLf))
+
+        Dim output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /nostdlib /r:mscorlib.dll /vbruntime- /t:library /d:_MyType=\""Empty\"" " & src.ToString(), expectedRetCode:=1)
+        AssertOutput(
+<text>
+src.vb(2) : warning BC40056: Namespace or type specified in the Imports 'Microsoft.VisualBasic' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports Microsoft.VisualBasic
+        ~~~~~~~~~~~~~~~~~~~~~
+src.vb(4) : error BC30451: 'vbLf' is not declared. It may be inaccessible due to its protection level.
+Dim a = vbLf
+        ~~~~
+src.vb(5) : error BC30451: 'Loc' is not declared. It may be inaccessible due to its protection level.
+Dim b = Loc
+        ~~~
+</text>, output)
 
         CleanupAllGeneratedFiles(src.Path)
     End Sub
@@ -5277,7 +5294,7 @@ Imports System
         Return Path.Combine(Path.GetDirectoryName(BasicCompilerExecutable), Path.GetFileNameWithoutExtension(BasicCompilerExecutable) & ".rsp")
     End Function
 
-    <Fact()>
+    <Fact(Skip:="972948")>
     Public Sub DefaultResponseFile()
         Dim defaultResponseFile = GetDefaultResponseFilePath()
         Assert.True(File.Exists(defaultResponseFile))
@@ -5357,7 +5374,7 @@ Imports System
     End Sub
 
 
-    <Fact()>
+    <Fact(Skip:="972948")>
     Public Sub DefaultResponseFileNoConfig()
         Dim defaultResponseFile = GetDefaultResponseFilePath()
         Assert.True(File.Exists(defaultResponseFile))

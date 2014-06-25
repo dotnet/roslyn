@@ -180,17 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new IDiagnosticAnalyzer[] { new ComplainAboutX() }, 
-                // (5,18): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
-                //         int x3 = x1(x2);
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
-                // (5,21): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x2'
-                //         int x3 = x1(x2);
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x2").WithArguments("x2"),
-                // (6,16): warning CA9999_Use7OfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x3'
-                //         return x3 + 1;
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x3").WithArguments("x3")
-                )
             .VerifyAnalyzerDiagnostics3(new IDiagnosticAnalyzer[] { new ComplainAboutX() },
                 // (5,18): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
@@ -222,20 +211,6 @@ public class C : NotFound
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
-                )
-            .VerifyAnalyzerDiagnostics(new IDiagnosticAnalyzer[] { new ComplainAboutX() },
-                // (6,14): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
-                //     int x3 = x1 + x2;
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
-                // (6,19): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x2'
-                //     int x3 = x1 + x2;
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x2").WithArguments("x2"),
-                // (7,29): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x4'
-                //     D d1 = (out int x4) => (x4 = 1) + @x4;
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x4").WithArguments("x4"),
-                // (7,39): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x4'
-                //     D d1 = (out int x4) => (x4 = 1) + @x4;
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "@x4").WithArguments("x4")
                 )
             .VerifyAnalyzerDiagnostics3(new IDiagnosticAnalyzer[] { new ComplainAboutX() },
                 // (6,14): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
@@ -298,17 +273,6 @@ public class C : NotFound
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound"))
-            .VerifyAnalyzerDiagnostics(new IDiagnosticAnalyzer[] { new ComplainAboutX() },
-                // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
-                //         int x3 = x1(x2);
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
-                // (6,21): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x2'
-                //         int x3 = x1(x2);
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x2").WithArguments("x2").WithWarningAsError(true),
-                // (7,16): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x3'
-                //         return x3 + 1;
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x3").WithArguments("x3").WithWarningAsError(true)
-                )
             .VerifyAnalyzerDiagnostics3(new IDiagnosticAnalyzer[] { new ComplainAboutX() },
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
@@ -342,16 +306,6 @@ public class C : NotFound
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new IDiagnosticAnalyzer[] { new ComplainAboutX() },
-                // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
-                //         int x3 = x1(x2);
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
-                // (6,21): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x2'
-                //         int x3 = x1(x2);
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x2").WithArguments("x2").WithWarningAsError(true),
-                // (7,16): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x3'
-                //         return x3 + 1;
-                Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x3").WithArguments("x3").WithWarningAsError(true))
             .VerifyAnalyzerDiagnostics3(new IDiagnosticAnalyzer[] { new ComplainAboutX() },
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
@@ -433,13 +387,6 @@ public class C { }";
 
             CreateCompilationWithMscorlib45(source, compOptions: options)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(new IDiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() },
-                    // Symbol diagnostics
-                    Diagnostic("XX0001", "C").WithWarningAsError(true),
-                    // Syntax diagnostics
-                    Diagnostic("XX0001", "using System;").WithWarningAsError(true),
-                    Diagnostic("XX0001", "[Obsolete]").WithWarningAsError(true),
-                    Diagnostic("XX0001", "C").WithWarningAsError(true))
                 .VerifyAnalyzerDiagnostics3(new IDiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() },
                     // Symbol diagnostics
                     Diagnostic("XX0001", "C").WithWarningAsError(true),

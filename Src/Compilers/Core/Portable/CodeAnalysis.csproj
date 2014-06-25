@@ -142,6 +142,10 @@
     <Compile Include="DiagnosticAnalyzer\AnalyzerImageReference.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerOptions.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerReference.cs" />
+    <Compile Include="DiagnosticAnalyzer\CompilationCompletedEvent.cs" />
+    <Compile Include="DiagnosticAnalyzer\CompilationStartedEvent.cs" />
+    <Compile Include="DiagnosticAnalyzer\CompilationUnitCompletedEvent.cs" />
+    <Compile Include="DiagnosticAnalyzer\SymbolDeclaredCompilationEvent.cs" />
     <Compile Include="DiagnosticAnalyzer\UnresolvedAnalyzerReference.cs" />
     <Compile Include="Diagnostic\CommonDiagnosticComparer.cs" />
     <Compile Include="Diagnostic\CommonMessageProvider.cs" />

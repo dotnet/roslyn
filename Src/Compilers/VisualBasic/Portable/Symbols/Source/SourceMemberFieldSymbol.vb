@@ -311,10 +311,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If initializer IsNot Nothing Then
                         Dim diagnostics = DiagnosticBag.GetInstance()
                         Dim constantTuple = ConstantValueUtils.EvaluateFieldConstant(Me, initializer, inProgress, diagnostics)
-                        sourceModule.AtomicStoreReferenceAndDiagnostics(m_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
+                        If sourceModule.AtomicStoreReferenceAndDiagnostics(m_constantTuple, constantTuple, diagnostics, CompilationStage.Declare) Then
+                            sourceModule.DeclaringCompilation.SymbolDeclaredEvent(Me)
+                        End If
                         diagnostics.Free()
                     Else
-                        sourceModule.AtomicStoreReferenceAndDiagnostics(m_constantTuple, EvaluatedConstant.None, Nothing, CompilationStage.Declare)
+                        If sourceModule.AtomicStoreReferenceAndDiagnostics(m_constantTuple, EvaluatedConstant.None, Nothing, CompilationStage.Declare) Then
+                            sourceModule.DeclaringCompilation.SymbolDeclaredEvent(Me)
+                        End If
                     End If
                 End If
 

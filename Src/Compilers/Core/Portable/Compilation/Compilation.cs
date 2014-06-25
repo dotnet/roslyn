@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal abstract AnalyzerDriver3 AnalyzerForLanguage(ImmutableArray<IDiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken);
+
         /// <summary>
         /// Gets the source language ("C#" or "Visual Basic").
         /// </summary>

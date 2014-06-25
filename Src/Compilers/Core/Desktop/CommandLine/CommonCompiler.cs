@@ -284,6 +284,16 @@ namespace Microsoft.CodeAnalysis
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            var analyzerOptions = new AnalyzerOptions(Arguments.AdditionalStreams, Arguments.AdditionalOptions);
+
+            AnalyzerDriver3 analyzerDriver3 = null;
+            var featureAnalyzer3 = compilation.Feature("analyzer3");
+            bool useNewAnalyzerDriver = featureAnalyzer3 != null && featureAnalyzer3 != "false";
+            if (useNewAnalyzerDriver)
+            {
+                compilation = AnalyzerDriver3.AttachAnalyzerDriverToCompilation(compilation, analyzers, out analyzerDriver3, analyzerOptions, cancellationToken);
+            }
+
             EmitResult emitResult;
 
             // EDMAURER: Don't yet know if there are method body errors. don't overwrite
@@ -383,8 +393,16 @@ namespace Microsoft.CodeAnalysis
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var analyzerOptions = new AnalyzerOptions(Arguments.AdditionalStreams, Arguments.AdditionalOptions);
-                var analyzerDiagnostics = AnalyzerDriver.GetDiagnostics(compilation, analyzers, analyzerOptions, default(CancellationToken));
+                IEnumerable<Diagnostic> analyzerDiagnostics;
+                if (useNewAnalyzerDriver)
+                {
+                    analyzerDiagnostics = analyzerDriver3.GetDiagnosticsAsync().Result;
+                }
+                else
+                {
+                    analyzerDiagnostics = AnalyzerDriver.GetDiagnostics(compilation, analyzers, analyzerOptions, default(CancellationToken));
+                }
+
                 if (PrintErrors(analyzerDiagnostics, consoleOutput))
                 {
                     return Failed;

@@ -817,10 +817,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If m_lazyImplementedProperties.IsDefault Then
                     Dim diagnostics = DiagnosticBag.GetInstance()
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                    sourceModule.AtomicStoreArrayAndDiagnostics(m_lazyImplementedProperties,
+                    If sourceModule.AtomicStoreArrayAndDiagnostics(m_lazyImplementedProperties,
                                                                 ComputeExplicitInterfaceImplementations(diagnostics),
                                                                 diagnostics,
-                                                                CompilationStage.Declare)
+                                                                CompilationStage.Declare) Then
+                        ContainingAssembly.DeclaringCompilation.SymbolDeclaredEvent(Me)
+                    End If
                     diagnostics.Free()
                 End If
 

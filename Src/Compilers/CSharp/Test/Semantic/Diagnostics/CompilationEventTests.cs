@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             var actual = ArrayBuilder<CompilationEvent>.GetInstance();
-            while (queue.Count != 0 || !queue.IsCompleted)
+            while (queue.Count > 0 || !queue.IsCompleted)
             {
                 var te = queue.DequeueAsync();
                 Assert.True(te.IsCompleted);
@@ -100,19 +100,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .VerifyDiagnostics()  // force diagnostics twice
                 .VerifyDiagnostics();
             VerifyEvents(q,
-                "CompilationStarted",
-                "SymbolDeclared(P N.C<T1>.P @ : (5,4)-(5,40))",
-                "SymbolDeclared(F N.C<T1>.F @ : (6,8)-(6,14))",
-                "SymbolDeclared(M N.C<T1>.M(int) @ : (4,4)-(4,27))",
-                "SymbolDeclared(C N.C<T1> @ : (2,2)-(8,3))",
-                "SymbolDeclared(N N @ : (0,0)-(13,1))",
-                "SymbolDeclared( <global namespace> @ : (0,0)-(13,1))",
-                "SymbolDeclared(M N.C<T1>.M(int) @ : (11,4)-(11,29))",
-                "SymbolDeclared(get_P N.C<T1>.P.get @ : (5,21)-(5,25))",
-                "SymbolDeclared(set_P N.C<T1>.P.set @ : (5,26)-(5,38))",
-                "SymbolDeclared(N N.C<T1>.N<T2>(int) @ : (7,4)-(7,41))",
-                "CompilationUnitCompleted()",
-                "CompilationCompleted"
+                "CompilationStartedEvent",
+                "SymbolDeclaredCompilationEvent(P int C<T1>.P @ : (5,4)-(5,40))",
+                "SymbolDeclaredCompilationEvent(F int C<T1>.F @ : (6,8)-(6,14))",
+                "SymbolDeclaredCompilationEvent(M void C<T1>.M(int x1) @ : (4,4)-(4,27))",
+                "SymbolDeclaredCompilationEvent(C C<T1> @ : (2,2)-(8,3), : (9,2)-(12,3))",
+                "SymbolDeclaredCompilationEvent(N N @ : (0,0)-(13,1))",
+                "SymbolDeclaredCompilationEvent(<empty>  @ : (0,0)-(13,1))",
+                "SymbolDeclaredCompilationEvent(M void C<T1>.M(int x2) @ : (11,4)-(11,29))",
+                "SymbolDeclaredCompilationEvent(get_P int C<T1>.P.get @ : (5,21)-(5,25))",
+                "SymbolDeclaredCompilationEvent(set_P void C<T1>.P.set @ : (5,26)-(5,38))",
+                "SymbolDeclaredCompilationEvent(N void C<T1>.N<T2>(int y = 12) @ : (7,4)-(7,41))",
+                "CompilationUnitCompletedEvent()",
+                "CompilationCompletedEvent"
                 );
         }
     }

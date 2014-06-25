@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private EntryPoint lazyEntryPoint;
 
         /// <summary>
-        /// The set of trees for which a <see cref="CompilationEvent.CompilationCompleted"/> has been added to the queue.
+        /// The set of trees for which a <see cref="CompilationUnitCompletedEvent"/> has been added to the queue.
         /// </summary>
         private HashSet<SyntaxTree> lazyCompilationUnitCompletedTrees;
 
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert((object)this.lazyAssemblySymbol == null);
-                if (EventQueue != null) EventQueue.Enqueue(new CompilationEvent.CompilationStarted(this));
+                if (EventQueue != null) EventQueue.Enqueue(new CompilationStartedEvent(this));
             }
         }
 
@@ -1729,12 +1729,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (completedCompilationUnit)
             {
-                EventQueue.Enqueue(new CompilationEvent.CompilationUnitCompleted(this, null, tree));
+                EventQueue.Enqueue(new CompilationUnitCompletedEvent(this, tree));
             }
 
             if (completedCompilation)
             {
-                EventQueue.Enqueue(new CompilationEvent.CompilationCompleted(this));
+                EventQueue.Enqueue(new CompilationCompletedEvent(this));
                 EventQueue.Complete(); // signal the end of compilation events
             }
         }
@@ -2894,9 +2894,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lazyMakeMemberMissingMap != null && lazyMakeMemberMissingMap.ContainsKey(member);
         }
 
+        internal override AnalyzerDriver3 AnalyzerForLanguage(ImmutableArray<IDiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
+        {
+            return new AnalyzerDriver3<CSharp.SyntaxKind>(analyzers, n => n.CSharpKind(), options, cancellationToken);
+        }
+
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
-            if (EventQueue != null) EventQueue.Enqueue(new CompilationEvent.SymbolDeclared(this, symbol));
+            if (EventQueue != null) EventQueue.Enqueue(new SymbolDeclaredCompilationEvent(this, symbol));
         }
     }
 }

@@ -665,37 +665,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             VisitTypesAndNamespacesWithin(cancellationToken, Me.GlobalNamespace, visitor, tasks)
         End Sub
 
-        ' Visit all source types and namespaces within this source namespace or type
+        ' Visit all source types and namespaces within this source namespace or type, inclusve of this source namespace or type
         Private Sub VisitTypesAndNamespacesWithin(cancellationToken As CancellationToken, ns As NamespaceOrTypeSymbol, visitor As Action(Of NamespaceOrTypeSymbol), tasks As ConcurrentStack(Of Task))
             Dim stack = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance
             Try
-                Dim symbol As NamespaceOrTypeSymbol = ns
-                GoTo lStart
-
+                stack.Push(ns)
                 While stack.Count > 0
                     cancellationToken.ThrowIfCancellationRequested()
-                    symbol = stack.Pop()
+                    Dim symbol = stack.Pop()
 
                     If tasks IsNot Nothing Then
-                        ' Don't optimize this local out !!!!! It is essential for correct lifting 
-                        Dim workerSymbol As NamespaceOrTypeSymbol = symbol
-
                         Dim worker As Task = Task.Run(
                             Sub()
                                 Try
-                                    visitor(workerSymbol)
+                                    visitor(symbol)
                                 Catch e As Exception When CompilerFatalError.ReportUnlessCanceled(e)
                                     Throw ExceptionUtilities.Unreachable
                                 End Try
                             End Sub,
                             cancellationToken)
-
                         tasks.Push(worker)
                     Else
                         visitor(symbol)
                     End If
-lStart:
-                    For Each child In If(symbol.IsNamespace, symbol.GetMembers(), symbol.GetTypeMembers().Cast(Of symbol))
+
+                    For Each child As Symbol In If(symbol.IsNamespace, symbol.GetMembers(), symbol.GetTypeMembers().Cast(Of Symbol))
                         stack.Push(DirectCast(child, NamespaceOrTypeSymbol))
                     Next
                 End While
@@ -784,24 +778,28 @@ lStart:
             Return True
         End Function
 
-        ' Atomically store value into variable, and store the diagnostics away for later retrieval.
-        ' When this routine returns, variable is non-null. If this routine stored value into variable,
-        ' then the diagnostic bag is saved away before the variable is stored.
-        Friend Sub AtomicStoreReferenceAndDiagnostics(Of T As Class)(ByRef variable As T,
+        ''' <summary>
+        ''' Atomically store value into variable, and store the diagnostics away for later retrieval.
+        ''' When this routine returns, variable is non-null. If this routine stored value into variable,
+        ''' then the diagnostic bag is saved away before the variable is stored and it returns True.
+        ''' Otherwise it returns False.
+        ''' </summary>
+        Friend Function AtomicStoreReferenceAndDiagnostics(Of T As Class)(ByRef variable As T,
                                                                      value As T,
                                                                      diagBag As DiagnosticBag,
                                                                      stage As CompilationStage,
-                                                                     Optional comparand As T = Nothing)
-            Debug.Assert(Not ReferenceEqualityComparer.Instance.Equals(value, comparand))
+                                                                     Optional comparand As T = Nothing) As Boolean
+            Debug.Assert(value IsNot comparand)
 
             If diagBag Is Nothing OrElse diagBag.IsEmptyWithoutResolution Then
-                Interlocked.CompareExchange(variable, value, comparand)
+                Return Interlocked.CompareExchange(variable, value, comparand) Is comparand AndAlso comparand Is Nothing
             Else
+                Dim stored = False
                 SyncLock diagnosticLock
-                    If ReferenceEqualityComparer.Instance.Equals(variable, comparand) Then
+                    If variable Is comparand Then
                         StoreDiagnostics(diagBag, stage)
-                        If Interlocked.CompareExchange(variable, value, comparand) IsNot comparand AndAlso
-                            Not HasAllLazyDiagnostics(diagBag) Then
+                        stored = Interlocked.CompareExchange(variable, value, comparand) Is comparand
+                        If Not stored AndAlso Not HasAllLazyDiagnostics(diagBag) Then
 
                             ' If this gets hit, then someone wrote to variable without going through this
                             ' routine, or else someone wrote to variable with this routine but an empty
@@ -810,8 +808,9 @@ lStart:
                         End If
                     End If
                 End SyncLock
+                Return stored AndAlso comparand Is Nothing
             End If
-        End Sub
+        End Function
 
         ' Atomically store value into variable, and store the diagnostics away for later retrieval.
         ' When this routine returns, variable is not equal to comparand. If this routine stored value into variable,
@@ -843,16 +842,17 @@ lStart:
         ' Atomically set flag value into variable, and store the diagnostics away for later retrieval.
         ' When this routine returns, variable is not equal to comparand. If this routine stored value into variable,
         ' then the diagnostic bag is saved away before the variable is stored.
-        Friend Sub AtomicSetFlagAndStoreDiagnostics(ByRef variable As Integer,
+        Friend Function AtomicSetFlagAndStoreDiagnostics(ByRef variable As Integer,
                                                mask As Integer,
                                                comparand As Integer,
                                                diagBag As DiagnosticBag,
-                                               stage As CompilationStage)
+                                               stage As CompilationStage) As Boolean
             If diagBag Is Nothing OrElse diagBag.IsEmptyWithoutResolution Then
-                ThreadSafeFlagOperations.Set(variable, mask)
+                Return ThreadSafeFlagOperations.Set(variable, mask)
             Else
                 SyncLock diagnosticLock
-                    If (variable And mask) = comparand Then
+                    Dim change = (variable And mask) = comparand
+                    If change Then
                         StoreDiagnostics(diagBag, stage)
 
                         If Not ThreadSafeFlagOperations.Set(variable, mask) AndAlso
@@ -864,34 +864,38 @@ lStart:
                             Throw ExceptionUtilities.Unreachable
                         End If
                     End If
+                    Return change
                 End SyncLock
             End If
-        End Sub
+        End Function
 
-        Friend Sub AtomicStoreArrayAndDiagnostics(Of T)(ByRef variable As ImmutableArray(Of T),
+        Friend Function AtomicStoreArrayAndDiagnostics(Of T)(ByRef variable As ImmutableArray(Of T),
                                                              value As ImmutableArray(Of T),
                                                              diagBag As DiagnosticBag,
-                                                             stage As CompilationStage)
+                                                             stage As CompilationStage) As Boolean
             Debug.Assert(Not value.IsDefault)
 
             If diagBag Is Nothing OrElse diagBag.IsEmptyWithoutResolution Then
-                ImmutableInterlocked.InterlockedCompareExchange(variable, value, Nothing)
+                Return ImmutableInterlocked.InterlockedInitialize(variable, value)
             Else
                 SyncLock diagnosticLock
                     If variable.IsDefault Then
                         StoreDiagnostics(diagBag, stage)
-                        If Not ImmutableInterlocked.InterlockedCompareExchange(variable, value, Nothing).IsDefault AndAlso
-                            Not HasAllLazyDiagnostics(diagBag) Then
+                        Dim stored = ImmutableInterlocked.InterlockedInitialize(variable, value)
+                        If Not stored AndAlso Not HasAllLazyDiagnostics(diagBag) Then
 
                             ' If this gets hit, then someone wrote to variable without going through this
                             ' routine, or else someone wrote to variable with this routine but an empty
                             ' diagnostic bag (they went through the above If part). Either is a bug.
                             Throw ExceptionUtilities.Unreachable
                         End If
+                        Return stored
+                    Else
+                        Return False
                     End If
                 End SyncLock
             End If
-        End Sub
+        End Function
 
         Friend Sub AtomicStoreAttributesAndDiagnostics(attributesBag As CustomAttributesBag(Of VisualBasicAttributeData),
                                                        attributesToStore As ImmutableArray(Of VisualBasicAttributeData),

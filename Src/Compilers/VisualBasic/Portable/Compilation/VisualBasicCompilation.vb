@@ -162,6 +162,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private m_lazyEntryPoint As EntryPoint
 
+        ''' <summary>
+        ''' The set of trees for which a <see cref="CompilationUnitCompletedEvent"/> has been added to the queue.
+        ''' </summary>
+        Private lazyCompilationUnitCompletedTrees As HashSet(Of SyntaxTree)
+
         Public Overrides ReadOnly Property Language As String
             Get
                 Return LanguageNames.VisualBasic
@@ -412,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Debug.Assert(m_lazyAssemblySymbol Is Nothing)
                 If Me.EventQueue IsNot Nothing Then
-                    Me.EventQueue.Enqueue(New CompilationEvent.CompilationStarted(Me))
+                    Me.EventQueue.Enqueue(New CompilationStartedEvent(Me))
                 End If
             End Using
         End Sub
@@ -1496,55 +1501,97 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
-            If m_lazyImportInfos Is Nothing Then
-                Return
-            End If
+            If m_lazyImportInfos IsNot Nothing Then
+                Dim unusedBuilder As ArrayBuilder(Of TextSpan) = Nothing
 
-            Dim unusedBuilder As ArrayBuilder(Of TextSpan) = Nothing
+                For Each info As ImportInfo In m_lazyImportInfos
+                    cancellationToken.ThrowIfCancellationRequested()
 
-            For Each info As ImportInfo In m_lazyImportInfos
-                cancellationToken.ThrowIfCancellationRequested()
+                    Dim infoTree As SyntaxTree = info.Tree
+                    If filterTree Is Nothing OrElse filterTree Is infoTree Then
+                        Dim clauseSpans = info.ClauseSpans
+                        Dim numClauseSpans = clauseSpans.Length
 
-                Dim infoTree As SyntaxTree = info.Tree
-                If filterTree Is Nothing OrElse filterTree Is infoTree Then
-                    Dim clauseSpans = info.ClauseSpans
-                    Dim numClauseSpans = clauseSpans.Length
-
-                    If numClauseSpans = 1 Then
-                        ' Do less work in common case (one clause per statement).
-                        If Not Me.IsImportDirectiveUsed(infoTree, clauseSpans(0).Start) Then
-                            diagnostics.Add(ERRID.INF_UnusedImportStatement, infoTree.GetLocation(info.StatementSpan))
-                        End If
-                    Else
-                        If unusedBuilder IsNot Nothing Then
-                            unusedBuilder.Clear()
-                        End If
-
-                        For Each clauseSpan In info.ClauseSpans
-                            If Not Me.IsImportDirectiveUsed(infoTree, clauseSpan.Start) Then
-                                If unusedBuilder Is Nothing Then
-                                    unusedBuilder = ArrayBuilder(Of TextSpan).GetInstance()
-                                End If
-                                unusedBuilder.Add(clauseSpan)
-                            End If
-                        Next
-
-                        If unusedBuilder IsNot Nothing AndAlso unusedBuilder.Count > 0 Then
-                            If unusedBuilder.Count = numClauseSpans Then
+                        If numClauseSpans = 1 Then
+                            ' Do less work in common case (one clause per statement).
+                            If Not Me.IsImportDirectiveUsed(infoTree, clauseSpans(0).Start) Then
                                 diagnostics.Add(ERRID.INF_UnusedImportStatement, infoTree.GetLocation(info.StatementSpan))
-                            Else
-                                For Each clauseSpan In unusedBuilder
-                                    diagnostics.Add(ERRID.INF_UnusedImportClause, infoTree.GetLocation(clauseSpan))
-                                Next
+                            End If
+                        Else
+                            If unusedBuilder IsNot Nothing Then
+                                unusedBuilder.Clear()
+                            End If
+
+                            For Each clauseSpan In info.ClauseSpans
+                                If Not Me.IsImportDirectiveUsed(infoTree, clauseSpan.Start) Then
+                                    If unusedBuilder Is Nothing Then
+                                        unusedBuilder = ArrayBuilder(Of TextSpan).GetInstance()
+                                    End If
+                                    unusedBuilder.Add(clauseSpan)
+                                End If
+                            Next
+
+                            If unusedBuilder IsNot Nothing AndAlso unusedBuilder.Count > 0 Then
+                                If unusedBuilder.Count = numClauseSpans Then
+                                    diagnostics.Add(ERRID.INF_UnusedImportStatement, infoTree.GetLocation(info.StatementSpan))
+                                Else
+                                    For Each clauseSpan In unusedBuilder
+                                        diagnostics.Add(ERRID.INF_UnusedImportClause, infoTree.GetLocation(clauseSpan))
+                                    Next
+                                End If
                             End If
                         End If
                     End If
-                End If
-            Next
+                Next
 
-            If unusedBuilder IsNot Nothing Then
-                unusedBuilder.Free()
+                If unusedBuilder IsNot Nothing Then
+                    unusedBuilder.Free()
+                End If
             End If
+
+            ' By definition, a tree Is complete when all of its compiler diagnostics have been reported.
+            ' Since unused imports are the last thing we compute And report, a tree Is complete when
+            ' the unused imports have been reported.
+            If EventQueue IsNot Nothing Then
+                If filterTree IsNot Nothing Then
+                    CompleteTree(filterTree)
+                Else
+                    For Each tree As SyntaxTree In SyntaxTrees
+                        CompleteTree(tree)
+                    Next
+                End If
+            End If
+        End Sub
+
+        Private Sub CompleteTree(tree As SyntaxTree)
+            Dim completedCompilationUnit As Boolean = False
+            Dim completedCompilation As Boolean = False
+
+            If lazyCompilationUnitCompletedTrees Is Nothing Then
+                Interlocked.CompareExchange(lazyCompilationUnitCompletedTrees, New HashSet(Of SyntaxTree)(), Nothing)
+            End If
+
+            SyncLock lazyCompilationUnitCompletedTrees
+                If lazyCompilationUnitCompletedTrees.Add(tree) Then
+                    completedCompilationUnit = True
+                    If lazyCompilationUnitCompletedTrees.Count = SyntaxTrees.Length Then
+                        completedCompilation = True
+                    End If
+                End If
+            End SyncLock
+
+            If completedCompilationUnit Then
+                EventQueue.Enqueue(New CompilationUnitCompletedEvent(Me, tree))
+            End If
+
+            If completedCompilation Then
+                EventQueue.Enqueue(New CompilationCompletedEvent(Me))
+                EventQueue.Complete() ' signal the End Of compilation events
+            End If
+        End Sub
+
+        Friend Sub SymbolDeclaredEvent(symbol As Symbol)
+            If EventQueue IsNot Nothing Then EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
         End Sub
 
         Friend Sub RecordImports(syntax As ImportsStatementSyntax)
@@ -1944,22 +1991,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each diagnostic As Diagnostic In incoming
                 Dim filtered = FilterDiagnostic(diagnostic, Me.m_Options)
-                If (filtered Is Nothing) Then
+                If filtered Is Nothing Then
                     Continue For
                 End If
 
-                If (filtered.Severity = DiagnosticSeverity.Error) Then
+                If filtered.Severity = DiagnosticSeverity.Error Then
                     hasError = True
                 End If
 
                 accumulator.Add(filtered)
-                If (filtered.IsWarningAsError AndAlso Not hasWarnAsError) Then
+                If filtered.IsWarningAsError AndAlso Not hasWarnAsError Then
                     hasWarnAsError = True
                     accumulator.Add(New VBDiagnostic(New DiagnosticInfo(VisualBasic.MessageProvider.Instance, CInt(ERRID.ERR_WarningTreatedAsError), diagnostic.GetMessage()), CType(diagnostic.Location, Location)))
                 End If
             Next
 
             Return Not (hasError OrElse hasWarnAsError)
+        End Function
+
+        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of IDiagnosticAnalyzer), options As AnalyzerOptions, cancellationToken As CancellationToken) As AnalyzerDriver3
+            Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.VisualBasicKind
+            Return New AnalyzerDriver3(Of VisualBasic.SyntaxKind)(analyzers, getKind, options, cancellationToken)
         End Function
 
 #End Region

@@ -59,31 +59,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     throw new InvalidOperationException("Enqueue after Complete");
                 }
-                else if (thrown != null)
+
+                if (thrown != null)
                 {
                     return;
                 }
-                else if (waiters.Count == 0)
+
+                if (waiters.Count == 0)
                 {
                     data.Enqueue(value);
                     return;
                 }
-                else
-                {
-                    Debug.Assert(data.Count == 0);
-                    waiter = waiters.Dequeue();
-                }
+
+                Debug.Assert(data.Count == 0);
+                waiter = waiters.Dequeue();
             }
 
-            Task.Run(() =>
-            {
-                waiter.SetResult(value);
-            });
+            Task.Run(() => waiter.SetResult(value));
         }
 
         /// <summary>
-        /// Set the queue to an exception state. Once this has been done, every Enqueue
-        /// and Dequeue operation will throw this exception.
+        /// Set the queue to an exception state. Once this has been done, every
+        /// Dequeue operation will throw this exception.
         /// </summary>
         /// <param name="exception">The exception to be associated with this queue.</param>
         public void SetException(Exception exception)
@@ -96,17 +93,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     throw new InvalidOperationException("Thrown after Completed");
                 }
-                else if (thrown != null)
+
+                if (thrown != null)
                 {
                     throw new InvalidOperationException("Thrown after Thrown");
                 }
-                else
-                {
-                    thrown = exception;
-                    data.Clear();
-                    waitersArray = waiters.AsImmutable();
-                    waiters.Clear();
-                }
+
+                thrown = exception;
+                data.Clear();
+                waitersArray = waiters.AsImmutable();
+                waiters.Clear();
             }
 
             Task.Run(() =>
@@ -124,7 +120,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             d = default(TElement);
             lock(syncObject)
             {
-                if (data.Count == 0) return false;
+                if (data.Count == 0)
+                {
+                    return false;
+                }
+
                 d = data.Dequeue();
                 return true;
             }
@@ -156,16 +156,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     throw new InvalidOperationException("Completed after Completed");
                 }
-                else if (thrown != null)
+
+                if (thrown != null)
                 {
                     throw new InvalidOperationException("Completed after Thrown");
                 }
-                else
-                {
-                    waitersArray = waiters.AsImmutable();
-                    waiters.Clear();
-                    completed = true;
-                }
+
+                waitersArray = waiters.AsImmutable();
+                waiters.Clear();
+                completed = true;
             }
 
             Task.Run(() =>
@@ -194,10 +193,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// is empty, waits for an element to be enqueued. If <see cref="Complete"/> is called
         /// before an element becomes available, the returned task is cancelled. If
         /// <see cref="SetException"/> is called before an element becomes available, the
-        /// returned task thrown that exception.
+        /// returned task throws that exception.
         /// </summary>
         public Task<TElement> DequeueAsync()
         {
+            // TODO: should this method accept a cancellation token?
             lock(syncObject)
             {
                 if (thrown != null)
@@ -206,24 +206,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     waiter.SetException(thrown);
                     return waiter.Task;
                 }
-                else if (data.Count != 0)
+
+                if (data.Count != 0)
                 {
                     Debug.Assert(waiters.Count == 0);
                     var datum = data.Dequeue();
                     return Task.FromResult(datum);
                 }
-                else if (completed)
+
+                if (completed)
                 {
                     var waiter = new TaskCompletionSource<TElement>();
                     waiter.SetCanceled();
                     return waiter.Task;
                 }
-                else
-                {
-                    var waiter = new TaskCompletionSource<TElement>();
-                    waiters.Enqueue(waiter);
-                    return waiter.Task;
-                }
+
+                var waiter0 = new TaskCompletionSource<TElement>();
+                waiters.Enqueue(waiter0);
+                return waiter0.Task;
             }
         }
 

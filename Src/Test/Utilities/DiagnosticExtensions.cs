@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis
             where TCompilation : Compilation
             where TSyntaxKind : struct
         {
-            var driver = new AnalyzerDriver3<TSyntaxKind>(analyzers, getKind, options, default(CancellationToken));
+            var driver = new AnalyzerDriver3<TSyntaxKind>(analyzers.ToImmutableArray(), getKind, options, default(CancellationToken));
             c = (TCompilation)c.WithEventQueue(driver.CompilationEventQueue);
             var discarded = c.GetDiagnostics();
-            driver.DiagnosticsAsync().Result.Verify(expected);
+            driver.GetDiagnosticsAsync().Result.Verify(expected);
             return c; // note this is a new compilation
         }
 

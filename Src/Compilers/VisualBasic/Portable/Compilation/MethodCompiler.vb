@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.Text
@@ -550,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Continue For
                 End If
 
-                ' process all members that are not methods as usual
+                ' process all members that are not methods as usual                     
                 If member.Kind = SymbolKind.NamedType Then
                     member.Accept(Me)
                 ElseIf member.Kind = SymbolKind.Method Then
@@ -559,10 +560,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not method.IsSubmissionConstructor Then
 
                         If method.IsPartial() Then
-                            method = method.PartialImplementationPart
+                            Dim impl = method.PartialImplementationPart
+                            If impl IsNot method Then
+                                If CType(method, SourceMethodSymbol).SetDiagnostics(ImmutableArray(Of Diagnostic).Empty) Then
+                                    method.DeclaringCompilation.SymbolDeclaredEvent(method)
+                                End If
 
-                            If method Is Nothing Then
-                                Continue For
+                                If impl Is Nothing Then
+                                    Continue For
+                                Else
+                                    method = impl
+                                End If
                             End If
                         End If
 
@@ -988,9 +996,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             previousSubmissionFields As SynthesizedSubmissionFields,
             Optional ByRef referencedConstructor As MethodSymbol = Nothing
         )
-            If Not CanBindMethod(method) Then
-                Return
-            End If
+            '' TODO: add filtering as follows
+            'If filter IsNot Nothing AndAlso Not filter(method) Then
+            '    Return
+            'End If
 
             _cancellationToken.ThrowIfCancellationRequested()
 
@@ -998,11 +1007,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             'get cached diagnostics if not building and we have 'em
             If Not DoEmitPhase AndAlso (sourceMethod IsNot Nothing) Then
                 Dim cachedDiagnostics = sourceMethod.Diagnostics
-
                 If Not cachedDiagnostics.IsDefault Then
                     Me._diagnostics.AddRange(cachedDiagnostics)
                     Return
                 End If
+            End If
+
+            If Not CanBindMethod(method) Then
+                If sourceMethod IsNot Nothing AndAlso sourceMethod.SetDiagnostics(ImmutableArray(Of Diagnostic).Empty) Then
+                    sourceMethod.DeclaringCompilation.SymbolDeclaredEvent(method)
+                End If
+
+                Return
             End If
 
             ' In order to avoid generating code for methods with errors, we create a diagnostic bag just for this method.
@@ -1027,9 +1043,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim hasErrors = _hasDeclarationErrors OrElse diagsForCurrentMethod.HasAnyErrors() OrElse processedInitializers.HasAnyErrors OrElse block.HasErrors
             SetGlobalErrorIfTrue(hasErrors)
 
+            If sourceMethod IsNot Nothing AndAlso sourceMethod.SetDiagnostics(diagsForCurrentMethod.ToReadOnly()) Then
+                Dim compilation = compilationState.Compilation
+                If compilation.EventQueue IsNot Nothing Then
+                    If block Is Nothing Then
+                        compilation.SymbolDeclaredEvent(sourceMethod)
+                    Else
+                        'create a compilation event that caches the already-computed bound tree
+                        Dim lazySemanticModel = New Lazy(Of SemanticModel)(
+                            Function()
+                                Dim syntax = block.Syntax
+                                Dim semanticModel = CType(compilation.GetSemanticModel(syntax.SyntaxTree), SyntaxTreeSemanticModel)
+                                Dim memberModel = CType(semanticModel.GetMemberSemanticModel(syntax), MethodBodySemanticModel)
+                                If memberModel IsNot Nothing Then
+                                    memberModel.CacheBoundNodes(block, syntax)
+                                End If
+                                Return semanticModel
+                            End Function)
+                        compilation.EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(compilation, method, lazySemanticModel))
+                    End If
+                End If
+            End If
+
             If Not DoEmitPhase AndAlso sourceMethod IsNot Nothing Then
-                Dim actualDiags = sourceMethod.SetDiagnostics(diagsForCurrentMethod.ToReadOnlyAndFree())
-                _diagnostics.AddRange(actualDiags)
+                _diagnostics.AddRange(sourceMethod.Diagnostics)
                 Return
             End If
 

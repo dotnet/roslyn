@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (type.GetTypeInfo().ImplementedInterfaces.Contains(typeof(IDiagnosticAnalyzer)) && type.IsDefined(typeof(DiagnosticAnalyzerAttribute)))
                     {
                         hasAnalyzers = true;
-                        builder.Add((IDiagnosticAnalyzer)Activator.CreateInstance(type));                    
+                        builder.Add((IDiagnosticAnalyzer)Activator.CreateInstance(type));
                     }
                 }
                 catch (Exception e)

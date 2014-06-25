@@ -1015,7 +1015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Protected Sub CacheBoundNodes(boundNode As BoundNode, Optional thisSyntaxNodeOnly As VisualBasicSyntaxNode = Nothing)
+        Friend Sub CacheBoundNodes(boundNode As BoundNode, Optional thisSyntaxNodeOnly As VisualBasicSyntaxNode = Nothing)
             SemanticModelMapsBuilder.CacheBoundNodes(boundNode, Me, Me.guardedNodeMap, thisSyntaxNodeOnly)
         End Sub
 

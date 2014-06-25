@@ -1686,11 +1686,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
-                                                                StateFlags.ReportedInterfacesConstraintsDiagnostics,
-                                                                0,
-                                                                diagnostics,
-                                                                CompilationStage.Declare)
+            If m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
+                                                                   StateFlags.ReportedInterfacesConstraintsDiagnostics,
+                                                                   0,
+                                                                   diagnostics,
+                                                                   CompilationStage.Declare) Then
+                DeclaringCompilation.SymbolDeclaredEvent(Me)
+            End If
 
             If diagnostics IsNot Nothing Then
                 diagnostics.Free()

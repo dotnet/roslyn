@@ -709,7 +709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                      value As T,
                                                                      diagBag As DiagnosticBag,
                                                                      Optional comparand As T = Nothing)
-            Debug.Assert(Not ReferenceEqualityComparer.Instance.Equals(value, comparand))
+            Debug.Assert(value IsNot comparand)
 
             If diagBag Is Nothing OrElse diagBag.IsEmptyWithoutResolution Then
                 Interlocked.CompareExchange(variable, value, comparand)

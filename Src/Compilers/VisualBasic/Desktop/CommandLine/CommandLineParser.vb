@@ -309,7 +309,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
                             End If
                             Continue For
-
+#If DEBUG Then
+                        Case "attachdebugger"
+                            Debugger.Launch()
+                            Continue For
+#End If
                     End Select
 
                     If IsInteractive Then

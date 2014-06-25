@@ -157,6 +157,7 @@
     <Compile Include="Compilation\SemanticModelLookupSymbolsAPITests.vb" />
     <Compile Include="Compilation\VisualBasicCompilationOptionsTests.vb" />
     <Compile Include="DeclaringSyntaxNodeTests.vb" />
+    <Compile Include="Diagnostics\CompilationEventTests.vb" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.vb" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.vb" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.vb" />

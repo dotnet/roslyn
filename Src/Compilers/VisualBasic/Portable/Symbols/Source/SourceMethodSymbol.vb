@@ -570,10 +570,11 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
-        Friend Function SetDiagnostics(diags As ImmutableArray(Of Diagnostic)) As ImmutableArray(Of Diagnostic)
-            'return the diagnostics that were actually saved in the event that there were two threads racing. 
-            ImmutableInterlocked.InterlockedInitialize(m_cachedDiagnostics, diags)
-            Return m_cachedDiagnostics
+        ''' <summary>
+        ''' Returns true if our diagnostics were used in the event that there were two threads racing.
+        ''' </summary>
+        Friend Function SetDiagnostics(diags As ImmutableArray(Of Diagnostic)) As Boolean
+            Return ImmutableInterlocked.InterlockedInitialize(m_cachedDiagnostics, diags)
         End Function
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
