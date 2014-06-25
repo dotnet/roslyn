@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -16,18 +17,18 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
-using Microsoft.Win32;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineTests : CSharpTestBase
     {
+        private static readonly string CSharpCompilerExecutable = typeof(Microsoft.CodeAnalysis.CSharp.CommandLine.Csc).Assembly.Location;
+        
         private readonly string baseDirectory = TempRoot.Root;
 
         private class TestCommandLineParser : CSharpCommandLineParser
@@ -66,7 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 return new StringReader(responseFiles[fullPath]);
             }
         }
-       
+
+        [Fact]
+        [WorkItem(946954)]
+        public void CompilerBinariesAreAnyCPU()
+        {
+            Assert.Equal(ProcessorArchitecture.MSIL, AssemblyName.GetAssemblyName(CSharpCompilerExecutable).ProcessorArchitecture);
+        }
+
         [Fact]
         public void ResponseFiles1()
         {
@@ -4681,7 +4689,7 @@ public class C
 
         private string GetDefaultResponseFilePath()
         {
-            return Path.Combine(Path.GetDirectoryName(CSharpCompilerExecutable), Path.GetFileNameWithoutExtension(CSharpCompilerExecutable) + ".rsp");
+            return Temp.CreateFile().WriteAllBytes(CommandLineTestResources.csc_rsp).Path;
         }
 
         [Fact, WorkItem(530359, "DevDiv")]
@@ -5106,7 +5114,7 @@ public class C
         public void DefaultResponseFile()
         {
             MockCSharpCompiler csc = new MockCSharpCompiler(GetDefaultResponseFilePath(), baseDirectory, new string[0]);
-            Assert.Equal(csc.Arguments.MetadataReferences.Select(r => r.Reference), new string[]
+            AssertEx.Equal(csc.Arguments.MetadataReferences.Select(r => r.Reference), new string[]
             {
                 typeof(object).Assembly.Location,
                 "Accessibility.dll",

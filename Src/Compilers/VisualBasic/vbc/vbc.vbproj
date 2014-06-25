@@ -10,8 +10,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProjectGuid>{2AC2755D-9437-4271-BBDE-1A3795A0C320}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <StartupObject>RoslynVbc.Program</StartupObject>
-    <RootNamespace>RoslynVbc</RootNamespace>
+    <StartupObject>Microsoft.CodeAnalysis.VisualBasic.CommandLine.Program</StartupObject>
+    <RootNamespace></RootNamespace>
     <AssemblyName>vbc</AssemblyName>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>

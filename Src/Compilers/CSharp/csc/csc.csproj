@@ -10,11 +10,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>RoslynCsc</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine</RootNamespace>
     <AssemblyName>csc</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
-    <StartupObject>RoslynCsc.Program</StartupObject>
+    <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
     <StyleCopEnabled>false</StyleCopEnabled>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>

@@ -32,7 +32,6 @@
     <ProjectReference Include="..\..\csc\csc.csproj">
       <Project>{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}</Project>
       <Name>csc</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\Utilities\TestUtilities.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
@@ -98,11 +97,26 @@
     <Compile Include="AssemblyAttributes.cs" />
     <Compile Include="CommandLineDiagnosticFormatterTests.cs" />
     <Compile Include="CommandLineTests.cs" />
+    <Compile Include="CommandLineTestResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CommandLineTestResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="TouchedFileLoggingTests.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="..\..\csc\csc.rsp">
+      <Link>csc.rsp</Link>
+    </None>
+  </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CommandLineTestResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineTestResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

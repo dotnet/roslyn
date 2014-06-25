@@ -20,6 +20,10 @@
     <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\Desktop\CodeAnalysis.Desktop.csproj">
+      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
+      <Name>CodeAnalysis.Desktop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VBCSCompiler\VBCSCompiler.csproj">
       <Project>{9508F118-F62E-4C16-A6F4-7C3B56E166AD}</Project>
       <Name>VBCSCompiler</Name>

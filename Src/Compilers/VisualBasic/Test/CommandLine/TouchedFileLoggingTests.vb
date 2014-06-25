@@ -1,12 +1,13 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.CompilerServer
 Imports System.Globalization
 Imports System.IO
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Xunit
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.CompilerServer
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 

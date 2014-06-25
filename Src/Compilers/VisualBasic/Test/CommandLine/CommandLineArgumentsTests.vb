@@ -1,16 +1,11 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
     Public Class CommandLineArgumentsTests
         Inherits BasicTestBase
 

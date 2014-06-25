@@ -11,7 +11,7 @@
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <ProjectGuid>{E3B32027-3362-41DF-9172-4D3B623F42A5}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests</RootNamespace>
+    <RootNamespace></RootNamespace>
     <AssemblyName>Roslyn.Compilers.VisualBasic.CommandLine.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <PlatformTarget>x86</PlatformTarget>
@@ -139,6 +139,11 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="CommandLineTestResources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CommandLineTestResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="TouchedFileLoggingTests.vb" />
   </ItemGroup>
   <ItemGroup>
@@ -148,8 +153,15 @@
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="CommandLineTestResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineTestResources.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\vbc\vbc.rsp">
+      <Link>vbc.rsp</Link>
+    </None>
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>

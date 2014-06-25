@@ -1,59 +1,57 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
-Imports System.Reflection
 Imports System.Text
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 
-Friend NotInheritable Class Vbc
-    Inherits VisualBasicCompiler
+Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
-    Friend Sub New(responseFile As String, baseDirectory As String, args As String())
-        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
-    End Sub
+    Friend NotInheritable Class Vbc
+        Inherits VisualBasicCompiler
 
-    Overloads Shared Function Run(args As String()) As Integer
+        Friend Sub New(responseFile As String, baseDirectory As String, args As String())
+            MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
+        End Sub
 
-        Dim compiler = New Vbc(BasicResponseFileName, Directory.GetCurrentDirectory(), args)
+        Overloads Shared Function Run(args As String()) As Integer
 
-        CompilerFatalError.Handler = AddressOf FailFast.OnFatalException
+            Dim compiler = New Vbc(BasicResponseFileName, Directory.GetCurrentDirectory(), args)
 
-        ' We store original encoding and restore it later to revert 
-        ' the changes that might be done by /utf8output options
-        ' NOTE: original encoding may not be restored if process terminated 
-        Dim origEncoding = Console.OutputEncoding
-        Try
-            If compiler.Arguments.Utf8Output AndAlso Console.IsOutputRedirected Then
-                Console.OutputEncoding = Encoding.UTF8
-            End If
-            Return compiler.Run(cancellationToken:=Nothing, consoleOutput:=Console.Out)
-        Finally
+            CompilerFatalError.Handler = AddressOf FailFast.OnFatalException
+
+            ' We store original encoding and restore it later to revert 
+            ' the changes that might be done by /utf8output options
+            ' NOTE: original encoding may not be restored if process terminated 
+            Dim origEncoding = Console.OutputEncoding
             Try
-                Console.OutputEncoding = origEncoding
-            Catch
-                'Try to reset the output encoding, ignore if we can't
+                If compiler.Arguments.Utf8Output AndAlso Console.IsOutputRedirected Then
+                    Console.OutputEncoding = Encoding.UTF8
+                End If
+                Return compiler.Run(cancellationToken:=Nothing, consoleOutput:=Console.Out)
+            Finally
+                Try
+                    Console.OutputEncoding = origEncoding
+                Catch
+                    'Try to reset the output encoding, ignore if we can't
+                End Try
             End Try
-        End Try
 
-    End Function
+        End Function
 
-    Protected Overrides Function GetSqmAppID() As UInt32
-        Return SqmServiceProvider.BASIC_APPID
-    End Function
+        Protected Overrides Function GetSqmAppID() As UInt32
+            Return SqmServiceProvider.BASIC_APPID
+        End Function
 
-    Protected Overrides Sub CompilerSpecificSqm(sqm As IVsSqmMulti, sqmSession As UInt32)
-        sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_COMPILERTYPE, CType(SqmServiceProvider.CompilerType.Compiler, UInt32))
-        sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_LANGUAGEVERSION, CType(Arguments.ParseOptions.LanguageVersion, UInt32))
-        sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNINGLEVEL, CType(If(Arguments.CompilationOptions.GeneralDiagnosticOption = ReportDiagnostic.Suppress, 1, 0), UInt32))
-        sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_EMBEDVBCORE, CType(If(Arguments.CompilationOptions.EmbedVbCoreRuntime, 1, 0), UInt32))
+        Protected Overrides Sub CompilerSpecificSqm(sqm As IVsSqmMulti, sqmSession As UInt32)
+            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_COMPILERTYPE, CType(SqmServiceProvider.CompilerType.Compiler, UInt32))
+            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_LANGUAGEVERSION, CType(Arguments.ParseOptions.LanguageVersion, UInt32))
+            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNINGLEVEL, CType(If(Arguments.CompilationOptions.GeneralDiagnosticOption = ReportDiagnostic.Suppress, 1, 0), UInt32))
+            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_EMBEDVBCORE, CType(If(Arguments.CompilationOptions.EmbedVbCoreRuntime, 1, 0), UInt32))
 
-        ' Project complexity # of source files, # of references
-        sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SOURCES, CType(Arguments.SourceFiles.Count(), UInt32))
-        sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_REFERENCES, CType(Arguments.ReferencePaths.Count(), UInt32))
-    End Sub
-
-End Class
-
+            ' Project complexity # of source files, # of references
+            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SOURCES, CType(Arguments.SourceFiles.Count(), UInt32))
+            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_REFERENCES, CType(Arguments.ReferencePaths.Count(), UInt32))
+        End Sub
+    End Class
+End Namespace
