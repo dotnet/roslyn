@@ -72,8 +72,8 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
-    <InternalsVisibleTo Include="rcsc" />
-    <InternalsVisibleTo Include="rcsi" />
+    <InternalsVisibleTo Include="csc" />
+    <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Roslyn.Scripting.CSharp" />
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />

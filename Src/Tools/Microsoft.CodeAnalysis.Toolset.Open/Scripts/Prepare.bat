@@ -64,8 +64,8 @@ call :DisableVerificationFor "Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers,
 call :DisableVerificationFor "CompilerPackage,31BF3856AD364E35"
 call :DisableVerificationFor "FxCopRulesSetup,31BF3856AD364E35"
 call :DisableVerificationFor "Roslyn.Compilers.BuildTasks,31BF3856AD364E35"
-call :DisableVerificationFor "rcsc,31BF3856AD364E35"
-call :DisableVerificationFor "rvbc,31BF3856AD364E35"
+call :DisableVerificationFor "csc,31BF3856AD364E35"
+call :DisableVerificationFor "vbc,31BF3856AD364E35"
 call :DisableVerificationFor "VBCSCompiler,31BF3856AD364E35"
 
 rem List skip verification entries

@@ -48,9 +48,9 @@
       <Project>{73f3e2c5-d742-452e-b9e1-20732ddbc75d}</Project>
       <Name>BasicCodeAnalysis.Desktop</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\rvbc\rvbc.vbproj">
+    <ProjectReference Include="..\..\vbc\vbc.vbproj">
       <Project>{2AC2755D-9437-4271-BBDE-1A3795A0C320}</Project>
-      <Name>rvbc</Name>
+      <Name>vbc</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>

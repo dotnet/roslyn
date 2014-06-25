@@ -3175,7 +3175,7 @@ End Class
     End Sub
 
     <Fact(), WorkItem(546005, "DevDiv")>
-    Public Sub LibPathsAndLibEnvVariable_Relative_Rvbc()
+    Public Sub LibPathsAndLibEnvVariable_Relative_vbc()
         Dim tempFolder = Temp.CreateDirectory()
         Dim baseDirectory = tempFolder.ToString()
 

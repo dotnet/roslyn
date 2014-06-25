@@ -18,23 +18,23 @@
     <ProjectGuid>{4A40DFE7-34B3-5931-D055-4258510BA9D1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>RosCompiler</RootNamespace>
-    <ProjectName>rvbc2</ProjectName>
+    <ProjectName>vbc2</ProjectName>
     <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath11)</VCTargetsPath>
     <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
-    <ClCompile Include="..\..\CSharp\rcsc2\logging.cpp" />
-    <ClCompile Include="..\..\CSharp\rcsc2\rcsc2.cpp" />
-    <ClCompile Include="..\..\CSharp\rcsc2\stdafx.cpp" />
-    <ClInclude Include="..\..\CSharp\rcsc2\logging.h" />
-    <ClInclude Include="..\..\CSharp\rcsc2\protocol.h" />
-    <ClInclude Include="..\..\CSharp\rcsc2\stdafx.h" />
-    <ClInclude Include="..\..\CSharp\rcsc2\targetver.h" />
+    <ClCompile Include="..\..\CSharp\csc2\logging.cpp" />
+    <ClCompile Include="..\..\CSharp\csc2\csc2.cpp" />
+    <ClCompile Include="..\..\CSharp\csc2\stdafx.cpp" />
+    <ClInclude Include="..\..\CSharp\csc2\logging.h" />
+    <ClInclude Include="..\..\CSharp\csc2\protocol.h" />
+    <ClInclude Include="..\..\CSharp\csc2\stdafx.h" />
+    <ClInclude Include="..\..\CSharp\csc2\targetver.h" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\CSharp\rcsc2\rcsc2.vcxproj">
+    <ProjectReference Include="..\..\CSharp\csc2\csc2.vcxproj">
       <Project>{63D0F073-F0B3-42CD-829F-E48B977B48BA}</Project>
-      <Name>rcsc2</Name>
+      <Name>csc2</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

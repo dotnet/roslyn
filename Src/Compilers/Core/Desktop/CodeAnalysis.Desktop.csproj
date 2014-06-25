@@ -109,13 +109,13 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
-    <InternalsVisibleTo Include="rcsc" />
-    <InternalsVisibleTo Include="rcsi" />
+    <InternalsVisibleTo Include="csc" />
+    <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Roslyn.Scripting.Common" />
     <InternalsVisibleTo Include="Roslyn.Scripting.CSharp" />
     <InternalsVisibleTo Include="Roslyn.Scripting.VisualBasic" />
-    <InternalsVisibleTo Include="rvbc" />
-    <InternalsVisibleTo Include="rvbi" />
+    <InternalsVisibleTo Include="vbc" />
+    <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleToTest Include="MdReaderPerf" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />

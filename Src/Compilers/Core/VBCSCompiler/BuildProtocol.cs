@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 // disconnects the pipe and ends the thread.
 //
 // NOTE: Changes to the protocol information in this file must also be reflected in protocol.h in the
-// unmanaged rcsc project, as well as the code in protocol.cpp.
+// unmanaged csc project, as well as the code in protocol.cpp.
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {

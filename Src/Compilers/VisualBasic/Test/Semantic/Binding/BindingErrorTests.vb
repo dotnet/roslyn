@@ -16804,7 +16804,7 @@ BC36597: 'Goto Label1' is not valid because 'Label1' is inside a scope that defi
 
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_QueryAnonymousTypeFieldNameInference, "Nothing"),
-                Diagnostic(ERRID.ERR_ExpectedProcedure, "From x In {""""} Select x, Nothing")) ' Extra in Roslyn & NOT in rvbc
+                Diagnostic(ERRID.ERR_ExpectedProcedure, "From x In {""""} Select x, Nothing")) ' Extra in Roslyn & NOT in vbc
         End Sub
 
         <Fact()>

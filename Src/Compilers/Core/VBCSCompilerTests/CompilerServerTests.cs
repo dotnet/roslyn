@@ -1409,12 +1409,12 @@ End Module
         [WorkItem(545446, "DevDiv")]
         [Fact()]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
-        public void Utf8Output_WithRedirecting_Off_rcsc2()
+        public void Utf8Output_WithRedirecting_Off_csc2()
         {
             var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", string.Format("/C rcsc2.exe /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
+            var result = ProcessLauncher.Run("cmd", string.Format("/C csc2.exe /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'".Trim(),
@@ -1425,12 +1425,12 @@ End Module
         [WorkItem(545446, "DevDiv")]
         [Fact()]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
-        public void Utf8Output_WithRedirecting_Off_rvbc2()
+        public void Utf8Output_WithRedirecting_Off_vbc2()
         {
             var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", string.Format("/C rvbc2.exe /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
+            var result = ProcessLauncher.Run("cmd", string.Format("/C vbc2.exe /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
@@ -1445,12 +1445,12 @@ End Module
         [WorkItem(545446, "DevDiv")]
         [Fact()]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
-        public void Utf8Output_WithRedirecting_On_rcsc2()
+        public void Utf8Output_WithRedirecting_On_csc2()
         {
             var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", string.Format("/C rcsc2.exe /utf8output /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
+            var result = ProcessLauncher.Run("cmd", string.Format("/C csc2.exe /utf8output /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♕'".Trim(),
@@ -1461,12 +1461,12 @@ End Module
         [WorkItem(545446, "DevDiv")]
         [Fact()]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
-        public void Utf8Output_WithRedirecting_On_rvbc2()
+        public void Utf8Output_WithRedirecting_On_vbc2()
         {
             var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", string.Format("/C rvbc2.exe /utf8output /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
+            var result = ProcessLauncher.Run("cmd", string.Format("/C vbc2.exe /utf8output /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.

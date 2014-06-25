@@ -2396,7 +2396,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         }
 
         [Fact, WorkItem(546005, "DevDiv")]
-        public void SdkPathAndLibEnvVariable_Relative_Rcsc()
+        public void SdkPathAndLibEnvVariable_Relative_csc()
         {
             var tempFolder = Temp.CreateDirectory();
             var baseDirectory = tempFolder.ToString();
@@ -3373,7 +3373,7 @@ class myClass
 ").Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            // rcsc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
+            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
             var csc = new MockCSharpCompiler(rsp, baseDirectory, new[] { source });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
@@ -3415,7 +3415,7 @@ class myClass
 ").Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            // rcsc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
+            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
             var csc = new MockCSharpCompiler(rsp, baseDirectory, new[] { source });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
@@ -5045,7 +5045,7 @@ public class C
             var fileName = Path.GetFileName(source);
 
             // Checks the base case without /fullpaths (expect to see relative path name)
-            //      c:\temp> rcsc.exe c:\temp\a.cs
+            //      c:\temp> csc.exe c:\temp\a.cs
             //      a.cs(6,16): warning CS0168: The variable 'x' is declared but never used
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, baseDir, new[] { source });
@@ -5054,7 +5054,7 @@ public class C
             Assert.Contains(fileName + "(6,16): warning CS0168: The variable 'x' is declared but never used", outWriter.ToString());
 
             // Checks the base case without /fullpaths when the file is located in the sub-folder (expect to see relative path name)
-            //      c:\temp> rcsc.exe c:\temp\example\a.cs
+            //      c:\temp> csc.exe c:\temp\example\a.cs
             //      example\a.cs(6,16): warning CS0168: The variable 'x' is declared but never used
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             csc = new MockCSharpCompiler(null, Directory.GetParent(baseDir).FullName, new[] { source });
@@ -5064,7 +5064,7 @@ public class C
             Assert.DoesNotContain(source, outWriter.ToString());
 
             // Checks the base case without /fullpaths when the file is not located under the base directory (expect to see the full path name)
-            //      c:\temp> rcsc.exe c:\test\a.cs
+            //      c:\temp> csc.exe c:\test\a.cs
             //      c:\test\a.cs(6,16): warning CS0168: The variable 'x' is declared but never used
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             csc = new MockCSharpCompiler(null, Temp.CreateDirectory().Path, new[] { source });
@@ -5073,7 +5073,7 @@ public class C
             Assert.Contains(source + "(6,16): warning CS0168: The variable 'x' is declared but never used", outWriter.ToString());
 
             // Checks the case with /fullpaths (expect to see the full paths)
-            //      c:\temp> rcsc.exe c:\temp\a.cs /fullpaths
+            //      c:\temp> csc.exe c:\temp\a.cs /fullpaths
             //      c:\temp\a.cs(6,16): warning CS0168: The variable 'x' is declared but never used
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             csc = new MockCSharpCompiler(null, baseDir, new[] { source, "/fullpaths" });
@@ -5082,7 +5082,7 @@ public class C
             Assert.Contains(source + @"(6,16): warning CS0168: The variable 'x' is declared but never used", outWriter.ToString());
 
             // Checks the base case without /fullpaths when the file is located in the sub-folder (expect to see the full path name)
-            //      c:\temp> rcsc.exe c:\temp\example\a.cs /fullpaths
+            //      c:\temp> csc.exe c:\temp\example\a.cs /fullpaths
             //      c:\temp\example\a.cs(6,16): warning CS0168: The variable 'x' is declared but never used
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             csc = new MockCSharpCompiler(null, Directory.GetParent(baseDir).FullName, new[] { source, "/fullpaths" });
@@ -5091,7 +5091,7 @@ public class C
             Assert.Contains(source + "(6,16): warning CS0168: The variable 'x' is declared but never used", outWriter.ToString());
 
             // Checks the base case without /fullpaths when the file is not located under the base directory (expect to see the full path name)
-            //      c:\temp> rcsc.exe c:\test\a.cs /fullpaths
+            //      c:\temp> csc.exe c:\test\a.cs /fullpaths
             //      c:\test\a.cs(6,16): warning CS0168: The variable 'x' is declared but never used
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             csc = new MockCSharpCompiler(null, Temp.CreateDirectory().Path, new[] { source, "/fullpaths" });
@@ -5716,8 +5716,8 @@ public class C
                     if (isCscWarning)
                     {
                         // Ensure that this error code is also preserved as a warning in Roslyn.
-                        bool isRcscWarning = ErrorFacts.GetWarningLevel((ErrorCode)errorCode) > 0;
-                        Assert.True(isRcscWarning, "Failed at error code: " + errorCode);
+                        bool isRoslynWarning = ErrorFacts.GetWarningLevel((ErrorCode)errorCode) > 0;
+                        Assert.True(isRoslynWarning, "Failed at error code: " + errorCode);
                     }
                 }
             }

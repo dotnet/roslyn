@@ -62,14 +62,14 @@
       <Name>BasicCodeAnalysis</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\CSharp\rcsc\rcsc.csproj">
+    <ProjectReference Include="..\CSharp\csc\csc.csproj">
       <Project>{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}</Project>
-      <Name>rcsc</Name>
+      <Name>csc</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\rvbc\rvbc.vbproj">
+    <ProjectReference Include="..\VisualBasic\vbc\vbc.vbproj">
       <Project>{2AC2755D-9437-4271-BBDE-1A3795A0C320}</Project>
-      <Name>rvbc</Name>
+      <Name>vbc</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\Core\MSBuildTasks\MSBuildTasks.csproj">

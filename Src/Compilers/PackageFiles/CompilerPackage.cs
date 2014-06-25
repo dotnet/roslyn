@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CompilerPackage
         // If the Hive doesn't have roslyn installed the Exists($(RoslynToolPath)) condition
         // will ensure that  
         //
-        // NOTE: even though the task defined above does not use the 'rcsc.exe'/'rvbc.exe' in any way
+        // NOTE: even though the task defined above does not use the 'csc.exe'/'vbc.exe' in any way
         // and compiles the target using Roslyn compiler server, Roslyn Csc/Vbc msbuild task
         // inherits host object initialization implementation from Microsoft.Build.Utilities.ToolTask,
         // it also inherits some tool executable pre-check logic; disabling these pre-checks 
-        // is not straightforward, so we reference rcsc.exe/rvbc.exe here to simplify implementation
+        // is not straightforward, so we reference csc.exe/vbc.exe here to simplify implementation
         private const string CSharpTargetsTemplate =
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CompilerPackage
   </UsingTask>
   <PropertyGroup Condition=""'$(DisableRoslyn)'!='true' And Exists('$(RoslynToolPath)')"">
     <CscToolPath>$(RoslynToolPath)</CscToolPath>
-    <CscToolExe>rcsc.exe</CscToolExe>
+    <CscToolExe>csc.exe</CscToolExe>
   </PropertyGroup>
 </Project>
 ";
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CompilerPackage
   </UsingTask>
   <PropertyGroup Condition=""'$(DisableRoslyn)'!='true' And Exists('$(RoslynToolPath)')"">
     <VbcToolPath>$(RoslynToolPath)</VbcToolPath>
-    <VbcToolExe>rvbc.exe</VbcToolExe>
+    <VbcToolExe>vbc.exe</VbcToolExe>
   </PropertyGroup>
 </Project>
 ";

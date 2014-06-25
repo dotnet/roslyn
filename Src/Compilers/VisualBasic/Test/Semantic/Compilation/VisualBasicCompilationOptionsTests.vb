@@ -405,13 +405,13 @@ End Module
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo"))
 
             ' Suppress All
-            ' rvbc a.vb /nowarn
+            ' vbc a.vb /nowarn
             Dim options = commonoption.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
             comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
             comp.VerifyDiagnostics()
 
             ' Suppress 42024
-            ' rvbc a.vb /nowarn:42024
+            ' vbc a.vb /nowarn:42024
             Dim warnings As IDictionary(Of String, ReportDiagnostic) = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
@@ -421,7 +421,7 @@ End Module
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo"))
 
             ' Suppress 42024, 42099
-            ' rvbc a.vb /nowarn:42024,42099
+            ' vbc a.vb /nowarn:42024,42099
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42099), ReportDiagnostic.Suppress)
@@ -430,7 +430,7 @@ End Module
             comp.VerifyDiagnostics(Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo"))
 
             ' Treat All as Errors
-            ' rvbc a.vb /warnaserror
+            ' vbc a.vb /warnaserror
             options = commonoption.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
             comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
             comp.VerifyDiagnostics(
@@ -441,7 +441,7 @@ End Module
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
 
             ' Treat 42105 as Error
-            ' rvbc a.vb /warnaserror:42105
+            ' vbc a.vb /warnaserror:42105
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42105), ReportDiagnostic.Error)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
@@ -454,7 +454,7 @@ End Module
                 Diagnostic(ERRID.ERR_WarningTreatedAsError, "End Function").WithArguments("Function 'foo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used."))
 
             ' Treat 42105 and 42099 as Errors
-            ' rvbc a.vb /warnaserror:42105,42099
+            ' vbc a.vb /warnaserror:42105,42099
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42105), ReportDiagnostic.Error)
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42099), ReportDiagnostic.Error)
@@ -468,7 +468,7 @@ End Module
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
 
             ' Treat All as Errors but Suppress 42024
-            ' rvbc a.vb /warnaserror /nowarn:42024
+            ' vbc a.vb /warnaserror /nowarn:42024
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings)).WithGeneralDiagnosticOption(ReportDiagnostic.Error)
@@ -479,8 +479,8 @@ End Module
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
 
             ' Suppress All with treaing 42024 as an error, which will be ignored
-            ' rvbc a.vb /warnaserror:42024 /nowarn or
-            ' rvbc a.vb /nowarn /warnaserror
+            ' vbc a.vb /warnaserror:42024 /nowarn or
+            ' vbc a.vb /nowarn /warnaserror
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings)).WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)

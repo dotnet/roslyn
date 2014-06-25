@@ -19,9 +19,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compilers", "Compilers", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CSharp", "CSharp", "{32A48625-F0AD-419D-828B-A50BDABA38EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rcsc", "Compilers\CSharp\rcsc\rcsc.csproj", "{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "csc", "Compilers\CSharp\csc\csc.csproj", "{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rcsc2", "Compilers\CSharp\rcsc2\rcsc2.vcxproj", "{63D0F073-F0B3-42CD-829F-E48B977B48BA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "csc2", "Compilers\CSharp\csc2\csc2.vcxproj", "{63D0F073-F0B3-42CD-829F-E48B977B48BA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCodeAnalysis", "Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj", "{B501A547-C911-4A05-AC6E-274A50DFF30E}"
 EndProject
@@ -53,9 +53,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCompilerTestUtilities
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCompilerTestUtilities", "Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj", "{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "rvbc", "Compilers\VisualBasic\rvbc\rvbc.vbproj", "{2AC2755D-9437-4271-BBDE-1A3795A0C320}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "vbc", "Compilers\VisualBasic\vbc\vbc.vbproj", "{2AC2755D-9437-4271-BBDE-1A3795A0C320}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rvbc2", "Compilers\VisualBasic\rvbc2\rvbc2.vcxproj", "{4A40DFE7-34B3-5931-D055-4258510BA9D1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vbc2", "Compilers\VisualBasic\vbc2\vbc2.vcxproj", "{4A40DFE7-34B3-5931-D055-4258510BA9D1}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCodeAnalysis", "Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj", "{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}"
 EndProject
@@ -1145,17 +1145,17 @@ Global
 		SccAuxPath4 = http://vstfdevdiv:8080/devdiv2
 		SccLocalPath4 = Compilers\\Core\\CodeAnalysisTest
 		SccProvider4 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName5 = Compilers\\CSharp\\rcsc\\rcsc.csproj
+		SccProjectUniqueName5 = Compilers\\CSharp\\csc\\csc.csproj
 		SccProjectTopLevelParentUniqueName5 = Roslyn.sln
-		SccProjectName5 = Compilers/CSharp/rcsc
+		SccProjectName5 = Compilers/CSharp/csc
 		SccAuxPath5 = http://vstfdevdiv:8080/devdiv2
-		SccLocalPath5 = Compilers\\CSharp\\rcsc
+		SccLocalPath5 = Compilers\\CSharp\\csc
 		SccProvider5 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName6 = Compilers\\CSharp\\rcsc2\\rcsc2.vcxproj
+		SccProjectUniqueName6 = Compilers\\CSharp\\csc2\\csc2.vcxproj
 		SccProjectTopLevelParentUniqueName6 = Roslyn.sln
-		SccProjectName6 = Compilers/CSharp/rcsc2
+		SccProjectName6 = Compilers/CSharp/csc2
 		SccAuxPath6 = http://vstfdevdiv:8080/devdiv2
-		SccLocalPath6 = Compilers\\CSharp\\rcsc2
+		SccLocalPath6 = Compilers\\CSharp\\csc2
 		SccProvider6 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccProjectUniqueName7 = Compilers\\CSharp\\Portable\\CSharpCodeAnalysis.csproj
 		SccProjectTopLevelParentUniqueName7 = Roslyn.sln
@@ -1229,17 +1229,17 @@ Global
 		SccAuxPath18 = http://vstfdevdiv:8080/devdiv2
 		SccLocalPath18 = Compilers\\Test\\Utilities\\VisualBasic
 		SccProvider18 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName19 = Compilers\\VisualBasic\\rvbc\\rvbc.vbproj
+		SccProjectUniqueName19 = Compilers\\VisualBasic\\vbc\\vbc.vbproj
 		SccProjectTopLevelParentUniqueName19 = Roslyn.sln
-		SccProjectName19 = Compilers/VisualBasic/rvbc
+		SccProjectName19 = Compilers/VisualBasic/vbc
 		SccAuxPath19 = http://vstfdevdiv:8080/devdiv2
-		SccLocalPath19 = Compilers\\VisualBasic\\rvbc
+		SccLocalPath19 = Compilers\\VisualBasic\\vbc
 		SccProvider19 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName20 = Compilers\\VisualBasic\\rvbc2\\rvbc2.vcxproj
+		SccProjectUniqueName20 = Compilers\\VisualBasic\\vbc2\\vbc2.vcxproj
 		SccProjectTopLevelParentUniqueName20 = Roslyn.sln
-		SccProjectName20 = Compilers/VisualBasic/rvbc2
+		SccProjectName20 = Compilers/VisualBasic/vbc2
 		SccAuxPath20 = http://vstfdevdiv:8080/devdiv2
-		SccLocalPath20 = Compilers\\VisualBasic\\rvbc2
+		SccLocalPath20 = Compilers\\VisualBasic\\vbc2
 		SccProvider20 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccProjectUniqueName21 = Compilers\\VisualBasic\\Portable\\BasicCodeAnalysis.vbproj
 		SccProjectTopLevelParentUniqueName21 = Roslyn.sln

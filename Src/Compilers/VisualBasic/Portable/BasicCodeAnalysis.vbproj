@@ -944,8 +944,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="Roslyn.Scripting.VisualBasic" />
-    <InternalsVisibleTo Include="rvbc" />
-    <InternalsVisibleTo Include="rvbi" />
+    <InternalsVisibleTo Include="vbc" />
+    <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleToTest Include="PerfUtil" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />

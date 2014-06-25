@@ -18,7 +18,7 @@
     <ProjectGuid>{63D0F073-F0B3-42CD-829F-E48B977B48BA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>RosCompiler</RootNamespace>
-    <ProjectName>rcsc2</ProjectName>
+    <ProjectName>csc2</ProjectName>
     <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath11)</VCTargetsPath>
     <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
@@ -90,7 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="logging.cpp" />
-    <ClCompile Include="rcsc2.cpp" />
+    <ClCompile Include="csc2.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

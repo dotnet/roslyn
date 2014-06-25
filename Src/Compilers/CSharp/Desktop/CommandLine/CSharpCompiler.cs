@@ -33,17 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                // TODO: Bug 872626 (angocke)
-                // WORKAROUND: REMOVE BEFORE SHIPPING
-                // First look for csc.rsp, then look for rcsc.rsp.
                 if (String.IsNullOrEmpty(responseFileName))
                 {
                     responseFileName = Path.Combine(ResponseFileDirectory, "csc.rsp");
-                    if (!File.Exists(responseFileName))
-                    {
-                        responseFileName = Path.Combine(ResponseFileDirectory, "rcsc.rsp");
-                    }
                 }
+
                 return responseFileName;
             }
         }

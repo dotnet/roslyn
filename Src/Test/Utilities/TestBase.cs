@@ -922,16 +922,11 @@ namespace Roslyn.Test.Utilities
             {
                 if (csharpCompilerExecutable == null)
                 {
-                    var foundCompiler = FindBinary("rcsc.exe");
+                    var foundCompiler = FindBinary("csc.exe");
 
                     if (string.IsNullOrEmpty(foundCompiler))
                     {
-                        foundCompiler = FindBinary("csc.exe");
-                    }
-
-                    if (string.IsNullOrEmpty(foundCompiler))
-                    {
-                        foundCompiler = "rcsc.exe";
+                        foundCompiler = "csc.exe";
                     }
                     csharpCompilerExecutable = foundCompiler;
                 }
@@ -946,12 +941,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (csharpCompilerClientExecutable == null)
                 {
-                    var foundCompiler = FindBinary("rcsc2.exe");
-
-                    if (string.IsNullOrEmpty(foundCompiler))
-                    {
-                        foundCompiler = "rcsc2.exe";
-                    }
+                    var foundCompiler = FindBinary("csc2.exe");
                     csharpCompilerClientExecutable = foundCompiler;
                 }
                 return csharpCompilerClientExecutable;
@@ -965,16 +955,11 @@ namespace Roslyn.Test.Utilities
             {
                 if (basicCompilerExecutable == null)
                 {
-                    var foundCompiler = FindBinary("rvbc.exe");
+                    var foundCompiler = FindBinary("vbc.exe");
 
                     if (string.IsNullOrEmpty(foundCompiler))
                     {
-                        foundCompiler = FindBinary("vbc.exe");
-                    }
-
-                    if (string.IsNullOrEmpty(foundCompiler))
-                    {
-                        foundCompiler = "rvbc.exe";
+                        foundCompiler = "vbc.exe";
                     }
                     basicCompilerExecutable = foundCompiler;
                 }
@@ -989,12 +974,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (basicCompilerClientExecutable == null)
                 {
-                    var foundCompiler = FindBinary("rvbc2.exe");
-
-                    if (string.IsNullOrEmpty(foundCompiler))
-                    {
-                        foundCompiler = "rvbc2.exe";
-                    }
+                    var foundCompiler = FindBinary("vbc2.exe");
                     basicCompilerClientExecutable = foundCompiler;
                 }
                 return basicCompilerClientExecutable;

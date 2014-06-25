@@ -240,7 +240,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="rcsi" />
+    <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.CSharp" />

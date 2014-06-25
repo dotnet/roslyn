@@ -23,15 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Shared ReadOnly Property BasicResponseFileName As String
-            ' TODO: Bug 872626 (angocke)
-            ' WORKAROUND: REMOVE BEFORE SHIPPING
-            ' First look for vbc.rsp, then look for rvbc.rsp.
             Get
                 If String.IsNullOrEmpty(p_responseFileName) Then
                     p_responseFileName = Path.Combine(ResponseFileDirectory, "vbc.rsp")
-                    If Not File.Exists(p_responseFileName) Then
-                        p_responseFileName = Path.Combine(ResponseFileDirectory, "rvbc.rsp")
-                    End If
                 End If
                 Return p_responseFileName
             End Get
