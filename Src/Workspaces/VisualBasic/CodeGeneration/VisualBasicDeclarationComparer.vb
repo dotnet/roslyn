@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared ReadOnly Instance As IComparer(Of SyntaxNode) = New VisualBasicDeclarationComparer()
 
-        Private Shared ReadOnly kindPrecedenceMap As Dictionary(Of SyntaxKind, Integer) = New Dictionary(Of SyntaxKind, Integer)() From
+        Private Shared ReadOnly kindPrecedenceMap As Dictionary(Of SyntaxKind, Integer) = New Dictionary(Of SyntaxKind, Integer)(SyntaxFacts.EqualityComparer) From
             {
                 {SyntaxKind.FieldDeclaration, 0},
                 {SyntaxKind.ConstructorBlock, 1},
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 {SyntaxKind.DelegateFunctionStatement, 12}
             }
 
-        Private Shared ReadOnly operatorPrecedenceMap As Dictionary(Of SyntaxKind, Integer) = New Dictionary(Of SyntaxKind, Integer)() From
+        Private Shared ReadOnly operatorPrecedenceMap As Dictionary(Of SyntaxKind, Integer) = New Dictionary(Of SyntaxKind, Integer)(SyntaxFacts.EqualityComparer) From
             {
                 {SyntaxKind.PlusToken, 0},
                 {SyntaxKind.MinusToken, 1},

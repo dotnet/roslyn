@@ -3,12 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
@@ -17,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     {
         public static readonly IComparer<SyntaxNode> Instance = new CSharpDeclarationComparer();
 
-        private static readonly Dictionary<SyntaxKind, int> kindPrecedenceMap = new Dictionary<SyntaxKind, int>()
+        private static readonly Dictionary<SyntaxKind, int> kindPrecedenceMap = new Dictionary<SyntaxKind, int>(SyntaxFacts.EqualityComparer)
         {
             { SyntaxKind.FieldDeclaration, 0 },
             { SyntaxKind.ConstructorDeclaration, 1 },
@@ -36,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             { SyntaxKind.DelegateDeclaration, 14 }
         };
 
-        private static readonly Dictionary<SyntaxKind, int> operatorPrecedenceMap = new Dictionary<SyntaxKind, int>()
+        private static readonly Dictionary<SyntaxKind, int> operatorPrecedenceMap = new Dictionary<SyntaxKind, int>(SyntaxFacts.EqualityComparer)
         {
             { SyntaxKind.PlusToken, 0 },
             { SyntaxKind.MinusToken, 1 },

@@ -867,6 +867,7 @@
     <Compile Include="Syntax\SyntaxFactory.vb" />
     <Compile Include="Syntax\SyntaxFacts.vb" />
     <Compile Include="Syntax\SyntaxFormatter.vb" />
+    <Compile Include="Syntax\SyntaxKindEqualityComparer.vb" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyChildren.vb" />
     <Compile Include="Syntax\SyntaxList.vb" />
     <Compile Include="Syntax\SyntaxList.WeakSeparatedWithManyChildren.vb" />

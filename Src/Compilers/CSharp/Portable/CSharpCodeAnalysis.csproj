@@ -783,6 +783,7 @@
     <Compile Include="Syntax\SyntaxFactory.cs" />
     <Compile Include="Syntax\SyntaxFormatter.cs" />
     <Compile Include="Syntax\SyntaxKind.cs" />
+    <Compile Include="Syntax\SyntaxKindEqualityComparer.cs" />
     <Compile Include="Syntax\SyntaxKindFacts.cs" />
     <Compile Include="Syntax\SyntaxList.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyChildren.cs" />

@@ -821,7 +821,7 @@ Public MustInherit Class BasicTestBaseBase
         End Sub
 
         Private _nodes As New List(Of SyntaxNode)
-        Private _kinds As New HashSet(Of SyntaxKind)
+        Private _kinds As New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer)
 
         Public Shared Function FindNodes(Of T As SyntaxNode)(node As SyntaxNode, ParamArray kinds() As SyntaxKind) As List(Of T)
             Return New List(Of T)(From s In FindNodes(node, kinds) Select DirectCast(s, T))

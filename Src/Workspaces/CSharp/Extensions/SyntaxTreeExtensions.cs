@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            var result = new HashSet<SyntaxKind>();
+            var result = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer);
             while (true)
             {
                 switch (token.CSharpKind())

@@ -1,16 +1,12 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal class SyntaxKindSet
     {
-        public static readonly ISet<SyntaxKind> AllTypeModifiers = new HashSet<SyntaxKind>
+        public static readonly ISet<SyntaxKind> AllTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 SyntaxKind.AbstractKeyword,
                 SyntaxKind.InternalKeyword,
@@ -23,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.UnsafeKeyword
             };
 
-        public static readonly ISet<SyntaxKind> AllMemberModifiers = new HashSet<SyntaxKind>
+        public static readonly ISet<SyntaxKind> AllMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 SyntaxKind.AbstractKeyword,
                 SyntaxKind.AsyncKeyword,
@@ -42,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.VolatileKeyword,
             };
 
-        public static readonly ISet<SyntaxKind> AllGlobalMemberModifiers = new HashSet<SyntaxKind>
+        public static readonly ISet<SyntaxKind> AllGlobalMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 SyntaxKind.ExternKeyword,
                 SyntaxKind.InternalKeyword,
@@ -56,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.VolatileKeyword,
             };
 
-        public static readonly ISet<SyntaxKind> AllTypeDeclarations = new HashSet<SyntaxKind>()
+        public static readonly ISet<SyntaxKind> AllTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.InterfaceDeclaration,
             SyntaxKind.ClassDeclaration,
@@ -64,25 +60,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SyntaxKind.EnumDeclaration
         };
 
-        public static readonly ISet<SyntaxKind> ClassInterfaceStructTypeDeclarations = new HashSet<SyntaxKind>()
+        public static readonly ISet<SyntaxKind> ClassInterfaceStructTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.InterfaceDeclaration,
             SyntaxKind.ClassDeclaration,
             SyntaxKind.StructDeclaration,
         };
 
-        public static readonly ISet<SyntaxKind> ClassStructTypeDeclarations = new HashSet<SyntaxKind>()
+        public static readonly ISet<SyntaxKind> ClassStructTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.ClassDeclaration,
             SyntaxKind.StructDeclaration,
         };
 
-        public static readonly ISet<SyntaxKind> ClassOnlyTypeDeclarations = new HashSet<SyntaxKind>()
+        public static readonly ISet<SyntaxKind> ClassOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.ClassDeclaration,
         };
 
-        public static readonly ISet<SyntaxKind> StructOnlyTypeDeclarations = new HashSet<SyntaxKind>()
+        public static readonly ISet<SyntaxKind> StructOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.StructDeclaration,
         };

@@ -51,11 +51,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 SyntaxKind.WithEventsKeyword, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword, SyntaxKind.CustomKeyword,
                 SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword}
 
-            Private Shared ReadOnly RemoveDimKeywordSet As HashSet(Of SyntaxKind) = New HashSet(Of SyntaxKind) From {
+            Private Shared ReadOnly RemoveDimKeywordSet As HashSet(Of SyntaxKind) = New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer) From {
                 SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword,
                 SyntaxKind.SharedKeyword, SyntaxKind.ShadowsKeyword, SyntaxKind.ReadOnlyKeyword}
 
-            Private Shared ReadOnly NormalizeOperatorsSet As Dictionary(Of SyntaxKind, List(Of SyntaxKind)) = New Dictionary(Of SyntaxKind, List(Of SyntaxKind)) From {
+            Private Shared ReadOnly NormalizeOperatorsSet As Dictionary(Of SyntaxKind, List(Of SyntaxKind)) = New Dictionary(Of SyntaxKind, List(Of SyntaxKind))(SyntaxFacts.EqualityComparer) From {
                     {SyntaxKind.LessThanGreaterThanToken, New List(Of SyntaxKind) From {SyntaxKind.GreaterThanToken, SyntaxKind.LessThanToken}},
                     {SyntaxKind.GreaterThanEqualsToken, New List(Of SyntaxKind) From {SyntaxKind.EqualsToken, SyntaxKind.GreaterThanToken}},
                     {SyntaxKind.LessThanEqualsToken, New List(Of SyntaxKind) From {SyntaxKind.EqualsToken, SyntaxKind.LessThanToken}}

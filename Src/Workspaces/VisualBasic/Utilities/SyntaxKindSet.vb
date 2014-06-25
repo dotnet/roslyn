@@ -3,7 +3,7 @@
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     Friend Module SyntaxKindSet
 
-        Public ReadOnly AllOperators As ISet(Of SyntaxKind) = New HashSet(Of SyntaxKind)() From
+        Public ReadOnly AllOperators As ISet(Of SyntaxKind) = New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer) From
         {
             SyntaxKind.ExclamationToken,
             SyntaxKind.AtToken,
