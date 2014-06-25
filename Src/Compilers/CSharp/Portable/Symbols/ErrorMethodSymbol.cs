@@ -179,7 +179,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override MethodKind MethodKind
         {
-            get { return MethodKind.Ordinary; }
+            get
+            {
+                switch (name)
+                {
+                    case WellKnownMemberNames.InstanceConstructorName:
+                        return MethodKind.Constructor;
+                    default:
+                        // is there a reason to handle other special names?
+                        return MethodKind.Ordinary;
+                }
+            }
         }
 
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)

@@ -1392,9 +1392,6 @@ struct Derived(int p1, int p2 = Base.f0, int p3 = 0, int p4 = 0, int p5 = 0, int
     // (19,34): error CS0103: The name 'p3' does not exist in the current context
     //         System.Console.WriteLine(p3);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "p3").WithArguments("p3").WithLocation(19, 34),
-    // (17,21): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
-    //     Derived(long x) : this(p2)
-    Diagnostic(ErrorCode.ERR_UseDefViolationThis, ": this(p2)").WithArguments("this").WithLocation(17, 21),
     // (26,22): error CS0103: The name 'p5' does not exist in the current context
     //         get { return p5; } 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "p5").WithArguments("p5").WithLocation(26, 22),
@@ -1907,9 +1904,6 @@ struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref i
     // (11,34): error CS0103: The name 'p3' does not exist in the current context
     //         System.Console.WriteLine(p3);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "p3").WithArguments("p3").WithLocation(11, 34),
-    // (9,6): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
-    //      : this(ref p2, ref x1, ref x2, ref x3, ref x4, ref x5, out x6, out x7, out x8, out x9, out x10, out x11, out x12, out x13)
-    Diagnostic(ErrorCode.ERR_UseDefViolationThis, ": this(ref p2, ref x1, ref x2, ref x3, ref x4, ref x5, out x6, out x7, out x8, out x9, out x10, out x11, out x12, out x13)").WithArguments("this").WithLocation(9, 6),
     // (18,22): error CS0103: The name 'p5' does not exist in the current context
     //         get { return p5; } 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "p5").WithArguments("p5").WithLocation(18, 22),

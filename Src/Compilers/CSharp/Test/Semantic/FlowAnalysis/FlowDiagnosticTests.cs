@@ -1942,5 +1942,33 @@ class Derived2 : Base
                 );
         }
 
+        [WorkItem(949324, "DevDiv")]
+        [Fact]
+        public void RegressionTest949324()
+        {
+            var source =
+@"struct Derived
+{
+    Derived(int x) { }
+    Derived(long x) : this(p2) // error CS0188: The 'this' object cannot be used before all of its fields are assigned to
+    {
+        this = new Derived();
+    }
+    private int x;
+}";
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS0171: Field 'Derived.x' must be fully assigned before control is returned to the caller
+                //     Derived(int x) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "Derived").WithArguments("Derived.x").WithLocation(3, 5),
+                // (4,28): error CS0103: The name 'p2' does not exist in the current context
+                //     Derived(long x) : this(p2) // error CS0188: The 'this' object cannot be used before all of its fields are assigned to
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(4, 28),
+                // (8,17): warning CS0169: The field 'Derived.x' is never used
+                //     private int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("Derived.x").WithLocation(8, 17)
+                );
+        }
+
     }
 }
