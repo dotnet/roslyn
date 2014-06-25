@@ -664,7 +664,6 @@ End Class
         ''' Verify that WinRT events compile into the IL that we 
         ''' would expect.
         ''' </summary>
-        <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub WinMdEventLambda()
 
             Dim source =
@@ -722,7 +721,7 @@ End Class
 }
                     </output>
 
-            CompileAndVerify(compilation).VerifyIL("abcdef.foo", expectedIL.Value())
+            CompileAndVerify(compilation, verify:=OSVersion.IsWin8).VerifyIL("abcdef.foo", expectedIL.Value())
         End Sub
 
         <Fact>
