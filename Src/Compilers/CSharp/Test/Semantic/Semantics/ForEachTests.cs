@@ -2838,6 +2838,32 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "d").WithArguments("Dummy", "System.Collections.IEnumerable").WithLocation(27, 25));
         }
 
+        [WorkItem(963197, "DevDiv")]
+        [Fact]
+        public void Repro963197()
+        {
+            var source =
+@"using System;
+ 
+class Program
+{
+    public static string B = ""B"";
+    public static string C = ""C"";
+    static void Main(string[] args)
+    {
+        foreach (var a in new { B, C })
+        {
+            Console.WriteLine(a);
+        }
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (9,27): error CS1579: foreach statement cannot operate on variables of type '<anonymous type: string B, string C>' because '<anonymous type: string B, string C>' does not contain a public definition for 'GetEnumerator'
+                //         foreach (var a in new { B, C })
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new { B, C }").WithArguments("<anonymous type: string B, string C>", "GetEnumerator").WithLocation(9, 27)
+            );
+        }
+
         private static BoundForEachStatement GetBoundForEachStatement(string text, params DiagnosticDescription[] diagnostics)
         {
             var tree = Parse(text);

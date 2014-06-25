@@ -477,11 +477,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            // This is a type that we don't know how to enumerate.
-            // Skip the diagnostic if the type has no name - it makes the message unhelpful.
-            if (!string.IsNullOrEmpty(collectionExprType.Name))
+
+            if (!string.IsNullOrEmpty(collectionExprType.Name) || !collectionExpr.HasErrors)
             {
-                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, syntax.Expression.Location, collectionExprType, GetEnumeratorMethodName);
+                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, syntax.Expression.Location, collectionExprType.ToDisplayString(), GetEnumeratorMethodName);
             }
             return false;
         }
