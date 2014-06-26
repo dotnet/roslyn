@@ -34,28 +34,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetSeverity(code As Integer) As DiagnosticSeverity
-            If code = ERRID.Void Then
+            Dim errid = DirectCast(code, ERRID)
+            If errid = ERRID.Void Then
                 Return InternalDiagnosticSeverity.Void
-            ElseIf code = ERRID.Unknown Then
+            ElseIf errid = ERRID.Unknown Then
                 Return InternalDiagnosticSeverity.Unknown
-            ElseIf code >= ERRID.WRN_First AndAlso code <= ERRID.WRN_Last Then
+            ElseIf ErrorFacts.IsWarning(errid) Then
                 Return DiagnosticSeverity.Warning
-            ElseIf code >= ERRID.INF_First AndAlso code <= ERRID.INF_Last Then
+            ElseIf ErrorFacts.IsInfo(errid) Then
                 Return DiagnosticSeverity.Info
-            ElseIf code = ERRID.WRN_BadSwitch OrElse
-                code = ERRID.WRN_FileAlreadyIncluded OrElse
-                code = ERRID.WRN_NoConfigInResponseFile OrElse
-                code = ERRID.WRN_InvalidWarningId OrElse
-                code = ERRID.WRN_SwitchNoBool OrElse
-                code = ERRID.WRN_IgnoreModuleManifest Then
-                Return DiagnosticSeverity.Warning
             Else
                 Return DiagnosticSeverity.Error
             End If
         End Function
 
         Public Overrides Function GetWarningLevel(code As Integer) As Integer
-            If code >= ERRID.WRN_First AndAlso code <= ERRID.WRN_Last Then
+            If ErrorFacts.IsWarning(DirectCast(code, ERRID)) AndAlso
+               code <> ERRID.WRN_BadSwitch AndAlso
+               code <> ERRID.WRN_FileAlreadyIncluded AndAlso
+               code <> ERRID.WRN_NoConfigInResponseFile AndAlso
+               code <> ERRID.WRN_InvalidWarningId AndAlso
+               code <> ERRID.WRN_SwitchNoBool AndAlso
+               code <> ERRID.WRN_IgnoreModuleManifest Then
                 Return 1
             Else
                 Return 0

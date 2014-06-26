@@ -138,13 +138,20 @@
 
   <Target
     Name="GenerateErrorFacts"
-    Inputs="@(ErrorCode);$(CSharpErrorFactsGeneratorToolPath)"
+    Inputs="@(ErrorCode);$(CSharpErrorFactsGeneratorToolPath);$(VBErrorFactsGeneratorToolPath)"
     Outputs="@(ErrorCode -> '$(IntermediateOutputPath)ErrorFacts.Generated$(DefaultLanguageSourceExtension)')"
-    Condition="'$(Language)' == 'C#'"
+    Condition="'$(Language)' == 'VB' or '$(Language)' == 'C#'"
   >
-    <PropertyGroup>
+    <PropertyGroup Condition="'$(Language)' == 'VB'">
+      <ErrorFactsGenerator>$(VBErrorFactsGeneratorToolPath)</ErrorFactsGenerator>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Language)' == 'C#'">
       <ErrorFactsGenerator Condition=" '$(OS)' == 'Windows_NT' ">$(CSharpErrorFactsGeneratorToolPath)</ErrorFactsGenerator>
       <ErrorFactsGenerator Condition=" '$(OS)' != 'Windows_NT' ">mono $(CSharpErrorFactsGeneratorToolPath)</ErrorFactsGenerator>
+    </PropertyGroup>
+
+    <PropertyGroup>
       <GeneratedErrorFacts>@(ErrorCode -> '$(IntermediateOutputPath)ErrorFacts.Generated$(DefaultLanguageSourceExtension)')</GeneratedErrorFacts>
     </PropertyGroup>
 
@@ -158,7 +165,7 @@
 
   <Target
     Name="CleanErrorFacts"
-    Condition="'$(Language)' == 'C#'"
+    Condition="'$(Language)' == 'VB' or '$(Language)' == 'C#'"
   >
     <PropertyGroup>
       <GeneratedErrorFacts>@(ErrorCode -> '$(IntermediateOutputPath)ErrorFacts.Generated$(DefaultLanguageSourceExtension)')</GeneratedErrorFacts>

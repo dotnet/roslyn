@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 '//-------------------------------------------------------------------------------------------------
 '//
 '//  Error code and strings for Compiler errors
@@ -1663,7 +1660,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         '// WARNINGS BEGIN HERE
-        WRN_First = 39999   'Can't be the same value as WRN_UseOfObsoleteSymbol2 otherwise resource string for WRN_UseOfObsoleteSymbol2 isn't found
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_MustOverloadBase4 = 40003
         WRN_OverrideType5 = 40004
@@ -1881,18 +1877,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_NoAnalyzerInAssembly = 42377
         WRN_UnableToLoadAnalyzer = 42378
 
-        WRN_Last 'Can't be the same value as WRN_ConflictingMachineAssembly otherwise resource string for WRN_ConflictingMachineAssembly isn't found
         ' // AVAILABLE                             42379 - 49998
 
 
         '// INFOS BEGIN HERE
-        INF_First = 49999   'Can't be the same value as INF_UnusedImportClause otherwise resource string for INF_UnusedImportClause isn't found
-
         INF_UnusedImportClause = 50000
         INF_UnusedImportStatement = 50001
         INF_UnableToLoadSomeTypesInAnalyzer = 50002
 
-        INF_Last 'Can't be the same value as INF_UnusedImportStatement otherwise resource string for INF_UnusedImportStatement isn't found
         ' // AVAILABLE                             50003 - 54999   
 
         '// Feature classification for the /LangVersion switch errors starts at 55000, must be ordered, and indexed starting at 55000.

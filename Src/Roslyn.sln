@@ -150,6 +150,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCodeAnalysis.Desktop"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{EFD3B57F-B24B-4725-889A-8837C39C0BBF}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VisualBasicErrorFactsGenerator", "Tools\Source\CompilerGeneratorTools\Source\VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj", "{909B656F-6095-4AC2-A5AB-C3F032315C45}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -976,6 +978,20 @@ Global
 		{079AF8EF-1058-48B6-943F-AB02D39E0641}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{079AF8EF-1058-48B6-943F-AB02D39E0641}.Release|Win32.ActiveCfg = Release|Any CPU
 		{079AF8EF-1058-48B6-943F-AB02D39E0641}.Release|x86.ActiveCfg = Release|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|ARM.ActiveCfg = Release|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Win32.ActiveCfg = Release|Any CPU
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1045,9 +1061,10 @@ Global
 		{73F3E2C5-D742-452E-B9E1-20732DDBC75D} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{079AF8EF-1058-48B6-943F-AB02D39E0641} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{EFD3B57F-B24B-4725-889A-8837C39C0BBF} = {24E8CBFA-38D2-486F-B772-C10AB2DC7F01}
+		{909B656F-6095-4AC2-A5AB-C3F032315C45} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 54
+		SccNumberOfProjects = 55
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = http://vstfdevdiv:8080/devdiv2
 		SccProjectUniqueName0 = Compilers\\Core\\Portable\\CodeAnalysis.csproj
@@ -1374,5 +1391,11 @@ Global
 		SccAuxPath53 = http://vstfdevdiv:8080/devdiv2
 		SccLocalPath53 = Compilers\\CSharp\\Desktop
 		SccProvider53 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName54 = Tools\\Source\\CompilerGeneratorTools\\Source\\VisualBasicErrorFactsGenerator\\VisualBasicErrorFactsGenerator.vbproj
+		SccProjectTopLevelParentUniqueName54 = Roslyn.sln
+		SccProjectName54 = Tools/Source/CompilerGeneratorTools/Source/VisualBasicErrorFactsGenerator
+		SccAuxPath54 = http://vstfdevdiv:8080/devdiv2
+		SccLocalPath54 = Tools\\Source\\CompilerGeneratorTools\\Source\\VisualBasicErrorFactsGenerator
+		SccProvider54 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 	EndGlobalSection
 EndGlobal

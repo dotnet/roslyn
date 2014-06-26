@@ -13,6 +13,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic</AssemblyName>
     <VBSyntaxGeneratorToolPath>$(OutDir)\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
     <BoundTreeGeneratorToolPath>$(OutDir)\BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
+    <VBErrorFactsGeneratorToolPath>$(OutDir)\VBErrorFactsGenerator.exe</VBErrorFactsGeneratorToolPath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
@@ -37,6 +38,11 @@
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\BoundTreeGenerator\CompilersBoundTreeGenerator.csproj">
       <Project>{02459936-CD2C-4F61-B671-5C518F2A3DDC}</Project>
       <Name>CompilersBoundTreeGenerator</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj">
+      <Project>{909B656F-6095-4AC2-A5AB-C3F032315C45}</Project>
+      <Name>VisualBasicErrorFactsGenerator</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">
@@ -925,6 +931,7 @@
       <SubType>Designer</SubType>
     </BoundTreeDefinition>
     <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.vb" />
+    <Compile Include="$(IntermediateOutputPath)ErrorFacts.Generated.vb" />
     <Compile Include="Symbols\SymbolVisitor.vb" />
     <Compile Include="Symbols\SymbolVisitor`1.vb" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.vb" />
@@ -933,6 +940,7 @@
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
+    <ErrorCode Include="Errors\Errors.vb" />
     <SyntaxDefinition Include="Syntax\Syntax.xml">
       <SubType>Designer</SubType>
     </SyntaxDefinition>

@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
             string outputPath = args[2];
 
             var outputText = new StringBuilder();
-
-            outputText.AppendLine();
             outputText.AppendLine("namespace Microsoft.CodeAnalysis.CSharp");
             outputText.AppendLine("{");
             outputText.AppendLine("    internal static partial class ErrorFacts");
@@ -41,15 +39,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
             var infoCodeNames = new List<string>();
             foreach (var line in File.ReadAllLines(inputPath).Select(l => l.Trim()))
             {
-                if (line.StartsWith("WRN_"))
+                if (line.StartsWith("WRN_", StringComparison.OrdinalIgnoreCase))
                 {
                     warningCodeNames.Add(line.Substring(0, line.IndexOf(' ')));
                 }
-                else if (line.StartsWith("FTL_"))
+                else if (line.StartsWith("FTL_", StringComparison.OrdinalIgnoreCase))
                 {
                     fatalCodeNames.Add(line.Substring(0, line.IndexOf(' ')));
                 }
-                else if (line.StartsWith("INF_"))
+                else if (line.StartsWith("INF_", StringComparison.OrdinalIgnoreCase))
                 {
                     infoCodeNames.Add(line.Substring(0, line.IndexOf(' ')));
                 }
