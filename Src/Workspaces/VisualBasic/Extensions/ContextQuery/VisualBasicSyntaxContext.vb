@@ -47,6 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsCustomEventContext As Boolean
         Public ReadOnly WithinAsyncMethod As Boolean
 
+        Public ReadOnly IsPreprocessorEndDirectiveKeywordContext As Boolean
+
         Private Sub New(
             workspace As Workspace,
             semanticModel As SemanticModel,
@@ -106,6 +108,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
             Me.IsCustomEventContext = isCustomEventContext
             Me.WithinAsyncMethod = IsWithinAsyncMethod(targetToken, cancellationToken)
+
+            Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective(position)
         End Sub
 
         Private Function IsWithinAsyncMethod(targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
@@ -161,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Return targetToken.VisualBasicKind = SyntaxKind.None OrElse
                 targetToken.VisualBasicKind = SyntaxKind.EndOfFileToken OrElse
-                targetToken.HasNonContinuableEndOfLineBeforePosition(position)
+                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
         End Function
 
         Public Function IsFollowingParameterListOrAsClauseOfMethodDeclaration() As Boolean
@@ -197,16 +201,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
 
             If eventDeclaration.AsClause IsNot Nothing Then
-                Return targetToken = eventDeclaration.AsClause.GetLastToken(includeZeroWidth:=True)
+                Return TargetToken = eventDeclaration.AsClause.GetLastToken(includeZeroWidth:=True)
             End If
 
             If eventDeclaration.ParameterList IsNot Nothing AndAlso
                 Not eventDeclaration.ParameterList.CloseParenToken.IsMissing AndAlso
-                targetToken = eventDeclaration.ParameterList.CloseParenToken Then
+                TargetToken = eventDeclaration.ParameterList.CloseParenToken Then
                 Return True
             End If
 
-            Return targetToken = eventDeclaration.Identifier
+            Return TargetToken = eventDeclaration.Identifier
         End Function
 
         Public Function IsFollowingCompletePropertyDeclaration(cancellationToken As CancellationToken) As Boolean

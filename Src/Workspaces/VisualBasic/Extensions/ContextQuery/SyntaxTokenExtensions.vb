@@ -48,6 +48,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         ''' </summary>
         <Extension>
         Friend Function HasNonContinuableEndOfLineBeforePosition(token As SyntaxToken, position As Integer, Optional checkForSecondEol As Boolean = False) As Boolean
+            If token.FollowsBadEndDirective(position) Then
+                Return False
+            End If
+
             Dim allowsImplicitLineContinuation = token.Parent IsNot Nothing AndAlso
                                                  SyntaxFacts.AllowsTrailingImplicitLineContinuation(token)
 
@@ -60,6 +64,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Loop While token.IsMissing
 
             Return CheckTrivia(token.LeadingTrivia, position, checkForSecondEol, allowsImplicitLineContinuation)
+        End Function
+
+        <Extension>
+        Friend Function FollowsBadEndDirective(targetToken As SyntaxToken, position As Integer) As Boolean
+            If targetToken.MatchesKind(SyntaxKind.HashToken) AndAlso targetToken.TrailingTrivia.Any(Function(t)
+                                                                                                        Return t.HasStructure AndAlso
+                                                                                                        t.GetStructure().ChildTokens().Any()
+                                                                                                    End Function) Then
+                Return targetToken.Parent.MatchesKind(SyntaxKind.BadDirectiveTrivia)
+            End If
+
+            Return targetToken.MatchesKind(SyntaxKind.EndKeyword) AndAlso
+               targetToken.GetPreviousToken().MatchesKind(SyntaxKind.HashToken) AndAlso
+               targetToken.GetPreviousToken().Parent.MatchesKind(SyntaxKind.BadDirectiveTrivia)
         End Function
 
         <Extension>
