@@ -6777,6 +6777,36 @@ End Module
             VerifyExpressionTreesDiagnostics(file, <errors></errors>)
         End Sub
 
+        <WorkItem(957927, "DevDiv")>
+        <Fact()>
+        Public Sub Bug957927()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+imports System
+imports System.Linq.Expressions
+
+class Test
+
+    shared Sub Main()
+        System.Console.WriteLine(GetFunc(Of Integer)()().ToString())
+    End Sub
+
+	shared Function GetFunc(Of T)() As Func(Of Expression(Of Func(Of T,T)))
+		Dim x = 10
+		return Function()
+			Dim y = x 
+			return Function(m As T) m
+			End Function
+	End Function	
+end class
+                            ]]></file>
+                         </compilation>
+
+            CompileAndVerify(source,
+                 additionalRefs:={SystemCoreRef},
+                 expectedOutput:="m => m").VerifyDiagnostics()
+        End Sub
+
         <Fact()>
         Public Sub ExpressionTrees_MyBaseMyClass()
             Dim file = <file name="expr.vb"><![CDATA[

@@ -809,7 +809,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim wasInExpressionLambda = inExpressionLambda
                 inExpressionLambda = True
 
-                Dim newType = VisitType(type)
                 Dim newBody = DirectCast(Visit(node.Body), BoundBlock)
                 node = node.Update(node.LambdaSymbol, newBody, node.Diagnostics, node.LambdaBinderOpt, node.DelegateRelaxation, node.MethodConversionKind)
 
@@ -817,7 +816,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not wasInExpressionLambda Then
                     ' Rewritten outermost lambda as expression tree
                     Dim delegateType = type.ExpressionTargetDelegate(CompilationState.Compilation)
-                    rewrittenNode = ExpressionLambdaRewriter.RewriteLambda(node, Me._currentMethod, delegateType, Me.CompilationState, Me.GenerateDebugInfo, Me.Diagnostics, Me.rewrittenNodes)
+                    rewrittenNode = ExpressionLambdaRewriter.RewriteLambda(node, Me._currentMethod, delegateType, Me.CompilationState, Me.TypeMap, Me.GenerateDebugInfo, Me.Diagnostics, Me.rewrittenNodes)
                 End If
 
                 inExpressionLambda = wasInExpressionLambda

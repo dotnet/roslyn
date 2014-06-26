@@ -4454,6 +4454,37 @@ class B<T>
             }
         }
 
+        [WorkItem(957927, "DevDiv")]
+        [Fact]
+        public void Bug957927()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.WriteLine(GetFunc<int>()().ToString());
+    }
+
+	static Func<Expression<Func<T,T>>> GetFunc<T>()
+	{
+		int x = 10;
+		return ()=> { int y = x; return (T m)=>  m;};
+	}	
+}";
+
+            string expectedOutput = @"m => m";
+
+            CompileAndVerify(
+                new[] { source },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
         #endregion Regression Tests
 
         #region helpers

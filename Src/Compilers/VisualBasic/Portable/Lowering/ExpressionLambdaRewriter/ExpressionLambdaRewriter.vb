@@ -23,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class ExpressionLambdaRewriter
         Private ReadOnly _binder As Binder
         Private ReadOnly _factory As SyntheticBoundNodeFactory
+        Private ReadOnly _typeMap As TypeSubstitution
         Private ReadOnly _expressionType As NamedTypeSymbol
 
         Private _int32Type As NamedTypeSymbol
@@ -33,8 +34,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _parameterMap As Dictionary(Of ParameterSymbol, BoundExpression) = New Dictionary(Of ParameterSymbol, BoundExpression)()
 
-        Private Sub New(currentMethod As MethodSymbol, compilationState As TypeCompilationState, binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Private Sub New(currentMethod As MethodSymbol, compilationState As TypeCompilationState, typeMap As TypeSubstitution, binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
             _binder = binder
+            _typeMap = typeMap
             _factory = New SyntheticBoundNodeFactory(Nothing, currentMethod, node, compilationState, diagnostics)
             _expressionType = _factory.WellKnownType(WellKnownType.System_Linq_Expressions_Expression)
         End Sub
@@ -91,11 +93,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              currentMethod As MethodSymbol,
                                              delegateType As NamedTypeSymbol,
                                              compilationState As TypeCompilationState,
+                                             typeMap As TypeSubstitution,
                                              generateDebugInfo As Boolean,
                                              diagnostics As DiagnosticBag,
                                              rewrittenNodes As HashSet(Of BoundNode)) As BoundExpression
 
-            Dim r As New ExpressionLambdaRewriter(currentMethod, compilationState, node.LambdaSymbol.ContainingBinder, node.Syntax, diagnostics)
+            Dim r As New ExpressionLambdaRewriter(currentMethod, compilationState, typeMap, node.LambdaSymbol.ContainingBinder, node.Syntax, diagnostics)
             Dim expressionTree As BoundExpression = r.VisitLambdaInternal(node, delegateType)
 
             If Not expressionTree.HasErrors Then
@@ -283,7 +286,7 @@ lSelect:
                 parameters.Add(parameterReference)
                 _parameterMap(p) = parameterReference
 
-                Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](p.Type), _factory.Literal(p.Name))
+                Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](p.Type.InternalSubstituteTypeParameters(_typeMap)), _factory.Literal(p.Name))
                 If Not parameter.HasErrors Then
                     initializers.Add(_factory.AssignmentExpression(parameterReferenceLValue, parameter))
                 End If
