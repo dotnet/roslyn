@@ -24,6 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Lazily filled in.
         Private m_lazyBoundInformation As BoundFileInformation
 
+        ' Set to nonzero when import validated errors have been reported.
+        Private m_importsValidated As Integer
+
         ' lazily populate with quick attribute checker that is initialized with the imports.
         Private m_lazyQuickAttributeChecker As QuickAttributeChecker
 
@@ -134,16 +137,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function GetBoundInformation(cancellationToken As CancellationToken) As BoundFileInformation
             If m_lazyBoundInformation Is Nothing Then
                 Dim diagBag As New DiagnosticBag()
-
-                If Interlocked.CompareExchange(m_lazyBoundInformation, BindFileInformation(diagBag, cancellationToken), Nothing) Is Nothing Then
-                    ' We won the race and our bound file information was stored. Our errors should be reported.
-                    ValidateImports(m_lazyBoundInformation.MemberImports, m_lazyBoundInformation.MemberImportsSyntax, m_lazyBoundInformation.AliasImports, diagBag)
-                    m_diagnosticBagDeclare.AddRange(diagBag)
-                End If
+                Dim lazyBoundInformation = BindFileInformation(diagBag, cancellationToken)
+                m_sourceModule.AtomicStoreReferenceAndDiagnostics(m_lazyBoundInformation, lazyBoundInformation, diagBag, CompilationStage.Declare)
             End If
 
             Return m_lazyBoundInformation
         End Function
+
+        Private Sub EnsureImportsValidated()
+            If m_importsValidated = 0 Then
+                Dim boundFileInformation = BoundInformation
+                Dim diagBag As New DiagnosticBag()
+                ValidateImports(boundFileInformation.MemberImports, boundFileInformation.MemberImportsSyntax, boundFileInformation.AliasImports, diagBag)
+                m_sourceModule.AtomicStoreIntegerAndDiagnostics(m_importsValidated, 1, 0, diagBag, CompilationStage.Declare)
+            End If
+            Debug.Assert(m_importsValidated = 1)
+        End Sub
 
         Private Function BindFileInformation(diagBag As DiagnosticBag, cancellationToken As CancellationToken, Optional filterSpan As TextSpan? = Nothing) As BoundFileInformation
             ' The binder must be set up to only bind things in the global namespace, in order to bind imports 
@@ -396,6 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Sub GenerateAllDeclarationErrors()
             ' Getting the bound information causes the declaration errors to be generated
             Dim unused1 = Me.BoundInformation
+            EnsureImportsValidated()
         End Sub
 
         ''' <summary>
