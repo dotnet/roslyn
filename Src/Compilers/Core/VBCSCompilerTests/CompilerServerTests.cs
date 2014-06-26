@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         private static string CompilerServerExecutable = Path.Combine(WorkingDirectory, "VBCSCompiler.exe");
+        private static string BuildTaskDll = Path.Combine(WorkingDirectory, "Roslyn.Compilers.BuildTasks.dll");
         private static string CSharpCompilerClientExecutable = Path.Combine(WorkingDirectory, "csc2.exe");
         private static string BasicCompilerClientExecutable = Path.Combine(WorkingDirectory, "vbc2.exe");
         private static string CSharpCompilerExecutable = Path.Combine(WorkingDirectory, "csc.exe");
@@ -876,6 +877,7 @@ EndGlobal
 { "HelloProj.csproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + BuildTaskDll + @""" />
   <PropertyGroup>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">x86</Platform>
@@ -959,6 +961,7 @@ namespace HelloProj
 { "HelloLib.csproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + BuildTaskDll + @""" />
   <PropertyGroup>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
@@ -1025,6 +1028,7 @@ namespace HelloLib
  { "VBLib.vbproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""" + BuildTaskDll + @""" />
   <PropertyGroup>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
@@ -1098,7 +1102,7 @@ End Class
             };
         }
 
-        [Fact(Skip = "Need to figure out how to test local build task")]
+        [Fact()]
         public void SimpleMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
