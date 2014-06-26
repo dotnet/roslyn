@@ -1291,10 +1291,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AccessorListAndExpressionBody = 8056,
         ERR_BlockBodyAndExpressionBody = 8057,
 
+        ERR_SwitchFallOut = 8058,
+
         // Values in the range 10000-14000 are used for "Code Analysis" issues previously reported by FXCop
         WRN_CA2000_DisposeObjectsBeforeLosingScope1 = 10000,
         WRN_CA2000_DisposeObjectsBeforeLosingScope2 = 10001,
 
-        WRN_CA2202_DoNotDisposeObjectsMultipleTimes = 10002
+        WRN_CA2202_DoNotDisposeObjectsMultipleTimes = 10002,
     }
 }

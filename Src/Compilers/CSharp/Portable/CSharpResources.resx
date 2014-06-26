@@ -3828,4 +3828,7 @@
   <data name="ERR_ExpressionTreeContainsDeclarationExpression" xml:space="preserve">
     <value>An expression tree may not contain a Declaration Expression.</value>
   </data>
+  <data name="ERR_SwitchFallOut" xml:space="preserve">
+    <value>Control cannot fall out of switch from final case label ('{0}')</value>
+  </data>
 </root>

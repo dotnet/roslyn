@@ -6350,7 +6350,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
             get {
                 return ResourceManager.GetString("ERR_ObjectRequired", resourceCulture);
             }
-        }
+            }
         
         /// <summary>
         ///   Looks up a localized string similar to A /reference option that declares an extern alias can only have one filename. To specify multiple aliases or filenames, use multiple /reference options..
@@ -7744,6 +7744,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_StructWithBaseConstructorCall {
             get {
                 return ResourceManager.GetString("ERR_StructWithBaseConstructorCall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Control cannot fall out of switch from final case label (&apos;{0}&apos;).
+        /// </summary>
+        internal static string ERR_SwitchFallOut {
+            get {
+                return ResourceManager.GetString("ERR_SwitchFallOut", resourceCulture);
             }
         }
         

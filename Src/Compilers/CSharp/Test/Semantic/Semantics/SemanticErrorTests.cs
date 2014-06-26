@@ -4850,9 +4850,9 @@ class Program
                 // (12,17): error CS0159: No such label 'default:' within the scope of the goto statement
                 //                 goto default;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto default;").WithArguments("default:"),
-                // (11,13): error CS0163: Control cannot fall through from one case label ('case 23:') to another
+                // (11,13): error CS14001: Control cannot fall out of switch from final case label ('case 23:')
                 //             case 23:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 23:").WithArguments("case 23:"));
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 23:").WithArguments("case 23:"));
         }
 
         [WorkItem(539876, "DevDiv")]

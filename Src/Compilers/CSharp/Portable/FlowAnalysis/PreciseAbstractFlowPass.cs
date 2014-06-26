@@ -1630,11 +1630,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitSwitchBlock(BoundSwitchStatement node)
         {
+            var switchSections = node.SwitchSections;
+            var iLastSection = (switchSections.Length - 1);
             // visit switch sections
-            foreach (var section in node.SwitchSections)
+            for (var iSection = 0; iSection <= iLastSection; iSection++)
             {
-                VisitSwitchSection(section);
+                VisitSwitchSection(switchSections[iSection], iSection == iLastSection);
             }
+        }
+
+        public virtual BoundNode VisitSwitchSection(BoundSwitchSection node, bool lastSection)
+        {
+            return VisitSwitchSection(node);
         }
 
         public override BoundNode VisitSwitchSection(BoundSwitchSection node)
