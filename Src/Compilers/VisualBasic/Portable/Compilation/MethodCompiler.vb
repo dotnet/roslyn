@@ -783,10 +783,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim diagnosticsThisMethod = DiagnosticBag.GetInstance()
 
                     Dim boundBody = method.GetBoundMethodBody(diagnosticsThisMethod)
+
+                    Dim rewrittenBody = Rewriter.Rewrite(
+                        method,
+                        boundBody,
+                        diagnosticsThisMethod,
+                        _generateDebugInfo,
+                        compilationState,
+                        previousSubmissionFields:=Nothing)
+
                     Dim emittedBody = GenerateMethodBody(_moduleBeingBuilt,
                                                          method,
-                                                         boundBody,
-                                                         optimize:=_compilation.Options.Optimize,
+                                                         rewrittenBody,
+                                                         optimize:=_optimize,
                                                          debugDocumentProvider:=Nothing,
                                                          diagsForThisMethod:=diagnosticsThisMethod,
                                                          namespaceScopes:=Nothing)
