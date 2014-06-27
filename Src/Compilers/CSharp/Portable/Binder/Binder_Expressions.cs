@@ -2769,6 +2769,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.SimpleMemberAccessExpression:
                     case SyntaxKind.PointerMemberAccessExpression:
                         return ((MemberAccessExpressionSyntax)syntax).Name;
+                    case SyntaxKind.MemberBindingExpression:
+                        return ((MemberBindingExpressionSyntax)syntax).Name;
                     default:
                         return syntax as NameSyntax;
                 }

@@ -984,6 +984,318 @@ public class C
         }
 
         [Fact]
+        public void TestConditionalMemberAccess001ext()
+        {
+            var source = @"
+
+public static class C
+{
+    static void Main()
+    {
+        Test(null);
+        System.Console.Write('#');
+        int[] a = new int[] { };
+        Test(a);
+    }
+
+    static void Test(int[] x)
+    {
+        System.Console.Write(x?.ToStr().ToStr().ToStr() ?? ""NULL"");
+    }
+
+    static string ToStr(this object arg)
+    {
+        return arg.ToString();
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: "NULL#System.Int32[]");
+            comp.VerifyIL("C.Test", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  brtrue.s   IL_0008
+  IL_0004:  pop
+  IL_0005:  ldnull
+  IL_0006:  br.s       IL_0017
+  IL_0008:  call       ""string C.ToStr(object)""
+  IL_000d:  call       ""string C.ToStr(object)""
+  IL_0012:  call       ""string C.ToStr(object)""
+  IL_0017:  dup
+  IL_0018:  brtrue.s   IL_0020
+  IL_001a:  pop
+  IL_001b:  ldstr      ""NULL""
+  IL_0020:  call       ""void System.Console.Write(string)""
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccess001dyn()
+        {
+            var source = @"
+
+public static class C
+{
+    static void Main()
+    {
+        Test(null);
+        System.Console.Write('#');
+        int[] a = new int[] { };
+        Test(a);
+    }
+
+    static void Test(dynamic x)
+    {
+        System.Console.Write(x?.ToString().ToString()?.ToString() ?? ""NULL"");
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#System.Int32[]");
+            comp.VerifyIL("C.Test", @"
+{
+  // Code size      353 (0x161)
+  .maxstack  14
+  .locals init (object V_0)
+  IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<Test>o__SiteContainer0.<>p__Site4""
+  IL_0005:  brtrue.s   IL_0046
+  IL_0007:  ldc.i4     0x100
+  IL_000c:  ldstr      ""Write""
+  IL_0011:  ldnull
+  IL_0012:  ldtoken    ""C""
+  IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001c:  ldc.i4.2
+  IL_001d:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0022:  dup
+  IL_0023:  ldc.i4.0
+  IL_0024:  ldc.i4.s   33
+  IL_0026:  ldnull
+  IL_0027:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_002c:  stelem.ref
+  IL_002d:  dup
+  IL_002e:  ldc.i4.1
+  IL_002f:  ldc.i4.0
+  IL_0030:  ldnull
+  IL_0031:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0036:  stelem.ref
+  IL_0037:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_003c:  call       ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0041:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<Test>o__SiteContainer0.<>p__Site4""
+  IL_0046:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<Test>o__SiteContainer0.<>p__Site4""
+  IL_004b:  ldfld      ""System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target""
+  IL_0050:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<Test>o__SiteContainer0.<>p__Site4""
+  IL_0055:  ldtoken    ""System.Console""
+  IL_005a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_005f:  ldarg.0
+  IL_0060:  brtrue.s   IL_0068
+  IL_0062:  ldnull
+  IL_0063:  br         IL_00ff
+  IL_0068:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site2""
+  IL_006d:  brtrue.s   IL_009f
+  IL_006f:  ldc.i4.0
+  IL_0070:  ldstr      ""ToString""
+  IL_0075:  ldnull
+  IL_0076:  ldtoken    ""C""
+  IL_007b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0080:  ldc.i4.1
+  IL_0081:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0086:  dup
+  IL_0087:  ldc.i4.0
+  IL_0088:  ldc.i4.0
+  IL_0089:  ldnull
+  IL_008a:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_008f:  stelem.ref
+  IL_0090:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0095:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_009a:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site2""
+  IL_009f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site2""
+  IL_00a4:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target""
+  IL_00a9:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site2""
+  IL_00ae:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site1""
+  IL_00b3:  brtrue.s   IL_00e5
+  IL_00b5:  ldc.i4.0
+  IL_00b6:  ldstr      ""ToString""
+  IL_00bb:  ldnull
+  IL_00bc:  ldtoken    ""C""
+  IL_00c1:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_00c6:  ldc.i4.1
+  IL_00c7:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_00cc:  dup
+  IL_00cd:  ldc.i4.0
+  IL_00ce:  ldc.i4.0
+  IL_00cf:  ldnull
+  IL_00d0:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_00d5:  stelem.ref
+  IL_00d6:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_00db:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_00e0:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site1""
+  IL_00e5:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site1""
+  IL_00ea:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target""
+  IL_00ef:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site1""
+  IL_00f4:  ldarg.0
+  IL_00f5:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_00fa:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_00ff:  dup
+  IL_0100:  stloc.0
+  IL_0101:  brtrue.s   IL_0106
+  IL_0103:  ldnull
+  IL_0104:  br.s       IL_0152
+  IL_0106:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site3""
+  IL_010b:  brtrue.s   IL_013d
+  IL_010d:  ldc.i4.0
+  IL_010e:  ldstr      ""ToString""
+  IL_0113:  ldnull
+  IL_0114:  ldtoken    ""C""
+  IL_0119:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_011e:  ldc.i4.1
+  IL_011f:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0124:  dup
+  IL_0125:  ldc.i4.0
+  IL_0126:  ldc.i4.0
+  IL_0127:  ldnull
+  IL_0128:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_012d:  stelem.ref
+  IL_012e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0133:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0138:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site3""
+  IL_013d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site3""
+  IL_0142:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target""
+  IL_0147:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site3""
+  IL_014c:  ldloc.0
+  IL_014d:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_0152:  dup
+  IL_0153:  brtrue.s   IL_015b
+  IL_0155:  pop
+  IL_0156:  ldstr      ""NULL""
+  IL_015b:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)""
+  IL_0160:  ret
+}
+");
+}
+
+        [Fact]
+        public void TestConditionalMemberAccess001dyn1()
+        {
+            var source = @"
+
+public static class C
+{
+    static void Main()
+    {
+        Test(null);
+        System.Console.Write('#');
+        int[] a = new int[] { };
+        Test(a);
+    }
+
+    static void Test(dynamic x)
+    {
+        System.Console.Write(x?.ToString()?[1].ToString() ?? ""NULL"");
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccess001dyn2()
+        {
+            var source = @"
+
+public static class C
+{
+    static void Main()
+    {
+        Test(null, ""aa"");
+        System.Console.Write('#');
+        Test(""aa"", ""bb"");
+    }
+
+    static void Test(string s, dynamic ds)
+    {
+        System.Console.Write(s?.CompareTo(ds) ?? ""NULL"");
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#-1");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccess001dyn3()
+        {
+            var source = @"
+
+public static class C
+{
+    static void Main()
+    {
+        Test(null, 1);
+        System.Console.Write('#');
+        int[] a = new int[] { };
+        Test(a, 1);
+    }
+
+    static void Test(int[] x, dynamic i)
+    {
+        System.Console.Write(x?.ToString()?[i].ToString() ?? ""NULL"");
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccess001dyn4()
+        {
+            var source = @"
+
+public static class C
+{
+    static void Main()
+    {
+        Test(null);
+        System.Console.Write('#');
+        int[] a = new int[] {1,2,3};
+        Test(a);
+    }
+
+    static void Test(dynamic x)
+    {
+        System.Console.Write(x?.Length.ToString() ?? ""NULL"");
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccess001dyn5()
+        {
+            var source = @"
+
+public static class C
+{
+    static void Main()
+    {
+        Test(null);
+        System.Console.Write('#');
+        int[] a = new int[] {1,2,3};
+        Test(a);
+    }
+
+    static void Test(dynamic x)
+    {
+        System.Console.Write(x?.Length?.ToString() ?? ""NULL"");
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+        }
+
+        [Fact]
         public void TestConditionalMemberAccessUnused()
         {
             var source = @"
