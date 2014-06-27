@@ -1019,7 +1019,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
   object V_2,
   System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
   object V_4,
-  System.Exception V_5) //<>t__ex
+  System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<G>d__1.<>1__state""
   IL_0006:  stloc.0
@@ -1515,7 +1515,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
   int V_2, //x
   int V_3,
   System.Runtime.CompilerServices.TaskAwaiter<int> V_4,
-  System.Exception V_5) //<>t__ex
+  System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<G>d__1.<>1__state""
   IL_0006:  stloc.0
@@ -5986,7 +5986,7 @@ class Test
   .locals init (int V_0, //cachedState
   int V_1, //<>t__exprRetValue
   System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
-  System.Exception V_3) //<>t__ex
+  System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<F>d__1.<>1__state""
   IL_0006:  stloc.0
@@ -6148,7 +6148,7 @@ class Test
   int V_4,
   bool V_5,
   Test.<F>d__1 V_6,
-  System.Exception V_7) //<>t__ex
+  System.Exception V_7)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<F>d__1.<>1__state""
   IL_0006:  stloc.0
@@ -6306,7 +6306,7 @@ class Test
   .maxstack  3
   .locals init (int V_0, //cachedState
   System.Runtime.CompilerServices.TaskAwaiter<int> V_1,
-  System.Exception V_2) //<>t__ex
+  System.Exception V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<F>d__1.<>1__state""
   IL_0006:  stloc.0
@@ -6448,7 +6448,7 @@ class Test
   .maxstack  3
   .locals init (int V_0, //cachedState
   System.Runtime.CompilerServices.TaskAwaiter V_1,
-  System.Exception V_2) //<>t__ex
+  System.Exception V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<F>d__1.<>1__state""
   IL_0006:  stloc.0

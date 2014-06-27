@@ -1275,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             if (visType != null)
             {
                 var method = visType.GetTypeInfo().GetDeclaredMethod("ILBuilderToString");
-                return (string)method.Invoke(this, SpecializedCollections.EmptyArray<object>());
+                return (string)method.Invoke(null, new object[] { this, null });
             }
 #endif
 

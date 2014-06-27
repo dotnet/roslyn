@@ -102,38 +102,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             GeneratedLabelSymbol initialLabel;
             AddState(out initialState, out initialLabel);
 
-            var exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception), GeneratedNames.AsyncExceptionFieldName());
+            var exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception));
 
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
-            bodyBuilder.Add(
-                F.HiddenSequencePoint());
-            bodyBuilder.Add(
-                F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)));
+            bodyBuilder.Add(F.HiddenSequencePoint());
+            bodyBuilder.Add(F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)));
 
             BoundStatement rewrittenBody = (BoundStatement)Visit(body);
 
             bodyBuilder.Add(
                 F.Try(
-                    F.Block(
-                        ImmutableArray<LocalSymbol>.Empty,
-                            // switch (state) ...
-                            F.HiddenSequencePoint(),
+                    F.Block(ImmutableArray<LocalSymbol>.Empty,
+                        // switch (state) ...
+                        F.HiddenSequencePoint(),
                         Dispatch(),
                         F.Label(initialLabel),
-                            // [body]
-                            rewrittenBody
+                        // [body]
+                        rewrittenBody
                     ),
                     F.CatchBlocks(
                         F.Catch(
                             exceptionLocal,
                             F.Block(
                                 F.NoOp(method.ReturnsVoid ? NoOpStatementFlavor.AsyncMethodCatchHandler : NoOpStatementFlavor.Default),
-                                F.HiddenSequencePoint(),
-                                    // this.state = finishedState
-                                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
-                                    // builder.SetException(ex)
-                                    F.ExpressionStatement(
+                                // this.state = finishedState
+                                F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                                // builder.SetException(ex)
+                                F.ExpressionStatement(
                                     F.Call(
                                         F.Field(F.This(), asyncMethodBuilderField),
                                         asyncMethodBuilderMemberCollection.SetException,

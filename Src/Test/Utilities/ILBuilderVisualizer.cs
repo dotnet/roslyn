@@ -103,7 +103,7 @@ namespace Roslyn.Test.Utilities
             return spans;
         }
 
-        internal static string ILBuilderToString(ILBuilder builder, Func<Microsoft.Cci.ILocalDefinition, LocalInfo> mapLocal = null)
+        internal static string ILBuilderToString(ILBuilder builder, Func<Cci.ILocalDefinition, LocalInfo> mapLocal = null)
         {
             var sb = new StringBuilder();
 

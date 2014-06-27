@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -9,6 +8,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// <summary>
     /// Represents a sequence point before translation by #line/ExternalSource directives.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal struct RawSequencePoint
     {
         internal readonly SyntaxTree SyntaxTree;
@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.SyntaxTree = syntaxTree;
             this.ILMarker = ilMarker;
             this.Span = span;
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return string.Format("#{0}: {1}", ILMarker, Span.ToString());
         }
     }
 }

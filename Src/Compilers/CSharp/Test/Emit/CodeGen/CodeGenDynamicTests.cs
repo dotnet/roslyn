@@ -14452,7 +14452,7 @@ class C
   object V_2,
   System.Runtime.CompilerServices.ICriticalNotifyCompletion V_3,
   System.Runtime.CompilerServices.INotifyCompletion V_4,
-  System.Exception V_5) //<>t__ex
+  System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__1.<>1__state""
   IL_0006:  stloc.0

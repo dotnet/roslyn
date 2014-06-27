@@ -229,11 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>u__$awaiter" + number;
         }
 
-        internal static string AsyncExceptionFieldName()
-        {
-            return "<>t__ex";
-        }
-
         internal static string AsyncExprRetValueFieldName()
         {
             return "<>t__exprRetValue";
