@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   orderby a, b |
             //   orderby a, b a|
 
-            if (targetToken.CSharpKind() != SyntaxKind.IdentifierToken)
+            if (!targetToken.MatchesKind(SyntaxKind.IdentifierToken, SyntaxKind.CloseParenToken, SyntaxKind.CloseBracketToken))
             {
                 return false;
             }
