@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds();
 
             analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyAnalyzerDiagnostics3(new[] { analyzer });
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyCSharpAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllInterfaceMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
@@ -88,7 +88,7 @@ public class C
         {
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer => 
-                AnalyzerDriver.GetDiagnostics(compilation, new[] { analyzer }, null, CancellationToken.None), typeof(AnalyzerDriver).Name);
+                compilation.GetCSharpAnalyzerDiagnostics(new[] { analyzer }, continueOnError: true), typeof(AnalyzerDriver).Name);
         }
 
         [Fact]
@@ -102,12 +102,7 @@ public class C
 
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
             var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
-            AnalyzerDriver.GetDiagnostics(compilation, new[] { analyzer }, options, CancellationToken.None);
-            analyzer.VerifyAnalyzerOptions();
-
-            // Repeat with AnalyzerDriver3
-            analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
-            CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyAnalyzerDiagnostics3<Compilation, SyntaxKind>(n=> n.CSharpKind(), options, new[] { analyzer });
+            compilation.GetCSharpAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAnalyzerOptions();
         }
     }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,12 +19,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public abstract class AnalyzerDriver3 : IDisposable
     {
         readonly TimeSpan timeoutPeriod = TimeSpan.FromMinutes(2); // 2 minutes timeout. TODO: configurable?
+        private static readonly ConditionalWeakTable<Compilation, SuppressMessageAttributeState> suppressMessageStateByCompilation = new ConditionalWeakTable<Compilation, SuppressMessageAttributeState>();
 
         private const string DiagnosticId = "AnalyzerDriver";
         private readonly Action<Diagnostic> addDiagnostic;
         private Compilation compilation;
         internal bool continueOnError = true; // should be a parameter?
         private ImmutableArray<Task> workers;
+        private ImmutableArray<Task> syntaxAnalyzers;
 
         // TODO: should these be made lazy?
         internal ImmutableArray<IDiagnosticAnalyzer> analyzers;
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             CompilationEventQueue = new AsyncQueue<CompilationEvent>();
             DiagnosticQueue = new AsyncQueue<Diagnostic>();
-            addDiagnostic = AddDiagnostic;
+            addDiagnostic = GetDiagnosticSinkWithSuppression();
             analyzerOptions = options;
 
             // start the first task to drain the event queue. The first compilation event is to be handled before
@@ -178,25 +181,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Interlocked.CompareExchange(ref this.compilation, compilation, null);
 
             // Compute the set of effective analyzers based on suppression, and running the initial analyzers
-            var effectiveAnalyzers = ArrayBuilder<IDiagnosticAnalyzer>.GetInstance();
-            foreach (var analyzer in analyzers)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (!IsDiagnosticAnalyzerSuppressed(analyzer, compilation.Options, addDiagnostic, continueOnError, cancellationToken))
-                {
-                    effectiveAnalyzers.Add(analyzer);
-                    var startAnalyzer = analyzer as ICompilationStartedAnalyzer;
-                    if (startAnalyzer != null)
-                    {
-                        ExecuteAndCatchIfThrows(startAnalyzer, addDiagnostic, continueOnError, cancellationToken, () =>
-                        {
-                            var compilationAnalyzer = startAnalyzer.OnCompilationStarted(compilation, addDiagnostic, this.analyzerOptions, cancellationToken);
-                            if (compilationAnalyzer != null) effectiveAnalyzers.Add(compilationAnalyzer);
-                        });
-                    }
-                }
-            }
-            ImmutableInterlocked.InterlockedInitialize(ref this.analyzers, effectiveAnalyzers.ToImmutableAndFree());
+            var effectiveAnalyzers = GetEffectiveAnalyzers(analyzers, compilation, analyzerOptions, addDiagnostic, continueOnError, cancellationToken);
+            
+            ImmutableInterlocked.InterlockedInitialize(ref this.analyzers, effectiveAnalyzers);
             ImmutableInterlocked.InterlockedInitialize(ref declarationAnalyzersByKind, MakeDeclarationAnalyzersByKind());
             ImmutableInterlocked.InterlockedInitialize(ref bodyAnalyzers, analyzers.OfType<ICodeBlockStartedAnalyzer>().ToImmutableArray());
             ImmutableInterlocked.InterlockedInitialize(ref semanticModelAnalyzers, analyzers.OfType<ISemanticModelAnalyzer>().ToImmutableArray());
@@ -205,6 +192,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Invoke the syntax tree analyzers
             // TODO: How can the caller restrict this to one or a set of trees, or a span in a tree, rather than all trees in the compilation?
+            var syntaxAnalyzers = ArrayBuilder<Task>.GetInstance();
             foreach (var tree in compilation.SyntaxTrees)
             {
                 foreach (var a in analyzers.OfType<ISyntaxTreeAnalyzer>())
@@ -215,8 +203,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         // Catch Exception from a.AnalyzeSyntaxTree
                         ExecuteAndCatchIfThrows(a, addDiagnostic, continueOnError, cancellationToken, () => { a.AnalyzeSyntaxTree(tree, addDiagnostic, analyzerOptions, cancellationToken); });
                     });
+
+                    syntaxAnalyzers.Add(runningAsynchronously);
                 }
             }
+
+            ImmutableInterlocked.InterlockedInitialize(ref this.syntaxAnalyzers, syntaxAnalyzers.ToImmutableAndFree());
 
             // start some tasks to drain the event queue
             cancellationToken.ThrowIfCancellationRequested();
@@ -226,6 +218,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 workers.Add(Task.Run(() => ProcessCompilationEvents(cancellationToken)));
             }
+
             ImmutableInterlocked.InterlockedInitialize(ref this.workers, workers.ToImmutableAndFree());
 
             // TODO: Analyze nodes for those parts of each syntax tree that are not inside declarations that are analyzed.
@@ -344,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Task AnalyzeSymbol(SymbolDeclaredCompilationEvent symbolEvent, CancellationToken cancellationToken)
         {
             var symbol = symbolEvent.Symbol;
-            Action<Diagnostic> addDiagnostic = diagnostic => AddDiagnostic(diagnostic, symbol);
+            Action<Diagnostic> addDiagnosticForSymbol = GetDiagnosticSinkWithSuppression(symbol);
             var tasks = ArrayBuilder<Task>.GetInstance();
             if ((int)symbol.Kind < declarationAnalyzersByKind.Length)
             {
@@ -357,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         ExecuteAndCatchIfThrows(da, addDiagnostic, continueOnError, cancellationToken, () =>
                         {
                             cancellationToken.ThrowIfCancellationRequested();
-                            da.AnalyzeSymbol(symbol, compilation, addDiagnostic, this.analyzerOptions, cancellationToken);
+                            da.AnalyzeSymbol(symbol, compilation, addDiagnosticForSymbol, this.analyzerOptions, cancellationToken);
                         });
                     }));
                 }
@@ -372,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 case SymbolKind.Event: // TODO: should this be restricted to field-like events?
                     foreach (var decl in symbol.DeclaringSyntaxReferences)
                     {
-                        tasks.Add(AnalyzeDeclaringReference(symbolEvent, decl, AddDiagnostic, cancellationToken));
+                        tasks.Add(AnalyzeDeclaringReference(symbolEvent, decl, addDiagnostic, cancellationToken));
                     }
                     break;
             }
@@ -426,28 +419,106 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ExecuteAndCatchIfThrows(da, addDiagnostic, continueOnError, cancellationToken, () =>
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        da.OnCompilationEnded(compilation, AddDiagnostic, this.analyzerOptions, cancellationToken);
+                        da.OnCompilationEnded(compilation, addDiagnostic, this.analyzerOptions, cancellationToken);
                     });
                 }));
             }
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await Task.WhenAll(tasks.Concat(this.syntaxAnalyzers)).ConfigureAwait(false);
             DiagnosticQueue.Complete();
         }
 
-        private void AddDiagnostic(Diagnostic diagnostic)
+        private Action<Diagnostic> GetDiagnosticSinkWithSuppression(ISymbol symbolOpt = null)
         {
-            var d = compilation.FilterDiagnostic(diagnostic);
-            if (d != null)
+            return diagnostic =>
             {
-                DiagnosticQueue.Enqueue(diagnostic);
+                var d = compilation.FilterDiagnostic(diagnostic);
+                if (d != null)
+                {
+                    var suppressMessageState = suppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
+                    if (!suppressMessageState.IsDiagnosticSuppressed(d.Id, locationOpt: d.Location, symbolOpt: symbolOpt))
+                    {
+                        DiagnosticQueue.Enqueue(d);
+                    }
+                }
+            };
+        }
+
+        /// <summary>
+        /// Given a set of compiler or <see cref="IDiagnosticAnalyzer"/> generated <paramref name="diagnostics"/>, returns the effective diagnostics after applying the below filters:
+        /// 1) <see cref="CompilationOptions.SpecificDiagnosticOptions"/> specified for the given <paramref name="compilation"/>.
+        /// 2) <see cref="CompilationOptions.GeneralDiagnosticOption"/> specified for the given <paramref name="compilation"/>.
+        /// 3) Diagnostic suppression through applied <see cref="System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"/>.
+        /// 4) Pragma directives for the given <paramref name="compilation"/>.
+        /// </summary>
+        public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(IEnumerable<Diagnostic> diagnostics, Compilation compilation)
+        {
+            if (diagnostics == null)
+            {
+                throw new ArgumentNullException("diagnostics");
+            }
+
+            if (compilation == null)
+            {
+                throw new ArgumentNullException("compilation");
+            }
+
+            var suppressMessageState = suppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic != null)
+                {
+                    var effectiveDiagnostic = compilation.FilterDiagnostic(diagnostic);
+                    if (effectiveDiagnostic != null && !suppressMessageState.IsDiagnosticSuppressed(effectiveDiagnostic.Id, effectiveDiagnostic.Location))
+                    {
+                        yield return effectiveDiagnostic;
+                    }
+                }
             }
         }
 
-        private void AddDiagnostic(Diagnostic diagnostic, ISymbol container)
+        /// <summary>
+        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+        /// <paramref name="continueOnError"/> says whether the caller would like the exception thrown by the analyzers to be handled or not. If true - Handles ; False - Not handled.
+        /// </summary>
+        public static bool IsDiagnosticAnalyzerSuppressed(IDiagnosticAnalyzer analyzer, CompilationOptions options, bool continueOnError = true)
         {
-            // TODO: this should apply the symbol filter before enqueueing the diagnostic
-            AddDiagnostic(diagnostic);
+            if (analyzer == null)
+            {
+                throw new ArgumentNullException("analyzer");
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException("options");
+            }
+
+            Action<Diagnostic> dummy = _ => { };
+            return IsDiagnosticAnalyzerSuppressed(analyzer, options, dummy, continueOnError, CancellationToken.None);
+        }
+
+        private static ImmutableArray<IDiagnosticAnalyzer> GetEffectiveAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers, Compilation compilation, AnalyzerOptions analyzerOptions, Action<Diagnostic> addDiagnostic, bool continueOnError, CancellationToken cancellationToken)
+        {
+            var effectiveAnalyzers = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+            foreach (var analyzer in analyzers)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!IsDiagnosticAnalyzerSuppressed(analyzer, compilation.Options, addDiagnostic, continueOnError, cancellationToken))
+                {
+                    effectiveAnalyzers.Add(analyzer);
+                    var startAnalyzer = analyzer as ICompilationStartedAnalyzer;
+                    if (startAnalyzer != null)
+                    {
+                        ExecuteAndCatchIfThrows(startAnalyzer, addDiagnostic, continueOnError, cancellationToken, () =>
+                        {
+                            var compilationAnalyzer = startAnalyzer.OnCompilationStarted(compilation, addDiagnostic, analyzerOptions, cancellationToken);
+                            if (compilationAnalyzer != null) effectiveAnalyzers.Add(compilationAnalyzer);
+                        });
+                    }
+                }
+            }
+
+            return effectiveAnalyzers.ToImmutable();
         }
 
         /// <summary>
@@ -456,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static bool IsDiagnosticAnalyzerSuppressed(IDiagnosticAnalyzer analyzer, CompilationOptions options, Action<Diagnostic> addDiagnostic, bool continueOnError, CancellationToken cancellationToken)
         {
             var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
-
+            
             // Catch Exception from analyzer.SupportedDiagnostics
             ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnError, cancellationToken, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; });
 
@@ -464,7 +535,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var diag in supportedDiagnostics)
             {
-                if (!diagnosticOptions.ContainsKey(diag.Id) || diagnosticOptions[diag.Id] != ReportDiagnostic.Suppress)
+                // Is this diagnostic suppressed by default (as written by the rule author)
+                var isSuppressed = !diag.IsEnabledByDefault;
+
+                // If the user said something about it, that overrides the author.
+                if (diagnosticOptions.ContainsKey(diag.Id))
+                {
+                    isSuppressed = diagnosticOptions[diag.Id] == ReportDiagnostic.Suppress;
+                }
+
+                if (isSuppressed)
+                {
+                    continue;
+                }
+                else
                 {
                     return false;
                 }

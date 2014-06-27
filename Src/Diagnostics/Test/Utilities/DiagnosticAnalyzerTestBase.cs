@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -263,28 +261,30 @@ namespace Microsoft.CodeAnalysis.UnitTests
             foreach (var project in projects)
             {
                 var compilation = project.GetCompilationAsync().Result;
+                var diags = compilation.GetAnalyzerDiagnostics(new[] { analyzer });
 
-                var compilationStartedAnalyzer = analyzer as ICompilationStartedAnalyzer;
-                ICompilationEndedAnalyzer compilationEndedAnalyzer = null;
-                if (compilationStartedAnalyzer != null)
+                foreach (var diag in diags)
                 {
-                    compilationEndedAnalyzer = compilationStartedAnalyzer.OnCompilationStarted(compilation, diagnostics.Add, null, default(CancellationToken));
-                }
-
-                for (int i = 0; i < documents.Length; i++)
-                {
-                    var document = documents[i];
-                    var span = spans != null ? spans[i] : null;
-                    AnalyzeDocument(analyzer, document, diagnostics.Add, span);
-                    if (compilationEndedAnalyzer != null)
+                    if (diag.Location == Location.None || diag.Location.IsInMetadata)
                     {
-                        AnalyzeDocumentCore(compilationEndedAnalyzer, document, diagnostics.Add, span);
+                        diagnostics.Add(diag);
                     }
-                }
-
-                if (compilationEndedAnalyzer != null)
-                {
-                    compilationEndedAnalyzer.OnCompilationEnded(compilation, diagnostics.Add, null, default(CancellationToken));
+                    else
+                    {
+                        for (int i = 0; i < documents.Length; i++)
+                        {
+                            var document = documents[i];
+                            var tree = document.GetSyntaxTreeAsync().Result;
+                            if (tree == diag.Location.SourceTree)
+                            {
+                                var span = spans != null ? spans[i] : null;
+                                if (span == null || span.Value.Contains(diag.Location.SourceSpan))
+                                {
+                                    diagnostics.Add(diag);
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -293,19 +293,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return results;
         }
 
-        private static void AnalyzeDocument(IDiagnosticAnalyzer analyzer, Document document, Action<Diagnostic> addDiagnostic, TextSpan? span = null)
-        {
-            Assert.True(analyzer.GetType().IsDefined(typeof(ExportDiagnosticAnalyzerAttribute)), "Top-level analyzers should have the ExportDiagnosticAnalyzerAttribute");
-            Assert.True(analyzer.GetType().IsDefined(typeof(DiagnosticAnalyzerAttribute)), "Top-level analyzers should have the DiagnosticAnalyzerAttribute");
-
-            AnalyzeDocumentCore(analyzer, document, addDiagnostic, span);
-        }
-
         protected static void AnalyzeDocumentCore(IDiagnosticAnalyzer analyzer, Document document, Action<Diagnostic> addDiagnostic, TextSpan? span = null, bool continueOnError = false)
         {
-            TextSpan spanToTest = span.HasValue ? span.Value : document.GetSyntaxRootAsync().Result.FullSpan;
             var semanticModel = document.GetSemanticModelAsync().Result;
-            AnalyzerDriver.RunAnalyzers(semanticModel, spanToTest, ImmutableArray.Create(analyzer), addDiagnostic, null, continueOnError: continueOnError);
+            var diagnostics = semanticModel.Compilation.GetAnalyzerDiagnostics(new[] { analyzer }, continueOnError: continueOnError);
+            foreach (var diagnostic in diagnostics)
+            {
+                if (!span.HasValue ||
+                    diagnostic.Location == Location.None ||
+                    diagnostic.Location.IsInMetadata ||
+                    (diagnostic.Location.SourceTree == semanticModel.SyntaxTree &&
+                    span.Value.Contains(diagnostic.Location.SourceSpan)))
+                {
+                    addDiagnostic(diagnostic);
+                }
+            }
         }
 
         protected static Diagnostic[] GetSortedDiagnostics(IEnumerable<Diagnostic> diagnostics)

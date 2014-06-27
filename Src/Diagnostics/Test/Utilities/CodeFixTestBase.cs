@@ -20,27 +20,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected abstract ICodeFixProvider GetBasicCodeFixProvider();
 
-        protected void VerifyCSharpFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false, bool continueOnError = false)
+        protected void VerifyCSharpFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
         {
-            VerifyFix(LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), GetCSharpCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics, continueOnError);
+            VerifyFix(LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), GetCSharpCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
         }
 
         protected void VerifyBasicFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false, bool continueOnError = false)
         {
-            VerifyFix(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics, continueOnError);
+            VerifyFix(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
         }
 
-        protected void VerifyFix(string language, IDiagnosticAnalyzer analyzer, ICodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics, bool continueOnError)
+        protected void VerifyFix(string language, IDiagnosticAnalyzer analyzer, ICodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
         {
             var document = CreateDocument(oldSource, language);
 
-            VerifyFix(document, analyzer, codeFixProvider, newSource, codeFixIndex, useCompilerAnalyzerDriver: true, allowNewCompilerDiagnostics: allowNewCompilerDiagnostics, continueOnError: continueOnError);
-            VerifyFix(document, analyzer, codeFixProvider, newSource, codeFixIndex, useCompilerAnalyzerDriver: false, allowNewCompilerDiagnostics: allowNewCompilerDiagnostics, continueOnError: continueOnError);
+            VerifyFix(document, analyzer, codeFixProvider, newSource, codeFixIndex, useCompilerAnalyzerDriver: true, allowNewCompilerDiagnostics: allowNewCompilerDiagnostics);
+            VerifyFix(document, analyzer, codeFixProvider, newSource, codeFixIndex, useCompilerAnalyzerDriver: false, allowNewCompilerDiagnostics: allowNewCompilerDiagnostics);
         }
 
-        private void VerifyFix(Document document, IDiagnosticAnalyzer analyzer, ICodeFixProvider codeFixProvider, string newSource, int? codeFixIndex, bool useCompilerAnalyzerDriver, bool allowNewCompilerDiagnostics, bool continueOnError)
+        private void VerifyFix(Document document, IDiagnosticAnalyzer analyzer, ICodeFixProvider codeFixProvider, string newSource, int? codeFixIndex, bool useCompilerAnalyzerDriver, bool allowNewCompilerDiagnostics)
         {
-            var analyzerDiagnostics = GetSortedDiagnostics(analyzer, document, useCompilerAnalyzerDriver: useCompilerAnalyzerDriver, continueOnError: continueOnError);
+            var analyzerDiagnostics = GetSortedDiagnostics(analyzer, document, useCompilerAnalyzerDriver: useCompilerAnalyzerDriver);
             var compilerDiagnostics = document.GetSemanticModelAsync().Result.GetDiagnostics();
 
             // TODO(mavasani): Delete the below if statement once FxCop Analyzers have been ported to new IDiagnosticAnalyzer API.
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 document = document.Apply(actions.ElementAt(0));
                 
-                analyzerDiagnostics = GetSortedDiagnostics(analyzer, document, useCompilerAnalyzerDriver: useCompilerAnalyzerDriver, continueOnError: continueOnError);
+                analyzerDiagnostics = GetSortedDiagnostics(analyzer, document, useCompilerAnalyzerDriver: useCompilerAnalyzerDriver);
                 var newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, document.GetSemanticModelAsync().Result.GetDiagnostics());
                 if (!allowNewCompilerDiagnostics && newCompilerDiagnostics.Any())
                 {
@@ -117,12 +117,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static Diagnostic[] GetSortedDiagnostics(IDiagnosticAnalyzer analyzerFactory, Document document, bool useCompilerAnalyzerDriver, bool continueOnError, TextSpan? span = null)
+        private static Diagnostic[] GetSortedDiagnostics(IDiagnosticAnalyzer analyzerFactory, Document document, bool useCompilerAnalyzerDriver, TextSpan? span = null)
         {
             TextSpan spanToTest = span.HasValue ? span.Value : document.GetSyntaxRootAsync().Result.FullSpan;
 
             var diagnostics = useCompilerAnalyzerDriver ?
-                GetDiagnosticsUsingCompilerAnalyzerDriver(analyzerFactory, document, continueOnError, span) :
+                GetDiagnosticsUsingCompilerAnalyzerDriver(analyzerFactory, document, span) :
                 GetDiagnosticsUsingIDEAnalyzerDriver(analyzerFactory, document, span);
 
             return GetSortedDiagnostics(diagnostics);
@@ -139,29 +139,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
 
-        private static IEnumerable<Diagnostic> GetDiagnosticsUsingCompilerAnalyzerDriver(IDiagnosticAnalyzer analyzer, Document document, bool continueOnError, TextSpan? span)
+        private static IEnumerable<Diagnostic> GetDiagnosticsUsingCompilerAnalyzerDriver(IDiagnosticAnalyzer analyzer, Document document, TextSpan? span)
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
             var compilation = semanticModel.Compilation;
-
             var diagnostics = new List<Diagnostic>();
-            Action<Diagnostic> addDiagnostic = diagnostics.Add;
-
-            var compilationStartedAnalyzer = analyzer as ICompilationStartedAnalyzer;
-            ICompilationEndedAnalyzer compilationEndedAnalyzer = null;
-            if (compilationStartedAnalyzer != null)
-            {
-                compilationEndedAnalyzer = compilationStartedAnalyzer.OnCompilationStarted(compilation, addDiagnostic, null, default(CancellationToken));
-            }
-
-            AnalyzeDocumentCore(analyzer, document, addDiagnostic, span, continueOnError);
-
-            if (compilationEndedAnalyzer != null)
-            {
-                AnalyzeDocumentCore(compilationEndedAnalyzer, document, addDiagnostic, span, continueOnError);
-                compilationEndedAnalyzer.OnCompilationEnded(compilation, addDiagnostic, null, default(CancellationToken));
-            }
-
+            AnalyzeDocumentCore(analyzer, document, diagnostics.Add, span);
             return diagnostics;
         }
     }

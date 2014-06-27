@@ -12,6 +12,7 @@ using Xunit;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -92,28 +93,127 @@ namespace Microsoft.CodeAnalysis
             return c;
         }
 
-        public static CSharpCompilation VerifyAnalyzerDiagnostics3(this CSharpCompilation c, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
+        public static CSharpCompilation VerifyCSharpAnalyzerDiagnostics(this CSharpCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, params DiagnosticDescription[] expected)
         {
-            return VerifyAnalyzerDiagnostics3(c, n => n.CSharpKind(), null, analyzers, expected);
+            return VerifyAnalyzerDiagnostics(c, n => n.CSharpKind(), analyzers, options, expected: expected);
         }
 
-        public static TCompilation VerifyAnalyzerDiagnostics3<TCompilation, TSyntaxKind>(
-                this TCompilation c, Func<SyntaxNode, TSyntaxKind> getKind, AnalyzerOptions options, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
+        public static VisualBasicCompilation VerifyVisualBasicAnalyzerDiagnostics(this VisualBasicCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, params DiagnosticDescription[] expected)
+        {
+            return VerifyAnalyzerDiagnostics(c, n => n.VisualBasicKind(), analyzers, options, expected: expected);
+        }
+
+        public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(
+                this TCompilation c, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
+            where TCompilation : Compilation
+        {
+            return c.VerifyAnalyzerDiagnostics(analyzers, null, expected);
+        }
+
+        public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(
+                this TCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options, params DiagnosticDescription[] expected)
+            where TCompilation : Compilation
+        {
+            var csComp = c as CSharpCompilation;
+            if (csComp != null)
+            {
+                return csComp.VerifyCSharpAnalyzerDiagnostics(analyzers, options, expected) as TCompilation;
+            }
+            else
+            {
+                var vbComp = c as VisualBasicCompilation;
+                return vbComp.VerifyVisualBasicAnalyzerDiagnostics(analyzers, options, expected) as TCompilation;
+            }
+        }
+
+        private static TCompilation VerifyAnalyzerDiagnostics<TCompilation, TSyntaxKind>(
+                this TCompilation c, Func<SyntaxNode, TSyntaxKind> getKind, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options, DiagnosticDescription[] expected)
             where TCompilation : Compilation
             where TSyntaxKind : struct
         {
-            var driver = new AnalyzerDriver3<TSyntaxKind>(analyzers.ToImmutableArray(), getKind, options, default(CancellationToken));
-            c = (TCompilation)c.WithEventQueue(driver.CompilationEventQueue);
-            var discarded = c.GetDiagnostics();
-            driver.GetDiagnosticsAsync().Result.Verify(expected);
+            ImmutableArray<Diagnostic> diagnostics;
+            c = c.GetAnalyzerDiagnostics(getKind, analyzers, options, continueOnError: false, diagnostics: out diagnostics);
+            diagnostics.Verify(expected);
             return c; // note this is a new compilation
         }
 
-        public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(this TCompilation c, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
+        public static ImmutableArray<Diagnostic> GetCSharpAnalyzerDiagnostics(this CSharpCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, bool continueOnError = false)
+        {
+            ImmutableArray<Diagnostic> diagnostics;
+            c = GetAnalyzerDiagnostics(c, n => n.CSharpKind(), analyzers, options, continueOnError, out diagnostics);
+            return diagnostics;
+        }
+
+        public static ImmutableArray<Diagnostic> GetVisualBasicAnalyzerDiagnostics(this VisualBasicCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, bool continueOnError = false)
+        {
+            ImmutableArray<Diagnostic> diagnostics;
+            c = GetAnalyzerDiagnostics(c, n => n.VisualBasicKind(), analyzers, options, continueOnError, out diagnostics);
+            return diagnostics;
+        }
+
+        public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(this TCompilation c, IDiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, bool continueOnError = false)
             where TCompilation : Compilation
         {
-            AnalyzerDriver.GetDiagnostics(c, analyzers, null, default(CancellationToken)).Verify(expected);
-            return c;
+            var csComp = c as CSharpCompilation;
+            if (csComp != null)
+            {
+                return csComp.GetCSharpAnalyzerDiagnostics(analyzers, options, continueOnError);
+            }
+            else
+            {
+                var vbComp = c as VisualBasicCompilation;
+                return vbComp.GetVisualBasicAnalyzerDiagnostics(analyzers, options, continueOnError);
+            }
+        }
+
+        private static TCompilation GetAnalyzerDiagnostics<TCompilation, TSyntaxKind>(
+                this TCompilation c,
+                Func<SyntaxNode, TSyntaxKind> getKind,
+                IDiagnosticAnalyzer[] analyzers,
+                AnalyzerOptions options,
+                bool continueOnError,
+                out ImmutableArray<Diagnostic> diagnostics)
+            where TCompilation : Compilation
+            where TSyntaxKind : struct
+        {
+#if !ANALYZER_DRIVER_3
+            diagnostics = AnalyzerDriver.GetDiagnostics(c, analyzers, options, CancellationToken.None, continueOnError).ToImmutableArray();
+#else
+            var driver = new AnalyzerDriver3<TSyntaxKind>(analyzers.ToImmutableArray(), getKind, options, default(CancellationToken));
+            c = (TCompilation)c.WithEventQueue(driver.CompilationEventQueue);
+            var discarded = c.GetDiagnostics();
+            diagnostics = driver.GetDiagnosticsAsync().Result;
+#endif
+            return c; // note this is a new compilation
+        }
+
+        /// <summary>
+        /// Given a set of compiler or <see cref="IDiagnosticAnalyzer"/> generated <paramref name="diagnostics"/>, returns the effective diagnostics after applying the below filters:
+        /// 1) <see cref="CompilationOptions.SpecificDiagnosticOptions"/> specified for the given <paramref name="compilation"/>.
+        /// 2) <see cref="CompilationOptions.GeneralDiagnosticOption"/> specified for the given <paramref name="compilation"/>.
+        /// 3) Diagnostic suppression through applied <see cref="System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"/>.
+        /// 4) Pragma directives for the given <paramref name="compilation"/>.
+        /// </summary>
+        public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(this Compilation compilation, IEnumerable<Diagnostic> diagnostics)
+        {
+#if !ANALYZER_DRIVER_3
+            return AnalyzerDriver.GetEffectiveDiagnostics(diagnostics, compilation);
+#else
+            return AnalyzerDriver3.GetEffectiveDiagnostics(diagnostics, compilation);
+#endif
+        }
+
+        /// <summary>
+        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+        /// <paramref name="continueOnError"/> says whether the caller would like the exception thrown by the analyzers to be handled or not. If true - Handles ; False - Not handled.
+        /// </summary>
+        public static bool IsDiagnosticAnalyzerSuppressed(this IDiagnosticAnalyzer analyzer, CompilationOptions options, bool continueOnError = true)
+        {
+#if ANALYZER_DRIVER_3
+            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options);
+#else
+            return AnalyzerDriver3.IsDiagnosticAnalyzerSuppressed(analyzer, options);
+#endif
         }
 
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
