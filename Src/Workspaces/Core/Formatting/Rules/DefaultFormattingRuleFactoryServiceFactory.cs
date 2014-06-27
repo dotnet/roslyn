@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
     [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), ServiceLayer.Default)]
 #endif
-    internal sealed class DefaultBaseIndentationFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
+    internal sealed class DefaultFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
-        public DefaultBaseIndentationFormattingRuleFactoryServiceFactory()
+        public DefaultFormattingRuleFactoryServiceFactory()
         {
         }
 

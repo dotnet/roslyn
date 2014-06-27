@@ -463,7 +463,7 @@
     <Compile Include="Formatting\ListPool.cs" />
     <Compile Include="Formatting\Rules\AbstractFormattingRule.cs" />
     <Compile Include="Formatting\Rules\BaseIndentationFormattingRule.cs" />
-    <Compile Include="Formatting\Rules\DefaultBaseIndentationFormattingRuleFactoryServiceFactory.cs" />
+    <Compile Include="Formatting\Rules\DefaultFormattingRuleFactoryServiceFactory.cs" />
     <Compile Include="Formatting\Rules\ExportFormattingRule.cs" />
     <Compile Include="Formatting\Rules\IActionHolder`1.cs" />
     <Compile Include="Formatting\Rules\IHostDependentFormattingRuleFactoryService.cs" />
