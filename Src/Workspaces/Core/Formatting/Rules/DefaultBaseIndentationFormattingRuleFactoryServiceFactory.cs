@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 #if MEF
     using Microsoft.CodeAnalysis.Host.Mef;
 
-    [ExportWorkspaceServiceFactory(typeof(IBaseIndentationFormattingRuleFactoryService), ServiceLayer.Default)]
+    [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), ServiceLayer.Default)]
 #endif
     internal sealed class DefaultBaseIndentationFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             return new Factory();
         }
 
-        private sealed class Factory : IBaseIndentationFormattingRuleFactoryService
+        private sealed class Factory : IHostDependentFormattingRuleFactoryService
         {
             private readonly IFormattingRule singleton = new NoOpFormattingRule();
 
@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)
             {
                 return changes;
+            }
+
+            public bool ShouldFormatOnPaste(Document document)
+            {
+                return false;
             }
         }
     }
