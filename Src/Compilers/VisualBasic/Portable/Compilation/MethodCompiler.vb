@@ -792,13 +792,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         compilationState,
                         previousSubmissionFields:=Nothing)
 
-                    Dim emittedBody = GenerateMethodBody(_moduleBeingBuilt,
+                    Dim emittedBody As MethodBody = Nothing
+
+                    If Not diagnosticsThisMethod.HasAnyErrors Then
+                        emittedBody = GenerateMethodBody(_moduleBeingBuilt,
                                                          method,
                                                          rewrittenBody,
                                                          optimize:=_optimize,
                                                          debugDocumentProvider:=Nothing,
                                                          diagsForThisMethod:=diagnosticsThisMethod,
                                                          namespaceScopes:=Nothing)
+                    End If
 
                     _diagnostics.AddRange(diagnosticsThisMethod)
                     diagnosticsThisMethod.Free()
