@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -188,15 +189,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var lambda = new UnboundLambda(syntax, this, refKinds, types, names, isAsync);
-
             if (!names.IsDefault)
             {
-                var binder = new LocalScopeBinder(this);
-                for (int n = 0; n < names.Length; ++n)
+               var binder = new LocalScopeBinder(this);
+                var pNames = PooledHashSet<string>.GetInstance();
+
+                for (int i = 0; i < lambda.ParameterCount; i ++)
                 {
-                    string name = lambda.ParameterName(n);
-                    binder.ValidateLambdaParameterNameConflictsInScope(lambda.ParameterLocation(n), name, diagnostics);
+                    var name = lambda.ParameterName(i);
+
+                    if (string.IsNullOrEmpty(name))
+                    {
+                        continue;
+                    }
+
+                    if (pNames.Contains(name))
+                    {
+                        // The parameter name '{0}' is a duplicate
+                        diagnostics.Add(ErrorCode.ERR_DuplicateParamName, lambda.ParameterLocation(i), name);
+                    }
+                    else
+                    {
+                        pNames.Add(name);
+                        binder.ValidateLambdaParameterNameConflictsInScope(lambda.ParameterLocation(i), name, diagnostics);
+                    }
                 }
+                pNames.Free();
             }
 
             return lambda;

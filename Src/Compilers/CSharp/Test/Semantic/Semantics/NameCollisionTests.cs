@@ -881,9 +881,37 @@ class Class
     // (9,56): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(9, 56),
+    // (9,70): error CS0100: The parameter name 'name4' is a duplicate
+    //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
+    Diagnostic(ErrorCode.ERR_DuplicateParamName, "name4").WithArguments("name4").WithLocation(9, 70),
     // (9,77): error CS0412: 'name3': a parameter or local variable cannot have the same name as a method type parameter
     //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
     Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "name3").WithArguments("name3").WithLocation(9, 77)
+    );
+        }
+
+        [WorkItem(930252)]
+        [Fact]
+        private void TestCollisionOfParamWithParam1()
+        {
+            var source = @"
+class Program
+{
+    delegate int D(int x, int y);
+    static void X()
+    {
+        D d1 = (int x, int x) => { return 1; };
+        D d2 = (x, x) => { return 1; };
+    }
+}";
+
+    CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+    // (7,28): error CS0100: The parameter name 'x' is a duplicate
+    //         D d1 = (int x, int x) => { return 1; };
+    Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(7, 28),
+    // (8,20): error CS0100: The parameter name 'x' is a duplicate
+    //         D d2 = (x, x) => { return 1; };
+    Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(8, 20)
     );
         }
 
