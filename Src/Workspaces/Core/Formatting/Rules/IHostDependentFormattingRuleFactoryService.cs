@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     internal interface IHostDependentFormattingRuleFactoryService : IWorkspaceService
     {
-        bool ShouldFormatOnPaste(Document document);
+        bool ShouldNotFormatOrCommitOnPaste(Document document);
         bool ShouldUseBaseIndentation(Document document);
         IFormattingRule CreateRule(Document document, int position);
         IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes);

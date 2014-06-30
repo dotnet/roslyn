@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
                 return changes;
             }
 
-            public bool ShouldFormatOnPaste(Document document)
+            public bool ShouldNotFormatOrCommitOnPaste(Document document)
             {
                 return false;
             }
