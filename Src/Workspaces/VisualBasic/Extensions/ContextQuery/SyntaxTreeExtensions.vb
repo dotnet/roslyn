@@ -799,9 +799,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Dim objectCreation = TryCast(expression, ObjectCreationExpressionSyntax)
             If objectCreation IsNot Nothing Then
-                Return If(objectCreation.ArgumentList IsNot Nothing,
-                          objectCreation.ArgumentList.CloseParenToken,
-                          objectCreation.Type.GetLastToken())
+                If objectCreation.ArgumentList IsNot Nothing Then
+                    Return objectCreation.ArgumentList.CloseParenToken
+                ElseIf objectCreation.Type.MatchesKind(SyntaxKind.QualifiedName) Then
+                    Return DirectCast(objectCreation.Type, QualifiedNameSyntax).Right.GetLastToken()
+                Else
+                    Return objectCreation.Type.GetLastToken()
+                End If
             End If
 
             Dim arrayCreation = TryCast(expression, ArrayCreationExpressionSyntax)
