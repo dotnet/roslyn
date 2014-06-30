@@ -5405,5 +5405,35 @@ class Program
 }";
             AssertFormat(expected, code, changedOptionSet: changingOptions);
         }
+
+        [WorkItem(899492, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void CommentIsLeadingTriviaOfStatementNotLabel()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+    label:
+        // comment
+        M();
+        M();
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+    label:
+        // comment
+        M();
+        M();
+    }
+}";
+            AssertFormat(expected, code);
+        }
     }
 }

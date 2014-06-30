@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return nextToken.SpanStart;
         }
 
-        private static int GetStartPositionOfSpan(SyntaxToken token)
+        public static int GetStartPositionOfSpan(SyntaxToken token)
         {
             var previousToken = token.GetPreviousToken();
             if (previousToken.RawKind != 0)

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             List<IndentBlockOperation> list,
             SyntaxToken startToken,
             SyntaxToken endToken,
+            bool includeTriviaAtEnd = false,
             IndentBlockOption option = IndentBlockOption.RelativePosition)
         {
             if (startToken.CSharpKind() == SyntaxKind.None || endToken.CSharpKind() == SyntaxKind.None)
@@ -39,7 +41,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, indentationDelta: -1, option: option));
+            if (includeTriviaAtEnd)
+            {
+                list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, indentationDelta: -1, option: option));
+            }
+            else
+            {
+                var startPosition = CommonFormattingHelpers.GetStartPositionOfSpan(startToken);
+                var endPosition = endToken.Span.End;
+
+                list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, TextSpan.FromBounds(startPosition, endPosition), indentationDelta: -1, option: option));
+            }
         }
 
         protected void AddAbsoluteZeroIndentBlockOperation(
