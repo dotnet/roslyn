@@ -8,25 +8,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 {
     public sealed class ExpressionBodiedMethodTests : CSharpTestBase
     {
-        [Fact]
+        [Fact(Skip = "973907")]
         public void Syntax01()
         {
-            // No experimental LanguageVersion
+            // Feature is enabled by default
             var comp = CreateCompilationWithMscorlib(@"
 class C
 {
     public int M() => 1;
 }");
-            comp.VerifyDiagnostics(
-    // (4,20): error CS1002: ; expected
-    //     public int M() => 1;
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(4, 20),
-    // (4,20): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-    //     public int M() => 1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(4, 20),
-    // (4,16): error CS0501: 'C.M()' must declare a body because it is not marked abstract, extern, or partial
-    //     public int M() => 1;
-    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("C.M()").WithLocation(4, 16));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

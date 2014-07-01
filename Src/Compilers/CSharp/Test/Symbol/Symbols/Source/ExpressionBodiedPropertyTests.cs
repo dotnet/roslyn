@@ -9,22 +9,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 {
     public sealed class ExpressionBodiedPropertyTests : CSharpTestBase
     {
-        [Fact]
+        [Fact(Skip = "973907")]
         public void Syntax01()
         {
-            // No experimental LanguageVersion
+            // Language feature enabled by default
             var comp = CreateCompilationWithMscorlib(@"
 class C
 {
     public int P => 1;
 }");
-            comp.VerifyDiagnostics(
-    // (4,18): error CS1003: Syntax error, ',' expected
-    //     public int P => 1;
-    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(4, 18),
-    // (4,16): warning CS0649: Field 'C.P' is never assigned to, and will always have its default value 0
-    //     public int P => 1;
-    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "P").WithArguments("C.P", "0").WithLocation(4, 16));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

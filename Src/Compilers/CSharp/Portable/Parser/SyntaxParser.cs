@@ -999,25 +999,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
             }
 
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-
-            if (availableVersion >= requiredVersion)
+            if (IsFeatureEnabled(feature))
             {
                 return node;
             }
 
-            if (!forceWarning)
+            var featureName = feature.Localize();
+            var requiredVersion = feature.RequiredVersion();
+
+            if (forceWarning)
             {
-                return this.AddError(node, availableVersion.GetErrorCode(), feature.Localize(), (int)requiredVersion);
+                SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
+                return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+            }
+            
+            if (requiredVersion == LanguageVersion.Experimental)
+            {
+                return this.AddError(node, ErrorCode.ERR_FeatureIsExperimental, featureName);
             }
 
-            SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), (int)requiredVersion);
-            return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+            return this.AddError(node, availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
         }
 
-        protected bool AreExpreimentalFeaturesEnabled()
+        protected bool IsFeatureEnabled(MessageID feature)
         {
-            return this.Options.LanguageVersion == LanguageVersion.Experimental;
+            LanguageVersion availableVersion = this.Options.LanguageVersion;
+            LanguageVersion requiredVersion = feature.RequiredVersion();
+            return availableVersion >= requiredVersion;
         }
     }
 }

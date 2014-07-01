@@ -1887,7 +1887,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             LanguageVersion requiredVersion = feature.RequiredVersion();
             if (requiredVersion > availableVersion)
             {
-                diagnostics.Add(availableVersion.GetErrorCode(), location, feature.Localize(), (int)requiredVersion);
+                if (requiredVersion == LanguageVersion.Experimental)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize());
+                }
+                else
+                {
+                    diagnostics.Add(availableVersion.GetErrorCode(), location, feature.Localize(), requiredVersion.Localize());
+                }
             }
         }
     }

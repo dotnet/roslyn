@@ -22,21 +22,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// C# language version 3.0.
         /// </summary>
-        /// <remarks> Features: LINQ.
+        /// <remarks> 
+        /// Features: LINQ.
         /// </remarks>
         CSharp3 = 3,
 
         /// <summary>
         /// C# language version 4.0.
         /// </summary>
-        /// <remarks> Features: dynamic.
+        /// <remarks> 
+        /// Features: dynamic.
         /// </remarks>
         CSharp4 = 4,
 
         /// <summary>
         /// C# language version 5.0.
         /// </summary>
-        /// <remarks> Features: async.
+        /// <remarks> 
+        /// Features: async.
         /// </remarks>
         CSharp5 = 5,
 
@@ -44,11 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// C# language version 6.0.
         /// </summary>
         /// <remarks>
-        /// Features: 
-        /// Using of a static class.
-        /// Exception filters.
-        /// Autoprop initializers.
-        /// </remarks>
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Using of a static class</description></item> 
+        /// <item><description>Auto-property initializers</description></item> 
+        /// <item><description>Expression-bodied methods and properties</description></item> 
+        /// <item><description>Null-propagating operator ?.</description></item> 
+        /// <item><description>Exception filters</description></item> 
+        /// </list> 
+        /// </remarks> 
         CSharp6 = 6,
 
         /// <summary>
@@ -62,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsValid(this LanguageVersion value)
         {
             return (value >= LanguageVersion.CSharp1 && value <= LanguageVersion.CSharp6) || value == LanguageVersion.Experimental;
+        }
+
+        internal static object Localize(this LanguageVersion value)
+        {
+            return (value == LanguageVersion.Experimental) ? (object)MessageID.IDS_VersionExperimental.Localize() : (int)value;
         }
 
         internal static ErrorCode GetErrorCode(this LanguageVersion version)
@@ -78,6 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion4;
                 case LanguageVersion.CSharp5:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion5;
+                case LanguageVersion.CSharp6:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion6;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }

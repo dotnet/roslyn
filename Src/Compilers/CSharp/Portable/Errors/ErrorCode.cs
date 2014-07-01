@@ -1245,6 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion3 = 8024,
         ERR_FeatureNotAvailableInVersion4 = 8025,
         ERR_FeatureNotAvailableInVersion5 = 8026,
+        // ERR_FeatureNotAvailableInVersion6 is below
 
         ERR_FieldHasMultipleDistinctConstantValues = 8027,
 
@@ -1286,14 +1287,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AutoPropertyInitializerInInterface = 8053,
 
         ERR_InitializerInStructWithoutExplicitConstructor = 8054,
-        ERR_EncodinglessSyntaxTree = 8055,
 
+        ERR_EncodinglessSyntaxTree = 8055,
         ERR_AccessorListAndExpressionBody = 8056,
         ERR_BlockBodyAndExpressionBody = 8057,
 
-        ERR_SwitchFallOut = 8058,
+        ERR_FeatureIsExperimental = 8058,
+        ERR_FeatureNotAvailableInVersion6 = 8059,
+        // gap for future versions
 
-        // Values in the range 10000-14000 are used for "Code Analysis" issues previously reported by FXCop
+        ERR_SwitchFallOut = 8070,
+
+        // Values in the range 10000-10099 are used for "Code Analysis" issues previously reported by FXCop
         WRN_CA2000_DisposeObjectsBeforeLosingScope1 = 10000,
         WRN_CA2000_DisposeObjectsBeforeLosingScope2 = 10001,
 

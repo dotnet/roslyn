@@ -3564,6 +3564,27 @@
   <data name="IDS_Text" xml:space="preserve">
     <value>&lt;text&gt;</value>
   </data>
+  <data name="IDS_FeatureDeclarationExpression" xml:space="preserve">
+    <value>declaration expression</value>
+  </data>
+  <data name="IDS_FeaturePrimaryConstructor" xml:space="preserve">
+    <value>primary constructor</value>
+  </data>
+  <data name="IDS_FeatureNullPropagatingOperator" xml:space="preserve">
+    <value>null propagating operator</value>
+  </data>
+  <data name="IDS_FeatureExpressionBodiedMethod" xml:space="preserve">
+    <value>expression-bodied method</value>
+  </data>
+  <data name="IDS_FeatureExpressionBodiedProperty" xml:space="preserve">
+    <value>expression-bodied property</value>
+  </data>
+  <data name="IDS_FeatureExpressionBodiedIndexer" xml:space="preserve">
+    <value>expression-bodied indexer</value>
+  </data>
+  <data name="IDS_FeatureAutoPropertyInitializer" xml:space="preserve">
+    <value>auto property initializer</value>
+  </data>
   <data name="IDS_Namespace1" xml:space="preserve">
     <value>&lt;namespace&gt;</value>
   </data>
@@ -3725,6 +3746,15 @@
   </data>
   <data name="ERR_FeatureNotAvailableInVersion5" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 5.  Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion6" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 6.  Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_FeatureIsExperimental" xml:space="preserve">
+    <value>Feature '{0}' is only available in 'experimental' language version.</value>
+  </data>
+  <data name="IDS_VersionExperimental" xml:space="preserve">
+    <value>'experimental'</value>
   </data>
   <data name="ERR_DeclarationExpressionOutOfContext" xml:space="preserve">
     <value>A declaration expression is not permitted in this context.</value>

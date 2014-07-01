@@ -29,25 +29,9 @@ class Test(int x)
 ");
 
             comp.VerifyDiagnostics(
-    // (2,11): error CS1514: { expected
-    // class Test(int x)
-    Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 11),
-    // (2,11): error CS1513: } expected
-    // class Test(int x)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 11),
-    // (2,11): error CS1022: Type or namespace definition, or end-of-file expected
-    // class Test(int x)
-    Diagnostic(ErrorCode.ERR_EOFExpected, "(").WithLocation(2, 11),
-    // (2,17): error CS1002: ; expected
-    // class Test(int x)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 17),
-    // (2,17): error CS1022: Type or namespace definition, or end-of-file expected
-    // class Test(int x)
-    Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 17),
-    // (3,2): error CS1022: Type or namespace definition, or end-of-file expected
-    // {}
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(3, 2)
-                );
+                // (2,11): error CS8058: Feature 'primary constructor' is only available in 'experimental' language version.
+                // class Test(int x)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int x)").WithArguments("primary constructor").WithLocation(2, 11));
         }
 
         [Fact]
@@ -3272,9 +3256,7 @@ class Derived()
 {
     public readonly int X;
 
-    {
-        X = 5;
-    }
+    { X = 5; }
 }
 
 class Program
@@ -3287,34 +3269,10 @@ class Program
 ", compOptions: TestOptions.Exe);
 
             comp.VerifyDiagnostics(
-    // (2,14): error CS1514: { expected
-    // class Derived()
-    Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 14),
-    // (2,14): error CS1513: } expected
-    // class Derived()
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 14),
-    // (2,14): error CS1022: Type or namespace definition, or end-of-file expected
-    // class Derived()
-    Diagnostic(ErrorCode.ERR_EOFExpected, "(").WithLocation(2, 14),
-    // (6,5): error CS1022: Type or namespace definition, or end-of-file expected
-    //     {
-    Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(6, 5),
-    // (7,9): error CS0116: A namespace cannot directly contain members such as fields or methods
-    //         X = 5;
-    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "X").WithLocation(7, 9),
-    // (7,11): error CS1022: Type or namespace definition, or end-of-file expected
-    //         X = 5;
-    Diagnostic(ErrorCode.ERR_EOFExpected, "=").WithLocation(7, 11),
-    // (8,5): error CS1022: Type or namespace definition, or end-of-file expected
-    //     }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 5),
-    // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1),
-    // (15,50): error CS1061: 'Derived' does not contain a definition for 'X' and no extension method 'X' accepting a first argument of type 'Derived' could be found (are you missing a using directive or an assembly reference?)
-    //         System.Console.WriteLine((new Derived()).X);
-    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "X").WithArguments("Derived", "X").WithLocation(15, 50)
-                );
+                // (2,14): error CS8058: Feature 'primary constructor' is only available in 'experimental' language version.
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("primary constructor"),
+                // (6,5): error CS8058: Feature 'primary constructor' is only available in 'experimental' language version.
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "{ X = 5; }").WithArguments("primary constructor"));
         }
 
         [Fact]

@@ -14961,37 +14961,6 @@ public class C
         }
 
         [Fact]
-        public void ConditionalAccess001_noExperimental()
-        {
-            string sourceCode = @"
-public class C
-{
-    static void Main()
-    {
-        var dummy1 = ((string)null) ?.ToString().Length ?.ToString();
-        var dummy2 = ""qqq"" ?/*<bind>*/.ToString()/*</bind>*/.Length.ToString();
-        var dummy3 = 1.ToString() ?.ToString().Length.ToString();
-    }
-}
-";
-            var semanticInfo = GetSemanticInfoForTest<InvocationExpressionSyntax>(sourceCode);
-
-            Assert.Equal("?", semanticInfo.Type.ToDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
-            Assert.Equal("?", semanticInfo.ConvertedType.ToDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
-
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
-            Assert.False(semanticInfo.IsCompileTimeConstant);
-        }
-
-        [Fact]
         public void ConditionalAccess002()
         {
             string sourceCode = @"

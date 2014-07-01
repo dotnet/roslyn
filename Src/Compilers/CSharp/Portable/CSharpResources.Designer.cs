@@ -3914,6 +3914,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is only available in &apos;experimental&apos; language version..
+        /// </summary>
+        internal static string ERR_FeatureIsExperimental {
+            get {
+                return ResourceManager.GetString("ERR_FeatureIsExperimental", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 1.  Please use language version {1} or greater..
         /// </summary>
         internal static string ERR_FeatureNotAvailableInVersion1 {
@@ -3955,6 +3964,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_FeatureNotAvailableInVersion5 {
             get {
                 return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 6.  Please use language version {1} or greater..
+        /// </summary>
+        internal static string ERR_FeatureNotAvailableInVersion6 {
+            get {
+                return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion6", resourceCulture);
             }
         }
         
@@ -6350,7 +6368,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
             get {
                 return ResourceManager.GetString("ERR_ObjectRequired", resourceCulture);
             }
-            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to A /reference option that declares an extern alias can only have one filename. To specify multiple aliases or filenames, use multiple /reference options..
@@ -8567,11 +8585,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to auto property initializer.
+        /// </summary>
+        internal static string IDS_FeatureAutoPropertyInitializer {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAutoPropertyInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to collection initializer.
         /// </summary>
         internal static string IDS_FeatureCollectionInitializer {
             get {
                 return ResourceManager.GetString("IDS_FeatureCollectionInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to declaration expression.
+        /// </summary>
+        internal static string IDS_FeatureDeclarationExpression {
+            get {
+                return ResourceManager.GetString("IDS_FeatureDeclarationExpression", resourceCulture);
             }
         }
         
@@ -8599,6 +8635,33 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureExceptionFilter {
             get {
                 return ResourceManager.GetString("IDS_FeatureExceptionFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to expression-bodied indexer.
+        /// </summary>
+        internal static string IDS_FeatureExpressionBodiedIndexer {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExpressionBodiedIndexer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to expression-bodied method.
+        /// </summary>
+        internal static string IDS_FeatureExpressionBodiedMethod {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExpressionBodiedMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to expression-bodied property.
+        /// </summary>
+        internal static string IDS_FeatureExpressionBodiedProperty {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExpressionBodiedProperty", resourceCulture);
             }
         }
         
@@ -8711,6 +8774,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to null propagating operator.
+        /// </summary>
+        internal static string IDS_FeatureNullPropagatingOperator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNullPropagatingOperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to object initializer.
         /// </summary>
         internal static string IDS_FeatureObjectInitializer {
@@ -8752,6 +8824,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeaturePragma {
             get {
                 return ResourceManager.GetString("IDS_FeaturePragma", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to primary constructor.
+        /// </summary>
+        internal static string IDS_FeaturePrimaryConstructor {
+            get {
+                return ResourceManager.GetString("IDS_FeaturePrimaryConstructor", resourceCulture);
             }
         }
         
@@ -9103,6 +9184,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_USINGLOCAL {
             get {
                 return ResourceManager.GetString("IDS_USINGLOCAL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;experimental&apos;.
+        /// </summary>
+        internal static string IDS_VersionExperimental {
+            get {
+                return ResourceManager.GetString("IDS_VersionExperimental", resourceCulture);
             }
         }
         

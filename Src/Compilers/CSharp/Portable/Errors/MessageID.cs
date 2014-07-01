@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNamedArgument = MessageBase + 12646,
         IDS_FeatureOptionalParameter = MessageBase + 12647,
         IDS_FeatureExceptionFilter = MessageBase + 12648,
-        IDS_FeatureAutoPropertyInitializers = MessageBase + 12649,
+        IDS_FeatureAutoPropertyInitializer = MessageBase + 12649,
 
         IDS_SK_TYPE_OR_NAMESPACE = MessageBase + 12652,
         IDS_Contravariant = MessageBase + 12659,
@@ -99,6 +99,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Namespace1 = MessageBase + 12685,
         IDS_PathList = MessageBase + 12686,
         IDS_Text = MessageBase + 12687,
+
+        IDS_FeatureDeclarationExpression = MessageBase + 12688,
+        IDS_FeaturePrimaryConstructor = MessageBase + 12689,
+        IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
+        IDS_FeatureExpressionBodiedMethod = MessageBase + 12691,
+        IDS_FeatureExpressionBodiedProperty = MessageBase + 12692,
+        IDS_FeatureExpressionBodiedIndexer = MessageBase + 12693,
+        IDS_VersionExperimental = MessageBase + 12694,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -133,9 +141,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // Experimental features.
+                case MessageID.IDS_FeatureDeclarationExpression:
+                case MessageID.IDS_FeaturePrimaryConstructor:
+                case MessageID.IDS_FeatureExpressionBodiedMethod:
+                case MessageID.IDS_FeatureExpressionBodiedProperty:
+                case MessageID.IDS_FeatureExpressionBodiedIndexer:
+                    return LanguageVersion.Experimental;
+
                 // C# 6 features.
                 case MessageID.IDS_FeatureExceptionFilter:
-                case MessageID.IDS_FeatureAutoPropertyInitializers:
+                case MessageID.IDS_FeatureAutoPropertyInitializer:
+                case MessageID.IDS_FeatureNullPropagatingOperator:
                     return LanguageVersion.CSharp6;
 
                 // C# 5 features.

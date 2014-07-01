@@ -314,24 +314,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        private void TestConditionalAccessNoExperimental()
+        private void TestConditionalAccessNotVersion5()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
-            var expr = this.ParseExpression(text);
+            var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
 
             Assert.NotNull(expr);
             Assert.Equal(text, expr.ToString());
-            Assert.Equal(12, expr.Errors().Length);
+            Assert.Equal(4, expr.Errors().Length);
 
-            var e = (ConditionalExpressionSyntax)expr;
-            Assert.Equal(".c.d?[1]?.e()?.f", e.WhenTrue.ToString());
+            var e = (ConditionalAccessExpressionSyntax)expr;
+            Assert.Equal("a.b?.c.d?[1]?.e()", e.Expression.ToString());
+            Assert.Equal(".f", e.WhenNotNull.ToString());
         }
 
         [Fact]
         private void TestConditionalAccess()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
-            var expr = this.ParseExpressionExperimental(text);
+            var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
 
             Assert.NotNull(expr);
             Assert.Equal(text, expr.ToString());
