@@ -1209,7 +1209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
+        [WorkItem(975881)]
+        [Fact(Skip = "975881")]
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public void CompactFileCache1()
         {
@@ -1277,7 +1278,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
+        [WorkItem(975881)]
+        [Fact(Skip = "975881")]
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public void CompactFileCache2()
         {
@@ -1357,7 +1359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             GC.KeepAlive(c1);
         }
 
-        [Fact]
+        [WorkItem(975881)]
+        [Fact(Skip = "975881")]
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public void CompactFileCache3()
         {
