@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var filePath = projectState.GetDocumentState(documentId).FilePath;
 
-                if (string.IsNullOrWhiteSpace(filePath))
+                if (string.IsNullOrEmpty(filePath))
                 {
                     continue;
                 }
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var filePath = projectState.GetDocumentState(documentId).FilePath;
 
-                if (string.IsNullOrWhiteSpace(filePath))
+                if (string.IsNullOrEmpty(filePath))
                 {
                     continue;
                 }
@@ -1498,11 +1498,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the set of documents in the current solution with the given file path.
+        /// Gets the set of <see cref="DocumentId"/>s in this <see cref="Solution"/> with a
+        /// <see cref="Document.FilePath"/> that matches the given file path.
         /// </summary>
-        internal ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string filePath)
+        public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string filePath)
         {
-            if (string.IsNullOrWhiteSpace(filePath))
+            if (string.IsNullOrEmpty(filePath))
             {
                 return ImmutableArray.Create<DocumentId>();
             }

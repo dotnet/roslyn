@@ -135,17 +135,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var currentDocumentVersion = await currentDocument.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             return !documentVersion.Equals(currentDocumentVersion);
         }
-
-        /// <summary>
-        /// Gets the list of DocumentIds that are linked to the given document in the workspace's
-        /// current solution and also exist in the given document's solution. The DocumentId of the
-        /// given Document is excluded.
-        /// </summary>
-        public static IEnumerable<DocumentId> GetLinkedDocumentIds(this Document document)
-        {
-            return document.Project.Solution
-                .GetDocumentIdsWithFilePath(document.FilePath)
-                .Where(documentId => documentId != document.Id);
-        }
     }
 }

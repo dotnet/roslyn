@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -445,6 +446,18 @@ namespace Microsoft.CodeAnalysis
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        /// <summary>
+        /// Gets the list of <see cref="DocumentId"/>s that are linked to this
+        /// <see cref="Document" />. <see cref="Document"/>s are considered to be linked if they
+        /// share the same <see cref="FilePath" />. This <see cref="DocumentId"/> is excluded from the 
+        /// result.
+        /// </summary>
+        public ImmutableArray<DocumentId> GetLinkedDocumentIds()
+        {
+            var documentIdsWithPath = this.Project.Solution.GetDocumentIdsWithFilePath(this.FilePath);
+            return documentIdsWithPath.Remove(this.Id);
         }
 
         /// <summary>
