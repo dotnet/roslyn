@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.
         /// </summary>
-        public void AddSolution(SolutionInfo solutionInfo)
+        public Solution AddSolution(SolutionInfo solutionInfo)
         {
             if (solutionInfo == null)
             {
@@ -44,22 +44,23 @@ namespace Microsoft.CodeAnalysis
             }
 
             this.OnSolutionAdded(solutionInfo);
+
+            return this.CurrentSolution;
         }
 
         /// <summary>
         /// Adds a project to the workspace. All previous projects remain intact.
         /// </summary>
-        public ProjectId AddProject(string name, string language)
+        public Project AddProject(string name, string language)
         {
             var info = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), name, name, language);
-            this.AddProject(info);
-            return info.Id;
+            return this.AddProject(info);
         }
 
         /// <summary>
         /// Adds a project to the workspace. All previous projects remain intact.
         /// </summary>
-        public void AddProject(ProjectInfo projectInfo)
+        public Project AddProject(ProjectInfo projectInfo)
         {
             if (projectInfo == null)
             {
@@ -67,6 +68,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             this.OnProjectAdded(projectInfo);
+
+            return this.CurrentSolution.GetProject(projectInfo.Id);
         }
 
         /// <summary>
@@ -89,7 +92,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Adds a document to the workspace.
         /// </summary>
-        public DocumentId AddDocument(ProjectId projectId, string name, SourceText text)
+        public Document AddDocument(ProjectId projectId, string name, SourceText text)
         {
             if (projectId == null)
             {
@@ -109,15 +112,13 @@ namespace Microsoft.CodeAnalysis
             var id = DocumentId.CreateNewId(projectId);
             var loader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));
 
-            this.AddDocument(DocumentInfo.Create(id, name, loader: loader));
-
-            return id;
+            return this.AddDocument(DocumentInfo.Create(id, name, loader: loader));
         }
 
         /// <summary>
         /// Adds a document to the workspace.
         /// </summary>
-        public void AddDocument(DocumentInfo documentInfo)
+        public Document AddDocument(DocumentInfo documentInfo)
         {
             if (documentInfo == null)
             {
@@ -125,6 +126,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             this.OnDocumentAdded(documentInfo);
+
+            return this.CurrentSolution.GetDocument(documentInfo.Id);
         }
     }
 }

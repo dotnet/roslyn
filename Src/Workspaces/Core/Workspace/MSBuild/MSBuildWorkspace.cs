@@ -420,6 +420,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // construct workspace from loaded project infos
             this.OnSolutionAdded(SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects));
 
+            this.UpdateReferencesAfterAdd();
+
             return this.CurrentSolution;
         }
 
@@ -448,12 +450,79 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         this.OnProjectAdded(project);
                     }
 
+                    this.UpdateReferencesAfterAdd();
+
                     return this.CurrentSolution.GetProject(projectId);
                 }
             }
 
             // unreachable
             return null;
+        }
+
+        private void UpdateReferencesAfterAdd()
+        {
+            using (this.serializationLock.DisposableWait())
+            {
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.UpdateReferencesAfterAdd(oldSolution);
+
+                if (newSolution != oldSolution)
+                {
+                    newSolution = this.SetCurrentSolution(newSolution);
+                    var ignore = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                }
+            }
+        }
+
+        // Updates all projects to properly reference other existing projects via project references instead of using references to built metadata.
+        private Solution UpdateReferencesAfterAdd(Solution solution)
+        {
+            // Build map from output assembly path to ProjectId
+            // Use explicit loop instead of ToDictionary so we don't throw if multiple projects have same output assembly path.
+            var outputAssemblyToProjectIdMap = new Dictionary<string, ProjectId>();
+            foreach (var p in solution.Projects)
+            {
+                if (!string.IsNullOrEmpty(p.OutputFilePath))
+                {
+                    outputAssemblyToProjectIdMap[p.OutputFilePath] = p.Id;
+                }
+            }
+
+            // now fix each project if necessary
+            foreach (var pid in solution.ProjectIds)
+            {
+                var project = solution.GetProject(pid);
+
+                // convert metadata references to project references if the metadata reference matches some project's output assembly.
+                foreach (var meta in project.MetadataReferences)
+                {
+                    var pemeta = meta as PortableExecutableReference;
+                    if (pemeta != null)
+                    {
+                        ProjectId matchingProjectId;
+
+                        // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if 
+                        // the metadata reference is shadow copied.
+                        if ((!string.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out matchingProjectId)) ||
+                            (!string.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
+                        {
+                            var newProjRef = new ProjectReference(matchingProjectId, pemeta.Properties.Aliases, pemeta.Properties.EmbedInteropTypes);
+
+                            if (!project.ProjectReferences.Contains(newProjRef))
+                            {
+                                project = project.WithProjectReferences(project.ProjectReferences.Concat(newProjRef));
+                            }
+
+                            project = project.WithMetadataReferences(project.MetadataReferences.Where(mr => mr != meta));
+                        }
+                    }
+                }
+
+                solution = project.Solution;
+            }
+
+            return solution;
         }
 
         private async Task<ProjectId> GetOrLoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, List<ProjectInfo> loadedProjects, CancellationToken cancellationToken)

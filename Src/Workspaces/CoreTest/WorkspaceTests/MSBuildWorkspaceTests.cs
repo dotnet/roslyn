@@ -924,6 +924,33 @@ class C1
             Assert.False(metaRefs.Any(r => !r.Properties.Aliases.IsDefault && r.Properties.Aliases.Contains("CSharpProject")));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_UpdateExistingReferences()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .WithFile(@"CSharpProject\bin\Debug\CSharpProject.dll", GetResourceBytes("CSharpProject.dll")));
+
+            // keep metadata reference from holding files open
+            Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
+
+            // first open vb project that references c# project, but only reference the c# project's built metadata
+            var ws = MSBuildWorkspace.Create();
+            ws.LoadMetadataForReferencedProjects = true;
+            var vbproject = ws.OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
+
+            // prove vb project references c# project as a metadata reference
+            Assert.Equal(0, vbproject.ProjectReferences.Count());
+            Assert.Equal(true, vbproject.MetadataReferences.Any(r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll")));
+
+            // now expliticly open the c# project that got referenced as metadata
+            var csproject = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
+
+            // show that the vb project now references the c# project directly (not as metadata)
+            vbproject = ws.CurrentSolution.GetProject(vbproject.Id);
+            Assert.Equal(1, vbproject.ProjectReferences.Count());
+            Assert.False(vbproject.MetadataReferences.Any(r => !r.Properties.Aliases.IsDefault && r.Properties.Aliases.Contains("CSharpProject")));
+        }
+
         [ConditionalFact(typeof(Framework35Installed))]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(528984, "DevDiv")]
