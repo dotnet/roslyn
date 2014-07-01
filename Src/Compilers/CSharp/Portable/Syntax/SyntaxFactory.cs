@@ -1203,14 +1203,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static ExpressionSyntax ParseDebuggerExpression(string text, bool consumeFullText = true)
+        internal static ExpressionSyntax ParseDebuggerExpression(SourceText text, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset: 0))
+            using (var lexer = new InternalSyntax.Lexer(text, CSharpParseOptions.Default))
             using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax))
             {
                 var node = parser.ParseExpression();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (ExpressionSyntax)node.CreateRed();
+                var syntaxTree = CSharpSyntaxTree.Create((ExpressionSyntax)node.CreateRed(), text: text);
+                return (ExpressionSyntax)syntaxTree.GetRoot();
             }
         }
 

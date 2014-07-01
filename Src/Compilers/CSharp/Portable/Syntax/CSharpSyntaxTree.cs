@@ -310,11 +310,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new ParsedSyntaxTree(
                 textOpt: null,
-                encodingOpt: encoding, 
+                encodingOpt: encoding,
                 path: path,
+                options: options ?? CSharpParseOptions.Default,
                 root: root,
-                options: options ?? CSharpParseOptions.Default, 
                 directives: directives);
+        }
+
+        /// <summary>
+        /// Create a new syntax tree from a syntax node and with
+        /// text that should correspond to the syntax node.
+        /// </summary>
+        internal static SyntaxTree Create(CSharpSyntaxNode root, SourceText text)
+        {
+            Debug.Assert(root != null);
+
+            return new ParsedSyntaxTree(
+                textOpt: text,
+                encodingOpt: null,
+                path: "",
+                options: CSharpParseOptions.Default,
+                root: root,
+                directives: InternalSyntax.DirectiveStack.Empty);
         }
 
         /// <summary>
@@ -330,8 +347,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new ParsedSyntaxTree(
                 textOpt: null,
-                path: "", 
                 encodingOpt: null,
+                path: "",
                 options: CSharpParseOptions.Default,
                 root: root, 
                 directives: InternalSyntax.DirectiveStack.Empty, 
