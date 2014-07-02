@@ -3916,5 +3916,43 @@ End Module
 
             AssertFormatLf2CrLf(text.Value, expected.Value)
         End Sub
+
+        <WorkItem(796562)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub TriviaAtEndOfCaseBelongsToNextCase()
+            Dim text = <Code>
+Class X
+    Function F(x As Integer) As Integer
+        Select Case x
+            Case 1
+                Return 2
+                ' This comment describes case 2.
+            Case 2,
+                Return 3
+        End Select
+
+        Return 5
+    End Function
+End Class
+</Code>
+
+            Dim expected = <Code>
+Class X
+    Function F(x As Integer) As Integer
+        Select Case x
+            Case 1
+                Return 2
+            ' This comment describes case 2.
+            Case 2,
+                Return 3
+        End Select
+
+        Return 5
+    End Function
+End Class
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
     End Class
 End Namespace

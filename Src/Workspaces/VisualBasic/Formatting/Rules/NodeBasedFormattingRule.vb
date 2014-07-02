@@ -150,6 +150,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End If
             End If
 
+            Dim caseBlock = TryCast(node, CaseBlockSyntax)
+            If caseBlock IsNot Nothing AndAlso pair.Item2.GetNextToken().IsKind(SyntaxKind.CaseKeyword) Then
+                AddIndentBlockOperation(operations, pair.Item1, pair.Item2, dontIncludeNextTokenTrailingTrivia:=True)
+                Return
+            End If
 
             AddIndentBlockOperation(operations, pair.Item1, pair.Item2)
         End Sub

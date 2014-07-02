@@ -10,12 +10,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Protected Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
+        Protected Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition, Optional dontIncludeNextTokenTrailingTrivia As Boolean = False)
             If startToken.VisualBasicKind = SyntaxKind.None OrElse endToken.VisualBasicKind = SyntaxKind.None Then
                 Return
             End If
 
-            Dim span = GetIndentBlockSpan(startToken, endToken)
+            Dim span = GetIndentBlockSpan(startToken, endToken, dontIncludeNextTokenTrailingTrivia)
             operations.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, span, indentationDelta:=1, [option]:=[option]))
         End Sub
 
@@ -50,20 +50,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return TextSpan.FromBounds(previousToken.Span.End, endToken.FullSpan.End)
         End Function
 
-        Private Function GetIndentBlockSpan(startToken As SyntaxToken, endToken As SyntaxToken) As TextSpan
+        Private Function GetIndentBlockSpan(startToken As SyntaxToken, endToken As SyntaxToken, Optional dontIncludeNextTokenTrailingTrivia As Boolean = False) As TextSpan
             ' special case for colon trivia
-            Dim previousToken = startToken.GetPreviousToken(includeZeroWidth:=True)
+            Dim spanStart = startToken.GetPreviousToken(includeZeroWidth:=True).Span.End
             Dim nextToken = endToken.GetNextToken(includeZeroWidth:=True)
+
+            If dontIncludeNextTokenTrailingTrivia Then
+                Return TextSpan.FromBounds(spanStart, endToken.Span.End)
+            End If
 
             For Each trivia In nextToken.LeadingTrivia.Reverse()
                 If trivia.VisualBasicKind = SyntaxKind.EndOfLineTrivia Then
                     Exit For
                 ElseIf trivia.VisualBasicKind = SyntaxKind.ColonTrivia Then
-                    Return TextSpan.FromBounds(previousToken.Span.End, trivia.FullSpan.Start)
+                    Return TextSpan.FromBounds(spanStart, trivia.FullSpan.Start)
                 End If
             Next
 
-            Return TextSpan.FromBounds(previousToken.Span.End, nextToken.SpanStart)
+            Return TextSpan.FromBounds(spanStart, nextToken.SpanStart)
         End Function
 
         Protected Sub AddSuppressWrappingIfOnSingleLineOperation(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
