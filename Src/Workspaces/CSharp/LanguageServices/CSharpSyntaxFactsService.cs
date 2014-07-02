@@ -959,10 +959,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                var @namepsace = member as NamespaceDeclarationSyntax;
-                if (@namepsace != null)
+                var @namespace = member as NamespaceDeclarationSyntax;
+                if (@namespace != null)
                 {
-                    AppendConstructors(@namepsace.Members, constructors, cancellationToken);
+                    AppendConstructors(@namespace.Members, constructors, cancellationToken);
                 }
 
                 var @class = member as ClassDeclarationSyntax;

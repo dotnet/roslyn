@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             CompilationUtils.VerifyGlobalNamespace(compilation1, "a.vb", "Class1", "NS1.Class1")
             CompilationUtils.VerifyGlobalNamespace(compilation1, "a.vb", "C1", "C1")
 
-            ' While set the root namespace of compilaton to "RootNS" ,'RootNS'is inside global namespace
+            ' While set the root namespace of compilation to "RootNS" ,'RootNS' is inside global namespace
             Dim globalNS2 = compilation2.GlobalNamespace
             Dim rootNS2 = DirectCast(globalNS2.GetMembers("RootNS").Single(), NamespaceSymbol)
             CompilationUtils.VerifyIsGlobal(rootNS2.ContainingSymbol)

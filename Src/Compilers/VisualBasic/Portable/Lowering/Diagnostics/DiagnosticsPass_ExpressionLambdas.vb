@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If isLifted Then
                             Dim method As MethodSymbol = node.Call.Method
                             If method.ReturnType.IsNullableType Then
-                                ' TODO: There is a bug in Dev11 when the resulting expression tree fails to buid in 
+                                ' TODO: There is a bug in Dev11 when the resulting expression tree fails to build in 
                                 '       case the binary operator is lifted, but the method has nullable return type.
                                 ' MORE: bug#18100
                                 GenerateExpressionTreeNotSupportedDiagnostic(node)
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If (node.OperatorKind And BinaryOperatorKind.Lifted) <> 0 Then
                             Dim method As MethodSymbol = node.Call.Method
                             If method.ReturnType.IsNullableType Then
-                                ' TODO: There is a bug in Dev11 when the resulting expression tree fails to buid in 
+                                ' TODO: There is a bug in Dev11 when the resulting expression tree fails to build in 
                                 '       case the binary operator is lifted, but the method has nullable return type.
                                 ' MORE: bug#18096
                                 GenerateExpressionTreeNotSupportedDiagnostic(node)

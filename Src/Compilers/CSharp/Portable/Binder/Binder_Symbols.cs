@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Retrieves a well-known type member and reports diagnostics.
         /// </summary>
-        /// <retruns>Null if the symbol is missing.</retruns>
+        /// <returns>Null if the symbol is missing.</returns>
         internal static Symbol GetWellKnownTypeMember(CSharpCompilation compilation, WellKnownMember member, DiagnosticBag diagnostics, Location location = null, CSharpSyntaxNode syntax = null, bool isOptional = false)
         {
             Debug.Assert((syntax != null) ^ (location != null));

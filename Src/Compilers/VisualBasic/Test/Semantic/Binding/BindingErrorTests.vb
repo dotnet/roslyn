@@ -21176,7 +21176,7 @@ BC42355: Property 'P' doesn't return a value on all code paths. Are you missing 
         End Sub
 
         <Fact()>
-        Public Sub BC42356WRN_UnreachableCode_LamdaBody()
+        Public Sub BC42356WRN_UnreachableCode_LambdaBody()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
         <file name="a.vb">

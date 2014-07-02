@@ -820,7 +820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub AppendConstructors(members As SyntaxList(Of StatementSyntax), constructors As List(Of SyntaxNode), cancellationToken As CancellationToken)
-            For Each member In members
+            For Each member As StatementSyntax In members
                 cancellationToken.ThrowIfCancellationRequested()
 
                 Dim constructor = TryCast(member, ConstructorBlockSyntax)
@@ -829,9 +829,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Continue For
                 End If
 
-                Dim [namepsace] = TryCast(member, NamespaceBlockSyntax)
-                If [namepsace] IsNot Nothing Then
-                    AppendConstructors([namepsace].Members, constructors, cancellationToken)
+                Dim [namespace] = TryCast(member, NamespaceBlockSyntax)
+                If [namespace] IsNot Nothing Then
+                    AppendConstructors([namespace].Members, constructors, cancellationToken)
                 End If
 
                 Dim [class] = TryCast(member, ClassBlockSyntax)

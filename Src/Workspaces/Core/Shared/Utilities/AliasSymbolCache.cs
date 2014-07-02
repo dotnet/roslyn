@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 builder.Add(alias.Target, alias);
             }
 
-            // use namepsace id rather than holding onto namespace node directly, that will make the tree to alive as long as compilation
-            // alive. in current design, node can come and go even if compilation is alive through recoverable tree.
+            // Use namespace id rather than holding onto namespace node directly, that will keep the tree alive as long as
+            // the compilation is alive. In the current design, a node can come and go even if compilation is alive through recoverable tree.
             treeMap.TryAdd(key, builder.ToImmutable());
         }
     }

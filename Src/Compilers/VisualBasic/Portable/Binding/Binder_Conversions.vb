@@ -731,29 +731,29 @@ DoneWithDiagnostics:
             End If
 
             ' Variance scenario 1:                                  | Variance scenario 3:
-            ' dim x as IEnumerable(Of Tiger)=new List(Of Animal)    | Dim x As IFoo(Of Animal) = New MyFoo
-            ' "List2(Of Animal) cannot be converted to              | "MyFoo cannot be converted to IFoo(Of Animal).
-            ' IEnumerable2(Of Tiger) because 'Animal' is not derived| Consider changing the 'T' in the definition
+            ' Dim x as IEnumerable(Of Tiger) = New List(Of Animal)  | Dim x As IFoo(Of Animal) = New MyFoo
+            ' "List(Of Animal) cannot be converted to               | "MyFoo cannot be converted to IFoo(Of Animal).
+            ' IEnumerable(Of Tiger) because 'Animal' is not derived | Consider changing the 'T' in the definition
             ' from 'Tiger', as required for the 'Out' generic       | of interface IFoo(Of T) to an Out type
-            ' parameter 'T' in 'IEnumerable2(Of Out T)'"            | parameter, Out T."
+            ' parameter 'T' in 'IEnumerable(Of Out T)'"             | parameter, Out T."
             '                                                       |
             ' (1) If the user attempts a conversion to              | (1) If the user attempts a conversion to some
             '     some target type DEST=G(Of D1,D2,...) which is    |     target type DEST=G(Of D1,D2,...) which is
-            '     a generic binding of some variant interface/      |     a generic binding of some interface/delegate
+            '     a generic instantiation of some variant interface/|     a generic instantiation of some interface/delegate
             '     delegate type G(Of T1,T2,...),                    |     type G(...), which NEED NOT be variant!
-            ' (2) and if the conversion failed (Narrowing/Error),   | (2) and if the type G were defined in source-code,
-            ' (3) and if the source type SOURCE implemented/        |     not imported metadata. And the converion failed.
-            '     inherited exactly one binding INHSOURCE=          | (3) And INHSOURCE=exactly one binding of G
+            ' (2) and if the conversion fails (Narrowing/Error),    | (2) and if the type G is defined in source-code,
+            ' (3) and if the source type SOURCE implements/         |     not imported metadata. And the conversion fails.
+            '     inherits exactly one binding INHSOURCE=           | (3) And INHSOURCE=exactly one binding of G
             '     G(Of S1,S2,...) of that generic type G,           | (4) And if ever difference is either Di/Si/Ti
             ' (4) and if the only differences between (D1,D2,...)   |     where Ti has In/Out variance, or is
             '     and (S1,S2,...) occur in positions "Di/Si"        |     Dj/Sj/Tj such that Tj has no variance and
-            '     such that the corresponding Ti had either In      |     Dj has a CLR conversion to Sj or vice versa
+            '     such that the corresponding Ti has either In      |     Dj has a CLR conversion to Sj or vice versa
             '     or Out variance                                   | (5) Then pick the first difference Dj/Sj
             ' (5) Then pick on the one such difference Si/Di/Ti     | (6) and report "SOURCE cannot be converted to
             ' (6) and report "SOURCE cannot be converted to DEST    |     DEST. Consider changing Tj in the definition
             '     because Si is not derived from Di, as required    |     of interface/delegate IFoo(Of T) to an
             '     for the 'In/Out' generic parameter 'T' in         |     In/Out type parameter, In/Out T".
-            '     'IEnumerable2(Of Out T)'"                         |
+            '     'IEnumerable(Of Out T)'"                          |
             Dim matchingGenericInstantiation As NamedTypeSymbol
 
             ' (1) If the user attempts a conversion 
@@ -1462,7 +1462,7 @@ DoneWithDiagnostics:
                         ElseIf Not ReportDelegateInvokeUseSiteError(diagnostics, lambda.Syntax, targetDelegateType, invoke) Then
 
                             ' Conversion could fail because we couldn't convert body of the lambda
-                            ' to the target delagate type. We want to report that error instead of
+                            ' to the target delegate type. We want to report that error instead of
                             ' lambda signature mismatch.
                             If lambda.LambdaSymbol.ReturnType Is LambdaSymbol.ReturnTypePendingDelegate AndAlso
                                Not invoke.IsSub AndAlso

@@ -5153,20 +5153,20 @@ using System.Collections.Generic;
 
 public class NetImpl : IEventsDerived_Event
 {
-    // Unique ket for events
+    // Unique keys for events
     static readonly object[] myEventKeyList = new object[] { new object(), new object() };
     Hashtable eventTable = new Hashtable();
 
-    #region ""Shared Func""
+    #region Shared Func
     // return event handle associated with the key
-    protected Delegate GetEventHandlerDelagate(int index)
+    protected Delegate GetEventHandlerDelegate(int index)
     {
         object key = myEventKeyList[index];
         return eventTable[key] as Delegate;
     }
 
     // add event handle associated with the key
-    protected void AddEventHandlerDelagate(int index, Delegate handler)
+    protected void AddEventHandlerDelegate(int index, Delegate handler)
     {
         lock (eventTable)
         {
@@ -5184,7 +5184,7 @@ public class NetImpl : IEventsDerived_Event
     }
 
     // remove event handle associated with the key
-    protected void RemoveEventHandlerDelagate(int index, Delegate handler)
+    protected void RemoveEventHandlerDelegate(int index, Delegate handler)
     {
         lock (eventTable)
         {
@@ -5202,33 +5202,33 @@ public class NetImpl : IEventsDerived_Event
     }
     #endregion
 
-    #region ""Impl Event""
+    #region Impl Event
     event EventDelegate01 IEventsDerived_Event.MyEvent01
     {
-        add { AddEventHandlerDelagate(0, value); }
-        remove { RemoveEventHandlerDelagate(0, value); }
+        add { AddEventHandlerDelegate(0, value); }
+        remove { RemoveEventHandlerDelegate(0, value); }
     }
 
     event EventDelegate02 IEventsDerived_Event.MyEvent02
     {
-        add { AddEventHandlerDelagate(1, value); }
-        remove { RemoveEventHandlerDelagate(1, value); }
+        add { AddEventHandlerDelegate(1, value); }
+        remove { RemoveEventHandlerDelegate(1, value); }
     }
 
     #endregion
 
-    #region ""Fire Event""
+    #region Fire Event
 
     public void Fire01(ref bool arg, int idx = 0)
     {
-        EventDelegate01 e = GetEventHandlerDelagate(idx) as EventDelegate01;
+        EventDelegate01 e = GetEventHandlerDelegate(idx) as EventDelegate01;
         if (null != e)
             e(ref arg);
     }
 
     public string Fire02(string arg, int idx = 1)
     {
-        EventDelegate02 e = GetEventHandlerDelagate(idx) as EventDelegate02;
+        EventDelegate02 e = GetEventHandlerDelegate(idx) as EventDelegate02;
         if (null != e)
             return e(arg);
         return String.Empty;

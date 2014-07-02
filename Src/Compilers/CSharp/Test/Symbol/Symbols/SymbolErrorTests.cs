@@ -14980,7 +14980,7 @@ public interface IMyInterface
 public delegate void DelegateWithInterface(IMyInterface value);
 public delegate void DelegateWithInterfaceArray(IMyInterface[] ary);
 public delegate IMyInterface DelegateRetInterface();
-public delegate DelegateRetInterface DelegateRetDelagate(DelegateRetInterface d);
+public delegate DelegateRetInterface DelegateRetDelegate(DelegateRetInterface d);
 ";
             var text = @"
 class Test

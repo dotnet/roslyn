@@ -916,7 +916,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.GroupJoinClause
                     Dim groupJoin = DirectCast(groupOrInnerJoin.Parent, GroupJoinClauseSyntax)
 
-                    ' If we are nested into a Group Join, we are buiding the group for it.
+                    ' If we are nested into a Group Join, we are building the group for it.
                     ' It is safe to not flatten, if there is another nested join after this one,
                     ' the last nested join will take care of flattening.
                     Return groupOrInnerJoin Is groupJoin.AdditionalJoins.LastOrDefault

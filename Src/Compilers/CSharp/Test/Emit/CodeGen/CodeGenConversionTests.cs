@@ -39,7 +39,7 @@ public class Program
         float f = (float)d;
         Assert(f == 12.0F);
 
-        // explicit enumeration converions 6.2.2
+        // explicit enumeration conversions 6.2.2
         b = 1;
         E1 e1 = (E1)b;
         Assert(e1 == E1.e2);
@@ -68,7 +68,7 @@ public class Program
         e1 = (E1)e;
         Assert(e1 == E1.e1);
 
-        // explicit dynamic converions 6.2.6
+        // explicit dynamic conversions 6.2.6
         // explicit conversions involving type parameters 6.2.7
         // user defined explicit conversions 6.2.8
     }

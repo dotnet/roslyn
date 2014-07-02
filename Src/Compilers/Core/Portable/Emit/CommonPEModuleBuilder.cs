@@ -72,12 +72,12 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly bool MetadataOnly;
         internal readonly TModuleCompilationState CompilationState;
 
-        // this is a map from the document "name" to the document.
-        // document "name" is typically a file path like "C:\Abc\Def.cs" however that is not guaranteed.
-        // For compatibility reasons the names treated as case-sensitive in C# and case-insensitive in VB 
-        // Both languages do not trim the names, so they are both sensitive to the leading and trailing whitespaces.
-        // NOTE: we are not considering how filesystem or debugger do the comparisons, but how native implementations did
-        //       deviating from that may result in unexpected warings or different behavior (possibly without warnings).
+        // This is a map from the document "name" to the document.
+        // Document "name" is typically a file path like "C:\Abc\Def.cs". However, that is not guaranteed.
+        // For compatibility reasons the names are treated as case-sensitive in C# and case-insensitive in VB.
+        // Neither language trims the names, so they are both sensitive to the leading and trailing whitespaces.
+        // NOTE: We are not considering how filesystem or debuggers do the comparisons, but how native implementations did.
+        // Deviating from that may result in unexpected warnings or different behavior (possibly without warnings).
         private readonly ConcurrentDictionary<string, Cci.DebugSourceDocument> debugDocuments;
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
