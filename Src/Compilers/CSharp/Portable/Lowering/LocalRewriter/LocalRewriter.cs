@@ -6,7 +6,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.RuntimeMembers;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -86,8 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var first = body.Statements.First();
                 if (first.Kind != BoundKind.SequencePoint && first.Kind != BoundKind.SequencePointWithSpan)
                 {
-                    // we basically need to get a span for the whole declaration, but not the body -
-                    //  "[SomeAttribute] public MyCtorName(params int[] values): base()" 
                     var asSourceMethod = method.ConstructedFrom as SourceMethodSymbol;
                     if ((object)asSourceMethod != null)
                     {
@@ -95,26 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (syntax != null)
                         {
-                            TextSpan span;
-
-                            if (asSourceMethod.IsPrimaryCtor)
-                            {
-                                span = syntax.OpenBraceToken.Span;
-                            }
-                            else
-                            {
-                                var start = syntax.Parent.SpanStart;
-                                var end = syntax.OpenBraceToken.GetPreviousToken().Span.End;
-                                span = TextSpan.FromBounds(start, end);
-                            }
-
-                            // just wrap it. We do not need to force a nop. there will either be
-                            // code between the method start and the first statement or we do not
-                            // care about this SP
-                            return new BoundSequencePointWithSpan(
-                                syntax,
-                                body,
-                                span);
+                            return AddSequencePoint(syntax, body, asSourceMethod.IsPrimaryCtor);
                         }
                     }
                 }

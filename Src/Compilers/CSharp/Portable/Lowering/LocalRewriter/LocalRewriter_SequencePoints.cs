@@ -39,6 +39,97 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePointWithSpan(usingSyntax, rewrittenStatement, span);
         }
 
+        internal static BoundStatement AddSequencePoint(BlockSyntax blockSyntax, BoundStatement rewrittenStatement, bool isPrimaryCtor)
+        {
+            TextSpan span;
+
+            if (isPrimaryCtor)
+            {
+                // For a primary constructor block: ... [|{|] ... }
+                return new BoundSequencePointWithSpan(blockSyntax, rewrittenStatement, blockSyntax.OpenBraceToken.Span);
+            }
+
+            var parent = blockSyntax.Parent as ConstructorDeclarationSyntax;
+            if (parent != null)
+            {
+                span = CreateSpanForConstructorDeclaration(parent);
+            }
+            else
+            {
+                // This inserts a sequence points to any prologue code for method declarations.
+                var start = blockSyntax.Parent.SpanStart;
+                var end = blockSyntax.OpenBraceToken.GetPreviousToken().Span.End;
+                span = TextSpan.FromBounds(start, end);
+            }
+
+            return new BoundSequencePointWithSpan(blockSyntax, rewrittenStatement, span);
+        }
+
+        private static TextSpan CreateSpanForConstructorDeclaration(ConstructorDeclarationSyntax constructorSyntax)
+        {
+            if (constructorSyntax.Initializer != null)
+            {
+                //  [SomeAttribute] public MyCtorName(params int[] values): [|base()|] { ... }
+                var start = constructorSyntax.Initializer.ThisOrBaseKeyword.SpanStart;
+                var end = constructorSyntax.Initializer.ArgumentList.CloseParenToken.Span.End;
+                return TextSpan.FromBounds(start, end);
+            }
+
+            if (constructorSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
+            {
+                // [SomeAttribute] static MyCtorName(...) [|{|] ... }
+                var start = constructorSyntax.Body.OpenBraceToken.SpanStart;
+                var end = constructorSyntax.Body.OpenBraceToken.Span.End;
+                return TextSpan.FromBounds(start, end);
+            }
+
+            //  [SomeAttribute] [|public MyCtorName(params int[] values)|] { ... }
+            return CreateSpan(constructorSyntax.Modifiers, constructorSyntax.Identifier, constructorSyntax.ParameterList.CloseParenToken);
+        }
+
+        private static TextSpan CreateSpan(SyntaxTokenList startOpt, SyntaxNodeOrToken startFallbackOpt, SyntaxNodeOrToken endOpt)
+        {
+            Debug.Assert(startFallbackOpt != default(SyntaxNodeOrToken) || endOpt != default(SyntaxNodeOrToken));
+
+            int startPos;
+            if (startOpt.Count > 0)
+            {
+                startPos = startOpt.First().SpanStart;
+            }
+            else if (startFallbackOpt != default(SyntaxNodeOrToken))
+            {
+                startPos = startFallbackOpt.SpanStart;
+            }
+            else
+            {
+                startPos = endOpt.SpanStart;
+            }
+
+            int endPos;
+            if (endOpt != default(SyntaxNodeOrToken))
+            {
+                endPos = GetEndPosition(endOpt);
+            }
+            else
+            {
+                endPos = GetEndPosition(startFallbackOpt);
+            }
+
+            return TextSpan.FromBounds(startPos, endPos);
+        }
+
+        private static int GetEndPosition(SyntaxNodeOrToken nodeOrToken)
+        {
+            if (nodeOrToken.IsToken)
+            {
+                return nodeOrToken.Span.End;
+            }
+            else
+            {
+                return nodeOrToken.AsNode().GetLastToken().Span.End;
+            }
+        }
+
         internal static void GetBreakpointSpan(VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
         {
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;

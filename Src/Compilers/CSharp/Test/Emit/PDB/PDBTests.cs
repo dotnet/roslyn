@@ -4884,5 +4884,65 @@ public class C
     int P { get; } = [|int.Parse(""42"")|];
 }", TestOptions.Dll, TestOptions.ExperimentalParseOptions);
         }
+
+        [Fact]
+        public void Constructors()
+        {
+            TestSequencePoints(
+@"using System;
+
+class D
+{
+    public D() : [|base()|]
+    {
+    }
+}", TestOptions.Dll);
+
+            TestSequencePoints(
+@"using System;
+
+class D
+{
+    static D()
+    [|{|]
+    }
+}", TestOptions.Dll);
+
+            TestSequencePoints(
+@"using System;
+class A : Attribute {}
+class D
+{
+    [A]
+    public D() : [|base()|]
+    {
+    }
+}", TestOptions.Dll);
+
+            TestSequencePoints(
+@"using System;
+class A : Attribute {}
+class D
+{
+    [A]
+    public D() 
+        : [|base()|]
+    {
+    }
+}", TestOptions.Dll);
+
+            TestSequencePoints(
+@"using System;
+
+class A : Attribute {}
+class C { }
+class D
+{
+    [A]
+    [|public D()|]
+    {
+    }
+}", TestOptions.Dll);
+        }
     }
 }
