@@ -551,7 +551,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var method in type.GetMethodsToEmit())
                 {
-                    method.GenerateMethodBody(compilationState, diagnostics);
+                    if (method.IsImplicitConstructor)
+                    {
+                        ConsList<Imports> debugImports;
+                        var body = BindMethodBody(method, ImmutableArray<LocalSymbol>.Empty, compilationState, diagnostics, generateDebugInfo: false, debugImports: out debugImports);
+                        compilationState.AddSynthesizedMethod(method, body);
+                    }
+                    else
+                    {
+                        method.GenerateMethodBody(compilationState, diagnostics);
+                    }
                 }
             }
 
@@ -836,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    body = MethodCompiler.BindMethodBody(methodSymbol, initializationScopeLocals, compilationState, diagsForCurrentMethod, this.generateDebugInfo, out debugImports);
+                    body = BindMethodBody(methodSymbol, initializationScopeLocals, compilationState, diagsForCurrentMethod, this.generateDebugInfo, out debugImports);
 
                     // lower initializers just once. the lowered tree will be reused when emitting all constructors 
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
@@ -917,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if ((methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) && methodSymbol.IsImplicitlyDeclared)
                     {
-                        // There was no body to bind, so we didn't get anything from Compiler.BindMethodBody.
+                        // There was no body to bind, so we didn't get anything from BindMethodBody.
                         Debug.Assert(debugImports == null);
                         // Either there were no field initializers or we grabbed debug imports from the first one.
                         Debug.Assert(processedInitializers.BoundInitializers.IsDefaultOrEmpty || processedInitializers.FirstDebugImports != null);
