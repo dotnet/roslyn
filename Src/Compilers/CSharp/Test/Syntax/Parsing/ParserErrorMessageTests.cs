@@ -4771,22 +4771,7 @@ class C
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)).GetDiagnostics().Verify(
                 // (1,10): error CS8058: Feature 'primary constructor' is only available in 'experimental' language version.
                 // class Foo(int z) // primary constructor
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int z)").WithArguments("primary constructor").WithLocation(1, 10),
-                // (5,13): error CS8058: Feature 'expression-bodied method' is only available in 'experimental' language version.
-                //     int M() => 12; // expression-bodied method
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "=> 12").WithArguments("expression-bodied method").WithLocation(5, 13),
-                // (7,11): error CS8058: Feature 'expression-bodied property' is only available in 'experimental' language version.
-                //     int N => 12; // expression-bodied property
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "=> 12").WithArguments("expression-bodied property").WithLocation(7, 11),
-                // (9,21): error CS8058: Feature 'expression-bodied indexer' is only available in 'experimental' language version.
-                //     int this[int a] => a + 1; // expression-bodied indexer
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "=> a + 1").WithArguments("expression-bodied indexer").WithLocation(9, 21),
-                // (11,48): error CS8058: Feature 'expression-bodied method' is only available in 'experimental' language version.
-                //     public static int operator +(Foo a, Foo b) => null; // expression-bodied operator
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "=> null").WithArguments("expression-bodied method").WithLocation(11, 48),
-                // (13,49): error CS8058: Feature 'expression-bodied method' is only available in 'experimental' language version.
-                //     public static explicit operator bool(Foo a) => false; // expression-bodied conversion operator
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "=> false").WithArguments("expression-bodied method").WithLocation(13, 49));
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int z)").WithArguments("primary constructor").WithLocation(1, 10));
 
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).GetDiagnostics().Verify(
                 // (1,10): error CS8058: Feature 'primary constructor' is only available in 'experimental' language version.
@@ -4795,21 +4780,21 @@ class C
                 // (3,20): error CS8026: Feature 'auto property initializer' is not available in C# 5.  Please use language version 6 or greater.
                 //     int L { get; } = 12; // auto property initializer
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "= 12").WithArguments("auto property initializer", "6").WithLocation(3, 20),
-                // (5,13): error CS8058: Feature 'expression-bodied method' is only available in 'experimental' language version.
+                // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5.  Please use language version 6 or greater.
                 //     int M() => 12; // expression-bodied method
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "=> 12").WithArguments("expression-bodied method").WithLocation(5, 13),
-                // (7,11): error CS8058: Feature 'expression-bodied property' is only available in 'experimental' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
+                // (7,11): error CS8026: Feature 'expression-bodied property' is not available in C# 5.  Please use language version 6 or greater.
                 //     int N => 12; // expression-bodied property
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "=> 12").WithArguments("expression-bodied property").WithLocation(7, 11),
-                // (9,21): error CS8058: Feature 'expression-bodied indexer' is only available in 'experimental' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied property", "6").WithLocation(7, 11),
+                // (9,21): error CS8026: Feature 'expression-bodied indexer' is not available in C# 5.  Please use language version 6 or greater.
                 //     int this[int a] => a + 1; // expression-bodied indexer
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "=> a + 1").WithArguments("expression-bodied indexer").WithLocation(9, 21),
-                // (11,48): error CS8058: Feature 'expression-bodied method' is only available in 'experimental' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> a + 1").WithArguments("expression-bodied indexer", "6").WithLocation(9, 21),
+                // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5.  Please use language version 6 or greater.
                 //     public static int operator +(Foo a, Foo b) => null; // expression-bodied operator
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "=> null").WithArguments("expression-bodied method").WithLocation(11, 48),
-                // (13,49): error CS8058: Feature 'expression-bodied method' is only available in 'experimental' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
+                // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5.  Please use language version 6 or greater.
                 //     public static explicit operator bool(Foo a) => false; // expression-bodied conversion operator
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "=> false").WithArguments("expression-bodied method").WithLocation(13, 49),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> false").WithArguments("expression-bodied method", "6").WithLocation(13, 49),
                 // (18,32): error CS8026: Feature 'exception filter' is not available in C# 5.  Please use language version 6 or greater.
                 //         } catch (Exception ex) if (ex.ToString() == null) { // exception filter
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "if").WithArguments("exception filter", "6").WithLocation(18, 32),
