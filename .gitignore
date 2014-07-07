@@ -32,7 +32,6 @@ UnitTestResults.html
 *.pdb
 *.pgc
 *.pgd
-*.rsp
 *.sbr
 *.tlb
 *.tli
