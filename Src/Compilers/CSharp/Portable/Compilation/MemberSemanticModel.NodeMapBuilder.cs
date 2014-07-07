@@ -3,10 +3,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var existing = map[key];
                         var added = additionMap[key];
-                        Debug.Assert(existing.Length == added.Length);
+                        FailFast.Assert(existing.Length == added.Length, "existing.Length == added.Length");
                         for (int i = 0; i < existing.Length; i++)
                         {
                             // TODO: it would be great if we could check !ReferenceEquals(existing[i], added[i]) (DevDiv #11584).
@@ -76,25 +75,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                             //      since nothing is cached for the statement syntax.
                             if (existing[i].Kind != added[i].Kind)
                             {
-                                Debug.Assert(!(key is StatementSyntax));
+                                FailFast.Assert(!(key is StatementSyntax), "!(key is StatementSyntax)");
 
                                 // This also seems to be happening when we get equivalent BoundTypeExpression and BoundTypeOrValueExpression nodes.
                                 if (existing[i].Kind == BoundKind.TypeExpression && added[i].Kind == BoundKind.TypeOrValueExpression)
                                 {
-                                    Debug.Assert(((BoundTypeExpression)existing[i]).Type == ((BoundTypeOrValueExpression)added[i]).Type);
+                                    FailFast.Assert(
+                                        ((BoundTypeExpression)existing[i]).Type == ((BoundTypeOrValueExpression)added[i]).Type, 
+                                        string.Format(
+                                            CultureInfo.InvariantCulture,
+                                            "((BoundTypeExpression)existing[{0}]).Type == ((BoundTypeOrValueExpression)added[{0}]).Type", i));
                                 }
                                 else if (existing[i].Kind == BoundKind.TypeOrValueExpression && added[i].Kind == BoundKind.TypeExpression)
                                 {
-                                    Debug.Assert(((BoundTypeOrValueExpression)existing[i]).Type == ((BoundTypeExpression)added[i]).Type);
+                                    FailFast.Assert(
+                                        ((BoundTypeOrValueExpression)existing[i]).Type == ((BoundTypeExpression)added[i]).Type,
+                                        string.Format(
+                                            CultureInfo.InvariantCulture,
+                                            "((BoundTypeOrValueExpression)existing[{0}]).Type == ((BoundTypeExpression)added[{0}]).Type", i));
                                 }
                                 else
                                 {
-                                    Debug.Assert(false, "New bound node does not match existing bound node");
+                                    FailFast.Assert(false, "New bound node does not match existing bound node");
                                 }
                             }
                             else
                             {
-                                Debug.Assert((object)existing[i] == added[i] || !(key is StatementSyntax));
+                                FailFast.Assert(
+                                    (object)existing[i] == added[i] || !(key is StatementSyntax), 
+                                    string.Format(
+                                        CultureInfo.InvariantCulture,
+                                        "(object)existing[{0}] == added[{0}] || !(key is StatementSyntax)", i));
                             }
                         }
 #endif

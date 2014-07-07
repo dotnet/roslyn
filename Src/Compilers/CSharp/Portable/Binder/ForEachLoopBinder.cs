@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Check for local variable conflicts in the *enclosing* binder; obviously the *current*
             // binder has a local that matches!
-            hasErrors |= this.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
+            var hasNameConflicts = this.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
 
             // If the type in syntax is "var", then the type should be set explicitly so that the
             // Type property doesn't fail.
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             hasErrors = hasErrors || iterationVariableType.IsErrorType();
 
-            // Skip the conversion checks and array/enumerator differentiation if we know we have an error.
+            // Skip the conversion checks and array/enumerator differentiation if we know we have an error (except local name conflicts).
             if (hasErrors)
             {
                 return new BoundForEachStatement(
@@ -138,6 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.ContinueLabel,
                     hasErrors);
             }
+
+            hasErrors |= hasNameConflicts;
 
             var foreachKeyword = syntax.ForEachKeyword;
             ReportDiagnosticsIfObsolete(diagnostics, builder.GetEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
