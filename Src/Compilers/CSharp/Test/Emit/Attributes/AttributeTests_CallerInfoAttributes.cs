@@ -2575,8 +2575,8 @@ class Test
 
         [WorkItem(949118, "DevDiv")]
         [WorkItem(152, "CodePlex")]
-        [Fact(Skip = "949118")]
-        public void Bug949118()
+        [Fact]
+        public void Bug949118_1()
         {
             string source =
 @"using System;
@@ -2600,6 +2600,42 @@ public class Foo
   
   public static readonly object F1 = Test();
   public readonly object F2 = Test();
+}
+";
+
+            string expected = @"F1
+F2";
+            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.Exe);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [WorkItem(949118, "DevDiv")]
+        [WorkItem(152, "CodePlex")]
+        [Fact]
+        public void Bug949118_2()
+        {
+            string source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Globalization;
+class Program
+{
+  static void Main()
+  {
+   var x = Foo.F1;
+   var y = new Foo().F2;
+  }
+}
+public class Foo
+{
+  static object Test([CallerMemberName] string bar = null)
+  {
+    Console.WriteLine(bar);
+    return null;
+  }
+  
+  public static object F1 {get;} = Test();
+  public object F2 {get;} = Test();
 }
 ";
 

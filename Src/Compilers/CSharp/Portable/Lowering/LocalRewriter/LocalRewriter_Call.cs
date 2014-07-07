@@ -829,7 +829,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (parameter.IsCallerMemberName && ((callerSourceLocation = GetCallerLocation(syntax)) != null))
             {
-                string memberName = this.factory.TopLevelMethod.GetMemberCallerName();
+                string memberName;
+
+                switch (this.factory.TopLevelMethod.MethodKind)
+                {
+                    case MethodKind.Constructor:
+                    case MethodKind.StaticConstructor:
+                        // See if the code is actually part of field or property initializer and return name of the corresponding member.
+                        var memberDecl = (MemberDeclarationSyntax)syntax.Ancestors().Where(a => a is MemberDeclarationSyntax).FirstOrDefault();
+
+                        if (memberDecl != null)
+                        {
+                            BaseFieldDeclarationSyntax fieldDecl;
+
+                            if (memberDecl.Kind == SyntaxKind.PropertyDeclaration)
+                            {
+                                var propDecl = (PropertyDeclarationSyntax)memberDecl;
+                                EqualsValueClauseSyntax initializer = propDecl.Initializer;
+
+                                if (initializer != null && initializer.Span.Contains(syntax.Span))
+                                {
+                                    memberName = propDecl.Identifier.ValueText;
+                                    break;
+                                }
+                            }
+                            else if ((fieldDecl = memberDecl as BaseFieldDeclarationSyntax) != null)
+                            {
+                                memberName = null;
+
+                                foreach (VariableDeclaratorSyntax varDecl in fieldDecl.Declaration.Variables)
+                                {
+                                    EqualsValueClauseSyntax initializer = varDecl.Initializer;
+
+                                    if (initializer != null && initializer.Span.Contains(syntax.Span))
+                                    {
+                                        memberName = varDecl.Identifier.ValueText;
+                                        break;
+                                    }
+                                }
+
+                                if (memberName != null)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+
+                        goto default;
+
+                    default:
+                        memberName = this.factory.TopLevelMethod.GetMemberCallerName();
+                        break;
+                }
 
                 BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), compilation.GetSpecialType(SpecialType.System_String));
                 defaultValue = MakeConversion(memberNameLiteral, parameterType, false);
