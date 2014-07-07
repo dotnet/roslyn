@@ -18,11 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function GetNonGlobalNameParts(nameSyntax As NameSyntax) As IList(Of SimpleNameSyntax)
-            Return New NameSyntaxIterator(nameSyntax).OfType(Of SimpleNameSyntax).ToList()
-        End Function
-
-        <Extension()>
         Public Function GetLastDottedName(nameSyntax As NameSyntax) As NameSyntax
             Dim parts = nameSyntax.GetNameParts()
             Return parts(parts.Count - 1)

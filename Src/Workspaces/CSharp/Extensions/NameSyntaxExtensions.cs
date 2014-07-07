@@ -19,13 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return new NameSyntaxIterator(nameSyntax).ToList();
         }
 
-        public static IList<SimpleNameSyntax> GetNonAliasNameParts(this NameSyntax nameSyntax)
-        {
-            return new NameSyntaxIterator(nameSyntax).Select(n => n is AliasQualifiedNameSyntax
-                ? ((AliasQualifiedNameSyntax)n).Name
-                : (SimpleNameSyntax)n).ToList();
-        }
-
         public static NameSyntax GetLastDottedName(this NameSyntax nameSyntax)
         {
             var parts = nameSyntax.GetNameParts();
