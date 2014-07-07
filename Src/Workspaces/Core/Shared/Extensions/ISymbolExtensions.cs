@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol != null && symbol.Kind == SymbolKind.Namespace;
         }
 
-        public static bool IsOrContainsAccessibleAttribute(this ISymbol symbol, Compilation compilation)
+        public static bool IsOrContainsAccessibleAttribute(this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly)
         {
             var alias = symbol as IAliasSymbol;
             if (alias != null)
@@ -562,12 +562,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return false;
             }
 
-            if (namespaceOrType.IsAttribute() && namespaceOrType.IsAccessibleWithin(compilation.Assembly))
+            if (namespaceOrType.IsAttribute() && namespaceOrType.IsAccessibleWithin(withinType ?? withinAssembly))
             {
                 return true;
             }
 
-            return namespaceOrType.GetMembers().Any(nt => nt.IsOrContainsAccessibleAttribute(compilation));
+            return namespaceOrType.GetMembers().Any(nt => nt.IsOrContainsAccessibleAttribute(withinType, withinAssembly));
         }
 
         public static IEnumerable<IPropertySymbol> GetValidAnonymousTypeProperties(this ISymbol symbol)

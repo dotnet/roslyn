@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
             if (context.IsAttributeNameContext)
             {
-                return symbol.IsOrContainsAccessibleAttribute(context.SemanticModel.Compilation);
+                var enclosingSymbol = context.SemanticModel.GetEnclosingNamedType(context.LeftToken.SpanStart, cancellationToken);
+                return symbol.IsOrContainsAccessibleAttribute(enclosingSymbol, context.SemanticModel.Compilation.Assembly);
             }
 
             if (context.IsEnumTypeMemberAccessContext)
