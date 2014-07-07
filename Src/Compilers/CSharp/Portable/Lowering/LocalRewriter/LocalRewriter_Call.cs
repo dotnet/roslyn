@@ -835,8 +835,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case MethodKind.Constructor:
                     case MethodKind.StaticConstructor:
-                        // See if the code is actually part of field or property initializer and return name of the corresponding member.
-                        var memberDecl = (MemberDeclarationSyntax)syntax.Ancestors().Where(a => a is MemberDeclarationSyntax).FirstOrDefault();
+                        // See if the code is actually part of a field, field-like event or property initializer and return the name of the corresponding member.
+                        var memberDecl = (MemberDeclarationSyntax)syntax.Ancestors().OfType<MemberDeclarationSyntax>().FirstOrDefault();
 
                         if (memberDecl != null)
                         {

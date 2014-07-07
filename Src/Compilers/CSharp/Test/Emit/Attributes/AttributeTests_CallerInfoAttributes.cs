@@ -2645,5 +2645,44 @@ F2";
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
+        [WorkItem(949118, "DevDiv")]
+        [WorkItem(152, "CodePlex")]
+        [Fact]
+        public void Bug949118_3()
+        {
+            string source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Globalization;
+class Program
+{
+  static void Main()
+  {
+   var y = ((I1)new Foo()).F2;
+  }
+}
+
+interface I1
+{
+  object F2 {get;}
+}
+
+public class Foo : I1
+{
+  static object Test([CallerMemberName] string bar = null)
+  {
+    Console.WriteLine(bar);
+    return null;
+  }
+  
+  object I1.F2 {get;} = Test();
+}
+";
+
+            string expected = @"F2";
+            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.Exe);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
     }
 }
