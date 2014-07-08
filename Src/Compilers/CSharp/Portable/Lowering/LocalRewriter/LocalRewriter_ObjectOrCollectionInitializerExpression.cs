@@ -135,11 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = initializer.Syntax;
             MethodSymbol addMethod = initializer.AddMethod;
 
-            // NOTE: Calls cannot be omitted within an expression tree (CS0765); this should already
-            // have been checked.
-            if (addMethod.CallsAreOmitted(initializer.SyntaxTree))
+            if (!this.includeConditionalCalls)
             {
-                return null;
+                // NOTE: Calls cannot be omitted within an expression tree (CS0765); this should already
+                // have been checked.
+                if (addMethod.CallsAreOmitted(initializer.SyntaxTree))
+                {
+                    return null;
+                }
             }
 
             var rewrittenArguments = VisitList(initializer.Arguments);

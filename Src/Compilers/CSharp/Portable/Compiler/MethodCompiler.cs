@@ -1112,11 +1112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method.ContainingType,
                 body,
                 compilationState,
-                diagnostics,
-                previousSubmissionFields,
-                out sawLambdas,
-                out sawDynamicOperations,
-                out sawAwaitInExceptionHandler);
+                previousSubmissionFields: previousSubmissionFields,
+                includeConditionalCalls: false,
+                diagnostics: diagnostics,
+                sawLambdas: out sawLambdas,
+                sawDynamicOperations: out sawDynamicOperations,
+                sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
             if (sawDynamicOperations && compilationState.ModuleBuilderOpt.IsEncDelta)
             {

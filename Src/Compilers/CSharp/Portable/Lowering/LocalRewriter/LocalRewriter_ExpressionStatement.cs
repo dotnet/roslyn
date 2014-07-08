@@ -37,20 +37,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.AssignmentOperator:
                     // Avoid extra temporary by indicating the expression value is not used.
-                    var assignmentOperator = (BoundAssignmentOperator)expression;
-                    return VisitAssignmentOperator(assignmentOperator, used: false);
+                    return VisitAssignmentOperator((BoundAssignmentOperator)expression, used: false);
 
                 case BoundKind.CompoundAssignmentOperator:
-                    var compoundAssignmentOperator = (BoundCompoundAssignmentOperator)expression;
-                    return VisitCompoundAssignmentOperator(compoundAssignmentOperator, false);
+                    return VisitCompoundAssignmentOperator((BoundCompoundAssignmentOperator)expression, used: false);
 
                 case BoundKind.Call:
-                    var call = (BoundCall)expression;
-                    if (call.Method.CallsAreOmitted(call.SyntaxTree))
+                    if (!this.includeConditionalCalls)
                     {
-                        return null;
+                        var call = (BoundCall)expression;
+                        if (call.Method.CallsAreOmitted(call.SyntaxTree))
+                        {
+                            return null;
+                        }
                     }
-
                     break;
 
                 case BoundKind.DynamicInvocation:

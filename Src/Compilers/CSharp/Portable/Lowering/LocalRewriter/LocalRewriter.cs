@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CSharpCompilation compilation;
         private readonly SyntheticBoundNodeFactory factory;
         private readonly SynthesizedSubmissionFields previousSubmissionFields;
+        private readonly bool includeConditionalCalls;
         private readonly LoweredDynamicOperationFactory dynamicFactory;
         private bool sawLambdas;
         private bool inExpressionLambda;
@@ -23,7 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool sawAwaitInExceptionHandler;
         private readonly DiagnosticBag diagnostics;
 
-        private LocalRewriter(bool generateDebugInfo, MethodSymbol containingMethod, NamedTypeSymbol containingType, SyntheticBoundNodeFactory factory, SynthesizedSubmissionFields previousSubmissionFields, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private LocalRewriter(
+            CSharpCompilation compilation,
+            bool generateDebugInfo,
+            MethodSymbol containingMethod,
+            NamedTypeSymbol containingType,
+            SyntheticBoundNodeFactory factory,
+            SynthesizedSubmissionFields previousSubmissionFields,
+            bool includeConditionalCalls,
+            DiagnosticBag diagnostics)
         {
             this.generateDebugInfo = generateDebugInfo && containingMethod.GenerateDebugInfo;
             this.compilation = compilation;
@@ -32,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(factory.CurrentClass == (containingType ?? containingMethod.ContainingType));
             this.dynamicFactory = new LoweredDynamicOperationFactory(factory);
             this.previousSubmissionFields = previousSubmissionFields;
+            this.includeConditionalCalls = includeConditionalCalls;
             this.diagnostics = diagnostics;
         }
 
@@ -45,8 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol containingType,
             BoundStatement statement,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
             SynthesizedSubmissionFields previousSubmissionFields,
+            bool includeConditionalCalls,
+            DiagnosticBag diagnostics,
             out bool sawLambdas,
             out bool sawDynamicOperations,
             out bool sawAwaitInExceptionHandler)
@@ -57,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-                var localRewriter = new LocalRewriter(generateDebugInfo, containingSymbol, containingType, factory, previousSubmissionFields, compilation, diagnostics);
+                var localRewriter = new LocalRewriter(compilation, generateDebugInfo, containingSymbol, containingType, factory, previousSubmissionFields, includeConditionalCalls, diagnostics);
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
                 sawLambdas = localRewriter.sawLambdas;
                 sawAwaitInExceptionHandler = localRewriter.sawAwaitInExceptionHandler;

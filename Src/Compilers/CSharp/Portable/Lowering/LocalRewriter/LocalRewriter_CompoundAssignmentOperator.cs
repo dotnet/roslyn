@@ -2,10 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -17,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitCompoundAssignmentOperator(node, true);
         }
 
-        private BoundExpression VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, bool isUsed)
+        private BoundExpression VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, bool used)
         {
             Debug.Assert(node.Right.Type == node.Operator.RightType);
             BoundExpression loweredRight = VisitExpression(node.Right);
@@ -82,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: isDynamic,
                 @checked: isChecked);
 
-            BoundExpression rewrittenAssignment = MakeAssignmentOperator(syntax, transformedLHS, opFinal, node.Left.Type, isUsed, isChecked, isCompoundAssignment: true);
+            BoundExpression rewrittenAssignment = MakeAssignmentOperator(syntax, transformedLHS, opFinal, node.Left.Type, used: used, isChecked: isChecked, isCompoundAssignment: true);
 
             // OK, at this point we have:
             //
