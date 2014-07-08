@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<NamedTypeSymbol> interfaces;
 
         public AsyncStateMachine(MethodSymbol asyncMethod, TypeKind typeKind)
-            : base(GeneratedNames.MakeIteratorOrAsyncDisplayClassName(asyncMethod.Name, SequenceNumber(asyncMethod)), asyncMethod)
+            : base(GeneratedNames.MakeStateMachineTypeName(asyncMethod.Name, SequenceNumber(asyncMethod)), asyncMethod)
         {
             // TODO: report use-site errors on these types
             this.typeKind = typeKind;

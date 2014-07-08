@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var p in initialProxies)
             {
                 this.proxies.Add(p.Key, p.Value);
-        }
+            }
         }
 
         /// <summary>
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Here we handle ref temps.  Ref temps are the target of a ref assignment operator before
             // being used in any other way.
             Debug.Assert(
-                local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpilledTemp || 
+                local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpilledTemp ||
                 local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
 
             Debug.Assert(node.RefKind != RefKind.None);

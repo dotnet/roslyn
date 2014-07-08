@@ -90,10 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             this.noOptimizations = !optimize;
             this.debugInformationKind = module.Compilation.Options.DebugInformationKind;
 
-            if (!this.debugInformationKind.IsValid())
-            {
-                this.debugInformationKind = DebugInformationKind.None;
-            }
+            Debug.Assert(this.debugInformationKind.IsValid());
 
             // Special case: always optimize synthesized explicit interface implementation methods
             // (aka bridge methods) with by-ref returns because peverify produces errors if we

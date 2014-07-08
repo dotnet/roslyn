@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal enum GeneratedNameKind
     {
         None = 0,
-        ThisProxy = 4,
-        IteratorLocal = 5,
-        DisplayClassLocal = 8,
-        DisplayClassType = 12,
-        StateMachineType = 13,
+        ThisProxy = '4',
+        HoistedLocalField = '5',
+        DisplayClassLocalOrField = '8',
+        LambdaDisplayClassType = 'c',
+        StateMachineType = 'd',
     }
 
     internal static partial class GeneratedNames
@@ -72,19 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
 found:
-                if ((closeBracketOffset > openBracketOffset) &&
-                    (name[closeBracketOffset + 2] == '_') &&
-                    (name[closeBracketOffset + 3] == '_')) // Not out of range since loop ended early.
+                if (closeBracketOffset > openBracketOffset &&
+                    name[closeBracketOffset + 2] == '_' &&
+                    name[closeBracketOffset + 3] == '_') // Not out of range since loop ended early.
                 {
                     int c = name[closeBracketOffset + 1];
-                    if ((c >= '1') && (c <= '9')) // Note '0' is not special.
+                    if ((c >= '1' && c <= '9') || (c >= 'a' && c <= 'z')) // Note '0' is not special.
                     {
-                        kind = (GeneratedNameKind)(c - '0');
-                        return true;
-                    }
-                    else if ((c >= 'a') && (c <= 'z'))
-                    {
-                        kind = (GeneratedNameKind)(c - 'a' + 10);
+                        kind = (GeneratedNameKind)c;
                         return true;
                     }
                 }

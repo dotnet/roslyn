@@ -25,8 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + containingMethodName + ">b__" + uniqueId;
         }
 
-        internal static string MakeAnonymousDisplayClassName(int uniqueId)
+        internal static string MakeLambdaDisplayClassName(int uniqueId)
         {
+            Debug.Assert((char)GeneratedNameKind.LambdaDisplayClassType == 'c');
             return "<>c__DisplayClass" + uniqueId;
         }
 
@@ -81,9 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static string MakeIteratorOrAsyncDisplayClassName(string methodName, int uniqueId)
+        internal static string MakeStateMachineTypeName(string methodName, int uniqueId)
         {
             methodName = EnsureNoDotsInTypeName(methodName);
+
+            Debug.Assert((char)GeneratedNameKind.StateMachineType == 'd');
             return "<" + methodName + ">d__" + uniqueId;
         }
 
@@ -121,10 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // TODO: consider removing this special case, EE doesn't depend on the name. 
                 return SynthesizedLocalNamePrefix + "<>9__CachedAnonymousMethodDelegate" + uniqueId;
-            }
+        }
 
             if (kind == SynthesizedLocalKind.LambdaDisplayClass)
-            {
+        {
                 // Lambda display class local follows a different naming pattern.
                 // EE depends on the name format. 
                 return MakeLambdaDisplayClassStorageName(uniqueId);
@@ -135,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string MakeLambdaDisplayClassStorageName(int uniqueId)
         {
+            Debug.Assert((char)GeneratedNameKind.DisplayClassLocalOrField == '8');
             return SynthesizedLocalNamePrefix + "<>8__locals" + uniqueId;
         }
 
@@ -202,24 +206,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>l__initialThreadId";
         }
 
-        internal static string MakeIteratorFieldName(string localName, int localNumber)
+        internal static string MakeHoistedLocalFieldName(string localName, int localNumber)
         {
+            Debug.Assert((char)GeneratedNameKind.HoistedLocalField == '5');
             return "<" + localName + ">5__" + localNumber;
         }
 
-        internal static string IteratorThisProxyName()
+        internal static string ThisProxyName()
         {
+            Debug.Assert((char)GeneratedNameKind.ThisProxy == '4');
             return "<>4__this";
         }
 
-        internal static string IteratorParameterProxyName(string parameterName)
+        internal static string StateMachineThisParameterProxyName()
         {
-            return "<>3__" + parameterName;
+            return StateMachineParameterProxyName(ThisProxyName());
         }
 
-        internal static string IteratorThisProxyProxyName()
+        internal static string StateMachineParameterProxyName(string parameterName)
         {
-            return IteratorParameterProxyName(IteratorThisProxyName());
+            return "<>3__" + parameterName;
         }
 
         internal static string MakeDynamicCallSiteContainerName(string methodName, int uniqueId)

@@ -519,7 +519,7 @@ class Async
     }}
 }}
 ";
-            int padding = GeneratedNames.MakeIteratorOrAsyncDisplayClassName("A", 1).Length - 1;
+            int padding = GeneratedNames.MakeStateMachineTypeName("A", 1).Length - 1;
             string longName = LongSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
             var comp = CreateCompilationWithMscorlib45(source);

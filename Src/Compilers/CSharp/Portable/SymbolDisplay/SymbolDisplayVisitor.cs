@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.SymbolDisplay;
 using Roslyn.Utilities;
-//using SemanticModel = Microsoft.CodeAnalysis.CSharp.Semantics.SemanticModel;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -52,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)
         {
-            text = (text == null) ? "?" : escapeKeywordIdentifiers && IsEscapable(kind) ? EscapeIdentifier(text) : text;
+            text = (text == null) ? "?" : 
+                   (escapeKeywordIdentifiers && IsEscapable(kind)) ? EscapeIdentifier(text) : text;
 
             return new SymbolDisplayPart(kind, symbol, text);
         }

@@ -132,13 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (parameter.IsThis)
                     {
-                        var proxyField = F.StateMachineField(method.ContainingType, GeneratedNames.IteratorThisProxyName(), isPublic: true);
+                        var proxyField = F.StateMachineField(method.ContainingType, GeneratedNames.ThisProxyName(), isPublic: true);
                         variableProxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField));
 
                         if (PreserveInitialParameterValues)
                         {
                             var initialThis = method.ContainingType.IsStructType() ? 
-                                F.StateMachineField(method.ContainingType, GeneratedNames.IteratorThisProxyProxyName(), isPublic: true) : proxyField;
+                                F.StateMachineField(method.ContainingType, GeneratedNames.StateMachineThisParameterProxyName(), isPublic: true) : proxyField;
 
                             initialParameters.Add(parameter, new CapturedToFrameSymbolReplacement(initialThis));
                         }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (PreserveInitialParameterValues)
                         {
-                            string proxyName = GeneratedNames.IteratorParameterProxyName(parameter.Name);
+                            string proxyName = GeneratedNames.StateMachineParameterProxyName(parameter.Name);
                             initialParameters.Add(parameter, new CapturedToFrameSymbolReplacement(
                                 F.StateMachineField(typeMap.SubstituteType(parameter.Type), proxyName, isPublic: true)));
                         }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void MakeInitialProxy(TypeMap TypeMap, MultiDictionary<Symbol, CSharpSyntaxNode> locations, LocalSymbol local)
         {
             Debug.Assert(local.RefKind == RefKind.None);
-            CapturedSymbolReplacement result = new CapturedToFrameSymbolReplacement(MakeHoistedField(TypeMap, local, local.Type));
+            CapturedSymbolReplacement result = new CapturedToFrameSymbolReplacement(MakeHoistedLocalField(TypeMap, local, local.Type));
 
             if (local.Type.IsRestrictedType())
             {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private int nextLocalNumber = 1;
 
-        private SynthesizedFieldSymbolBase MakeHoistedField(TypeMap TypeMap, LocalSymbol local, TypeSymbol type)
+        private SynthesizedFieldSymbolBase MakeHoistedLocalField(TypeMap TypeMap, LocalSymbol local, TypeSymbol type)
         {
             Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.None ||
                          local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass);
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // iterator local name).  See FUNCBRECEE::ImportIteratorMethodInheritedLocals.
             string fieldName = (local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass)
                 ? GeneratedNames.MakeLambdaDisplayClassStorageName(index)
-                : GeneratedNames.MakeIteratorFieldName(local.Name, index);
+                : GeneratedNames.MakeHoistedLocalFieldName(local.Name, index);
 
             return F.StateMachineField(TypeMap.SubstituteType(type), fieldName, index);
         }

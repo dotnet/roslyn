@@ -97,7 +97,7 @@ namespace Roslyn.Test.PdbUtilities
                     if (matching.Length == 0)
                     {
                         xmlWriter.WriteLine("<error>");
-                        xmlWriter.WriteLine("<message>No method '{0}' found in metadata.</message>");
+                        xmlWriter.WriteLine(string.Format("<message>No method '{0}' found in metadata.</message>", methodName));
                         xmlWriter.WriteLine("<available-methods>");
 
                         foreach (var methodHandle in metadataReader.MethodDefinitions)
@@ -106,7 +106,7 @@ namespace Roslyn.Test.PdbUtilities
                             xmlWriter.Write(GetQualifiedMethodName(metadataReader, methodHandle));
                             xmlWriter.Write("]]></method>");
                             xmlWriter.WriteLine();
-                        }
+                }
 
                         xmlWriter.WriteLine("</available-methods>");
                         xmlWriter.WriteLine("</error>");
@@ -856,7 +856,7 @@ namespace Roslyn.Test.PdbUtilities
                     string typeName = value.GetType().Name;
 
                     // certain Unicode characters will give Xml writers fits...in order to avoid this, we'll replace
-                    // problematic characters/sequences with their hexidecimal equivalents, like U+0000, etc...
+                    // problematic characters/sequences with their hexadecimal equivalents, like U+0000, etc...
                     var chars = value as string;
                     if (chars != null)
                     {
@@ -1230,19 +1230,16 @@ namespace Roslyn.Test.PdbUtilities
             writer.WriteAttributeString("token", AsToken(token));
         }
 
-        // Format a token to a string. Tokens are in hex.
         internal static string AsToken(int i)
         {
             return string.Format(CultureInfo.InvariantCulture, "0x{0:x}", i);
         }
 
-        // Since we're spewing this to XML, spew as a decimal number.
         internal static string AsILOffset(int i)
         {
             return string.Format(CultureInfo.InvariantCulture, "0x{0:x}", i);
         }
 
-        // If I have a string of a hex token and I want a SymbolToken, here's how to do it
         internal static SymbolToken AsSymToken(string token)
         {
             return new SymbolToken(ToInt32(token, 16));

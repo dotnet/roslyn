@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return CreateSpanForBlock((BlockSyntax)statement, position);
 
                 case SyntaxKind.LocalDeclarationStatement:
-                    // If the declaration has multiple variables then just set the bp on the first
+                    // If the declaration has multiple variables then just set the breakpoint on the first
                     // variable declarator.  Otherwise, set the breakpoint over this entire
                     // statement.
                     var declarationStatement = (LocalDeclarationStatementSyntax)statement;

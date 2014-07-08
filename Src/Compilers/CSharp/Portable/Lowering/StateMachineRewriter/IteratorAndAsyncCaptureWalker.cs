@@ -37,13 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var emptyStructs = new CaptureWalkerEmptyStructTypeCache();
             var initiallyAssignedVariables = UnassignedVariablesWalker.Analyze(compilation, method, node, emptyStructs);
 
-            var w = new IteratorAndAsyncCaptureWalker(compilation, method, node, emptyStructs, initiallyAssignedVariables);
-            
+            var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, emptyStructs, initiallyAssignedVariables);
+
             bool badRegion = false;
-            w.Analyze(ref badRegion);
+            walker.Analyze(ref badRegion);
             Debug.Assert(!badRegion);
 
-            var result = w.variablesCaptured;
+            var result = walker.variablesCaptured;
+
 
             if (!method.IsStatic && method.ContainingType.TypeKind == TypeKind.Struct)
             {
@@ -57,11 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var local = variable as LocalSymbol;
                 if ((object)local != null && local.RefKind != RefKind.None)
                 {
-                w.AddSpillsForRef(w.refLocalInitializers[local], result[local]);
-            }
+                    walker.AddSpillsForRef(walker.refLocalInitializers[local], result[local]);
+                }
             }
 
-            w.Free();
+            walker.Free();
             return result;
         }
 
@@ -276,11 +277,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddVariables(ImmutableArray<LocalSymbol> locals)
         {
-                foreach (var local in locals)
-                {
-                    AddVariable(local);
-                }
+            foreach (var local in locals)
+            {
+                AddVariable(local);
             }
+        }
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {

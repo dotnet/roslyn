@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal enum LocalDeclarationKind : byte
     {
         /// <summary>
-        /// The local is not user defined nor it is a copy of a user defined local (e.g. with a substituted type). 
+        /// The local is not user defined nor it is a copy of a user defined local (e.g. with a substituted type).
+        /// Check the value of <see cref="LocalSymbol.SynthesizedLocalKind"/> for the kind of synthesized variable.
         /// </summary>
         None,
 

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol constructor;
 
         internal LambdaFrame(MethodSymbol topLevelMethod, TypeCompilationState compilationState)
-            : base(GeneratedNames.MakeAnonymousDisplayClassName(compilationState.GenerateTempNumber()), topLevelMethod)
+            : base(GeneratedNames.MakeLambdaDisplayClassName(compilationState.GenerateTempNumber()), topLevelMethod)
         {
             this.topLevelMethod = topLevelMethod;
             this.constructor = new LambdaFrameConstructor(this);

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    isReadOnly: false,
                    isStatic: false)
         {
-            Debug.Assert(type != null);
+            Debug.Assert((object)type != null);
 
             // lifted fields do not need to have the CompilerGeneratedAttribute attached to it, the closure is already 
             // marked as being compiler generated.
@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static LambdaCapturedVariable Create(LambdaFrame frame, Symbol captured, ref int uniqueId)
         {
+            Debug.Assert(captured is LocalSymbol || captured is ParameterSymbol);
+
             string fieldName = GetCapturedVariableFieldName(captured, ref uniqueId);
             TypeSymbol type = GetCapturedVariableFieldType(frame, captured);
             return new LambdaCapturedVariable(frame, type, fieldName, IsThis(captured));
@@ -46,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsThis(variable))
             {
-                return GeneratedNames.IteratorThisProxyName();
+                return GeneratedNames.ThisProxyName();
             }
 
             var local = variable as LocalSymbol;
-            if (local != null)
+            if ((object)local != null)
             {
                 if (local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass)
                 {
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (local.SynthesizedLocalKind == SynthesizedLocalKind.ExceptionFilterAwaitHoistedExceptionLocal)
                 {
-                    return GeneratedNames.MakeIteratorFieldName(string.Empty, uniqueId++);
+                    return GeneratedNames.MakeHoistedLocalFieldName(string.Empty, uniqueId++);
                 }
             }
 

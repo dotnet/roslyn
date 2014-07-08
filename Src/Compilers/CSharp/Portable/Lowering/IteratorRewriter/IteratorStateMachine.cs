@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly TypeSymbol ElementType;
 
         public IteratorStateMachine(MethodSymbol iteratorMethod, bool isEnumerable, TypeSymbol elementType, TypeCompilationState compilationState)
-            : base(GeneratedNames.MakeIteratorOrAsyncDisplayClassName(iteratorMethod.Name, compilationState.GenerateTempNumber()), iteratorMethod)
+            : base(GeneratedNames.MakeStateMachineTypeName(iteratorMethod.Name, compilationState.GenerateTempNumber()), iteratorMethod)
         {
             this.iteratorMethod = iteratorMethod;
             this.ElementType = TypeMap.SubstituteType(elementType);

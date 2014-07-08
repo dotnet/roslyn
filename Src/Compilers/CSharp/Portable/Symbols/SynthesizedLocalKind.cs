@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         /// <summary>
         /// Local that stores an expression value which needs to be spilled.
-        /// This local should either be lifted or it's lifespan ends before 
+        /// This local should either be hoisted or its lifespan ends before 
         /// the end of the containing await expression.
         /// </summary>
         AwaitSpilledTemp = -4,
@@ -135,8 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return IsLongLived(kind);
             }
 
-            switch (kind) 
+            switch (kind)
             {
+                // TODO: The following variables should be named whenever we emit any debugging information,
+                // so that EE can recognize these variables by name. Synthesized variables that EE doesn't 
+                // need to know about don't need to be named unless we are emitting debug info for EnC.
                 case SynthesizedLocalKind.LambdaDisplayClass:
                     return true;
 

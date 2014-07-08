@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!locals.IsDefaultOrEmpty)
                     {
                         result = new BoundBlock(node, locals, ImmutableArray.Create(result)) { WasCompilerGenerated = true };
-            }
+                    }
 
                     return result;
             }
@@ -668,13 +668,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected BoundLocalDeclaration BindVariableDeclaration(
-            LocalDeclarationKind kind, 
-            bool isVar, 
-            VariableDeclaratorSyntax declarator, 
-            TypeSyntax typeSyntax, 
-            TypeSymbol declTypeOpt, 
-            AliasSymbol aliasOpt, 
-            DiagnosticBag diagnostics, 
+            LocalDeclarationKind kind,
+            bool isVar,
+            VariableDeclaratorSyntax declarator,
+            TypeSyntax typeSyntax,
+            TypeSymbol declTypeOpt,
+            AliasSymbol aliasOpt,
+            DiagnosticBag diagnostics,
             CSharpSyntaxNode associatedSyntaxNode = null)
         {
             Debug.Assert(declarator != null);
@@ -865,17 +865,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax)
-            {
+        {
             SourceLocalSymbol localSymbol = this.LookupLocal(declarator.Identifier);
 
             // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
             // This occurs through the semantic model.  In that case concoct a plausible result.
             if ((object)localSymbol == null)
-                {
+            {
                 if (declarator.Initializer == null)
                 {
-                localSymbol = SourceLocalSymbol.MakeLocal(
-                    ContainingMemberOrLambda, this, typeSyntax,
+                    localSymbol = SourceLocalSymbol.MakeLocal(
+                        ContainingMemberOrLambda, this, typeSyntax,
                         declarator.Identifier, LocalDeclarationKind.RegularVariable);
                 }
                 else
@@ -2500,9 +2500,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal virtual BoundIfStatement BindIfParts(DiagnosticBag diagnostics, Binder originalBinder)
-            {
+        {
             return this.Next.BindIfParts(diagnostics, originalBinder);
-            }
+        }
 
         protected BoundExpression BindBooleanExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
         {

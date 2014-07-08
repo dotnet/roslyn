@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected bool IsCaptured(Symbol localOrParameter)
         {
+            Debug.Assert(localOrParameter is LocalSymbol || localOrParameter is ParameterSymbol);
             return variablesCaptured.Contains(localOrParameter);
         }
 
