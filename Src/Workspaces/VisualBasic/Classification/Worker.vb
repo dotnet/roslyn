@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Return
             End If
 
-            For Each child In directiveSyntax.ChildNodesAndTokens()
+            For Each child As SyntaxNodeOrToken In directiveSyntax.ChildNodesAndTokens()
                 If child.IsToken Then
                     Select Case child.VisualBasicKind()
                         Case SyntaxKind.HashToken,

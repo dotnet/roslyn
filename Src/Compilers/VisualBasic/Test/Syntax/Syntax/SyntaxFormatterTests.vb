@@ -862,14 +862,14 @@ End Property
 
         <Fact>
         Public Sub TestEnableWarningDirective()
-            Dim text = <![CDATA[         #  enable           warning[BC000],123,             "456",_789$'          comment
+            Dim text = <![CDATA[         #  enable           warning[BC000],Bc123,             BC456,_789'          comment
 # enable   warning
 # enable   warning ,]]>.Value.Replace(vbLf, vbCrLf)
 
             Dim root = Parse(text).GetRoot()
             Dim formattedRoot = SyntaxFormatter.Format(root, "    ", useElasticTrivia:=True, useDefaultCasing:=True)
 
-            Dim expected = <![CDATA[#Enable Warning [BC000], 123, "456", _789$ '          comment
+            Dim expected = <![CDATA[#Enable Warning [BC000], Bc123, BC456, _789 '          comment
 #Enable Warning
 #Enable Warning ,
 ]]>.Value.Replace(vbLf, vbCrLf)
@@ -882,9 +882,9 @@ End Property
             Dim text = <![CDATA[Module Program
 #   disable warning
     Sub Main()
-        #disable       warning          "123",            bc456,789
+        #disable       warning          bc123,            Bc456,BC789
     End Sub
-#   disable   warning 123,   '   Comment
+#   disable   warning[BC123],   '   Comment
 End Module]]>.Value.Replace(vbLf, vbCrLf)
 
             Dim root = Parse(text).GetRoot()
@@ -894,9 +894,9 @@ End Module]]>.Value.Replace(vbLf, vbCrLf)
 
 #Disable Warning
     Sub Main()
-#Disable Warning "123", bc456, 789
+#Disable Warning bc123, Bc456, BC789
     End Sub
-#Disable Warning 123, '   Comment
+#Disable Warning [BC123], '   Comment
  End Module
 ]]>.Value.Replace(vbLf, vbCrLf)
 

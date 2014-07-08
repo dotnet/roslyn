@@ -403,6 +403,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _lineDirectiveMap.HasAnyHiddenRegions()
         End Function
 
+        ' Gets the reporting state for a warning (diagnostic) at a given source location based on warning directives.
+        Friend Function GetWarningState(id As String, position As Integer) As ReportDiagnostic
+            If lazyWarningStateMap Is Nothing Then
+                ' Create the warning state map on demand.
+                Interlocked.CompareExchange(lazyWarningStateMap, New VisualBasicWarningStateMap(Me), Nothing)
+            End If
+
+            Return lazyWarningStateMap.GetWarningState(id, position)
+        End Function
+
+        Private lazyWarningStateMap As VisualBasicWarningStateMap
+
         Private Function GetLinePosition(position As Integer) As LinePosition
             Return Me.GetText().Lines.GetLinePosition(position)
         End Function

@@ -3874,22 +3874,22 @@ End Class</text>.Value)
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub TestWarningDirectives()
             Dim text = <Code>
-                           #  enable           warning[BC000],123,             "456",_789$'          comment
+                           #  enable           warning[BC000],bc123,             ap456,_789'          comment
 Module Program
         #   disable     warning   'Comment
     Sub Main()
-        #disable       warning          "123",            bc456,789
+        #disable       warning          bc123,            bC456,someId789
     End Sub
 End Module
         #   enable     warning    
 </Code>
 
             Dim expected = <Code>
-#enable warning [BC000], 123, "456", _789$'          comment
+#enable warning [BC000], bc123, ap456, _789'          comment
 Module Program
 #disable warning   'Comment
     Sub Main()
-#disable warning "123", bc456, 789
+#disable warning bc123, bC456, someId789
     End Sub
 End Module
 #enable warning
@@ -3903,14 +3903,14 @@ End Module
             Dim text = <Code>
 #   disable
 Module M1
-        #   enable     warning"123",   ' Comment   
+        #   enable     warning[bc123],   ' Comment   
 End Module
 </Code>
 
             Dim expected = <Code>
 #disable
 Module M1
-#enable warning "123",   ' Comment   
+#enable warning [bc123],   ' Comment   
 End Module
 </Code>
 

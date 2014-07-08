@@ -462,6 +462,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(tree.GetRoot(), CompilationUnitSyntax)
         End Function
 
+        ''' <summary>
+        '''  Gets the reporting state for a warning at a given source location based on warning directives.
+        ''' </summary>
+        <Extension>
+        Friend Function GetWarningState(tree As SyntaxTree, id As String, position As Integer) As ReportDiagnostic
+            Return DirectCast(tree, VisualBasicSyntaxTree).GetWarningState(id, position)
+        End Function
+
 #Region "Symbols"
         ''' <summary>
         ''' Determines if symbol is Shared.

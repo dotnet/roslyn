@@ -9223,7 +9223,7 @@ Unify Enum declarations with other block type declarations.
 	    <node-kind name="EnableWarningDirectiveTrivia"></node-kind>
         <child name="EnableKeyword" kind="EnableKeyword"></child>
 	    <child name="WarningKeyword" kind="WarningKeyword"></child>
-	    <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@ExpressionSyntax"/>
+	    <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@IdentifierNameSyntax"/>
 	  </node-structure>
 	  
 	  <node-structure name="DisableWarningDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
@@ -9231,7 +9231,7 @@ Unify Enum declarations with other block type declarations.
 	    <node-kind name="DisableWarningDirectiveTrivia"></node-kind>
         <child name="DisableKeyword" kind="DisableKeyword"></child>
 	    <child name="WarningKeyword" kind="WarningKeyword"></child>
-	    <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@ExpressionSyntax"/>
+	    <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@IdentifierNameSyntax"/>
 	  </node-structure>
 
     <node-structure name="ReferenceDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">

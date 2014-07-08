@@ -1,44 +1,26 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal class CSharpPragmaWarningStateMap : AbstractWarningStateMap
     {
-        private WarningStateMapEntry[] warningStateMapEntries;
+        public CSharpPragmaWarningStateMap(SyntaxTree syntaxTree) : 
+            base(syntaxTree)
+        {
+        }
 
-        public CSharpPragmaWarningStateMap(SyntaxTree syntaxTree)
+        protected override WarningStateMapEntry[] CreateWarningStateMapEntries(SyntaxTree syntaxTree)
         {
             // Accumulate all the pragma warning directives, in source code order
             var directives = ArrayBuilder<PragmaWarningDirectiveTriviaSyntax>.GetInstance();
             GetAllPragmaWarningDirectives(syntaxTree, directives);
 
             // Create the pragma warning map.
-            this.warningStateMapEntries = CreatePragmaWarningStateEntries(directives.ToImmutableAndFree());
-        }
-
-        public override ReportDiagnostic GetWarningState(string id, int position)
-        {
-            var entry = GetEntryAtOrBeforePosition(this.warningStateMapEntries, position);
-
-            ReportDiagnostic report;
-            if (entry.SpecificWarningOption.TryGetValue(id, out report))
-            {
-                return report;
-            }
-
-            return entry.GeneralWarningOption;
+            return CreatePragmaWarningStateEntries(directives.ToImmutableAndFree());
         }
 
         // Add all active #pragma warn directives under trivia into the list, in source code order.

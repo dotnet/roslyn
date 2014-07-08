@@ -5,9 +5,7 @@
 ' //
 
 ' // Parse a line containing a conditional compilation directive.
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Globalization
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -399,30 +397,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim warningKeyword As KeywordSyntax = Nothing
             TryGetContextualKeyword(SyntaxKind.WarningKeyword, warningKeyword, createIfMissing:=True)
             If warningKeyword.ContainsDiagnostics Then
-                warningKeyword = ResyncAt(warningKeyword,
-                                          SyntaxKind.StringLiteralToken,
-                                          SyntaxKind.IntegerLiteralToken)
+                warningKeyword = ResyncAt(warningKeyword)
             End If
 
-            Dim errorCodes = Me._pool.AllocateSeparated(Of ExpressionSyntax)()
-            Dim errorCode As ExpressionSyntax = Nothing
-
+            Dim errorCodes = Me._pool.AllocateSeparated(Of IdentifierNameSyntax)()
             If Not SyntaxFacts.IsTerminator(CurrentToken.Kind) Then
                 Do
-                    Select Case CurrentToken.Kind
-                        Case SyntaxKind.StringLiteralToken
-                            errorCode = ParseStringLiteral()
-                        Case SyntaxKind.IntegerLiteralToken
-                            errorCode = ParseIntLiteral()
-                        Case SyntaxKind.IdentifierToken
-                            errorCode = ParseIdentifierNameAllowingKeyword()
-                        Case Else
-                            errorCode = InternalSyntaxFactory.MissingExpression()
-                            errorCode = ReportSyntaxError(errorCode, ERRID.ERR_ExpectedErrorCode)
-                    End Select
-
+                    Dim errorCode = SyntaxFactory.IdentifierName(ParseIdentifier())
                     If errorCode.ContainsDiagnostics Then
                         errorCode = ResyncAt(errorCode, SyntaxKind.CommaToken)
+                    ElseIf errorCode.Identifier.TypeCharacter <> TypeCharacter.None Then
+                        ' Disallow type characters at the end of diagnostic ids.
+                        errorCode = ReportSyntaxError(errorCode, ERRID.ERR_TypecharNotallowed)
                     End If
                     errorCodes.Add(errorCode)
 
@@ -437,9 +423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                     If comma.ContainsDiagnostics Then
-                        comma = ResyncAt(comma,
-                                         SyntaxKind.StringLiteralToken,
-                                         SyntaxKind.IntegerLiteralToken)
+                        comma = ResyncAt(comma)
                     End If
                     errorCodes.AddSeparator(comma)
                 Loop

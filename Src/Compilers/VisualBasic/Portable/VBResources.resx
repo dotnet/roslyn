@@ -4532,9 +4532,6 @@
   <data name="InvalidPreprocessorConstantType" xml:space="preserve">
     <value>Preprocessor constant '{0}' of type '{1}' is not supported, only primitive types are allowed.</value>
   </data>
-  <data name="ERR_ExpectedErrorCode" xml:space="preserve">
-    <value>Integer constant, string constant, or identifier expected.</value>
-  </data>
   <data name="ERR_ExpectedWarningKeyword" xml:space="preserve">
     <value>'Warning' expected.</value>
   </data>

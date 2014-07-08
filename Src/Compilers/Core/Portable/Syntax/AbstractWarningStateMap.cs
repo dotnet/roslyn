@@ -9,19 +9,49 @@ namespace Microsoft.CodeAnalysis.Syntax
     internal abstract class AbstractWarningStateMap
     {
         /// <summary>
-        /// Returns the reporting level of the given diagnostic id at the specified position
-        /// in the associated syntax tree.
+        /// List of entries sorted in source order, each of which captures a
+        /// position in the supplied syntax tree and the set of diagnostics (warnings)
+        /// whose reporting should either be suppressed or enabled at this position.
         /// </summary>
-        public abstract ReportDiagnostic GetWarningState(string id, int position);
+        private readonly WarningStateMapEntry[] warningStateMapEntries;
+
+        protected AbstractWarningStateMap(SyntaxTree syntaxTree)
+        {
+            warningStateMapEntries = CreateWarningStateMapEntries(syntaxTree);
+        }
 
         /// <summary>
-        /// Gets the position mapped entry in the provided sorted array with the largest position less than or equal to position
+        /// Returns list of entries sorted in source order, each of which captures a
+        /// position in the supplied syntax tree and the set of diagnostics (warnings)
+        /// whose reporting should either be suppressed or enabled at this position.
         /// </summary>
-        protected static WarningStateMapEntry GetEntryAtOrBeforePosition(WarningStateMapEntry[] sortedEntries, int position)
+        protected abstract WarningStateMapEntry[] CreateWarningStateMapEntries(SyntaxTree syntaxTree);
+
+        /// <summary>
+        /// Returns the reporting state for the supplied diagnostic id at the supplied position
+        /// in the associated syntax tree.
+        /// </summary>
+        public ReportDiagnostic GetWarningState(string id, int position)
         {
-            Debug.Assert(sortedEntries != null && sortedEntries.Length > 0);
-            int r = Array.BinarySearch(sortedEntries, new WarningStateMapEntry(position));
-            return sortedEntries[r >= 0 ? r : ((~r) - 1)];
+            var entry = GetEntryAtOrBeforePosition(position);
+
+            ReportDiagnostic state;
+            if (entry.SpecificWarningOption.TryGetValue(id, out state))
+            {
+                return state;
+            }
+
+            return entry.GeneralWarningOption;
+        }
+
+        /// <summary>
+        /// Gets the entry with the largest position less than or equal to supplied position.
+        /// </summary>
+        private WarningStateMapEntry GetEntryAtOrBeforePosition(int position)
+        {
+            Debug.Assert(warningStateMapEntries != null && warningStateMapEntries.Length > 0);
+            int r = Array.BinarySearch(warningStateMapEntries, new WarningStateMapEntry(position));
+            return warningStateMapEntries[r >= 0 ? r : ((~r) - 1)];
         }
 
         /// <summary>

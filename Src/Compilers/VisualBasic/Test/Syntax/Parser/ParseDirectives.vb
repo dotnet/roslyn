@@ -7,6 +7,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Diagnostics
+Imports System.Threading
 
 <CLSCompliant(False)>
 Public Class ParseDirectives
@@ -1570,6 +1572,9 @@ BC30059: Constant expression is required.
         ]]>, options)
     End Sub
 
+#Region "#Disable Warning, #Enable Warning"
+
+#Region "Parser Tests"
     <Fact>
     Public Sub ParseWarningDirective_NoErrorCodes()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1583,7 +1588,7 @@ warning 'comment]]>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
@@ -1597,41 +1602,41 @@ warning 'comment]]>)
     End Sub
 
     <Fact>
-    Public Sub ParseWarningDirectiv_WithErrorCodes()
+    Public Sub ParseWarningDirective_WithErrorCodes()
         Dim tree = ParseAndVerify(<![CDATA[
 Module Module1
     Sub Main
     # _
-enable warning[BC000], 123, "456", _789$ 'comment
-#  disable   warning"123", _
-disable , 789   rem comment
+enable warning[BC42024], _789 'comment
+#  disable   warning _
+disable , BC41008   rem comment
     End Sub
-End Module
-        ]]>)
+End Module]]>)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
         tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(4, enableNode.ErrorCodes.Count)
+        Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(1).VisualBasicKind)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, enableNode.ErrorCodes(2).VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(3).VisualBasicKind)
+        Assert.Equal("[BC42024]", enableNode.ErrorCodes(0).ToString)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal("_789", enableNode.ErrorCodes(1).Identifier.ValueText)
 
         Dim disableNode = DirectCast(root.GetLastDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
         Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(3, disableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(2, disableNode.ErrorCodes.Count)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal("disable", disableNode.ErrorCodes(0).ToString)
         Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal("BC41008", disableNode.ErrorCodes(1).Identifier.ValueText)
     End Sub
 
     <Fact>
@@ -1639,41 +1644,37 @@ End Module
         Dim tree = ParseAndVerify(<![CDATA[
 Module Module1
     Sub Main
-＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ＂１＂ ， １，ＷＡＲＮＩＮＧ
+＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ ［ＷＡＲＮＩＮＧ］ _
+
 ＃ _ 
- ｅｎａｂｌｅ     ｗａｒｎｉｎｇ＂１＂ ， １， _
+ ｅｎａｂｌｅ     ｗａｒｎｉｎｇ _
 ｅｎａｂｌｅ
     End Sub
-End Module
-        ]]>)
+End Module]]>)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
         tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
         Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(3, disableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, disableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(1).VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal("［ＷＡＲＮＩＮＧ］", disableNode.ErrorCodes.Single.Identifier.ToString)
 
         Dim enableNode = DirectCast(root.GetLastDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(3, enableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, enableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(1).VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal("ｅｎａｂｌｅ", enableNode.ErrorCodes.Single.Identifier.ValueText)
     End Sub
 
     <Fact>
     Public Sub ParseWarningDirective_BadDisableKeyword1()
-        Dim tree = ParseAndVerify(<![CDATA[#[disable] warning 123]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#[disable] warning BC42024]]>,
             <errors>
                 <error id="30248" message="'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected." start="0" end="1"/>
             </errors>)
@@ -1682,7 +1683,7 @@ End Module
 
     <Fact>
     Public Sub ParseWarningDirective_BadDisableKeyword2()
-        Dim tree = ParseAndVerify(<![CDATA[#disable$ warning 123]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#disable$ warning BC42025]]>,
             <errors>
                 <error id="30248" message="'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected." start="0" end="1"/>
             </errors>)
@@ -1694,15 +1695,14 @@ End Module
         Dim tree = ParseAndVerify(<![CDATA[
 #enable 'warning
 Class Class1
-End Class
-        ]]>,
+End Class]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="20" end="20"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -1714,7 +1714,7 @@ End Class
 
     <Fact>
     Public Sub ParseWarningDirective_MissingWarningKeyword2()
-        Dim tree = ParseAndVerify(<![CDATA[#disable bc123]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#disable BC42024]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="9" end="9"/>
             </errors>)
@@ -1722,7 +1722,7 @@ End Class
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single().VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
@@ -1734,27 +1734,7 @@ End Class
 
     <Fact>
     Public Sub ParseWarningDirective_MissingWarningKeyword3()
-        Dim tree = ParseAndVerify(<![CDATA[#disable "123"]]>,
-            <errors>
-                <error id="31218" message="'Warning' expected." start="9" end="9"/>
-            </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.True(disableNode.WarningKeyword.IsMissing)
-        Assert.False(disableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, disableNode.ErrorCodes.Single.VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseWarningDirective_MissingWarningKeyword4()
-        Dim tree = ParseAndVerify(<![CDATA[#disable , 123]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#disable , BC42024]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="9" end="9"/>
             </errors>)
@@ -1762,32 +1742,11 @@ End Class
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens.Single().VisualBasicKind)
+        Assert.Equal(2, skippedTokens.DescendantTokens.Count)
+        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.False(disableNode.DisableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.True(disableNode.WarningKeyword.IsMissing)
-        Assert.False(disableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes.Single.VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseWarningDirective_MissingWarningKeyword5()
-        Dim tree = ParseAndVerify(<![CDATA[#disable , bc123]]>,
-            <errors>
-                <error id="31218" message="'Warning' expected." start="9" end="9"/>
-            </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(2, skippedTokens.DescendantTokens.Count())
-        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens().First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens().Last.VisualBasicKind)
-
-        Dim disableNode = DirectCast(tree.GetRoot().GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
         Assert.False(disableNode.DisableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
@@ -1809,7 +1768,7 @@ End Enum]]>,
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens().Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
@@ -1821,7 +1780,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_BadWarningKeyword2()
-        Dim tree = ParseAndVerify(<![CDATA[#enable Const 123]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#enable Const BC42025]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="8" end="8"/>
             </errors>)
@@ -1829,15 +1788,16 @@ End Enum]]>,
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.ConstKeyword, skippedTokens.DescendantTokens().Single.VisualBasicKind)
+        Assert.Equal(2, skippedTokens.DescendantTokens.Count)
+        Assert.Equal(SyntaxKind.ConstKeyword, skippedTokens.DescendantTokens.First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
         Assert.True(enableNode.WarningKeyword.IsMissing)
-        Assert.False(enableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(0, enableNode.ErrorCodes.Count)
     End Sub
 
     <Fact>
@@ -1845,31 +1805,28 @@ End Enum]]>,
         Dim tree = ParseAndVerify(<![CDATA[
 Enum E
     A
-#Disable enable blah, 123 456
+#Disable enable blah, BC42024 BC41005
 End Enum]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="26" end="26"/>
-                <error id="30196" message="Comma expected." start="43" end="43"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(3, skippedTokens.DescendantTokens.Count())
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens().First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens().Skip(1).First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens().Last.VisualBasicKind)
+        Assert.Equal(5, skippedTokens.DescendantTokens.Count)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Skip(1).First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens.Skip(2).First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Skip(3).First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
         Assert.False(disableNode.DisableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
         Assert.True(disableNode.WarningKeyword.IsMissing)
-        Assert.Equal(2, disableNode.ErrorCodes.Count)
-        Assert.False(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.False(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(0, disableNode.ErrorCodes.Count)
     End Sub
 
     <Fact>
@@ -1882,7 +1839,7 @@ End Enum]]>,
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens().Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
@@ -1894,7 +1851,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_BadWarningKeyword5()
-        Dim tree = ParseAndVerify(<![CDATA[#disable [warning] 123]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#disable [warning] BC42024]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="9" end="9"/>
             </errors>)
@@ -1902,27 +1859,28 @@ End Enum]]>,
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens().Single.VisualBasicKind)
+        Assert.Equal(2, skippedTokens.DescendantTokens.Count)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
         Assert.False(disableNode.DisableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
         Assert.True(disableNode.WarningKeyword.IsMissing)
-        Assert.False(disableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(0, disableNode.ErrorCodes.Count)
     End Sub
 
     <Fact>
     Public Sub ParseWarningDirective_MissingErrorCode1()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning 123,,bc123]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#enable warning BC42024,,bc123]]>,
             <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="20" end="20"/>
+                <error id="30203" message="Identifier expected." start="26" end="26"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -1931,7 +1889,7 @@ End Enum]]>,
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(3, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
         Assert.True(enableNode.ErrorCodes(1).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
         Assert.False(enableNode.ErrorCodes(2).IsMissing)
@@ -1940,14 +1898,14 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_MissingErrorCode2()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning 122, _]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc42025, _]]>,
             <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="22" end="22"/>
+                <error id="30203" message="Identifier expected." start="24" end="24"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -1956,24 +1914,24 @@ End Enum]]>,
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
         Assert.True(enableNode.ErrorCodes(1).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
     End Sub
 
     <Fact>
     Public Sub ParseWarningDirective_BadErrorCode1()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning @123, 123]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#enable warning @42024, bc42025]]>,
             <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="16" end="16"/>
+                <error id="30203" message="Identifier expected." start="16" End="16"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(2, skippedTokens.DescendantTokens.Count())
-        Assert.Equal(SyntaxKind.AtToken, skippedTokens.DescendantTokens().First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.DescendantTokens().Last.VisualBasicKind)
+        Assert.Equal(2, skippedTokens.DescendantTokens.Count)
+        Assert.Equal(SyntaxKind.AtToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -1984,65 +1942,42 @@ End Enum]]>,
         Assert.True(enableNode.ErrorCodes(0).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
         Assert.False(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
     End Sub
 
     <Fact>
     Public Sub ParseWarningDirective_BadErrorCode2()
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning Dim]]>,
             <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="16" end="16"/>
+                <error id="30183" message="Keyword is not valid as an identifier." start="16" end="19"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.DimKeyword, skippedTokens.DescendantTokens().Single.VisualBasicKind)
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
-        Assert.True(enableNode.ErrorCodes.Single.IsMissing)
+        Assert.False(enableNode.ErrorCodes.Single.IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal("Dim", enableNode.ErrorCodes.Single.ToString)
     End Sub
 
     <Fact>
     Public Sub ParseWarningDirective_MissingComma1()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning 123 "123"]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#enable warning BC42024 bc42025]]>,
             <errors>
-                <error id="30196" message="Comma expected." start="20" end="20"/>
-            </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
-
-        Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
-        Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
-        Assert.False(enableNode.WarningKeyword.IsMissing)
-        Assert.Equal(2, enableNode.ErrorCodes.Count)
-        Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.False(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, enableNode.ErrorCodes(1).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseWarningDirective_MissingComma2()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning 123 bc123]]>,
-            <errors>
-                <error id="30196" message="Comma expected." start="20" end="20"/>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="25" end="25"/>
+                <error id="30196" message="Comma expected." start="24" end="24"/>
+                <error id="30203" message="Identifier expected." start="31" end="31"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens().Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -2051,21 +1986,52 @@ End Enum]]>,
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
         Assert.True(enableNode.ErrorCodes(1).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
     End Sub
 
     <Fact>
-    Public Sub ParseWarningDirective_BadComma1()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning, 123, bc123]]>,
+    Public Sub ParseWarningDirective_MissingComma2()
+        Dim tree = ParseAndVerify(<![CDATA[#enable warning bc42105, bc42024 _
+            SomeId, SomeOtherId]]>,
             <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="15" end="15"/>
+                <error id="30196" message="Comma expected." start="47" end="47"/>
+                <error id="30203" message="Identifier expected." start="66" end="66"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
+        Assert.Equal(3, skippedTokens.DescendantTokens.Count)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.CommaToken, skippedTokens.DescendantTokens.Skip(1).First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
+
+        Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.False(enableNode.EnableKeyword.IsMissing)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.False(enableNode.WarningKeyword.IsMissing)
+        Assert.Equal(3, enableNode.ErrorCodes.Count)
+        Assert.False(enableNode.ErrorCodes(0).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.False(enableNode.ErrorCodes(1).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.True(enableNode.ErrorCodes(2).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+    End Sub
+
+    <Fact>
+    Public Sub ParseWarningDirective_BadComma1()
+        Dim tree = ParseAndVerify(<![CDATA[#enable warning, bc41008, someid]]>,
+            <errors>
+                <error id="30203" message="Identifier expected." start="15" end="15"/>
+            </errors>)
+        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+
+        Dim root = tree.GetRoot()
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -2076,23 +2042,26 @@ End Enum]]>,
         Assert.True(enableNode.ErrorCodes(0).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
         Assert.False(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
         Assert.False(enableNode.ErrorCodes(2).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(2).VisualBasicKind)
     End Sub
 
     <Fact>
     Public Sub ParseWarningDirective_BadComma2()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning 123; "123"]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#enable warning bc42025; someid]]>,
             <errors>
-                <error id="30196" message="Comma expected." start="19" end="19"/>
-                <error id="30037" message="Character is not valid." start="19" end="20"/>
+                <error id="30196" message="Comma expected." start="23" end="23"/>
+                <error id="30037" message="Character is not valid." start="23" end="24"/>
+                <error id="30203" message="Identifier expected." start="31" end="31"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens().Single.VisualBasicKind)
+        Assert.Equal(2, skippedTokens.DescendantTokens.Count)
+        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -2101,69 +2070,20 @@ End Enum]]>,
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.False(enableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, enableNode.ErrorCodes(1).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseWarningDirective_BadComma3()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning 123 ; bc123]]>,
-            <errors>
-                <error id="30196" message="Comma expected." start="20" end="20"/>
-                <error id="30037" message="Character is not valid." start="20" end="21"/>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="27" end="27"/>
-            </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(2, skippedTokens.DescendantTokens.Count())
-        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens().First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens().Last.VisualBasicKind)
-
-        Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
-        Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
-        Assert.False(enableNode.WarningKeyword.IsMissing)
-        Assert.Equal(2, enableNode.ErrorCodes.Count)
-        Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
         Assert.True(enableNode.ErrorCodes(1).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
     End Sub
 
     <Fact>
     Public Sub ParseWarningDirective_EscapedKeywords()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning [Dim], [Rem], Dim$]]>)
+        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning [Dim], [Rem]]]>)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
-
-        Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
-        Assert.False(enableNode.EnableKeyword.IsMissing)
-        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
-        Assert.False(enableNode.WarningKeyword.IsMissing)
-        Assert.Equal(3, enableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
-        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(2).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseWarningDirective_VeryLongIdentifier()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning __123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890, 123]]>)
-        tree.VerifyNoMissingChildren()
-        tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -2172,266 +2092,126 @@ End Enum]]>,
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal("Dim", enableNode.ErrorCodes(0).Identifier.ValueText)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal("[Rem]", enableNode.ErrorCodes(1).ToString)
     End Sub
 
     <Fact>
-    Public Sub ParseDisableWarningDirective_IntegerLiterals()
-        Dim tree = ParseAndVerify(<![CDATA[
-Module Module1
-    Sub Main
-#disable warning 1I, 2%, 3S, 4L, 5&, 2147483647, 2147483648
-    End Sub
-End Module
-        ]]>)
-        tree.VerifyNoMissingChildren()
-        tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(7, disableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(1).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(2).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(3).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(4).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(5).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(6).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_UnsignedIntegerLiterals()
-        Dim tree = ParseAndVerify(<![CDATA[
-Module Module1
-    Sub Main
-#disable warning 1UI, 2US, 3UL
-    End Sub
-End Module
-        ]]>)
-        tree.VerifyNoMissingChildren()
-        tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(3, disableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(1).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(2).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_HexadecimalAndOctalLiterals()
-        Dim tree = ParseAndVerify(<![CDATA[
-Module Module1
-    Sub Main
-#disable warning &H123, &O456
-    End Sub
-End Module
-        ]]>)
-        tree.VerifyNoMissingChildren()
-        tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(2, disableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(1).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_Overflow()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning 100000000000000000000, 0]]>,
+    Public Sub ParseWarningDirective_NoTypeChars()
+        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning Dim$, BC&]]>,
             <errors>
-                <error id="30036" message="Overflow." start="17" end="17"/>
+                <error id="30468" message="Type declaration characters are not valid in this context." start="16" end="20"/>
+                <error id="30468" message="Type declaration characters are not valid in this context." start="22" end="25"/>
             </errors>)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(2, disableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(1).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_NoFloatLiterals1()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning 1.2]]>,
-            <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="17" end="17"/>
-            </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.FloatingLiteralToken, skippedTokens.DescendantTokens().Single.VisualBasicKind)
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.True(disableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes.Single.VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_NoFloatLiterals2()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning 1F, 2!]]>,
-            <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="17" end="17"/>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="21" end="21"/>
-            </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Assert.Equal(2, root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Count)
-        Dim skippedTokens1 = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).First()
-        Assert.Equal(SyntaxKind.FloatingLiteralToken, skippedTokens1.DescendantTokens().Single.VisualBasicKind)
-        Dim skippedTokens2 = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Last()
-        Assert.Equal(SyntaxKind.FloatingLiteralToken, skippedTokens2.DescendantTokens().Single.VisualBasicKind)
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(2, disableNode.ErrorCodes.Count)
-        Assert.True(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.True(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_NoDoubleLiterals()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning 1R, 2#]]>,
-            <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="17" end="17"/>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="21" end="21"/>
-            </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Assert.Equal(2, root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Count)
-        Dim skippedTokens1 = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).First()
-        Assert.Equal(SyntaxKind.FloatingLiteralToken, skippedTokens1.DescendantTokens().Single.VisualBasicKind)
-        Dim skippedTokens2 = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Last()
-        Assert.Equal(SyntaxKind.FloatingLiteralToken, skippedTokens2.DescendantTokens().Single.VisualBasicKind)
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(2, disableNode.ErrorCodes.Count)
-        Assert.True(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.True(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_NoDecimalLiterals()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning 1D, 2@]]>,
-            <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="17" end="17"/>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="21" end="21"/>
-            </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Assert.Equal(2, root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Count)
-        Dim skippedTokens1 = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).First()
-        Assert.Equal(SyntaxKind.DecimalLiteralToken, skippedTokens1.DescendantTokens().Single.VisualBasicKind)
-        Dim skippedTokens2 = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Last()
-        Assert.Equal(SyntaxKind.DecimalLiteralToken, skippedTokens2.DescendantTokens().Single.VisualBasicKind)
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(2, disableNode.ErrorCodes.Count)
-        Assert.True(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.True(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_NoCharLiterals()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning "a"c]]>,
-            <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="17" end="17"/>
-            </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.CharacterLiteralToken, skippedTokens.DescendantTokens().Single.VisualBasicKind)
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.True(disableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes.Single.VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseWarningDirective_NoMultilineStringLiteral()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning "1
-23"]]>,
-            <errors>
-                <error id="30801" message="Labels that are numbers must be followed by colons." start="19" end="21"/>
-                <error id="30016" message="Labels are not valid outside methods." start="19" end="21"/>
-                <error id="30648" message="String constants must end with a double quote." start="16" end="18"/>
-                <error id="30648" message="String constants must end with a double quote." start="21" end="22"/>
-            </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
+
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
         Assert.False(enableNode.EnableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
-        Assert.False(enableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, enableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(2, enableNode.ErrorCodes.Count)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal("Dim", enableNode.ErrorCodes(0).Identifier.ValueText)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal("BC&", enableNode.ErrorCodes(1).ToString)
     End Sub
 
     <Fact>
-    Public Sub ParseDisableWarningDirective_NoBooleanLiterals()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning True, False]]>,
+    Public Sub ParseWarningDirective_VeryLongIdentifier()
+        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning __123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890, bc42025]]>)
+        tree.VerifyNoMissingChildren()
+        tree.VerifyNoZeroWidthNodes()
+        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+
+        Dim root = tree.GetRoot()
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
+
+        Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.False(enableNode.EnableKeyword.IsMissing)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.False(enableNode.WarningKeyword.IsMissing)
+        Assert.Equal(2, enableNode.ErrorCodes.Count)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+    End Sub
+
+    <Fact>
+    Public Sub ParseWarningDirective_NoIntegerLiterals()
+        Dim tree = ParseAndVerify(<![CDATA[
+Module Module1
+    Sub Main
+#disable warning 42024, 42024L, 2025UI, &HA428, BC&O122050
+    End Sub
+End Module]]>,
             <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="17" end="17"/>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="23" end="23"/>
+                <error id="30203" message="Identifier expected." start="46" end="46"/>
+                <error id="30203" message="Identifier expected." start="53" end="53"/>
+                <error id="30203" message="Identifier expected." start="61" end="61"/>
+                <error id="30203" message="Identifier expected." start="69" end="69"/>
+                <error id="30468" message="Type declaration characters are not valid in this context." start="77" end="80"/>
+                <error id="30196" message="Comma expected." start="80" end="80"/>
+                <error id="30203" message="Identifier expected." start="88" end="88"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.Equal(2, root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Count)
-        Dim skippedTokens1 = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).First()
-        Assert.Equal(SyntaxKind.TrueKeyword, skippedTokens1.DescendantTokens().Single.VisualBasicKind)
-        Dim skippedTokens2 = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Last()
-        Assert.Equal(SyntaxKind.FalseKeyword, skippedTokens2.DescendantTokens().Single.VisualBasicKind)
+        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax)
+        Assert.Equal(5, skippedTokens.Count)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.First.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.Skip(1).First.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.Skip(2).First.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.Skip(3).First.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.Last.DescendantTokens.Single.VisualBasicKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.False(disableNode.DisableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(2, disableNode.ErrorCodes.Count)
+        Assert.False(disableNode.WarningKeyword.IsMissing)
+        Assert.Equal(6, disableNode.ErrorCodes.Count)
+        Assert.True(disableNode.ErrorCodes(0).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.True(disableNode.ErrorCodes(1).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.True(disableNode.ErrorCodes(2).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.True(disableNode.ErrorCodes(3).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(3).VisualBasicKind)
+        Assert.False(disableNode.ErrorCodes(4).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(4).VisualBasicKind)
+        Assert.Equal("BC&", disableNode.ErrorCodes(4).ToString)
+        Assert.True(disableNode.ErrorCodes(5).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(5).VisualBasicKind)
+    End Sub
+
+    <Fact>
+    Public Sub ParseWarningDirective_NoStringLiterals()
+        Dim tree = ParseAndVerify(<![CDATA[#disable warning "a"c, "b"]]>,
+            <errors>
+                <error id="30203" message="Identifier expected." start="17" end="17"/>
+                <error id="30203" message="Identifier expected." start="23" end="23"/>
+            </errors>)
+        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+
+        Dim root = tree.GetRoot()
+        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax)
+        Assert.Equal(2, skippedTokens.Count)
+        Assert.Equal(SyntaxKind.CharacterLiteralToken, skippedTokens.First.DescendantTokens.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.StringLiteralToken, skippedTokens.Skip(1).First.DescendantTokens.Single.VisualBasicKind)
+
+        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
+        Assert.False(disableNode.DisableKeyword.IsMissing)
+        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.False(disableNode.WarningKeyword.IsMissing)
+        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
         Assert.True(disableNode.ErrorCodes(0).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
         Assert.True(disableNode.ErrorCodes(1).IsMissing)
@@ -2439,157 +2219,96 @@ End Module
     End Sub
 
     <Fact>
-    Public Sub ParseDisableWarningDirective_NoDateLiterals()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning #1/2/2014#]]>,
+    Public Sub ParseWarningDirective_NoOtherLiterals()
+        Dim tree = ParseAndVerify(<![CDATA[#disable warning True, False, #1/2/2014#, Nothing]]>,
             <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="17" end="17"/>
+                <error id="30183" message="Keyword is not valid as an identifier." start="17" end="21"/>
+                <error id="30183" message="Keyword is not valid as an identifier." start="23" end="28"/>
+                <error id="30203" message="Identifier expected." start="30" end="30"/>
+                <error id="30183" message="Keyword is not valid as an identifier." start="42" end="49"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.DateLiteralToken, skippedTokens.DescendantTokens().Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.DateLiteralToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
 
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
+        Assert.False(disableNode.DisableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.False(disableNode.WarningKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.True(disableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(4, disableNode.ErrorCodes.Count)
+        Assert.False(disableNode.ErrorCodes(0).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal("True", disableNode.ErrorCodes(0).ToString)
+        Assert.False(disableNode.ErrorCodes(1).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal("False", disableNode.ErrorCodes(1).ToString)
+        Assert.True(disableNode.ErrorCodes(2).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal(String.Empty, disableNode.ErrorCodes(2).ToString)
+        Assert.False(disableNode.ErrorCodes(3).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(3).VisualBasicKind)
+        Assert.Equal("Nothing", disableNode.ErrorCodes(3).ToString)
     End Sub
 
+    ',
     <Fact>
-    Public Sub ParseDisableWarningDirective_NoNothingLiteral()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning Nothing]]>,
-            <error>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="17" end="17"/>
-            </error>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.NothingKeyword, skippedTokens.DescendantTokens.Single.VisualBasicKind)
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.True(disableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes.Single.VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_NoNegativeIntegers()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning -1]]>,
+    Public Sub ParseWarningDirective_NoExpressions1()
+        Dim tree = ParseAndVerify(<![CDATA[#disable warning -bc42024, (bc42025), Chr(42024)]]>,
             <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="17" end="17"/>
+                <error id="30203" message="Identifier expected." start="17" end="17"/>
+                <error id="30203" message="Identifier expected." start="27" end="27"/>
+                <error id="30196" message="Comma expected." start="41" end="41"/>
+                <error id="30203" message="Identifier expected." start="48" end="48"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(2, skippedTokens.DescendantTokens.Count())
-        Assert.Equal(SyntaxKind.MinusToken, skippedTokens.DescendantTokens().First.VisualBasicKind)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.DescendantTokens().Last.VisualBasicKind)
-
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
+        Assert.False(disableNode.DisableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.False(disableNode.WarningKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.True(disableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(4, disableNode.ErrorCodes.Count)
+        Assert.True(disableNode.ErrorCodes(0).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.True(disableNode.ErrorCodes(1).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.False(disableNode.ErrorCodes(2).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VisualBasicKind)
+        Assert.Equal("Chr", disableNode.ErrorCodes(2).ToString)
+        Assert.True(disableNode.ErrorCodes(3).IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(3).VisualBasicKind)
     End Sub
 
     <Fact>
-    Public Sub ParseDisableWarningDirective_NoParens()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning (1)]]>,
-            <error>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="17" end="17"/>
-            </error>)
+    Public Sub ParseWarningDirective_NoExpressions2()
+        Dim tree = ParseAndVerify(<![CDATA[#Disable Warning string.Empty, bc42024 & bc42025 + bc42015]]>,
+            <errors>
+                <error id="30183" message="Keyword is not valid as an identifier." start="17" end="23"/>
+                <error id="30196" message="Comma expected." start="39" end="39"/>
+                <error id="30203" message="Identifier expected." start="58" end="58"/>
+            </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(3, skippedTokens.DescendantTokens.Count())
-        Assert.Equal(SyntaxKind.OpenParenToken, skippedTokens.DescendantTokens()(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, skippedTokens.DescendantTokens()(1).VisualBasicKind)
-        Assert.Equal(SyntaxKind.CloseParenToken, skippedTokens.DescendantTokens()(2).VisualBasicKind)
-
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
+        Assert.False(disableNode.DisableKeyword.IsMissing)
         Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.True(disableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes.Single.VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_NoExpressions1()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning Chr(0)]]>,
-            <error>
-                <error id="30196" message="Comma expected." start="17" end="17"/>
-                <error id="30196" message="Comma expected." start="22" end="22"/>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="23" end="23"/>
-            </error>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Assert.Equal(2, root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Count)
-        Dim skippedTokens1 = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).First()
-        Assert.Equal(SyntaxKind.OpenParenToken, skippedTokens1.DescendantTokens().Single.VisualBasicKind)
-        Dim skippedTokens2 = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Last()
-        Assert.Equal(SyntaxKind.CloseParenToken, skippedTokens2.DescendantTokens().Single.VisualBasicKind)
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
+        Assert.False(disableNode.WarningKeyword.IsMissing)
         Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
         Assert.Equal(3, disableNode.ErrorCodes.Count)
         Assert.False(disableNode.ErrorCodes(0).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal("string", disableNode.ErrorCodes(0).ToString)
         Assert.False(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal("bc42024", disableNode.ErrorCodes(1).ToString)
         Assert.True(disableNode.ErrorCodes(2).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(2).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_NoExpressions2()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning 1 + 2]]>,
-            <error>
-                <error id="30196" message="Comma expected." start="19" end="19"/>
-            </error>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.PlusToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(2, disableNode.ErrorCodes.Count)
-        Assert.False(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.False(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, disableNode.ErrorCodes(1).VisualBasicKind)
-    End Sub
-
-    <Fact>
-    Public Sub ParseDisableWarningDirective_NoExpressions3()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning "123" & "456"]]>,
-            <error>
-                <error id="30196" message="Comma expected." start="23" end="23"/>
-            </error>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-
-        Dim root = tree.GetRoot()
-        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.AmpersandToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
-
-        Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
-        Assert.Equal(SyntaxKind.DisableKeyword, disableNode.DisableKeyword.VisualBasicKind)
-        Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
-        Assert.Equal(2, disableNode.ErrorCodes.Count)
-        Assert.False(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, disableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.False(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(String.Empty, disableNode.ErrorCodes(2).ToString)
     End Sub
 
     <Fact()>
@@ -2600,7 +2319,7 @@ End Module
         tree.VerifyNoZeroWidthNodes()
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -2614,14 +2333,13 @@ End Module
     Public Sub ParseWarningDirective_LineContinuation2()
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning _ 'Comment]]>,
             <errors>
-                <error id="30999" message="Line continuation character '_' must be preceded by at least one white space and must be the last character on the line." start="17" end="18"/>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="26" end="26"/>
+                <error id="30203" message="Identifier expected." start="16" end="17"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens().Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -2634,13 +2352,13 @@ End Module
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation3()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning 123 _]]>)
+        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc42025 _]]>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -2648,22 +2366,22 @@ End Module
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.False(enableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VisualBasicKind)
     End Sub
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation4()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning 123 _ 'Comment]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc41007 _ 'Comment]]>,
             <errors>
-                <error id="30196" message="Comma expected." start="20" end="20"/>
-                <error id="30999" message="Line continuation character '_' must be preceded by at least one white space and must be the last character on the line." start="20" end="21"/>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="30" end="30"/>
+                <error id="30196" message="Comma expected." start="24" end="24"/>
+                <error id="30999" message="Line continuation character '_' must be preceded by at least one white space and must be the last character on the line." start="24" end="25"/>
+                <error id="30203" message="Identifier expected." start="34" end="34"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
-        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens().Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.Single.VisualBasicKind)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -2672,7 +2390,7 @@ End Module
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
         Assert.True(enableNode.ErrorCodes(1).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
     End Sub
@@ -2687,7 +2405,7 @@ End Module
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
@@ -2697,30 +2415,55 @@ End Module
         Assert.Equal(0, enableNode.ErrorCodes.Count)
     End Sub
 
+
+    <Fact()>
+    Public Sub ParseWarningDirective_LineContinuation6()
+        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning [ _
+bc42025]]>,
+            <errors>
+                <error id="30203" message="Identifier expected." start="16" end="16"/>
+                <error id="30203" message="Identifier expected." start="16" end="17"/>
+            </errors>)
+        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+
+        Dim root = tree.GetRoot()
+        Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
+        Assert.Equal(2, skippedTokens.DescendantTokens.Count)
+        Assert.Equal(SyntaxKind.BadToken, skippedTokens.DescendantTokens.First.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierToken, skippedTokens.DescendantTokens.Last.VisualBasicKind)
+
+        Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
+        Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
+        Assert.False(enableNode.EnableKeyword.IsMissing)
+        Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
+        Assert.False(enableNode.WarningKeyword.IsMissing)
+        Assert.True(enableNode.ErrorCodes.Single.IsMissing)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+    End Sub
+
     <Fact>
     Public Sub ParseWarningDirective_NoImplicitLineContinuation()
         Dim tree = ParseAndVerify(<![CDATA[
 Module Module1
     Sub Main
-#enable warning 123, "456", 
-BC789
+#enable warning BC42025, someid, 
+SomeOtherId
     End Sub
-End Module
-        ]]>,
+End Module]]>,
             <errors>
-                <error id="31219" message="Integer constant, string constant, or identifier expected." start="58" end="58"/>
+                <error id="30203" message="Identifier expected." start="63" end="63"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
         Assert.Equal(SyntaxKind.EnableKeyword, enableNode.EnableKeyword.VisualBasicKind)
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
         Assert.Equal(3, enableNode.ErrorCodes.Count)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes(0).VisualBasicKind)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
         Assert.True(enableNode.ErrorCodes(2).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(2).VisualBasicKind)
     End Sub
@@ -2744,9 +2487,9 @@ End Module
 
     <Fact>
     Public Sub ParseWarningDirective_StatementSeperator2()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning 122 :'comment]]>,
+        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc42024 :'comment]]>,
             <errors>
-                <error id="30205" message="End of statement expected." start="21" end="21"/>
+                <error id="30205" message="End of statement expected." start="23" end="23"/>
             </errors>)
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
@@ -2757,9 +2500,10 @@ End Module
         Assert.Equal(SyntaxKind.WarningKeyword, enableNode.WarningKeyword.VisualBasicKind)
         Assert.False(enableNode.WarningKeyword.IsMissing)
         Assert.False(enableNode.ErrorCodes.Single.IsMissing)
-        Assert.Equal(SyntaxKind.NumericLiteralExpression, enableNode.ErrorCodes.Single.VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes.Single.VisualBasicKind)
     End Sub
 
+    <Fact>
     Public Sub ParseWarningDirective_StatementSeperator3()
         Dim tree = ParseAndVerify(<![CDATA[#Disable :
 ]]>,
@@ -2779,25 +2523,25 @@ End Module
     End Sub
 
     <Fact>
-    Public Sub ParseDisableWarningDirective_InsideNestedIfDirectives()
+    Public Sub ParseWarningDirective_InsideNestedIfDirectives()
         Dim tree = ParseAndVerify(<![CDATA[
 Module Program
     Sub Main()
 #If True Then
 #If False Then
         #if true then
-        #disable warning 100, 200
+        #disable warning bc42024, bc42025
         #end if
 #ElseIf True Then
-#Disable Warning "100", "200"
+#Disable Warning bc42024, [BC42025]
     End Sub
 #Else
-        #enable warning 100, 200
+        #enable warning bc41008, bc41008
 #End If
 End Module
-#Enable Warning _100, _200
+#Enable Warning someOtherId, someId
 #Else
-#Enable Warning 100, 200
+#Enable Warning bc42024, bc42025
 End Module
 #End If]]>)
         tree.VerifyNoMissingChildren()
@@ -2806,7 +2550,7 @@ End Module
         tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
-        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any())
+        Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
 
         Dim disableNode = root.DescendantNodes(descendIntoTrivia:=True).
             OfType(Of DisableWarningDirectiveTriviaSyntax).Single
@@ -2814,9 +2558,11 @@ End Module
         Assert.Equal(SyntaxKind.WarningKeyword, disableNode.WarningKeyword.VisualBasicKind)
         Assert.Equal(2, disableNode.ErrorCodes.Count)
         Assert.False(disableNode.ErrorCodes(0).IsMissing)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal("bc42024", disableNode.ErrorCodes(0).ToString)
         Assert.False(disableNode.ErrorCodes(1).IsMissing)
-        Assert.Equal(SyntaxKind.StringLiteralExpression, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal(SyntaxKind.IdentifierName, disableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal("BC42025", disableNode.ErrorCodes(1).Identifier.ValueText)
 
         Dim enableNode = root.DescendantNodes(descendIntoTrivia:=True).
             OfType(Of EnableWarningDirectiveTriviaSyntax).Single
@@ -2825,12 +2571,14 @@ End Module
         Assert.Equal(2, enableNode.ErrorCodes.Count)
         Assert.False(enableNode.ErrorCodes(0).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(0).VisualBasicKind)
+        Assert.Equal("someOtherId", enableNode.ErrorCodes(0).Identifier.Value)
         Assert.False(enableNode.ErrorCodes(1).IsMissing)
         Assert.Equal(SyntaxKind.IdentifierName, enableNode.ErrorCodes(1).VisualBasicKind)
+        Assert.Equal("someId", enableNode.ErrorCodes(1).ToString)
     End Sub
 
     <Fact>
-    Public Sub ParseDisableWarningDirective_NoCSharpSyntax()
+    Public Sub ParseWarningDirective_NoCSharpSyntax()
         Dim tree = ParseAndVerify(<![CDATA[
 #restore warning
 #pragma warning disable
@@ -2845,4 +2593,911 @@ End Module
                 <error id="30248" message="'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected." start="82" end="83"/>
             </errors>)
     End Sub
+
+    <Fact>
+    Public Sub ParseWarningDirective_DisallowInMultilineExpressionContext1()
+        Dim tree = ParseAndVerify(<![CDATA[
+Class C
+    Sub Method(j As Short)
+        Dim x = From i As Integer In {}
+#Disable Warning BC42025
+                Where i < j.MaxValue
+#Enable Warning
+                Select i
+    End Sub
+End Class]]>,
+            <errors>
+                <error id="30800" message="Method arguments must be enclosed in parentheses." start="123" end="137"/>
+                <error id="30095" message="'Select Case' must end with a matching 'End Select'." start="170" end="178"/>
+            </errors>)
+        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+    End Sub
+
+    <Fact>
+    Public Sub ParseWarningDirective_DisallowInMultilineExpressionContext2()
+        Dim tree = ParseAndVerify(<![CDATA[
+Class C
+    Sub Method(k As Integer, j As Short)
+        Dim x = <root>
+                    <%=
+#disable warning bc42025
+                    i < j.MaxValue
+                        %>
+                </root>
+    End Sub
+End Class]]>,
+            <errors>
+                <error id="30201" message="Expression expected." start="97" end="97"/>
+                <error id="30035" message="Syntax error." start="97" end="98"/>
+                <error id="31159" message="Expected closing '%>' for embedded expression." start="121" end="121"/>
+                <error id="31151" message="Element is missing an end tag." start="144" end="183"/>
+                <error id="31177" message="White space cannot appear here." start="145" end="146"/>
+                <error id="31169" message="Character '%' (&amp;H25) is not allowed at the beginning of an XML name." start="181" end="182"/>
+                <error id="30249" message="'=' expected." start="182" end="182"/>
+                <error id="31165" message="Expected beginning '&lt;' for an XML tag." start="183" end="183"/>
+                <error id="31146" message="XML name expected." start="183" end="183"/>
+                <error id="30636" message="'>' expected." start="183" end="183"/>
+            </errors>)
+        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 0)
+        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 0)
+    End Sub
+#End Region
+
+#Region "E2E Tests"
+    <Fact>
+    Public Sub TestWarningDirective_NoErrorCodes()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+Module Program
+#Disable Warning rem comment
+    Sub Main()
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+#enable warning
+        Dim d 'BC42024: Unused local variable: 'd'.
+    End Sub
+End Module
+    </file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "d").WithArguments("Unused local variable: 'd'.").WithLocation(8, 13))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "d").WithArguments("Unused local variable: 'd'.").WithLocation(8, 13))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_WithErrorCodes1()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+Module Program
+#Disable Warning BC42104, [BC42024]
+    Sub Main()
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+#enable warning BC42024, _
+    BC42104 rem Comment
+        Dim d 'BC42024: Unused local variable: 'd'.
+    End Sub
+End Module
+    </file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "d").WithArguments("Unused local variable: 'd'.").WithLocation(9, 13))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "d").WithArguments("Unused local variable: 'd'.").WithLocation(9, 13))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_WithErrorCodes2()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+#Disable Warning _
+    BC42104, BC42024
+Module Program
+    Sub Main()
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+#enable warning
+        Dim d 'BC42024: Unused local variable: 'd'.
+    End Sub
+End Module
+    </file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "d").WithArguments("Unused local variable: 'd'.").WithLocation(9, 13))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "d").WithArguments("Unused local variable: 'd'.").WithLocation(9, 13))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_WithErrorCodes3()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main()
+#Disable Warning
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+#enable warning [bc42024] _
+    , bc42104
+        Dim d 'BC42024: Unused local variable: 'd'.
+    End Sub
+End Module
+    </file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "d").WithArguments("Unused local variable: 'd'.").WithLocation(9, 13))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "d").WithArguments("Unused local variable: 'd'.").WithLocation(9, 13))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_NoOpEnable()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">#Enable Warning
+Module Program
+    Sub Main()
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+#enable warning bc42024, bc42104
+        Dim d 'BC42024: Unused local variable: 'd'.
+    End Sub
+End Module
+#enable warning bc42105</file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "a").WithArguments("Unused local variable: 'a'.").WithLocation(4, 13))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "b").WithArguments("Variable 'b' is used before it has been assigned a value. A null reference exception could result at runtime.").WithLocation(6, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_NoOpDisable()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">#Disable Warning BC42015
+Module Program
+    Sub Main()
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+
+        Dim d 'BC42024: Unused local variable: 'd'.
+    End Sub
+End Module
+#Disable Warning</file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "a").WithArguments("Unused local variable: 'a'.").WithLocation(4, 13))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "b").WithArguments("Variable 'b' is used before it has been assigned a value. A null reference exception could result at runtime.").WithLocation(6, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_FullWidth()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+＃ _ 
+ ｅｎａｂｌｅ     ｗａｒｎｉｎｇ
+Module Program
+    Sub Main()
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ
+        Dim d 'BC42024: Unused local variable: 'd'.
+    End Sub
+End Module
+    </file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17),
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "a").WithArguments("Unused local variable: 'a'.").WithLocation(5, 13))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "b").WithArguments("Variable 'b' is used before it has been assigned a value. A null reference exception could result at runtime.").WithLocation(7, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_IdsAreCaseInsensitive1()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+Module Program
+#Disable Warning BC42024
+    Sub Main()
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+#enable warning [bc42024]
+        Dim d 'BC42024: Unused local variable: 'd'.
+    End Sub
+End Module
+    </file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add("Bc42024", ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "d").WithArguments("Unused local variable: 'd'.").WithLocation(8, 13))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add("bc42024", ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "b").WithArguments("Variable 'b' is used before it has been assigned a value. A null reference exception could result at runtime.").WithLocation(6, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_IdsAreCaseInsensitive2()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+Module Program
+#Disable Warning BC42024, [bc42104]
+    Sub Main()
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+#enable warning bc42024
+        Dim d
+        Dim e = d 'BC42014: BC42104: Variable 'd' is used before it has been assigned a value.
+        Dim f  'BC42024: Unused local variable: 'f'.
+#enable warning Bc42104
+        Dim g
+        Dim h = g 'BC42014: BC42104: Variable 'g' is used before it has been assigned a value.
+        Dim i = d
+    End Sub
+End Module
+    </file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "f").WithArguments("f").WithLocation(10, 13),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "g").WithArguments("g").WithLocation(13, 17))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add("BC42024", ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "f").WithArguments("f").WithLocation(10, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "g").WithArguments("g").WithLocation(13, 17),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "f").WithArguments("Unused local variable: 'f'.").WithLocation(10, 13))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add("bC42024", ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "g").WithArguments("g").WithLocation(13, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "f").WithArguments("f").WithLocation(10, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "g").WithArguments("g").WithLocation(13, 17).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "g").WithArguments("Variable 'g' is used before it has been assigned a value. A null reference exception could result at runtime.").WithLocation(13, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+    End Sub
+
+    Private Class CustomDiagnosticAnalyzerWithFullWidthId
+        Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
+        Private descriptor As New DiagnosticDescriptor("ｓＯＭＥＩＤ", "something1", "something2", "something3", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+        Public ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SupportedDiagnostics
+            Get
+                Return ImmutableArray.Create(descriptor)
+            End Get
+        End Property
+
+        Public ReadOnly Property SyntaxKindsOfInterest() As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
+            Get
+                Return ImmutableArray.Create(SyntaxKind.VariableDeclarator)
+            End Get
+        End Property
+
+        Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
+            Dim varDecl = DirectCast(node, VariableDeclaratorSyntax)
+            addDiagnostic(CodeAnalysis.Diagnostic.Create(descriptor, varDecl.AsClause.GetLocation))
+        End Sub
+    End Class
+
+    <Fact>
+    Public Sub TestWarningDirective_FullWidthIdsAreCaseInsensitive()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ ［ＳＯＭＥＩＤ］
+Module Program
+    Sub Main()
+        Dim x As Integer 'Warning with id "ＳＯＭＥＩＤ" is reported on "As Integer" clause
+    End Sub
+End Module
+＃ｅｎａｂｌｅ     ｗａｒｎｉｎｇ ｓｏＭｅｉｄ
+Module Other
+    Sub Other()
+        Dim y As Long 'Warning with id "ＳＯＭＥＩＤ" is reported on "As Long" clause
+    End Sub
+End Module
+    </file>
+</compilation>
+        Dim analyzer = New CustomDiagnosticAnalyzerWithFullWidthId
+        Dim analyzers = {analyzer}
+        Dim expectedId = analyzer.SupportedDiagnostics.Single.Id
+        Dim expectedMsg = analyzer.SupportedDiagnostics.Single.MessageFormat
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerDiagnostics(analyzers,
+            New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add("ｓｏＭｅＩｄ", ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers,
+            New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "As Long").WithArguments(expectedMsg).WithLocation(10, 15))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add("ＳｏＭｅｉＤ", ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers,
+            New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "As Long").WithArguments(expectedMsg).WithLocation(10, 15))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_FullWidthIdsAndNonFullWidthIdsAreSeparate()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+＃ _ 
+ ｅｎａｂｌｅ     ｗａｒｎｉｎｇ bc42024
+Module Program
+    Sub Main()
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ ｂｃ４２０２４
+        Dim d 'BC42024: Unused local variable: 'd'.
+    End Sub
+End Module
+    </file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "a").WithArguments("Unused local variable: 'a'.").WithLocation(5, 13))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17).WithWarningAsError(True),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "b").WithArguments("Variable 'b' is used before it has been assigned a value. A null reference exception could result at runtime.").WithLocation(7, 17))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+    End Sub
+
+    Private Class CustomDiagnosticAnalyzerWithVeryLongId
+        Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
+        Private descriptor As New DiagnosticDescriptor("__Something_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
+                                                       "something1", "something2", "something3", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+        Public ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SupportedDiagnostics
+            Get
+                Return ImmutableArray.Create(descriptor)
+            End Get
+        End Property
+
+        Public ReadOnly Property SyntaxKindsOfInterest() As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
+            Get
+                Return ImmutableArray.Create(SyntaxKind.VariableDeclarator)
+            End Get
+        End Property
+
+        Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
+            Dim varDecl = DirectCast(node, VariableDeclaratorSyntax)
+            addDiagnostic(CodeAnalysis.Diagnostic.Create(descriptor, varDecl.AsClause.GetLocation))
+        End Sub
+    End Class
+
+    <Fact>
+    Public Sub TestWarningDirective_VeryLongIdentifier()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ __something_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+Module Program
+    Sub Main()
+        Dim x As Integer 'Warning with above very long id is reported on "As Integer" clause
+    End Sub
+End Module
+＃ｅｎａｂｌｅ     ｗａｒｎｉｎｇ [__SomeThing_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890]
+Module Other
+    Sub Other()
+        Dim y As Long 'Warning with above very long id is reported on "As Long" clause
+    End Sub
+End Module
+    </file>
+</compilation>
+        Dim analyzer = New CustomDiagnosticAnalyzerWithVeryLongId
+        Dim analyzers = {analyzer}
+        Dim expectedId = analyzer.SupportedDiagnostics.Single.Id
+        Dim expectedMsg = analyzer.SupportedDiagnostics.Single.MessageFormat
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerDiagnostics(analyzers,
+            New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15))
+
+        Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add("__someThing_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", ReportDiagnostic.Error)
+        Dim compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers,
+            New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "As Long").WithArguments(expectedMsg).WithLocation(10, 15))
+
+        diagOptions = New Dictionary(Of String, ReportDiagnostic)
+        diagOptions.Add("__somethIng_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", ReportDiagnostic.Suppress)
+        compOptions = DefaultCompilationOptions.WithSpecificDiagnosticOptions(diagOptions)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers,
+            New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True),
+            Diagnostic(ERRID.ERR_WarningTreatedAsError, "As Long").WithArguments(expectedMsg).WithLocation(10, 15))
+
+        compOptions = DefaultCompilationOptions.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_CompilerWarningIdFormat()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+Module Program
+#Disable Warning BC042024 'Incorrect and hence warnings for 'a' and 'b' below won't be disabled.
+    Sub Main()
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+#Disable Warning
+#enable warning bc42024L 'Incorrect and hence warning for 'd' below won't be enabled.
+        Dim d 'BC42024: Unused local variable: 'd'.
+    End Sub
+End Module
+    </file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13))
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_CantSuppressCompilerErrors()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main()
+        Dim x = 1
+#Disable Warning BC30311
+        Dim y As System.Exception = x
+#Enable Warning BC30311
+    End Sub
+End Module
+    </file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.ERR_TypeMismatch2, "x").WithArguments("Integer", "System.Exception").WithLocation(5, 37))
+    End Sub
+
+    Private Function GetStartPosition(tree As SyntaxTree, text As String) As Integer
+        Dim index = tree.GetText.ToString.IndexOf(text, 0, StringComparison.Ordinal)
+        Assert.True(index >= 0, String.Format("'{0}' not found", text))
+        Return index
+    End Function
+
+    Private Function GetEndPosition(tree As SyntaxTree, text As String) As Integer
+        Return GetStartPosition(tree, text) + text.Length
+    End Function
+
+    <Fact>
+    Public Sub TestWarningDirective_StateMap1()
+        Dim tree = ParseAndVerify(<![CDATA[#Disable Warning
+Module Program
+#enable Warning
+    Sub Main()
+#Disable Warning BC42024
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+#enable warning [bc42024]
+        Dim d 'BC42024: Unused local variable: 'd'.
+#disable warning BC42024, [bc42104]
+    End Sub
+End Module
+#enable Warning]]>)
+
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", 0))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42104", 0))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42104", 1))
+
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "#Disable Warning") - 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42104", GetEndPosition(tree, "#Disable Warning") - 1))
+
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetEndPosition(tree, "#Disable Warning")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetStartPosition(tree, "Module Program")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetEndPosition(tree, "Module Program")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetStartPosition(tree, "#enable Warning")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("bC42104", GetEndPosition(tree, "#Disable Warning")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("bC42104", GetStartPosition(tree, "Module Program")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("bC42104", GetEndPosition(tree, "Module Program")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("bC42104", GetStartPosition(tree, "#enable Warning")))
+
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "#enable Warning")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "Sub Main()")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("bc42104", GetEndPosition(tree, "#enable Warning")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("bc42104", GetStartPosition(tree, "Sub Main()")))
+
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetEndPosition(tree, "#Disable Warning BC42024")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetEndPosition(tree, "Dim b")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("Bc42104", GetEndPosition(tree, "#Disable Warning BC42024")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("Bc42104", GetEndPosition(tree, "Dim b")))
+
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetEndPosition(tree, "#enable warning [bc42024]") - 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "#enable warning [bc42024]")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "Dim d")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("Bc42104", GetEndPosition(tree, "#enable warning [bc42024]") - 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("Bc42104", GetEndPosition(tree, "#enable warning [bc42024]")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("Bc42104", GetEndPosition(tree, "Dim d")))
+
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "#disable warning BC42024") - 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "#disable warning BC42024")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "#disable warning BC42024, [bc42104]") - 1))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetEndPosition(tree, "#disable warning BC42024, [bc42104]")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetEndPosition(tree, "End Module")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("bc42104", GetEndPosition(tree, "#disable warning BC42024")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("bc42104", GetEndPosition(tree, "#disable warning BC42024, [bc42104]") - 1))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("bc42104", GetEndPosition(tree, "#disable warning BC42024, [bc42104]")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("bc42104", GetEndPosition(tree, "End Module")))
+
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetEndPosition(tree, "#enable Warning") - 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "#enable Warning")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("bc42104", GetEndPosition(tree, "#enable Warning") - 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("bc42104", GetEndPosition(tree, "#enable Warning")))
+
+        Dim endPos = tree.GetText.ToString.Length
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", endPos - 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", endPos))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("bc42104", endPos - 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("bc42104", endPos))
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_StateMap2()
+        Dim tree = ParseAndVerify(<![CDATA[
+Module Program
+    Sub Main()
+#If True Then
+    #If False Then
+        #if true then
+            #disable warning bc42024, bc42025
+        #end if
+    #ElseIf True Then
+            #Disable Warning bc42024, [BC42025]
+    End Sub
+    #Else
+        #enable warning bc42024, bc42025
+    #End If
+End Module
+        #Enable Warning [bc42025], [bC42024]
+#Else
+    #Disable Warning bc42024, bc42025
+End Module
+#End If]]>)
+
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", 0))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42025", 0))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42025", 1))
+
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetStartPosition(tree, "#disable warning bc42024, bc42025")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "#disable warning bc42024, bc42025") + 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42025", GetStartPosition(tree, "#disable warning bc42024, bc42025")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42025", GetEndPosition(tree, "#disable warning bc42024, bc42025") + 1))
+
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetStartPosition(tree, "#Disable Warning bc42024, [BC42025]")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetEndPosition(tree, "#Disable Warning bc42024, [BC42025]")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42025", GetStartPosition(tree, "#Disable Warning bc42024, [BC42025]")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42025", GetEndPosition(tree, "#Disable Warning bc42024, [BC42025]")))
+
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetStartPosition(tree, "#enable warning bc42024, bc42025")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetEndPosition(tree, "#enable warning bc42024, bc42025")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42025", GetStartPosition(tree, "#enable warning bc42024, bc42025")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42025", GetEndPosition(tree, "#enable warning bc42024, bc42025")))
+
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42024", GetStartPosition(tree, "#Enable Warning [bc42025], [bC42024]") + 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "#Enable Warning [bc42025], [bC42024]")))
+        Assert.Equal(ReportDiagnostic.Suppress, tree.GetWarningState("BC42025", GetStartPosition(tree, "#Enable Warning [bc42025], [bC42024]") + 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42025", GetEndPosition(tree, "#Enable Warning [bc42025], [bC42024]")))
+
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetStartPosition(tree, "#Disable Warning bc42024, bc42025")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", GetEndPosition(tree, "#Disable Warning bc42024, bc42025")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42025", GetStartPosition(tree, "#Disable Warning bc42024, bc42025")))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42025", GetEndPosition(tree, "#Disable Warning bc42024, bc42025")))
+
+        Dim endPos = tree.GetText.ToString.Length
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", endPos - 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", endPos))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42025", endPos - 1))
+        Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42025", endPos))
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_ErrorCases1()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main()
+#Disable BC42024
+        Dim a 'BC42024: Unused local variable: 'a'.
+#Enable , BC42024
+    End Sub
+End Module
+    </file>
+</compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.ERR_ExpectedWarningKeyword, "").WithLocation(3, 10),
+            Diagnostic(ERRID.ERR_ExpectedWarningKeyword, "").WithLocation(5, 9),
+            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13))
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_ErrorCases2()
+        Dim compXml =
+        <compilation>
+            <file name="a.vb">
+Module Program
+    Sub Main()
+#Disable Warning BC42104,, BC42024
+        Dim a 'BC42024: Unused local variable: 'a'.
+        Dim b
+        Dim c = b 'BC42014: BC42104: Variable 'b' is used before it has been assigned a value.
+#Enable WarNING ,BC42104,BC42024, 
+        Dim d 'BC42024: Unused local variable: 'd'.
+        Dim e
+        Dim f = e 'BC42014: BC42104: Variable 'e' is used before it has been assigned a value.
+    End Sub
+End Module
+    </file>
+        </compilation>
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
+            Diagnostic(ERRID.ERR_ExpectedIdentifier, "").WithLocation(3, 26),
+            Diagnostic(ERRID.ERR_ExpectedIdentifier, "").WithLocation(7, 17),
+            Diagnostic(ERRID.ERR_ExpectedIdentifier, "").WithLocation(8, 1),
+            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "e").WithArguments("e").WithLocation(10, 17),
+            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13))
+    End Sub
+
+    <Fact>
+    Public Sub ParseWarningDirective_UnrecognizedInXmlLiteralContext()
+        Dim code = <![CDATA[
+Module Module1
+    Sub Main()
+    End Sub
+    Sub Other(i As Integer, j As Short)
+        Dim x = <root>
+#disable warning bc42025
+                    <%=
+                    i < j.MaxValue
+                        %>
+#enable warning
+#disable warning
+                </root>
+        Dim y = i < j.MaxValue
+    End Sub
+End Module]]>
+        Dim tree = ParseAndVerify(code)
+        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 0)
+        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 0)
+
+        Dim comp = CreateCompilationWithMscorlib({tree}).
+            AddReferences({MsvbRef}).
+            AddReferences(XmlReferences).
+            VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "j.MaxValue").WithLocation(9, 25),
+                Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "j.MaxValue").WithLocation(14, 21))
+    End Sub
+#End Region
+
+#End Region
 End Class

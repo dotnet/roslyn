@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 needsEscaping = True
             End If
 
-            Return If(needsEscaping, "[" + text + "]", text)
+            Return If(needsEscaping, "[" & text & "]", text)
         End Function
 
         <Extension()>

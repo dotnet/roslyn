@@ -1,4 +1,7 @@
-﻿Imports Microsoft.CodeAnalysis
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 ''' <summary>
@@ -11,13 +14,18 @@ Public Class VisualBasicDiagnosticFilter
 
     ''' <summary>
     ''' Modifies an input <see cref="Diagnostic"/> per the given options. For example, the
-    ''' severity may be escalated, or the <see cref="Diagnostic"/> may be filtered out entirely</summary>
+    ''' severity may be escalated, or the <see cref="Diagnostic"/> may be filtered out entirely
     ''' (by returning null).
+    ''' </summary>
     ''' <param name="diagnostic">The input diagnostic</param>
     ''' <param name="generalDiagnosticOption">How warning diagnostics should be reported</param>
     ''' <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
     ''' <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
     Public Shared Function Filter(diagnostic As Diagnostic, generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As Diagnostic
+        ' Diagnostic ids must be processed in case-insensitive fashion in VB.
+        Dim caseInsensitiveSpecificDiagnosticOptions =
+            ImmutableDictionary.Create(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer).AddRange(specificDiagnosticOptions)
+
         ' Filter void diagnostics so that our callers don't have to perform resolution
         ' (which might copy the list of diagnostics).
         If (diagnostic.Severity = InternalDiagnosticSeverity.Void) Then
@@ -41,21 +49,22 @@ Public Class VisualBasicDiagnosticFilter
         Dim report As ReportDiagnostic
 
         If (AlinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
-                specificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
+                caseInsensitiveSpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
             report = GetDiagnosticReport(VisualBasic.MessageProvider.Instance.GetSeverity(ERRID.WRN_AssemblyGeneration1),
                 diagnostic.IsEnabledByDefault,
                 VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1),
+                diagnostic.Location,
                 diagnostic.Category,
                 generalDiagnosticOption,
-                specificDiagnosticOptions)
+                caseInsensitiveSpecificDiagnosticOptions)
         Else
-            report = GetDiagnosticReport(diagnostic.Severity, diagnostic.IsEnabledByDefault, diagnostic.Id, diagnostic.Category, generalDiagnosticOption, specificDiagnosticOptions)
+            report = GetDiagnosticReport(diagnostic.Severity, diagnostic.IsEnabledByDefault, diagnostic.Id, diagnostic.Location, diagnostic.Category, generalDiagnosticOption, caseInsensitiveSpecificDiagnosticOptions)
         End If
 
         Return diagnostic.WithReportDiagnostic(report)
     End Function
 
-    Private Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, isEnabledByDefault As Boolean, id As String, category As String, generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As ReportDiagnostic
+    Private Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, isEnabledByDefault As Boolean, id As String, location As Location, category As String, generalDiagnosticOption As ReportDiagnostic, caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As ReportDiagnostic
         Select Case (severity)
             Case InternalDiagnosticSeverity.Void
                 Return ReportDiagnostic.Suppress
@@ -76,12 +85,18 @@ Public Class VisualBasicDiagnosticFilter
 
         ' Read options (e.g., /nowarn or /warnaserror)
         Dim report As ReportDiagnostic = ReportDiagnostic.Default
-        If Not specificDiagnosticOptions.TryGetValue(id, report) Then
+        If Not caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report) Then
             report = If(isEnabledByDefault, ReportDiagnostic.Default, ReportDiagnostic.Suppress)
         End If
 
         ' Compute if the reporting should be suppressed.
         If report = ReportDiagnostic.Suppress Then
+            Return ReportDiagnostic.Suppress
+        End If
+
+        ' If location is available, check warning directive state.
+        If location IsNot Nothing AndAlso location.SourceTree IsNot Nothing AndAlso
+           location.SourceTree.GetWarningState(id, location.SourceSpan.Start) = ReportDiagnostic.Suppress Then
             Return ReportDiagnostic.Suppress
         End If
 
