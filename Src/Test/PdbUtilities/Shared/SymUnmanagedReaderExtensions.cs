@@ -134,7 +134,7 @@ namespace Roslyn.Utilities.Pdb
             }
         }
 
-        private static bool IsInScope(this ISymUnmanagedScope scope, int offset)
+        internal static bool IsInScope(this ISymUnmanagedScope scope, int offset)
         {
             int startOffset;
             scope.GetStartOffset(out startOffset);
