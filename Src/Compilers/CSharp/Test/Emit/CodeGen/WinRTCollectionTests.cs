@@ -5011,6 +5011,7 @@ class AllMembers
                 additionalRefs: LegacyRefs,
                 emitOptions: EmitOptions.RefEmitBug,
                 verify: false);
+
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
@@ -5021,13 +5022,14 @@ class AllMembers
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+
             verifier.VerifyIL("AllMembers.TestExpressionTreeCompiler",
 @"
 {
   // Code size      213 (0xd5)
   .maxstack  6
-  .locals init (AllMembers.<>c__DisplayClass0 V_0, //CS$<>8__locals1
-  System.Linq.Expressions.ParameterExpression V_1) //val
+  .locals init (AllMembers.<>c__DisplayClass0 V_0, //CS$<>8__locals0
+  System.Linq.Expressions.ParameterExpression V_1)
   IL_0000:  newobj     ""AllMembers.<>c__DisplayClass0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -5207,6 +5209,7 @@ class AllMembers
                 additionalRefs: LegacyRefs,
                 emitOptions: EmitOptions.RefEmitBug,
                 verify: false);
+
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
@@ -5217,12 +5220,13 @@ class AllMembers
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"));
+
             verifier.VerifyIL("AllMembers.TestLINQ",
 @"
 {
   // Code size      356 (0x164)
   .maxstack  4
-  .locals init (AllMembers.<>c__DisplayClass0 V_0) //CS$<>8__locals1
+  .locals init (AllMembers.<>c__DisplayClass0 V_0) //CS$<>8__locals0
   IL_0000:  newobj     ""AllMembers.<>c__DisplayClass0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -5260,7 +5264,7 @@ class AllMembers
   IL_0062:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-0""
   IL_0067:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_006c:  ldloc.0
-  IL_006d:  ldftn      ""bool AllMembers.<>c__DisplayClass0.<TestLINQ>b__2(int)""
+  IL_006d:  ldftn      ""bool AllMembers.<>c__DisplayClass0.<TestLINQ>b__1(int)""
   IL_0073:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
   IL_0078:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
   IL_007d:  call       ""System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)""
@@ -5296,15 +5300,15 @@ class AllMembers
   IL_00db:  pop
   IL_00dc:  ldloc.0
   IL_00dd:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
-  IL_00e2:  ldsfld     ""System.Func<int, bool> AllMembers.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_00e2:  ldsfld     ""System.Func<int, bool> AllMembers.CS$<>9__CachedAnonymousMethodDelegate3""
   IL_00e7:  dup
   IL_00e8:  brtrue.s   IL_00fd
   IL_00ea:  pop
   IL_00eb:  ldnull
-  IL_00ec:  ldftn      ""bool AllMembers.<TestLINQ>b__3(object, int)""
+  IL_00ec:  ldftn      ""bool AllMembers.<TestLINQ>b__2(object, int)""
   IL_00f2:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
   IL_00f7:  dup
-  IL_00f8:  stsfld     ""System.Func<int, bool> AllMembers.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_00f8:  stsfld     ""System.Func<int, bool> AllMembers.CS$<>9__CachedAnonymousMethodDelegate3""
   IL_00fd:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
   IL_0102:  call       ""System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)""
   IL_0107:  ldloc.0

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Specifying "/debug:pdbonly" command line switch enforces this setting.
         /// </remarks>
-        PDBOnly,
+        PdbOnly,
 
         /// <summary>
         /// Emit full debugging information.

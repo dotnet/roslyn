@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameters = ArrayBuilder<BoundExpression>.GetInstance();
             foreach (var p in node.Symbol.Parameters)
             {
-                var param = Bound.SynthesizedLocal(ParameterExpressionType, p.Name);
+                var param = Bound.SynthesizedLocal(ParameterExpressionType);
                 locals.Add(param);
                 var parameterReference = Bound.Local(param);
                 parameters.Add(parameterReference);
@@ -670,14 +670,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             string parameterName = "p";
             ParameterSymbol lambdaParameter = Bound.SynthesizedParameter(fromType, parameterName);
-            var param = Bound.SynthesizedLocal(ParameterExpressionType, parameterName);
+            var param = Bound.SynthesizedLocal(ParameterExpressionType);
             var parameterReference = Bound.Local(param);
             var parameter = ExprFactory("Parameter", Bound.Typeof(fromType), Bound.Literal(parameterName));
             parameterMap[lambdaParameter] = parameterReference;
             var convertedValue = Visit(Bound.Convert(toType, Bound.Parameter(lambdaParameter), conversion));
             parameterMap.Remove(lambdaParameter);
             var result = Bound.Sequence(
-                ImmutableArray.Create<LocalSymbol>(param),
+                ImmutableArray.Create(param),
                 ImmutableArray.Create<BoundExpression>(Bound.AssignmentExpression(parameterReference, parameter)),
                 ExprFactory(
                     "Lambda",

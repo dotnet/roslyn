@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal abstract TempKind TempKind
+        internal abstract SynthesizedLocalKind SynthesizedLocalKind
         {
             get;
         }
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.DeclarationKind == LocalDeclarationKind.Catch;
+                return this.DeclarationKind == LocalDeclarationKind.CatchVariable;
             }
         }
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.DeclarationKind == LocalDeclarationKind.Using;
+                return this.DeclarationKind == LocalDeclarationKind.UsingVariable;
             }
         }
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.DeclarationKind == LocalDeclarationKind.Fixed;
+                return this.DeclarationKind == LocalDeclarationKind.FixedVariable;
             }
         }
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.DeclarationKind == LocalDeclarationKind.For;
+                return this.DeclarationKind == LocalDeclarationKind.ForInitializerVariable;
             }
         }
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.DeclarationKind == LocalDeclarationKind.ForEach;
+                return this.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable;
             }
         }
 
@@ -242,9 +242,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (this.DeclarationKind)
                 {
                     case LocalDeclarationKind.Constant:
-                    case LocalDeclarationKind.Fixed:
-                    case LocalDeclarationKind.ForEach:
-                    case LocalDeclarationKind.Using:
+                    case LocalDeclarationKind.FixedVariable:
+                    case LocalDeclarationKind.ForEachIterationVariable:
+                    case LocalDeclarationKind.UsingVariable:
                         return false;
                     default:
                         return true;

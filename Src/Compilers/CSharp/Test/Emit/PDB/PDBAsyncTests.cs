@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [WorkItem(689616, "DevDiv")]
         public void TestAsyncDebug()
         {
-            #region "Source"
             var text = @"
 using System;
 using System.Threading;
@@ -54,9 +53,6 @@ class Driver
         return Driver.Result;
     }
 }";
-            #endregion
-
-            #region "Expected Pdb Xml"
             string expected = @"
 <symbols>
   <methods>
@@ -72,91 +68,130 @@ class Driver
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""Driver"" name="".cctor"" parameterNames="""">
+    <method containingType=""TestCase"" name="".cctor"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
           <namespace usingCount=""3"" />
         </using>
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""33"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x7"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
+    </method>
+    <method containingType=""TestCase"" name=""Run"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;Run&gt;d__1"" />
+      </customDebugInfo>
+      <sequencepoints total=""0"" />
+      <locals />
+    </method>
+    <method containingType=""TestCase"" name=""&lt;Run&gt;b__0"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""40"" name=""&lt;&lt;Run&gt;b__0&gt;d__0"" />
+      </customDebugInfo>
+      <sequencepoints total=""0"" />
+      <locals />
+    </method>
+    <method containingType=""Driver"" name="".cctor"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""TestCase"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
       <sequencepoints total=""2"">
         <entry il_offset=""0x0"" start_row=""27"" start_column=""5"" end_row=""27"" end_column=""35"" file_ref=""0"" />
         <entry il_offset=""0x6"" start_row=""28"" start_column=""5"" end_row=""28"" end_column=""78"" file_ref=""0"" />
       </sequencepoints>
       <locals />
-      <scope startOffset=""0x0"" endOffset=""0x12"">
-        <namespace name=""System"" />
-        <namespace name=""System.Threading"" />
-        <namespace name=""System.Threading.Tasks"" />
-      </scope>
     </method>
     <method containingType=""Driver"" name=""Main"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Driver"" methodName="".cctor"" parameterNames="""" />
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""TestCase"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""31"" start_column=""9"" end_row=""31"" end_column=""32"" file_ref=""0"" />
-        <entry il_offset=""0x5"" start_row=""32"" start_column=""9"" end_row=""32"" end_column=""17"" file_ref=""0"" />
-        <entry il_offset=""0xa"" start_row=""34"" start_column=""9"" end_row=""34"" end_column=""35"" file_ref=""0"" />
-        <entry il_offset=""0x15"" start_row=""35"" start_column=""9"" end_row=""35"" end_column=""30"" file_ref=""0"" />
+      <sequencepoints total=""6"">
+        <entry il_offset=""0x0"" start_row=""30"" start_column=""5"" end_row=""30"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""31"" start_column=""9"" end_row=""31"" end_column=""32"" file_ref=""0"" />
+        <entry il_offset=""0x7"" start_row=""32"" start_column=""9"" end_row=""32"" end_column=""17"" file_ref=""0"" />
+        <entry il_offset=""0xe"" start_row=""34"" start_column=""9"" end_row=""34"" end_column=""35"" file_ref=""0"" />
+        <entry il_offset=""0x19"" start_row=""35"" start_column=""9"" end_row=""35"" end_column=""30"" file_ref=""0"" />
+        <entry il_offset=""0x21"" start_row=""36"" start_column=""5"" end_row=""36"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
-      <locals />
+      <locals>
+        <local name=""t"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x23"">
+        <local name=""t"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
+      </scope>
     </method>
     <method containingType=""TestCase+&lt;Run&gt;d__1"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Driver"" methodName="".cctor"" parameterNames="""" />
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""TestCase"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
-      <sequencepoints total=""13"">
+      <sequencepoints total=""14"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xe"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""51"" file_ref=""0"" />
-        <entry il_offset=""0x13"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""71"" file_ref=""0"" />
-        <entry il_offset=""0x34"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""37"" file_ref=""0"" />
-        <entry il_offset=""0x98"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x9b"" start_row=""18"" start_column=""24"" end_row=""18"" end_column=""32"" file_ref=""0"" />
-        <entry il_offset=""0xa7"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""44"" file_ref=""0"" />
-        <entry il_offset=""0xb3"" start_row=""22"" start_column=""9"" end_row=""22"" end_column=""38"" file_ref=""0"" />
-        <entry il_offset=""0xbe"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0xc0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xd7"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0xdf"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x16"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x17"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""51"" file_ref=""0"" />
+        <entry il_offset=""0x1d"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""71"" file_ref=""0"" />
+        <entry il_offset=""0x3f"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""37"" file_ref=""0"" />
+        <entry il_offset=""0xbc"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0xc9"" start_row=""18"" start_column=""24"" end_row=""18"" end_column=""32"" file_ref=""0"" />
+        <entry il_offset=""0xd7"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""44"" file_ref=""0"" />
+        <entry il_offset=""0xe3"" start_row=""22"" start_column=""9"" end_row=""22"" end_column=""38"" file_ref=""0"" />
+        <entry il_offset=""0xee"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0xf0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x10a"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x112"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xeb"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x11f"" attributes=""1"" />
+        <local name=""dc2"" il_index=""1"" il_start=""0x16"" il_end=""0xf0"" attributes=""0"" />
+        <local name=""rez2"" il_index=""2"" il_start=""0x16"" il_end=""0xf0"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0xeb"">
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xeb"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x11f"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x11f"" attributes=""1"" />
+        <scope startOffset=""0x16"" endOffset=""0xf0"">
+          <local name=""dc2"" il_index=""1"" il_start=""0x16"" il_end=""0xf0"" attributes=""0"" />
+          <local name=""rez2"" il_index=""2"" il_start=""0x16"" il_end=""0xf0"" attributes=""0"" />
+        </scope>
       </scope>
-      <async-info kickoff-method=""100663301"" catch-IL-offset=""193"">
-        <await yield=""86"" resume=""109"" method=""100663307"" />
+      <async-info catch-IL-offset=""0xf2"">
+        <kickoff-method declaringType=""TestCase"" methodName=""Run"" parameterNames="""" />
+        <await yield=""0x67"" resume=""0x87"" declaringType=""TestCase+&lt;Run&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
     <method containingType=""TestCase+&lt;&lt;Run&gt;b__0&gt;d__0"" name=""MoveNext"" parameterNames="""">
-      <sequencepoints total=""7"">
+      <sequencepoints total=""8"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xe"" start_row=""16"" start_column=""34"" end_row=""16"" end_column=""58"" file_ref=""0"" />
-        <entry il_offset=""0x72"" start_row=""16"" start_column=""59"" end_row=""16"" end_column=""68"" file_ref=""0"" />
-        <entry il_offset=""0x76"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x8d"" start_row=""16"" start_column=""69"" end_row=""16"" end_column=""70"" file_ref=""0"" />
-        <entry il_offset=""0x95"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x16"" start_row=""16"" start_column=""32"" end_row=""16"" end_column=""33"" file_ref=""0"" />
+        <entry il_offset=""0x17"" start_row=""16"" start_column=""34"" end_row=""16"" end_column=""58"" file_ref=""0"" />
+        <entry il_offset=""0x85"" start_row=""16"" start_column=""59"" end_row=""16"" end_column=""68"" file_ref=""0"" />
+        <entry il_offset=""0x89"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xa4"" start_row=""16"" start_column=""69"" end_row=""16"" end_column=""70"" file_ref=""0"" />
+        <entry il_offset=""0xac"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xa2"" attributes=""0"" />
-        <local name=""&lt;&gt;t__exprRetValue"" il_index=""1"" il_start=""0x0"" il_end=""0xa2"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xba"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xba"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0xa2"">
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xa2"" attributes=""0"" />
-        <local name=""&lt;&gt;t__exprRetValue"" il_index=""1"" il_start=""0x0"" il_end=""0xa2"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xba"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xba"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xba"" attributes=""1"" />
       </scope>
-      <async-info kickoff-method=""100663303"">
-        <await yield=""48"" resume=""71"" method=""100663309"" />
+      <async-info>
+        <kickoff-method declaringType=""TestCase"" methodName=""&lt;Run&gt;b__0"" parameterNames="""" />
+        <await yield=""0x3b"" resume=""0x57"" declaringType=""TestCase+&lt;&lt;Run&gt;b__0&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
 </symbols>";
-            #endregion
 
-            var compilation = CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(text, compOptions: TestOptions.DebugDll).VerifyDiagnostics();
             string actual = GetPdbXml(compilation);
             AssertXmlEqual(expected, actual);
         }
@@ -165,7 +200,6 @@ class Driver
         [WorkItem(734596, "DevDiv")]
         public void TestAsyncDebug2()
         {
-            #region "Source"
             var text = @"
 using System;
 using System.Collections.Generic;
@@ -200,9 +234,7 @@ namespace ConsoleApplication1
         }
     }
 }";
-            #endregion
 
-            #region "Expected Pdb Xml"
             string expected = @"
 <symbols>
   <methods>
@@ -227,9 +259,10 @@ namespace ConsoleApplication1
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""13"" start_column=""13"" end_row=""13"" end_column=""34"" file_ref=""0"" />
-        <entry il_offset=""0xa"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""10"" file_ref=""0"" />
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""13"" start_column=""13"" end_row=""13"" end_column=""34"" file_ref=""0"" />
+        <entry il_offset=""0xc"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""10"" file_ref=""0"" />
       </sequencepoints>
       <locals />
     </method>
@@ -251,8 +284,10 @@ namespace ConsoleApplication1
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""31"" start_column=""13"" end_row=""31"" end_column=""51"" file_ref=""0"" />
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""30"" start_column=""9"" end_row=""30"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""31"" start_column=""13"" end_row=""31"" end_column=""51"" file_ref=""0"" />
+        <entry il_offset=""0xf"" start_row=""32"" start_column=""9"" end_row=""32"" end_column=""10"" file_ref=""0"" />
       </sequencepoints>
       <locals />
     </method>
@@ -260,69 +295,79 @@ namespace ConsoleApplication1
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
-      <sequencepoints total=""7"">
+      <sequencepoints total=""8"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xe"" start_row=""17"" start_column=""13"" end_row=""17"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0x74"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x76"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x8d"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x95"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x16"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x17"" start_row=""17"" start_column=""13"" end_row=""17"" end_column=""26"" file_ref=""0"" />
+        <entry il_offset=""0x85"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x87"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xa1"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0xa9"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xa1"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb6"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0xa1"">
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xa1"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xb6"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb6"" attributes=""1"" />
       </scope>
-      <async-info kickoff-method=""100663299"" catch-IL-offset=""119"">
-        <await yield=""49"" resume=""72"" method=""100663303"" />
+      <async-info catch-IL-offset=""0x89"">
+        <kickoff-method declaringType=""ConsoleApplication1.Program"" methodName=""QBar"" parameterNames="""" />
+        <await yield=""0x3c"" resume=""0x57"" declaringType=""ConsoleApplication1.Program+&lt;QBar&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
     <method containingType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__1"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0xE"" endOffset=""0xF5"" />
+          <bucket startOffset=""0x19"" endOffset=""0x121"" />
         </iteratorLocals>
       </customDebugInfo>
-      <sequencepoints total=""14"">
+      <sequencepoints total=""18"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xe"" start_row=""21"" start_column=""13"" end_row=""21"" end_column=""45"" file_ref=""0"" />
-        <entry il_offset=""0x19"" start_row=""22"" start_column=""31"" end_row=""22"" end_column=""46"" file_ref=""0"" />
-        <entry il_offset=""0x37"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x3c"" start_row=""22"" start_column=""22"" end_row=""22"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x4a"" start_row=""24"" start_column=""17"" end_row=""24"" end_column=""55"" file_ref=""0"" />
-        <entry il_offset=""0xb8"" start_row=""25"" start_column=""17"" end_row=""25"" end_column=""39"" file_ref=""0"" />
-        <entry il_offset=""0xc4"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xd2"" start_row=""22"" start_column=""28"" end_row=""22"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0xec"" start_row=""27"" start_column=""13"" end_row=""27"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0xf5"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x10e"" start_row=""28"" start_column=""9"" end_row=""28"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x116"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x19"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x1a"" start_row=""21"" start_column=""13"" end_row=""21"" end_column=""45"" file_ref=""0"" />
+        <entry il_offset=""0x25"" start_row=""22"" start_column=""13"" end_row=""22"" end_column=""20"" file_ref=""0"" />
+        <entry il_offset=""0x26"" start_row=""22"" start_column=""31"" end_row=""22"" end_column=""46"" file_ref=""0"" />
+        <entry il_offset=""0x44"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x49"" start_row=""22"" start_column=""22"" end_row=""22"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x57"" start_row=""23"" start_column=""13"" end_row=""23"" end_column=""14"" file_ref=""0"" />
+        <entry il_offset=""0x58"" start_row=""24"" start_column=""17"" end_row=""24"" end_column=""55"" file_ref=""0"" />
+        <entry il_offset=""0xdc"" start_row=""25"" start_column=""17"" end_row=""25"" end_column=""39"" file_ref=""0"" />
+        <entry il_offset=""0xe9"" start_row=""26"" start_column=""13"" end_row=""26"" end_column=""14"" file_ref=""0"" />
+        <entry il_offset=""0xea"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xf8"" start_row=""22"" start_column=""28"" end_row=""22"" end_column=""30"" file_ref=""0"" />
+        <entry il_offset=""0x118"" start_row=""27"" start_column=""13"" end_row=""27"" end_column=""30"" file_ref=""0"" />
+        <entry il_offset=""0x121"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x13c"" start_row=""28"" start_column=""9"" end_row=""28"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x144"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x123"" attributes=""0"" />
-        <local name=""&lt;&gt;t__exprRetValue"" il_index=""1"" il_start=""0x0"" il_end=""0x123"" attributes=""0"" />
-        <local name=""newInt"" il_index=""2"" il_start=""0x4a"" il_end=""0xc4"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x152"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x152"" attributes=""1"" />
+        <local name=""z"" il_index=""2"" il_start=""0x49"" il_end=""0xea"" attributes=""0"" />
+        <local name=""newInt"" il_index=""3"" il_start=""0x57"" il_end=""0xea"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x123"">
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x123"" attributes=""0"" />
-        <local name=""&lt;&gt;t__exprRetValue"" il_index=""1"" il_start=""0x0"" il_end=""0x123"" attributes=""0"" />
-        <scope startOffset=""0x4a"" endOffset=""0xc4"">
-          <local name=""newInt"" il_index=""2"" il_start=""0x4a"" il_end=""0xc4"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x152"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x152"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x152"" attributes=""1"" />
+        <scope startOffset=""0x49"" endOffset=""0xea"">
+          <local name=""z"" il_index=""2"" il_start=""0x49"" il_end=""0xea"" attributes=""0"" />
+          <scope startOffset=""0x57"" endOffset=""0xea"">
+            <local name=""newInt"" il_index=""3"" il_start=""0x57"" il_end=""0xea"" attributes=""0"" />
+          </scope>
         </scope>
       </scope>
-      <async-info kickoff-method=""100663300"">
-        <await yield=""114"" resume=""140"" method=""100663305"" />
+      <async-info>
+        <kickoff-method declaringType=""ConsoleApplication1.Program"" methodName=""ZBar"" parameterNames="""" />
+        <await yield=""0x85"" resume=""0xa5"" declaringType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
 </symbols>";
-            #endregion
 
-            var compilation = CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(text, compOptions: TestOptions.DebugDll).VerifyDiagnostics();
             string actual = GetPdbXml(compilation);
             AssertXmlEqual(expected, actual);
         }
@@ -331,7 +376,6 @@ namespace ConsoleApplication1
         [WorkItem(690180, "DevDiv")]
         public void TestAsyncDebug3()
         {
-            #region "Source"
             var text = @"
 class TestCase
 {
@@ -340,9 +384,7 @@ class TestCase
         int rez = await d;
     }
 }";
-            #endregion
 
-            #region "Expected Pdb Xml"
             string expected = @"
 <symbols>
   <methods>
@@ -363,28 +405,29 @@ class TestCase
         <entry il_offset=""0x259"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x266"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x266"" attributes=""1"" />
         <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x237"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x266"">
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x266"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x266"" attributes=""1"" />
         <scope startOffset=""0x19"" endOffset=""0x237"">
           <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x237"" attributes=""0"" />
         </scope>
       </scope>
-      <async-info kickoff-method=""100663297"" catch-IL-offset=""569"">
-        <await yield=""340"" resume=""422"" method=""100663300"" />
+      <async-info catch-IL-offset=""0x239"">
+        <kickoff-method declaringType=""TestCase"" methodName=""Await"" parameterNames=""d"" />
+        <await yield=""0x154"" resume=""0x1a6"" declaringType=""TestCase+&lt;Await&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
 </symbols>";
-            #endregion
 
             var compilation = CreateCompilationWithMscorlib45(
                     text,
-                    compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full),
+                    compOptions: TestOptions.DebugDll,
                     references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef })
                 .VerifyDiagnostics();
+
             string actual = GetPdbXml(compilation);
             AssertXmlEqual(expected, actual);
         }
@@ -414,7 +457,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__1.MoveNext");
 
             // One iterator local entry for the lambda local.
@@ -422,11 +465,8 @@ class C
 <symbols>
   <methods>
     <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__2"" parameterNames="""" />
-        <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x30"" endOffset=""0x1D8"" />
-        </iteratorLocals>
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__1"" parameterNames="""" />
       </customDebugInfo>
       <sequencepoints total=""15"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -446,15 +486,16 @@ class C
         <entry il_offset=""0x1fb"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x208"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x208"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x208"">
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x208"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x208"" attributes=""1"" />
       </scope>
-      <async-info kickoff-method=""100663297"">
-        <await yield=""161"" resume=""191"" method=""100663302"" />
-        <await yield=""279"" resume=""309"" method=""100663302"" />
-        <await yield=""397"" resume=""424"" method=""100663302"" />
+      <async-info>
+        <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""b"" />
+        <await yield=""0xa1"" resume=""0xbf"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x117"" resume=""0x135"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x18d"" resume=""0x1a8"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -470,7 +511,7 @@ class C
                     "System.Int32 C.<M>d__1.<>1__state",
                     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__1.<>t__builder",
                     "C.<>c__DisplayClass0 C.<M>d__1.CS$<>8__locals1", // Name follows lambda local pattern.
-                    "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__1.<>u__$awaiter3");
+                    "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__1.<>u__$awaiter2");
             });
         }
 
@@ -497,7 +538,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__1.MoveNext");
 
             // No iterator local entries.
@@ -506,7 +547,7 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__2"" parameterNames="""" />
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__1"" parameterNames="""" />
       </customDebugInfo>
       <sequencepoints total=""13"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -524,17 +565,18 @@ class C
         <entry il_offset=""0xd9"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xe6"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb6"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xe6"" attributes=""1"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb6"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0xe6"">
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xe6"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xe6"" attributes=""1"" />
         <scope startOffset=""0x16"" endOffset=""0xb6"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb6"" attributes=""0"" />
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb6"" attributes=""1"" />
         </scope>
       </scope>
-      <async-info kickoff-method=""100663297"">
-        <await yield=""106"" resume=""134"" method=""100663302"" />
+      <async-info>
+        <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""b"" />
+        <await yield=""0x6a"" resume=""0x86"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -549,7 +591,7 @@ class C
                 AssertEx.SetEqual(fieldDisplayStrings,
                     "System.Int32 C.<M>d__1.<>1__state",
                     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__1.<>t__builder",
-                    "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__1.<>u__$awaiter3");
+                    "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__1.<>u__$awaiter2");
             });
         }
 
@@ -586,7 +628,7 @@ class C
           <namespace usingCount=""2"" />
         </using>
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x19"" endOffset=""0x28D"" />
+          <bucket startOffset=""0x19"" endOffset=""0x28d"" />
         </iteratorLocals>
       </customDebugInfo>
       <sequencepoints total=""10"">
@@ -602,15 +644,16 @@ class C
         <entry il_offset=""0x2b0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x2bd"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2bd"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x2bd"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x2bd"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2bd"" attributes=""1"" />
       </scope>
-      <async-info kickoff-method=""100663297"">
-        <await yield=""376"" resume=""453"" method=""100663300"" />
+      <async-info>
+        <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""o"" />
+        <await yield=""0x178"" resume=""0x1c5"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -664,19 +707,20 @@ class C
         <entry il_offset=""0x251"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x25e"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x25e"" attributes=""1"" />
         <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x22e"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x25e"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x25e"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x25e"" attributes=""1"" />
         <scope startOffset=""0x19"" endOffset=""0x22e"">
           <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x22e"" attributes=""0"" />
         </scope>
       </scope>
-      <async-info kickoff-method=""100663297"">
-        <await yield=""366"" resume=""446"" method=""100663300"" />
+      <async-info>
+        <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""o"" />
+        <await yield=""0x16e"" resume=""0x1be"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -714,8 +758,8 @@ class C
 {
   // Code size      292 (0x124)
   .maxstack  3
-  .locals init (int V_0, //cachedState
-  int V_1, //<>t__exprRetValue
+  .locals init (int V_0, //CS$524$0000
+  int V_1, //CS$523$0001
   int V_2, //x
   object V_3,
   int V_4,
@@ -892,21 +936,22 @@ class C
         <entry il_offset=""0x11f"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x12d"" attributes=""0"" />
-        <local name=""&lt;&gt;t__exprRetValue"" il_index=""1"" il_start=""0x0"" il_end=""0x12d"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x12d"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x12d"" attributes=""1"" />
         <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xfc"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x12d"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x12d"" attributes=""0"" />
-        <local name=""&lt;&gt;t__exprRetValue"" il_index=""1"" il_start=""0x0"" il_end=""0x12d"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x12d"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x12d"" attributes=""1"" />
         <scope startOffset=""0x16"" endOffset=""0xfc"">
           <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xfc"" attributes=""0"" />
         </scope>
       </scope>
-      <async-info kickoff-method=""100663297"">
-        <await yield=""89"" resume=""121"" method=""100663300"" />
+      <async-info>
+        <kickoff-method declaringType=""C"" methodName=""G"" parameterNames="""" />
+        <await yield=""0x59"" resume=""0x79"" declaringType=""C+&lt;G&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>

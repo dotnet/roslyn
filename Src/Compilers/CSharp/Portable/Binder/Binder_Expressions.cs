@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
             return GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true);
-        }
+            }
 
         internal BoundExpression BindEnumConstantInitializer(
             SourceEnumConstantSymbol symbol,
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isConst = false;
             bool isVar;
             AliasSymbol alias;
-            TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, /*isFixed*/ false, out isVar, out alias);
+            TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
 
             SourceLocalSymbol localSymbol = this.LookupLocal(node.Variable.Identifier);
 
@@ -552,10 +552,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (children.IsDefault)
                 {
                     children = ImmutableArray<BoundExpression>.Empty;
-                }
+            }
 
                 if (isVar)
-                {
+            {
                     initializer = BindInferredVariableInitializer(diagnostics, node.Variable.Initializer, node.Variable);
 
                     if (initializer != null && (object)initializer.Type != null && initializer.Type.SpecialType != SpecialType.System_Void)
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                  hasErrors: this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics));
             }
 
-            BoundLocalDeclaration localDeclaration = BindVariableDeclaration(localSymbol, LocalDeclarationKind.Variable, isVar, node.Variable, typeSyntax, declType, alias, diagnostics, node);
+            BoundLocalDeclaration localDeclaration = BindVariableDeclaration(localSymbol, LocalDeclarationKind.RegularVariable, isVar, node.Variable, typeSyntax, declType, alias, diagnostics, node);
 
             return new BoundDeclarationExpression(node, 
                                                   localDeclaration.LocalSymbol, 
@@ -1223,25 +1223,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                     // Skip parentheses and checked/unchecked expressions
                                     while (possibleArgument != null)
-                                    {
+                                {
                                         switch (possibleArgument.Kind)
-                                        {
+                            {
                                             case SyntaxKind.ParenthesizedExpression:
                                             case SyntaxKind.CheckedExpression:
                                             case SyntaxKind.UncheckedExpression:
                                                 possibleArgument = possibleArgument.Parent;
                                                 continue;
-                                        }
+                        }
 
                                         break;
-                                    }
+                    }
 
                                     if (possibleArgument != null && possibleArgument.Kind == SyntaxKind.Argument && possibleArgument.Parent != null)
-                                    {
+                    {
                                         bool isInTheSameArgumentList;
 
                                         switch (possibleArgument.Parent.Kind)
-                                        {
+                            {
                                             case SyntaxKind.ArgumentList:
                                                 isInTheSameArgumentList = node.SpanStart < ((ArgumentListSyntax)possibleArgument.Parent).CloseParenToken.SpanStart;
                                                 break;
@@ -1253,10 +1253,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             default:
                                                 isInTheSameArgumentList = false;
                                                 break;
-                                        }
+                            }
 
                                         if (isInTheSameArgumentList && sourceLocal.IsVar)
-                                        {
+                            {
                                             Error(diagnostics, ErrorCode.ERR_VariableUsedInTheSameArgumentList, node, node);
 
                                             // Treat this case as variable used before declaration, we might be able to infer type of the variable anyway and SemanticModel 
@@ -1271,10 +1271,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 type = localSymbol.Type;
                             }
-                        }
+                            }
 
                         return new BoundLocal(node, localSymbol, constantValueOpt, type, hasErrors: isError);
-                    }
+                        }
 
                 case SymbolKind.Parameter:
                     {
@@ -1284,9 +1284,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Captured in a lambda.
                             if (parameter.RefKind != RefKind.None)
-                            {
-                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
-                            }
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                        }
                         }
 
                         return new BoundParameter(node, parameter, hasErrors: isError);

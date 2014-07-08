@@ -1,18 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -614,7 +610,7 @@ class C
 {
   // Code size      121 (0x79)
   .maxstack  4
-  .locals init (int V_0) //cachedState
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<Run>d__2<T>.<>1__state""
   IL_0006:  stloc.0
@@ -903,7 +899,7 @@ class C
     }
 }
 ";
-            CompileAndVerifyIL(source, "C.<>c__DisplayClass2<T>.<Foo>b__4", @"
+            CompileAndVerifyIL(source, "C.<>c__DisplayClass2<T>.<Foo>b__3", @"
 {
   // Code size      123 (0x7b)
   .maxstack  9
@@ -1020,7 +1016,7 @@ class C
 {
   // Code size     1118 (0x45e)
   .maxstack  13
-  .locals init (C.<>c__DisplayClass17 V_0, //CS$<>8__locals18
+  .locals init (C.<>c__DisplayClass17 V_0, //CS$<>8__locals0
   object V_1, //static
   System.Action V_2,
   object V_3)
@@ -1242,7 +1238,7 @@ class C
   IL_02af:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_02b4:  pop
   IL_02b5:  ldloc.0
-  IL_02b6:  ldftn      ""void C.<>c__DisplayClass17.<Main>b__19()""
+  IL_02b6:  ldftn      ""void C.<>c__DisplayClass17.<Main>b__18()""
   IL_02bc:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_02c1:  stloc.2
   IL_02c2:  ldloc.0
@@ -8686,7 +8682,7 @@ class C
     }
 }
 ";
-            CompileAndVerifyIL(source, "C.<>c__DisplayClass2.<Foo>b__4", @"
+            CompileAndVerifyIL(source, "C.<>c__DisplayClass2.<Foo>b__3", @"
 {
   // Code size      107 (0x6b)
   .maxstack  9
@@ -14447,7 +14443,7 @@ class C
 {
   // Code size      864 (0x360)
   .maxstack  10
-  .locals init (int V_0, //cachedState
+  .locals init (int V_0,
   object V_1,
   object V_2,
   System.Runtime.CompilerServices.ICriticalNotifyCompletion V_3,

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private readonly MetadataDecoder metadataDecoder;
         private readonly SymbolMatcher mapToMetadata;
         private readonly SymbolMatcher mapToPrevious;
-        
+
         public CSharpDefinitionMap(
             PEModule module,
             IEnumerable<SemanticEdit> edits,
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             var previousType = map.MapReference(typeRef);
                             if (previousType != null)
                             {
-                                var localKey = new EncLocalInfo(offset, previousType, constraints, (int)local.TempKind, signature: null);
+                                var localKey = new EncLocalInfo(offset, previousType, constraints, (int)local.SynthesizedLocalKind, signature: null);
                                 int slot;
                                 // Should report a warning if the type of the local has changed
                                 // and the previous value will be dropped. (Bug #781309.)
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     {
                         var syntax = syntaxRefs[0].GetSyntax();
                         var offset = declaratorToIndex[syntax];
-                        return new EncLocalInfo(offset, localDef.Type, def.Constraints, (int)local.TempKind, signature);
+                        return new EncLocalInfo(offset, localDef.Type, def.Constraints, (int)local.SynthesizedLocalKind, signature);
                     }
                 }
             }

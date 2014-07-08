@@ -12,12 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class MethodToStateMachineRewriter : MethodToClassRewriter
     {
-        private readonly HashSet<Symbol> variablesCaptured;
-        protected override HashSet<Symbol> VariablesCaptured
-        {
-            get { return this.variablesCaptured; }
-        }
-
         public MethodToStateMachineRewriter(
             SyntheticBoundNodeFactory F,
             MethodSymbol originalMethod,
@@ -27,16 +21,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool useFinalizerBookkeeping,
             bool generateDebugInfo)
-            : base(F.CompilationState, diagnostics, generateDebugInfo)
+            : base(F.CompilationState, variablesCaptured, diagnostics, generateDebugInfo)
         {
             this.F = F;
             this.stateField = state;
-            this.cachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), "cachedState");
-            this.variablesCaptured = variablesCaptured;
+            this.cachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), kind: SynthesizedLocalKind.StateMachineCachedState);
             this.useFinalizerBookkeeping = useFinalizerBookkeeping;
             this.hasFinalizerState = useFinalizerBookkeeping;
             this.originalMethod = originalMethod;
-            foreach (var p in initialProxies) this.proxies.Add(p.Key, p.Value);
+
+            foreach (var p in initialProxies)
+            {
+                this.proxies.Add(p.Key, p.Value);
+        }
         }
 
         /// <summary>
@@ -101,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A pool of fields used to hoist temporary variables.  They appear in this set when not in scope,
         /// so that members of this set may be allocated to temps when the temps come into scope.
         /// </summary>
-        private ArrayBuilder<SynthesizedFieldSymbolBase> availableFields = new ArrayBuilder<SynthesizedFieldSymbolBase>();
+        private ArrayBuilder<SynthesizedFieldSymbolBase> availableTempFields = new ArrayBuilder<SynthesizedFieldSymbolBase>();
 
         /// <summary>
         /// A map from the identity of a temp local symbol in the original method to the set of fields
@@ -191,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var local in node.Locals)
                 {
-                    Debug.Assert(!VariablesCaptured.Contains(local) || proxies.ContainsKey(local));
+                    Debug.Assert(!IsCaptured(local) || proxies.ContainsKey(local));
                 }
             }
 
@@ -207,19 +204,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="wrapped">A delegate to return the translation of the body of this statement</param>
         private BoundStatement PossibleIteratorScope(ImmutableArray<LocalSymbol> locals, Func<BoundStatement> wrapped)
         {
-            if (locals.IsEmpty) return wrapped();
+            if (locals.IsDefaultOrEmpty)
+            {
+                return wrapped();
+            }
+
             var proxyFields = ArrayBuilder<SynthesizedFieldSymbolBase>.GetInstance();
             foreach (var local in locals)
             {
-                if (!VariablesCaptured.Contains(local)) continue;
+                if (!IsCaptured(local))
+                {
+                    continue;
+                }
+
                 CapturedSymbolReplacement proxy;
                 if (proxies.TryGetValue(local, out proxy))
                 {
                     // All of the user-declared variables have pre-allocated proxies
                     var field = proxy.HoistedField;
                     Debug.Assert((object)field != null);
-                    Debug.Assert(local.DeclarationKind != LocalDeclarationKind.CompilerGenerated); // temps have lazily allocated proxies
-                    if (local.DeclarationKind != LocalDeclarationKind.CompilerGenerated) proxyFields.Add(field);
+
+                    Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.None ||
+                                 local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass);
+
+                    if (local.DeclarationKind != LocalDeclarationKind.None)
+                    {
+                        proxyFields.Add(field);
+                    }
                 }
                 else
                 {
@@ -243,7 +254,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<SynthesizedFieldSymbolBase> frees;
                 if (freeTempsMap.TryGetValue(local, out frees))
                 {
-                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.CompilerGenerated); // only temps are managed this way
+                    // TODO: consider tightening this assert:
+                    // Debug.Assert(local.SynthesizedLocalKind.IsLongLived() && local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass ||
+                    //              local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpilledTemp);
+
+                    Debug.Assert(local.SynthesizedLocalKind != SynthesizedLocalKind.None &&
+                                 local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
+
                     freeTempsMap.Remove(local);
                     foreach (var field in frees)
                     {
@@ -251,7 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             clearTemps.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type)));
                         }
-                        FreeTemp(field);
+
+                        FreeTempField(field);
                     }
                     frees.Free();
                 }
@@ -303,8 +321,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private SynthesizedFieldSymbolBase MakeHoistedTemp(LocalSymbol local, TypeSymbol type)
         {
-            Debug.Assert(local.DeclarationKind == LocalDeclarationKind.CompilerGenerated);
-            SynthesizedFieldSymbolBase result = AllocTemp(type);
+            // TODO: consider tightening this assert:
+            // Debug.Assert(local.SynthesizedLocalKind.IsLongLived() && local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass ||
+            //              local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpilledTemp);
+
+            Debug.Assert(local.SynthesizedLocalKind != SynthesizedLocalKind.None &&
+                         local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
+
+            SynthesizedFieldSymbolBase result = GetOrAllocateTempField(type);
             ArrayBuilder<SynthesizedFieldSymbolBase> freeFields;
             if (!this.freeTempsMap.TryGetValue(local, out freeFields))
             {
@@ -317,26 +341,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Allocate a field of the state machine of the given type, to serve as a temporary.
         /// </summary>
-        private SynthesizedFieldSymbolBase AllocTemp(TypeSymbol type)
+        private SynthesizedFieldSymbolBase GetOrAllocateTempField(TypeSymbol type)
         {
             SynthesizedFieldSymbolBase result = null;
 
             // See if we've allocated a temp field we can reuse.  Not particularly efficient, but
             // there should not normally be a lot of hoisted temps.
-            for (int i = 0; i < availableFields.Count; i++)
+            for (int i = 0; i < availableTempFields.Count; i++)
             {
-                SynthesizedFieldSymbolBase f = availableFields[i];
+                SynthesizedFieldSymbolBase f = availableTempFields[i];
                 if (f.Type == type)
                 {
                     result = f;
-                    availableFields.RemoveAt(i);
+                    availableTempFields.RemoveAt(i);
                     break;
                 }
             }
 
             if ((object)result == null)
             {
-                var fieldName = GeneratedNames.SpillTempName(nextTempNumber++);
+                var fieldName = GeneratedNames.SpillTempFieldName(nextTempNumber++);
                 result = F.StateMachineField(type, fieldName, isPublic: true);
             }
 
@@ -346,9 +370,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Add a state machine field to the set of fields available for allocation to temps
         /// </summary>
-        private void FreeTemp(SynthesizedFieldSymbolBase field)
+        private void FreeTempField(SynthesizedFieldSymbolBase field)
         {
-            availableFields.Add(field);
+            availableTempFields.Add(field);
         }
 
         private BoundExpression HoistRefInitialization(LocalSymbol local, BoundAssignmentOperator node)
@@ -473,21 +497,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
-            if (node.Left.Kind != BoundKind.Local) return (BoundExpression)base.VisitAssignmentOperator(node);
+            if (node.Left.Kind != BoundKind.Local)
+            {
+                return base.VisitAssignmentOperator(node);
+            }
+
             var left = (BoundLocal)node.Left;
             var local = left.LocalSymbol;
-            if (!variablesCaptured.Contains(local)) return (BoundExpression)base.VisitAssignmentOperator(node);
+            if (!IsCaptured(local))
+            {
+                return base.VisitAssignmentOperator(node);
+            }
+
             if (proxies.ContainsKey(local))
             {
                 Debug.Assert(node.RefKind == RefKind.None);
-                return (BoundExpression)base.VisitAssignmentOperator(node);
+                return base.VisitAssignmentOperator(node);
             }
 
             // user-declared variables are preassigned their proxies, and value temps
             // are assigned proxies at the beginning of their scope by the enclosing construct.
             // Here we handle ref temps.  Ref temps are the target of a ref assignment operator before
             // being used in any other way.
-            Debug.Assert(local.DeclarationKind == LocalDeclarationKind.CompilerGenerated);
+            Debug.Assert(
+                local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpilledTemp || 
+                local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
+
             Debug.Assert(node.RefKind != RefKind.None);
 
             // we have an assignment to a variable that has not yet been assigned a proxy.
@@ -571,6 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     thenClause: (BoundBlock)this.Visit(node.FinallyBlockOpt)
                 ),
                 F.HiddenSequencePoint());
+
             BoundStatement result = node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.PreferFaultHandler);
             if ((object)dispatchLabel != null)
             {

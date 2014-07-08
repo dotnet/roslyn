@@ -82,7 +82,7 @@ class Test
             foreach (var options in new[] 
             {
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full), 
-                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.None),
             })
             {
@@ -125,7 +125,7 @@ abstract class C
             foreach (var options in new[] 
             { 
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full), 
-                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.None),
             })
             {
@@ -178,7 +178,7 @@ class C
             foreach (var options in new[] 
             { 
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full), 
-                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.None),
             })
             {
@@ -212,7 +212,7 @@ class C
             foreach (var options in new[] 
             { 
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full), 
-                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.None),
             })
             {
@@ -357,7 +357,7 @@ public class C
             foreach (var options in new[] 
             { 
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full), 
-                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.None),
             })
             {
@@ -418,7 +418,7 @@ class C
             foreach (var options in new[] 
             { 
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full), 
-                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                 TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.None),
             })
             {

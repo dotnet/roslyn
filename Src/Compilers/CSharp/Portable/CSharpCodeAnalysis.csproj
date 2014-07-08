@@ -387,7 +387,6 @@
     <Compile Include="Lowering\LambdaRewriter\ExpressionLambdaRewriter.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaCapturedVariable.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaFrameConstructor.cs" />
-    <Compile Include="Lowering\LambdaRewriter\LambdaFrameLocalSymbol.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.Analysis.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaFrame.cs" />
@@ -678,7 +677,6 @@
     <Compile Include="Symbols\Synthesized\GeneratedNames.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedAccessorValueParameterSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedBackingFieldSymbol.cs" />
-    <Compile Include="Symbols\Synthesized\SynthesizedCapturedVariable.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedContainer.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedDelegateSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedEntryPointSymbol.cs" />
@@ -699,7 +697,8 @@
     <Compile Include="Symbols\Synthesized\SynthesizedStringHashFunctionSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedSubmissionConstructor.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedTypeParameterSymbol.cs" />
-    <Compile Include="Symbols\TempKind.cs" />
+    <Compile Include="Symbols\SynthesizedLocalKind.cs" />
+    <Compile Include="Symbols\Synthesized\TypeSubstitutedLocalSymbol.cs" />
     <Compile Include="Symbols\TypedConstantExtensions.cs" />
     <Compile Include="Symbols\TypeMap.cs" />
     <Compile Include="Symbols\TypeParameterBounds.cs" />

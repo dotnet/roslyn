@@ -1966,14 +1966,7 @@ class Program
         <entry il_offset=""0x19"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1a"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""21"" file_ref=""0"" />
       </sequencepoints>
-      <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x1e"">
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
-      </scope>
+      <locals />
     </method>
   </methods>
 </symbols>";
@@ -2030,14 +2023,7 @@ class Program
         <entry il_offset=""0x19"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1a"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""21"" file_ref=""0"" />
       </sequencepoints>
-      <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x1e"">
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
-      </scope>
+      <locals />
     </method>
   </methods>
 </symbols>";
@@ -2094,14 +2080,7 @@ class Program
         <entry il_offset=""0x34"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x3b"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
-      <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x3f"">
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
-      </scope>
+      <locals />
     </method>
   </methods>
 </symbols>";
@@ -2109,7 +2088,7 @@ class Program
         }
 
         [Fact]
-        public void IteratorWithLocals()
+        public void IteratorWithLocals_ReleasePdb()
         {
             var text = @"
 class Program
@@ -2138,8 +2117,66 @@ class Program
           <namespace usingCount=""0"" />
         </using>
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""28"" bucketCount=""2"">
-          <bucket startOffset=""0x3B"" endOffset=""0xD8"" />
-          <bucket startOffset=""0x84"" endOffset=""0xD1"" />
+          <bucket startOffset=""0x3b"" endOffset=""0xd8"" />
+          <bucket startOffset=""0x84"" endOffset=""0xd1"" />
+        </iteratorLocals>
+      </customDebugInfo>
+      <sequencepoints total=""15"">
+        <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x3b"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x3c"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""20"" file_ref=""0"" />
+        <entry il_offset=""0x48"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""24"" file_ref=""0"" />
+        <entry il_offset=""0x5f"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x66"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""24"" file_ref=""0"" />
+        <entry il_offset=""0x7d"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x84"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x85"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""24"" file_ref=""0"" />
+        <entry il_offset=""0x91"" start_row=""11"" start_column=""13"" end_row=""11"" end_column=""28"" file_ref=""0"" />
+        <entry il_offset=""0xa8"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xaf"" start_row=""12"" start_column=""13"" end_row=""12"" end_column=""28"" file_ref=""0"" />
+        <entry il_offset=""0xc9"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xd0"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0xd1"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""21"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void IteratorWithLocals_DebugPdb()
+        {
+            var text = @"
+class Program
+{
+    System.Collections.Generic.IEnumerable<int> IEI<T>(int i0, int i1)
+    {
+        int x = i0;
+        yield return x;
+        yield return x;
+        {
+            int y = i1;
+            yield return y;
+            yield return y;
+        }
+        yield break;
+    }
+}
+";
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""2"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""0"" />
+        </using>
+        <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""28"" bucketCount=""2"">
+          <bucket startOffset=""0x3b"" endOffset=""0xd8"" />
+          <bucket startOffset=""0x84"" endOffset=""0xd1"" />
         </iteratorLocals>
       </customDebugInfo>
       <sequencepoints total=""15"">
@@ -2160,12 +2197,10 @@ class Program
         <entry il_offset=""0xd1"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""21"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xd8"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0xd8"">
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xd8"" attributes=""1"" />
       </scope>
     </method>
   </methods>
@@ -2195,7 +2230,7 @@ class Test<T>
         yield return val;
     }
 }";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -2205,7 +2240,7 @@ class Test<T>
           <namespace usingCount=""2"" />
         </using>
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x32"" endOffset=""0xCE"" />
+          <bucket startOffset=""0x32"" endOffset=""0xce"" />
         </iteratorLocals>
       </customDebugInfo>
       <sequencepoints total=""17"">
@@ -2228,17 +2263,17 @@ class Test<T>
         <entry il_offset=""0xce"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""1"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""1"" il_start=""0x0"" il_end=""0xce"" attributes=""1"" />
         <local name=""item"" il_index=""2"" il_start=""0x5b"" il_end=""0x8f"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0xda"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""1"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
-        <scope startOffset=""0x5b"" endOffset=""0x8f"">
-          <local name=""item"" il_index=""2"" il_start=""0x5b"" il_end=""0x8f"" attributes=""0"" />
+        <scope startOffset=""0x0"" endOffset=""0xce"">
+          <local name=""CS$524$0000"" il_index=""1"" il_start=""0x0"" il_end=""0xce"" attributes=""1"" />
+          <scope startOffset=""0x5b"" endOffset=""0x8f"">
+            <local name=""item"" il_index=""2"" il_start=""0x5b"" il_end=""0x8f"" attributes=""0"" />
+          </scope>
         </scope>
       </scope>
     </method>
@@ -2337,15 +2372,11 @@ class C
         <entry il_offset=""0x9c"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""21"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
         <constant name=""d1"" value=""0.1"" type=""Decimal"" />
         <constant name=""dx"" value=""1.23"" type=""Decimal"" />
         <constant name=""d2"" value=""0.2"" type=""Decimal"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0xa0"">
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
         <scope startOffset=""0x32"" endOffset=""0xa0"">
           <constant name=""d1"" value=""0.1"" type=""Decimal"" />
           <constant name=""dx"" value=""1.23"" type=""Decimal"" />
@@ -2369,7 +2400,6 @@ class C
         [Fact()]
         public void IteratorMultipleEnumerables()
         {
-            #region "Source"
             var text = @"
 using System;
 using System.Collections;
@@ -2419,10 +2449,7 @@ public class Test
     }
 }
 ";
-            #endregion
-
-            #region "Expected Pdb Xml"
-            string expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
+            string expected = @"
 <symbols>
   <entryPoint declaringType=""Test"" methodName=""Main"" parameterNames="""" />
   <methods>
@@ -2482,11 +2509,15 @@ public class Test
         <entry il_offset=""0x34"" start_row=""47"" start_column=""5"" end_row=""47"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
+        <local name=""CS$5$0000"" il_index=""0"" il_start=""0x2"" il_end=""0x34"" attributes=""1"" />
         <local name=""v"" il_index=""1"" il_start=""0xf"" il_end=""0x18"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x35"">
-        <scope startOffset=""0xf"" endOffset=""0x18"">
-          <local name=""v"" il_index=""1"" il_start=""0xf"" il_end=""0x18"" attributes=""0"" />
+        <scope startOffset=""0x2"" endOffset=""0x34"">
+          <local name=""CS$5$0000"" il_index=""0"" il_start=""0x2"" il_end=""0x34"" attributes=""1"" />
+          <scope startOffset=""0xf"" endOffset=""0x18"">
+            <local name=""v"" il_index=""1"" il_start=""0xf"" il_end=""0x18"" attributes=""0"" />
+          </scope>
         </scope>
       </scope>
     </method>
@@ -2519,19 +2550,19 @@ public class Test
         <entry il_offset=""0x108"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""1"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""1"" il_start=""0x0"" il_end=""0x108"" attributes=""1"" />
         <local name=""v"" il_index=""2"" il_start=""0x54"" il_end=""0x7f"" attributes=""0"" />
         <local name=""v"" il_index=""4"" il_start=""0xbd"" il_end=""0xe7"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x114"">
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""1"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
-        <scope startOffset=""0x54"" endOffset=""0x7f"">
-          <local name=""v"" il_index=""2"" il_start=""0x54"" il_end=""0x7f"" attributes=""0"" />
-        </scope>
-        <scope startOffset=""0xbd"" endOffset=""0xe7"">
-          <local name=""v"" il_index=""4"" il_start=""0xbd"" il_end=""0xe7"" attributes=""0"" />
+        <scope startOffset=""0x0"" endOffset=""0x108"">
+          <local name=""CS$524$0000"" il_index=""1"" il_start=""0x0"" il_end=""0x108"" attributes=""1"" />
+          <scope startOffset=""0x54"" endOffset=""0x7f"">
+            <local name=""v"" il_index=""2"" il_start=""0x54"" il_end=""0x7f"" attributes=""0"" />
+          </scope>
+          <scope startOffset=""0xbd"" endOffset=""0xe7"">
+            <local name=""v"" il_index=""4"" il_start=""0xbd"" il_end=""0xe7"" attributes=""0"" />
+          </scope>
         </scope>
       </scope>
     </method>
@@ -2549,12 +2580,10 @@ public class Test
         <entry il_offset=""0x69"" start_row=""31"" start_column=""9"" end_row=""31"" end_column=""10"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6d"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x6d"">
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6d"" attributes=""1"" />
       </scope>
     </method>
     <method containingType=""Test`1+&lt;IterMethod&gt;d__2"" name=""MoveNext"" parameterNames="""">
@@ -2571,20 +2600,16 @@ public class Test
         <entry il_offset=""0x69"" start_row=""38"" start_column=""9"" end_row=""38"" end_column=""21"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6d"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x6d"">
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6d"" attributes=""1"" />
       </scope>
     </method>
   </methods>
 </symbols>";
 
-            #endregion
-
-            string actual = GetPdbXml(text, TestOptions.Exe);
+            string actual = GetPdbXml(text, TestOptions.DebugExe);
             AssertXmlEqual(expected, actual);
         }
 
@@ -2685,7 +2710,7 @@ class Test
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Exe);
+            string actual = GetPdbXml(text, TestOptions.DebugExe);
 
             string expected = @"
 <symbols>
@@ -2721,15 +2746,15 @@ class Test
         <entry il_offset=""0x25"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$&lt;&gt;8__locals2"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""1"" />
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x27"">
-        <local name=""CS$&lt;&gt;8__locals2"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""1"" />
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;M&gt;b__3"" parameterNames=""x"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;M&gt;b__2"" parameterNames=""x"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
@@ -2742,15 +2767,15 @@ class Test
         <entry il_offset=""0x33"" start_row=""21"" start_column=""9"" end_row=""21"" end_column=""10"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$&lt;&gt;8__locals4"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""1"" />
         <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x35"">
-        <local name=""CS$&lt;&gt;8__locals4"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""1"" />
         <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass1"" name=""&lt;M&gt;b__5"" parameterNames=""y"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass1"" name=""&lt;M&gt;b__3"" parameterNames=""y"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
@@ -2781,7 +2806,7 @@ class Test
 }
 ";
             // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -2799,15 +2824,15 @@ class Test
         <entry il_offset=""0x22"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""1"" />
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x23"">
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""1"" />
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;Foo&gt;b__2"" parameterNames="""">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;Foo&gt;b__1"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Foo"" parameterNames=""p"" />
       </customDebugInfo>
@@ -2849,7 +2874,7 @@ class Test
 }
 ";
             // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -2883,15 +2908,15 @@ class Test
         <entry il_offset=""0x25"" start_row=""21"" start_column=""5"" end_row=""21"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$&lt;&gt;8__locals2"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""1"" />
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x27"">
-        <local name=""CS$&lt;&gt;8__locals2"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""1"" />
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;M&gt;b__3"" parameterNames=""x"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;M&gt;b__2"" parameterNames=""x"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
@@ -2904,15 +2929,15 @@ class Test
         <entry il_offset=""0x33"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""10"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$&lt;&gt;8__locals4"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""1"" />
         <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x35"">
-        <local name=""CS$&lt;&gt;8__locals4"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""1"" />
         <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass1"" name=""&lt;M&gt;b__5"" parameterNames=""y"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass1"" name=""&lt;M&gt;b__3"" parameterNames=""y"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
@@ -4198,13 +4223,13 @@ class C
         <entry il_offset=""0xd"" start_row=""7"" start_column=""61"" end_row=""7"" end_column=""70"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$&lt;&gt;8__locals5"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x1e"">
-        <local name=""CS$&lt;&gt;8__locals5"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""1"" />
       </scope>
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;.cctor&gt;b__6"" parameterNames=""y"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;.cctor&gt;b__5"" parameterNames=""y"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
@@ -4361,19 +4386,16 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
-            string actual = GetPdbXml(comp, "C+<M>d__3.MoveNext");
+            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.DebugDll);
+            string actual = GetPdbXml(comp, "C+<M>d__2.MoveNext");
 
             // One iterator local entry for the lambda local.
             string expected = @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__3"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__2"" parameterNames="""" />
-        <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x32"" endOffset=""0xFC"" />
-        </iteratorLocals>
+    <method containingType=""C+&lt;M&gt;d__2"" name=""MoveNext"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__1"" parameterNames="""" />
       </customDebugInfo>
       <sequencepoints total=""12"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -4390,12 +4412,10 @@ class C
         <entry il_offset=""0xf5"" start_row=""17"" start_column=""5"" end_row=""17"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xfc"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0xfc"">
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xfc"" attributes=""1"" />
       </scope>
     </method>
   </methods>
@@ -4405,9 +4425,9 @@ class C
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var userType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var stateMachineType = userType.GetMember<NamedTypeSymbol>("<M>d__3");
+                var stateMachineType = userType.GetMember<NamedTypeSymbol>("<M>d__2");
                 var fieldDisplayStrings = stateMachineType.GetMembers().OfType<FieldSymbol>().Select(f => f.ToTestDisplayString());
-                AssertEx.SetEqual(fieldDisplayStrings, "C.<>c__DisplayClass0 C.<M>d__3.CS$<>8__locals1"); // Name follows lambda local pattern.
+                AssertEx.SetEqual(fieldDisplayStrings, "C.<>c__DisplayClass0 C.<M>d__2.CS$<>8__locals1"); // Name follows lambda local pattern.
             });
         }
 
@@ -4435,15 +4455,15 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
-            string actual = GetPdbXml(comp, "C+<M>d__3.MoveNext");
+            string actual = GetPdbXml(comp, "C+<M>d__2.MoveNext");
 
             // No iterator local entries.
             string expected = @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__3"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__2"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__2"" parameterNames="""" />
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__1"" parameterNames="""" />
       </customDebugInfo>
       <sequencepoints total=""10"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -4458,15 +4478,13 @@ class C
         <entry il_offset=""0x68"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""2"" il_start=""0x21"" il_end=""0x6c"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6c"" attributes=""1"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""2"" il_start=""0x21"" il_end=""0x6c"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x6c"">
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6c"" attributes=""1"" />
         <scope startOffset=""0x21"" endOffset=""0x6c"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""2"" il_start=""0x21"" il_end=""0x6c"" attributes=""0"" />
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""2"" il_start=""0x21"" il_end=""0x6c"" attributes=""1"" />
         </scope>
       </scope>
     </method>
@@ -4477,7 +4495,7 @@ class C
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var userType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var stateMachineType = userType.GetMember<NamedTypeSymbol>("<M>d__3");
+                var stateMachineType = userType.GetMember<NamedTypeSymbol>("<M>d__2");
                 var fieldDisplayStrings = stateMachineType.GetMembers().OfType<FieldSymbol>().Select(f => f.ToTestDisplayString());
                 AssertEx.SetEqual(fieldDisplayStrings); // No fields for hoisted locals.
             });
@@ -4501,7 +4519,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, compOptions: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__3.MoveNext");
 
             // CHANGE: Dev12 emits a <dynamiclocal> entry for "d", but gives it slot "-1", preventing it from matching
@@ -4515,7 +4533,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x21"" endOffset=""0xEC"" />
+          <bucket startOffset=""0x21"" endOffset=""0xec"" />
         </iteratorLocals>
       </customDebugInfo>
       <sequencepoints total=""7"">
@@ -4528,13 +4546,11 @@ class C
         <entry il_offset=""0xe5"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xec"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0xec"">
         <namespace name=""System.Collections.Generic"" />
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xec"" attributes=""1"" />
       </scope>
     </method>
   </methods>
@@ -4584,14 +4600,12 @@ class C
         <entry il_offset=""0x83"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x87"" attributes=""1"" />
         <local name=""d"" il_index=""2"" il_start=""0x21"" il_end=""0x87"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x87"">
         <namespace name=""System.Collections.Generic"" />
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x87"" attributes=""1"" />
         <scope startOffset=""0x21"" endOffset=""0x87"">
           <local name=""d"" il_index=""2"" il_start=""0x21"" il_end=""0x87"" attributes=""0"" />
         </scope>

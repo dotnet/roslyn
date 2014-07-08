@@ -2,23 +2,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.PdbUtilities;
 using Xunit;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using Microsoft.Win32;
+using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 namespace Roslyn.Test.Utilities
 {
@@ -666,7 +666,7 @@ namespace Roslyn.Test.Utilities
 
         #region PDB Validation
 
-        public static string GetPdbXml(Compilation compilation, string methodName = "")
+        public static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")
         {
             string actual = null;
             using (var exebits = new MemoryStream())
@@ -677,7 +677,8 @@ namespace Roslyn.Test.Utilities
 
                     pdbbits.Position = 0;
                     exebits.Position = 0;
-                    actual = PdbToXmlConverter.ToXml(pdbbits, exebits, PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, methodName: methodName);
+
+                    actual = PdbToXmlConverter.ToXml(pdbbits, exebits, PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, methodName: qualifiedMethodName);
                 }
             }
 

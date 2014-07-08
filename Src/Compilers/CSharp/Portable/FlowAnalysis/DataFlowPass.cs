@@ -1002,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.RangeVariable:
                     AssignImpl(((BoundRangeVariable)node).Value, value, refKind, written, read);
-                    break;
+                        break;
 
                 case BoundKind.ForEachStatement:
                     {
@@ -1270,7 +1270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)
         {
             DeclareVariables(node.InnerLocals);
-            var result = base.VisitWhileStatement(node);
+            var result = base.VisitWhileStatement(node); 
             ReportUnusedVariables(node.InnerLocals);
             return result;
         }
@@ -1313,38 +1313,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (LocalSymbol local in localsOpt)
             {
-                if (local.DeclarationKind == LocalDeclarationKind.Variable)
+                if (local.DeclarationKind == LocalDeclarationKind.RegularVariable)
                 {
                     DeclareVariable(local);
                 }
                 else
                 {
-                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.Using);
-                    int slot = MakeSlot(local);
-                    if (slot >= 0)
-                    {
-                        SetSlotAssigned(slot);
-                        NoteWrite(local, value: null, read: true);
-                    }
-                    else
-                    {
-                        Debug.Assert(emptyStructTypeCache.IsEmptyStructType(local.Type));
-                    }
+                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.UsingVariable);
+                int slot = MakeSlot(local);
+                if (slot >= 0)
+                {
+                    SetSlotAssigned(slot);
+                    NoteWrite(local, value: null, read: true);
                 }
+                else
+                {
+                    Debug.Assert(emptyStructTypeCache.IsEmptyStructType(local.Type));
+                }
+            }
             }
 
             var result = base.VisitUsingStatement(node);
 
             foreach (LocalSymbol local in localsOpt)
             {
-                if (local.DeclarationKind == LocalDeclarationKind.Variable)
+                if (local.DeclarationKind == LocalDeclarationKind.RegularVariable)
                 {
                     ReportIfUnused(local, assigned: true);
                 }
                 else
                 {
-                    NoteRead(local); // At the end of the statement, there's an implied read when the local is disposed
-                }
+                NoteRead(local); // At the end of the statement, there's an implied read when the local is disposed
+            }
             }
             Debug.Assert(localsOpt.All(usedVariables.Contains));
 
@@ -1355,13 +1355,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (LocalSymbol local in node.Locals)
             {
-                if (local.DeclarationKind == LocalDeclarationKind.Variable)
+                if (local.DeclarationKind == LocalDeclarationKind.RegularVariable)
                 {
                     DeclareVariable(local);
                 }
                 else
                 {
-                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.Fixed);
+                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.FixedVariable);
                     // TODO: should something be done about this local?
                 }
             }
@@ -1370,7 +1370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (LocalSymbol local in node.Locals)
             {
-                if (local.DeclarationKind == LocalDeclarationKind.Variable)
+                if (local.DeclarationKind == LocalDeclarationKind.RegularVariable)
                 {
                     ReportIfUnused(local, assigned: true);
                 }
@@ -1389,11 +1389,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void DeclareVariables(ImmutableArray<LocalSymbol> locals)
         {
-            foreach (var symbol in locals)
-            {
-                DeclareVariable(symbol);
+                foreach (var symbol in locals)
+                {
+                    DeclareVariable(symbol);
+                }
             }
-        }
 
         private void DeclareVariable(LocalSymbol symbol)
         {
@@ -1785,7 +1785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var symbol in catchBlock.Locals)
             {
-                ReportIfUnused(symbol, assigned: symbol.DeclarationKind != LocalDeclarationKind.Catch);
+                ReportIfUnused(symbol, assigned: symbol.DeclarationKind != LocalDeclarationKind.CatchVariable);
             }
         }
 

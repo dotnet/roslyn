@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // ResourceType temp = expr;
-                boundTemp = this.factory.StoreToTemp(rewrittenExpression, tempKind: TempKind.Using, store: out tempAssignment);
+                boundTemp = this.factory.StoreToTemp(rewrittenExpression, out tempAssignment, kind: SynthesizedLocalKind.Using);
             }
 
             BoundStatement expressionStatement = new BoundExpressionStatement(expressionSyntax, tempAssignment);

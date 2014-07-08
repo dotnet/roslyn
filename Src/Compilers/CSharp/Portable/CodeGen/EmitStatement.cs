@@ -1293,88 +1293,88 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 builder.AddLocalConstantToScope(localConstantDef);
                 return null;
             }
-            else if (IsStackLocal(local))
+
+            if (IsStackLocal(local))
             {
                 return null;
             }
+
+            var name = GetLocalDebugName(local);
+            LocalSlotConstraints constraints;
+            Cci.ITypeReference translatedType;
+
+            if (local.DeclarationKind == LocalDeclarationKind.FixedVariable && local.IsPinned) // Excludes pointer local and string local in fixed string case.
+            {
+                Debug.Assert(local.RefKind == RefKind.None);
+                Debug.Assert(local.Type.IsPointerType());
+
+                constraints = LocalSlotConstraints.ByRef | LocalSlotConstraints.Pinned;
+                PointerTypeSymbol pointerType = (PointerTypeSymbol)local.Type;
+                TypeSymbol pointedAtType = pointerType.PointedAtType;
+
+                // We can't declare a reference to void, so if the pointed-at type is void, use native int
+                // (represented here by IntPtr) instead.
+                translatedType = pointedAtType.SpecialType == SpecialType.System_Void
+                    ? this.module.GetSpecialType(SpecialType.System_IntPtr, syntaxNode, diagnostics)
+                    : this.module.Translate(pointedAtType, syntaxNode, diagnostics);
+            }
             else
             {
-                var name = RequiresGeneratedName(local) ? GenerateName(local) : local.Name;
-                LocalSlotConstraints constraints;
-                Microsoft.Cci.ITypeReference translatedType;
-
-                if (local.DeclarationKind == LocalDeclarationKind.Fixed && local.IsPinned) // Excludes pointer local and string local in fixed string case.
-                {
-                    Debug.Assert(local.RefKind == RefKind.None);
-                    Debug.Assert(local.Type.IsPointerType());
-
-                    constraints = LocalSlotConstraints.ByRef | LocalSlotConstraints.Pinned;
-                    PointerTypeSymbol pointerType = (PointerTypeSymbol)local.Type;
-                    TypeSymbol pointedAtType = pointerType.PointedAtType;
-
-                    // We can't declare a reference to void, so if the pointed-at type is void, use native int
-                    // (represented here by IntPtr) instead.
-                    translatedType = pointedAtType.SpecialType == SpecialType.System_Void
-                        ? this.module.GetSpecialType(SpecialType.System_IntPtr, syntaxNode, diagnostics)
-                        : this.module.Translate(pointedAtType, syntaxNode, diagnostics);
-                }
-                else
-                {
-                    constraints = (local.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
-                        (local.RefKind != RefKind.None ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
-                    translatedType = this.module.Translate(local.Type, syntaxNode, diagnostics);
-                }
-
-                // Even though we don't need the token immediately, we will need it later when signature for the local is emitted.
-                // Also, requesting the token has side-effect of registering types used, which is critical for embedded types (NoPia, VBCore, etc).
-                this.module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, diagnostics);
-
-                var localDef = builder.LocalSlotManager.DeclareLocal(
-                        type: translatedType,
-                        identity: local,
-                        name: name,
-                        isCompilerGenerated: local.TempKind != TempKind.None,
-                        constraints: constraints,
-                        isDynamic: isDynamicSourceLocal,
-                        dynamicTransformFlags: transformFlags);
-
-                // If named, add it to the scope
-                if (name != null)
-                {
-                    //reference in the scope for debugging purpose
-                    builder.AddLocalToScope(localDef);
-                }
-
-                return localDef;
+                constraints = (local.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
+                    (local.RefKind != RefKind.None ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
+                translatedType = this.module.Translate(local.Type, syntaxNode, diagnostics);
             }
+
+            // Even though we don't need the token immediately, we will need it later when signature for the local is emitted.
+            // Also, requesting the token has side-effect of registering types used, which is critical for embedded types (NoPia, VBCore, etc).
+            this.module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, diagnostics);
+
+            var localDef = builder.LocalSlotManager.DeclareLocal(
+                    type: translatedType,
+                    identity: local,
+                    name: name,
+                    isCompilerGenerated: local.SynthesizedLocalKind != SynthesizedLocalKind.None,
+                    constraints: constraints,
+                    isDynamic: isDynamicSourceLocal,
+                    dynamicTransformFlags: transformFlags);
+
+            // If named, add it to the scope. It will be emitted to the PDB.
+            if (name != null)
+            {
+                builder.AddLocalToScope(localDef);
+            }
+
+            return localDef;
         }
 
         /// <summary>
-        /// Temporaries spanning multiple statements are
+        /// Gets the name of the locla that is going to be generated into the debug metadata.
+        /// </summary>
+        /// <remarks>
+        /// Synthesized locals spanning multiple statements are
         /// named in debug builds to ensure the associated
         /// slots are recognized and reused in EnC.
-        /// </summary>
-        private bool RequiresGeneratedName(LocalSymbol local)
+        /// </remarks>
+        private string GetLocalDebugName(LocalSymbol local)
         {
-            int kind = (int)local.TempKind;
+            if (local.Name != null)
+            {
+                // variable has been explicitly named in the source code:
+                Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.None);
+                return local.Name;
+            }
 
-            // Locals should only have been named if they represent explicit local variables.
-            Debug.Assert((kind < 0) || (local.Name == null));
+            if (HasDebugName(local))
+            {
+                return GeneratedNames.MakeLocalName(local.SynthesizedLocalKind, uniqueId++);
+            }
 
-            // Only generating names in debug builds.
-            return (kind >= 0) && (this.debugInformationKind != DebugInformationKind.None);
+            return null;
         }
 
-        /// <summary>
-        /// Generate a unique name for the temporary that
-        /// will be recognized by EnC.
-        /// </summary>
-        private string GenerateName(LocalSymbol local)
+        private bool HasDebugName(LocalSymbol local)
         {
-            Debug.Assert(local.Name == null);
-            Debug.Assert(RequiresGeneratedName(local));
-
-            return GeneratedNames.MakeTemporaryName(local.TempKind, uniqueId++);
+            return local.Name != null || local.SynthesizedLocalKind.IsNamed(this.debugInformationKind);
         }
 
         /// <summary>
@@ -1383,9 +1383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void FreeLocal(LocalSymbol local)
         {
             //TODO: releasing named locals is NYI.
-            if (local.Name == null &&
-                !RequiresGeneratedName(local) &&
-                !IsStackLocal(local))
+            if (!HasDebugName(local) && !IsStackLocal(local))
             {
                 builder.LocalSlotManager.FreeLocal(local);
             }

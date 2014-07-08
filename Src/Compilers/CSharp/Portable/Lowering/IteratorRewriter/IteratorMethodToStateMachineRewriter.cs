@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddState(out initialState, out initialLabel);
             var newBody = (BoundStatement)Visit(body);
 
-            // switch(this.state) {
+            // switch(cachedState) {
             //    case 0: goto state_0;
             //    case 1: goto state_1;
             //    //etc
@@ -92,9 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // state_0:
             // state = -1;
             // [[rewritten body]]
-            newBody = F.Block(
+            newBody = F.Block(ImmutableArray.Create(cachedState),
                     F.Block(
-                        ImmutableArray.Create(cachedState),
                         F.HiddenSequencePoint(),
                         F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField))
                     ),

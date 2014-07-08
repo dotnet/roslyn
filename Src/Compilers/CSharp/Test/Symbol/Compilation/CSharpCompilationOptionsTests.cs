@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new Dictionary<string, ReportDiagnostic> { { "CS0001", ReportDiagnostic.Error } }.ToImmutableDictionary());
 
             TestProperty((old, value) => old.WithHighEntropyVirtualAddressSpace(value), opt => opt.HighEntropyVirtualAddressSpace, true);
-            TestProperty((old, value) => old.WithDebugInformationKind(value), opt => opt.DebugInformationKind, DebugInformationKind.PDBOnly);
+            TestProperty((old, value) => old.WithDebugInformationKind(value), opt => opt.DebugInformationKind, DebugInformationKind.PdbOnly);
             TestProperty((old, value) => old.WithSubsystemVersion(value), opt => opt.SubsystemVersion, SubsystemVersion.Windows2000);
             TestProperty((old, value) => old.WithRuntimeMetadataVersion(value), opt => opt.RuntimeMetadataVersion, "v12345");
             TestProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);

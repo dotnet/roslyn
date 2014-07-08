@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
                                     else if (string.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        debugInformationKind = DebugInformationKind.PDBOnly;
+                                        debugInformationKind = DebugInformationKind.PdbOnly;
                                     }
                                     else
                                     {

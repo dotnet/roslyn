@@ -306,7 +306,7 @@ class Program
   // Code size      303 (0x12f)
   .maxstack  2
   .locals init (bool V_0,
-  int V_1) //cachedState
+  int V_1)
   .try
 {
   IL_0000:  ldarg.0
@@ -1206,7 +1206,7 @@ class Test
   // Code size      129 (0x81)
   .maxstack  2
   .locals init (bool V_0,
-  int V_1, //cachedState
+  int V_1,
   T V_2) //r
   .try
 {
@@ -2079,7 +2079,7 @@ class Program
   // Code size      176 (0xb0)
   .maxstack  3
   .locals init (bool V_0,
-  int V_1, //cachedState
+  int V_1,
   T V_2) //o
   .try
 {

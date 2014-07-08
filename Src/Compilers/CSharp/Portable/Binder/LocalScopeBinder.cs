@@ -181,21 +181,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.LocalDeclarationStatement:
                         var localDecl = (LocalDeclarationStatementSyntax)node.Parent;
-                        kind = localDecl.IsConst ? LocalDeclarationKind.Constant :
-                                                  localDecl.IsFixed ? LocalDeclarationKind.Fixed :
-                                                                     LocalDeclarationKind.Variable;
+                        kind = localDecl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
                         break;
 
                     case SyntaxKind.ForStatement:
-                        kind = LocalDeclarationKind.For;
+                        kind = LocalDeclarationKind.ForInitializerVariable;
                         break;
 
                     case SyntaxKind.UsingStatement:
-                        kind = LocalDeclarationKind.Using;
+                        kind = LocalDeclarationKind.UsingVariable;
                         break;
 
                     case SyntaxKind.FixedStatement:
-                        kind = LocalDeclarationKind.Fixed;
+                        kind = LocalDeclarationKind.FixedVariable;
                         break;
 
                     default:
@@ -209,10 +207,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (vdecl.Initializer == null)
                     {
                         localSymbol = SourceLocalSymbol.MakeLocal(
-                                            Binder.ContainingMemberOrLambda,
-                                            Binder,
-                                            node.Type,
-                                            vdecl.Identifier,
+                        Binder.ContainingMemberOrLambda,
+                        Binder,
+                        node.Type,
+                        vdecl.Identifier,
                                             kind);
                     }
                     else
@@ -222,8 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             Binder,
                                             node.Type,
                                             vdecl.Identifier,
-                                            vdecl.Initializer,
-                                            kind);
+                        vdecl.Initializer,
+                        kind);
                     }
 
                     Locals.Add(localSymbol);
@@ -253,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             node.Type,
                             node.Variable.Identifier,
                             scopeSegmentRoot,
-                            LocalDeclarationKind.Variable);
+                            LocalDeclarationKind.RegularVariable);
                     }
                     else
                     {
@@ -262,18 +260,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Binder,
                             node.Type,
                             node.Variable.Identifier,
-                            LocalDeclarationKind.Variable);
+                            LocalDeclarationKind.RegularVariable);
                     }
                 }
                 else
                 {
                     localSymbol = SourceLocalSymbol.MakeLocalWithInitializer(
-                        Binder.ContainingMemberOrLambda,
-                        Binder,
-                        node.Type,
-                        node.Variable.Identifier,
-                        node.Variable.Initializer,
-                        LocalDeclarationKind.Variable);
+                    Binder.ContainingMemberOrLambda,
+                    Binder,
+                    node.Type,
+                    node.Variable.Identifier,
+                    node.Variable.Initializer,
+                    LocalDeclarationKind.RegularVariable);
                 }
 
                 Locals.Add(localSymbol);
@@ -345,18 +343,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitBlock(BlockSyntax node)
             {
-                return;
-            }
+                    return;
+                }
 
             public override void VisitForStatement(ForStatementSyntax node)
             {
-                return;
-            }
+                    return;
+                }
 
             public override void VisitUsingStatement(UsingStatementSyntax node)
             {
-                return;
-            }
+                    return;
+                }
 
             public override void VisitLockStatement(LockStatementSyntax node)
             {
@@ -365,28 +363,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitFixedStatement(FixedStatementSyntax node)
             {
-                return;
-            }
+                    return;
+                }
 
             public override void VisitSwitchStatement(SwitchStatementSyntax node)
             {
-                return;
-            }
+                    return;
+                }
 
             public override void VisitForEachStatement(ForEachStatementSyntax node)
             {
-                return;
-            }
+                    return;
+                }
 
             public override void VisitWhileStatement(WhileStatementSyntax node)
             {
-                return;
-            }
+                    return;
+                }
 
             public override void VisitDoStatement(DoStatementSyntax node)
             {
-                return;
-            }
+                    return;
+                }
 
             public override void VisitCatchClause(CatchClauseSyntax node)
             {
@@ -395,8 +393,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitIfStatement(IfStatementSyntax node)
             {
-                return;
-            }
+                    return;
+                }
         }
 
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)

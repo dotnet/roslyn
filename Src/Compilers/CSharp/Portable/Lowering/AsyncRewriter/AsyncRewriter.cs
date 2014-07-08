@@ -72,14 +72,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override bool PreserveInitialLocals
+        protected override bool PreserveInitialParameterValues
         {
             get { return false; }
         }
 
         protected override void GenerateFields()
         {
-            builderField = F.StateMachineField(asyncMethodBuilderMemberCollection.BuilderType, GeneratedNames.AsyncBuilderName(), isPublic: true);
+            builderField = F.StateMachineField(asyncMethodBuilderMemberCollection.BuilderType, GeneratedNames.AsyncBuilderFieldName(), isPublic: true);
         }
 
         protected override void GenerateMethodImplementations()

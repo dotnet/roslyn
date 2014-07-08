@@ -8091,7 +8091,7 @@ unsafe class C
 {
   // Code size       42 (0x2a)
   .maxstack  2
-  .locals init (C.<>c__DisplayClass0 V_0, //CS$<>8__locals2
+  .locals init (C.<>c__DisplayClass0 V_0, //CS$<>8__locals0
       int* V_1, //q
       System.Action V_2, //a
       int* V_3)
@@ -8114,7 +8114,7 @@ unsafe class C
   IL_0019:  localloc
   IL_001b:  stloc.1
   IL_001c:  ldloc.0
-  IL_001d:  ldftn      ""void C.<>c__DisplayClass0.<Main>b__3()""
+  IL_001d:  ldftn      ""void C.<>c__DisplayClass0.<Main>b__2()""
   IL_0023:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0028:  stloc.2
   IL_0029:  ret
@@ -8122,11 +8122,11 @@ unsafe class C
 ");
 
             // Check that the same thing works inside a lambda.
-            verifier.VerifyIL("C.<>c__DisplayClass0.<Main>b__3", @"
+            verifier.VerifyIL("C.<>c__DisplayClass0.<Main>b__2", @"
 {
   // Code size       51 (0x33)
   .maxstack  2
-  .locals init (C.<>c__DisplayClass1 V_0, //CS$<>8__locals4
+  .locals init (C.<>c__DisplayClass1 V_0, //CS$<>8__locals0
   int* V_1, //s
   System.Action V_2, //b
   int* V_3)
@@ -8134,7 +8134,7 @@ unsafe class C
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
-  IL_0008:  stfld      ""C.<>c__DisplayClass0 C.<>c__DisplayClass1.CS$<>8__locals2""
+  IL_0008:  stfld      ""C.<>c__DisplayClass0 C.<>c__DisplayClass1.CS$<>8__locals1""
   IL_000d:  nop
   IL_000e:  ldc.i4.2
   IL_000f:  conv.u
@@ -8152,7 +8152,7 @@ unsafe class C
   IL_0020:  localloc
   IL_0022:  stloc.1
   IL_0023:  ldloc.0
-  IL_0024:  ldftn      ""void C.<>c__DisplayClass1.<Main>b__5()""
+  IL_0024:  ldftn      ""void C.<>c__DisplayClass1.<Main>b__3()""
   IL_002a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_002f:  stloc.2
   IL_0030:  br.s       IL_0032
@@ -8183,7 +8183,7 @@ unsafe class T
 {
   // Code size       47 (0x2f)
   .maxstack  2
-  .locals init (T.<>c__DisplayClass0 V_0, //CS$<>8__locals1
+  .locals init (T.<>c__DisplayClass0 V_0, //CS$<>8__locals0
       T.D V_1, //d
       int* V_2)
   IL_0000:  newobj     ""T.<>c__DisplayClass0..ctor()""
@@ -8199,7 +8199,7 @@ unsafe class T
   IL_000f:  ldloc.2
   IL_0010:  stfld      ""int* T.<>c__DisplayClass0.v""
   IL_0015:  ldloc.0
-  IL_0016:  ldftn      ""int T.<>c__DisplayClass0.<Main>b__2()""
+  IL_0016:  ldftn      ""int T.<>c__DisplayClass0.<Main>b__1()""
   IL_001c:  newobj     ""T.D..ctor(object, System.IntPtr)""
   IL_0021:  stloc.1
   IL_0022:  ldloc.1
@@ -8213,7 +8213,7 @@ unsafe class T
 {
   // Code size       43 (0x2b)
   .maxstack  2
-  .locals init (T.<>c__DisplayClass0 V_0, //CS$<>8__locals1
+  .locals init (T.<>c__DisplayClass0 V_0, //CS$<>8__locals0
       int* V_1)
   IL_0000:  newobj     ""T.<>c__DisplayClass0..ctor()""
   IL_0005:  stloc.0
@@ -8227,7 +8227,7 @@ unsafe class T
   IL_000e:  ldloc.1
   IL_000f:  stfld      ""int* T.<>c__DisplayClass0.v""
   IL_0014:  ldloc.0
-  IL_0015:  ldftn      ""int T.<>c__DisplayClass0.<Main>b__2()""
+  IL_0015:  ldftn      ""int T.<>c__DisplayClass0.<Main>b__1()""
   IL_001b:  newobj     ""T.D..ctor(object, System.IntPtr)""
   IL_0020:  callvirt   ""int T.D.Invoke()""
   IL_0025:  call       ""void System.Console.WriteLine(int)""
@@ -8784,7 +8784,7 @@ unsafe class Test
 }
 ";
 
-            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeExe.WithOptimizations(true), emitPdb: true, expectedOutput: "hello");
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeExe.WithOptimizations(true).WithDebugInformationKind(DebugInformationKind.None), emitPdb: true, expectedOutput: "hello");
 
             // Note that the pointer local is not scheduled on the stack.
             verifier.VerifyIL("Test.Test1", @"

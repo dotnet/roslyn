@@ -84,7 +84,7 @@ class Test
                 Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
             }, expectedOutput: "123");
 
-            options = TestOptions.UnoptimizedExe.WithDebugInformationKind(DebugInformationKind.PDBOnly);
+            options = TestOptions.UnoptimizedExe.WithDebugInformationKind(DebugInformationKind.PdbOnly);
             Assert.False(options.EnableEditAndContinue);
 
             CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
@@ -1014,8 +1014,8 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 {
   // Code size      229 (0xe5)
   .maxstack  3
-  .locals init (int V_0, //cachedState
-  int V_1, //<>t__exprRetValue
+  .locals init (int V_0,
+  int V_1,
   object V_2,
   System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
   object V_4,
@@ -1510,8 +1510,8 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 {
   // Code size      182 (0xb6)
   .maxstack  3
-  .locals init (int V_0, //cachedState
-  int V_1, //<>t__exprRetValue
+  .locals init (int V_0,
+  int V_1, 
   int V_2, //x
   int V_3,
   System.Runtime.CompilerServices.TaskAwaiter<int> V_4,
@@ -5983,8 +5983,8 @@ class Test
 {
   // Code size      188 (0xbc)
   .maxstack  3
-  .locals init (int V_0, //cachedState
-  int V_1, //<>t__exprRetValue
+  .locals init (int V_0,
+  int V_1,
   System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
   System.Exception V_3)
   IL_0000:  ldarg.0
@@ -6141,8 +6141,8 @@ class Test
 {
   // Code size      215 (0xd7)
   .maxstack  3
-  .locals init (int V_0, //cachedState
-  int V_1, //<>t__exprRetValue
+  .locals init (int V_0, //CS$524$0000
+  int V_1, //CS$523$0001
   int V_2,
   System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
   int V_4,
@@ -6304,7 +6304,7 @@ class Test
 {
   // Code size      194 (0xc2)
   .maxstack  3
-  .locals init (int V_0, //cachedState
+  .locals init (int V_0,
   System.Runtime.CompilerServices.TaskAwaiter<int> V_1,
   System.Exception V_2)
   IL_0000:  ldarg.0
@@ -6446,7 +6446,7 @@ class Test
 {
   // Code size      198 (0xc6)
   .maxstack  3
-  .locals init (int V_0, //cachedState
+  .locals init (int V_0,
   System.Runtime.CompilerServices.TaskAwaiter V_1,
   System.Exception V_2)
   IL_0000:  ldarg.0

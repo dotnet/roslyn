@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// True if the initial values of locals in the rewritten method need to be preserved. (e.g. enumerable iterator methods)
         /// </summary>
-        abstract protected bool PreserveInitialLocals { get; }
+        abstract protected bool PreserveInitialParameterValues { get; }
 
         /// <summary>
         /// Add fields to the state machine class that are unique to async or iterator methods.
@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.body;
             }
 
-            TypeMap TypeMap = stateMachineClass.TypeMap;
             F.OpenNestedType(stateMachineClass);
 
             // Add a field: int _state
@@ -86,39 +85,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             GenerateFields();
 
             // and fields for the initial values of all the parameters of the method
-            if (PreserveInitialLocals)
+            if (PreserveInitialParameterValues)
             {
                 initialParameters = new Dictionary<Symbol, CapturedSymbolReplacement>();
             }
 
             // add fields for the captured variables of the method
-            var dictionary = IteratorAndAsyncCaptureWalker.Analyze(compilationState.ModuleBuilderOpt.Compilation, method, body);
-            IOrderedEnumerable<Symbol> captured =
-                from local in dictionary.Keys
-                orderby local.Name, local.Locations.Length == 0 ? 0 : local.Locations[0].SourceSpan.Start
-                select local;
-            this.variablesCaptured = new HashSet<Symbol>(captured);
+            var captured = IteratorAndAsyncCaptureWalker.Analyze(compilationState.ModuleBuilderOpt.Compilation, method, body);
+
+            this.variablesCaptured = new HashSet<Symbol>(captured.Keys);
+
             this.variableProxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
 
-            CreateInitialProxies(TypeMap, captured, dictionary);
+            CreateInitialProxies(captured);
+
             GenerateMethodImplementations();
 
             // Return a replacement body for the original method
             return ReplaceOriginalMethod();
         }
 
-        private void CreateInitialProxies(
-           TypeMap TypeMap,
-           IOrderedEnumerable<Symbol> captured,
-           MultiDictionary<Symbol, CSharpSyntaxNode> locations)
+        private void CreateInitialProxies(MultiDictionary<Symbol, CSharpSyntaxNode> captured)
         {
-            foreach (var sym in captured)
+            var typeMap = stateMachineClass.TypeMap;
+
+            var orderedCaptured =
+                from local in captured.Keys
+                orderby local.Name, (local.Locations.Length == 0) ? 0 : local.Locations[0].SourceSpan.Start
+                select local;
+
+            foreach (var sym in orderedCaptured)
             {
                 var local = sym as LocalSymbol;
-                if ((object)local != null && local.DeclarationKind != LocalDeclarationKind.CompilerGenerated)
+                if ((object)local != null && 
+                    (local.SynthesizedLocalKind == SynthesizedLocalKind.None || 
+                     local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass))
                 {
-                    Debug.Assert(local.RefKind == RefKind.None); // there are no user-declared ref variables
-                    MakeInitialProxy(TypeMap, locations, local);
+                    // create proxies for user-defined variables and for lambda closures:
+                    Debug.Assert(local.RefKind == RefKind.None); 
+                    MakeInitialProxy(typeMap, captured, local);
                     continue;
                 }
 
@@ -130,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var proxyField = F.StateMachineField(method.ContainingType, GeneratedNames.IteratorThisProxyName(), isPublic: true);
                         variableProxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField));
 
-                        if (PreserveInitialLocals)
+                        if (PreserveInitialParameterValues)
                         {
                             var initialThis = method.ContainingType.IsStructType() ? 
                                 F.StateMachineField(method.ContainingType, GeneratedNames.IteratorThisProxyProxyName(), isPublic: true) : proxyField;
@@ -140,14 +145,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        var proxyField = F.StateMachineField(TypeMap.SubstituteType(parameter.Type), parameter.Name, isPublic: true);
+                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type), parameter.Name, isPublic: true);
                         variableProxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField));
 
-                        if (PreserveInitialLocals)
+                        if (PreserveInitialParameterValues)
                         {
                             string proxyName = GeneratedNames.IteratorParameterProxyName(parameter.Name);
                             initialParameters.Add(parameter, new CapturedToFrameSymbolReplacement(
-                                F.StateMachineField(TypeMap.SubstituteType(parameter.Type), proxyName, isPublic: true)));
+                                F.StateMachineField(typeMap.SubstituteType(parameter.Type), proxyName, isPublic: true)));
                         }
                         if (parameter.Type.IsRestrictedType())
                         {
@@ -177,18 +182,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private int nextLocalNumber = 1;
+
         private SynthesizedFieldSymbolBase MakeHoistedField(TypeMap TypeMap, LocalSymbol local, TypeSymbol type)
         {
-            Debug.Assert(local.DeclarationKind != LocalDeclarationKind.CompilerGenerated);
+            Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.None ||
+                         local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass);
+
             int index = nextLocalNumber++;
 
             // Special Case: There's logic in the EE to recognize locals that have been captured by a lambda
             // and would have been hoisted for the state machine.  Basically, we just hoist the local containing
             // the instance of the lambda display class and retain its original name (rather than using an
             // iterator local name).  See FUNCBRECEE::ImportIteratorMethodInheritedLocals.
-            string fieldName = local.DeclarationKind == LocalDeclarationKind.CompilerGeneratedLambdaDisplayClassLocal
-                ? local.Name
-                : GeneratedNames.MakeIteratorLocalName(local.Name, index);
+            string fieldName = (local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass)
+                ? GeneratedNames.MakeLambdaDisplayClassStorageName(index)
+                : GeneratedNames.MakeIteratorFieldName(local.Name, index);
 
             return F.StateMachineField(TypeMap.SubstituteType(type), fieldName, index);
         }
@@ -202,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializeStateMachine(bodyBuilder, frameType, stateMachineVariable);
 
             // plus code to initialize all of the parameter proxies result.proxy
-            Dictionary<Symbol, CapturedSymbolReplacement> copyDest = PreserveInitialLocals ? initialParameters : variableProxies;
+            Dictionary<Symbol, CapturedSymbolReplacement> copyDest = PreserveInitialParameterValues ? initialParameters : variableProxies;
 
             // starting with the "this" proxy
             if (!method.IsStatic)

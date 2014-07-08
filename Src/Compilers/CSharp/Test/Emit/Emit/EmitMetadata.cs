@@ -198,7 +198,7 @@ public class Test : Class2
                 options: new CSharpCompilationOptions(
                     OutputKind.NetModule,
                     optimize: false,
-                    debugInformationKind: DebugInformationKind.PDBOnly));
+                    debugInformationKind: DebugInformationKind.PdbOnly));
         }
 
         [Fact]

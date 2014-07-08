@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableDeclaratorSyntax declarator = fixedInitializer.Syntax.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             Debug.Assert(declarator != null);
 
-            stringTemp = factory.SynthesizedLocal(initializerType, name: null, syntax: declarator, isPinned: true, tempKind: TempKind.FixedString);
+            stringTemp = factory.SynthesizedLocal(initializerType, syntax: declarator, isPinned: true, kind: SynthesizedLocalKind.FixedString);
 
             // NOTE: we pin the string, not the pointer.
             Debug.Assert(stringTemp.IsPinned);
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
             TypeSymbol initializerType = initializerExpr.Type;
 
-            arrayTemp = factory.SynthesizedLocal(initializerType, name: null);
+            arrayTemp = factory.SynthesizedLocal(initializerType);
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)arrayTemp.Type;
             TypeSymbol arrayElementType = arrayType.ElementType;
             int arrayRank = arrayType.Rank;

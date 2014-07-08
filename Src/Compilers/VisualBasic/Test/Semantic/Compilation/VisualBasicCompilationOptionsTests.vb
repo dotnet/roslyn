@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 New Dictionary(Of String, ReportDiagnostic) From {{"VB0001", ReportDiagnostic.Error}}.ToImmutableDictionary())
 
             TestProperty(Function(old, value) old.WithHighEntropyVirtualAddressSpace(value), Function(opt) opt.HighEntropyVirtualAddressSpace, True)
-            TestProperty(Function(old, value) old.WithDebugInformationKind(value), Function(opt) opt.DebugInformationKind, DebugInformationKind.PDBOnly)
+            TestProperty(Function(old, value) old.WithDebugInformationKind(value), Function(opt) opt.DebugInformationKind, DebugInformationKind.PdbOnly)
             TestProperty(Function(old, value) old.WithSubsystemVersion(value), Function(opt) opt.SubsystemVersion, SubsystemVersion.Windows2000)
             TestProperty(Function(old, value) old.WithConcurrentBuild(value), Function(opt) opt.ConcurrentBuild, False)
 

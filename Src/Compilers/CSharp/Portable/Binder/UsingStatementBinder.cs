@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ImmutableArray<BoundLocalDeclaration> declarations;
-                BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.Using, diagnostics, out declarations);
+                BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
 
                 Debug.Assert(!declarations.IsEmpty);
 

@@ -1532,10 +1532,10 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(Parse(source0, "a.cs"), compOptions: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(Parse(source1, "a.cs"), compOptions: TestOptions.UnoptimizedDll);
-            var compilation2 = CreateCompilationWithMscorlib(Parse(source2, "a.cs"), compOptions: TestOptions.UnoptimizedDll);
-            var compilation3 = CreateCompilationWithMscorlib(Parse(source3, "a.cs"), compOptions: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(Parse(source0, "a.cs"), compOptions: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(Parse(source1, "a.cs"), compOptions: TestOptions.DebugDll);
+            var compilation2 = CreateCompilationWithMscorlib(Parse(source2, "a.cs"), compOptions: TestOptions.DebugDll);
+            var compilation3 = CreateCompilationWithMscorlib(Parse(source3, "a.cs"), compOptions: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
@@ -1549,7 +1549,6 @@ class C
 
                 CheckEncLog(reader1,
                     Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                    Row(16, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(17, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(18, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(19, TableIndex.MemberRef, EditAndContinueOperation.Default),
@@ -1562,8 +1561,7 @@ class C
                     Row(26, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(27, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(28, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(29, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
@@ -1573,6 +1571,8 @@ class C
                     Row(22, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(23, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(24, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(25, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(26, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                     Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -1613,7 +1613,6 @@ class C
                     Row(4, TableIndex.Property, EditAndContinueOperation.Default),
                     Row(13, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                     Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                    Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -1621,6 +1620,7 @@ class C
                     Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                     Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                     Row(8, TableIndex.MethodImpl, EditAndContinueOperation.Default),
@@ -1637,8 +1637,6 @@ class C
                     Row(9, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
                     Row(10, TableIndex.InterfaceImpl, EditAndContinueOperation.Default));
                 CheckEncMap(reader1,
-                    Handle(14, TableIndex.TypeRef),
-                    Handle(15, TableIndex.TypeRef),
                     Handle(16, TableIndex.TypeRef),
                     Handle(17, TableIndex.TypeRef),
                     Handle(18, TableIndex.TypeRef),
@@ -1648,6 +1646,8 @@ class C
                     Handle(22, TableIndex.TypeRef),
                     Handle(23, TableIndex.TypeRef),
                     Handle(24, TableIndex.TypeRef),
+                    Handle(25, TableIndex.TypeRef),
+                    Handle(26, TableIndex.TypeRef),
                     Handle(4, TableIndex.TypeDef),
                     Handle(4, TableIndex.Field),
                     Handle(5, TableIndex.Field),
@@ -1667,7 +1667,6 @@ class C
                     Handle(8, TableIndex.InterfaceImpl),
                     Handle(9, TableIndex.InterfaceImpl),
                     Handle(10, TableIndex.InterfaceImpl),
-                    Handle(16, TableIndex.MemberRef),
                     Handle(17, TableIndex.MemberRef),
                     Handle(18, TableIndex.MemberRef),
                     Handle(19, TableIndex.MemberRef),
@@ -1680,7 +1679,7 @@ class C
                     Handle(26, TableIndex.MemberRef),
                     Handle(27, TableIndex.MemberRef),
                     Handle(28, TableIndex.MemberRef),
-                    Handle(11, TableIndex.CustomAttribute),
+                    Handle(29, TableIndex.MemberRef),
                     Handle(12, TableIndex.CustomAttribute),
                     Handle(13, TableIndex.CustomAttribute),
                     Handle(14, TableIndex.CustomAttribute),
@@ -1688,6 +1687,7 @@ class C
                     Handle(16, TableIndex.CustomAttribute),
                     Handle(17, TableIndex.CustomAttribute),
                     Handle(18, TableIndex.CustomAttribute),
+                    Handle(19, TableIndex.CustomAttribute),
                     Handle(6, TableIndex.StandAloneSig),
                     Handle(7, TableIndex.StandAloneSig),
                     Handle(8, TableIndex.StandAloneSig),
@@ -1739,13 +1739,11 @@ class C
         <entry il_offset=""0x3b"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""1"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x3f"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x3f"">
         <namespace name=""System.Collections.Generic"" />
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x3f"" attributes=""1"" />
       </scope>
     </method>
   </methods>

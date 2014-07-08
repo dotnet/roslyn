@@ -701,7 +701,7 @@ class Program
   // Code size       49 (0x31)
   .maxstack  2
   .locals init (System.Action V_0, //a
-  Program.<>c__DisplayClass0 V_1, //CS$<>8__locals1
+  Program.<>c__DisplayClass0 V_1, //CS$<>8__locals0
   System.Exception V_2)
   IL_0000:  ldnull
   IL_0001:  stloc.0
@@ -720,7 +720,7 @@ class Program
   IL_0015:  ldloc.2
   IL_0016:  stfld      ""System.Exception Program.<>c__DisplayClass0.e""
   IL_001b:  ldloc.1
-  IL_001c:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__2()""
+  IL_001c:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__1()""
   IL_0022:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0027:  stloc.0
   IL_0028:  leave.s    IL_002a
@@ -765,7 +765,7 @@ class Program
 {
   // Code size       79 (0x4f)
   .maxstack  2
-  .locals init (Program.<>c__DisplayClass0 V_0, //CS$<>8__locals1
+  .locals init (Program.<>c__DisplayClass0 V_0, //CS$<>8__locals0
   System.Exception V_1)
   .try
 {
@@ -788,7 +788,7 @@ class Program
   IL_001f:  ldloc.1
   IL_0020:  stfld      ""System.Exception Program.<>c__DisplayClass0.ex""
   IL_0025:  ldloc.0
-  IL_0026:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__2()""
+  IL_0026:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__1()""
   IL_002c:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0031:  call       ""bool Program.Foo(System.Action)""
   IL_0036:  ldc.i4.0
@@ -866,7 +866,7 @@ class Program
 {
   // Code size       73 (0x49)
   .maxstack  2
-  .locals init (Program.<>c__DisplayClass0 V_0, //CS$<>8__locals1
+  .locals init (Program.<>c__DisplayClass0 V_0, //CS$<>8__locals0
   System.Exception V_1)
   .try
 {
@@ -889,7 +889,7 @@ class Program
   IL_001f:  ldloc.1
   IL_0020:  stfld      ""System.Exception Program.<>c__DisplayClass0.e""
   IL_0025:  ldloc.0
-  IL_0026:  ldftn      ""bool Program.<>c__DisplayClass0.<Main>b__2()""
+  IL_0026:  ldftn      ""bool Program.<>c__DisplayClass0.<Main>b__1()""
   IL_002c:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
   IL_0031:  callvirt   ""bool System.Func<bool>.Invoke()""
   IL_0036:  ldc.i4.0
@@ -1009,18 +1009,18 @@ class Program
     }
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
-            verifier.VerifyIL("Program.<>c__DisplayClass1<T>.<F>b__4", @"
+            verifier.VerifyIL("Program.<>c__DisplayClass1<T>.<F>b__3", @"
 {
   // Code size      131 (0x83)
   .maxstack  3
-  .locals init (Program.<>c__DisplayClass2<T> V_0, //CS$<>8__locals5
-  Program.<>c__DisplayClass0<T> V_1, //CS$<>8__locals6
+  .locals init (Program.<>c__DisplayClass2<T> V_0, //CS$<>8__locals0
+  Program.<>c__DisplayClass0<T> V_1, //CS$<>8__locals1
   T V_2)
   IL_0000:  newobj     ""Program.<>c__DisplayClass2<T>..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
-  IL_0008:  stfld      ""Program.<>c__DisplayClass1<T> Program.<>c__DisplayClass2<T>.CS$<>8__locals3""
+  IL_0008:  stfld      ""Program.<>c__DisplayClass1<T> Program.<>c__DisplayClass2<T>.CS$<>8__locals1""
   IL_000d:  ldloc.0
   IL_000e:  ldstr      ""y""
   IL_0013:  stfld      ""string Program.<>c__DisplayClass2<T>.y""
@@ -1043,13 +1043,13 @@ class Program
   IL_0039:  stloc.1
   IL_003a:  ldloc.1
   IL_003b:  ldloc.0
-  IL_003c:  stfld      ""Program.<>c__DisplayClass2<T> Program.<>c__DisplayClass0<T>.CS$<>8__locals5""
+  IL_003c:  stfld      ""Program.<>c__DisplayClass2<T> Program.<>c__DisplayClass0<T>.CS$<>8__locals2""
   IL_0041:  stloc.2
   IL_0042:  ldloc.1
   IL_0043:  ldloc.2
   IL_0044:  stfld      ""T Program.<>c__DisplayClass0<T>.e""
   IL_0049:  ldloc.1
-  IL_004a:  ldftn      ""bool Program.<>c__DisplayClass0<T>.<F>b__7()""
+  IL_004a:  ldftn      ""bool Program.<>c__DisplayClass0<T>.<F>b__4()""
   IL_0050:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
   IL_0055:  callvirt   ""bool System.Func<bool>.Invoke()""
   IL_005a:  ldc.i4.0
@@ -1062,7 +1062,7 @@ class Program
   IL_0065:  ldarg.0
   IL_0066:  ldfld      ""string Program.<>c__DisplayClass1<T>.x""
   IL_006b:  ldloc.1
-  IL_006c:  ldfld      ""Program.<>c__DisplayClass2<T> Program.<>c__DisplayClass0<T>.CS$<>8__locals5""
+  IL_006c:  ldfld      ""Program.<>c__DisplayClass2<T> Program.<>c__DisplayClass0<T>.CS$<>8__locals2""
   IL_0071:  ldfld      ""string Program.<>c__DisplayClass2<T>.y""
   IL_0076:  call       ""string string.Concat(string, string, string)""
   IL_007b:  call       ""void System.Console.Write(string)""
@@ -2159,7 +2159,7 @@ static class M1
             CompileAndVerify(source,
                 expectedOutput: @"B1::F;"
             ).
-            VerifyIL("M1.B2.<>c__DisplayClass0.<Test>b__2",
+            VerifyIL("M1.B2.<>c__DisplayClass0.<Test>b__1",
 @"{
   // Code size       35 (0x23)
   .maxstack  3
@@ -2339,7 +2339,7 @@ class Derived : Base
             CompileAndVerify(source,
                 expectedOutput: "Base::F;Derived::F;"
             ).
-            VerifyIL("Derived.<>c__DisplayClass0.<Test>b__2",
+            VerifyIL("Derived.<>c__DisplayClass0.<Test>b__1",
 @"
 {
   // Code size       35 (0x23)
@@ -2386,7 +2386,7 @@ class Derived : Base
             CompileAndVerify(source,
                 expectedOutput: "Base::F;"
             ).
-            VerifyIL("Derived.<>c__DisplayClass0.<Test>b__2",
+            VerifyIL("Derived.<>c__DisplayClass0.<Test>b__1",
 @"{
   // Code size       29 (0x1d)
   .maxstack  2
@@ -2429,7 +2429,7 @@ class Derived : Base
             CompileAndVerify(source,
                 expectedOutput: "Base::F;"
             ).
-            VerifyIL("Derived.<>c__DisplayClass0.<Test>b__2",
+            VerifyIL("Derived.<>c__DisplayClass0.<Test>b__1",
 @"{
   // Code size       29 (0x1d)
   .maxstack  2
@@ -3382,18 +3382,18 @@ class Program
     }
 }";
             CompileAndVerify(source, expectedOutput: "13").
-            VerifyIL("Program.c1.<>c__DisplayClass2.<Test>b__7",
+            VerifyIL("Program.c1.<>c__DisplayClass2.<Test>b__5",
 @"{
   // Code size       31 (0x1f)
   .maxstack  3
   IL_0000:  newobj     ""Program.c1.<>c__DisplayClass1..ctor()""
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      ""Program.c1.<>c__DisplayClass2 Program.c1.<>c__DisplayClass1.CS$<>8__locals4""
+  IL_0007:  stfld      ""Program.c1.<>c__DisplayClass2 Program.c1.<>c__DisplayClass1.CS$<>8__locals2""
   IL_000c:  dup
   IL_000d:  ldarg.1
   IL_000e:  stfld      ""int Program.c1.<>c__DisplayClass1.z""
-  IL_0013:  ldftn      ""int Program.c1.<>c__DisplayClass1.<Test>b__9(int)""
+  IL_0013:  ldftn      ""int Program.c1.<>c__DisplayClass1.<Test>b__6(int)""
   IL_0019:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_001e:  ret
 }"); 
@@ -3443,7 +3443,7 @@ using System;
 @"{
   // Code size      134 (0x86)
   .maxstack  3
-  .locals init (Program.c1.<>c__DisplayClass0 V_0, //CS$<>8__locals5
+  .locals init (Program.c1.<>c__DisplayClass0 V_0, //CS$<>8__locals0
   System.Func<System.Func<System.Func<int, System.Func<int>>>> V_1, //ff
   int V_2)
   IL_0000:  newobj     ""Program.c1.<>c__DisplayClass0..ctor()""
@@ -3464,11 +3464,11 @@ using System;
   IL_0021:  newobj     ""Program.c1.<>c__DisplayClass2..ctor()""
   IL_0026:  dup
   IL_0027:  ldloc.0
-  IL_0028:  stfld      ""Program.c1.<>c__DisplayClass0 Program.c1.<>c__DisplayClass2.CS$<>8__locals5""
+  IL_0028:  stfld      ""Program.c1.<>c__DisplayClass0 Program.c1.<>c__DisplayClass2.CS$<>8__locals1""
   IL_002d:  dup
   IL_002e:  ldc.i4.4
   IL_002f:  stfld      ""int Program.c1.<>c__DisplayClass2.a""
-  IL_0034:  ldftn      ""System.Func<System.Func<int, System.Func<int>>> Program.c1.<>c__DisplayClass2.<Test>b__7()""
+  IL_0034:  ldftn      ""System.Func<System.Func<int, System.Func<int>>> Program.c1.<>c__DisplayClass2.<Test>b__5()""
   IL_003a:  newobj     ""System.Func<System.Func<System.Func<int, System.Func<int>>>>..ctor(object, System.IntPtr)""
   IL_003f:  stloc.1
   IL_0040:  ldc.i4.2
@@ -3479,11 +3479,11 @@ using System;
   IL_004b:  newobj     ""Program.c1.<>c__DisplayClass4..ctor()""
   IL_0050:  dup
   IL_0051:  ldloc.0
-  IL_0052:  stfld      ""Program.c1.<>c__DisplayClass0 Program.c1.<>c__DisplayClass4.CS$<>8__locals5""
+  IL_0052:  stfld      ""Program.c1.<>c__DisplayClass0 Program.c1.<>c__DisplayClass4.CS$<>8__locals3""
   IL_0057:  dup
   IL_0058:  ldc.i4.4
   IL_0059:  stfld      ""int Program.c1.<>c__DisplayClass4.a""
-  IL_005e:  ldftn      ""System.Func<System.Func<int, System.Func<int>>> Program.c1.<>c__DisplayClass4.<Test>b__15()""
+  IL_005e:  ldftn      ""System.Func<System.Func<int, System.Func<int>>> Program.c1.<>c__DisplayClass4.<Test>b__11()""
   IL_0064:  newobj     ""System.Func<System.Func<System.Func<int, System.Func<int>>>>..ctor(object, System.IntPtr)""
   IL_0069:  stloc.1
   IL_006a:  ldloc.1
@@ -3541,7 +3541,7 @@ using System;
 @"{
   // Code size      133 (0x85)
   .maxstack  3
-  .locals init (Program.c1.<>c__DisplayClass0 V_0, //CS$<>8__locals3
+  .locals init (Program.c1.<>c__DisplayClass0 V_0, //CS$<>8__locals0
   System.Func<System.Func<System.Func<System.Func<int>>>> V_1, //ff
   int V_2)
   IL_0000:  newobj     ""Program.c1.<>c__DisplayClass0..ctor()""
@@ -3562,11 +3562,11 @@ using System;
   IL_0021:  newobj     ""Program.c1.<>c__DisplayClass1..ctor()""
   IL_0026:  dup
   IL_0027:  ldloc.0
-  IL_0028:  stfld      ""Program.c1.<>c__DisplayClass0 Program.c1.<>c__DisplayClass1.CS$<>8__locals3""
+  IL_0028:  stfld      ""Program.c1.<>c__DisplayClass0 Program.c1.<>c__DisplayClass1.CS$<>8__locals1""
   IL_002d:  dup
   IL_002e:  ldc.i4.3
   IL_002f:  stfld      ""int Program.c1.<>c__DisplayClass1.z""
-  IL_0034:  ldftn      ""System.Func<System.Func<System.Func<int>>> Program.c1.<>c__DisplayClass1.<Test>b__5()""
+  IL_0034:  ldftn      ""System.Func<System.Func<System.Func<int>>> Program.c1.<>c__DisplayClass1.<Test>b__3()""
   IL_003a:  newobj     ""System.Func<System.Func<System.Func<System.Func<int>>>>..ctor(object, System.IntPtr)""
   IL_003f:  stloc.1
   IL_0040:  ldc.i4.2
@@ -3577,11 +3577,11 @@ using System;
   IL_004b:  newobj     ""Program.c1.<>c__DisplayClass2..ctor()""
   IL_0050:  dup
   IL_0051:  ldloc.0
-  IL_0052:  stfld      ""Program.c1.<>c__DisplayClass0 Program.c1.<>c__DisplayClass2.CS$<>8__locals3""
+  IL_0052:  stfld      ""Program.c1.<>c__DisplayClass0 Program.c1.<>c__DisplayClass2.CS$<>8__locals2""
   IL_0057:  dup
   IL_0058:  ldc.i4.3
   IL_0059:  stfld      ""int Program.c1.<>c__DisplayClass2.z""
-  IL_005e:  ldftn      ""System.Func<System.Func<System.Func<int>>> Program.c1.<>c__DisplayClass2.<Test>b__13()""
+  IL_005e:  ldftn      ""System.Func<System.Func<System.Func<int>>> Program.c1.<>c__DisplayClass2.<Test>b__10()""
   IL_0064:  newobj     ""System.Func<System.Func<System.Func<System.Func<int>>>>..ctor(object, System.IntPtr)""
   IL_0069:  stloc.1
   IL_006a:  ldloc.1
@@ -3645,7 +3645,7 @@ public static class Program
 {
   // Code size       89 (0x59)
   .maxstack  2
-  .locals init (Program.c1.<>c__DisplayClass1 V_0) //CS$<>8__locals2
+  .locals init (Program.c1.<>c__DisplayClass1 V_0) //CS$<>8__locals0
   IL_0000:  newobj     ""Program.c1.<>c__DisplayClass1..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -3655,7 +3655,7 @@ public static class Program
   IL_000e:  call       ""bool Program.c1.T()""
   IL_0013:  brfalse.s  IL_002e
   IL_0015:  ldarg.0
-  IL_0016:  ldftn      ""bool Program.c1.<Test>b__3(int)""
+  IL_0016:  ldftn      ""bool Program.c1.<Test>b__2(int)""
   IL_001c:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
   IL_0021:  ldc.i4.s   42
   IL_0023:  callvirt   ""bool System.Func<int, bool>.Invoke(int)""
@@ -3668,7 +3668,7 @@ public static class Program
   IL_0037:  call       ""bool Program.c1.T()""
   IL_003c:  brfalse.s  IL_0057
   IL_003e:  ldloc.0
-  IL_003f:  ldftn      ""bool Program.c1.<>c__DisplayClass1.<Test>b__6(int)""
+  IL_003f:  ldftn      ""bool Program.c1.<>c__DisplayClass1.<Test>b__4(int)""
   IL_0045:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
   IL_004a:  ldc.i4.s   42
   IL_004c:  callvirt   ""bool System.Func<int, bool>.Invoke(int)""
@@ -3734,7 +3734,7 @@ class Program
   .maxstack  3
   .locals init (System.Func<int> V_0, //ff
   System.Func<int> V_1, //aa
-  Program.c1.<>c__DisplayClass0 V_2) //CS$<>8__locals2
+  Program.c1.<>c__DisplayClass0 V_2) //CS$<>8__locals0
   IL_0000:  ldnull
   IL_0001:  stloc.0
   IL_0002:  ldnull
@@ -3753,15 +3753,15 @@ class Program
   IL_0021:  newobj     ""Program.c1.<>c__DisplayClass1..ctor()""
   IL_0026:  dup
   IL_0027:  ldloc.2
-  IL_0028:  stfld      ""Program.c1.<>c__DisplayClass0 Program.c1.<>c__DisplayClass1.CS$<>8__locals2""
+  IL_0028:  stfld      ""Program.c1.<>c__DisplayClass0 Program.c1.<>c__DisplayClass1.CS$<>8__locals1""
   IL_002d:  dup
   IL_002e:  ldc.i4.4
   IL_002f:  stfld      ""int Program.c1.<>c__DisplayClass1.b""
-  IL_0034:  ldftn      ""int Program.c1.<>c__DisplayClass1.<Test>b__4()""
+  IL_0034:  ldftn      ""int Program.c1.<>c__DisplayClass1.<Test>b__2()""
   IL_003a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_003f:  stloc.0
   IL_0040:  ldarg.0
-  IL_0041:  ldftn      ""int Program.c1.<Test>b__5()""
+  IL_0041:  ldftn      ""int Program.c1.<Test>b__3()""
   IL_0047:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_004c:  stloc.1
   IL_004d:  ldloc.0
@@ -3899,14 +3899,14 @@ namespace Lambda.Bugs
 ";
 
             CreateCompilationWithMscorlib(source).VerifyEmitDiagnostics(
-                // error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__2' exceeds the maximum length allowed in metadata.
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__2"),
+                // error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__1' exceeds the maximum length allowed in metadata.
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__1"),
                 // (17,81): error CS7013: Name 'Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo' exceeds the maximum length allowed in metadata.
                 //             void I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>.Foo(int x)
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "Foo").WithArguments("Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo").WithLocation(17, 81),
-                // (19,31): error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__2' exceeds the maximum length allowed in metadata.
+                // (19,31): error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__1' exceeds the maximum length allowed in metadata.
                 //                 Func<int> f = () => x;
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__2").WithLocation(19, 31));
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__1").WithLocation(19, 31));
         }
 
         [WorkItem(540049, "DevDiv")]
@@ -4097,11 +4097,13 @@ class Test
         return (a) => s;
     }
 }";
-            // Dev11 emits "public", we emit "internal" visibility for <Foo>b__2:
+            // Dev11 emits "public", we emit "internal" visibility for <Foo>b__1:
             CompileAndVerify(source, expectedSignatures: new[] 
             {
-                Signature("Test+<>c__DisplayClass0", "<Foo>b__2", ".method assembly hidebysig instance System.String <Foo>b__2(System.String a) cil managed"),
-                Signature("Test", "<.ctor>b__3", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Int32 <.ctor>b__3(System.Object, System.Int32 x) cil managed")
+                Signature("Test+<>c__DisplayClass0", "<Foo>b__1", 
+                          ".method assembly hidebysig instance System.String <Foo>b__1(System.String a) cil managed"),
+                Signature("Test", "<.ctor>b__2", 
+                          ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Int32 <.ctor>b__2(System.Object, System.Int32 x) cil managed")
             });
         }
 
@@ -4316,14 +4318,15 @@ class D
             var comp = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Dll);
             var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
-                Signature("C+<>c__DisplayClass0`1", "CS$<>9__CachedAnonymousMethodDelegate3", ".field public instance System.Func`2[T,System.Boolean] CS$<>9__CachedAnonymousMethodDelegate3")
+                Signature("C+<>c__DisplayClass0`1", "CS$<>9__CachedAnonymousMethodDelegate2", 
+                    ".field public instance System.Func`2[T,System.Boolean] CS$<>9__CachedAnonymousMethodDelegate2")
             });
 
             verifier.VerifyIL("C.M<T>", @"
 {
   // Code size       84 (0x54)
   .maxstack  4
-  .locals init (C.<>c__DisplayClass0<T> V_0, //CS$<>8__locals1
+  .locals init (C.<>c__DisplayClass0<T> V_0, //CS$<>8__locals0
   bool V_1,
   T V_2, //last
   System.Func<T, bool> V_3)
@@ -4340,17 +4343,17 @@ class D
   IL_0013:  brtrue.s   IL_0051
   IL_0015:  ldarg.0
   IL_0016:  ldloc.0
-  IL_0017:  ldfld      ""System.Func<T, bool> C.<>c__DisplayClass0<T>.CS$<>9__CachedAnonymousMethodDelegate3""
+  IL_0017:  ldfld      ""System.Func<T, bool> C.<>c__DisplayClass0<T>.CS$<>9__CachedAnonymousMethodDelegate2""
   IL_001c:  dup
   IL_001d:  brtrue.s   IL_0035
   IL_001f:  pop
   IL_0020:  ldloc.0
   IL_0021:  ldloc.0
-  IL_0022:  ldftn      ""bool C.<>c__DisplayClass0<T>.<M>b__2(T)""
+  IL_0022:  ldftn      ""bool C.<>c__DisplayClass0<T>.<M>b__1(T)""
   IL_0028:  newobj     ""System.Func<T, bool>..ctor(object, System.IntPtr)""
   IL_002d:  dup
   IL_002e:  stloc.3
-  IL_002f:  stfld      ""System.Func<T, bool> C.<>c__DisplayClass0<T>.CS$<>9__CachedAnonymousMethodDelegate3""
+  IL_002f:  stfld      ""System.Func<T, bool> C.<>c__DisplayClass0<T>.CS$<>9__CachedAnonymousMethodDelegate2""
   IL_0034:  ldloc.3
   IL_0035:  call       ""T System.Linq.Enumerable.LastOrDefault<T>(System.Collections.Generic.IEnumerable<T>, System.Func<T, bool>)""
   IL_003a:  stloc.2
@@ -4424,11 +4427,11 @@ class D
 {
   // Code size      142 (0x8e)
   .maxstack  4
-  .locals init (Program.<>c__DisplayClass0 V_0, //CS$<>8__locals2
+  .locals init (Program.<>c__DisplayClass0 V_0, //CS$<>8__locals0
   int V_1, //i
   System.Func<int, int> V_2,
   int V_3, //i
-  Program.<>c__DisplayClass1 V_4) //CS$<>8__locals5
+  Program.<>c__DisplayClass1 V_4) //CS$<>8__locals1
   IL_0000:  newobj     ""Program.<>c__DisplayClass0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -4445,17 +4448,17 @@ class D
   IL_001c:  ldloc.1
   IL_001d:  ldelem.ref
   IL_001e:  ldloc.0
-  IL_001f:  ldfld      ""System.Func<int, int> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_001f:  ldfld      ""System.Func<int, int> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate3""
   IL_0024:  dup
   IL_0025:  brtrue.s   IL_003d
   IL_0027:  pop
   IL_0028:  ldloc.0
   IL_0029:  dup
-  IL_002a:  ldftn      ""int Program.<>c__DisplayClass0.<Test>b__3(int)""
+  IL_002a:  ldftn      ""int Program.<>c__DisplayClass0.<Test>b__2(int)""
   IL_0030:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_0035:  dup
   IL_0036:  stloc.2
-  IL_0037:  stfld      ""System.Func<int, int> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0037:  stfld      ""System.Func<int, int> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate3""
   IL_003c:  ldloc.2
   IL_003d:  callvirt   ""void Program.Executor.Execute(System.Func<int, int>)""
   IL_0042:  ldloc.1
@@ -4485,7 +4488,7 @@ class D
   IL_0070:  ldloc.3
   IL_0071:  ldelem.ref
   IL_0072:  ldloc.s    V_4
-  IL_0074:  ldftn      ""int Program.<>c__DisplayClass1.<Test>b__6(int)""
+  IL_0074:  ldftn      ""int Program.<>c__DisplayClass1.<Test>b__4(int)""
   IL_007a:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_007f:  callvirt   ""void Program.Executor.Execute(System.Func<int, int>)""
   IL_0084:  ldloc.3
@@ -4557,31 +4560,31 @@ class D
   IL_0005:  dup
   IL_0006:  ldc.i4.s   123
   IL_0008:  stfld      ""int Program.<>c__DisplayClass0.y""
-  IL_000d:  ldftn      ""System.Func<int> Program.<>c__DisplayClass0.<Test>b__3(int)""
+  IL_000d:  ldftn      ""System.Func<int> Program.<>c__DisplayClass0.<Test>b__2(int)""
   IL_0013:  newobj     ""System.Func<int, System.Func<int>>..ctor(object, System.IntPtr)""
   IL_0018:  ldc.i4.1
   IL_0019:  callvirt   ""System.Func<int> System.Func<int, System.Func<int>>.Invoke(int)""
   IL_001e:  pop
-  IL_001f:  ldsfld     ""System.Func<int, System.Func<int>> Program.CS$<>9__CachedAnonymousMethodDelegate9""
+  IL_001f:  ldsfld     ""System.Func<int, System.Func<int>> Program.CS$<>9__CachedAnonymousMethodDelegate7""
   IL_0024:  dup
   IL_0025:  brtrue.s   IL_003a
   IL_0027:  pop
   IL_0028:  ldnull
-  IL_0029:  ldftn      ""System.Func<int> Program.<Test>b__6(object, int)""
+  IL_0029:  ldftn      ""System.Func<int> Program.<Test>b__5(object, int)""
   IL_002f:  newobj     ""System.Func<int, System.Func<int>>..ctor(object, System.IntPtr)""
   IL_0034:  dup
-  IL_0035:  stsfld     ""System.Func<int, System.Func<int>> Program.CS$<>9__CachedAnonymousMethodDelegate9""
+  IL_0035:  stsfld     ""System.Func<int, System.Func<int>> Program.CS$<>9__CachedAnonymousMethodDelegate7""
   IL_003a:  ldc.i4.1
   IL_003b:  callvirt   ""System.Func<int> System.Func<int, System.Func<int>>.Invoke(int)""
   IL_0040:  pop
   IL_0041:  ret
 }
-").VerifyIL("Program.<Test>b__6(object, int)",
+").VerifyIL("Program.<Test>b__5(object, int)",
 @"
 {
   // Code size       44 (0x2c)
   .maxstack  2
-  .locals init (Program.<>c__DisplayClass1 V_0) //CS$<>8__locals7
+  .locals init (Program.<>c__DisplayClass1 V_0) //CS$<>8__locals0
   IL_0000:  newobj     ""Program.<>c__DisplayClass1..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -4594,14 +4597,14 @@ class D
   IL_0016:  ldc.i4.s   123
   IL_0018:  call       ""void System.Console.WriteLine(int)""
   IL_001d:  ldloc.0
-  IL_001e:  ldftn      ""int Program.<>c__DisplayClass1.<Test>b__8()""
+  IL_001e:  ldftn      ""int Program.<>c__DisplayClass1.<Test>b__6()""
   IL_0024:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0029:  ret
   IL_002a:  ldnull
   IL_002b:  ret
 }
 "
-).VerifyIL("Program.<>c__DisplayClass0.<Test>b__3(int)",
+).VerifyIL("Program.<>c__DisplayClass0.<Test>b__2(int)",
 @"
 {
   // Code size       45 (0x2d)
@@ -4613,17 +4616,17 @@ class D
   IL_0004:  ldc.i4.s   123
   IL_0006:  call       ""void System.Console.WriteLine(int)""
   IL_000b:  ldarg.0
-  IL_000c:  ldfld      ""System.Func<int> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate5""
+  IL_000c:  ldfld      ""System.Func<int> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
   IL_0011:  dup
   IL_0012:  brtrue.s   IL_002a
   IL_0014:  pop
   IL_0015:  ldarg.0
   IL_0016:  ldarg.0
-  IL_0017:  ldftn      ""int Program.<>c__DisplayClass0.<Test>b__4()""
+  IL_0017:  ldftn      ""int Program.<>c__DisplayClass0.<Test>b__3()""
   IL_001d:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0022:  dup
   IL_0023:  stloc.0
-  IL_0024:  stfld      ""System.Func<int> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate5""
+  IL_0024:  stfld      ""System.Func<int> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
   IL_0029:  ldloc.0
   IL_002a:  ret
   IL_002b:  ldnull

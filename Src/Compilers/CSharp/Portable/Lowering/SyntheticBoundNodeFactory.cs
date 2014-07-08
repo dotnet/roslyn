@@ -373,9 +373,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CurrentMethod = null;
         }
 
-        public LocalSymbol SynthesizedLocal(TypeSymbol type, string name = null, CSharpSyntaxNode syntax = null, bool isPinned = false, RefKind refKind = RefKind.None, TempKind tempKind = TempKind.None)
+        public LocalSymbol SynthesizedLocal(TypeSymbol type, CSharpSyntaxNode syntax = null, bool isPinned = false, RefKind refKind = RefKind.None, SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp)
         {
-            return new SynthesizedLocal(CurrentMethod, type, name, syntax, isPinned: isPinned, refKind: refKind, tempKind: tempKind);
+            return new SynthesizedLocal(CurrentMethod, type, kind, syntax, isPinned, refKind);
         }
 
         public ParameterSymbol SynthesizedParameter(TypeSymbol type, string name, MethodSymbol container = null, int ordinal = 0)
@@ -1021,22 +1021,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Takes an expression and returns the bound local expression "temp" 
         /// and the bound assignment expression "temp = expr".
         /// </summary>
-        public BoundLocal StoreToTemp(BoundExpression argument, out BoundAssignmentOperator store, RefKind refKind = RefKind.None, TempKind tempKind = TempKind.None)
+        public BoundLocal StoreToTemp(BoundExpression argument, out BoundAssignmentOperator store, RefKind refKind = RefKind.None, SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp)
         {
             MethodSymbol containingMethod = this.CurrentMethod;
             var syntax = argument.Syntax;
             var type = argument.Type;
+
             var local = new BoundLocal(
                 syntax,
-                new SynthesizedLocal(containingMethod, type, syntax: (tempKind == TempKind.None) ? null : syntax, refKind: refKind, tempKind: tempKind),
+                new SynthesizedLocal(containingMethod, type, kind, syntax: kind.IsLongLived() ? syntax : null, refKind: refKind),
                 null,
                 type);
+
             store = new BoundAssignmentOperator(
                 syntax,
                 local,
                 argument,
                 refKind,
                 type);
+
             return local;
         }
 

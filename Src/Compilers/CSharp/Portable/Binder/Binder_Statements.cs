@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableDeclarationSyntax declarationSyntax = node.Declaration;
 
             ImmutableArray<BoundLocalDeclaration> declarations;
-            BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.Fixed, diagnostics, out declarations);
+            BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.FixedVariable, diagnostics, out declarations);
 
             Debug.Assert(!declarations.IsEmpty);
 
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!locals.IsDefaultOrEmpty)
                     {
                         result = new BoundBlock(node, locals, ImmutableArray.Create(result)) { WasCompilerGenerated = true };
-                    }
+            }
 
                     return result;
             }
@@ -514,20 +514,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
-            bool isFixed = node.IsFixed;
 
             bool isVar;
             AliasSymbol alias;
-            TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, isFixed, out isVar, out alias);
+            TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
 
             // UNDONE: "possible expression" feature for IDE
 
-            LocalDeclarationKind kind = LocalDeclarationKind.Variable;
-            if (isFixed)
-            {
-                kind = LocalDeclarationKind.Fixed;
-            }
-
+            LocalDeclarationKind kind = LocalDeclarationKind.RegularVariable;
             if (isConst)
             {
                 kind = LocalDeclarationKind.Constant;
@@ -554,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, bool isFixed, out bool isVar, out AliasSymbol alias)
+        private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
         {
             Debug.Assert(declarationNode.Kind == SyntaxKind.LocalDeclarationStatement || declarationNode.Kind == SyntaxKind.DeclarationExpression);
 
@@ -569,11 +563,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // There are a number of ways in which a var decl can be illegal, but in these 
                 // cases we should report an error and then keep right on going with the inference.
-
-                if (isFixed)
-                {
-                    Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedLocalCannotBeFixed, declarationNode);
-                }
 
                 if (isConst)
                 {
@@ -617,11 +606,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (declType.IsStatic)
                 {
                     Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, declType);
-                }
-
-                if (isFixed && !(declType is PointerTypeSymbol))
-                {
-                    Error(diagnostics, ErrorCode.ERR_BadFixedInitType, declarationNode);
                 }
 
                 if (isConst && !declType.CanBeConst())
@@ -684,13 +668,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected BoundLocalDeclaration BindVariableDeclaration(
-            LocalDeclarationKind kind,
-            bool isVar,
-            VariableDeclaratorSyntax declarator,
-            TypeSyntax typeSyntax,
-            TypeSymbol declTypeOpt,
-            AliasSymbol aliasOpt,
-            DiagnosticBag diagnostics,
+            LocalDeclarationKind kind, 
+            bool isVar, 
+            VariableDeclaratorSyntax declarator, 
+            TypeSyntax typeSyntax, 
+            TypeSymbol declTypeOpt, 
+            AliasSymbol aliasOpt, 
+            DiagnosticBag diagnostics, 
             CSharpSyntaxNode associatedSyntaxNode = null)
         {
             Debug.Assert(declarator != null);
@@ -776,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Basically inlined BindVariableInitializer, but with conversion optional.
                     initializerOpt = BindPossibleArrayInitializer(equalsValueClauseSyntax.Value, declTypeOpt, diagnostics);
-                    if (kind != LocalDeclarationKind.Fixed)
+                    if (kind != LocalDeclarationKind.FixedVariable)
                     {
                         // If this is for a fixed statement, we'll do our own conversion since there are some special cases.
                         initializerOpt = GenerateConversionForAssignment(declTypeOpt, initializerOpt, diagnostics);
@@ -786,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)declTypeOpt != null);
 
-            if (kind == LocalDeclarationKind.Fixed)
+            if (kind == LocalDeclarationKind.FixedVariable)
             {
                 // NOTE: this is an error, but it won't prevent further binding.
                 if (isVar)
@@ -829,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, diagnostics);
 
-            if (kind == LocalDeclarationKind.Fixed || kind == LocalDeclarationKind.Using)
+            if (kind == LocalDeclarationKind.FixedVariable || kind == LocalDeclarationKind.UsingVariable)
             {
                 // CONSIDER: The error message is "you must provide an initializer in a fixed 
                 // CONSIDER: or using declaration". The error message could be targetted to 
@@ -881,24 +865,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax)
-        {
+            {
             SourceLocalSymbol localSymbol = this.LookupLocal(declarator.Identifier);
 
             // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
             // This occurs through the semantic model.  In that case concoct a plausible result.
             if ((object)localSymbol == null)
-            {
+                {
                 if (declarator.Initializer == null)
                 {
-                    localSymbol = SourceLocalSymbol.MakeLocal(
-                        ContainingMemberOrLambda, this, typeSyntax,
-                        declarator.Identifier, LocalDeclarationKind.Variable);
+                localSymbol = SourceLocalSymbol.MakeLocal(
+                    ContainingMemberOrLambda, this, typeSyntax,
+                        declarator.Identifier, LocalDeclarationKind.RegularVariable);
                 }
                 else
                 {
                     localSymbol = SourceLocalSymbol.MakeLocalWithInitializer(
                         ContainingMemberOrLambda, this, typeSyntax,
-                        declarator.Identifier, declarator.Initializer, LocalDeclarationKind.Variable);
+                        declarator.Identifier, declarator.Initializer, LocalDeclarationKind.RegularVariable);
                 }
             }
 
@@ -2516,9 +2500,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal virtual BoundIfStatement BindIfParts(DiagnosticBag diagnostics, Binder originalBinder)
-        {
+            {
             return this.Next.BindIfParts(diagnostics, originalBinder);
-        }
+            }
 
         protected BoundExpression BindBooleanExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
@@ -2707,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindForParts(diagnostics, originalBinder);
         }
 
-        internal BoundStatement BindForOrUsingOrFixedDeclarations(VariableDeclarationSyntax nodeOpt, LocalDeclarationKind localDeclarationKind, DiagnosticBag diagnostics, out ImmutableArray<BoundLocalDeclaration> declarations)
+        internal BoundStatement BindForOrUsingOrFixedDeclarations(VariableDeclarationSyntax nodeOpt, LocalDeclarationKind localKind, DiagnosticBag diagnostics, out ImmutableArray<BoundLocalDeclaration> declarations)
         {
             if (nodeOpt == null)
             {
@@ -2740,7 +2724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < count; i++)
             {
                 var variableDeclarator = variables[i];
-                var declaration = BindVariableDeclaration(localDeclarationKind, isVar, variableDeclarator, typeSyntax, declType, alias, diagnostics);
+                var declaration = BindVariableDeclaration(localKind, isVar, variableDeclarator, typeSyntax, declType, alias, diagnostics);
 
                 declarationArray[i] = declaration;
             }
@@ -3132,7 +3116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression exceptionSource = null;
             LocalSymbol local = this.Locals.FirstOrDefault();
-            if ((object)local != null && local.DeclarationKind == LocalDeclarationKind.Catch)
+            if ((object)local != null && local.DeclarationKind == LocalDeclarationKind.CatchVariable)
             {
                 // Check for local variable conflicts in the *enclosing* binder, not the *current* binder;
                 // obviously we will find a local of the given name in the current binder.
@@ -3142,7 +3126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             
             var block = this.BindBlock(node.Block, diagnostics);
-            Debug.Assert(((object)local == null || local.DeclarationKind != LocalDeclarationKind.Catch) || local.Type.IsErrorType() || (local.Type == type));
+            Debug.Assert(((object)local == null || local.DeclarationKind != LocalDeclarationKind.CatchVariable) || local.Type.IsErrorType() || (local.Type == type));
             return new BoundCatchBlock(node, GetDeclaredLocalsForScope(node), exceptionSource, type, boundFilter, block, hasError);
         }
 

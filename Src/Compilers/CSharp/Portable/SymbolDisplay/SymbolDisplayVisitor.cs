@@ -52,9 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)
         {
-            text = escapeKeywordIdentifiers && IsEscapable(kind)
-                ? EscapeIdentifier(text)
-                : text;
+            text = (text == null) ? "?" : escapeKeywordIdentifiers && IsEscapable(kind) ? EscapeIdentifier(text) : text;
+
             return new SymbolDisplayPart(kind, symbol, text);
         }
 

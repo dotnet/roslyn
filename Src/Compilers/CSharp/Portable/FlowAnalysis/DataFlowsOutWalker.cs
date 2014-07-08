@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.CatchBlock:
                         {
                             var local = ((BoundCatchBlock)node).Locals.FirstOrDefault();
-                            return (object)local != null && local.DeclarationKind == LocalDeclarationKind.Catch ? local : null;
+                            return (object)local != null && local.DeclarationKind == LocalDeclarationKind.CatchVariable ? local : null;
                         }
 
                     case BoundKind.ForEachStatement:

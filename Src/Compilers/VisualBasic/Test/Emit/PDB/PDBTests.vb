@@ -794,8 +794,9 @@ GetPdbXml(compilation, "Module1.F"))
                     <local name="$ex" il_index="4" il_start="0x70" il_end="0x93" attributes="1"/>
                 </scope>
             </scope>
-            <async-info kickoff-method="100663298">
-                <await yield="42" resume="65" method="100663301"/>
+            <async-info>
+                <kickoff-method declaringType="Module1" methodName="F" parameterNames="a"/>
+                <await yield="0x2a" resume="0x41" declaringType="Module1+VB$StateMachine_0_F" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -846,16 +847,17 @@ GetPdbXml(compilation, "Module1.Test"))
                     <local name="$ex" il_index="10" il_start="0x435" il_end="0x458" attributes="1"/>
                 </scope>
             </scope>
-            <async-info kickoff-method="100663299">
-                <await yield="85" resume="112" method="100663303"/>
-                <await yield="203" resume="230" method="100663303"/>
-                <await yield="325" resume="351" method="100663303"/>
-                <await yield="436" resume="463" method="100663303"/>
-                <await yield="546" resume="573" method="100663303"/>
-                <await yield="656" resume="683" method="100663303"/>
-                <await yield="774" resume="801" method="100663303"/>
-                <await yield="892" resume="918" method="100663303"/>
-                <await yield="1008" resume="1031" method="100663303"/>
+            <async-info>
+                <kickoff-method declaringType="Module1" methodName="Test" parameterNames=""/>
+                <await yield="0x55" resume="0x70" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0xcb" resume="0xe6" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x145" resume="0x15f" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x1b4" resume="0x1cf" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x222" resume="0x23d" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x290" resume="0x2ab" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x306" resume="0x321" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x37c" resume="0x396" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x3f0" resume="0x407" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -903,8 +905,9 @@ GetPdbXml(compilation, "Module1.S"))
                     <local name="$ex" il_index="3" il_start="0x6e" il_end="0x8f" attributes="1"/>
                 </scope>
             </scope>
-            <async-info kickoff-method="100663300" catch-IL-offset="117">
-                <await yield="42" resume="65" method="100663305"/>
+            <async-info catch-IL-offset="0x75">
+                <kickoff-method declaringType="Module1" methodName="S" parameterNames=""/>
+                <await yield="0x2a" resume="0x41" declaringType="Module1+VB$StateMachine_2_S" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -6323,8 +6326,9 @@ End Class
                     <local name="$ex" il_index="3" il_start="0xd7" il_end="0xf8" attributes="1"/>
                 </scope>
             </scope>
-            <async-info kickoff-method="100663298">
-                <await yield="110" resume="136" method="100663301"/>
+            <async-info>
+                <kickoff-method declaringType="C" methodName="Async_Lambda_Hoisted" parameterNames=""/>
+                <await yield="0x6e" resume="0x88" declaringType="C+VB$StateMachine_0_Async_Lambda_Hoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -6394,8 +6398,9 @@ End Class
                     <local name="$ex" il_index="4" il_start="0x99" il_end="0xbc" attributes="1"/>
                 </scope>
             </scope>
-            <async-info kickoff-method="100663298">
-                <await yield="85" resume="108" method="100663301"/>
+            <async-info>
+                <kickoff-method declaringType="C" methodName="Async_Lambda_NotHoisted" parameterNames=""/>
+                <await yield="0x55" resume="0x6c" declaringType="C+VB$StateMachine_0_Async_Lambda_NotHoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -6468,8 +6473,9 @@ End Class
                     <local name="$ex" il_index="3" il_start="0xab" il_end="0xcc" attributes="1"/>
                 </scope>
             </scope>
-            <async-info kickoff-method="100663298">
-                <await yield="79" resume="102" method="100663299"/>
+            <async-info>
+                <kickoff-method declaringType="C" methodName="Async_NoLambda_Hoisted" parameterNames=""/>
+                <await yield="0x4f" resume="0x66" declaringType="C+VB$StateMachine_0_Async_NoLambda_Hoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -6538,8 +6544,9 @@ End Class
                     <local name="$ex" il_index="5" il_start="0x80" il_end="0xa3" attributes="1"/>
                 </scope>
             </scope>
-            <async-info kickoff-method="100663298">
-                <await yield="60" resume="83" method="100663299"/>
+            <async-info>
+                <kickoff-method declaringType="C" methodName="Async_NoLambda_NotHoisted" parameterNames=""/>
+                <await yield="0x3c" resume="0x53" declaringType="C+VB$StateMachine_0_Async_NoLambda_NotHoisted" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>

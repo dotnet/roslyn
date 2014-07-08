@@ -144,12 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsMetadataOptional { get; }
 
         /// <summary>
-        /// True if Out flag is set in metadata.
+        /// True if In flag is set in metadata.
         /// </summary>
         internal abstract bool IsMetadataIn { get; }
 
         /// <summary>
-        /// True if In flag is set in metadata.
+        /// True if Out flag is set in metadata.
         /// </summary>
         internal abstract bool IsMetadataOut { get; }
 

@@ -162,7 +162,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x22"" endOffset=""0x6B"" />
+          <bucket startOffset=""0x22"" endOffset=""0x6b"" />
         </iteratorLocals>
       </customDebugInfo>
       <sequencepoints total=""11"">
@@ -179,15 +179,11 @@ class C
         <entry il_offset=""0x6b"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
         <constant name=""x"" value=""1"" type=""Int32"" />
         <constant name=""y"" value=""2"" type=""Int32"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x6f"">
         <namespace name=""System.Collections.Generic"" />
-        <scope startOffset=""0x0"" endOffset=""0x7"">
-          <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        </scope>
         <scope startOffset=""0x21"" endOffset=""0x6f"">
           <constant name=""x"" value=""1"" type=""Int32"" />
           <scope startOffset=""0x2b"" endOffset=""0x4d"">

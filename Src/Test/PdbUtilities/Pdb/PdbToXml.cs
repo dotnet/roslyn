@@ -91,8 +91,30 @@ namespace Roslyn.Test.PdbUtilities
                 }
                 else
                 {
-                    methodHandles = metadataReader.MethodDefinitions.
-                        Where(methodHandle => GetQualifiedMethodName(metadataReader, methodHandle) == methodName);
+                    var matching = metadataReader.MethodDefinitions.
+                        Where(methodHandle => GetQualifiedMethodName(metadataReader, methodHandle) == methodName).ToArray();
+
+                    if (matching.Length == 0)
+                    {
+                        xmlWriter.WriteLine("<error>");
+                        xmlWriter.WriteLine("<message>No method '{0}' found in metadata.</message>");
+                        xmlWriter.WriteLine("<available-methods>");
+
+                        foreach (var methodHandle in metadataReader.MethodDefinitions)
+                        {
+                            xmlWriter.Write("<method><![CDATA[");
+                            xmlWriter.Write(GetQualifiedMethodName(metadataReader, methodHandle));
+                            xmlWriter.Write("]]></method>");
+                            xmlWriter.WriteLine();
+                        }
+
+                        xmlWriter.WriteLine("</available-methods>");
+                        xmlWriter.WriteLine("</error>");
+
+                        return;
+                    }
+
+                    methodHandles = matching;
                 }
 
                 ToXml(xmlWriter, pdbStream, metadataReader, options, methodHandles);
@@ -430,8 +452,8 @@ namespace Roslyn.Test.PdbUtilities
             foreach (IteratorLocalBucket bucket in buckets)
             {
                 writer.WriteStartElement("bucket");
-                writer.WriteAttributeString("startOffset", string.Format(IntHexFormat, bucket.StartOffset));
-                writer.WriteAttributeString("endOffset", string.Format(IntHexFormat, bucket.EndOffset));
+                writer.WriteAttributeString("startOffset", AsILOffset(bucket.StartOffset));
+                writer.WriteAttributeString("endOffset", AsILOffset(bucket.EndOffset));
                 writer.WriteEndElement(); //bucket
             }
 
@@ -508,8 +530,8 @@ namespace Roslyn.Test.PdbUtilities
         {
             writer.WriteStartElement("scope");
             {
-                writer.WriteAttributeString("startOffset", AsIlOffset(scope.GetStartOffset()));
-                writer.WriteAttributeString("endOffset", AsIlOffset(scope.GetEndOffset()));
+                writer.WriteAttributeString("startOffset", AsILOffset(scope.GetStartOffset()));
+                writer.WriteAttributeString("endOffset", AsILOffset(scope.GetEndOffset()));
                 {
                     foreach (ISymUnmanagedNamespace @namespace in scope.GetNamespaces())
                     {
@@ -709,20 +731,22 @@ namespace Roslyn.Test.PdbUtilities
                 {
                     writer.WriteStartElement("async-info");
 
-                    writer.WriteAttributeString("kickoff-method", method.KickoffMethod.ToString());
-
                     var catchOffset = method.CatchHandlerOffset;
                     if (catchOffset >= 0)
                     {
-                        writer.WriteAttributeString("catch-IL-offset", catchOffset.ToString());
+                        writer.WriteAttributeString("catch-IL-offset", AsILOffset(catchOffset));
                     }
+
+                    writer.WriteStartElement("kickoff-method");
+                    WriteMethodAttributes((int)method.KickoffMethod, isReference: true);
+                    writer.WriteEndElement();
 
                     foreach (var info in method.GetAsyncStepInfos())
                     {
                         writer.WriteStartElement("await");
-                        writer.WriteAttributeString("yield", info.YieldOffset.ToString());
-                        writer.WriteAttributeString("resume", info.BreakpointOffset.ToString());
-                        writer.WriteAttributeString("method", info.BreakpointMethod.ToString());
+                        writer.WriteAttributeString("yield", AsILOffset(info.YieldOffset));
+                        writer.WriteAttributeString("resume", AsILOffset(info.BreakpointOffset));
+                        WriteMethodAttributes((int)info.BreakpointMethod, isReference: true);
                         writer.WriteEndElement();
                     }
 
@@ -808,8 +832,8 @@ namespace Roslyn.Test.PdbUtilities
                     }
 
                     // Provide scope range
-                    writer.WriteAttributeString("il_start", AsIlOffset(scope.StartOffset));
-                    writer.WriteAttributeString("il_end", AsIlOffset(scope.EndOffset));
+                    writer.WriteAttributeString("il_start", AsILOffset(scope.StartOffset));
+                    writer.WriteAttributeString("il_end", AsILOffset(scope.EndOffset));
                     writer.WriteAttributeString("attributes", l.Attributes.ToString());
 
                     if (reusingSlot)
@@ -895,7 +919,7 @@ namespace Roslyn.Test.PdbUtilities
             for (int i = 0; i < count; i++)
             {
                 writer.WriteStartElement("entry");
-                writer.WriteAttributeString("il_offset", AsIlOffset(offsets[i]));
+                writer.WriteAttributeString("il_offset", AsILOffset(offsets[i]));
 
                 // If it's a special 0xFeeFee sequence point (eg, "hidden"), 
                 // place an attribute on it to make it very easy for tools to recognize.
@@ -1209,13 +1233,13 @@ namespace Roslyn.Test.PdbUtilities
         // Format a token to a string. Tokens are in hex.
         internal static string AsToken(int i)
         {
-            return String.Format(CultureInfo.InvariantCulture, "0x{0:x}", i);
+            return string.Format(CultureInfo.InvariantCulture, "0x{0:x}", i);
         }
 
         // Since we're spewing this to XML, spew as a decimal number.
-        internal static string AsIlOffset(int i)
+        internal static string AsILOffset(int i)
         {
-            return AsToken(i);
+            return string.Format(CultureInfo.InvariantCulture, "0x{0:x}", i);
         }
 
         // If I have a string of a hex token and I want a SymbolToken, here's how to do it

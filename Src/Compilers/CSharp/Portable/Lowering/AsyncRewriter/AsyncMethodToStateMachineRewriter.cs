@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.exitLabel = F.GenerateLabel("exitLabel");
 
             this.exprRetValue = method.IsGenericTaskReturningAsync(F.Compilation)
-                ? F.SynthesizedLocal(asyncMethodBuilderMemberCollection.ResultType, GeneratedNames.AsyncExprRetValueFieldName())
+                ? F.SynthesizedLocal(asyncMethodBuilderMemberCollection.ResultType, kind: SynthesizedLocalKind.AsyncMethodReturnValue)
                 : null;
 
             this.dynamicFactory = new LoweredDynamicOperationFactory(F);
@@ -241,6 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol isCompletedMethod = ((object)node.IsCompleted != null) ? VisitMethodSymbol(node.IsCompleted.GetMethod) : null;
             TypeSymbol type = VisitType(node.Type);
 
+            // The lifespan of awaiter temp doesn't cross sequence points (user code in between awaits), so it doesn't need to be named.
             LocalSymbol awaiterTemp;
             if ((object)getResult == null)
             {
@@ -304,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeCallMaybeDynamic(
             BoundExpression receiver,
             MethodSymbol methodSymbol = null,
-        string methodName = null,
+            string methodName = null,
             bool resultsDiscarded = false)
         {
             if ((object)methodSymbol != null)
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver,
                 typeArguments: ImmutableArray<TypeSymbol>.Empty,
                 loweredArguments: ImmutableArray<BoundExpression>.Empty,
-            argumentNames: ImmutableArray<string>.Empty,
+                argumentNames: ImmutableArray<string>.Empty,
                 refKinds: ImmutableArray<RefKind>.Empty,
                 hasImplicitReceiver: false,
                 resultDiscarded: resultsDiscarded).ToExpression();

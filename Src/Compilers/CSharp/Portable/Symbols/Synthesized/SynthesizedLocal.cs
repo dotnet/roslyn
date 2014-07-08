@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// To help diagnose compiler transformations, you can enable the naming of compiler-generated locals
-// that would otherwise be anonymous.
-//#define NAME_TEMPS
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -12,44 +8,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A synthesized local variable.
     /// </summary>
-    internal class SynthesizedLocal : LocalSymbol
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+    internal sealed class SynthesizedLocal : LocalSymbol
     {
         private readonly MethodSymbol containingMethod;
-        private readonly string name;
         private readonly TypeSymbol type;
         private readonly CSharpSyntaxNode syntax;
         private readonly bool isPinned;
-        private readonly LocalDeclarationKind declarationKind;
         private readonly RefKind refKind;
-        private readonly TempKind tempKind;
-
-#if NAME_TEMPS
-        static int nextDebugTempNumber = 0;
-#endif
+        private readonly SynthesizedLocalKind kind;
 
         internal SynthesizedLocal(
             MethodSymbol containingMethod,
             TypeSymbol type,
-            string name = null,
+            SynthesizedLocalKind kind,
             CSharpSyntaxNode syntax = null,
             bool isPinned = false,
-            RefKind refKind = RefKind.None,
-            LocalDeclarationKind declarationKind = LocalDeclarationKind.CompilerGenerated,
-            TempKind tempKind = TempKind.None)
+            RefKind refKind = RefKind.None)
         {
             this.containingMethod = containingMethod;
             Debug.Assert(type.SpecialType != SpecialType.System_Void);
-            Debug.Assert((tempKind == TempKind.None) == (syntax == null));
-#if NAME_TEMPS
-            if (string.IsNullOrEmpty(name)) name = "temp_" + Interlocked.Increment(ref nextDebugTempNumber);
-#endif
-            this.name = name;
+
             this.type = type;
             this.syntax = syntax;
             this.isPinned = isPinned;
-            this.declarationKind = declarationKind;
             this.refKind = refKind;
-            this.tempKind = tempKind;
+            this.kind = kind;
         }
 
         internal override RefKind RefKind
@@ -59,12 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override LocalDeclarationKind DeclarationKind
         {
-            get { return this.declarationKind; }
+            get { return LocalDeclarationKind.None; }
         }
 
-        internal override TempKind TempKind
+        internal override SynthesizedLocalKind SynthesizedLocalKind
         {
-            get { return this.tempKind; }
+            get { return this.kind; }
         }
 
         internal override SyntaxToken IdentifierToken
@@ -79,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name
         {
-            get { return name; }
+            get { return null; }
         }
 
         public override TypeSymbol Type
@@ -120,6 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
             return default(ImmutableArray<Diagnostic>);
+        }
+
+        private new string GetDebuggerDisplay()
+        {
+            return string.Format("{0} {1}",
+                this.kind == SynthesizedLocalKind.None ? "<temp>" : this.kind.ToString(), 
+                this.type.ToDisplayString(SymbolDisplayFormat.TestFormat));
         }
     }
 }

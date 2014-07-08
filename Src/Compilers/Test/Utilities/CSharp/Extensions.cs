@@ -161,23 +161,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static ImmutableArray<Symbol> GetMembers(this Compilation compilation, string name)
         {
-            return GetMembers(((CSharpCompilation)compilation).GlobalNamespace, name);
+            NamespaceOrTypeSymbol lastSymbol;
+            return GetMembers(((CSharpCompilation)compilation).GlobalNamespace, name, out lastSymbol);
         }
 
-        private static ImmutableArray<Symbol> GetMembers(NamespaceSymbol @namespace, string name)
+        private static ImmutableArray<Symbol> GetMembers(NamespaceSymbol @namespace, string name, out NamespaceOrTypeSymbol lastSymbol)
         {
             var parts = SplitMemberName(name);
-            NamespaceOrTypeSymbol symbol = @namespace;
+            
+            lastSymbol = @namespace;
             for (int i = 0; i < parts.Length - 1; i++)
             {
-                symbol = (NamespaceOrTypeSymbol)symbol.GetMember(parts[i]);
+                lastSymbol = (NamespaceOrTypeSymbol)lastSymbol.GetMember(parts[i]);
             }
-            return symbol.GetMembers(parts[parts.Length - 1]);
+
+            return lastSymbol.GetMembers(parts[parts.Length - 1]);
         }
 
         public static Symbol GetMember(this NamespaceSymbol @namespace, string name)
         {
-            return GetMembers(@namespace, name).Single();
+            NamespaceOrTypeSymbol lastSymbol;
+            var members = GetMembers(@namespace, name, out lastSymbol);
+            Assert.True(members.Length == 1, "Available memebers:\r\n" + string.Join("\r\n", lastSymbol.GetMembers()));
+            return members.Single();
         }
 
         public static Symbol GetMember(this NamespaceOrTypeSymbol symbol, string name)

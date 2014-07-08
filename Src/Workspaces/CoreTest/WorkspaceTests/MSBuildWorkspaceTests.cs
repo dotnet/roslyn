@@ -999,7 +999,7 @@ class C1
         public void TestCompilationOptions_CSharp_DebugType_PDBOnly()
         {
             CreateCSharpFilesWith("DebugType", "pdbonly");
-            AssertOptions(DebugInformationKind.PDBOnly, options => options.DebugInformationKind);
+            AssertOptions(DebugInformationKind.PdbOnly, options => options.DebugInformationKind);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1188,7 +1188,7 @@ class C1
         public void TestCompilationOptions_VisualBasic_DebugType_PDBOnly()
         {
             CreateVBFilesWith("DebugType", "pdbonly");
-            AssertVBOptions(DebugInformationKind.PDBOnly, options => options.DebugInformationKind);
+            AssertVBOptions(DebugInformationKind.PdbOnly, options => options.DebugInformationKind);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

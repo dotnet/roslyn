@@ -54,7 +54,7 @@ End Class
 </compilation>
 
             For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
@@ -108,7 +108,7 @@ End Class
     </file>
 </compilation>
             For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                                  OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
@@ -173,7 +173,7 @@ End Class
     </file>
 </compilation>
             For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                                  OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
@@ -214,7 +214,7 @@ End Class
 </compilation>
 
             For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                                  OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
@@ -266,7 +266,7 @@ End Class
 </compilation>
 
             For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
@@ -321,7 +321,7 @@ End Class
 </compilation>
 
             For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlibAndReferences(source, references:={SystemCoreRef}, options:=options)
 
@@ -359,7 +359,7 @@ End Class
 </compilation>
 
             For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef}, options:=options)
 
@@ -391,7 +391,7 @@ End Class
     </file>
 </compilation>
             For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PDBOnly),
+                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
                                  OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
 
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)

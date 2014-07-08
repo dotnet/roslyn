@@ -1213,7 +1213,7 @@ public class C : B
 {
   // Code size       87 (0x57)
   .maxstack  3
-  .locals init (C.<>c__DisplayClass0 V_0, //CS$<>8__locals1
+  .locals init (C.<>c__DisplayClass0 V_0, //CS$<>8__locals0
   System.Linq.Expressions.Expression<System.Action> V_1) //expr
   IL_0000:  newobj     ""C.<>c__DisplayClass0..ctor()""
   IL_0005:  stloc.0
@@ -1343,7 +1343,7 @@ public class D : C
 {
   // Code size       87 (0x57)
   .maxstack  3
-  .locals init (D.<>c__DisplayClass0 V_0, //CS$<>8__locals1
+  .locals init (D.<>c__DisplayClass0 V_0, //CS$<>8__locals0
   System.Linq.Expressions.Expression<System.Action> V_1) //expr
   IL_0000:  newobj     ""D.<>c__DisplayClass0..ctor()""
   IL_0005:  stloc.0

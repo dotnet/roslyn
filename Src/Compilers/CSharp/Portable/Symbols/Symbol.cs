@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return "";
         }
 
-        private string GetDebuggerDisplay()
+        internal string GetDebuggerDisplay()
         {
             return string.Format("{0} {1}", this.Kind, this.ToDisplayString(SymbolDisplayFormat.TestFormat));
         }

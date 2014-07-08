@@ -32,5 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static readonly CSharpCompilationOptions UnoptimizedDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize: false);
         public static readonly CSharpCompilationOptions UnoptimizedExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false);
+
+        public static readonly CSharpCompilationOptions DebugDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize: false, debugInformationKind: DebugInformationKind.Full);
+        public static readonly CSharpCompilationOptions DebugExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false, debugInformationKind: DebugInformationKind.Full);
     }
 }

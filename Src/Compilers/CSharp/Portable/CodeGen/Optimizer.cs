@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 var locInfo = info[local];
 
-                if (local.TempKind == TempKind.Optimizer)
+                if (local.SynthesizedLocalKind == SynthesizedLocalKind.OptimizerTemp)
                 {
                     dummies.Add(locInfo);
                     info.Remove(local);
@@ -1504,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // if accessing real val, check stack
-            if (local.TempKind != TempKind.Optimizer)
+            if (local.SynthesizedLocalKind != SynthesizedLocalKind.OptimizerTemp)
             {
                 if (locInfo.stackAtDeclaration != evalStack)
                 {
@@ -1540,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // if accessing real val, check stack
-            if (local.TempKind != TempKind.Optimizer)
+            if (local.SynthesizedLocalKind != SynthesizedLocalKind.OptimizerTemp)
             {
                 // -1 because real assignment "consumes, assigns, and then pushes back" the value.
                 var evalStack = this.evalStack - 1;
@@ -1770,12 +1770,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     {
         internal override LocalDeclarationKind DeclarationKind
         {
-            get { return LocalDeclarationKind.CompilerGenerated; }
+            get { return LocalDeclarationKind.None; }
         }
 
-        internal override TempKind TempKind
+        internal override SynthesizedLocalKind SynthesizedLocalKind
         {
-            get { return TempKind.Optimizer; }
+            get { return SynthesizedLocalKind.OptimizerTemp; }
         }
 
         internal override SyntaxToken IdentifierToken

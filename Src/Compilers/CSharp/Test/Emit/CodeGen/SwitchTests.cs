@@ -1012,14 +1012,14 @@ class Test
 {
   // Code size       31 (0x1f)
   .maxstack  2
-  .locals init (Test.<>c__DisplayClass0 V_0) //CS$<>8__locals1
+  .locals init (Test.<>c__DisplayClass0 V_0) //CS$<>8__locals0
   IL_0000:  newobj     ""Test.<>c__DisplayClass0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.0
   IL_0008:  stfld      ""int Test.<>c__DisplayClass0.i""
   IL_000d:  ldloc.0
-  IL_000e:  ldftn      ""void Test.<>c__DisplayClass0.<Main>b__2()""
+  IL_000e:  ldftn      ""void Test.<>c__DisplayClass0.<Main>b__1()""
   IL_0014:  newobj     ""Test.D..ctor(object, System.IntPtr)""
   IL_0019:  callvirt   ""void Test.D.Invoke()""
   IL_001e:  ret
@@ -2892,8 +2892,8 @@ class Foo
 {
   // Code size       44 (0x2c)
   .maxstack  2
-  .locals init (uint V_0, //hashCode
-  int V_1) //i
+  .locals init (uint V_0,
+  int V_1)
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_002a
   IL_0003:  ldc.i4     0x811c9dc5

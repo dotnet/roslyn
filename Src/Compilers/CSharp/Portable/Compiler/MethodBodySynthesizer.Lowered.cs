@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             try
             {
-                LocalSymbol i = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), "i");
-                LocalSymbol hashCode = F.SynthesizedLocal(F.SpecialType(SpecialType.System_UInt32), "hashCode");
+                LocalSymbol i = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32));
+                LocalSymbol hashCode = F.SynthesizedLocal(F.SpecialType(SpecialType.System_UInt32));
 
                 LabelSymbol again = F.GenerateLabel("again");
                 LabelSymbol start = F.GenerateLabel("start");

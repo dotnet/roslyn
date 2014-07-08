@@ -75,6 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The "this" symbol for the current method.
         private ParameterSymbol currentFrameThis;
 
+        // ID dispenser for field names of frame references
+        private int synthesizedFieldNameIdDispenser;
+
         // The symbol (field or local) holding the innermost frame
         private Symbol innermostFramePointer;
 
@@ -112,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool generateDebugInfo,
             bool assignLocals)
-            : base(compilationState, diagnostics, generateDebugInfo)
+            : base(compilationState, analysis.variablesCaptured, diagnostics, generateDebugInfo)
         {
             Debug.Assert(analysis != null);
             Debug.Assert(thisType != null);
@@ -129,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.innermostFramePointer = currentFrameThis = thisParameterOpt;
             this.framePointers[thisType] = thisParameterOpt;
             this.seenBaseCall = method.MethodKind != MethodKind.Constructor; // only used for ctors
+            this.synthesizedFieldNameIdDispenser = 1;
         }
 
         /// <summary>
@@ -170,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 generateDebugInfo,
                 assignLocals);
+
             analysis.ComputeLambdaScopesAndFrameCaptures();
             rewriter.MakeFrames();
             var body = rewriter.AddStatementsIfNeeded((BoundStatement)rewriter.Visit(node));
@@ -192,11 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return body;
-        }
-
-        protected override HashSet<Symbol> VariablesCaptured
-        {
-            get { return analysis.variablesCaptured; }
         }
 
         protected override TypeMap TypeMap
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                SynthesizedFieldSymbolBase proxy = new LambdaCapturedVariable(frame, captured);
+                var proxy = LambdaCapturedVariable.Create(frame, captured, ref synthesizedFieldNameIdDispenser);
                 proxies.Add(captured, new CapturedToFrameSymbolReplacement(proxy));
                 if (CompilationState.Emitting)
                 {
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private T IntroduceFrame<T>(BoundNode node, LambdaFrame frame, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, T> F)
         {
             NamedTypeSymbol frameType = frame.ConstructIfGeneric(StaticCast<TypeSymbol>.From(currentTypeParameters));
-            LocalSymbol framePointer = new LambdaFrameLocalSymbol(this.topLevelMethod, frameType, CompilationState);
+            LocalSymbol framePointer = new SynthesizedLocal(this.topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass);
 
             CSharpSyntaxNode syntax = node.Syntax;
 
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 proxies.TryGetValue(innermostFramePointer, out oldInnermostFrameProxy);
                 if (analysis.needsParentFrame.Contains(node))
                 {
-                    var capturedFrame = new LambdaCapturedVariable(frame, innermostFramePointer);
+                    var capturedFrame = LambdaCapturedVariable.Create(frame, innermostFramePointer, ref synthesizedFieldNameIdDispenser);
                     FieldSymbol frameParent = capturedFrame.AsMember(frameType);
                     BoundExpression left = new BoundFieldAccess(syntax, new BoundLocal(syntax, framePointer, null, frameType), frameParent, null);
                     BoundExpression right = FrameOfType(syntax, frameParent.Type as NamedTypeSymbol);
@@ -391,17 +391,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Capture any parameters of this block.  This would typically occur
             // at the top level of a method or lambda with captured parameters.
             // TODO: speed up the following by computing it in analysis.
-            foreach (var v in analysis.variablesCaptured)
+            foreach (var variable in analysis.variablesCaptured)
             {
                 BoundNode varNode;
-                if (!analysis.variableBlock.TryGetValue(v, out varNode) ||
+                if (!analysis.variableBlock.TryGetValue(variable, out varNode) ||
                     varNode != node ||
-                    analysis.declaredInsideExpressionLambda.Contains(v))
+                    analysis.declaredInsideExpressionLambda.Contains(variable))
                 {
                     continue;
                 }
 
-                InitVariableProxy(syntax, v, framePointer, prologue);
+                InitVariableProxy(syntax, variable, framePointer, prologue);
             }
 
             Symbol oldInnermostFramePointer = innermostFramePointer;
@@ -438,34 +438,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression value;
                 switch (symbol.Kind)
-            {
-                    case SymbolKind.Parameter:
                 {
-                            var parameter = (ParameterSymbol)symbol;
-                    ParameterSymbol parameterToUse;
-                            if (!parameterMap.TryGetValue(parameter, out parameterToUse))
-                            {
-                                parameterToUse = parameter;
-                            }
-                            value = new BoundParameter(syntax, parameterToUse);
+                    case SymbolKind.Parameter:
+                        var parameter = (ParameterSymbol)symbol;
+                        ParameterSymbol parameterToUse;
+                        if (!parameterMap.TryGetValue(parameter, out parameterToUse))
+                        {
+                            parameterToUse = parameter;
                         }
+
+                        value = new BoundParameter(syntax, parameterToUse);
                         break;
+
                     case SymbolKind.Local:
                         if (!this.assignLocals)
                         {
                             return;
-                }
-                else
-                {
-                            var local = (LocalSymbol)symbol;
-                    LocalSymbol localToUse;
-                            if (!localMap.TryGetValue(local, out localToUse))
-                            {
-                                localToUse = local;
-                            }
-                            value = new BoundLocal(syntax, localToUse, null, localToUse.Type);
                         }
+                        
+                        var local = (LocalSymbol)symbol;
+                        LocalSymbol localToUse;
+                        if (!localMap.TryGetValue(local, out localToUse))
+                        {
+                            localToUse = local;
+                        }
+
+                        value = new BoundLocal(syntax, localToUse, null, localToUse.Type);
                         break;
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
@@ -901,11 +901,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var F = new SyntheticBoundNodeFactory(currentMethod, node.Syntax, CompilationState, Diagnostics);
                 try
                 {
-                    var cacheVariableName = GeneratedNames.MakeLambdaCacheName(CompilationState.GenerateTempNumber());
                     BoundExpression cacheVariable;
                     if (shouldCacheForStaticMethod || shouldCacheInLoop && translatedLambdaContainer is LambdaFrame)
                     {
                         var cacheVariableType = lambdaIsStatic ? type : (translatedLambdaContainer as LambdaFrame).TypeMap.SubstituteType(type);
+                        var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(CompilationState.GenerateTempNumber());
                         var cacheField = new SynthesizedFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, isPublic: !lambdaIsStatic, isStatic: lambdaIsStatic);
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField);
                         cacheVariable = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // the lambda captures at most the "this" of the enclosing method.  We cache its delegate in a local variable.
-                        var cacheLocal = F.SynthesizedLocal(type, cacheVariableName);
+                        var cacheLocal = F.SynthesizedLocal(type, kind: SynthesizedLocalKind.CachedAnonymousMethodDelegate);
                         if (addedLocals == null) addedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
                         addedLocals.Add(cacheLocal);
                         if (addedStatements == null) addedStatements = ArrayBuilder<BoundStatement>.GetInstance();

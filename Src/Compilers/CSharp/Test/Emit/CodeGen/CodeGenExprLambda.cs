@@ -3461,15 +3461,12 @@ Convert(Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNu
 
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size      414 (0x19e)
+  // Code size      405 (0x195)
   .maxstack  5
   .locals init (System.Linq.Expressions.Expression<System.Func<E, decimal>> V_0, //ed
   System.Linq.Expressions.Expression<System.Func<E?, decimal>> V_1, //nd
   System.Linq.Expressions.Expression<System.Func<E, decimal?>> V_2, //end
-  System.Linq.Expressions.ParameterExpression V_3, //x
-  System.Linq.Expressions.ParameterExpression V_4, //x
-  System.Linq.Expressions.ParameterExpression V_5, //x
-  System.Linq.Expressions.ParameterExpression V_6) //x
+  System.Linq.Expressions.ParameterExpression V_3)
   IL_0000:  ldtoken    ""E""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""x""
@@ -3497,88 +3494,88 @@ Convert(Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNu
   IL_0058:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_005d:  ldstr      ""x""
   IL_0062:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
-  IL_0067:  stloc.s    V_4
-  IL_0069:  ldloc.s    V_4
-  IL_006b:  ldtoken    ""int?""
-  IL_0070:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0075:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
-  IL_007a:  ldtoken    ""decimal""
-  IL_007f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0084:  ldtoken    ""decimal decimal.op_Implicit(int)""
-  IL_0089:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
-  IL_008e:  castclass  ""System.Reflection.MethodInfo""
-  IL_0093:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
-  IL_0098:  ldc.i4.1
-  IL_0099:  newarr     ""System.Linq.Expressions.ParameterExpression""
-  IL_009e:  dup
-  IL_009f:  ldc.i4.0
-  IL_00a0:  ldloc.s    V_4
-  IL_00a2:  stelem.ref
-  IL_00a3:  call       ""System.Linq.Expressions.Expression<System.Func<E?, decimal>> System.Linq.Expressions.Expression.Lambda<System.Func<E?, decimal>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_00a8:  stloc.1
-  IL_00a9:  ldtoken    ""E""
-  IL_00ae:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_00b3:  ldstr      ""x""
-  IL_00b8:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
-  IL_00bd:  stloc.s    V_5
-  IL_00bf:  ldloc.s    V_5
-  IL_00c1:  ldtoken    ""int""
-  IL_00c6:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_00cb:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
-  IL_00d0:  ldtoken    ""decimal""
-  IL_00d5:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_00da:  ldtoken    ""decimal decimal.op_Implicit(int)""
-  IL_00df:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
-  IL_00e4:  castclass  ""System.Reflection.MethodInfo""
-  IL_00e9:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
-  IL_00ee:  ldtoken    ""decimal?""
-  IL_00f3:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_00f8:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
-  IL_00fd:  ldc.i4.1
-  IL_00fe:  newarr     ""System.Linq.Expressions.ParameterExpression""
-  IL_0103:  dup
-  IL_0104:  ldc.i4.0
-  IL_0105:  ldloc.s    V_5
-  IL_0107:  stelem.ref
-  IL_0108:  call       ""System.Linq.Expressions.Expression<System.Func<E, decimal?>> System.Linq.Expressions.Expression.Lambda<System.Func<E, decimal?>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_010d:  stloc.2
-  IL_010e:  ldtoken    ""E?""
-  IL_0113:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0118:  ldstr      ""x""
-  IL_011d:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
-  IL_0122:  stloc.s    V_6
-  IL_0124:  ldloc.s    V_6
-  IL_0126:  ldtoken    ""int?""
-  IL_012b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0130:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
-  IL_0135:  ldtoken    ""decimal""
-  IL_013a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_013f:  ldtoken    ""decimal decimal.op_Implicit(int)""
-  IL_0144:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
-  IL_0149:  castclass  ""System.Reflection.MethodInfo""
-  IL_014e:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
-  IL_0153:  ldtoken    ""decimal?""
-  IL_0158:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_015d:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
-  IL_0162:  ldc.i4.1
-  IL_0163:  newarr     ""System.Linq.Expressions.ParameterExpression""
-  IL_0168:  dup
-  IL_0169:  ldc.i4.0
-  IL_016a:  ldloc.s    V_6
-  IL_016c:  stelem.ref
-  IL_016d:  call       ""System.Linq.Expressions.Expression<System.Func<E?, decimal?>> System.Linq.Expressions.Expression.Lambda<System.Func<E?, decimal?>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_0172:  ldloc.0
-  IL_0173:  call       ""string ExpressionExtensions.Dump<System.Func<E, decimal>>(System.Linq.Expressions.Expression<System.Func<E, decimal>>)""
-  IL_0178:  call       ""void System.Console.WriteLine(string)""
-  IL_017d:  ldloc.1
-  IL_017e:  call       ""string ExpressionExtensions.Dump<System.Func<E?, decimal>>(System.Linq.Expressions.Expression<System.Func<E?, decimal>>)""
-  IL_0183:  call       ""void System.Console.WriteLine(string)""
-  IL_0188:  ldloc.2
-  IL_0189:  call       ""string ExpressionExtensions.Dump<System.Func<E, decimal?>>(System.Linq.Expressions.Expression<System.Func<E, decimal?>>)""
-  IL_018e:  call       ""void System.Console.WriteLine(string)""
-  IL_0193:  call       ""string ExpressionExtensions.Dump<System.Func<E?, decimal?>>(System.Linq.Expressions.Expression<System.Func<E?, decimal?>>)""
-  IL_0198:  call       ""void System.Console.WriteLine(string)""
-  IL_019d:  ret
+  IL_0067:  stloc.3
+  IL_0068:  ldloc.3
+  IL_0069:  ldtoken    ""int?""
+  IL_006e:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0073:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_0078:  ldtoken    ""decimal""
+  IL_007d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0082:  ldtoken    ""decimal decimal.op_Implicit(int)""
+  IL_0087:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_008c:  castclass  ""System.Reflection.MethodInfo""
+  IL_0091:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0096:  ldc.i4.1
+  IL_0097:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_009c:  dup
+  IL_009d:  ldc.i4.0
+  IL_009e:  ldloc.3
+  IL_009f:  stelem.ref
+  IL_00a0:  call       ""System.Linq.Expressions.Expression<System.Func<E?, decimal>> System.Linq.Expressions.Expression.Lambda<System.Func<E?, decimal>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_00a5:  stloc.1
+  IL_00a6:  ldtoken    ""E""
+  IL_00ab:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_00b0:  ldstr      ""x""
+  IL_00b5:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_00ba:  stloc.3
+  IL_00bb:  ldloc.3
+  IL_00bc:  ldtoken    ""int""
+  IL_00c1:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_00c6:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_00cb:  ldtoken    ""decimal""
+  IL_00d0:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_00d5:  ldtoken    ""decimal decimal.op_Implicit(int)""
+  IL_00da:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_00df:  castclass  ""System.Reflection.MethodInfo""
+  IL_00e4:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_00e9:  ldtoken    ""decimal?""
+  IL_00ee:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_00f3:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_00f8:  ldc.i4.1
+  IL_00f9:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_00fe:  dup
+  IL_00ff:  ldc.i4.0
+  IL_0100:  ldloc.3
+  IL_0101:  stelem.ref
+  IL_0102:  call       ""System.Linq.Expressions.Expression<System.Func<E, decimal?>> System.Linq.Expressions.Expression.Lambda<System.Func<E, decimal?>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0107:  stloc.2
+  IL_0108:  ldtoken    ""E?""
+  IL_010d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0112:  ldstr      ""x""
+  IL_0117:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_011c:  stloc.3
+  IL_011d:  ldloc.3
+  IL_011e:  ldtoken    ""int?""
+  IL_0123:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0128:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_012d:  ldtoken    ""decimal""
+  IL_0132:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0137:  ldtoken    ""decimal decimal.op_Implicit(int)""
+  IL_013c:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0141:  castclass  ""System.Reflection.MethodInfo""
+  IL_0146:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_014b:  ldtoken    ""decimal?""
+  IL_0150:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0155:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_015a:  ldc.i4.1
+  IL_015b:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0160:  dup
+  IL_0161:  ldc.i4.0
+  IL_0162:  ldloc.3
+  IL_0163:  stelem.ref
+  IL_0164:  call       ""System.Linq.Expressions.Expression<System.Func<E?, decimal?>> System.Linq.Expressions.Expression.Lambda<System.Func<E?, decimal?>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0169:  ldloc.0
+  IL_016a:  call       ""string ExpressionExtensions.Dump<System.Func<E, decimal>>(System.Linq.Expressions.Expression<System.Func<E, decimal>>)""
+  IL_016f:  call       ""void System.Console.WriteLine(string)""
+  IL_0174:  ldloc.1
+  IL_0175:  call       ""string ExpressionExtensions.Dump<System.Func<E?, decimal>>(System.Linq.Expressions.Expression<System.Func<E?, decimal>>)""
+  IL_017a:  call       ""void System.Console.WriteLine(string)""
+  IL_017f:  ldloc.2
+  IL_0180:  call       ""string ExpressionExtensions.Dump<System.Func<E, decimal?>>(System.Linq.Expressions.Expression<System.Func<E, decimal?>>)""
+  IL_0185:  call       ""void System.Console.WriteLine(string)""
+  IL_018a:  call       ""string ExpressionExtensions.Dump<System.Func<E?, decimal?>>(System.Linq.Expressions.Expression<System.Func<E?, decimal?>>)""
+  IL_018f:  call       ""void System.Console.WriteLine(string)""
+  IL_0194:  ret
 }");
         }
 
@@ -3619,8 +3616,7 @@ Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNull Type:
   // Code size      202 (0xca)
   .maxstack  5
   .locals init (System.Linq.Expressions.Expression<System.Func<E, decimal?>> V_0, //end
-  System.Linq.Expressions.ParameterExpression V_1, //x
-  System.Linq.Expressions.ParameterExpression V_2) //x
+  System.Linq.Expressions.ParameterExpression V_1)
   IL_0000:  ldtoken    ""E""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""x""
@@ -3651,8 +3647,8 @@ Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNull Type:
   IL_0067:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_006c:  ldstr      ""x""
   IL_0071:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
-  IL_0076:  stloc.2
-  IL_0077:  ldloc.2
+  IL_0076:  stloc.1
+  IL_0077:  ldloc.1
   IL_0078:  ldtoken    ""int?""
   IL_007d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_0082:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
@@ -3666,7 +3662,7 @@ Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNull Type:
   IL_00a6:  newarr     ""System.Linq.Expressions.ParameterExpression""
   IL_00ab:  dup
   IL_00ac:  ldc.i4.0
-  IL_00ad:  ldloc.2
+  IL_00ad:  ldloc.1
   IL_00ae:  stelem.ref
   IL_00af:  call       ""System.Linq.Expressions.Expression<System.Func<E?, decimal?>> System.Linq.Expressions.Expression.Lambda<System.Func<E?, decimal?>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
   IL_00b4:  ldloc.0

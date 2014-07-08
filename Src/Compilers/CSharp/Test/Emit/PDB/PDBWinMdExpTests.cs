@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void TestWinMdExpData_Basic()
         {
-            #region "Source"
             var text = @"using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,9 +71,7 @@ namespace X
 		}
 	}
 }";
-            #endregion
-
-            string expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
+            string expected = @"
 <token-map>
   <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""7"" start-column=""8"" end-line=""7"" end-column=""22"" />
   <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""7"" start-column=""8"" end-line=""7"" end-column=""22"" />

@@ -2096,15 +2096,15 @@ a.vb
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(DebugInformationKind.PDBOnly, parsedArgs.CompilationOptions.DebugInformationKind)
+            Assert.Equal(DebugInformationKind.PdbOnly, parsedArgs.CompilationOptions.DebugInformationKind)
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:PDBONLY", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(DebugInformationKind.PDBOnly, parsedArgs.CompilationOptions.DebugInformationKind)
+            Assert.Equal(DebugInformationKind.PdbOnly, parsedArgs.CompilationOptions.DebugInformationKind)
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:full", "/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(DebugInformationKind.PDBOnly, parsedArgs.CompilationOptions.DebugInformationKind)
+            Assert.Equal(DebugInformationKind.PdbOnly, parsedArgs.CompilationOptions.DebugInformationKind)
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:pdbonly", "/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
@@ -2116,11 +2116,11 @@ a.vb
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:pdbonly", "/debug-", "/debug", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(DebugInformationKind.PDBOnly, parsedArgs.CompilationOptions.DebugInformationKind)
+            Assert.Equal(DebugInformationKind.PdbOnly, parsedArgs.CompilationOptions.DebugInformationKind)
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:pdbonly", "/debug-", "/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(DebugInformationKind.PDBOnly, parsedArgs.CompilationOptions.DebugInformationKind)
+            Assert.Equal(DebugInformationKind.PdbOnly, parsedArgs.CompilationOptions.DebugInformationKind)
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("debug", ":pdbonly|full"))

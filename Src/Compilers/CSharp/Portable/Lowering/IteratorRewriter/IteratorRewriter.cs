@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.isEnumerable = isEnumerable;
         }
 
-        protected override bool PreserveInitialLocals
+        protected override bool PreserveInitialParameterValues
         {
             get { return isEnumerable; }
         }

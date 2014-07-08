@@ -6435,7 +6435,7 @@ unsafe class C
             foreach (var symbol in declaredSymbols)
             {
                 Assert.NotNull(symbol);
-                Assert.Equal(LocalDeclarationKind.Fixed, symbol.DeclarationKind);
+                Assert.Equal(LocalDeclarationKind.FixedVariable, symbol.DeclarationKind);
                 TypeSymbol type = symbol.Type;
                 Assert.Equal(TypeKind.PointerType, type.TypeKind);
                 Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)type).PointedAtType.SpecialType);

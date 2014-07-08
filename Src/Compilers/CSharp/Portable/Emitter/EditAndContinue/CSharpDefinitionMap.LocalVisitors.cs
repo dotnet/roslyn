@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private struct LocalName
             {
                 public readonly string Name;
-                public readonly TempKind Kind;
+                public readonly SynthesizedLocalKind Kind;
                 public readonly int UniqueId;
 
-                public LocalName(string name, TempKind kind, int uniqueId)
+                public LocalName(string name, SynthesizedLocalKind kind, int uniqueId)
                 {
                     this.Name = name;
                     this.Kind = kind;
@@ -118,11 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 for (int i = 0; i < n; i++)
                 {
                     var declarator = declarators[i];
-                    if (!IsSlotIndex(TempKind.FixedString))
+                    if (!IsSlotIndex(SynthesizedLocalKind.FixedString))
                     {
                         break;
                     }
-                    AddLocal(TempKind.FixedString);
+                    AddLocal(SynthesizedLocalKind.FixedString);
                     this.offset++;
                 }
 
@@ -135,26 +135,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // Expecting two or more locals: one for the enumerator,
                 // for arrays one local for each upper bound and one for
                 // each index, and finally one local for the loop variable.
-                var kindOpt = TryGetSlotIndex(TempKind.ForEachEnumerator, TempKind.ForEachArray);
+                var kindOpt = TryGetSlotIndex(SynthesizedLocalKind.ForEachEnumerator, SynthesizedLocalKind.ForEachArray);
                 if (kindOpt != null)
                 {
                     // Enumerator.
-                    if (kindOpt.Value == TempKind.ForEachArray)
+                    if (kindOpt.Value == SynthesizedLocalKind.ForEachArray)
                     {
                         // Upper bounds.
-                        var kind = TempKind.ForEachArrayLimit0;
+                        var kind = SynthesizedLocalKind.ForEachArrayLimit0;
                         while (IsSlotIndex(kind))
                         {
                             AddLocal(kind);
-                            kind = (TempKind)((int)kind + 1);
+                            kind = (SynthesizedLocalKind)((int)kind + 1);
                         }
 
                         // Indices.
-                        kind = TempKind.ForEachArrayIndex0;
+                        kind = SynthesizedLocalKind.ForEachArrayIndex0;
                         while (IsSlotIndex(kind))
                         {
                             AddLocal(kind);
-                            kind = (TempKind)((int)kind + 1);
+                            kind = (SynthesizedLocalKind)((int)kind + 1);
                         }
                     }
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     string name = ((ForEachStatementSyntax)node).Identifier.ValueText;
                     if (IsSlotIndex(name))
                     {
-                        AddLocal(TempKind.None);
+                        AddLocal(SynthesizedLocalKind.None);
                     }
                     else
                     {
@@ -178,13 +178,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // Expecting one or two locals depending on which overload of Monitor.Enter is used.
                 var expr = node.Expression;
                 Debug.Assert(expr != null);
-                if (TryGetSlotIndex(TempKind.Lock) != null)
+                if (TryGetSlotIndex(SynthesizedLocalKind.Lock) != null)
                 {
                     // If the next local is LockTaken, then the lock was emitted with the two argument
                     // overload for Monitor.Enter(). Otherwise, the single argument overload was used.
-                    if (IsSlotIndex(TempKind.LockTaken))
+                    if (IsSlotIndex(SynthesizedLocalKind.LockTaken))
                     {
-                        AddLocal(TempKind.LockTaken);
+                        AddLocal(SynthesizedLocalKind.LockTaken);
                     }
                 }
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     var expr = node.Expression;
                     Debug.Assert(expr != null);
-                    TryGetSlotIndex(TempKind.Using);
+                    TryGetSlotIndex(SynthesizedLocalKind.Using);
 
                     this.offset++;
                 }
@@ -214,25 +214,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 if (name == null)
                 {
-                    return new LocalName(name, TempKind.None, 0);
+                    return new LocalName(name, SynthesizedLocalKind.None, 0);
                 }
 
-                TempKind kind;
+                SynthesizedLocalKind kind;
                 int uniqueId;
-                GeneratedNames.TryParseTemporaryName(name, out kind, out uniqueId);
+                GeneratedNames.TryParseLocalName(name, out kind, out uniqueId);
                 return new LocalName(name, kind, uniqueId);
             }
 
             private bool IsSlotIndex(string name)
             {
                 return (this.slotIndex < this.localNames.Length) &&
-                    (this.localNames[this.slotIndex].Kind == TempKind.None) &&
+                    (this.localNames[this.slotIndex].Kind == SynthesizedLocalKind.None) &&
                     (name == this.localNames[this.slotIndex].Name);
             }
 
-            private bool IsSlotIndex(params TempKind[] kinds)
+            private bool IsSlotIndex(params SynthesizedLocalKind[] kinds)
             {
-                Debug.Assert(Array.IndexOf(kinds, TempKind.None) < 0);
+                Debug.Assert(Array.IndexOf(kinds, SynthesizedLocalKind.None) < 0);
 
                 return (this.slotIndex < this.localNames.Length) &&
                     (Array.IndexOf(kinds, this.localNames[this.slotIndex].Kind) >= 0);
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     if (IsSlotIndex(name))
                     {
-                        AddLocal(TempKind.None);
+                        AddLocal(SynthesizedLocalKind.None);
                         return true;
                     }
                     this.slotIndex++;
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return false;
             }
 
-            private TempKind? TryGetSlotIndex(params TempKind[] kinds)
+            private SynthesizedLocalKind? TryGetSlotIndex(params SynthesizedLocalKind[] kinds)
             {
                 while (this.slotIndex < this.localNames.Length)
                 {
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            private void AddLocal(TempKind tempKind)
+            private void AddLocal(SynthesizedLocalKind tempKind)
             {
                 var info = this.localInfo[this.slotIndex];
 

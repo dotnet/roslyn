@@ -992,7 +992,7 @@ public class Cls
 
                         if (declarator.Parent.Kind == SyntaxKind.DeclarationExpression)
                         {
-                            Assert.Equal(LocalDeclarationKind.Variable, local.DeclarationKind);
+                            Assert.Equal(LocalDeclarationKind.RegularVariable, local.DeclarationKind);
 
                             var declExpr = (DeclarationExpressionSyntax)declarator.Parent;
                             symInfo = semanticModel.GetSymbolInfo(declExpr);
@@ -1049,7 +1049,7 @@ public class Cls
 
                         if (symbol == null && info.SymInfo.CandidateReason == CandidateReason.NotAVariable && 
                             info.SymInfo.CandidateSymbols.Length == 1 && info.SymInfo.CandidateSymbols[0].Kind == SymbolKind.Local &&
-                            ((LocalSymbol)info.SymInfo.CandidateSymbols[0]).DeclarationKind == LocalDeclarationKind.Using) 
+                            ((LocalSymbol)info.SymInfo.CandidateSymbols[0]).DeclarationKind == LocalDeclarationKind.UsingVariable) 
                         {
                             symbol = info.SymInfo.CandidateSymbols[0];
                         }
@@ -1129,7 +1129,7 @@ public class Cls
 
                         if (symbol == null && info.SymInfo.CandidateReason == CandidateReason.NotAVariable &&
                             info.SymInfo.CandidateSymbols.Length == 1 && info.SymInfo.CandidateSymbols[0].Kind == SymbolKind.Local &&
-                            ((LocalSymbol)info.SymInfo.CandidateSymbols[0]).DeclarationKind == LocalDeclarationKind.Using)
+                            ((LocalSymbol)info.SymInfo.CandidateSymbols[0]).DeclarationKind == LocalDeclarationKind.UsingVariable)
                         {
                             symbol = info.SymInfo.CandidateSymbols[0];
                         }

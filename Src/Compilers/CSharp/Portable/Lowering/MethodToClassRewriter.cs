@@ -27,8 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // though its containing method is not correct because the code is moved into another method)
         protected readonly Dictionary<LocalSymbol, LocalSymbol> localMap = new Dictionary<LocalSymbol, LocalSymbol>();
 
-        // A mapping from each captured variable to the locations of its uses that caused it to be captured.
-        protected abstract HashSet<Symbol> VariablesCaptured { get; }
+        /// <summary>
+        /// The set of captured variables seen in the method body.
+        /// </summary>
+        private readonly HashSet<Symbol> variablesCaptured = new HashSet<Symbol>();
 
         // A mapping for types in the original method to types in its replacement.  This is mainly necessary
         // when the original method was generic, as type parameters in the original method are mapping into
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly bool globalGenerateDebugInfo;
 
-        protected MethodToClassRewriter(TypeCompilationState compilationState, DiagnosticBag diagnostics, bool generateDebugInfo)
+        protected MethodToClassRewriter(TypeCompilationState compilationState, HashSet<Symbol> variablesCaptured, DiagnosticBag diagnostics, bool generateDebugInfo)
         {
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
@@ -58,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
             this.globalGenerateDebugInfo = generateDebugInfo;
+            this.variablesCaptured = variablesCaptured;
         }
 
         protected bool GenerateDebugInfo
@@ -66,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return globalGenerateDebugInfo && CurrentMethod.GenerateDebugInfo;
             }
+        }
+
+        protected bool IsCaptured(Symbol localOrParameter)
+        {
+            return variablesCaptured.Contains(localOrParameter);
         }
 
         protected void AddLocals(ImmutableArray<LocalSymbol> locals, ArrayBuilder<LocalSymbol> newLocals)
@@ -82,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool TryRewriteLocal(LocalSymbol local, out LocalSymbol newLocal)
         {
-            if (VariablesCaptured.Contains(local))
+            if (IsCaptured(local))
             {
                 // no longer a local symbol
                 newLocal = null;
@@ -101,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                newLocal = new SynthesizedLocal(CurrentMethod, newType, local.Name);
+                newLocal = new TypeSubstitutedLocalSymbol(local, newType, CurrentMethod);
                 localMap.Add(local, newLocal);
             }
 
@@ -316,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return proxy.Replacement(node.Syntax, frameType => FramePointer(node.Syntax, frameType));
             }
 
-            Debug.Assert(!VariablesCaptured.Contains(node.LocalSymbol));
+            Debug.Assert(!IsCaptured(node.LocalSymbol));
             LocalSymbol replacementLocal;
             if (this.localMap.TryGetValue(node.LocalSymbol, out replacementLocal))
             {
@@ -348,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (leftLocal.LocalSymbol.RefKind != RefKind.None &&
                 node.RefKind != RefKind.None &&
-                VariablesCaptured.Contains(leftLocal.LocalSymbol))
+                IsCaptured(leftLocal.LocalSymbol))
             {
                 Debug.Assert(!proxies.ContainsKey(leftLocal.LocalSymbol)); // we need to create the proxy at this time
                 Debug.Assert(!IsStackAlloc(originalRight));
@@ -356,10 +364,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            if (VariablesCaptured.Contains(leftLocal.LocalSymbol) && !proxies.ContainsKey(leftLocal.LocalSymbol))
+            if (IsCaptured(leftLocal.LocalSymbol) && !proxies.ContainsKey(leftLocal.LocalSymbol))
             {
-                Debug.Assert(leftLocal.LocalSymbol.DeclarationKind == LocalDeclarationKind.CompilerGenerated);
-                //spilling temp variables
+                Debug.Assert(leftLocal.LocalSymbol.DeclarationKind == LocalDeclarationKind.None);
+                // spilling temp variables
                 throw ExceptionUtilities.Unreachable;
             }
 

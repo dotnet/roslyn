@@ -77,8 +77,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const StateMachineLocalNameMask As String = StateMachineLocalNamePrefix & "{1}${0}"
         Friend Const StateMachineExceptionLocalName As String = "$ex"
         Friend Const StateMachineReturnValueLocalName As String = "VB$returnTemp"
+
+        ' Microsoft.VisualStudio.VIL.VisualStudioHost.AsyncReturnStackFrame depends on these names.
         Friend Const StateMachineBuilderFieldName As String = "$Builder"
         Friend Const StateMachineStateFieldName As String = "$State"
+
         Friend Const StateMachineAwaiterFieldName As String = "$awaiter_{0}"
         Friend Const StateMachineStackSpillNameMask As String = "VB$StackSpill_${0}"
         Friend Const StateMachineExpressionCaptureNameMask As String = "VB$ExpressionCapture_${0}"

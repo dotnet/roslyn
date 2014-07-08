@@ -506,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     ElseIf String.Equals(value, "full", StringComparison.OrdinalIgnoreCase) Then
                                         emitDebugInformationKind = DebugInformationKind.Full
                                     ElseIf String.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase) Then
-                                        emitDebugInformationKind = DebugInformationKind.PDBOnly
+                                        emitDebugInformationKind = DebugInformationKind.PdbOnly
                                     Else
                                         AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, value, "debug")
                                     End If

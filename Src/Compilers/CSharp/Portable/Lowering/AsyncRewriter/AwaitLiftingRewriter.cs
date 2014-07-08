@@ -127,13 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (BoundStatement)this.Visit(body);
         }
 
-        //[DebuggerHidden]
         private BoundExpression VisitExpression(BoundExpression expression)
         {
             return (BoundExpression)this.Visit(expression);
         }
 
-        //[DebuggerHidden]
         private BoundExpression VisitExpression(ref BoundSpillSequence2 ss, BoundExpression expression)
         {
             // wrap the node in a spill sequence to mark the fact that it must be moved up the tree.
@@ -145,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 awaitExpression = awaitExpression.Update(
                     VisitExpression(ref ss, awaitExpression.Expression), awaitExpression.GetAwaiter, awaitExpression.IsCompleted, awaitExpression.GetResult, awaitExpression.Type);
                 BoundAssignmentOperator assignToTemp;
-                var replacement = F.StoreToTemp(awaitExpression, out assignToTemp);
+                var replacement = F.StoreToTemp(awaitExpression, out assignToTemp, kind: SynthesizedLocalKind.AwaitSpilledTemp);
                 if (ss == null) ss = new BoundSpillSequence2();
                 ss.Add(replacement.LocalSymbol);
                 writeOnceTemps.Add(replacement.LocalSymbol);
@@ -312,9 +310,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return null;
                             }
                             else
-                            {
+                            { 
                                 BoundAssignmentOperator assignToTemp;
-                                var replacement = F.StoreToTemp(e, out assignToTemp, refKind: refKind);
+                                var replacement = F.StoreToTemp(e, out assignToTemp, refKind: refKind, kind: SynthesizedLocalKind.AwaitSpilledTemp);
                                 spill.Add(replacement.LocalSymbol);
                                 writeOnceTemps.Add(replacement.LocalSymbol);
                                 spill.Add(F.ExpressionStatement(assignToTemp));
@@ -332,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool forceSpill = false,
             bool sideEffectsOnly = false)
         {
-            var newList = VisitList<BoundExpression>(args);
+            var newList = VisitList(args);
             int lastSpill;
             if (forceSpill)
             {

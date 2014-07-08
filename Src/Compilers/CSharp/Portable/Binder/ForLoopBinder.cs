@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(node.Initializers.Count == 0);
                 ImmutableArray<BoundLocalDeclaration> unused;
-                initializer = this.Next.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.For, diagnostics, out unused);
+                initializer = this.Next.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
             }
             else
             {

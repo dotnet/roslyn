@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken identifierToken,
             ExpressionSyntax collection)
         {
-            return new ForEachLocal(containingMethod, binder, typeSyntax, identifierToken, collection, LocalDeclarationKind.ForEach);
+            return new ForEachLocal(containingMethod, binder, typeSyntax, identifierToken, collection, LocalDeclarationKind.ForEachIterationVariable);
         }
 
         public static SourceLocalSymbol MakeLocalWithInitializer(
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EqualsValueClauseSyntax initializer,
             LocalDeclarationKind declarationKind)
         {
-            Debug.Assert(declarationKind != LocalDeclarationKind.ForEach);
+            Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             return new LocalWithInitializer(containingSymbol, binder, typeSyntax, identifierToken, initializer, declarationKind);
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode scopeSegmentRoot,
             LocalDeclarationKind declarationKind)
         {
-            Debug.Assert(declarationKind != LocalDeclarationKind.ForEach);
+            Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             return new PossibleOutVarLocalWithoutInitializer(containingSymbol, binder, typeSyntax, identifierToken, scopeSegmentRoot, declarationKind);
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind)
         {
-            Debug.Assert(declarationKind != LocalDeclarationKind.ForEach);
+            Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             return new SourceLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, declarationKind);
         }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             LocalDeclarationKind declarationKind)
         {
             Debug.Assert(identifierToken.CSharpKind() != SyntaxKind.None);
-            Debug.Assert(declarationKind != LocalDeclarationKind.CompilerGenerated);
+            Debug.Assert(declarationKind != LocalDeclarationKind.None);
 
             this.binder = binder;
             this.containingSymbol = containingSymbol;
@@ -115,9 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.declarationKind; }
         }
 
-        internal override TempKind TempKind
+        internal override SynthesizedLocalKind SynthesizedLocalKind
         {
-            get { return TempKind.None; }
+            get { return SynthesizedLocalKind.None; }
         }
 
         internal override bool IsPinned
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert((this.isSpecificallyNotPinned & 2) == 2, "Regardless of which thread won, the read bit should be set.");
                 }
 #endif
-                return this.declarationKind == LocalDeclarationKind.Fixed && (isSpecificallyNotPinned & 1) == 0;
+                return this.declarationKind == LocalDeclarationKind.FixedVariable && (isSpecificallyNotPinned & 1) == 0;
             }
         }
 
@@ -273,16 +273,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 switch (declarationKind)
                 {
-                    case LocalDeclarationKind.Variable:
+                    case LocalDeclarationKind.RegularVariable:
                     case LocalDeclarationKind.Constant:
-                    case LocalDeclarationKind.Fixed:
-                    case LocalDeclarationKind.Using:
-                    case LocalDeclarationKind.Catch:
-                    case LocalDeclarationKind.For:
+                    case LocalDeclarationKind.FixedVariable:
+                    case LocalDeclarationKind.UsingVariable:
+                    case LocalDeclarationKind.CatchVariable:
+                    case LocalDeclarationKind.ForInitializerVariable:
                         node = identifierToken.Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
                         break;
 
-                    case LocalDeclarationKind.ForEach:
+                    case LocalDeclarationKind.ForEachIterationVariable:
                         node = identifierToken.Parent.FirstAncestorOrSelf<ForEachStatementSyntax>();
                         break;
 
@@ -367,47 +367,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (initializerOpt != null)
                 {
                     return initializerOpt.Type;
-                }
+        }
 
                 return null;
             }
 
-            /// <summary>
-            /// Determine the constant value of this local and the corresponding diagnostics.
-            /// Set both to constantTuple in a single operation for thread safety.
-            /// </summary>
-            /// <param name="inProgress">Null for the initial call, non-null if we are in the process of evaluating a constant.</param>
-            /// <param name="boundInitValue">If we already have the bound node for the initial value, pass it in to avoid recomputing it.</param>
-            private void MakeConstantTuple(LocalSymbol inProgress, BoundExpression boundInitValue)
-            {
+        /// <summary>
+        /// Determine the constant value of this local and the corresponding diagnostics.
+        /// Set both to constantTuple in a single operation for thread safety.
+        /// </summary>
+        /// <param name="inProgress">Null for the initial call, non-null if we are in the process of evaluating a constant.</param>
+        /// <param name="boundInitValue">If we already have the bound node for the initial value, pass it in to avoid recomputing it.</param>
+        private void MakeConstantTuple(LocalSymbol inProgress, BoundExpression boundInitValue)
+        {
                 if (this.IsConst && this.constantTuple == null)
+            {
+                var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
+                var initValueNodeLocation = this.initializer.Value.Location;
+                var diagnostics = DiagnosticBag.GetInstance();
+                if (inProgress == this)
                 {
-                    var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
-                    var initValueNodeLocation = this.initializer.Value.Location;
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    if (inProgress == this)
-                    {
-                        // The problem is circularity, but Dev12 reports ERR_NotConstantExpression instead of ERR_CircConstValue.
-                        // Also, the native compiler squiggles the RHS for ERR_CircConstValue but the LHS for ERR_CircConstValue.
-                        diagnostics.Add(ErrorCode.ERR_NotConstantExpression, initValueNodeLocation, this);
-                    }
-                    else
-                    {
-                        var type = this.Type;
-                        if (boundInitValue == null)
-                        {
-                            var inProgressBinder = new LocalInProgressBinder(this, this.binder);
-                            boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(this.initializer, type, diagnostics);
-                        }
-
-                        value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
-                    }
-                    Interlocked.CompareExchange(ref this.constantTuple, new EvaluatedConstant(value, diagnostics.ToReadOnlyAndFree()), null);
+                    // The problem is circularity, but Dev12 reports ERR_NotConstantExpression instead of ERR_CircConstValue.
+                    // Also, the native compiler squiggles the RHS for ERR_CircConstValue but the LHS for ERR_CircConstValue.
+                    diagnostics.Add(ErrorCode.ERR_NotConstantExpression, initValueNodeLocation, this);
                 }
+                else
+                {
+                    var type = this.Type;
+                    if (boundInitValue == null)
+                    {
+                        var inProgressBinder = new LocalInProgressBinder(this, this.binder);
+                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(this.initializer, type, diagnostics);
+                    }
+
+                    value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
+                }
+                Interlocked.CompareExchange(ref this.constantTuple, new EvaluatedConstant(value, diagnostics.ToReadOnlyAndFree()), null);
             }
+        }
 
             internal override ConstantValue GetConstantValue(LocalSymbol inProgress)
-            {
+        {
                 MakeConstantTuple(inProgress, boundInitValue: null);
                 return this.constantTuple == null ? null : this.constantTuple.Value;
             }
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LocalDeclarationKind declarationKind) :
                     base(containingSymbol, binder, typeSyntax, identifierToken, declarationKind)
             {
-                Debug.Assert(declarationKind == LocalDeclarationKind.ForEach);
+                Debug.Assert(declarationKind == LocalDeclarationKind.ForEachIterationVariable);
                 this.collection = collection;
             }
 
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 this.scopeSegmentRoot = scopeSegmentRoot;
-            }
+        }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
@@ -477,9 +477,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // Skip parenthesized and checked/unchecked expressions
                 while (node != scopeSegmentRoot && node.Parent != null)
-                {
+        {
                     switch (node.Parent.CSharpKind())
-                    {
+            {
                         case SyntaxKind.ParenthesizedExpression:
                         case SyntaxKind.CheckedExpression:
                         case SyntaxKind.UncheckedExpression:
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     break;
-                }
+            }
 
                 if (node != scopeSegmentRoot && node.Parent != null && node.Parent.CSharpKind() == SyntaxKind.Argument)
                 {
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         return result;
                                 }
                             }
-                        }
+        }
                         else if (node.Parent != null)
                         {
                             Debug.Assert(node.CSharpKind() == SyntaxKind.ArgumentList);
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // This could be an argument list for a constructor initializer
 
                             switch (node.Parent.CSharpKind())
-                            {
+        {
                                 case SyntaxKind.ThisConstructorInitializer:
                                 case SyntaxKind.BaseConstructorInitializer:
                                     this.binder.BindConstructorInitializer((ArgumentListSyntax)node, (MethodSymbol)this.binder.ContainingMember(), diagnostics);

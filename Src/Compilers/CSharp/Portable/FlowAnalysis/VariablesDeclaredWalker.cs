@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var local = catchBlock.Locals.FirstOrDefault();
 
-                if ((object)local != null && local.DeclarationKind == LocalDeclarationKind.Catch)
+                if ((object)local != null && local.DeclarationKind == LocalDeclarationKind.CatchVariable)
                 {
                     variablesDeclared.Add(local);
                 }

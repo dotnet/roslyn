@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(ctor.ParameterCount == 2);
 
             var submissionResultType = ctor.Parameters[1].Type;
-            var submissionResult = new BoundLocal(syntax, new SynthesizedLocal(ctor, submissionResultType), null, submissionResultType) { WasCompilerGenerated = true };
+            var submissionResult = new BoundLocal(syntax, new SynthesizedLocal(ctor, submissionResultType, SynthesizedLocalKind.LoweringTemp), null, submissionResultType) { WasCompilerGenerated = true };
 
             return new BoundBlock(syntax,
                 // T submissionResult;

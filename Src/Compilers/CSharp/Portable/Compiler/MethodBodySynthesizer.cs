@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numTemps; i++)
             {
-                tmps[i] = new SynthesizedLocal(accessor, delegateType);
+                tmps[i] = new SynthesizedLocal(accessor, delegateType, SynthesizedLocalKind.LoweringTemp);
                 boundTmps[i] = new BoundLocal(syntax, tmps[i], null, delegateType);
             }
 
