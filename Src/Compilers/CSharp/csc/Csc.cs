@@ -8,6 +8,9 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
+    extern alias Microsoft_CodeAnalysis_Desktop;
+    using FailFast = Microsoft_CodeAnalysis_Desktop::Microsoft.CodeAnalysis.FailFast;
+
     internal sealed class Csc : CSharpCompiler
     {
         internal Csc(string responseFile, string baseDirectory, string[] args)

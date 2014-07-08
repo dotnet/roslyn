@@ -13,6 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
+    extern alias Microsoft_CodeAnalysis_Desktop;
+    using FailFast = Microsoft_CodeAnalysis_Desktop::Microsoft.CodeAnalysis.FailFast;
+
     /// <summary>
     /// The interface used by ServerDispatcher to dispatch requests.
     /// </summary>
