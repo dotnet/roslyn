@@ -7374,8 +7374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
 
-            // access cannot be void
-            if (accessType.SpecialType == SpecialType.System_Void)
+            // access cannot be void or a pointer
+            if (accessType.IsPointerType() || accessType.SpecialType == SpecialType.System_Void)
             {
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
@@ -7486,30 +7486,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Can't dot into the null literal or anything that has no type
             if (receiverType == null)
             {
-                Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, operatorToken.Text, receiver.Display);
-                return BadExpression(node, receiver);
-            }
-
-            // receiver cannot be "base"
-            if (receiverType == null)
-            {
-                Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, operatorToken.Text, receiver.Display);
-                return BadExpression(node, receiver);
-            }
-
-            // No member accesses on void
-            if (receiverType != null && receiverType.SpecialType == SpecialType.System_Void)
-            {
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.CSharpKind()), receiverType);
-                diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
+                Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiver.Display);
                 return BadExpression(receiverSyntax, receiver);
             }
 
-            if (receiverType != null && receiverType.IsValueType && !receiverType.IsNullableType())
+            // receiver cannot have unconstrained generic type
+            if (!receiverType.IsReferenceType && !receiverType.IsValueType)
+            {
+                Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiverType);
+                return BadExpression(receiverSyntax, receiver);
+            }
+
+            // No member accesses on void
+            if (receiverType.SpecialType == SpecialType.System_Void)
+            {
+                Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiverType);
+                return BadExpression(receiverSyntax, receiver);
+            }
+
+            if (receiverType.IsValueType && !receiverType.IsNullableType())
             {
                 // must be nullable or reference type
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.CSharpKind()), receiverType);
-                diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
+                Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiverType);
                 return BadExpression(receiverSyntax, receiver);
             }
 
