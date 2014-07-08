@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis
                 // Return only reasonably-sized stacks to the pool.
                 if (stack != null && stack.Length < 256)
                 {
+                    Array.Clear(stack, 0, stack.Length);
                     StackPool.Free(stack);
                 }
             }
@@ -172,6 +173,7 @@ namespace Microsoft.CodeAnalysis
                 // Return only reasonably-sized stacks to the pool.
                 if (stack != null && stack.Length < 256)
                 {
+                    Array.Clear(stack, 0, stack.Length);
                     StackPool.Free(stack);
                 }
             }
