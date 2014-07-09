@@ -11768,6 +11768,50 @@ End Class
             Assert.Equal(expectedXmlText, metadataSymbol.GetDocumentationCommentXml())
         End Sub
 
+        <Fact, WorkItem(908893, "DevDiv")>
+        Private Sub GenericTypeWithinGenericType()
+            Dim xmlSource =
+<compilation name="AssemblyName">
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+
+Public Class ClazzA(Of A)
+    ''' <see cref="Test"/>
+    Public Class ClazzB(Of B)
+        Public Sub Test(x as ClazzB(Of B))
+        End Sub
+    End Class
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim xmlDoc =
+<xml>
+    <![CDATA[
+<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+AssemblyName
+</name>
+</assembly>
+<members>
+<member name="T:ClazzA`1.ClazzB`1">
+ <see cref="M:ClazzA`1.ClazzB`1.Test(ClazzA{`0}.ClazzB{`1})"/>
+</member>
+</members>
+</doc>
+]]>
+</xml>
+
+            Dim compilation = CompileCheckDiagnosticsAndXmlDocument(xmlSource,
+<errors>
+</errors>,
+xmlDoc)
+        End Sub
+
 #Region "Helpers"
 
         Private Structure AliasInfo

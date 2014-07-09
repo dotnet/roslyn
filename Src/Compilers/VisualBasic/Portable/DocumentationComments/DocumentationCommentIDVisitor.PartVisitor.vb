@@ -102,15 +102,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitTypeParameter(symbol As TypeParameterSymbol, builder As StringBuilder) As Object
-                If symbol.ContainingSymbol.Kind = SymbolKind.NamedType Then
+                Dim ordinalOffset As Integer = 0
+                Dim containingSymbol As Symbol = symbol.ContainingSymbol
+
+                If containingSymbol.Kind = SymbolKind.NamedType Then
+                    ' If the containing type is nested within other types, then we need to add their arities.
+                    ' e.g. A(Of T).B(Of U).M(Of V)(t As T, u As U, v As V) should be M(`0, `1, ``0).
+                    Dim curr As NamedTypeSymbol = containingSymbol.ContainingType
+                    While curr IsNot Nothing
+                        ordinalOffset += curr.Arity
+                        curr = curr.ContainingType
+                    End While
+
                     builder.Append("`"c)
-                ElseIf symbol.ContainingSymbol.Kind = SymbolKind.Method Then
+                ElseIf containingSymbol.Kind = SymbolKind.Method Then
                     builder.Append("``")
                 Else
-                    Throw ExceptionUtilities.UnexpectedValue(symbol.ContainingSymbol.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(containingSymbol.Kind)
                 End If
 
-                builder.Append(symbol.Ordinal)
+                builder.Append(symbol.Ordinal + ordinalOffset)
 
                 Return Nothing
             End Function
