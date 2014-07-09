@@ -3954,5 +3954,29 @@ End Class
 
             AssertFormatLf2CrLf(text.Value, expected.Value)
         End Sub
+
+        <WorkItem(938188)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub XelementAttributeSpacing()
+            Dim text = <Code>
+Class X
+    Function F(x As Integer) As Integer
+        Dim x As XElement
+        x.@Foo= "Hello"
+    End Function
+End Class
+</Code>
+
+            Dim expected = <Code>
+Class X
+    Function F(x As Integer) As Integer
+        Dim x As XElement
+        x.@Foo = "Hello"
+    End Function
+End Class
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
     End Class
 End Namespace
