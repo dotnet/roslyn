@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arguments.Attribute = attribute;
                     arguments.Index = i;
 
-                    // CONSIDER: Provide usable AttributeSyntax node for dignostics of malformed netmodule assembly attributes
+                    // CONSIDER: Provide usable AttributeSyntax node for diagnostics of malformed netmodule assembly attributes
                     arguments.AttributeSyntaxOpt = null;
 
                     this.DecodeWellKnownAttribute(ref arguments, isFromNetModule: true);

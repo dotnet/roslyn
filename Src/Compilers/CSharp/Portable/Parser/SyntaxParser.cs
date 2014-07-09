@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <remarks>
         /// NOTE: we are specifically diverging from dev11 to improve the user experience.
         /// Since treating the "async" keyword as an identifier in older language
-        /// versions can never result in a correct program, we instead accept it as the a
+        /// versions can never result in a correct program, we instead accept it as a
         /// keyword regardless of the language version and produce an error if the version
         /// is insufficient.
         /// </remarks>

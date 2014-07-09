@@ -2413,7 +2413,7 @@ test
 
         <Fact>
         Sub RetargetTest_NoChangeInDiagnostics_CleanCompile()
-            'This test should also result in clean compilation after retargetting
+            'This test should also result in clean compilation after retargeting
             Dim sourceLibV1 =
 <compilation name="Lib">
     <file><![CDATA[
@@ -2691,7 +2691,7 @@ End Class
 
         <Fact>
         Sub RetargetTest_NoChangeInDiagnostics_Errors()
-            ' Ensure that same errors occur in retargetting for constraint compilation errors
+            ' Ensure that same errors occur in retargeting for constraint compilation errors
             Dim sourceLibV1 =
 <compilation name="Lib">
     <file><![CDATA[

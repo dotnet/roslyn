@@ -1515,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // can be found in the current sliding window of chars we have from our
         // source text.  With this constraint we can avoid the costly overhead 
         // incurred with peek/advance/next.  Because of this we can also avoid
-        // the unecessary stores/reads from identBuffer and all other instance
+        // the unnecessary stores/reads from identBuffer and all other instance
         // state while lexing.  Instead we just keep track of our start, end,
         // and max positions and use those for quick checks internally.
         //

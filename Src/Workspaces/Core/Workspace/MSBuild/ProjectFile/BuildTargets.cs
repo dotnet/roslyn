@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
         }
 
         /// <summary>
-        /// Remove all targets after the specified target (and possibly also removing the specified target.)
+        /// Remove all targets after the specified target (and possibly also remove the specified target).
         /// 
-        /// If the a removed target is nested (a dependent target) of one of the build targets, 
-        /// promote the siblings of the removed target to the formal list (in execution order.)
+        /// If a removed target is nested (a dependent target) of one of the build targets, 
+        /// promote the siblings of the removed target to the formal list (in execution order).
         /// </summary>
         public void RemoveAfter(string target, bool includeTargetInRemoval)
         {

@@ -2861,7 +2861,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns true if method IL can be retrieved from the the module.
+        /// Returns true if method IL can be retrieved from the module.
         /// </summary>
         internal bool HasIL
         {

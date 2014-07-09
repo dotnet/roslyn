@@ -338,12 +338,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ''' <summary>
-        ''' Creates the a local and assigns it the given bound expression.
+        ''' Creates a local and assigns it the given bound expression.
         ''' </summary>
         ''' <param name="syntaxNode">The syntax node.</param>
         ''' <param name="initExpression">The initialization expression.</param>
         ''' <param name="boundLocal">The bound local.</param>
-        ''' <param name="locals">The locals.</param><returns></returns>
+        ''' <param name="locals">The locals.</param>
         Private Function CreateLocalAndAssignment(
             syntaxNode As StatementSyntax,
             initExpression As BoundExpression,

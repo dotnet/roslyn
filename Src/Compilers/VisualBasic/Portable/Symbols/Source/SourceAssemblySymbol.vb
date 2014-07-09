@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     arguments.Attribute = attribute
                     arguments.Index = i
 
-                    ' CONSIDER Provide usable AttributeSyntax node for dignostics of malformed netmodule assembly attributes
+                    ' CONSIDER Provide usable AttributeSyntax node for diagnostics of malformed netmodule assembly attributes
                     arguments.AttributeSyntaxOpt = Nothing
 
                     Me.DecodeWellKnownAttribute(arguments)

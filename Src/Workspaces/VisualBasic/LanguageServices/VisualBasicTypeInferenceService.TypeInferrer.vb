@@ -583,7 +583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
 
-                ' If we're in a a lambda, then use the return tpe of the lambda to figure out what to
+                ' If we're in a lambda, then use the return tpe of the lambda to figure out what to
                 ' infer.  i.e.   Func<int,string> f = i => { return Foo(); }
                 Dim lambda = returnStatement.GetAncestorsOrThis(Of ExpressionSyntax)().FirstOrDefault(
                     Function(e) TypeOf e Is MultiLineLambdaExpressionSyntax OrElse

@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis
         ///  
         /// WeakReference is used to allow RetargetingAssemblySymbol to be collected when they become unused.
         /// 
-        /// Guarded by <see cref="F:CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
+        /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
         /// </summary>
         private readonly WeakList<IAssemblySymbol> retargetingAssemblySymbols = new WeakList<IAssemblySymbol>();
 
         /// <summary>
         /// Adds given retargeting assembly for this compilation into the cache.
-        /// <see cref="F:CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/> must be locked while calling this method.
+        /// <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/> must be locked while calling this method.
         /// </summary>
         internal void CacheRetargetingAssemblySymbolNoLock(IAssemblySymbol assembly)
         {
@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Adds cached retargetting symbols into the given list.
-        /// <see cref="F:CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/> must be locked while calling this method.
+        /// Adds cached retargeting symbols into the given list.
+        /// <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/> must be locked while calling this method.
         /// </summary>
         internal void AddRetargetingAssemblySymbolsNoLock<T>(List<T> result) where T : IAssemblySymbol
         {

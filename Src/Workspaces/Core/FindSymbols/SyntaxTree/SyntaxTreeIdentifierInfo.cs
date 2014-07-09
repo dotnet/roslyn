@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         /// <summary>
         /// Returns true when the identifier is probably (but not guaranteed) to be within the
-        /// syntax tree.  Returns false when the identifier is guaranteed to not be within the the
+        /// syntax tree.  Returns false when the identifier is guaranteed to not be within the
         /// syntax tree.
         /// </summary>
         public bool ProbablyContainsIdentifier(string identifier)
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Returns true when the identifier is probably (but not guaranteed) escaped within the
         /// text of the syntax tree.  Returns false when the identifier is guaranteed to not be
-        /// escaped within the the text of the syntax tree.  An identifier that is not escaped within
+        /// escaped within the text of the syntax tree.  An identifier that is not escaped within
         /// the text can be found by searching the text directly.  An identifier that is escaped can
         /// only be found by parsing the text and syntactically interpreting any escaping
         /// mechanisms found in the language ("\uXXXX" or "@XXXX" in C# or "[XXXX]" in Visual

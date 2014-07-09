@@ -2150,7 +2150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var originalTypeDeclaration = parent as CSharp.Syntax.TypeDeclarationSyntax;
 
                 // originalTypeDeclaration can be null in the case of script code.  In that case
-                // the member declaration can be a child of a namespace/copmilation-unit instead of
+                // the member declaration can be a child of a namespace/compilation-unit instead of
                 // a type.
                 if (originalTypeDeclaration != null)
                 {

@@ -4213,7 +4213,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(530882, "DevDiv")>
-        Public Sub SelectFromIEnumerableOfXElementMultitargettingNetFX35()
+        Public Sub SelectFromIEnumerableOfXElementMultitargetingNetFX35()
             Dim source =
                 <compilation>
                     <file name="a.vb"><![CDATA[
@@ -4262,7 +4262,7 @@ End Module]]>
         End Sub
 
         <Fact(), WorkItem(530882, "DevDiv")>
-        Public Sub SelectFromIEnumerableOfXElementMultitargettingNetFX35_Errors()
+        Public Sub SelectFromIEnumerableOfXElementMultitargetingNetFX35_Errors()
             Dim source =
                 <compilation>
                     <file name="a.vb"><![CDATA[

@@ -100,7 +100,7 @@ namespace Microsoft.Cci
 
             // CCI originally didn't have the notion of the default scope that is open
             // when a method is opened. In order to reproduce CSC PDBs, this must be added. Otherwise
-            // a seemingly unecessary scope that contains only other scopes is put in the PDB.
+            // a seemingly unnecessary scope that contains only other scopes is put in the PDB.
             if (localScopes.Length > 0)
             {
                 this.DefineScopeLocals(localScopes[0], localSignatureToken);

@@ -3199,13 +3199,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Debug.Assert(sizeIncrease + m_RangeVariables.Length > 1)
 
-                ' Note, the special case for [sourceRangeVariables.Count = 1] helps in a the
+                ' Note, the special case for [sourceRangeVariables.Count = 1] helps in the
                 ' following scenario:
                 '     From x In Xs Select x+1 From y In Ys Let z= Zz, ...
                 ' Selector lambda should be:
                 '     Function(unnamed, y) New With {y, .z=Zz}
                 ' The lambda has two parameters, but we have only one range variable that should be carried over.
-                ' If we were symply copying lambda's parameters to the Anonymous Type instance, we would 
+                ' If we were simply copying lambda's parameters to the Anonymous Type instance, we would 
                 ' copy data that aren't needed (value of the first parameter should be dropped).
                 If m_RangeVariables.Length = 1 OrElse mustProduceFlatCompoundVariable Then
                     ' Need to flatten

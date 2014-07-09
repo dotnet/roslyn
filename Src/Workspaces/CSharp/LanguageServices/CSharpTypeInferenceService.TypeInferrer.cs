@@ -1294,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var ancestorExpressions = returnStatement.GetAncestorsOrThis<ExpressionSyntax>();
 
-                // If we're in a a lambda, then use the return type of the lambda to figure out what to
+                // If we're in a lambda, then use the return type of the lambda to figure out what to
                 // infer.  i.e.   Func<int,string> f = i => { return Foo(); }
                 var lambda = ancestorExpressions.FirstOrDefault(e => e.MatchesKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression));
                 if (lambda != null)

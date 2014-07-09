@@ -170,12 +170,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Create the frame types.
         ''' </summary>
         Private Sub MakeFrames()
-            ' this is pretty simple criteria on whether to do copy-construction.
-            ' if method contains a backward branch, then all closures should attempt copy-construction.
-            ' in a worst case we will redundantly check if previous version exists which is not such a big
-            ' overhead compared to other costs associated with closure.
+            ' There is a simple test to determine whether to do copy-construction:
+            ' If method contains a backward branch, then all closures should attempt copy-construction.
+            ' In the worst case, we will redundantly check if a previous version exists which is cheap
+            ' compared to other costs associated with closure.
             '
-            ' In some cases a the closure should never be copy constructed, where the symbols are contained in 
+            ' In some cases the closure should never be copy constructed, where the symbols are contained in 
             '  _analysis.symbolsCapturedWithoutCopyCtor.
             Dim copyConstructor = _analysis.seenBackBranches
 

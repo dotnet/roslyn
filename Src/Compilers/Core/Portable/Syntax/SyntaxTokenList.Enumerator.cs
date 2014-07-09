@@ -10,12 +10,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    ///  Represents a read-only list of <see cref="SyntaxToken"/>.
+    ///  Represents a read-only list of <see cref="SyntaxToken"/>s.
     /// </summary>
     public partial struct SyntaxTokenList
     {
         /// <summary>
-        /// A structure for enumerating the a <see cref="SyntaxTokenList"/>
+        /// A structure for enumerating a <see cref="SyntaxTokenList"/>
         /// </summary>
         public struct Enumerator
         {
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             // Enumerating over the single child case is simple.  We just 
             // return it and we're done.
             //
-            // In the multi child case, things are bit more difficult.  We need
+            // In the multi child case, things are a bit more difficult.  We need
             // to return the children in order, while also keeping their offset
             // correct.
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
         {
             private Enumerator enumerator;
 
-            // SyntaxTriviaList is a relatively big struct so is passed as ref
+            // SyntaxTriviaList is a relatively big struct so is passed by ref
             internal EnumeratorImpl(ref SyntaxTokenList list)
             {
                 this.enumerator = new Enumerator(ref list);

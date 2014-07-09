@@ -5079,7 +5079,7 @@ using System;
 class Program
 {
 		/// <summary>
-		/// This function is the callback used to execute a command when the a menu item is clicked.
+		/// This function is the callback used to execute a command when a menu item is clicked.
 		/// See the Initialize method to see how the menu item is associated to this function using
 		/// the OleMenuCommandService service and the MenuCommand class.
 		/// </summary>
@@ -5110,7 +5110,7 @@ using System;
 class Program
 {
 	/// <summary>
-	/// This function is the callback used to execute a command when the a menu item is clicked.
+	/// This function is the callback used to execute a command when a menu item is clicked.
 	/// See the Initialize method to see how the menu item is associated to this function using
 	/// the OleMenuCommandService service and the MenuCommand class.
 	/// </summary>

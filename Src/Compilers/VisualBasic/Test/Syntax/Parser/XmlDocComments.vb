@@ -11,7 +11,7 @@ Public Class ParseXmlDocComments
     <Fact()>
     Public Sub ParseOneLineText()
         ParseAndVerify(<![CDATA[
-                ''' helllo doc comments!
+                ''' hello doc comments!
                 Module m1
                 End Module
             ]]>)
@@ -19,7 +19,7 @@ Public Class ParseXmlDocComments
 
     <Fact>
     Public Sub ParseImmediateXmlDocText()
-        ParseAndVerify(<![CDATA['''helllo doc comments!
+        ParseAndVerify(<![CDATA['''hello doc comments!
                 Module m1
                 End Module
             ]]>)
@@ -58,8 +58,8 @@ Public Class ParseXmlDocComments
     <Fact>
     Public Sub ParseMultiLineText()
         Dim multiline = ParseAndVerify(<![CDATA[
-                ''' helllo doc comments!
-                ''' helllo doc comments!
+                ''' hello doc comments!
+                ''' hello doc comments!
                 Module m1
                 End Module
             ]]>).GetRoot()
@@ -72,13 +72,13 @@ Public Class ParseXmlDocComments
 
         Assert.DoesNotContain(vbCr, struct.GetInteriorXml())
         Assert.DoesNotContain(vbLf, struct.GetInteriorXml())
-        Assert.Equal(" helllo doc comments! helllo doc comments!", struct.GetInteriorXml)
+        Assert.Equal(" hello doc comments! hello doc comments!", struct.GetInteriorXml)
     End Sub
 
     <Fact>
     Public Sub ParseOneLineTextAndMarkup()
         Dim node = ParseAndVerify(<![CDATA[
-                ''' helllo doc comments! <!-- qqqqq --> <qqq> blah </qqq> 
+                ''' hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> 
                 Module m1
                 End Module
             ]]>)
@@ -88,14 +88,14 @@ Public Class ParseXmlDocComments
         Dim docComment = DirectCast(tk.LeadingTrivia(2).GetStructure, DocumentationCommentTriviaSyntax)
         Dim txt = docComment.GetInteriorXml
 
-        Assert.Equal(" helllo doc comments! <!-- qqqqq --> <qqq> blah </qqq> ", txt)
+        Assert.Equal(" hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> ", txt)
     End Sub
 
     <Fact()>
     Public Sub ParseTwoLineTextAndMarkup()
         Dim node = ParseAndVerify(<![CDATA[
-                ''' helllo doc comments! <!-- qqqqq --> <qqq> blah </qqq> 
-                ''' helllo doc comments! <!-- qqqqq --> <qqq> blah </qqq>
+                ''' hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> 
+                ''' hello doc comments! <!-- qqqqq --> <qqq> blah </qqq>
                 Module m1
                 End Module
             ]]>)
@@ -110,16 +110,16 @@ Public Class ParseXmlDocComments
 
         Dim txt = docComment.GetInteriorXml
 
-        Assert.Equal(" helllo doc comments! <!-- qqqqq --> <qqq> blah </qqq> " &
-                     " helllo doc comments! <!-- qqqqq --> <qqq> blah </qqq>", txt)
+        Assert.Equal(" hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> " &
+                     " hello doc comments! <!-- qqqqq --> <qqq> blah </qqq>", txt)
     End Sub
 
     <Fact>
     Public Sub XmlDocCommentsSpanLines()
         ParseAndVerify(<![CDATA[
-                ''' helllo doc comments! <!-- qqqqq 
+                ''' hello doc comments! <!-- qqqqq 
                 '''--> <qqq> blah </qqq> 
-                ''' helllo doc comments! <!--
+                ''' hello doc comments! <!--
                 ''' qqqqq --> <qqq> blah </qqq>
                 Module m1
                 End Module

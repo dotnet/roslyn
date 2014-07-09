@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The candidate symbol was in a place where a value was required, but was not a value
-        /// (e.g., was a a type or namespace).
+        /// (e.g., was a type or namespace).
         /// </summary>
         NotAValue,
 

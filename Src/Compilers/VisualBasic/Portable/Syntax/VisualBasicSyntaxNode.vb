@@ -275,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' associated with this node. If this is a non-terminal, returns the preceding trivia of the first token
         ''' of this node. 
         ''' </summary>
-        ''' <returns>A list of a the preceding trivia.</returns>
+        ''' <returns>A list of the preceding trivia.</returns>
         ''' <remarks>If this node is a non-terminal, the parents of the trivia will be the first token of this 
         ''' non-terminal; NOT this node.</remarks>
         Public Shadows Function GetLeadingTrivia() As SyntaxTriviaList
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' associated with this node. If this is a non-terminal, returns the following trivia of the last token
         ''' of this node. 
         ''' </summary>
-        ''' <returns>A list of a the following trivia.</returns>
+        ''' <returns>A list of the following trivia.</returns>
         ''' <remarks>If this node is a non-terminal, the parents of the trivia will be the first token of this 
         ''' non-terminal; NOT this node.</remarks>
         Public Shadows Function GetTrailingTrivia() As SyntaxTriviaList

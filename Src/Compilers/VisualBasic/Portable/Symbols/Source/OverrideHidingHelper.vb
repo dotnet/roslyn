@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If unimplementedMembers.Any Then
                     If container.IsMustInherit Then
                         ' It is OK for a IsMustInherit type to have unimplemented abstract members. But, it is not allowed
-                        ' to shadow them. Check each one to see if it is shadowed by a member of "container". Dont report for
+                        ' to shadow them. Check each one to see if it is shadowed by a member of "container". Don't report for
                         ' accessor hiding accessor, because we'll report it on the property.
                         Dim hidingSymbols As New HashSet(Of Symbol) ' don't report more than once per hiding symbols
 

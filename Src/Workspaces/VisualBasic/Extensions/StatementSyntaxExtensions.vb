@@ -655,7 +655,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 ' (bleagh).  So we skip those as well.
                 Dim previousToken = statement.GetFirstToken().GetPreviousToken()
 
-                ' Now, given the end token of the the previous statement, walk up it until we a
+                ' Now, given the end token of the previous statement, walk up it until we a
                 ' statement that is one below the outer statement we found.  This is our previous
                 ' sibling statement.
                 Return previousToken.GetAncestors(Of StatementSyntax)().FirstOrDefault(Function(s) s.GetAncestors(Of StatementSyntax)().Contains(outerStatement))

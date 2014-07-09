@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal abstract ImmutableArray<PropertySymbol> GetIndexerGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Gets a the constant value for a syntax node. This is overridden by various specializations of SemanticModel.
+        /// Gets the constant value for a syntax node. This is overridden by various specializations of SemanticModel.
         /// It can assume that CheckSyntaxNode and CanGetSemanticInfo have already been called, as well as that named
         /// argument nodes have been handled.
         /// </summary>

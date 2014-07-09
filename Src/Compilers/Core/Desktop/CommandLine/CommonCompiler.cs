@@ -150,13 +150,13 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e)
             {
-                diagnostics.Add(ToFileReadDiagostics(e, file));
+                diagnostics.Add(ToFileReadDiagnostics(e, file));
                 normalizedFilePath = null;
                 return null;
             }
         }
 
-        private DiagnosticInfo ToFileReadDiagostics(Exception e, CommandLineSourceFile file)
+        private DiagnosticInfo ToFileReadDiagnostics(Exception e, CommandLineSourceFile file)
         {
                 DiagnosticInfo diagnosticInfo;
 

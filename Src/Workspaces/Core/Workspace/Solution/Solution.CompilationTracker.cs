@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// Gets a metadata reference to a the metadata-only-image corresponding to the compilation.
+            /// Gets a metadata reference to the metadata-only-image corresponding to the compilation.
             /// </summary>
             private async Task<MetadataReference> GetMetadataOnlyImageReferenceAsync(
                 Solution solution, ProjectReference projectReference, CancellationToken cancellationToken)
@@ -731,22 +731,23 @@ namespace Microsoft.CodeAnalysis
                 var caches = solution.Services.CompilationCacheService;
                 if (caches != null)
                 {
-                    // if solution supports compilation caches, get appropreate compilation cache.
-                    // this will make the primary compilation cache not to be polluted by ones from branched solution.
+                    // If the solution supports compilation caches, get the appropriate compilation cache.
+                    // This will ensure the primary compilation cache is not polluted by items from a branched solution.
                     //
-                    // secondary cache could get inProgress compilation that belongs to the primary branch, but as soon as
-                    // background compiler brings those compilations to final state, it will be moved to the primary cache.
+                    // The secondary cache could get an inProgress compilation that belongs to the primary branch, but as
+                    // soon as the background compiler brings those compilations to their final state, it will be moved to the
+                    // primary cache.
                     //
-                    // another case is if a state got moved to a final state by a branched solution, the final compilation can
-                    // be in a secondary cache.
+                    // Another case is if a compilation is brought to a final state by a branched solution. The final compilation
+                    // could be in a secondary cache.
                     //
-                    // we can add a bit more information in compilation tracker and fork compilation tracker a bit more to let
+                    // We can add a bit more information in the compilation tracker and fork compilation tracker a bit more to let
                     // it know which branch the compilation tracker belongs to.
                     //
-                    // but all those cases where a compilation goes to the secondary cache should be either temporary or about ones
-                    // the editor currently don't use (no opened file from the compilation). 
+                    // But all those cases where a compilation goes to the secondary cache should be either temporary or about ones
+                    // the editor currently doesn't use (no opened file from the compilation). 
                     //
-                    // so until we have data that says differently, let's live logic simple.
+                    // So, until we have evidence to the contrary, let's leave the logic simple.
                     var cache = (solution.BranchId == solution.Workspace.PrimaryBranchId) ? caches.Primary : caches.Secondary;
 
                     return new CachedObjectSource<Compilation>(compilation, cache);

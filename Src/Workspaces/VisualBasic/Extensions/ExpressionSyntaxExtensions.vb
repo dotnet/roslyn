@@ -1357,7 +1357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ) As Boolean
             If SyntaxFacts.IsAttributeName(name) AndAlso Not isIdentifierNameFromAlias Then
 
-                ' When the replacement is an Alias we dont want the "Attribute" Suffix to be removed because this will result in symbol change
+                ' When the replacement is an Alias we don't want the "Attribute" Suffix to be removed because this will result in symbol change
                 Dim aliasSymbol = semanticModel.GetAliasInfo(name, cancellationToken)
                 If (aliasSymbol IsNot Nothing AndAlso preferAliasToQualification AndAlso
                     String.Compare(aliasSymbol.Name, identifierToken.ValueText, StringComparison.OrdinalIgnoreCase) = 0) Then

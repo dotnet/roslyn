@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// An error type, used to represent the a byref return in a metadata signature.
+    /// An error type, used to represent a byref return in a metadata signature.
     /// </summary>
     /// <remarks>
     /// If we ever decide to support by-ref returns, don't just make this a non-error

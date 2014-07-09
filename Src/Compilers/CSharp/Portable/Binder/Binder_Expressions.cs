@@ -4079,7 +4079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // new C(__arglist()) is legal
                 BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
 
-                // No point in performing overload resolution if the type is static.  Just return the a bad expression containing
+                // No point in performing overload resolution if the type is static.  Just return a bad expression containing
                 // the arguments.
                 if (type.IsStatic)
                 {

@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Parses a collection of strings representing imports to create collection of GlobalImports.
         ''' </summary>
         ''' <param name="importedNames">The collection of strings to be parsed.</param>
-        ''' <returns>A collecton of GlobalImports</returns>
+        ''' <returns>A collection of GlobalImports</returns>
         Public Shared Function Parse(importedNames As IEnumerable(Of String)) As IEnumerable(Of GlobalImport)
             Dim errors As DiagnosticBag = DiagnosticBag.GetInstance()
             Dim parsedImports = OptionsValidator.ParseImports(importedNames, errors)

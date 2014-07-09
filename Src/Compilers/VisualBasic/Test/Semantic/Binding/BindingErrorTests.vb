@@ -5039,7 +5039,7 @@ BC30333: Value of type 'Integer()' cannot be converted to 'Object()' because 'In
         <Fact()>
         Public Sub BC30311ERR_WithArray_ParseAndDeclarationErrors()
             'This test is because previously in native command line compiler we would produce errors for both parsing and binding errors,  now 
-            ' we wont produce the binding if parsing was not successful from the command line.  However, the diagnostics will display both messages and 
+            ' we won't produce the binding if parsing was not successful from the command line.  However, the diagnostics will display both messages and 
             ' hence the need for two tests to verify this behaviour.
 
             Dim source =

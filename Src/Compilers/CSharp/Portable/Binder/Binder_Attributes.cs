@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // See method AttributeHelper::VerifyAttrArg(EXPR *arg).
 
                 // We will match native compiler's behavior here.
-                // Devdiv Bug #8763: Additionally we allow conversions from array type to object[], provided a conversion exists and each array element is a a valid attribute argument.
+                // Devdiv Bug #8763: Additionally we allow conversions from array type to object[], provided a conversion exists and each array element is a valid attribute argument.
 
                 var type = node.Type;
                 var operand = node.Operand;

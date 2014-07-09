@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Add "unexpected" as skipped leading trivia of "node". Removes all diagnostics from "unexpected", replacing them with 
-        ' the a new diagostic with the given "errorId".
+        ' a new diagnostic with the given "errorId".
         <Extension()>
         Friend Function AddLeadingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As SyntaxToken, errorId As ERRID) As TSyntax
             Return node.AddLeadingSyntax(DirectCast(unexpected, VisualBasicSyntaxNode), errorId)
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Add "unexpected" as skipped leading trivia of "node". Removes all diagnostics from "unexpected", replacing them with 
-        ' the a new diagostic with the given "errorId".
+        ' a new diagnostic with the given "errorId".
         <Extension()>
         Friend Function AddLeadingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As VisualBasicSyntaxNode, errorId As ERRID) As TSyntax
             Dim diagnostic = ErrorFactory.ErrorInfo(errorId)
@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Add "unexpected" as skipped trailing trivia of "node". Removes all diagnostics from "unexpected", replacing them with 
-        ' the a new diagostic with the given "errorId".
+        ' a new diagnostic with the given "errorId".
         <Extension()>
         Friend Function AddTrailingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As SyntaxToken, errorId As ERRID) As TSyntax
             Return node.AddTrailingSyntax(DirectCast(unexpected, VisualBasicSyntaxNode), errorId)
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Add "unexpected" as skipped trailing trivia of "node". Removes all diagnostics from "unexpected", replacing them with 
-        ' the a new diagostic with the given "errorId".
+        ' a new diagnostic with the given "errorId".
         <Extension()>
         Friend Function AddTrailingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As VisualBasicSyntaxNode, errorId As ERRID) As TSyntax
             Dim diagnostic = ErrorFactory.ErrorInfo(errorId)
