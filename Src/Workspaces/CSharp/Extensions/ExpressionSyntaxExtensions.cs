@@ -1283,9 +1283,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
                     }
 
-                    if (!name.IsVar && symbol.Kind == SymbolKind.NamedType)
+                    if (!name.IsVar && (symbol.Kind == SymbolKind.NamedType) && !name.IsLeftSideOfQualifiedName())
                     {
                         // nullable rewrite: Nullable<int> -> int?
+                        // Don't rewrite in the case where Nullable<int> is part of some qualified name like Nullable<int>.Something
                         var original = ((INamedTypeSymbol)symbol).OriginalDefinition;
                         if (original != null && original.SpecialType == SpecialType.System_Nullable_T && aliasInfo == null)
                         {
