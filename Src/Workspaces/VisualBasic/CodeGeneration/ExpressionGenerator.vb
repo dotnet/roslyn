@@ -47,7 +47,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Overloads Function GenerateExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As ExpressionSyntax
-            If type.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T Then
+            If (type.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T) AndAlso
+               (value IsNot Nothing) Then
+                ' If the type of the argument Is a T?, then the type of the supplied default value can either be T 
+                ' (e.g. Optional x As Integer? = 5) Or it can be T? (e.g. Optional x as SomeStruct? = Nothing). The
+                ' below statement handles the case where the type of the supplied default value Is T.
                 Return GenerateExpression(DirectCast(type, INamedTypeSymbol).TypeArguments(0), value, canUseFieldReference)
             End If
 
