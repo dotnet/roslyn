@@ -45,24 +45,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private NamedTypeSymbol lazyEventRegistrationTokenSymbol;
 
         /// <summary>
-        /// This is a map from TypeDef handle to the target TypeSymbol. 
-        /// It is used by MetadataDecoder to speed-up type reference resolution
+        /// The same value as ConcurrentDictionary.DEFAULT_CAPACITY
+        /// </summary>
+        private const int DefaultTypeMapCapacity = 31;
+
+        /// <summary>
+        /// This is a map from TypeDef handle to the target <see cref="TypeSymbol"/>. 
+        /// It is used by <see cref="MetadataDecoder"/> to speed up type reference resolution
         /// for metadata coming from this module. The map is lazily populated
         /// as we load types from the module.
         /// </summary>
-        /// <remarks></remarks>
         internal readonly ConcurrentDictionary<TypeHandle, TypeSymbol> TypeHandleToTypeMap =
-                                    new ConcurrentDictionary<TypeHandle, TypeSymbol>();
+                                    new ConcurrentDictionary<TypeHandle, TypeSymbol>(concurrencyLevel: 2, capacity: DefaultTypeMapCapacity);
 
         /// <summary>
-        /// This is a map from TypeRef row id to the target TypeSymbol. 
-        /// It is used by MetadataDecoder to speed-up type reference resolution
+        /// This is a map from TypeRef row id to the target <see cref="TypeSymbol"/>. 
+        /// It is used by <see cref="MetadataDecoder"/> to speed up type reference resolution
         /// for metadata coming from this module. The map is lazily populated
-        /// by MetadataDecoder as we resolve TypeRefs from the module.
+        /// by <see cref="MetadataDecoder"/> as we resolve TypeRefs from the module.
         /// </summary>
-        /// <remarks></remarks>
         internal readonly ConcurrentDictionary<TypeReferenceHandle, TypeSymbol> TypeRefHandleToTypeMap =
-                                    new ConcurrentDictionary<TypeReferenceHandle, TypeSymbol>();
+                                    new ConcurrentDictionary<TypeReferenceHandle, TypeSymbol>(concurrencyLevel: 2, capacity: DefaultTypeMapCapacity);
 
         internal readonly ImmutableArray<MetadataLocation> MetadataLocation;
 

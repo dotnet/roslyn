@@ -44,20 +44,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private m_LazySystemTypeSymbol As NamedTypeSymbol
 
         ''' <summary>
-        ''' This is a map from TypeDef handle to the target TypeSymbol. 
-        ''' It is used by MetadataDecoder to speed-up type reference resolution
+        ''' The same value as ConcurrentDictionary.DEFAULT_CAPACITY
+        ''' </summary>
+        Private Const DefaultTypeMapCapacity As Integer = 31
+
+        ''' <summary>
+        ''' This is a map from TypeDef handle to the target <see cref="TypeSymbol"/>. 
+        ''' It is used by <see cref="MetadataDecoder"/> to speed up type reference resolution
         ''' for metadata coming from this module. The map is lazily populated
         ''' as we load types from the module.
         ''' </summary>
-        Friend ReadOnly TypeHandleToTypeMap As New ConcurrentDictionary(Of TypeHandle, TypeSymbol)
+        Friend ReadOnly TypeHandleToTypeMap As New ConcurrentDictionary(Of TypeHandle, TypeSymbol)(concurrencyLevel:=2, capacity:=DefaultTypeMapCapacity)
 
         ''' <summary>
-        ''' This is a map from TypeRef row id to the target TypeSymbol. 
-        ''' It is used by MetadataDecoder to speed-up type reference resolution
+        ''' This is a map from TypeRef row id to the target <see cref="TypeSymbol"/>. 
+        ''' It is used by <see cref="MetadataDecoder"/> to speed-up type reference resolution
         ''' for metadata coming from this module. The map is lazily populated
-        ''' by MetadataDecoder as we resolve TypeRefs from the module.
+        ''' by <see cref="MetadataDecoder"/> as we resolve TypeRefs from the module.
         ''' </summary>
-        Friend ReadOnly TypeRefHandleToTypeMap As New ConcurrentDictionary(Of TypeReferenceHandle, TypeSymbol)
+        Friend ReadOnly TypeRefHandleToTypeMap As New ConcurrentDictionary(Of TypeReferenceHandle, TypeSymbol)(concurrencyLevel:=2, capacity:=DefaultTypeMapCapacity)
 
         Friend ReadOnly MetadataLocation As ImmutableArray(Of MetadataLocation) =
                                 ImmutableArray.Create(Of MetadataLocation)(New MetadataLocation(Me))
