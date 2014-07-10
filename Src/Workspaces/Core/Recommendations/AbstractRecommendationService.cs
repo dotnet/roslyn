@@ -78,10 +78,10 @@ namespace Microsoft.CodeAnalysis.Recommendations
             if ((context.IsStatementContext || context.IsAnyExpressionContext) &&
                 !symbol.IsStatic &&
                 isMember &&
-                context.GetOuterTypes(cancellationToken).Contains(symbol.ContainingType))
+                context.GetOuterTypes(cancellationToken).SelectMany(o => o.GetBaseTypesAndThis()).Contains(symbol.ContainingType.OriginalDefinition))
             {
                 var enclosingType = context.SemanticModel.GetEnclosingNamedType(context.LeftToken.SpanStart, cancellationToken);
-                return enclosingType != null && enclosingType.GetBaseTypes().Contains(symbol.ContainingType);
+                return enclosingType != null && enclosingType.GetBaseTypes().Select(b => b.OriginalDefinition).Contains(symbol.ContainingType.OriginalDefinition);
             }
 
             var namespaceSymbol = symbol as INamespaceSymbol;
