@@ -6394,7 +6394,7 @@ End Class
         End Sub
 
         <WorkItem(530032, "DevDiv")>
-        <Fact(Skip:="530032")>
+        <Fact>
         Public Sub CollectionInitializersNestedInitializer()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>

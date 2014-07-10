@@ -1740,10 +1740,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Check for pseudo-expressions
-            Dim parent As ExpressionSyntax = TryCast(expression.Parent, ExpressionSyntax)
             Select Case expression.Kind
                 Case SyntaxKind.CollectionInitializer
-                    Return parent Is Nothing OrElse parent.Kind = SyntaxKind.ObjectCollectionInitializer
+                    Dim parent As VisualBasicSyntaxNode = expression.Parent
+
+                    If parent IsNot Nothing Then
+                        Select Case parent.Kind
+                            Case SyntaxKind.ObjectCollectionInitializer
+                                If DirectCast(parent, ObjectCollectionInitializerSyntax).Initializer Is expression Then
+                                    Return False
+                                End If
+
+                            Case SyntaxKind.ArrayCreationExpression
+                                If DirectCast(parent, ArrayCreationExpressionSyntax).Initializer Is expression Then
+                                    Return False
+                                End If
+
+                            Case SyntaxKind.CollectionInitializer
+                                ' Nested collection initializer is not an expression from the language point of view.
+                                ' However, third level collection initializer under ObjectCollectionInitializer should
+                                ' be treated as a stand alone expression.
+                                Dim possibleSecondLevelInitializer As VisualBasicSyntaxNode = parent
+                                parent = parent.Parent
+
+                                If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.CollectionInitializer Then
+                                    Dim possibleFirstLevelInitializer As VisualBasicSyntaxNode = parent
+                                    parent = parent.Parent
+
+                                    If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.ObjectCollectionInitializer AndAlso
+                                       DirectCast(parent, ObjectCollectionInitializerSyntax).Initializer Is possibleFirstLevelInitializer Then
+                                        Exit Select
+                                    End If
+                                End If
+
+                                Return False
+                        End Select
+                    End If
 
                 Case SyntaxKind.NumericLabel,
                      SyntaxKind.IdentifierLabel,
