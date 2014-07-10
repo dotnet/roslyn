@@ -69,8 +69,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         <Extension>
         Friend Function FollowsBadEndDirective(targetToken As SyntaxToken, position As Integer) As Boolean
             If targetToken.IsKind(SyntaxKind.HashToken) AndAlso targetToken.TrailingTrivia.Any(Function(t)
-                                                                                                   Return t.HasStructure AndAlso
-                                                                                                        t.GetStructure().ChildTokens().Any()
+                                                                                                   If t.HasStructure Then
+                                                                                                       Dim childTokens = t.GetStructure().ChildTokens()
+                                                                                                       Return childTokens.Count() = 1 AndAlso childTokens.First().IsKind(SyntaxKind.EndKeyword)
+                                                                                                   End If
+
+                                                                                                   Return False
                                                                                                End Function) Then
                 Return targetToken.Parent.IsKind(SyntaxKind.BadDirectiveTrivia)
             End If
