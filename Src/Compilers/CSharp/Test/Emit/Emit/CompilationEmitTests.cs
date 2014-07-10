@@ -1089,7 +1089,7 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source,
-                compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X86));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -1097,6 +1097,7 @@ class C
             Assert.False(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsDll);
             Assert.False(peHeaders.IsExe);
+            Assert.False(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);   
@@ -1130,6 +1131,7 @@ class C
             Assert.True(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsDll);
             Assert.False(peHeaders.IsExe);
+            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
@@ -1179,6 +1181,7 @@ class C
             Assert.False(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsDll);
             Assert.False(peHeaders.IsExe);
+            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
@@ -1200,7 +1203,7 @@ class C
         }
 
         [Fact]
-        public void CheckCOFFAndPEOptionalHeaders32Exe()
+        public void CheckCOFFAndPEOptionalHeadersAnyCPUExe()
         {
             string source = @"
 class C
@@ -1218,6 +1221,7 @@ class C
             Assert.False(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsExe);
             Assert.False(peHeaders.IsDll);
+            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
@@ -1257,6 +1261,7 @@ class C
             Assert.True(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsExe);
             Assert.False(peHeaders.IsDll);
+            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);

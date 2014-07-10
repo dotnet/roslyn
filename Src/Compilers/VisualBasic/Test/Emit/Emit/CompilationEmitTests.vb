@@ -67,7 +67,7 @@ End Module
             'Compilation with unquote Rootnamespace and MainTypename.
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=OptionsExe.WithRootNamespace("Test").WithMainTypeName("Test.Module1")).VerifyDiagnostics()
 
-            ' Compilation with quoted Rootnamepsace and MainTypename still produces diagnostics.
+            ' Compilation with quoted Rootnamespace and MainTypename still produces diagnostics.
             ' we do not unquote the options on WithRootnamespace or WithMainTypeName functions 
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=Options.OptionsExe.WithRootNamespace("""Test""").WithMainTypeName("""Test.Module1""")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("""Test""", "RootNamespace").WithLocation(1, 1),
@@ -612,6 +612,7 @@ End Module
             Assert.False(peHeaders.Requires64Bits)
             Assert.True(peHeaders.IsDll)
             Assert.False(peHeaders.IsExe)
+            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware))
 
             'interesting Optional PE header bits
             'We will use a range beginning with &H50 to identify the Roslyn VB compiler family.
@@ -672,6 +673,7 @@ End Module
             Assert.False(peHeaders.Requires64Bits)
             Assert.True(peHeaders.IsDll)
             Assert.False(peHeaders.IsExe)
+            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware))
 
             'interesting Optional PE header bits
             'We will use a range beginning with &H50 to identify the Roslyn VB compiler family.
@@ -732,6 +734,7 @@ End Module
             Assert.True(peHeaders.Requires64Bits)
             Assert.True(peHeaders.IsDll)
             Assert.False(peHeaders.IsExe)
+            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware))
 
             'interesting Optional PE header bits
             'We will use a range beginning with &H50 to identify the Roslyn VB compiler family.
