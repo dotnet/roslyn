@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static IEnumerable<SyntaxToken> SkipKinds(this SyntaxTokenList tokenList, params SyntaxKind[] kinds)
         {
-            return tokenList.SkipWhile(t => t.MatchesKind(kinds));
+            return tokenList.SkipWhile(t => t.IsKind(kinds));
         }
     }
 }

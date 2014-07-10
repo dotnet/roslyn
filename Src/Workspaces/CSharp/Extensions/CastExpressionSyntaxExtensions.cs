@@ -248,8 +248,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool IsDynamicInvocation(ExpressionSyntax castExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (castExpression.IsParentKind(SyntaxKind.Argument) &&
-                castExpression.Parent.Parent.MatchesKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList) &&
-                castExpression.Parent.Parent.Parent.MatchesKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
+                castExpression.Parent.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList) &&
+                castExpression.Parent.Parent.Parent.IsKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
             {
                 var typeInfo = default(TypeInfo);
 

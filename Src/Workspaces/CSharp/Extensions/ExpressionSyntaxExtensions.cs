@@ -1835,7 +1835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var symbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
 
                 if (previousToken.CSharpKind() == SyntaxKind.OpenParenToken &&
-                    previousToken.IsParentKind(SyntaxKind.ParenthesizedExpression) &&
+                    previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression) &&
                     !previousToken.Parent.IsParentKind(SyntaxKind.ParenthesizedExpression) &&
                     ((ParenthesizedExpressionSyntax)previousToken.Parent).Expression.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression &&
                     symbol != null && symbol.Kind == SymbolKind.Method)
@@ -1900,7 +1900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // If the simpleName is the type of the Variable Declaration Syntax belonging to LocalDeclaration, For Statement or Using statement
             if (simpleName.IsParentKind(SyntaxKind.VariableDeclaration) &&
                 ((VariableDeclarationSyntax)simpleName.Parent).Type == simpleName &&
-                simpleName.Parent.Parent.MatchesKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
+                simpleName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
                 if (simpleName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement) &&
                     ((LocalDeclarationStatementSyntax)simpleName.Parent.Parent).Modifiers.Any(n => n.CSharpKind() == SyntaxKind.ConstKeyword))

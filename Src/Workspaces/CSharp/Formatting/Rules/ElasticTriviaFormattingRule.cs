@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 // If there are more than one Type Parameter Constraint Clause then each go in separate line
                 if (CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) &&
-                    currentToken.RawKind == (int)SyntaxKind.WhereKeyword &&
-                    currentToken.IsParentKind(SyntaxKind.TypeParameterConstraintClause))
+                    currentToken.IsKind(SyntaxKind.WhereKeyword) &&
+                    currentToken.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause))
                 {
                     // Check if there is another TypeParameterConstraintClause before
                     if (previousToken.Parent.Ancestors().OfType<TypeParameterConstraintClauseSyntax>().Any())
@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     var firstTokenAfterTypeConstraint = currentToken.Parent.GetLastToken().GetNextToken();
                     var lastTokenForTypeConstraint = currentToken.Parent.GetLastToken().GetNextToken();
                     if (CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(lastTokenForTypeConstraint, firstTokenAfterTypeConstraint) &&
-                        firstTokenAfterTypeConstraint.RawKind == (int)SyntaxKind.WhereKeyword &&
-                        firstTokenAfterTypeConstraint.IsParentKind(SyntaxKind.TypeParameterConstraintClause))
+                        firstTokenAfterTypeConstraint.IsKind(SyntaxKind.WhereKeyword) &&
+                        firstTokenAfterTypeConstraint.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause))
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                     }

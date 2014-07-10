@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // cases:
             //   [ |
             if (token.CSharpKind() == SyntaxKind.OpenBracketToken &&
-                token.IsParentKind(SyntaxKind.AttributeList))
+                token.Parent.IsKind(SyntaxKind.AttributeList))
             {
                 return true;
             }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // cases:
             //   [Foo(1), |
             if (token.CSharpKind() == SyntaxKind.CommaToken &&
-                token.IsParentKind(SyntaxKind.AttributeList))
+                token.Parent.IsKind(SyntaxKind.AttributeList))
             {
                 return true;
             }
@@ -39,14 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // cases:
             //   [specifier: |
             if (token.CSharpKind() == SyntaxKind.ColonToken &&
-                token.IsParentKind(SyntaxKind.AttributeTargetSpecifier))
+                token.Parent.IsKind(SyntaxKind.AttributeTargetSpecifier))
             {
                 return true;
             }
 
             // cases:
             //   [Namespace.|
-            if (token.IsParentKind(SyntaxKind.QualifiedName) &&
+            if (token.Parent.IsKind(SyntaxKind.QualifiedName) &&
                 token.Parent.IsParentKind(SyntaxKind.Attribute))
             {
                 return true;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // cases:
             //   [global::|
-            if (token.IsParentKind(SyntaxKind.AliasQualifiedName) &&
+            if (token.Parent.IsKind(SyntaxKind.AliasQualifiedName) &&
                 token.Parent.IsParentKind(SyntaxKind.Attribute))
             {
                 return true;
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the grandparent is the container of the member
                 // in interactive, it's possible that there might be an intervening "incomplete" member for partially
                 // typed declarations that parse ambiguously. For example, "internal e".
-                if (token.IsParentKind(SyntaxKind.CompilationUnit) ||
-                   (token.IsParentKind(SyntaxKind.IncompleteMember) && token.Parent.IsParentKind(SyntaxKind.CompilationUnit)))
+                if (token.Parent.IsKind(SyntaxKind.CompilationUnit) ||
+                   (token.Parent.IsKind(SyntaxKind.IncompleteMember) && token.Parent.IsParentKind(SyntaxKind.CompilationUnit)))
                 {
                     return true;
                 }
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
                 else if (
-                    token.IsParentKind(SyntaxKind.Block) &&
+                    token.Parent.IsKind(SyntaxKind.Block) &&
                     token.Parent.GetParent() is MemberDeclarationSyntax)
                 {
                     // after a method/operator/etc.
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   |
 
             if (token.CSharpKind() == SyntaxKind.CloseBracketToken &&
-                token.IsParentKind(SyntaxKind.AttributeList))
+                token.Parent.IsKind(SyntaxKind.AttributeList))
             {
                 // attributes belong to a member which itself is in a
                 // container.
@@ -363,12 +363,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.CSharpKind() == SyntaxKind.OpenBraceToken)
             {
-                if (token.IsParentKind(SyntaxKind.ClassDeclaration) |
-                    token.IsParentKind(SyntaxKind.StructDeclaration))
+                if (token.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
                 {
                     return true;
                 }
-                else if (token.IsParentKind(SyntaxKind.NamespaceDeclaration))
+                else if (token.Parent.IsKind(SyntaxKind.NamespaceDeclaration))
                 {
                     return true;
                 }
@@ -385,8 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   |
             if (token.CSharpKind() == SyntaxKind.SemicolonToken)
             {
-                if (token.IsParentKind(SyntaxKind.ExternAliasDirective) ||
-                    token.IsParentKind(SyntaxKind.UsingDirective))
+                if (token.Parent.IsKind(SyntaxKind.ExternAliasDirective, SyntaxKind.UsingDirective))
                 {
                     return true;
                 }
@@ -412,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     return true;
                 }
-                else if (token.IsParentKind(SyntaxKind.NamespaceDeclaration))
+                else if (token.Parent.IsKind(SyntaxKind.NamespaceDeclaration))
                 {
                     return true;
                 }
@@ -421,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
                 else if (
-                    token.IsParentKind(SyntaxKind.Block) &&
+                    token.Parent.IsKind(SyntaxKind.Block) &&
                     token.Parent.GetParent() is MemberDeclarationSyntax)
                 {
                     return true;
@@ -433,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   |
 
             if (token.CSharpKind() == SyntaxKind.CloseBracketToken &&
-                token.IsParentKind(SyntaxKind.AttributeList))
+                token.Parent.IsKind(SyntaxKind.AttributeList))
             {
                 // assembly attributes belong to the containing compilation unit
                 if (token.Parent.IsParentKind(SyntaxKind.CompilationUnit))
@@ -648,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.CSharpKind() == SyntaxKind.ColonToken ||
                 token.CSharpKind() == SyntaxKind.CommaToken)
             {
-                if (token.IsParentKind(SyntaxKind.BaseList))
+                if (token.Parent.IsKind(SyntaxKind.BaseList))
                 {
                     return true;
                 }
@@ -684,14 +682,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             if (token.CSharpKind() == SyntaxKind.WhereKeyword &&
-                token.IsParentKind(SyntaxKind.TypeParameterConstraintClause))
+                token.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause))
             {
                 return true;
             }
 
             if (token.CSharpKind() == SyntaxKind.IdentifierToken &&
                 token.HasMatchingText(SyntaxKind.WhereKeyword) &&
-                token.IsParentKind(SyntaxKind.IdentifierName) &&
+                token.Parent.IsKind(SyntaxKind.IdentifierName) &&
                 token.Parent.IsParentKind(SyntaxKind.BaseList))
             {
                 return true;
@@ -736,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //    where T : struct, |
             //    where T : Foo, |
             if (token.CSharpKind() == SyntaxKind.CommaToken &&
-                token.IsParentKind(SyntaxKind.TypeParameterConstraintClause))
+                token.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause))
             {
                 var constraintClause = token.Parent as TypeParameterConstraintClauseSyntax;
 
@@ -756,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.CSharpKind() == SyntaxKind.OpenParenToken && token.IsParentKind(SyntaxKind.TypeOfExpression))
+            if (token.CSharpKind() == SyntaxKind.OpenParenToken && token.Parent.IsKind(SyntaxKind.TypeOfExpression))
             {
                 return true;
             }
@@ -768,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.CSharpKind() == SyntaxKind.OpenParenToken && token.IsParentKind(SyntaxKind.DefaultExpression))
+            if (token.CSharpKind() == SyntaxKind.OpenParenToken && token.Parent.IsKind(SyntaxKind.DefaultExpression))
             {
                 return true;
             }
@@ -781,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.CSharpKind() == SyntaxKind.OpenParenToken && token.IsParentKind(SyntaxKind.SizeOfExpression))
+            if (token.CSharpKind() == SyntaxKind.OpenParenToken && token.Parent.IsKind(SyntaxKind.SizeOfExpression))
             {
                 return true;
             }
@@ -907,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             if (token.CSharpKind() == SyntaxKind.CloseBracketToken &&
-                token.IsParentKind(SyntaxKind.AttributeList) &&
+                token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 token.Parent.IsParentKind(SyntaxKind.Parameter) &&
                 token.Parent.GetParent().GetParent().IsDelegateOrConstructorOrMethodParameterList())
             {
@@ -936,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             if (token.CSharpKind() == SyntaxKind.DelegateKeyword &&
-                token.IsParentKind(SyntaxKind.DelegateDeclaration))
+                token.Parent.IsKind(SyntaxKind.DelegateDeclaration))
             {
                 return true;
             }
@@ -986,7 +984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.CSharpKind() == SyntaxKind.OpenBracketToken ||
                 token.CSharpKind() == SyntaxKind.CommaToken)
             {
-                if (token.IsParentKind(SyntaxKind.ParameterList) || token.Parent.IsKind(SyntaxKind.BracketedParameterList))
+                if (token.Parent.IsKind(SyntaxKind.ParameterList, SyntaxKind.BracketedParameterList))
                 {
                     return true;
                 }
@@ -1004,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.CSharpKind() == SyntaxKind.OpenParenToken ||
                 token.CSharpKind() == SyntaxKind.CommaToken)
             {
-                if (token.IsParentKind(SyntaxKind.ParameterList) &&
+                if (token.Parent.IsKind(SyntaxKind.ParameterList) &&
                     token.Parent.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression))
                 {
                     return true;
@@ -1014,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // consider this a lambda if this is a location where the
                 // lambda's type would be inferred because of a delegate
                 // or Expression<T> type.
-                if (token.IsParentKind(SyntaxKind.ParenthesizedExpression))
+                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
                     return true;
                 }
@@ -1032,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.CSharpKind() == SyntaxKind.OpenParenToken ||
                 token.CSharpKind() == SyntaxKind.CommaToken)
             {
-                if (token.IsParentKind(SyntaxKind.ParameterList) &&
+                if (token.Parent.IsKind(SyntaxKind.ParameterList) &&
                     token.Parent.IsParentKind(SyntaxKind.AnonymousMethodExpression))
                 {
                     return true;
@@ -1131,14 +1129,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.OutKeyword) &&
-                token.IsParentKind(SyntaxKind.Argument))
+            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.OutKeyword) &&
+                token.Parent.IsKind(SyntaxKind.Argument))
             {
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.EqualsToken) &&
-                token.IsParentKind(SyntaxKind.EqualsValueClause) &&
+            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.EqualsToken) &&
+                token.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
                 token.Parent.IsParentKind(SyntaxKind.VariableDeclarator))
             {
                 return true;
@@ -1162,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             if (token.CSharpKind() == SyntaxKind.ConstKeyword &&
-                token.IsParentKind(SyntaxKind.LocalDeclarationStatement))
+                token.Parent.IsKind(SyntaxKind.LocalDeclarationStatement))
             {
                 return true;
             }
@@ -1185,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.JoinKeyword) &&
+            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.JoinKeyword) &&
                 syntaxTree.IsValidContextForJoinClause(token.SpanStart, tokenOnLeftOfStart, cancellationToken))
             {
                 return true;
@@ -1432,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.OpenParenToken) &&
+            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.OpenParenToken) &&
                 syntaxTree.IsExpressionContext(token.SpanStart, syntaxTree.FindTokenOnLeftOfPosition(token.SpanStart, cancellationToken), false, cancellationToken))
             {
                 return true;
@@ -1447,7 +1445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             if (token.CSharpKind() == SyntaxKind.OpenParenToken &&
-                token.IsParentKind(SyntaxKind.CastExpression))
+                token.Parent.IsKind(SyntaxKind.CastExpression))
             {
                 return true;
             }
@@ -1455,40 +1453,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-#if false
-        public static bool IsNonConstantExpressionContext(
-            this SyntaxTree syntaxTree,
-            int position,
-            bool attributes,
-            CancellationToken cancellationToken,
-            SemanticModel semanticModelOpt = null)
-        {
-            return
-                syntaxTree.IsExpressionContext(position, attributes, cancellationToken, semanticModelOpt) &&
-                !syntaxTree.IsConstantExpressionContext(position, cancellationToken);
-        }
-#endif
-
         public static bool IsConstantExpressionContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
             // case |
             if (token.CSharpKind() == SyntaxKind.CaseKeyword &&
-                token.IsParentKind(SyntaxKind.CaseSwitchLabel))
+                token.Parent.IsKind(SyntaxKind.CaseSwitchLabel))
             {
                 return true;
             }
 
             // goto case |
             if (token.CSharpKind() == SyntaxKind.CaseKeyword &&
-                token.IsParentKind(SyntaxKind.GotoCaseStatement))
+                token.Parent.IsKind(SyntaxKind.GotoCaseStatement))
             {
                 return true;
             }
 
             if (token.CSharpKind() == SyntaxKind.EqualsToken &&
-                token.IsParentKind(SyntaxKind.EqualsValueClause))
+                token.Parent.IsKind(SyntaxKind.EqualsValueClause))
             {
                 var equalsValue = (EqualsValueClauseSyntax)token.Parent;
 
@@ -1525,7 +1509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // [Foo( |
             // [Foo(x, |
-            if (token.IsParentKind(SyntaxKind.AttributeArgumentList) &&
+            if (token.Parent.IsKind(SyntaxKind.AttributeArgumentList) &&
                (token.CSharpKind() == SyntaxKind.CommaToken ||
                 token.CSharpKind() == SyntaxKind.OpenParenToken))
             {
@@ -1534,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // [Foo(x: |
             if (token.CSharpKind() == SyntaxKind.ColonToken &&
-                token.IsParentKind(SyntaxKind.NameColon) &&
+                token.Parent.IsKind(SyntaxKind.NameColon) &&
                 token.Parent.IsParentKind(SyntaxKind.AttributeArgument))
             {
                 return true;
@@ -1542,7 +1526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // [Foo(X = |
             if (token.CSharpKind() == SyntaxKind.EqualsToken &&
-                token.IsParentKind(SyntaxKind.NameEquals) &&
+                token.Parent.IsKind(SyntaxKind.NameEquals) &&
                 token.Parent.IsParentKind(SyntaxKind.AttributeArgument))
             {
                 return true;
@@ -1630,7 +1614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // apply to a "using Foo = ..." situation.
             if (token.CSharpKind() == SyntaxKind.EqualsToken)
             {
-                if (token.IsParentKind(SyntaxKind.NameEquals) &&
+                if (token.Parent.IsKind(SyntaxKind.NameEquals) &&
                     token.Parent.IsParentKind(SyntaxKind.UsingDirective))
                 {
                     return false;
@@ -1666,7 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // ( |
             if (token.CSharpKind() == SyntaxKind.OpenParenToken &&
-                token.IsParentKind(SyntaxKind.ParenthesizedExpression))
+                token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
             {
                 return true;
             }
@@ -1748,8 +1732,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (previousToken.CSharpKind() == SyntaxKind.AsteriskToken ||
                     previousToken.CSharpKind() == SyntaxKind.QuestionToken)
                 {
-                    if (previousToken.IsParentKind(SyntaxKind.PointerType) ||
-                        previousToken.IsParentKind(SyntaxKind.NullableType))
+                    if (previousToken.Parent.IsKind(SyntaxKind.PointerType) ||
+                        previousToken.Parent.IsKind(SyntaxKind.NullableType))
                     {
                         var type = previousToken.Parent as TypeSyntax;
                         if (type.IsParentKind(SyntaxKind.VariableDeclaration) &&
@@ -1777,7 +1761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.CSharpKind() == SyntaxKind.OpenBracketToken ||
                 token.CSharpKind() == SyntaxKind.CommaToken)
             {
-                if (token.IsParentKind(SyntaxKind.ArrayRankSpecifier))
+                if (token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier))
                 {
                     return true;
                 }
@@ -1785,7 +1769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // foo ? |
             if (token.CSharpKind() == SyntaxKind.QuestionToken &&
-                token.IsParentKind(SyntaxKind.ConditionalExpression))
+                token.Parent.IsKind(SyntaxKind.ConditionalExpression))
             {
                 // If the condition is simply a TypeSyntax that binds to a type, treat this as a nullable type.
                 var conditionalExpression = (ConditionalExpressionSyntax)token.Parent;
@@ -1797,7 +1781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // foo ? bar : |
             if (token.CSharpKind() == SyntaxKind.ColonToken &&
-                token.IsParentKind(SyntaxKind.ConditionalExpression))
+                token.Parent.IsKind(SyntaxKind.ConditionalExpression))
             {
                 return true;
             }
@@ -1807,9 +1791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // sizeof(|
             if (token.CSharpKind() == SyntaxKind.OpenParenToken)
             {
-                if (token.IsParentKind(SyntaxKind.TypeOfExpression) ||
-                    token.IsParentKind(SyntaxKind.DefaultExpression) ||
-                    token.IsParentKind(SyntaxKind.SizeOfExpression))
+                if (token.Parent.IsKind(SyntaxKind.TypeOfExpression, SyntaxKind.DefaultExpression, SyntaxKind.SizeOfExpression))
                 {
                     return false;
                 }
@@ -1822,7 +1804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.CSharpKind() == SyntaxKind.OpenBracketToken ||
                 token.CSharpKind() == SyntaxKind.CommaToken)
             {
-                if (token.IsParentKind(SyntaxKind.ArgumentList) || token.Parent.IsKind(SyntaxKind.BracketedArgumentList))
+                if (token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList))
                 {
                     return true;
                 }
@@ -1835,7 +1817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (token.CSharpKind() == SyntaxKind.OpenParenToken ||
                     token.CSharpKind() == SyntaxKind.CommaToken)
                 {
-                    if (token.IsParentKind(SyntaxKind.AttributeArgumentList))
+                    if (token.Parent.IsKind(SyntaxKind.AttributeArgumentList))
                     {
                         return true;
                     }
@@ -1847,7 +1829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.CSharpKind() == SyntaxKind.RefKeyword ||
                 token.CSharpKind() == SyntaxKind.OutKeyword)
             {
-                if (token.IsParentKind(SyntaxKind.Argument))
+                if (token.Parent.IsKind(SyntaxKind.Argument))
                 {
                     return true;
                 }
@@ -1855,7 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // Foo(bar: |
             if (token.CSharpKind() == SyntaxKind.ColonToken &&
-                token.IsParentKind(SyntaxKind.NameColon) &&
+                token.Parent.IsKind(SyntaxKind.NameColon) &&
                 token.Parent.IsParentKind(SyntaxKind.Argument))
             {
                 return true;
@@ -1908,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // for (; |
             // for (; ; |
             if (token.CSharpKind() == SyntaxKind.SemicolonToken &&
-                token.IsParentKind(SyntaxKind.ForStatement))
+                token.Parent.IsKind(SyntaxKind.ForStatement))
             {
                 var forStatement = (ForStatementSyntax)token.Parent;
                 if (token == forStatement.FirstSemicolonToken ||
@@ -1920,7 +1902,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // for ( |
             if (token.CSharpKind() == SyntaxKind.OpenParenToken &&
-                token.IsParentKind(SyntaxKind.ForStatement))
+                token.Parent.IsKind(SyntaxKind.ForStatement))
             {
                 var forStatement = (ForStatementSyntax)token.Parent;
                 if (token == forStatement.OpenParenToken)
@@ -1932,7 +1914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // for (; ; Foo(), | 
             // for ( Foo(), |
             if (token.CSharpKind() == SyntaxKind.CommaToken &&
-                token.IsParentKind(SyntaxKind.ForStatement))
+                token.Parent.IsKind(SyntaxKind.ForStatement))
             {
                 return true;
             }
@@ -1942,9 +1924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // join b in |
             if (token.CSharpKind() == SyntaxKind.InKeyword)
             {
-                if (token.IsParentKind(SyntaxKind.ForEachStatement) ||
-                    token.IsParentKind(SyntaxKind.FromClause) ||
-                    token.IsParentKind(SyntaxKind.JoinClause))
+                if (token.Parent.IsKind(SyntaxKind.ForEachStatement, SyntaxKind.FromClause, SyntaxKind.JoinClause))
                 {
                     return true;
                 }
@@ -1955,7 +1935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.CSharpKind() == SyntaxKind.OnKeyword ||
                 token.CSharpKind() == SyntaxKind.EqualsKeyword)
             {
-                if (token.IsParentKind(SyntaxKind.JoinClause))
+                if (token.Parent.IsKind(SyntaxKind.JoinClause))
                 {
                     return true;
                 }
@@ -1963,7 +1943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // where |
             if (token.CSharpKind() == SyntaxKind.WhereKeyword &&
-                token.IsParentKind(SyntaxKind.WhereClause))
+                token.Parent.IsKind(SyntaxKind.WhereClause))
             {
                 return true;
             }
@@ -1973,7 +1953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.CSharpKind() == SyntaxKind.OrderByKeyword ||
                 token.CSharpKind() == SyntaxKind.CommaToken)
             {
-                if (token.IsParentKind(SyntaxKind.OrderByClause))
+                if (token.Parent.IsKind(SyntaxKind.OrderByClause))
                 {
                     return true;
                 }
@@ -1981,7 +1961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // select |
             if (token.CSharpKind() == SyntaxKind.SelectKeyword &&
-                token.IsParentKind(SyntaxKind.SelectClause))
+                token.Parent.IsKind(SyntaxKind.SelectClause))
             {
                 return true;
             }
@@ -1991,7 +1971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.CSharpKind() == SyntaxKind.GroupKeyword ||
                 token.CSharpKind() == SyntaxKind.ByKeyword)
             {
-                if (token.IsParentKind(SyntaxKind.GroupClause))
+                if (token.Parent.IsKind(SyntaxKind.GroupClause))
                 {
                     return true;
                 }
@@ -2079,7 +2059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // var a = new { new C().Foo };
             if (token.CSharpKind() == SyntaxKind.OpenBraceToken || token.CSharpKind() == SyntaxKind.CommaToken)
             {
-                if (token.IsParentKind(SyntaxKind.AnonymousObjectCreationExpression))
+                if (token.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
                 {
                     return true;
                 }
@@ -2135,19 +2115,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
 
                 // Not on the left hand side of an object initializer
-                if (token.IsKind(SyntaxKind.IdentifierToken) &&
-                    token.IsParentKind(SyntaxKind.IdentifierName) &&
+                if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.IdentifierToken) &&
+                    token.Parent.IsKind(SyntaxKind.IdentifierName) &&
                     (token.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) || token.Parent.IsParentKind(SyntaxKind.CollectionInitializerExpression)))
                 {
                     return false;
                 }
 
                 // Not after an 'out' declaration expression. For example: M(out var |
-                if (token.IsKind(SyntaxKind.IdentifierToken) &&
-                    token.IsParentKind(SyntaxKind.IdentifierName))
+                if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.IdentifierToken) &&
+                    token.Parent.IsKind(SyntaxKind.IdentifierName))
                 {
                     if (token.Parent.IsParentKind(SyntaxKind.Argument) &&
-                        ((ArgumentSyntax)token.Parent.Parent).RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
+                        CodeAnalysis.CSharpExtensions.IsKind(((ArgumentSyntax)token.Parent.Parent).RefOrOutKeyword, SyntaxKind.OutKeyword))
                     {
                         return false;
                     }
@@ -2239,12 +2219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.CatchKeyword))
+            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.CatchKeyword))
             {
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.CloseParenToken) &&
+            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.CloseParenToken) &&
                 token.Parent.IsKind(SyntaxKind.CatchDeclaration))
             {
                 return true;
@@ -2264,7 +2244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             return
                 token.CSharpKind() == SyntaxKind.ColonToken &&
-                token.IsParentKind(SyntaxKind.BaseList) &&
+                token.Parent.IsKind(SyntaxKind.BaseList) &&
                 token.Parent.IsParentKind(SyntaxKind.EnumDeclaration);
         }
 
@@ -2274,8 +2254,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 .FindTokenOnLeftOfPosition(position, cancellationToken)
                 .GetPreviousTokenIfTouchingWord(position);
 
-            if (!token.MatchesKind(SyntaxKind.DotToken) ||
-                !token.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (!token.IsKind(SyntaxKind.DotToken) ||
+                !token.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {
                 return false;
             }

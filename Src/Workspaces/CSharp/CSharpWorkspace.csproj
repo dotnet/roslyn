@@ -122,7 +122,6 @@
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
     <Compile Include="Extensions\CastExpressionSyntaxExtensions.cs" />
-    <Compile Include="Extensions\CommonSyntaxNodeExtensions.cs" />
     <Compile Include="Extensions\CompilationUnitSyntaxExtensions.cs" />
     <Compile Include="Extensions\ContextQuery\CSharpSyntaxContext.cs" />
     <Compile Include="Extensions\ContextQuery\SyntaxNodeExtensions.cs" />
@@ -151,7 +150,6 @@
     <Compile Include="Extensions\OperatorPrecedence.cs" />
     <Compile Include="Extensions\ParenthesizedExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\QueryExpressionSyntaxExtensions.cs" />
-    <Compile Include="Extensions\SemanticEquivalence.cs" />
     <Compile Include="Extensions\SeparatedSyntaxListExtensions.cs" />
     <Compile Include="Extensions\SimpleNameSyntaxExtensions.cs" />
     <Compile Include="Extensions\StatementSyntaxExtensions.cs" />

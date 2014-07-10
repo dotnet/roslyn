@@ -1296,14 +1296,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If we're in a lambda, then use the return type of the lambda to figure out what to
                 // infer.  i.e.   Func<int,string> f = i => { return Foo(); }
-                var lambda = ancestorExpressions.FirstOrDefault(e => e.MatchesKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression));
+                var lambda = ancestorExpressions.FirstOrDefault(e => e.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression));
                 if (lambda != null)
                 {
                     return InferTypeInLambdaExpression(lambda);
                 }
 
                 // If we are inside a delegate then use the return type of the Invoke Method of the delegate type
-                var delegateExpression = ancestorExpressions.FirstOrDefault(e => e.MatchesKind(SyntaxKind.AnonymousMethodExpression));
+                var delegateExpression = ancestorExpressions.FirstOrDefault(e => e.IsKind(SyntaxKind.AnonymousMethodExpression));
                 if (delegateExpression != null)
                 {
                     var delegateType = InferTypesWorker(delegateExpression).FirstOrDefault();

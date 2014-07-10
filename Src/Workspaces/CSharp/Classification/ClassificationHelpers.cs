@@ -57,11 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return GetClassificationForTypeDeclarationIdentifier(token);
             }
-            else if (token.IsParentKind(SyntaxKind.DelegateDeclaration) && ((DelegateDeclarationSyntax)token.Parent).Identifier == token)
+            else if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration) && ((DelegateDeclarationSyntax)token.Parent).Identifier == token)
             {
                 return ClassificationTypeNames.DelegateName;
             }
-            else if (token.IsParentKind(SyntaxKind.TypeParameter) && ((TypeParameterSyntax)token.Parent).Identifier == token)
+            else if (token.Parent.IsKind(SyntaxKind.TypeParameter) && ((TypeParameterSyntax)token.Parent).Identifier == token)
             {
                 return ClassificationTypeNames.TypeParameterName;
             }
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static bool IsActualContextualKeyword(SyntaxToken token)
         {
-            if (token.IsParentKind(SyntaxKind.LabeledStatement))
+            if (token.Parent.IsKind(SyntaxKind.LabeledStatement))
             {
                 var statement = (LabeledStatementSyntax)token.Parent;
                 if (statement.Identifier == token)

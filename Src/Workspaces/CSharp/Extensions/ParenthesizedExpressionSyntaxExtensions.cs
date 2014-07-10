@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     // If both the expression and it's parent are binary expressions and their kinds
                     // are the same, check to see if they are commutative (e.g. + or *).
-                    if (parentBinaryExpression.MatchesKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) &&
+                    if (parentBinaryExpression.IsKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) &&
                         expression.CSharpKind() == parentExpression.CSharpKind())
                     {
                         return true;
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 var binaryExpression = node.Parent as BinaryExpressionSyntax;
                 if (binaryExpression != null &&
-                    binaryExpression.MatchesKind(SyntaxKind.LessThanExpression, SyntaxKind.GreaterThanExpression) &&
+                    binaryExpression.IsKind(SyntaxKind.LessThanExpression, SyntaxKind.GreaterThanExpression) &&
                     (binaryExpression.IsParentKind(SyntaxKind.Argument) || binaryExpression.Parent is InitializerExpressionSyntax))
                 {
                     if (binaryExpression.IsKind(SyntaxKind.LessThanExpression))
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     else if (binaryExpression.IsKind(SyntaxKind.GreaterThanExpression))
                     {
                         if (binaryExpression.Left == node &&
-                            binaryExpression.Right.MatchesKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.CastExpression))
+                            binaryExpression.Right.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.CastExpression))
                         {
                             if (IsPreviousExpressionPotentiallyAmbiguous(binaryExpression))
                             {
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
             }
-            else if (node.Expression.MatchesKind(SyntaxKind.LessThanExpression))
+            else if (node.Expression.IsKind(SyntaxKind.LessThanExpression))
             {
                 // We can't remove parentheses from a less-than expression in the following cases:
                 //   F((x < x), x > (1 + 2))
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return false;
             }
-            else if (node.Expression.MatchesKind(SyntaxKind.GreaterThanExpression))
+            else if (node.Expression.IsKind(SyntaxKind.GreaterThanExpression))
             {
                 // We can't remove parentheses from a greater-than expression in the following cases:
                 //   F(x < x, (x > (1 + 2)))
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool IsSimpleOrDottedName(ExpressionSyntax expression)
         {
-            return expression.MatchesKind(
+            return expression.IsKind(
                 SyntaxKind.IdentifierName,
                 SyntaxKind.QualifiedName,
                 SyntaxKind.SimpleMemberAccessExpression);

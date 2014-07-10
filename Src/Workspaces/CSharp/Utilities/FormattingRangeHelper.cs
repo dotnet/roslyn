@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private static bool IsOpenBraceTokenOfABlockOrTypeOrNamespace(SyntaxToken previousToken)
         {
             return previousToken.IsKind(SyntaxKind.OpenBraceToken) &&
-                                    (previousToken.IsParentKind(SyntaxKind.Block) ||
+                                    (previousToken.Parent.IsKind(SyntaxKind.Block) ||
                                      (previousToken.Parent != null && (previousToken.Parent is TypeDeclarationSyntax || previousToken.Parent is NamespaceDeclarationSyntax)));
         }
 

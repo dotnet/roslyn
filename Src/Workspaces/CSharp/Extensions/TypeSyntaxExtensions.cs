@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsPartial(this TypeSyntax typeSyntax)
         {
             return typeSyntax is IdentifierNameSyntax &&
-                ((IdentifierNameSyntax)typeSyntax).Identifier.MatchesKind(SyntaxKind.PartialKeyword);
+                ((IdentifierNameSyntax)typeSyntax).Identifier.IsKind(SyntaxKind.PartialKeyword);
         }
 
         public static bool IsPotentialTypeName(this TypeSyntax typeSyntax, SemanticModel semanticModelOpt, CancellationToken cancellationToken)

@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return CommonSyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
         }
 
-        public static bool IsAncestorOf(this SyntaxNode parent, SyntaxNode child)
-        {
-            return child.GetAncestors().Contains(parent);
-        }
-
         public static IEnumerable<SyntaxNode> GetAncestors(this SyntaxNode node)
         {
             var current = node.Parent;
@@ -99,11 +94,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return node.GetAncestors<TNode>().Any();
         }
 
-        public static IEnumerable<TSyntaxNode> ChildNodes<TSyntaxNode>(this SyntaxNode node) where TSyntaxNode : SyntaxNode
-        {
-            return node.ChildNodesAndTokens().Where(c => c.IsNode).Select(c => c.AsNode()).OfType<TSyntaxNode>();
-        }
-
         public static IEnumerable<TSyntaxNode> Traverse<TSyntaxNode>(
             this SyntaxNode node, TextSpan searchSpan, Func<SyntaxNode, bool> predicate)
             where TSyntaxNode : SyntaxNode
@@ -125,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         yield return (TSyntaxNode)currentNode;
                     }
 
-                    nodes.AddRangeAtHead(currentNode.ChildNodes<SyntaxNode>());
+                    nodes.AddRangeAtHead(currentNode.ChildNodes());
                 }
             }
         }

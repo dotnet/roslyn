@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // |
 
             if (token.CSharpKind() == SyntaxKind.SemicolonToken &&
-                token.IsParentKind(SyntaxKind.UsingDirective) &&
+                token.Parent.IsKind(SyntaxKind.UsingDirective) &&
                 position >= token.Span.End)
             {
                 var compUnit = (CompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken);
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             return allLabels
                 .Where(label => label.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken)
-                    .MatchesKind(SyntaxKind.LabeledStatement, SyntaxKind.DefaultSwitchLabel))
+                    .IsKind(SyntaxKind.LabeledStatement, SyntaxKind.DefaultSwitchLabel))
                 .AsImmutableOrEmpty();
         }
 

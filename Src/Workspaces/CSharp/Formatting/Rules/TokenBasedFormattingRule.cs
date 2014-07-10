@@ -228,19 +228,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // case * :
             // default:
             // <label> :
-            switch (currentToken.CSharpKind())
+            if (currentToken.IsKind(SyntaxKind.ColonToken))
             {
-                case SyntaxKind.ColonToken:
-                    if (currentToken.IsParentKind(SyntaxKind.CaseSwitchLabel) ||
-                        currentToken.IsParentKind(SyntaxKind.DefaultSwitchLabel) ||
-                        currentToken.IsParentKind(SyntaxKind.LabeledStatement) ||
-                        currentToken.IsParentKind(SyntaxKind.AttributeTargetSpecifier) ||
-                        currentToken.IsParentKind(SyntaxKind.NameColon))
-                    {
-                        return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                    }
-
-                    break;
+                if (currentToken.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
+                                               SyntaxKind.DefaultSwitchLabel,
+                                               SyntaxKind.LabeledStatement,
+                                               SyntaxKind.AttributeTargetSpecifier,
+                                               SyntaxKind.NameColon))
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
             }
 
             // [cast expression] * case

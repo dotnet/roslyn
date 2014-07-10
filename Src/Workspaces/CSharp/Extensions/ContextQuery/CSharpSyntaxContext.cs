@@ -182,9 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var containingTypeDeclaration = syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
             var containingTypeOrEnumDeclaration = syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
 
-            var isDestructorTypeContext = targetToken.MatchesKind(SyntaxKind.TildeToken) &&
-                                            targetToken.Parent.MatchesKind(SyntaxKind.DestructorDeclaration) &&
-                                            targetToken.Parent.Parent.MatchesKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
+            var isDestructorTypeContext = targetToken.IsKind(SyntaxKind.TildeToken) &&
+                                            targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
+                                            targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
 
             return new CSharpSyntaxContext(
                 workspace,
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsTypeOfExpressionContext(position, leftToken, cancellationToken),
                 syntaxTree.GetPrecedingModifiers(position, leftToken, cancellationToken),
                 syntaxTree.IsInstanceContext(position, leftToken, cancellationToken),
-                syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.MatchesKind(SyntaxKind.DotToken),
+                syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 syntaxTree.IsCatchFilterContext(position, leftToken),
                 isDestructorTypeContext);
         }

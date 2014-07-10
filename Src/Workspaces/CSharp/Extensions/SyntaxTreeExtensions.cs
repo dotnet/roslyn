@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar)
         {
-            if (!token.MatchesKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
+            if (!token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
             {
                 throw new ArgumentException(CSharpWorkspaceResources.ExpectedStringOrCharLitera, "token");
             }

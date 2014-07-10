@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 newToken = RenameWithinToken(token, newToken);
 
                 // We don't want to annotate XmlName with RenameActionAnnotation
-                if (newToken.IsParentKind(SyntaxKind.XmlName))
+                if (newToken.Parent.IsKind(SyntaxKind.XmlName))
                 {
                     return newToken;
                 }
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         return this.renameAnnotations.GetAnnotations(token).OfType<RenameActionAnnotation>().First().IsRenameLocation;
                     }
 
-                    if (token.Parent is SimpleNameSyntax && !token.IsKind(SyntaxKind.GlobalKeyword) && token.Parent.Parent.MatchesKind(SyntaxKind.AliasQualifiedName, SyntaxKind.QualifiedCref, SyntaxKind.QualifiedName))
+                    if (token.Parent is SimpleNameSyntax && !token.IsKind(SyntaxKind.GlobalKeyword) && token.Parent.Parent.IsKind(SyntaxKind.AliasQualifiedName, SyntaxKind.QualifiedCref, SyntaxKind.QualifiedName))
                     {
                         var symbol = this.speculativeModel.GetSymbolInfo(token.Parent, this.cancellationToken).Symbol;
 
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     {
                         newToken = RenameInStringLiteral(oldToken, newToken, SyntaxFactory.XmlTextLiteral);
                     }
-                    else if (newToken.IsKind(SyntaxKind.IdentifierToken) && newToken.IsParentKind(SyntaxKind.XmlName) && newToken.ValueText == this.originalText)
+                    else if (newToken.IsKind(SyntaxKind.IdentifierToken) && newToken.Parent.IsKind(SyntaxKind.XmlName) && newToken.ValueText == this.originalText)
                     {
                         var newIdentifierToken = SyntaxFactory.Identifier(newToken.LeadingTrivia, replacementText, newToken.TrailingTrivia);
                         newToken = newToken.CopyAnnotationsTo(this.renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = oldToken.Span }));
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         public bool LocalVariableConflict(
             SyntaxToken token)
         {
-            if (token.IsParentKind(SyntaxKind.IdentifierName) &&
+            if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
                 token.Parent.IsParentKind(SyntaxKind.InvocationExpression) &&
                 token.GetPreviousToken().CSharpKind() != SyntaxKind.DotToken &&
                 token.GetNextToken().CSharpKind() != SyntaxKind.DotToken)

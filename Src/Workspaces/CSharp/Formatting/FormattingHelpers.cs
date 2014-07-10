@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsCommaInEnumDeclaration(this SyntaxToken token)
         {
             return token.CSharpKind() == SyntaxKind.CommaToken &&
-                token.IsParentKind(SyntaxKind.EnumDeclaration);
+                token.Parent.IsKind(SyntaxKind.EnumDeclaration);
         }
 
         public static bool IsCommaInAnyArgumentsList(this SyntaxToken token)
@@ -328,8 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             if (token.CSharpKind() == SyntaxKind.GreaterThanToken)
             {
-                return token.IsParentKind(SyntaxKind.TypeParameterList)
-                    || token.IsParentKind(SyntaxKind.TypeArgumentList);
+                return token.Parent.IsKind(SyntaxKind.TypeParameterList, SyntaxKind.TypeArgumentList);
             }
 
             return false;

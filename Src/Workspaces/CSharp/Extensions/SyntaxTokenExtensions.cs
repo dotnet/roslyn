@@ -26,32 +26,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return token.ToString() == SyntaxFacts.GetText(kind);
         }
 
-        public static bool IsParentKind(this SyntaxToken token, SyntaxKind kind)
-        {
-            var parent = token.Parent;
-            return (parent == null && kind == SyntaxKind.None)
-                || (parent != null && parent.IsKind(kind));
-        }
-
-        public static bool MatchesKind(this SyntaxToken token, SyntaxKind kind)
-        {
-            return token.CSharpKind() == kind;
-        }
-
-        public static bool MatchesKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2)
+        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2)
         {
             return token.CSharpKind() == kind1
                 || token.CSharpKind() == kind2;
         }
 
-        public static bool MatchesKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
+        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
         {
             return token.CSharpKind() == kind1
                 || token.CSharpKind() == kind2
                 || token.CSharpKind() == kind3;
         }
 
-        public static bool MatchesKind(this SyntaxToken token, params SyntaxKind[] kinds)
+        public static bool IsKind(this SyntaxToken token, params SyntaxKind[] kinds)
         {
             return kinds.Contains(token.CSharpKind());
         }
@@ -63,11 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 || token.CSharpKind() == SyntaxKind.NumericLiteralToken
                 || token.CSharpKind() == SyntaxKind.StringLiteralToken
                 || token.CSharpKind() == SyntaxKind.TrueKeyword;
-        }
-
-        public static bool IsThis(this SyntaxToken token)
-        {
-            return token.CSharpKind() == SyntaxKind.ThisKeyword;
         }
 
         public static bool IntersectsWith(this SyntaxToken token, int position)

@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool HasFormattableBracketParent(SyntaxToken token)
         {
-            return token.Parent.MatchesKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
+            return token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
         }
     }
 }
