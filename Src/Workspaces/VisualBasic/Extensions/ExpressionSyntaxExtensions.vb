@@ -766,7 +766,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Failfast Conditions
             If Not optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration) OrElse
                 variableDeclarator.AsClause Is Nothing OrElse
-                Not variableDeclarator.Parent.MatchesKind(
+                Not variableDeclarator.Parent.IsKind(
                     SyntaxKind.LocalDeclarationStatement,
                     SyntaxKind.UsingStatement,
                     SyntaxKind.ForStatement,
@@ -787,7 +787,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            If (parent.MatchesKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.UsingStatement, SyntaxKind.FieldDeclaration) AndAlso
+            If (parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.UsingStatement, SyntaxKind.FieldDeclaration) AndAlso
                 variableDeclarator.Initializer IsNot Nothing) Then
 
                 ' Type Check
@@ -819,9 +819,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
-            If (parent.MatchesKind(SyntaxKind.ForEachStatement, SyntaxKind.ForStatement)) Then
+            If (parent.IsKind(SyntaxKind.ForEachStatement, SyntaxKind.ForStatement)) Then
                 ' Type Check for ForStatement
-                If parent.MatchesKind(SyntaxKind.ForStatement) Then
+                If parent.IsKind(SyntaxKind.ForStatement) Then
                     Dim declaredSymbolType As ITypeSymbol = Nothing
                     If Not HasValidDeclaredTypeSymbol(modifiedIdentifier, semanticModel, declaredSymbolType) Then
                         Return False
@@ -834,7 +834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 End If
 
-                If parent.MatchesKind(SyntaxKind.ForEachStatement) Then
+                If parent.IsKind(SyntaxKind.ForEachStatement) Then
                     Dim forEachStatementInfo = semanticModel.GetForEachStatementInfo(DirectCast(parent, ForEachStatementSyntax))
                     If Not forEachStatementInfo.ElementConversion.IsIdentity Then
                         Return False

@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public Overrides Function VisitReturnStatement(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.ReturnStatementSyntax) As Boolean
             ' Do we need a return value?
             Dim methodBlock = node.ReturnKeyword.GetAncestor(Of MethodBlockBaseSyntax)
-            If methodBlock IsNot Nothing AndAlso methodBlock.MatchesKind(SyntaxKind.FunctionBlock, SyntaxKind.PropertyGetBlock) Then
+            If methodBlock IsNot Nothing AndAlso methodBlock.IsKind(SyntaxKind.FunctionBlock, SyntaxKind.PropertyGetBlock) Then
                 If node.Expression IsNot Nothing Then
                     If TargetTokenMatches(GetExpressionTerminatingToken(node.Expression)) Then
                         ' We are terminating the return value properly, so we're good

@@ -19,37 +19,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsParentKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
-            Return token.Parent.IsKind(kind)
-        End Function
-
-        <Extension()>
-        Public Function MatchesKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
-            Return token.VisualBasicKind = kind
-        End Function
-
-        <Extension()>
-        Public Function MatchesKind(token As SyntaxToken, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
+        Public Function IsKind(token As SyntaxToken, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
             Return token.VisualBasicKind = kind1 OrElse
                    token.VisualBasicKind = kind2
         End Function
 
         <Extension()>
-        Public Function MatchesKind(token As SyntaxToken, ParamArray kinds As SyntaxKind()) As Boolean
+        Public Function IsKind(token As SyntaxToken, ParamArray kinds As SyntaxKind()) As Boolean
             Return kinds.Contains(token.VisualBasicKind)
-        End Function
-
-        <Extension()>
-        Public Function IsLiteral(token As SyntaxToken) As Boolean
-            Return _
-                token.VisualBasicKind = SyntaxKind.CharacterLiteralToken OrElse
-                token.VisualBasicKind = SyntaxKind.DateLiteralToken OrElse
-                token.VisualBasicKind = SyntaxKind.DecimalLiteralToken OrElse
-                token.VisualBasicKind = SyntaxKind.FalseKeyword OrElse
-                token.VisualBasicKind = SyntaxKind.FloatingLiteralToken OrElse
-                token.VisualBasicKind = SyntaxKind.IntegerLiteralToken OrElse
-                token.VisualBasicKind = SyntaxKind.StringLiteralToken OrElse
-                token.VisualBasicKind = SyntaxKind.TrueKeyword
         End Function
 
         <Extension()>
@@ -165,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return ancestors.FirstOrDefault(
-                Function(ancestor) ancestor.MatchesKind(SyntaxKind.ClassBlock,
+                Function(ancestor) ancestor.IsKind(SyntaxKind.ClassBlock,
                                                         SyntaxKind.StructureBlock,
                                                         SyntaxKind.EnumBlock,
                                                         SyntaxKind.InterfaceBlock,

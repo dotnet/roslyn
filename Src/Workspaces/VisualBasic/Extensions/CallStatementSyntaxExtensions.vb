@@ -13,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function CanRemoveCallKeyword(callStatement As CallStatementSyntax, semanticModel As SemanticModel) As Boolean
             Dim nextToken = callStatement.CallKeyword.GetNextToken()
             If (nextToken.IsKindOrHasMatchingText(SyntaxKind.IdentifierToken) OrElse
-                nextToken.IsParentKind(SyntaxKind.PredefinedType)) AndAlso
+                nextToken.Parent.IsKind(SyntaxKind.PredefinedType)) AndAlso
                Not SyntaxFacts.GetContextualKeywordKind(nextToken.ToString()) = SyntaxKind.MidKeyword Then
                 Return True
-            End If 
+            End If
 
             ' Only keywords starting "invocable" expressions
             If nextToken.IsKindOrHasMatchingText(SyntaxKind.CBoolKeyword) OrElse

@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return False
             End If
 
-            Return targetToken.GetAncestor(Of StatementSyntax).MatchesKindIfNotNull(kinds)
+            Return targetToken.GetAncestor(Of StatementSyntax).IsKind(kinds)
         End Function
 
         <Extension()>
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                     End If
                 End If
 
-                If ancestor.MatchesKind(kinds) Then
+                If ancestor.IsKind(kinds) Then
                     Return True
                 End If
 
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
 
             Dim token = context.TargetToken
-            If token.IsParentKind(SyntaxKind.ArgumentList) AndAlso
+            If token.Parent.IsKind(SyntaxKind.ArgumentList) AndAlso
                TypeOf token.Parent.Parent Is NewExpressionSyntax Then
 
                 Dim symbolInfo = context.SemanticModel.GetSymbolInfo(DirectCast(token.Parent.Parent, NewExpressionSyntax).Type())
@@ -127,13 +127,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public Function CanDeclareCustomEventAccessor(context As VisualBasicSyntaxContext, accessorBlockKind As SyntaxKind) As Boolean
             If context.IsCustomEventContext Then
                 Dim accessors = context.TargetToken.GetAncestor(Of EventBlockSyntax)().Accessors
-                Return Not accessors.Any(Function(a) a.MatchesKind(accessorBlockKind)) AndAlso
+                Return Not accessors.Any(Function(a) a.IsKind(accessorBlockKind)) AndAlso
                     Not accessors.Any(Function(a) a.Span.Contains(context.Position))
             End If
 
             Return False
         End Function
-
-
     End Module
 End Namespace

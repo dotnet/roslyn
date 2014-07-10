@@ -142,8 +142,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Case:
             '   0 > <x/>.Value
             '   0 < <x/>.Value
-            If firstToken.MatchesKind(SyntaxKind.LessThanToken) AndAlso
-               previousToken.MatchesKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken) Then
+            If firstToken.IsKind(SyntaxKind.LessThanToken) AndAlso
+               previousToken.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken) Then
 
                 Return False
             End If
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                             ' If both the expression and it's parent are binary expressions and their kinds
                             ' are the same, check to see if they are commutative (e.g. + or *).
-                            If parentBinaryExpression.MatchesKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) AndAlso
+                            If parentBinaryExpression.IsKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) AndAlso
                                expression.VisualBasicKind = parentExpression.VisualBasicKind Then
 
                                 Return True
@@ -377,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 ' (Sub() If True Then Dim y = Sub(z As Integer)
                 '                             End Sub).Invoke()
                 If nextToken.IsKindOrHasMatchingText(SyntaxKind.DotToken) AndAlso
-                       nextToken.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) Then
+                       nextToken.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                     Return False
                 End If
 
@@ -449,12 +449,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                    node.CloseParenToken.IsLastTokenOfStatement() Then
 
                     If Not (nextToken.IsKindOrHasMatchingText(SyntaxKind.DotToken) AndAlso
-                            nextToken.IsParentKind(SyntaxKind.SimpleMemberAccessExpression)) AndAlso
+                            nextToken.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression)) AndAlso
                        Not (nextToken.IsKindOrHasMatchingText(SyntaxKind.SelectKeyword) AndAlso
-                            nextToken.IsParentKind(SyntaxKind.SelectStatement)) AndAlso
+                            nextToken.Parent.IsKind(SyntaxKind.SelectStatement)) AndAlso
                         Not (nextToken.IsKindOrHasMatchingText(SyntaxKind.ExclamationToken) AndAlso
                              lastToken.IsKeyword AndAlso
-                             nextToken.IsParentKind(SyntaxKind.DictionaryAccessExpression)) Then
+                             nextToken.Parent.IsKind(SyntaxKind.DictionaryAccessExpression)) Then
 
                         Return True
                     End If

@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 End If
 
                 ' If this token is to our left, return it
-                If Not token.MatchesKind(SyntaxKind.EmptyToken) AndAlso token.Span.End < position Then
+                If Not token.IsKind(SyntaxKind.EmptyToken) AndAlso token.Span.End < position Then
                     Exit Do
                 End If
 
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             ' We either must be on a separate line, or else after Dim or modifiers
             If targetToken.FollowsEndOfStatement(position) OrElse afterDimOrModifiers Then
-                Return targetToken.GetInnermostDeclarationContext().MatchesKindIfNotNull(allowedParentBlocks)
+                Return targetToken.GetInnermostDeclarationContext().IsKind(allowedParentBlocks)
             End If
 
             Return False
@@ -125,34 +125,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                     position, token, True, cancellationToken, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.NamespaceBlock, SyntaxKind.ModuleBlock, SyntaxKind.CompilationUnit)
         End Function
 
-        <Extension()>
-        Friend Function IsModifier(token As SyntaxToken) As Boolean
-            Return token.MatchesKind(SyntaxKind.AsyncKeyword,
-                                     SyntaxKind.ConstKeyword,
-                                     SyntaxKind.DefaultKeyword,
-                                     SyntaxKind.PublicKeyword,
-                                     SyntaxKind.FriendKeyword,
-                                     SyntaxKind.ShadowsKeyword,
-                                     SyntaxKind.MustOverrideKeyword,
-                                     SyntaxKind.MustInheritKeyword,
-                                     SyntaxKind.PrivateKeyword,
-                                     SyntaxKind.NarrowingKeyword,
-                                     SyntaxKind.WideningKeyword,
-                                     SyntaxKind.NotInheritableKeyword,
-                                     SyntaxKind.NotOverridableKeyword,
-                                     SyntaxKind.OverloadsKeyword,
-                                     SyntaxKind.OverridableKeyword,
-                                     SyntaxKind.OverridesKeyword,
-                                     SyntaxKind.PartialKeyword,
-                                     SyntaxKind.ProtectedKeyword,
-                                     SyntaxKind.ReadOnlyKeyword,
-                                     SyntaxKind.WriteOnlyKeyword,
-                                     SyntaxKind.SharedKeyword,
-                                     SyntaxKind.WithEventsKeyword,
-                                     SyntaxKind.CustomKeyword,
-                                     SyntaxKind.IteratorKeyword)
-        End Function
-
         <Extension>
         Friend Function IsFieldNameDeclarationContext(syntaxTree As SyntaxTree, position As Integer, targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Contract.Requires(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
@@ -160,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return False
             End If
 
-            If targetToken.MatchesKind(SyntaxKind.ConstKeyword,
+            If targetToken.IsKind(SyntaxKind.ConstKeyword,
                                  SyntaxKind.DimKeyword,
                                  SyntaxKind.FriendKeyword,
                                  SyntaxKind.PrivateKeyword,
@@ -174,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Dim typeBlock = targetToken.GetAncestor(Of TypeBlockSyntax)()
 
                 If typeBlock IsNot Nothing AndAlso
-                       typeBlock.MatchesKind(SyntaxKind.ClassBlock,
+                       typeBlock.IsKind(SyntaxKind.ClassBlock,
                                              SyntaxKind.ModuleBlock,
                                              SyntaxKind.StructureBlock) Then
 
@@ -190,15 +162,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Friend Function IsParameterNameDeclarationContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
 
-            If targetToken.IsParentKind(SyntaxKind.ParameterList) AndAlso
-                targetToken.MatchesKind(SyntaxKind.OpenParenToken,
+            If targetToken.Parent.IsKind(SyntaxKind.ParameterList) AndAlso
+                targetToken.IsKind(SyntaxKind.OpenParenToken,
                                   SyntaxKind.CommaToken) Then
 
                 Return True
             End If
 
-            If targetToken.IsParentKind(SyntaxKind.Parameter) AndAlso
-                targetToken.MatchesKind(SyntaxKind.ByValKeyword,
+            If targetToken.Parent.IsKind(SyntaxKind.Parameter) AndAlso
+                targetToken.IsKind(SyntaxKind.ByValKeyword,
                                   SyntaxKind.ByRefKeyword,
                                   SyntaxKind.ParamArrayKeyword,
                                   SyntaxKind.OptionalKeyword) Then
@@ -262,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return False
             End If
 
-            If targetToken.IsParentKind(SyntaxKind.ArgumentList) AndAlso
+            If targetToken.Parent.IsKind(SyntaxKind.ArgumentList) AndAlso
                TypeOf targetToken.Parent.Parent Is NewExpressionSyntax Then
 
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(targetToken.Parent.Parent, NewExpressionSyntax).Type())
@@ -371,14 +343,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             ' The close paren of the parameter list of a single-line lambda?
             If targetToken.VisualBasicKind = SyntaxKind.CloseParenToken AndAlso
-               targetToken.Parent.MatchesKindIfNotNull(SyntaxKind.ParameterList) AndAlso
+               targetToken.Parent.IsKind(SyntaxKind.ParameterList) AndAlso
                TypeOf targetToken.Parent.Parent Is LambdaHeaderSyntax Then
                 Return True
             End If
 
             ' A comma in a method call or collection initializer?
             If targetToken.VisualBasicKind = SyntaxKind.CommaToken AndAlso
-               targetToken.Parent.MatchesKindIfNotNull(SyntaxKind.ArgumentList, SyntaxKind.CollectionInitializer, SyntaxKind.EraseStatement) Then
+               targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.CollectionInitializer, SyntaxKind.EraseStatement) Then
 
                 Return True
             End If
@@ -397,9 +369,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return True
             End If
 
-            If targetToken.MatchesKind(SyntaxKind.DotToken) AndAlso
-               targetToken.IsParentKind(SyntaxKind.QualifiedName) AndAlso
-               targetToken.Parent.IsParentKind(SyntaxKind.Attribute) Then
+            If targetToken.IsKind(SyntaxKind.DotToken) AndAlso
+               targetToken.Parent.IsKind(SyntaxKind.QualifiedName) AndAlso
+               targetToken.Parent.Parent.IsKind(SyntaxKind.Attribute) Then
                 Return True
             End If
 
@@ -495,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             ' We might be after a single-line statement lambda
             Dim statementLambdaHeader = targetToken.GetAncestor(Of LambdaHeaderSyntax)()
-            If statementLambdaHeader IsNot Nothing AndAlso statementLambdaHeader.Parent.MatchesKind(SyntaxKind.SingleLineSubLambdaExpression,
+            If statementLambdaHeader IsNot Nothing AndAlso statementLambdaHeader.Parent.IsKind(SyntaxKind.SingleLineSubLambdaExpression,
                                                                                                     SyntaxKind.MultiLineSubLambdaExpression) Then
                 Return statementLambdaHeader.ParameterList Is Nothing AndAlso targetToken = statementLambdaHeader.Keyword OrElse
                        statementLambdaHeader.ParameterList IsNot Nothing AndAlso targetToken = statementLambdaHeader.ParameterList.CloseParenToken
@@ -574,7 +546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return False
             End If
 
-            Return targetToken.GetAncestor(Of StatementSyntax).MatchesKindIfNotNull(kinds)
+            Return targetToken.GetAncestor(Of StatementSyntax).IsKind(kinds)
         End Function
 
         <Extension()>
@@ -592,7 +564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                     End If
                 End If
 
-                If ancestor.MatchesKind(kinds) Then
+                If ancestor.IsKind(kinds) Then
                     Return True
                 End If
 
@@ -672,8 +644,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Friend Function IsEnumTypeMemberAccessContext(syntaxTree As SyntaxTree, position As Integer, targetToken As SyntaxToken, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
             Contract.Requires(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
 
-            If Not targetToken.MatchesKind(SyntaxKind.DotToken) OrElse
-               Not targetToken.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) Then
+            If Not targetToken.IsKind(SyntaxKind.DotToken) OrElse
+               Not targetToken.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
 
                 Return False
             End If
@@ -801,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             If objectCreation IsNot Nothing Then
                 If objectCreation.ArgumentList IsNot Nothing Then
                     Return objectCreation.ArgumentList.CloseParenToken
-                ElseIf objectCreation.Type.MatchesKind(SyntaxKind.QualifiedName) Then
+                ElseIf objectCreation.Type.IsKind(SyntaxKind.QualifiedName) Then
                     Return DirectCast(objectCreation.Type, QualifiedNameSyntax).Right.GetLastToken()
                 Else
                     Return objectCreation.Type.GetLastToken()

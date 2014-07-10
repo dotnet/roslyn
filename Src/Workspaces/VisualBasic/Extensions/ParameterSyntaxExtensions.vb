@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function CanRemoveAsClause(parameter As ParameterSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
             If parameter.AsClause IsNot Nothing AndAlso
                 parameter.IsParentKind(SyntaxKind.ParameterList) AndAlso
-                parameter.Parent.Parent.MatchesKindIfNotNull(SyntaxKind.FunctionLambdaHeader, SyntaxKind.SubLambdaHeader) Then
+                parameter.Parent.Parent.IsKind(SyntaxKind.FunctionLambdaHeader, SyntaxKind.SubLambdaHeader) Then
 
                 Dim annotation = New SyntaxAnnotation()
                 Dim newParameterSyntax = parameter.WithAsClause(Nothing).WithAdditionalAnnotations(annotation)

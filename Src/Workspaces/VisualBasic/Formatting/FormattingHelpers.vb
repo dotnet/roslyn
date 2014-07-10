@@ -344,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Friend Function IsOverloadableOperator(token As SyntaxToken) As Boolean
-            If token.IsParentKind(SyntaxKind.OperatorStatement) Then
+            If token.Parent.IsKind(SyntaxKind.OperatorStatement) Then
                 Return DirectCast(token.Parent, OperatorStatementSyntax).OperatorToken = token
             End If
 

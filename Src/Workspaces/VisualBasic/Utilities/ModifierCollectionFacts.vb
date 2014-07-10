@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                         _accessibilityKeyword = targetToken
 
                     Case SyntaxKind.FriendKeyword
-                        If _accessibilityKeyword.MatchesKind(SyntaxKind.ProtectedKeyword) Then
+                        If _accessibilityKeyword.IsKind(SyntaxKind.ProtectedKeyword) Then
                             _hasProtectedAndFriend = True
                         End If
 
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                         _declarationTypes = _declarationTypes And Not PossibleDeclarationTypes.Operator
 
                     Case SyntaxKind.ProtectedKeyword, SyntaxKind.PrivateKeyword
-                        If targetToken.MatchesKind(SyntaxKind.ProtectedKeyword) AndAlso _accessibilityKeyword.MatchesKind(SyntaxKind.FriendKeyword) Then
+                        If targetToken.IsKind(SyntaxKind.ProtectedKeyword) AndAlso _accessibilityKeyword.IsKind(SyntaxKind.FriendKeyword) Then
                             _hasProtectedAndFriend = True
                         End If
 

@@ -140,8 +140,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             Dim Item1PreviousToken = pair.Item1.GetPreviousToken()
-            If (Item1PreviousToken.VisualBasicKind = SyntaxKind.GreaterThanToken AndAlso
-                Item1PreviousToken.IsParentKind(SyntaxKind.XmlElementEndTag)) Then
+            If (Item1PreviousToken.IsKind(SyntaxKind.GreaterThanToken) AndAlso
+                Item1PreviousToken.Parent.IsKind(SyntaxKind.XmlElementEndTag)) Then
 
                 Dim outerBlockWithBaseToken = GetOuterBlockWithDifferentStartTokenUsingXmlElement(pair.Item1)
                 If outerBlockWithBaseToken IsNot Nothing Then

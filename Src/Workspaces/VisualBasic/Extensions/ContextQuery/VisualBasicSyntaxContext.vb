@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         Private Shared Function ComputeIsPreprocessorStartContext(position As Integer, targetToken As SyntaxToken) As Boolean
             ' If we're touching it, then we can just look past it
-            If targetToken.MatchesKind(SyntaxKind.HashToken) AndAlso targetToken.Span.End = position Then
+            If targetToken.IsKind(SyntaxKind.HashToken) AndAlso targetToken.Span.End = position Then
                 targetToken = targetToken.GetPreviousToken()
             End If
 
@@ -182,14 +182,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             ' We will trigger if either (a) we are after the ) of the parameter list, or (b) we are
             ' after the method name itself if the user is omitting the parenthesis, or (c) we are
             ' after the return type of the AsClause.
-            Return (TargetToken.MatchesKind(SyntaxKind.CloseParenToken) AndAlso
+            Return (TargetToken.IsKind(SyntaxKind.CloseParenToken) AndAlso
                     methodDeclaration.ParameterList IsNot Nothing AndAlso
                     TargetToken = methodDeclaration.ParameterList.CloseParenToken) _
                    OrElse
                    (methodDeclaration.AsClause IsNot Nothing AndAlso
                     TargetToken = methodDeclaration.AsClause.GetLastToken(includeZeroWidth:=True)) _
                    OrElse
-                   (TargetToken.MatchesKind(SyntaxKind.IdentifierToken) AndAlso
+                   (TargetToken.IsKind(SyntaxKind.IdentifierToken) AndAlso
                     methodDeclaration.ParameterList Is Nothing AndAlso
                     TargetToken = methodDeclaration.Identifier)
         End Function

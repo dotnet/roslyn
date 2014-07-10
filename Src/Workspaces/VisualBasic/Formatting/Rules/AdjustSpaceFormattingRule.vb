@@ -101,12 +101,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If previousToken.VisualBasicKind = SyntaxKind.XmlNameToken AndAlso currentToken.VisualBasicKind = SyntaxKind.EqualsToken Then
                 ' [XmlAttributeAccessExpression] =
                 If TypeOf currentToken.Parent Is BinaryExpressionSyntax AndAlso DirectCast(currentToken.Parent, BinaryExpressionSyntax).Left.IsKind(SyntaxKind.XmlAttributeAccessExpression) OrElse
-                    currentToken.IsParentKind(SyntaxKind.SimpleAssignmentStatement) AndAlso DirectCast(currentToken.Parent, AssignmentStatementSyntax).Left.IsKind(SyntaxKind.XmlAttributeAccessExpression) Then
+                    currentToken.Parent.IsKind(SyntaxKind.SimpleAssignmentStatement) AndAlso DirectCast(currentToken.Parent, AssignmentStatementSyntax).Left.IsKind(SyntaxKind.XmlAttributeAccessExpression) Then
                     Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
                 End If
 
                 ' [XmlDeclarationOption]
-                If currentToken.IsParentKind(SyntaxKind.XmlDeclarationOption) Then
+                If currentToken.Parent.IsKind(SyntaxKind.XmlDeclarationOption) Then
                     Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
                 End If
             End If

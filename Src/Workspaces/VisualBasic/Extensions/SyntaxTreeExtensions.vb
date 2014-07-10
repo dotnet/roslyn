@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function IsEntirelyWithinComment(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim trivia = syntaxTree.FindTriviaToLeft(position, cancellationToken)
 
-            If trivia.MatchesKind(SyntaxKind.CommentTrivia, SyntaxKind.DocumentationCommentTrivia) AndAlso trivia.SpanStart <> position Then
+            If trivia.IsKind(SyntaxKind.CommentTrivia, SyntaxKind.DocumentationCommentTrivia) AndAlso trivia.SpanStart <> position Then
                 Return True
             End If
 
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function IsEntirelyWithinStringOrCharLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
 
-            If Not token.MatchesKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken) Then
+            If Not token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken) Then
                 Return False
             End If
 
@@ -99,11 +99,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' Check if it's a token that was started, but not ended
             Dim startLength = 1
-            If token.MatchesKind(SyntaxKind.CharacterLiteralToken) Then
+            If token.IsKind(SyntaxKind.CharacterLiteralToken) Then
                 startLength = 2
             End If
 
-            Dim lastChar = If(token.MatchesKind(SyntaxKind.CharacterLiteralToken), "'"c, """"c)
+            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'"c, """"c)
             Return _
                 position = token.Span.End AndAlso
                  (token.Span.Length = startLength OrElse
@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function IsInSkippedText(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim trivia = syntaxTree.FindTriviaToLeft(position, cancellationToken)
 
-            Return trivia.MatchesKind(SyntaxKind.SkippedTokensTrivia)
+            Return trivia.IsKind(SyntaxKind.SkippedTokensTrivia)
         End Function
 
         ''' <summary>

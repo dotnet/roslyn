@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Return ClassifyPunctuation(token)
             ElseIf token.VisualBasicKind = SyntaxKind.IdentifierToken Then
                 Return ClassifyIdentifierSyntax(token)
-            ElseIf token.MatchesKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken) Then
+            ElseIf token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken) Then
                 Return ClassificationTypeNames.StringLiteral
             ElseIf token.IsNumericLiteral() Then
                 Return ClassificationTypeNames.NumericLiteral
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 End Select
             ElseIf token.VisualBasicKind = SyntaxKind.XmlEntityLiteralToken Then
                 Return ClassificationTypeNames.XmlLiteralEntityReference
-            ElseIf token.MatchesKind(SyntaxKind.None, SyntaxKind.BadToken) Then
+            ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
             Else
                 Return Contract.FailWithReturn(Of String)("Unhandled token kind: " & token.VisualBasicKind)

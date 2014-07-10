@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         <Extension>
         Friend Function HasColonBeforePosition(token As SyntaxToken, position As Integer) As Boolean
             Do
-                If token.TrailingTrivia.Any(Function(t) t.MatchesKind(SyntaxKind.ColonTrivia) AndAlso t.Span.End <= position) Then
+                If token.TrailingTrivia.Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia) AndAlso t.Span.End <= position) Then
                     Return True
                 End If
 
@@ -21,10 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         Private Function CheckTrivia(triviaList As SyntaxTriviaList, position As Integer, ByRef checkForSecondEol As Boolean, ByRef allowsImplicitLineContinuation As Boolean) As Boolean
             For Each trivia In triviaList
-                If trivia.MatchesKind(SyntaxKind.LineContinuationTrivia) AndAlso trivia.Span.End <= position Then
+                If trivia.IsKind(SyntaxKind.LineContinuationTrivia) AndAlso trivia.Span.End <= position Then
                     checkForSecondEol = True
                     allowsImplicitLineContinuation = False
-                ElseIf trivia.MatchesKind(SyntaxKind.EndOfLineTrivia) AndAlso trivia.Span.End <= position Then
+                ElseIf trivia.IsKind(SyntaxKind.EndOfLineTrivia) AndAlso trivia.Span.End <= position Then
                     If Not allowsImplicitLineContinuation Then
                         If checkForSecondEol Then
                             checkForSecondEol = False
@@ -68,16 +68,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         <Extension>
         Friend Function FollowsBadEndDirective(targetToken As SyntaxToken, position As Integer) As Boolean
-            If targetToken.MatchesKind(SyntaxKind.HashToken) AndAlso targetToken.TrailingTrivia.Any(Function(t)
-                                                                                                        Return t.HasStructure AndAlso
+            If targetToken.IsKind(SyntaxKind.HashToken) AndAlso targetToken.TrailingTrivia.Any(Function(t)
+                                                                                                   Return t.HasStructure AndAlso
                                                                                                         t.GetStructure().ChildTokens().Any()
-                                                                                                    End Function) Then
-                Return targetToken.Parent.MatchesKind(SyntaxKind.BadDirectiveTrivia)
+                                                                                               End Function) Then
+                Return targetToken.Parent.IsKind(SyntaxKind.BadDirectiveTrivia)
             End If
 
-            Return targetToken.MatchesKind(SyntaxKind.EndKeyword) AndAlso
-               targetToken.GetPreviousToken().MatchesKind(SyntaxKind.HashToken) AndAlso
-               targetToken.GetPreviousToken().Parent.MatchesKind(SyntaxKind.BadDirectiveTrivia)
+            Return targetToken.IsKind(SyntaxKind.EndKeyword) AndAlso
+               targetToken.GetPreviousToken().IsKind(SyntaxKind.HashToken) AndAlso
+               targetToken.GetPreviousToken().Parent.IsKind(SyntaxKind.BadDirectiveTrivia)
         End Function
 
         <Extension>
@@ -92,5 +92,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                    token.HasNonContinuableEndOfLineBeforePosition(position, checkForSecondEol:=True)
         End Function
 
+        <Extension()>
+        Friend Function IsModifier(token As SyntaxToken) As Boolean
+            Return token.IsKind(SyntaxKind.AsyncKeyword,
+                                SyntaxKind.ConstKeyword,
+                                SyntaxKind.DefaultKeyword,
+                                SyntaxKind.PublicKeyword,
+                                SyntaxKind.FriendKeyword,
+                                SyntaxKind.ShadowsKeyword,
+                                SyntaxKind.MustOverrideKeyword,
+                                SyntaxKind.MustInheritKeyword,
+                                SyntaxKind.PrivateKeyword,
+                                SyntaxKind.NarrowingKeyword,
+                                SyntaxKind.WideningKeyword,
+                                SyntaxKind.NotInheritableKeyword,
+                                SyntaxKind.NotOverridableKeyword,
+                                SyntaxKind.OverloadsKeyword,
+                                SyntaxKind.OverridableKeyword,
+                                SyntaxKind.OverridesKeyword,
+                                SyntaxKind.PartialKeyword,
+                                SyntaxKind.ProtectedKeyword,
+                                SyntaxKind.ReadOnlyKeyword,
+                                SyntaxKind.WriteOnlyKeyword,
+                                SyntaxKind.SharedKeyword,
+                                SyntaxKind.WithEventsKeyword,
+                                SyntaxKind.CustomKeyword,
+                                SyntaxKind.IteratorKeyword)
+        End Function
     End Module
 End Namespace

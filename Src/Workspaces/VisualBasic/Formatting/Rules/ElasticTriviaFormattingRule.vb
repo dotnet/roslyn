@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Dim list = token1.TrailingTrivia.Concat(token2.LeadingTrivia)
 
             Dim firstNonWhitespaceTrivia = list.FirstOrDefault(Function(t) Not t.IsWhitespace())
-            If firstNonWhitespaceTrivia.MatchesKind(SyntaxKind.CommentTrivia, SyntaxKind.DocumentationCommentTrivia) Then
+            If firstNonWhitespaceTrivia.IsKind(SyntaxKind.CommentTrivia, SyntaxKind.DocumentationCommentTrivia) Then
                 Dim totalLines = GetNumberOfLines(list)
                 Dim blankLines = GetNumberOfLines(list.TakeWhile(Function(t) t <> firstNonWhitespaceTrivia))
 

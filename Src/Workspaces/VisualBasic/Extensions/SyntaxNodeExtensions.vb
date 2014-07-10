@@ -22,17 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function MatchesKind(node As SyntaxNode, kind As SyntaxKind) As Boolean
-            Dim syntaxNode = TryCast(node, SyntaxNode)
-            If syntaxNode Is Nothing Then
-                Return False
-            End If
-
-            Return syntaxNode.VisualBasicKind = kind
-        End Function
-
-        <Extension()>
-        Public Function MatchesKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
+        Public Function IsKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
             If node Is Nothing Then
                 Return False
             End If
@@ -42,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function MatchesKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind) As Boolean
+        Public Function IsKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind) As Boolean
             If node Is Nothing Then
                 Return False
             End If
@@ -53,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function MatchesKind(node As SyntaxNode, ParamArray kinds As SyntaxKind()) As Boolean
+        Public Function IsKind(node As SyntaxNode, ParamArray kinds As SyntaxKind()) As Boolean
             If node Is Nothing Then
                 Return False
             End If
@@ -222,22 +212,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Friend Function MatchesKindIfNotNull(node As SyntaxNode, ParamArray kinds As SyntaxKind()) As Boolean
-            If node Is Nothing Then
-                Return False
-            End If
-
-            Return kinds.Contains(node.VisualBasicKind())
-        End Function
-
-        <Extension()>
-        Friend Function ChildTokens(node As SyntaxNode) As IEnumerable(Of SyntaxToken)
-            Return From child In node.ChildNodesAndTokens()
-                   Where child.IsToken
-                   Select child.AsToken()
-        End Function
-
-        <Extension()>
         Friend Function IsMultiLineLambda(lambda As LambdaExpressionSyntax) As Boolean
             Return lambda.VisualBasicKind = SyntaxKind.MultiLineSubLambdaExpression OrElse
                    lambda.VisualBasicKind = SyntaxKind.MultiLineFunctionLambdaExpression
@@ -281,17 +255,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Case Else
                     Throw New ArgumentException("Unexpected TypeCharacter.", "type")
             End Select
-        End Function
-
-        <Extension()>
-        Public Function SpansPreprocessorDirective(node As SyntaxNode) As Boolean
-            If node Is Nothing Then
-                Return False
-            End If
-
-            Dim tokens = node.DescendantTokens()
-
-            Return tokens.SpansPreprocessorDirective()
         End Function
 
         <Extension()>
@@ -470,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If trivia.HasStructure AndAlso TypeOf trivia.GetStructure() Is DirectiveTriviaSyntax Then
                 Dim parentSpan = trivia.GetStructure().Span
                 Dim directiveSyntax = DirectCast(trivia.GetStructure(), DirectiveTriviaSyntax)
-                If directiveSyntax.MatchesKind(SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia, SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia) Then
+                If directiveSyntax.IsKind(SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia, SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia) Then
                     Dim match = directiveSyntax.GetMatchingStartOrEndDirective(cancellationToken)
                     If match IsNot Nothing Then
                         Dim matchSpan = match.Span
@@ -480,13 +443,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             Return True
                         End If
 
-                        If directiveSyntax.MatchesKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia) Then
+                        If directiveSyntax.IsKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia) Then
                             Dim ppSpan = TextSpan.FromBounds(Math.Min(parentSpan.Start, matchSpan.Start), Math.Max(parentSpan.End, matchSpan.End))
 
                             ifEndIfSpans = ifEndIfSpans.AddInterval(ppSpan)
                         End If
                     End If
-                ElseIf directiveSyntax.MatchesKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia) Then
+                ElseIf directiveSyntax.IsKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia) Then
                     If Not ifEndIfSpans.IntersectsWith(parentSpan.Start) Then
                         ' This else/elif belongs to a pp span that isn't 
                         ' entirely within this node.

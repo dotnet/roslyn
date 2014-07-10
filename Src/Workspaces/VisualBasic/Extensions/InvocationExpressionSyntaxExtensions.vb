@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' we won't remove the outer parens. For example: x()()
             Dim lastExpressionToken = invocationExpression.Expression.GetLastToken()
             If lastExpressionToken.IsKindOrHasMatchingText(SyntaxKind.CloseParenToken) AndAlso
-               lastExpressionToken.IsParentKind(SyntaxKind.ArgumentList) Then
+               lastExpressionToken.Parent.IsKind(SyntaxKind.ArgumentList) Then
                 Return False
             End If
 

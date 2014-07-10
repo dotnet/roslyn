@@ -342,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         Return Me.renameAnnotations.GetAnnotations(Of RenameActionAnnotation)(token).First().IsRenameLocation
                     End If
 
-                    If TypeOf token.Parent Is SimpleNameSyntax AndAlso token.VisualBasicKind <> SyntaxKind.GlobalKeyword AndAlso token.Parent.Parent.MatchesKind(SyntaxKind.QualifiedName, SyntaxKind.QualifiedCrefOperatorReference) Then
+                    If TypeOf token.Parent Is SimpleNameSyntax AndAlso token.VisualBasicKind <> SyntaxKind.GlobalKeyword AndAlso token.Parent.Parent.IsKind(SyntaxKind.QualifiedName, SyntaxKind.QualifiedCrefOperatorReference) Then
                         Dim symbol = Me.speculativeModel.GetSymbolInfo(token.Parent, Me.cancellationToken).Symbol
                         If symbol IsNot Nothing AndAlso Me.renamedSymbol.Kind <> SymbolKind.Local AndAlso Me.renamedSymbol.Kind <> SymbolKind.RangeVariable AndAlso
                             (symbol Is Me.renamedSymbol OrElse SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False).Equals(symbol.GetSymbolKey(), Me.renamedSymbol.GetSymbolKey())) Then
@@ -727,7 +727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     For Each implicitReferenceLocation In implicitReferenceLocations
                         Dim token = implicitReferenceLocation.Location.SourceTree.GetTouchingToken(implicitReferenceLocation.Location.SourceSpan.Start, cancellationToken, False)
 
-                        If token.VisualBasicKind = SyntaxKind.ForKeyword AndAlso token.IsParentKind(SyntaxKind.ForEachStatement) Then
+                        If token.VisualBasicKind = SyntaxKind.ForKeyword AndAlso token.Parent.IsKind(SyntaxKind.ForEachStatement) Then
                             Return SpecializedCollections.SingletonEnumerable(Of Location)(DirectCast(token.Parent, ForEachStatementSyntax).Expression.GetLocation())
                         End If
                     Next
