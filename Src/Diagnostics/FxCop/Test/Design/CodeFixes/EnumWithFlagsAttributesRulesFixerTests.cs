@@ -72,23 +72,24 @@ public enum HexFlagsEnumClass
             VerifyCSharpFix(codeWithoutFlags, codeWithFlags);
         }
 
-        [Fact(Skip = "Bug 902707"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WorkItem(902707)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void VisualBasic_EnumWithFlagsAttributes_SimpleCase()
         {
             var code = @"{0}
 Public Enum SimpleFlagsEnumClass
-	Zero = 0
-	One = 1
-	Two = 2
-	Four = 4
+    Zero = 0
+    One = 1
+    Two = 2
+    Four = 4
 End Enum
 
 {0}
 Public Enum HexFlagsEnumClass
-	One = &H1
-	Two = &H2
-	Four = &H4
-	All = &H7
+    One = &H1
+    Two = &H2
+    Four = &H4
+    All = &H7
 End Enum";
 
             var codeWithoutFlags = GetBasicCode_EnumWithFlagsAttributes(code, hasFlags: false);
@@ -121,17 +122,18 @@ public enum DuplicateValuesEnumClass
             VerifyCSharpFix(codeWithoutFlags, codeWithFlags);
         }
 
-        [Fact(Skip = "Bug 902707"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WorkItem(902707)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void VisualBasic_EnumWithFlagsAttributes_DuplicateValues()
         {
             string code = @"{0}
 Public Enum DuplicateValuesEnumClass
-	Zero = 0
-	One = 1
-	Two = 2
-	Four = 4
-	AnotherFour = 4
-	ThreePlusOne = Two + One + One
+    Zero = 0
+    One = 1
+    Two = 2
+    Four = 4
+    AnotherFour = 4
+    ThreePlusOne = Two + One + One
 End Enum
 ";
 
