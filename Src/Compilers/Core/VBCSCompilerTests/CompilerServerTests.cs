@@ -53,8 +53,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             {
                 int pathSize = path.Length * 2;
                 var exeNameBuffer = new StringBuilder(pathSize);
+                IntPtr handle = IntPtr.Zero;
 
-                if (QueryFullProcessImageName(p.Handle,
+                try
+                {
+                    // If the process has exited in between asking for the list and getting the handle,
+                    // this will throw an exception. We want to ignore it and keep on going with the
+                    // next process
+                    handle = p.Handle;
+                }
+                catch (InvalidOperationException)
+                { }
+
+                if (handle != IntPtr.Zero &&
+                    QueryFullProcessImageName(handle,
                                               0, // Win32 path format
                                               exeNameBuffer,
                                               ref pathSize) &&
