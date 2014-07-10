@@ -1287,8 +1287,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     {
                         // nullable rewrite: Nullable<int> -> int?
                         // Don't rewrite in the case where Nullable<int> is part of some qualified name like Nullable<int>.Something
-                        var original = ((INamedTypeSymbol)symbol).OriginalDefinition;
-                        if (original != null && original.SpecialType == SpecialType.System_Nullable_T && aliasInfo == null)
+                        var type = (INamedTypeSymbol)symbol;
+                        if ((!type.IsUnboundGenericType) && // Don't rewrite open generic type "Nullable<>"
+                            (type.OriginalDefinition != null) && 
+                            (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T) && 
+                            (aliasInfo == null))
                         {
                             GenericNameSyntax genericName;
                             if (name.CSharpKind() == SyntaxKind.QualifiedName)

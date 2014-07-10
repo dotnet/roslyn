@@ -1278,11 +1278,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
 
                     If (symbol.Kind = SymbolKind.NamedType) AndAlso (Not name.IsLeftSideOfQualifiedName) Then
-
                         ' Nullable rewrite: Nullable(Of Integer) -> Integer?
                         ' Don't rewrite in the case where Nullable(Of Integer) is part of some qualified name like Nullable(Of Integer).Something
-                        Dim original = DirectCast(symbol, INamedTypeSymbol).OriginalDefinition
-                        If original IsNot Nothing AndAlso original.SpecialType = SpecialType.System_Nullable_T AndAlso aliasInfo Is Nothing Then
+                        Dim type = DirectCast(symbol, INamedTypeSymbol)
+                        If (Not type.IsUnboundGenericType) AndAlso 'Don't rewrite open generic type "Nullable(Of )"
+                           (type.OriginalDefinition IsNot Nothing) AndAlso
+                           (type.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T) AndAlso
+                           (aliasInfo Is Nothing) Then
                             Dim genericName As GenericNameSyntax
                             If name.VisualBasicKind = SyntaxKind.QualifiedName Then
                                 genericName = DirectCast(DirectCast(name, QualifiedNameSyntax).Right, GenericNameSyntax)
