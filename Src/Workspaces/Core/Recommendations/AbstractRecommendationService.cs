@@ -77,11 +77,14 @@ namespace Microsoft.CodeAnalysis.Recommendations
             // unless our enclosing type derives from the members's containing type.
             if ((context.IsStatementContext || context.IsAnyExpressionContext) &&
                 !symbol.IsStatic &&
-                isMember &&
-                context.GetOuterTypes(cancellationToken).SelectMany(o => o.GetBaseTypesAndThis()).Contains(symbol.ContainingType.OriginalDefinition))
+                isMember)
             {
-                var enclosingType = context.SemanticModel.GetEnclosingNamedType(context.LeftToken.SpanStart, cancellationToken);
-                return enclosingType != null && enclosingType.GetBaseTypes().Select(b => b.OriginalDefinition).Contains(symbol.ContainingType.OriginalDefinition);
+                var outerTypesAndBases = context.GetOuterTypes(cancellationToken).SelectMany(o => o.GetBaseTypesAndThis()).Select(t => t.OriginalDefinition);
+                if (outerTypesAndBases.Contains(symbol.ContainingType.OriginalDefinition))
+                {
+                    var enclosingType = context.SemanticModel.GetEnclosingNamedType(context.LeftToken.SpanStart, cancellationToken);
+                    return enclosingType != null && enclosingType.GetBaseTypes().Select(b => b.OriginalDefinition).Contains(symbol.ContainingType.OriginalDefinition);
+                }
             }
 
             var namespaceSymbol = symbol as INamespaceSymbol;
