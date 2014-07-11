@@ -249,6 +249,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             builder.EmitOpCode(ILOpCode.Dup);
 
+            if (!receiver.Type.IsVerifierReference())
+            {
+                EmitBox(receiver.Type, receiver.Syntax);
+            }
+
             object whenNotNull = new object();
             object done = new object();
 

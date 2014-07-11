@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -1174,7 +1175,7 @@ public static class C
   IL_0160:  ret
 }
 ");
-}
+        }
 
         [Fact]
         public void TestConditionalMemberAccess001dyn1()
@@ -1649,5 +1650,57 @@ public class C
 ");
         }
 
+        [Fact]
+        [WorkItem(976765, "DevDiv")]
+        public void ConditionalMemberAccessConstrained()
+        {
+            var source = @"
+class Program
+{
+    static void M<T>(T x) where T: System.Exception
+    {
+        object s = x?.ToString();
+        System.Console.WriteLine(s);
+
+        s = x?.GetType();
+        System.Console.WriteLine(s);
+    }
+ 
+    static void Main()
+    {
+        M(new System.Exception(""a""));
+    }
+}
+";
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"System.Exception: a
+System.Exception");
+            comp.VerifyIL("Program.M<T>", @"
+{
+  // Code size       57 (0x39)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  box        ""T""
+  IL_0007:  brtrue.s   IL_000d
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  br.s       IL_0017
+  IL_000d:  box        ""T""
+  IL_0012:  callvirt   ""string object.ToString()""
+  IL_0017:  call       ""void System.Console.WriteLine(object)""
+  IL_001c:  ldarg.0
+  IL_001d:  dup
+  IL_001e:  box        ""T""
+  IL_0023:  brtrue.s   IL_0029
+  IL_0025:  pop
+  IL_0026:  ldnull
+  IL_0027:  br.s       IL_0033
+  IL_0029:  box        ""T""
+  IL_002e:  callvirt   ""System.Type System.Exception.GetType()""
+  IL_0033:  call       ""void System.Console.WriteLine(object)""
+  IL_0038:  ret
+}
+");
+        }
     }
 }
