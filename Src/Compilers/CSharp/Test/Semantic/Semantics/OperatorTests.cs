@@ -6395,7 +6395,7 @@ struct TestStr
             // Rewriter should use Equals.
             var rewriter = new EmptyRewriter();
             var node = rewriter.Visit(block);
-            Assert.ReferenceEquals(node, block);
+            Assert.Same(node, block);
 
             var visitor = new FindCompoundAssignmentWalker();
             visitor.Visit(block);
