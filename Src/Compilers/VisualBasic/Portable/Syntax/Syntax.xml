@@ -9219,7 +9219,7 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 	
 	  <node-structure name="EnableWarningDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
-	    <descrption>Represents #Enable Warning pre-processing directive appearing in source.</descrption>
+	    <description>Represents #Enable Warning pre-processing directive appearing in source.</description>
 	    <node-kind name="EnableWarningDirectiveTrivia"></node-kind>
         <child name="EnableKeyword" kind="EnableKeyword"></child>
 	    <child name="WarningKeyword" kind="WarningKeyword"></child>
@@ -9227,7 +9227,7 @@ Unify Enum declarations with other block type declarations.
 	  </node-structure>
 	  
 	  <node-structure name="DisableWarningDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
-	    <descrption>Represents #Disable Warning pre-processing directive appearing in source.</descrption>
+	    <description>Represents #Disable Warning pre-processing directive appearing in source.</description>
 	    <node-kind name="DisableWarningDirectiveTrivia"></node-kind>
         <child name="DisableKeyword" kind="DisableKeyword"></child>
 	    <child name="WarningKeyword" kind="WarningKeyword"></child>
