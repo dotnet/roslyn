@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Workspace = "Workspace";
             public const string Diagnostics = "Diagnostics";
             public const string Formatting = "Formatting";
+            public const string LinkedFileDiffMerging = "LinkedFileDiffMerging";
         }
 
         public const string Environment = "Environment";

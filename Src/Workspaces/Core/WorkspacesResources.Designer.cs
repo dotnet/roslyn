@@ -70,11 +70,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Added:.
+        /// </summary>
+        internal static string AddedHeader {
+            get {
+                return ResourceManager.GetString("AddedHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adding projects not supported in ApplyChanges..
         /// </summary>
         internal static string AddingProjectsNotSupported {
             get {
                 return ResourceManager.GetString("AddingProjectsNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to After:.
+        /// </summary>
+        internal static string AfterHeader {
+            get {
+                return ResourceManager.GetString("AfterHeader", resourceCulture);
             }
         }
         
@@ -102,6 +120,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ArraysWithMoreThanOneDimensionCannotBeSerialized {
             get {
                 return ResourceManager.GetString("ArraysWithMoreThanOneDimensionCannotBeSerialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Before:.
+        /// </summary>
+        internal static string BeforeHeader {
+            get {
+                return ResourceManager.GetString("BeforeHeader", resourceCulture);
             }
         }
         
@@ -610,6 +637,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Removed:.
+        /// </summary>
+        internal static string RemovedHeader {
+            get {
+                return ResourceManager.GetString("RemovedHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Unnecessary Imports/Usings..
         /// </summary>
         internal static string RemoveUnnecessaryImportsOrUsings {
@@ -669,6 +705,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string UnknownIdentifier {
             get {
                 return ResourceManager.GetString("UnknownIdentifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unmerged change from project &apos;{0}&apos;.
+        /// </summary>
+        internal static string UnmergedChangeFromProject {
+            get {
+                return ResourceManager.GetString("UnmergedChangeFromProject", resourceCulture);
             }
         }
         

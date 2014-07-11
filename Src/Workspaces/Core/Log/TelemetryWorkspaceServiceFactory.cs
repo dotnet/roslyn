@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -24,6 +25,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             void ITelemetryService.LogEncDebugSession(Telemetry.EncDebuggingSessionInfo session)
+            {
+            }
+
+            void ITelemetryService.LogLinkedFileDiffMergingSession(LinkedFileDiffMergingSessionInfo session)
             {
             }
         }

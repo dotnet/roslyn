@@ -205,6 +205,7 @@
     <Compile Include="LanguageServices\VisualBasicSyntaxVersionService.vb" />
     <Compile Include="LanguageServices\VisualBasicTypeInferenceService.TypeInferrer.vb" />
     <Compile Include="LanguageServices\VisualBasicTypeInferenceService.vb" />
+    <Compile Include="LinkedFiles\BasicLinkedFileMergeConflictCommentAdditionService.vb" />
     <Compile Include="MSBuild\VisualBasicProjectFileLoader.vb" />
     <Compile Include="MSBuild\VisualBasicProjectFileLoaderFactory.vb" />
     <Compile Include="Recommendations\VisualBasicRecommendationService.vb" />

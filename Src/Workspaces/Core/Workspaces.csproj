@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props" Condition="Exists('..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props')" />
   <ImportGroup Label="Settings">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props" Condition="Exists('..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props')" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -853,6 +853,7 @@
     <Compile Include="Workspace\MSBuild\SolutionFile\ProjectBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
+    <Compile Include="Workspace\Solution\AbstractLinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Workspace\Solution\BranchId.cs" />
     <Compile Include="Workspace\Solution\Document.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
@@ -863,6 +864,7 @@
     <Compile Include="Workspace\Solution\DocumentState.cs" />
     <Compile Include="Workspace\Solution\DocumentState.EquivalenceResult.cs" />
     <Compile Include="Workspace\Solution\DocumentState_SimpleProperties.cs" />
+    <Compile Include="Workspace\Solution\ILinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Workspace\Solution\MetadataOnlyImage.cs" />
     <Compile Include="Workspace\Solution\MetadataOnlyReference.cs" />
     <Compile Include="Workspace\Solution\PreservationMode.cs" />
@@ -886,6 +888,8 @@
     <Compile Include="Workspace\Solution\Solution.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
+    <Compile Include="Workspace\Solution\Solution.LinkedFileDiffMergingSession.cs" />
+    <Compile Include="Workspace\Solution\Solution.LinkedFileMergeResult.cs" />
     <Compile Include="Workspace\Solution\SolutionChanges.cs" />
     <Compile Include="Workspace\Solution\SolutionId.cs" />
     <Compile Include="Workspace\Solution\SolutionInfo.cs" />
@@ -894,6 +898,7 @@
     <Compile Include="Workspace\Solution\TextAndVersion.cs" />
     <Compile Include="Workspace\Solution\TextLoader.cs" />
     <Compile Include="Workspace\Solution\TreeAndVersion.cs" />
+    <Compile Include="Workspace\Solution\UnmergedDocumentChanges.cs" />
     <Compile Include="Workspace\Solution\VersionStamp.cs" />
     <Compile Include="Workspace\TextExtensions.cs" />
     <Compile Include="Workspace\Workspace.cs" />
@@ -948,9 +953,6 @@
   <ItemGroup>
     <Folder Include="Workspace\DocumentationComments\" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
@@ -961,6 +963,5 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props'))" />
   </Target>
 </Project>

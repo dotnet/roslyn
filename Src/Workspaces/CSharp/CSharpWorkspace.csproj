@@ -208,6 +208,7 @@
     <Compile Include="LanguageServices\CSharpSyntaxVersionService.cs" />
     <Compile Include="LanguageServices\CSharpTypeInferenceService.cs" />
     <Compile Include="LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs" />
+    <Compile Include="LinkedFiles\CSharpLinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="MSBuild\CSharpProjectFileLoader.cs" />
     <Compile Include="MSBuild\CSharpProjectFileLoader.CSharpProjectFile.cs" />
     <Compile Include="MSBuild\CSharpProjectFileLoaderFactory.cs" />

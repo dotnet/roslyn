@@ -774,6 +774,9 @@ namespace Microsoft.CodeAnalysis
                     throw new NotSupportedException(WorkspacesResources.AddingProjectsNotSupported);
                 }
 
+                var solutionWithLinkedFileChangesMerged = newSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, CancellationToken.None).Result;
+                solutionChanges = solutionWithLinkedFileChangesMerged.GetChanges(oldSolution);
+
                 // process all project changes
                 foreach (var projectChanges in solutionChanges.GetProjectChanges())
                 {

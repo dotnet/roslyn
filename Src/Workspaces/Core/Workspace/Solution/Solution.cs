@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,8 +10,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
@@ -1280,6 +1277,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             return newSolution;
+        }
+
+        internal async Task<Solution> WithMergedLinkedFileChangesAsync(Solution oldSolution, SolutionChanges? solutionChanges = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution));
+            return await session.MergeDiffsAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private SolutionBranch firstBranch;

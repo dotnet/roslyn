@@ -91,4 +91,27 @@ namespace Microsoft.CodeAnalysis.Internal.Log.Telemetry
             return !(HadCompilationErrors || HadRudeEdits || HadValidChanges || HadValidInsignificantChanges);
         }
     }
+
+    internal class LinkedFileDiffMergingSessionInfo
+    {
+        public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = new List<LinkedFileGroupSessionInfo>();
+
+        public void LogLinkedFileResult(LinkedFileGroupSessionInfo info)
+        {
+            LinkedFileGroups.Add(info);
+        }
+    }
+
+    internal class LinkedFileGroupSessionInfo
+    {
+        public int LinkedDocuments;
+        public int DocumentsWithChanges;
+        public int IsolatedDiffs;
+        public int IdenticalDiffs;
+        public int OverlappingDistinctDiffs;
+        public int OverlappingDistinctDiffsWithSameSpan;
+        public int OverlappingDistinctDiffsWithSameSpanAndSubstringRelation;
+        public int InsertedMergeConflictComments;
+        public int InsertedMergeConflictCommentsAtAdjustedLocation;
+    }
 }

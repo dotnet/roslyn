@@ -333,4 +333,19 @@
   <data name="SolutionFileNotFound" xml:space="preserve">
     <value>Solution file not found: '{0}'</value>
   </data>
+  <data name="UnmergedChangeFromProject" xml:space="preserve">
+    <value>Unmerged change from project '{0}'</value>
+  </data>
+  <data name="AddedHeader" xml:space="preserve">
+    <value>Added:</value>
+  </data>
+  <data name="AfterHeader" xml:space="preserve">
+    <value>After:</value>
+  </data>
+  <data name="BeforeHeader" xml:space="preserve">
+    <value>Before:</value>
+  </data>
+  <data name="RemovedHeader" xml:space="preserve">
+    <value>Removed:</value>
+  </data>
 </root>
