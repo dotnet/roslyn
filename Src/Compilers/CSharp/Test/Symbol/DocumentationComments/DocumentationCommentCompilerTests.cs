@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class DocumentationCommentCompilerTests : CSharpTestBase
     {
-        #region Single-line style
+        #region Single-line styleWRN_UnqualifiedNestedTypeInCref
 
         [Fact]
         public void SingleLine_OneLine()
@@ -5007,7 +5007,7 @@ class C { }
             var actual = GetDocumentationCommentText(comp,
                 // (19,11): warning CS1574: XML comment has cref attribute 'SemanticModel.GetDeclaredSymbol(MemberDeclarationSyntax, CancellationToken)' that could not be resolved
                 // /// cref="SemanticModel.GetDeclaredSymbol(MemberDeclarationSyntax, CancellationToken)"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "SemanticModel.GetDeclaredSymbol(MemberDeclarationSyntax, CancellationToken)").WithArguments("SemanticModel.GetDeclaredSymbol(MemberDeclarationSyntax, CancellationToken)"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "SemanticModel.GetDeclaredSymbol(MemberDeclarationSyntax, CancellationToken)").WithArguments("GetDeclaredSymbol(MemberDeclarationSyntax, CancellationToken)"));
 
             var expected = @"
 <?xml version=""1.0""?>
@@ -5398,7 +5398,7 @@ public class C : IEquatable<C>
             var actual = GetDocumentationCommentText(comp,
                 // (7,31): warning CS1574: XML comment has cref attribute 'IEquatable{T}.GetHashCode' that could not be resolved
                 //     /// Implements <see cref="IEquatable{T}.GetHashCode"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "IEquatable{T}.GetHashCode").WithArguments("IEquatable{T}.GetHashCode"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "IEquatable{T}.GetHashCode").WithArguments("GetHashCode"));
 
             var expected = @"
 <?xml version=""1.0""?>
@@ -5525,7 +5525,7 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UnqualifiedNestedTypeInCref, "Inner"),
                 // (12,20): warning CS1574: XML comment has cref attribute 'C{Q}.M(Inner)' that could not be resolved
                 //     /// <see cref="C{Q}.M(Inner)"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "C{Q}.M(Inner)").WithArguments("C{Q}.M(Inner)"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C{Q}.M(Inner)").WithArguments("M(Inner)"));
             var expected = @"
 <?xml version=""1.0""?>
 <doc>
@@ -5569,7 +5569,7 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UnqualifiedNestedTypeInCref, "C{Inner[]}"),
                 // (8,20): warning CS1574: XML comment has cref attribute 'C{Q}.M(C{Inner[]})' that could not be resolved
                 //     /// <see cref="C{Q}.M(C{Inner[]})"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "C{Q}.M(C{Inner[]})").WithArguments("C{Q}.M(C{Inner[]})"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C{Q}.M(C{Inner[]})").WithArguments("M(C{Inner[]})"));
             var expected = @"
 <?xml version=""1.0""?>
 <doc>
@@ -5610,7 +5610,7 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UnqualifiedNestedTypeInCref, "Inner{int}"),
                 // (9,20): warning CS1574: XML comment has cref attribute 'C{Q}.M(Inner{int})' that could not be resolved
                 //     /// <see cref="C{Q}.M(Inner{int})"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "C{Q}.M(Inner{int})").WithArguments("C{Q}.M(Inner{int})"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C{Q}.M(Inner{int})").WithArguments("M(Inner{int})"));
             var expected = @"
 <?xml version=""1.0""?>
 <doc>

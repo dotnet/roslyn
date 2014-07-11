@@ -19888,7 +19888,7 @@ public class MyClass
             CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
                 // (2,20): warning CS1580: Invalid type for parameter 'i' in XML comment cref attribute: 'Test(i)'
                 // /// <seealso cref="Test(i)"/>   // CS1580
-                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "Test(i)").WithArguments("i", "Test(i)"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "i").WithArguments("i", "Test(i)"),
                 // (2,20): warning CS1574: XML comment has cref attribute 'Test(i)' that could not be resolved
                 // /// <seealso cref="Test(i)"/>   // CS1580
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "Test(i)").WithArguments("Test(i)"));
@@ -19919,10 +19919,10 @@ public class MyClass2
             CreateCompilationWithMscorlibAndDocumentationComments(text).VerifyDiagnostics(
                 // (15,20): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <seealso cref="MyClass.explicit operator intt(MyClass)"/>   // CS1581
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "MyClass.explicit operator intt(MyClass)").WithArguments("intt", "MyClass.explicit operator intt(MyClass)"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "intt").WithArguments("intt", "MyClass.explicit operator intt(MyClass)"),
                 // (15,20): warning CS1574: XML comment has cref attribute 'MyClass.explicit operator intt(MyClass)' that could not be resolved
                 // /// <seealso cref="MyClass.explicit operator intt(MyClass)"/>   // CS1581
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "MyClass.explicit operator intt(MyClass)").WithArguments("MyClass.explicit operator intt(MyClass)"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "MyClass.explicit operator intt(MyClass)").WithArguments("explicit operator intt(MyClass)"));
         }
 
         [Fact]

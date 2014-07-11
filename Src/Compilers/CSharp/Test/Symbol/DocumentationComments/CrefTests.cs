@@ -325,7 +325,7 @@ class Program { }
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
                 // (3,20): warning CS1574: XML comment has cref attribute '.ctor' that could not be resolved
                 // /// See <see cref=".ctor"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "").WithArguments(".ctor"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "").WithArguments(""));
             Assert.Null(actualSymbol);
         }
 
@@ -354,7 +354,7 @@ class Program { }
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
                 // (3,20): warning CS1574: XML comment has cref attribute '.cctor' that could not be resolved
                 // /// See <see cref=".cctor"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "").WithArguments(".cctor"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "").WithArguments(""));
             Assert.Null(actualSymbol);
         }
 
@@ -383,7 +383,7 @@ class Program { }
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
                 // (3,20): warning CS1574: XML comment has cref attribute '~Program' that could not be resolved
                 // /// See <see cref="~Program"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "").WithArguments("~Program"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "").WithArguments(""));
             Assert.Null(actualSymbol);
         }
 
@@ -937,19 +937,19 @@ class B<T>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "B").WithArguments("B"),
                 // (15,20): warning CS1574: XML comment has cref attribute 'B.B' that could not be resolved
                 // /// See <see cref="B.B"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B").WithArguments("B.B"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B").WithArguments("B"),
                 // (16,20): warning CS1574: XML comment has cref attribute 'B.B()' that could not be resolved
                 // /// See <see cref="B.B()"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B()").WithArguments("B.B()"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B()").WithArguments("B()"),
                 // (20,20): warning CS1574: XML comment has cref attribute 'B{T}.B' that could not be resolved
                 // /// See <see cref="B{T}.B"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B").WithArguments("B{T}.B"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B").WithArguments("B"),
                 // (23,20): warning CS1574: XML comment has cref attribute 'B{T}.B{T}' that could not be resolved
                 // /// See <see cref="B{T}.B{T}"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}").WithArguments("B{T}.B{T}"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}").WithArguments("B{T}"),
                 // (24,20): warning CS1574: XML comment has cref attribute 'B{T}.B{T}()' that could not be resolved
                 // /// See <see cref="B{T}.B{T}()"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}()").WithArguments("B{T}.B{T}()"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}()").WithArguments("B{T}()"));
         }
 
         /// <summary>
@@ -1036,16 +1036,16 @@ class Other
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "B()").WithArguments("B()"),
                 // (18,20): warning CS1574: XML comment has cref attribute 'B.B' that could not be resolved
                 // /// See <see cref="B.B"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B").WithArguments("B.B"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B").WithArguments("B"),
                 // (19,20): warning CS1574: XML comment has cref attribute 'B.B()' that could not be resolved
                 // /// See <see cref="B.B()"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B()").WithArguments("B.B()"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B()").WithArguments("B()"),
                 // (26,20): warning CS1574: XML comment has cref attribute 'B{T}.B{T}' that could not be resolved
                 // /// See <see cref="B{T}.B{T}"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}").WithArguments("B{T}.B{T}"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}").WithArguments("B{T}"),
                 // (27,20): warning CS1574: XML comment has cref attribute 'B{T}.B{T}()' that could not be resolved
                 // /// See <see cref="B{T}.B{T}()"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}()").WithArguments("B{T}.B{T}()"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}()").WithArguments("B{T}()"));
         }
 
         /// <summary>
@@ -1135,16 +1135,16 @@ class B<T>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "B()").WithArguments("B()"),
                 // (20,24): warning CS1574: XML comment has cref attribute 'B.B' that could not be resolved
                 //     /// See <see cref="B.B"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B").WithArguments("B.B"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B").WithArguments("B"),
                 // (21,24): warning CS1574: XML comment has cref attribute 'B.B()' that could not be resolved
                 //     /// See <see cref="B.B()"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B()").WithArguments("B.B()"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.B()").WithArguments("B()"),
                 // (28,24): warning CS1574: XML comment has cref attribute 'B{T}.B{T}' that could not be resolved
                 //     /// See <see cref="B{T}.B{T}"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}").WithArguments("B{T}.B{T}"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}").WithArguments("B{T}"),
                 // (29,24): warning CS1574: XML comment has cref attribute 'B{T}.B{T}()' that could not be resolved
                 //     /// See <see cref="B{T}.B{T}()"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}()").WithArguments("B{T}.B{T}()"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B{T}.B{T}()").WithArguments("B{T}()"));
         }
 
         [Fact]
@@ -1174,8 +1174,9 @@ static class D
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
                 string text = crefSyntax.ToString();
+                string arguments = text.Contains("C()") ? "C()" : text.Contains("C") ? "C" : text.Contains("D()") ? "D()" : "D";
                 Assert.Null(GetReferencedSymbol(crefSyntax, compilation, 
-                    Diagnostic(ErrorCode.WRN_BadXMLRef, text).WithArguments(text)));
+                    Diagnostic(ErrorCode.WRN_BadXMLRef, text).WithArguments(arguments)));
             }
         }
 
@@ -1798,7 +1799,7 @@ class C
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
                 // (3,20): warning CS1574: XML comment has cref attribute 'C.M' that could not be resolved
                 // /// See <see cref="C.M"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "C.M").WithArguments("C.M"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C.M").WithArguments("M"));
             Assert.Null(actualSymbol);
         }
 
@@ -1828,7 +1829,7 @@ class Outer
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
                 // (3,20): warning CS1574: XML comment has cref attribute 'Outer.Inner.M' that could not be resolved
                 // /// See <see cref="Outer.Inner.M"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Outer.Inner.M").WithArguments("Outer.Inner.M"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Outer.Inner.M").WithArguments("M"));
             Assert.Null(actualSymbol);
         }
 
@@ -1913,7 +1914,7 @@ class Other
             compilation.VerifyDiagnostics(
                 // (12,32): warning CS1574: XML comment has cref attribute 'Base.F' that could not be resolved
                 // /// Not accessible: <see cref="Base.F"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Base.F").WithArguments("Base.F"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Base.F").WithArguments("F"),
 
                 // (4,26): warning CS0649: Field 'Base.F' is never assigned to, and will always have its default value 0
                 //     protected static int F;
@@ -1952,7 +1953,7 @@ class Other
             compilation.VerifyDiagnostics(
                 // (12,32): warning CS1574: XML comment has cref attribute 'Base.F' that could not be resolved
                 // /// Not accessible: <see cref="Base.F"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Base.F").WithArguments("Base.F"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Base.F").WithArguments("F"),
 
                 // (4,26): warning CS0649: Field 'Base.F' is never assigned to, and will always have its default value 0
                 //     protected static int F;
@@ -2034,7 +2035,7 @@ class B
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
                 // (3,20): warning CS1574: XML comment has cref attribute 'A.M' that could not be resolved
                 // /// See <see cref="A.M"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "A.M").WithArguments("A.M"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "A.M").WithArguments("M"));
 
             Assert.Null(actualSymbol);
 
@@ -2085,10 +2086,10 @@ class C
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
                 // (3,20): warning CS1580: Invalid type for parameter 'A' in XML comment cref attribute: 'B.M(A)'
                 // /// See <see cref="B.M(A)"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "B.M(A)").WithArguments("A", "B.M(A)"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "A").WithArguments("A", "B.M(A)"),
                 // (3,20): warning CS1574: XML comment has cref attribute 'B.M(A)' that could not be resolved
                 // /// See <see cref="B.M(A)"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.M(A)").WithArguments("B.M(A)"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "B.M(A)").WithArguments("M(A)"));
 
             Assert.Null(actualSymbol);
 
@@ -4386,25 +4387,25 @@ class C
             CreateCompilationWithMscorlibAndDocumentationComments(source).VerifyDiagnostics(
                 // (2,16): warning CS1580: Invalid type for parameter 'Q' in XML comment cref attribute: 'M(Q)'
                 // /// <see cref="M(Q)"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "M(Q)").WithArguments("Q", "M(Q)"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "Q").WithArguments("Q", "M(Q)"),
                 // (2,16): warning CS1574: XML comment has cref attribute 'M(Q)' that could not be resolved
                 // /// <see cref="M(Q)"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "M(Q)").WithArguments("M(Q)"),
                 // (3,16): warning CS1580: Invalid type for parameter 'C{Q}' in XML comment cref attribute: 'M(C{Q})'
                 // /// <see cref="M(C{Q})"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "M(C{Q})").WithArguments("C{Q}", "M(C{Q})"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "C{Q}").WithArguments("C{Q}", "M(C{Q})"),
                 // (3,16): warning CS1574: XML comment has cref attribute 'M(C{Q})' that could not be resolved
                 // /// <see cref="M(C{Q})"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "M(C{Q})").WithArguments("M(C{Q})"),
                 // (4,16): warning CS1580: Invalid type for parameter 'Q[]' in XML comment cref attribute: 'M(Q[])'
                 // /// <see cref="M(Q[])"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "M(Q[])").WithArguments("Q[]", "M(Q[])"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "Q[]").WithArguments("Q[]", "M(Q[])"),
                 // (4,16): warning CS1574: XML comment has cref attribute 'M(Q[])' that could not be resolved
                 // /// <see cref="M(Q[])"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "M(Q[])").WithArguments("M(Q[])"),
                 // (5,16): warning CS1580: Invalid type for parameter 'Q*' in XML comment cref attribute: 'M(Q*)'
                 // /// <see cref="M(Q*)"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "M(Q*)").WithArguments("Q*", "M(Q*)"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "Q*").WithArguments("Q*", "M(Q*)"),
                 // (5,16): warning CS1574: XML comment has cref attribute 'M(Q*)' that could not be resolved
                 // /// <see cref="M(Q*)"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "M(Q*)").WithArguments("M(Q*)"));
@@ -4429,25 +4430,25 @@ class C
             CreateCompilationWithMscorlibAndDocumentationComments(source).VerifyDiagnostics(
                 // (2,16): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "explicit operator Q").WithArguments("Q", "explicit operator Q"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q").WithArguments("Q", "explicit operator Q"),
                 // (2,16): warning CS1574: XML comment has cref attribute 'explicit operator Q' that could not be resolved
                 // /// <see cref="explicit operator Q"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q").WithArguments("explicit operator Q"),
                 // (3,16): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator C{Q}"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "explicit operator C{Q}").WithArguments("C{Q}", "explicit operator C{Q}"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "C{Q}").WithArguments("C{Q}", "explicit operator C{Q}"),
                 // (3,16): warning CS1574: XML comment has cref attribute 'explicit operator C{Q}' that could not be resolved
                 // /// <see cref="explicit operator C{Q}"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator C{Q}").WithArguments("explicit operator C{Q}"),
                 // (4,16): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q[]"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "explicit operator Q[]").WithArguments("Q[]", "explicit operator Q[]"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q[]").WithArguments("Q[]", "explicit operator Q[]"),
                 // (4,16): warning CS1574: XML comment has cref attribute 'explicit operator Q[]' that could not be resolved
                 // /// <see cref="explicit operator Q[]"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q[]").WithArguments("explicit operator Q[]"),
                 // (5,16): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q*"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "explicit operator Q*").WithArguments("Q*", "explicit operator Q*"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q*").WithArguments("Q*", "explicit operator Q*"),
                 // (5,16): warning CS1574: XML comment has cref attribute 'explicit operator Q*' that could not be resolved
                 // /// <see cref="explicit operator Q*"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q*").WithArguments("explicit operator Q*"));
@@ -4756,7 +4757,7 @@ class Derived : Middle
             compilation.VerifyDiagnostics(
                 // (12,16): warning CS1574: XML comment has cref attribute 'Derived.M' that could not be resolved
                 // /// <see cref="Derived.M" />
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Derived.M").WithArguments("Derived.M"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Derived.M").WithArguments("M"));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
@@ -4845,7 +4846,7 @@ class Derived : Middle
             compilation.VerifyDiagnostics(
                 // (12,16): warning CS1574: XML comment has cref attribute 'Derived.M' that could not be resolved
                 // /// <see cref="Derived.M" />
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Derived.M").WithArguments("Derived.M"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Derived.M").WithArguments("M"));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
@@ -4911,10 +4912,10 @@ class Derived : Base
             compilation.VerifyDiagnostics(
                 // (15,16): warning CS1574: XML comment has cref attribute 'Derived.M2' that could not be resolved
                 // /// <see cref="Derived.M2" />
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Derived.M2").WithArguments("Derived.M2"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Derived.M2").WithArguments("M2"),
                 // (16,16): warning CS1574: XML comment has cref attribute 'Derived.M3' that could not be resolved
                 // /// <see cref="Derived.M3" />
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Derived.M3").WithArguments("Derived.M3"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Derived.M3").WithArguments("M3"));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation).ToArray();
@@ -5018,10 +5019,10 @@ class Outer<T>
             compilation.VerifyDiagnostics(
                 // (2,16): warning CS1574: XML comment has cref attribute 'Outer{T}.Outer' that could not be resolved
                 // /// <see cref="Outer{T}.Outer"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Outer{T}.Outer").WithArguments("Outer{T}.Outer"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Outer{T}.Outer").WithArguments("Outer"),
                 // (5,20): warning CS1574: XML comment has cref attribute 'Outer{T}.Outer' that could not be resolved
                 //     /// <see cref="Outer{T}.Outer"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Outer{T}.Outer").WithArguments("Outer{T}.Outer"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Outer{T}.Outer").WithArguments("Outer"));
 
             var outerCtor = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer").InstanceConstructors.Single();
 
@@ -5069,13 +5070,13 @@ class SomeOtherClass
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "GenericClass").WithArguments("GenericClass"),
                 // (16,67): warning CS1574: XML comment has cref attribute 'GenericClass.NormalSub' that could not be resolved
                 // /// <see cref="GenericClass{T}.NormalSub"/> is normal. <see cref="GenericClass.NormalSub"/> performs a normal operation.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "GenericClass.NormalSub").WithArguments("GenericClass.NormalSub"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "GenericClass.NormalSub").WithArguments("NormalSub"),
                 // (17,69): warning CS1574: XML comment has cref attribute 'GenericClass.GenericSub' that could not be resolved
                 // /// <see cref="GenericClass{T}.GenericSub"/> is generic. <see cref="GenericClass.GenericSub"/> performs a generic operation.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "GenericClass.GenericSub").WithArguments("GenericClass.GenericSub"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "GenericClass.GenericSub").WithArguments("GenericSub"),
                 // (19,16): warning CS1574: XML comment has cref attribute 'GenericClass.GenericSub{T}' that could not be resolved
                 // /// <see cref="GenericClass.GenericSub{T}"/> 's parameters is called <c>T2</c>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "GenericClass.GenericSub{T}").WithArguments("GenericClass.GenericSub{T}"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "GenericClass.GenericSub{T}").WithArguments("GenericSub{T}"));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation).ToArray();
@@ -5678,7 +5679,7 @@ class C
             compilation.VerifyDiagnostics(
                 // (2,16): warning CS1580: Invalid type for parameter 'T.C' in XML comment cref attribute: 'F{T}(T.C)'
                 // /// <see cref="F{T}(T.C)"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "F{T}(T.C)").WithArguments("T.C", "F{T}(T.C)"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "T.C").WithArguments("T.C", "F{T}(T.C)"),
                 // (2,16): warning CS1574: XML comment has cref attribute 'F{T}(T.C)' that could not be resolved
                 // /// <see cref="F{T}(T.C)"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "F{T}(T.C)").WithArguments("F{T}(T.C)"));
@@ -5725,10 +5726,10 @@ class C
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "C{C}").WithArguments("C{C}"),
                 // (2,16): warning CS1574: XML comment has cref attribute 'C.D{C}' that could not be resolved
                 // /// <see cref="C.D{C}"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "C.D{C}").WithArguments("C.D{C}"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C.D{C}").WithArguments("D{C}"),
                 // (3,16): warning CS1574: XML comment has cref attribute 'C.D.E{C}' that could not be resolved
                 // /// <see cref="C.D.E{C}"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "C.D.E{C}").WithArguments("C.D.E{C}"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C.D.E{C}").WithArguments("E{C}"));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -5816,7 +5817,7 @@ enum E { }
             compilation.VerifyDiagnostics(
                 // (4,16): warning CS1574: XML comment has cref attribute 'RuntimeType.Equals' that could not be resolved
                 // /// <see cref="RuntimeType.Equals"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "RuntimeType.Equals").WithArguments("RuntimeType.Equals"),
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "RuntimeType.Equals").WithArguments("Equals"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
@@ -6123,7 +6124,7 @@ class Outer<T>
                 Diagnostic(ErrorCode.WRN_UnqualifiedNestedTypeInCref, "Inner"),
                 // (6,20): warning CS1574: XML comment has cref attribute 'Outer{Q}.M(Inner)' that could not be resolved
                 //     /// <see cref='Outer{Q}.M(Inner)'/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Outer{Q}.M(Inner)").WithArguments("Outer{Q}.M(Inner)"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "Outer{Q}.M(Inner)").WithArguments("M(Inner)"));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -6367,7 +6368,7 @@ class C
             comp.VerifyDiagnostics(
                 // (11,16): warning CS1574: XML comment has cref attribute 'IDerived.P' that could not be resolved
                 // /// <see cref='IDerived.P'/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "IDerived.P").WithArguments("IDerived.P").WithLocation(11, 16));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "IDerived.P").WithArguments("P").WithLocation(11, 16));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -6405,7 +6406,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,16): warning CS1574: XML comment has cref attribute 'I.ToString' that could not be resolved
                 // /// <see cref='I.ToString'/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "I.ToString").WithArguments("I.ToString").WithLocation(6, 16));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "I.ToString").WithArguments("ToString").WithLocation(6, 16));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);

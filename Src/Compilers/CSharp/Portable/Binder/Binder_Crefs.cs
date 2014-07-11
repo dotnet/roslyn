@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // all other crefs only have type parameters.
             if (result.Kind == SymbolKind.ErrorType)
             {
-                diagnostics.Add(ErrorCode.WRN_BadXMLRef, syntax.Location, syntax.ToFullString());
+                var noTrivia = syntax.WithLeadingTrivia(null).WithTrailingTrivia(null);
+                diagnostics.Add(ErrorCode.WRN_BadXMLRef, syntax.Location, noTrivia.ToFullString());
             }
 
             // We'll never have more than one type, but it is conceivable that result could
@@ -103,7 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // As in normal lookup (see CreateErrorIfLookupOnTypeParameter), you can't dot into a type parameter
                 // (though you can dot into an expression of type parameter type).
                 CrefSyntax crefSyntax = GetRootCrefSyntax(syntax);
-                diagnostics.Add(ErrorCode.WRN_BadXMLRef, crefSyntax.Location, crefSyntax.ToFullString());
+                var noTrivia = syntax.WithLeadingTrivia(null).WithTrailingTrivia(null);
+                diagnostics.Add(ErrorCode.WRN_BadXMLRef, crefSyntax.Location, noTrivia.ToFullString());
 
                 ambiguityWinner = null;
                 return ImmutableArray<Symbol>.Empty;
@@ -134,7 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.Any())
             {
                 CrefSyntax crefSyntax = GetRootCrefSyntax(syntax);
-                diagnostics.Add(ErrorCode.WRN_BadXMLRef, crefSyntax.Location, crefSyntax.ToFullString());
+                var noTrivia = syntax.WithLeadingTrivia(null).WithTrailingTrivia(null);
+                diagnostics.Add(ErrorCode.WRN_BadXMLRef, crefSyntax.Location, noTrivia.ToFullString());
             }
 
             return result;
@@ -908,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? ErrorCode.WRN_BadXMLRefReturnType
                         : ErrorCode.WRN_BadXMLRefParamType;
                     CrefSyntax crefSyntax = GetRootCrefSyntax(memberCrefSyntax);
-                    diagnostics.Add(code, crefSyntax.Location, typeSyntax.ToString(), crefSyntax.ToString());
+                    diagnostics.Add(code, typeSyntax.Location, typeSyntax.ToString(), crefSyntax.ToString());
                 }
             }
             else
