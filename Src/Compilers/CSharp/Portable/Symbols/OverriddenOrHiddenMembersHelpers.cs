@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         int methodCustomModifierCount = CustomModifierCount(otherMember);
                         if (methodCustomModifierCount < minCustomModifierCount)
                         {
-                            Debug.Assert(memberIsFromSomeCompilation, "Metadata members require exact custom modifier matches.");
+                            Debug.Assert(memberIsFromSomeCompilation || minCustomModifierCount == int.MaxValue, "Metadata members require exact custom modifier matches.");
                             minCustomModifierCount = methodCustomModifierCount;
                             currTypeBestMatch = otherMember;
                         }
