@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns the <see cref="ImmutableArray{IDiagnosticAnalyzer}"/> defined in the given <paramref name="analyzerAssemblies"/>.
+        /// Returns the <see cref="ImmutableArray{T}"/> of <see cref="IDiagnosticAnalyzer"/> defined in the given <paramref name="analyzerAssemblies"/>.
         /// </summary>
         public static ImmutableArray<IDiagnosticAnalyzer> GetAnalyzers(ImmutableArray<AnalyzerFileReference> analyzerAssemblies)
         {
@@ -113,20 +113,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Adds the <see cref="ImmutableArray{IDiagnosticAnalyzer}"/> defined in this assembly reference
+        /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="IDiagnosticAnalyzer"/> defined in this assembly reference.
         /// </summary>
         internal void AddAnalyzers(ImmutableArray<IDiagnosticAnalyzer>.Builder builder, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
-            // Using Assembly.LoadFrom to load into the Load-From context. This ensures that:
-            // 1 . The analyzer and it's dependencies don't have to be in the probing path of this process
-            // 2 . When multiple assemblies with the same identity are loaded (even from different paths), we return
-            // the same assembly and avoid bloat. This does mean that strong identity for analyzers is important.
+            // We handle loading of analyzer assemblies ourselves. This allows us to avoid locking the assembly
+            // file on disk.
             Type[] types = null;
             Exception ex = null;
 
             try
             {
-                Assembly analyzerAssembly = Assembly.LoadFrom(fullPath);
+                Assembly analyzerAssembly = InMemoryAssemblyLoader.Load(fullPath);
                 types = analyzerAssembly.GetTypes();
             }
             catch (FileLoadException e)

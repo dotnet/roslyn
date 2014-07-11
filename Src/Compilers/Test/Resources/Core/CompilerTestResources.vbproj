@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props" Condition="Exists('..\..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props')" />
   <ImportGroup Label="Settings">
+    <Import Project="..\..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props" Condition="Exists('..\..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props')" />
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <OutDir>..\..\..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.Test.Resources</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <OutDir>..\..\..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Collections.Immutable">
@@ -52,6 +52,14 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="AssemblyLoadTests\Alpha.cs" />
+    <Content Include="AssemblyLoadTests\Alpha.dll" />
+    <Content Include="AssemblyLoadTests\Beta.cs" />
+    <Content Include="AssemblyLoadTests\Beta.dll" />
+    <Content Include="AssemblyLoadTests\Delta.cs" />
+    <Content Include="AssemblyLoadTests\Delta.dll" />
+    <Content Include="AssemblyLoadTests\Gamma.cs" />
+    <Content Include="AssemblyLoadTests\Gamma.dll" />
     <Content Include="DiagnosticTests\badresfile.res" />
     <Content Include="DiagnosticTests\ErrTestLib01.cs" />
     <Content Include="DiagnosticTests\ErrTestLib01.dll" />
@@ -386,11 +394,15 @@
     <Content Include="WinRt\WinMDPrefixing.cs" />
     <Content Include="WinRt\WinMDPrefixing.ildump" />
     <Content Include="WinRt\WinMDPrefixing.winmd" />
-    <None Include="packages.config" />
     <None Include="SymbolsTests\netModule\hash_module.cs" />
     <None Include="SymbolsTests\NoPia\MissingPIAAttributes.dll" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="AssemblyLoadTests\AssemblyLoadTests.resx">
+      <CustomToolNamespace>TestResources.AssemblyLoadTests</CustomToolNamespace>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>AssemblyLoadTests.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="DiagnosticTests\DiagnosticTests.resx">
       <CustomToolNamespace>TestResources.DiagnosticTests</CustomToolNamespace>
       <Generator>PublicResXFileCodeGenerator</Generator>
@@ -571,6 +583,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyLoadTests\AssemblyLoadTests.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>AssemblyLoadTests.resx</DependentUpon>
+    </Compile>
     <Compile Include="DiagnosticTests\DiagnosticTests.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -752,6 +769,5 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props'))" />
   </Target>
 </Project>

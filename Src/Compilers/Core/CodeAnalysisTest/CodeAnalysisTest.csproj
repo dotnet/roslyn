@@ -1,13 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props" Condition="Exists('..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props')" />
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props" Condition="Exists('..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props')" />
   </ImportGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -17,12 +18,12 @@
     <StyleCopEnabled>false</StyleCopEnabled>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
+    <Compile Include="InMemoryAssemblyLoaderTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -88,13 +89,11 @@
       <HintPath>..\..\..\packages\xunit.core.2.0.0-alpha-build2576\lib\net45\xunit2.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary">
-      <HintPath>..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.0.7.4032713-beta\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.0.7.4070101-beta\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
@@ -188,9 +187,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="Resources\default.win32manifest" />
     <None Include="Resources\nativeWithStringIDsAndTypesAndIntTypes.res" />
     <None Include="Resources\Roslyn.ico.blah" />
@@ -209,6 +205,5 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props'))" />
   </Target>
 </Project>
