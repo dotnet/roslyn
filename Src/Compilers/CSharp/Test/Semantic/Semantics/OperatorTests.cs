@@ -6286,7 +6286,6 @@ class Module1
             }
         }
 
-
         [Fact(), WorkItem(721565, "DevDiv")]
         public void Bug721565()
         {
@@ -6368,7 +6367,61 @@ struct TestStr
                         throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(i);
                 }
             }
+        }
 
+        [Fact]
+        public void IntrinsicBinaryOperatorSignature_EqualsAndGetHashCode()
+        {
+            var source =
+@"class C
+{
+    static object F(int i)
+    {
+        return i += 1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            var methodBody = methodDecl.Body;
+            var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(methodBody.SpanStart);
+            var diagnostics = DiagnosticBag.GetInstance();
+            var block = binder.BindBlock(methodBody, diagnostics);
+            diagnostics.Free();
+
+            // Rewriter should use Equals.
+            var rewriter = new EmptyRewriter();
+            var node = rewriter.Visit(block);
+            Assert.ReferenceEquals(node, block);
+
+            var visitor = new FindCompoundAssignmentWalker();
+            visitor.Visit(block);
+            var op = visitor.FirstNode.Operator;
+            Assert.Null(op.Method);
+            // Equals and GetHashCode should support null Method.
+            Assert.Equal(op, new BinaryOperatorSignature(op.Kind, op.LeftType, op.RightType, op.ReturnType, op.Method));
+            op.GetHashCode();
+        }
+
+        private sealed class EmptyRewriter : BoundTreeRewriter
+        {
+        }
+
+        private sealed class FindCompoundAssignmentWalker : BoundTreeWalker
+        {
+            internal BoundCompoundAssignmentOperator FirstNode;
+
+            public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+            {
+                if (FirstNode == null)
+                {
+                    FirstNode = node;
+                }
+                return base.VisitCompoundAssignmentOperator(node);
+            }
         }
     }
 }

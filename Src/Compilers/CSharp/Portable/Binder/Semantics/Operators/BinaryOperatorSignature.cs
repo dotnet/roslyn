@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.LeftType.Equals(other.LeftType) &&
                 this.RightType.Equals(other.RightType) &&
                 this.ReturnType.Equals(other.ReturnType) &&
-                this.Method.Equals(other.Method);
+                this.Method == other.Method;
         }
 
         public static bool operator ==(BinaryOperatorSignature x, BinaryOperatorSignature y)
