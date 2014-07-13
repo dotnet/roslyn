@@ -1246,8 +1246,8 @@ BC30500: Constant 'M0' cannot depend on its own value.
             comp.AssertTheseDiagnostics(<errors>
 BC30500: Constant 'M0' cannot depend on its own value.
     M0 = M5999 + 1
-               ~~
-                                        </errors>)
+    ~~
+</errors>)
         End Sub
 
         <Fact(Skip:="886047"), WorkItem(886047, "DevDiv")>
@@ -1277,6 +1277,7 @@ BC30500: Constant 'M0' cannot depend on its own value.
         ''' </summary>
         Private Shared Function GenerateEnum(n As Integer, getMemberValue As Func(Of Integer, Integer, String)) As XElement
             Dim builder As New StringBuilder()
+            builder.AppendLine("Enum E")
             For i = 0 To n - 1
                 builder.Append(String.Format("    M{0}", i))
                 Dim value = getMemberValue(i, n)
@@ -1286,12 +1287,9 @@ BC30500: Constant 'M0' cannot depend on its own value.
                 End If
                 builder.AppendLine()
             Next
+            builder.AppendLine("End Enum")
             Return <compilation>
-                       <file name="a.vb">
-Enum E
-<%= builder.ToString() %>
-End Enum
-    </file>
+                       <file name="a.vb"><%= builder.ToString() %></file>
                    </compilation>
         End Function
 
