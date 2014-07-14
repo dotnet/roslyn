@@ -73,18 +73,13 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 return symbol.Kind == SymbolKind.Field;
             }
 
-            // In an expression or statement context, we don't want to display instance members declared in outer containing types,
-            // unless our enclosing type derives from the members's containing type.
+            // In an expression or statement context, we don't want to display instance members declared in outer containing types.
             if ((context.IsStatementContext || context.IsAnyExpressionContext) &&
                 !symbol.IsStatic &&
-                isMember)
+                isMember &&
+                context.GetOuterTypes(cancellationToken).Contains(symbol.ContainingType))
             {
-                var outerTypesAndBases = context.GetOuterTypes(cancellationToken).SelectMany(o => o.GetBaseTypesAndThis()).Select(t => t.OriginalDefinition);
-                if (outerTypesAndBases.Contains(symbol.ContainingType.OriginalDefinition))
-                {
-                    var enclosingType = context.SemanticModel.GetEnclosingNamedType(context.LeftToken.SpanStart, cancellationToken);
-                    return enclosingType != null && enclosingType.GetBaseTypes().Select(b => b.OriginalDefinition).Contains(symbol.ContainingType.OriginalDefinition);
-                }
+                return false;
             }
 
             var namespaceSymbol = symbol as INamespaceSymbol;
