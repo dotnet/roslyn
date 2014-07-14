@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         // used to protect access to mutable state
         private readonly NonReentrantLock dataGuard = new NonReentrantLock();
 
-        private readonly Dictionary<string, string> extensionToLanguageMap = new Dictionary<string, string>();
-        private readonly Dictionary<string, ProjectId> projectPathToProjectIdMap = new Dictionary<string, ProjectId>();
-        private readonly Dictionary<string, IProjectFileLoader> projectPathToLoaderMap = new Dictionary<string, IProjectFileLoader>();
+        private readonly Dictionary<string, string> extensionToLanguageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, ProjectId> projectPathToProjectIdMap = new Dictionary<string, ProjectId>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IProjectFileLoader> projectPathToLoaderMap = new Dictionary<string, IProjectFileLoader>(StringComparer.OrdinalIgnoreCase);
 
         private string solutionFilePath;
         private ImmutableDictionary<string, string> properties;

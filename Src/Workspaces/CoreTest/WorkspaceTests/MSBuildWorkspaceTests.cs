@@ -550,6 +550,25 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_WithAssociatedLanguageExtension3_IgnoreCase()
+        {
+            // make a CSharp solution with a project file having the incorrect extension 'anyproj', and then load it using the overload the lets us
+            // specify the language directly, instead of inferring from the extension
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.anyproj", GetResourceText("CSharpProject_CSharpProject.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+
+            // prove that the association works even if the case is different
+            ws.AssociateFileExtensionWithLanguage("ANYPROJ", LanguageNames.CSharp);
+            var project = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.anyproj")).Result;
+            var document = project.Documents.First();
+            var tree = document.GetSyntaxTreeAsync().Result;
+            var diagnostics = tree.GetDiagnostics().ToList();
+            Assert.Equal(0, diagnostics.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenSolution_WithNonExistentSolutionFile_Fails()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
