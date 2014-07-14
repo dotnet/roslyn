@@ -1,6 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -125,10 +123,6 @@
 #pragma warning disable 414, 3021
 #pragma warning restore 3021
 #pragma checksum "file.txt" "{00000000-0000-0000-0000-000000000000}" "2453"
-#line 6
-#line 2 "test.cs"
-#line default
-#line hidden
 #define foo
 #if foo
 #else
@@ -805,7 +799,12 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
         struct Point { public int X; public int Y; public void ThisAccess() { this = this; } }
     }
-}</value>
+}
+
+#line 6
+#line 2 "test.cs"
+#line default
+#line hidden</value>
   </data>
   <data name="AllInOneVisualBasicBaseline" xml:space="preserve">
     <value>Option Infer On

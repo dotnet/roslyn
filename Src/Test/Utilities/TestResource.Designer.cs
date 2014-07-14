@@ -66,10 +66,6 @@ namespace Roslyn.Test.Utilities {
         ///#pragma warning disable 414, 3021
         ///#pragma warning restore 3021
         ///#pragma checksum &quot;file.txt&quot; &quot;{00000000-0000-0000-0000-000000000000}&quot; &quot;2453&quot;
-        ///#line 6
-        ///#line 2 &quot;test.cs&quot;
-        ///#line default
-        ///#line hidden
         ///#define foo
         ///#if foo
         ///#else
@@ -86,7 +82,8 @@ namespace Roslyn.Test.Utilities {
         ///using M = System.Math;
         ///
         ///#if DEBUG || TRACE
-        ///using System.Diagnostics; [rest of string was truncated]&quot;;.
+        ///using System.Diagnostics;
+        ///#elif SILVERLIGHT &amp;&amp; WINDOWS_PHONE || DEBUG || foo == t [rest of string was truncated]&quot;;.
         /// </summary>
         public static string AllInOneCSharpCode {
             get {
