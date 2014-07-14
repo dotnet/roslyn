@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal struct BinaryOperatorSignature
@@ -35,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return
                 this.Kind == other.Kind &&
-                this.LeftType.Equals(other.LeftType) &&
-                this.RightType.Equals(other.RightType) &&
-                this.ReturnType.Equals(other.ReturnType) &&
+                this.LeftType == other.LeftType &&
+                this.RightType == other.RightType &&
+                this.ReturnType == other.ReturnType &&
                 this.Method == other.Method;
         }
 
