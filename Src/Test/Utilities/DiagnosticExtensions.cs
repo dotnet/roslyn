@@ -103,6 +103,23 @@ namespace Microsoft.CodeAnalysis
             return VerifyAnalyzerDiagnostics(c, n => n.VisualBasicKind(), analyzers, options, expected: expected);
         }
 
+        public static TCompilation VerifyAnalyzerOccuranceCount<TCompilation>(this TCompilation c, IDiagnosticAnalyzer[] analyzers, int expectedCount)
+            where TCompilation : Compilation
+        {
+            var csComp = c as CSharpCompilation;
+            if (csComp != null)
+            {
+                Assert.Equal(expectedCount, csComp.GetCSharpAnalyzerDiagnostics(analyzers).Length);
+                return c;
+            }
+            else
+            {
+                var vbComp = c as VisualBasicCompilation;
+                Assert.Equal(expectedCount, vbComp.GetVisualBasicAnalyzerDiagnostics(analyzers).Length);
+                return c;
+            }
+        }
+
         public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(
                 this TCompilation c, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
             where TCompilation : Compilation

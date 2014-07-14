@@ -1,14 +1,13 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports System.Threading
 
 <CLSCompliant(False)>
 Public Class ParseDirectives
@@ -3048,25 +3047,47 @@ End Module
         CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
     End Sub
 
-    Private Class CustomDiagnosticAnalyzerWithFullWidthId
+    Private Class CustomDiagnosticAnalyzer
         Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
-        Private descriptor As New DiagnosticDescriptor("ｓＯＭＥＩＤ", "something1", "something2", "something3", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
-        Public ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SupportedDiagnostics
+        Private ReadOnly descriptor As DiagnosticDescriptor
+        Private ReadOnly kind As SyntaxKind
+        Private ReadOnly reporter As Func(Of SyntaxNode, DiagnosticDescriptor, Diagnostic)
+
+        Public Sub New(descriptor As DiagnosticDescriptor, kind As SyntaxKind, reporter As Func(Of SyntaxNode, DiagnosticDescriptor, Diagnostic))
+            Me.descriptor = descriptor
+            Me.kind = kind
+            Me.reporter = reporter
+        End Sub
+
+        Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
             Get
                 Return ImmutableArray.Create(descriptor)
             End Get
         End Property
 
-        Public ReadOnly Property SyntaxKindsOfInterest() As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
+        Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
             Get
-                Return ImmutableArray.Create(SyntaxKind.VariableDeclarator)
+                Return ImmutableArray.Create(kind)
             End Get
         End Property
 
         Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-            Dim varDecl = DirectCast(node, VariableDeclaratorSyntax)
-            addDiagnostic(CodeAnalysis.Diagnostic.Create(descriptor, varDecl.AsClause.GetLocation))
+            addDiagnostic(reporter(node, descriptor))
+        End Sub
+    End Class
+
+    Private Class CustomDiagnosticAnalyzerWithFullWidthId
+        Inherits CustomDiagnosticAnalyzer
+
+        Public Sub New()
+            MyBase.New(
+                New DiagnosticDescriptor("ｓＯＭＥＩＤ", "something1", "something2", "something3", DiagnosticSeverity.Warning, isEnabledByDefault:=True),
+                SyntaxKind.VariableDeclarator,
+                Function(n, d)
+                    Dim varDecl = DirectCast(n, VariableDeclaratorSyntax)
+                    Return CodeAnalysis.Diagnostic.Create(d, varDecl.AsClause.GetLocation)
+                End Function)
         End Sub
     End Class
 
@@ -3167,25 +3188,17 @@ End Module
     End Sub
 
     Private Class CustomDiagnosticAnalyzerWithVeryLongId
-        Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
-        Private descriptor As New DiagnosticDescriptor("__Something_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
-                                                       "something1", "something2", "something3", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+        Inherits CustomDiagnosticAnalyzer
 
-        Public ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SupportedDiagnostics
-            Get
-                Return ImmutableArray.Create(descriptor)
-            End Get
-        End Property
-
-        Public ReadOnly Property SyntaxKindsOfInterest() As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
-            Get
-                Return ImmutableArray.Create(SyntaxKind.VariableDeclarator)
-            End Get
-        End Property
-
-        Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-            Dim varDecl = DirectCast(node, VariableDeclaratorSyntax)
-            addDiagnostic(CodeAnalysis.Diagnostic.Create(descriptor, varDecl.AsClause.GetLocation))
+        Public Sub New()
+            MyBase.New(
+                New DiagnosticDescriptor("__Something_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
+                                         "something1", "something2", "something3", DiagnosticSeverity.Warning, isEnabledByDefault:=True),
+                SyntaxKind.VariableDeclarator,
+                Function(n, d)
+                    Dim varDecl = DirectCast(n, VariableDeclaratorSyntax)
+                    Return CodeAnalysis.Diagnostic.Create(d, varDecl.AsClause.GetLocation)
+                End Function)
         End Sub
     End Class
 
@@ -3496,6 +3509,60 @@ End Module]]>
             VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "j.MaxValue").WithLocation(9, 25),
                 Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "j.MaxValue").WithLocation(14, 21))
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_Precedence1()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+Module Program
+    &lt;System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "TestId", Justification:="&lt;Pending&gt;")&gt;
+    Sub Main()
+    #enable warning TestId
+        Dim x As Integer 'Warning with above very long id is reported on "As Integer" clause
+    End Sub
+End Module
+    </file>
+</compilation>
+        Dim analyzer = New CustomDiagnosticAnalyzer(
+            New DiagnosticDescriptor("TestId", "something1", "something2", "something3", DiagnosticSeverity.Warning, isEnabledByDefault:=True),
+                SyntaxKind.VariableDeclarator,
+                Function(n, d)
+                    Dim varDecl = DirectCast(n, VariableDeclaratorSyntax)
+                    Return CodeAnalysis.Diagnostic.Create(d, varDecl.AsClause.GetLocation)
+                End Function)
+
+        Dim analyzers = {analyzer}
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerOccuranceCount(analyzers, 0)
+    End Sub
+
+    <Fact>
+    Public Sub TestWarningDirective_Precedence2()
+        Dim compXml =
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main()
+    #enable warning TestId
+        Dim x As Integer 'Warning with above very long id is reported on "As Integer" clause
+    End Sub
+End Module
+    </file>
+    <file name="suppression.vb">
+        &lt;Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "TestId", Justification:="&lt;Pending&gt;")&gt;
+    </file>
+</compilation>
+        Dim analyzer = New CustomDiagnosticAnalyzer(
+            New DiagnosticDescriptor("TestId", "something1", "something2", "something3", DiagnosticSeverity.Warning, isEnabledByDefault:=True),
+                SyntaxKind.VariableDeclarator,
+                Function(n, d)
+                    Dim varDecl = DirectCast(n, VariableDeclaratorSyntax)
+                    Return CodeAnalysis.Diagnostic.Create(d, varDecl.AsClause.GetLocation)
+                End Function)
+
+        Dim analyzers = {analyzer}
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerOccuranceCount(analyzers, 0)
     End Sub
 #End Region
 
