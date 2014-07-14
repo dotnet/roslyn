@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return (SyntaxTrivia)trivia;
         }
 
-        protected override LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, SyntaxTrivia trivia2)
+        protected override LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2)
         {
             if (IsStartOrEndOfFile(trivia1, trivia2))
             {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 // Check for immovable preprocessor directives, which are bad directive trivia 
                 // without a preceding line break
-                if (trivia2.IsKind(SyntaxKind.BadDirectiveTrivia) && existingWhitespaceBetween.Lines == 0)
+                if (trivia2.IsKind(SyntaxKind.BadDirectiveTrivia) && existingWhitespaceBetween.Lines == 0 && !implicitLineBreak)
                 {
                     this.succeeded = false;
                     return LineColumnRule.Preserve();
@@ -149,6 +149,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return LineColumnRule.Preserve();
+        }
+
+        protected override bool ContainsImplicitLineBreak(SyntaxTrivia trivia)
+        {
+            if (!trivia.HasStructure)
+            {
+                return false;
+            }
+
+            var structuredTrivia = trivia.GetStructure();
+
+            return structuredTrivia != null &&
+                structuredTrivia.HasTrailingTrivia &&
+                structuredTrivia.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia);
         }
 
         private bool IsStartOrEndOfFile(SyntaxTrivia trivia1, SyntaxTrivia trivia2)

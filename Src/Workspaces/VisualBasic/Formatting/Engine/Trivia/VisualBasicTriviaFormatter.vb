@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return SyntaxFactory.CarriageReturnLineFeed
         End Function
 
-        Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, trivia2 As SyntaxTrivia) As LineColumnRule
+        Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia) As LineColumnRule
 
             ' line continuation
             If trivia2.VisualBasicKind = SyntaxKind.LineContinuationTrivia Then
@@ -146,6 +146,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             Return LineColumnRule.Preserve()
+        End Function
+
+        Protected Overrides Function ContainsImplicitLineBreak(syntaxTrivia As SyntaxTrivia) As Boolean
+            Return False
         End Function
 
         Private Function IsStartOrEndOfFile(trivia1 As SyntaxTrivia, trivia2 As SyntaxTrivia) As Boolean

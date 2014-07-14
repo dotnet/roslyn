@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// return line column rule for the given two trivia
         /// </summary>
-        protected abstract LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, SyntaxTrivia trivia2);
+        protected abstract LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2);
 
         /// <summary>
         /// format the given trivia at the line column position and put result to the changes list
@@ -172,6 +172,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// format the given trivia at the line column position and put text change result to the changes list
         /// </summary>
         protected abstract LineColumnDelta Format(LineColumn lineColumn, SyntaxTrivia trivia, List<TextChange> changes, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// returns true if the trivia contains a Line break
+        /// </summary>
+        protected abstract bool ContainsImplicitLineBreak(SyntaxTrivia trivia);
 
         protected int StartPosition
         {
@@ -270,6 +275,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var existingWhitespaceDelta = LineColumnDelta.Default;
             var previousWhitespaceTrivia = default(SyntaxTrivia);
             var previousTrivia = default(SyntaxTrivia);
+            var implicitLineBreak = false;
 
             var list = new TriviaList(this.Token1.TrailingTrivia, this.Token2.LeadingTrivia);
             foreach (var trivia in list)
@@ -281,6 +287,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 if (IsWhitespaceOrEndOfLine(trivia))
                 {
+                    if (IsEndOfLine(trivia))
+                    {
+                        implicitLineBreak = false;
+                    }
+
                     existingWhitespaceDelta = existingWhitespaceDelta.With(
                         GetLineColumnOfWhitespace(
                             lineColumn,
@@ -299,9 +310,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                     lineColumn,
                     previousTrivia, existingWhitespaceDelta, trivia,
                     formatter, whitespaceAdder,
-                    changes, cancellationToken);
+                    changes, implicitLineBreak, cancellationToken);
 
+                implicitLineBreak = implicitLineBreak || ContainsImplicitLineBreak(trivia);
                 existingWhitespaceDelta = LineColumnDelta.Default;
+
                 previousTrivia = trivia;
             }
 
@@ -309,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 lineColumn,
                 previousTrivia, existingWhitespaceDelta, default(SyntaxTrivia),
                 formatter, whitespaceAdder,
-                changes, cancellationToken);
+                changes, implicitLineBreak, cancellationToken);
 
             return lineColumn;
         }
@@ -322,12 +335,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             Formatter<T> format,
             WhitespaceAppender<T> addWhitespaceTrivia,
             List<T> changes,
+            bool implicitLineBreak,
             CancellationToken cancellationToken)
         {
             var lineColumnAfterTrivia1 = trivia1.RawKind == 0 ?
                     lineColumnBeforeTrivia1 : lineColumnBeforeTrivia1.With(format(lineColumnBeforeTrivia1, trivia1, changes, cancellationToken));
 
-            var rule = GetOverallLineColumnRuleBetween(trivia1, existingWhitespaceBetween, trivia2);
+            var rule = GetOverallLineColumnRuleBetween(trivia1, existingWhitespaceBetween, implicitLineBreak, trivia2);
             var whitespaceDelta = Apply(lineColumnBeforeTrivia1, trivia1, lineColumnAfterTrivia1, existingWhitespaceBetween, trivia2, rule);
 
             var span = GetTextSpan(trivia1, trivia2);
@@ -339,9 +353,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// get line column rule between two trivia
         /// </summary>
-        private LineColumnRule GetOverallLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, SyntaxTrivia trivia2)
+        private LineColumnRule GetOverallLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2)
         {
-            var defaultRule = GetLineColumnRuleBetween(trivia1, existingWhitespaceBetween, trivia2);
+            var defaultRule = GetLineColumnRuleBetween(trivia1, existingWhitespaceBetween, implicitLineBreak, trivia2);
 
             SyntaxToken token1;
             SyntaxToken token2;
