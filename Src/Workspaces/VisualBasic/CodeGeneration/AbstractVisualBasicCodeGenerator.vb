@@ -72,21 +72,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return Nothing
         End Function
 
-        Protected Shared Function EnsureEndTokens(destinationType As TypeBlockSyntax) As EndBlockStatementSyntax
-            If destinationType.End.IsMissing Then
-                Select Case (destinationType.VisualBasicKind)
-                    Case SyntaxKind.ClassBlock
-                        Return AddCleanupAnnotationsTo(SyntaxFactory.EndClassStatement())
-                    Case SyntaxKind.InterfaceBlock
-                        Return AddCleanupAnnotationsTo(SyntaxFactory.EndInterfaceStatement())
-                    Case SyntaxKind.StructureBlock
-                        Return AddCleanupAnnotationsTo(SyntaxFactory.EndStructureStatement())
-                End Select
-            End If
-
-            Return destinationType.End
-        End Function
-
         Protected Shared Function EnsureLastElasticTrivia(Of T As StatementSyntax)(statement As T) As T
             Dim lastToken = statement.GetLastToken(includeZeroWidth:=True)
             If lastToken.TrailingTrivia.Any(Function(trivia) trivia.IsElastic()) Then
@@ -94,55 +79,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Return statement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
-        End Function
-
-        Friend Shared Function FixTerminators(destinationType As TypeBlockSyntax) As TypeBlockSyntax
-            Return destinationType.WithInherits(EnsureProperInherits(destinationType)).
-                                   WithImplements(EnsureProperImplements(destinationType)).
-                                   WithBegin(EnsureProperBegin(destinationType)).
-                                   WithEnd(EnsureEndTokens(destinationType))
-        End Function
-
-        Friend Shared Function EnsureProperImplements(destinationType As TypeBlockSyntax) As SyntaxList(Of ImplementsStatementSyntax)
-            Dim allElements = destinationType.Implements
-            If allElements.Count > 0 Then
-                Return EnsureProperList(destinationType.Implements)
-            End If
-
-            Return destinationType.Implements
-        End Function
-
-        Friend Shared Function EnsureProperInherits(destinationType As TypeBlockSyntax) As SyntaxList(Of InheritsStatementSyntax)
-            Dim allElements = destinationType.Inherits
-            If allElements.Count > 0 AndAlso
-               destinationType.Implements.Count = 0 Then
-                Return EnsureProperList(destinationType.Inherits)
-            End If
-
-            Return destinationType.Inherits
-        End Function
-
-        Friend Shared Function EnsureProperList(Of TSyntax As SyntaxNode)(list As SyntaxList(Of TSyntax)) As SyntaxList(Of TSyntax)
-            Dim allElements = list
-            If Not allElements.Last().GetTrailingTrivia().Any(Function(t) t.VisualBasicKind = SyntaxKind.EndOfLineTrivia OrElse t.VisualBasicKind = SyntaxKind.ColonTrivia) Then
-                Return SyntaxFactory.SingletonList(Of TSyntax)(
-                    allElements.Last().WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed))
-            ElseIf allElements.Last().GetTrailingTrivia().Any(Function(t) t.VisualBasicKind = SyntaxKind.ColonTrivia) Then
-                Return SyntaxFactory.List(Of TSyntax)(
-                    allElements.Take(allElements.Count - 1).Concat(ReplaceTrailingColonToEndOfLineTrivia(allElements.Last())))
-            End If
-
-            Return list
-        End Function
-
-        Friend Shared Function EnsureProperBegin(destinationType As TypeBlockSyntax) As TypeStatementSyntax
-            If destinationType.Inherits.Count = 0 AndAlso
-               destinationType.Implements.Count = 0 AndAlso
-               destinationType.Begin.GetTrailingTrivia().Any(Function(t) t.VisualBasicKind = SyntaxKind.ColonTrivia) Then
-                Return ReplaceTrailingColonToEndOfLineTrivia(destinationType.Begin)
-            End If
-
-            Return destinationType.Begin
         End Function
 
         Protected Shared Function FirstMember(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
@@ -167,10 +103,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Protected Shared Function LastOperator(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
             Return members.LastOrDefault(Function(m) m.VisualBasicKind = SyntaxKind.OperatorBlock OrElse m.VisualBasicKind = SyntaxKind.OperatorStatement)
-        End Function
-
-        Private Shared Function ReplaceTrailingColonToEndOfLineTrivia(Of TNode As SyntaxNode)(node As TNode) As TNode
-            Return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(Function(t) If(t.VisualBasicKind = SyntaxKind.ColonTrivia, SyntaxFactory.CarriageReturnLineFeed, t)))
         End Function
 
         Private Shared Function AfterDeclaration(Of TDeclaration As SyntaxNode)(

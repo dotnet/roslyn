@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -253,6 +253,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return baseListTypes;
+        }
+
+        private static SyntaxToken EnsureToken(SyntaxToken token, bool prependNewLineIfMissing = false, bool appendNewLineIfMissing = false)
+        {
+            if (token.IsMissing)
+            {
+                var leadingTrivia = prependNewLineIfMissing ? token.LeadingTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed) : token.LeadingTrivia;
+                var trailingTrivia = appendNewLineIfMissing ? token.TrailingTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed) : token.TrailingTrivia;
+                return SyntaxFactory.Token(leadingTrivia, token.CSharpKind(), trailingTrivia).WithAdditionalAnnotations(Formatter.Annotation);
+            }
+            
+            return token;
+        }
+
+        private static void EnsureAndGetBraceTokens(
+            BaseTypeDeclarationSyntax typeDeclaration,
+            bool hasMembers,
+            out SyntaxToken openBrace,
+            out SyntaxToken closeBrace)
+        {
+            openBrace = EnsureToken(typeDeclaration.OpenBraceToken);
+            closeBrace = EnsureToken(typeDeclaration.CloseBraceToken, appendNewLineIfMissing: true);
+
+            if (!hasMembers)
+            {
+                // Bug 539673: If there are no members, take any trivia that
+                // belongs to the end brace and attach it to the opening brace.
+                int index = -1;
+                var leadingTrivia = closeBrace.LeadingTrivia;
+                for (int i = leadingTrivia.Count - 1; i >= 0; i--)
+                {
+                    if (!leadingTrivia[i].IsWhitespaceOrEndOfLine())
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+
+                if (index != -1)
+                {
+                    openBrace = openBrace.WithTrailingTrivia(
+                        openBrace.TrailingTrivia.Concat(closeBrace.LeadingTrivia.Take(index + 1)));
+                    closeBrace = closeBrace.WithLeadingTrivia(
+                        closeBrace.LeadingTrivia.Skip(index + 1));
+                }
+            }
+        }
+
+        public static TypeDeclarationSyntax EnsureOpenAndCloseBraceTokens(
+            this TypeDeclarationSyntax typeDeclaration)
+        {
+            SyntaxToken openBrace, closeBrace;
+            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out openBrace, out closeBrace);
+            return typeDeclaration.WithOpenBraceToken(openBrace).WithCloseBraceToken(closeBrace);
+        }
+
+        public static EnumDeclarationSyntax EnsureOpenAndCloseBraceTokens(
+            this EnumDeclarationSyntax typeDeclaration)
+        {
+            SyntaxToken openBrace, closeBrace;
+            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out openBrace, out closeBrace);
+            return typeDeclaration.WithOpenBraceToken(openBrace).WithCloseBraceToken(closeBrace);
         }
     }
 }

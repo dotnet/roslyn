@@ -69,24 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return new ExpressionGenerator().GenerateExpression(type, value, canUseFieldReference);
         }
 
-        protected static SyntaxToken EnsureToken(SyntaxToken token)
-        {
-            return token.IsMissing
-                ? SyntaxFactory.Token(token.LeadingTrivia, token.CSharpKind(), token.TrailingTrivia).WithAdditionalAnnotations(Formatter.Annotation)
-                : token;
-        }
-
         protected static TypeDeclarationSyntax AddMembersTo(
             TypeDeclarationSyntax destination, SyntaxList<MemberDeclarationSyntax> members)
         {
             destination = ReplaceUnterminatedConstructs(destination);
 
-            SyntaxToken openBrace;
-            SyntaxToken closeBrace;
-            GetBraceTokens(destination, out openBrace, out closeBrace);
-
             return ConditionallyAddFormattingAnnotationTo(
-                destination.WithMembers(members).WithOpenBraceToken(openBrace).WithCloseBraceToken(closeBrace),
+                destination.EnsureOpenAndCloseBraceTokens().WithMembers(members),
                 members);
         }
 
@@ -150,57 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return token;
         }
-
-        protected static void GetBraceTokens(
-            TypeDeclarationSyntax typeDeclaration,
-            out SyntaxToken openBrace,
-            out SyntaxToken closeBrace)
-        {
-            GetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out openBrace, out closeBrace);
-        }
-
-        protected static void GetBraceTokens(
-            EnumDeclarationSyntax typeDeclaration,
-            out SyntaxToken openBrace,
-            out SyntaxToken closeBrace)
-        {
-            GetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out openBrace, out closeBrace);
-        }
-
-        private static void GetBraceTokens(
-            BaseTypeDeclarationSyntax typeDeclaration,
-            bool hasMembers,
-            out SyntaxToken openBrace,
-            out SyntaxToken closeBrace)
-        {
-            openBrace = EnsureToken(typeDeclaration.OpenBraceToken);
-            closeBrace = EnsureToken(typeDeclaration.CloseBraceToken);
-
-            if (!hasMembers)
-            {
-                // Bug 5711: Crazy special case.  If there are no members, take any trivia that
-                // belongs to the end brace and attach it to the opening brace.
-                int index = -1;
-                var leadingTrivia = closeBrace.LeadingTrivia;
-                for (int i = leadingTrivia.Count - 1; i >= 0; i--)
-                {
-                    if (!leadingTrivia[i].IsWhitespaceOrEndOfLine())
-                    {
-                        index = i;
-                        break;
-                    }
-                }
-
-                if (index != -1)
-                {
-                    openBrace = openBrace.WithTrailingTrivia(
-                        openBrace.TrailingTrivia.Concat(closeBrace.LeadingTrivia.Take(index + 1)));
-                    closeBrace = closeBrace.WithLeadingTrivia(
-                        closeBrace.LeadingTrivia.Skip(index + 1));
-                }
-            }
-        }
-
+        
         protected static MemberDeclarationSyntax FirstMember(SyntaxList<MemberDeclarationSyntax> members)
         {
             return members.FirstOrDefault();

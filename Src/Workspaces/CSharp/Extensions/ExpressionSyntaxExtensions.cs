@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) && 
+            if (optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) &&
                 memberAccess.Expression.CSharpKind() == SyntaxKind.ThisExpression)
             {
                 return false;
@@ -1283,14 +1283,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
                     }
 
+                    // nullable rewrite: Nullable<int> -> int?
+                    // Don't rewrite in the case where Nullable<int> is part of some qualified name like Nullable<int>.Something
                     if (!name.IsVar && (symbol.Kind == SymbolKind.NamedType) && !name.IsLeftSideOfQualifiedName())
                     {
-                        // nullable rewrite: Nullable<int> -> int?
-                        // Don't rewrite in the case where Nullable<int> is part of some qualified name like Nullable<int>.Something
                         var type = (INamedTypeSymbol)symbol;
-                        if ((!type.IsUnboundGenericType) && // Don't rewrite open generic type "Nullable<>"
-                            (type.OriginalDefinition != null) && 
-                            (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T) && 
+                        if ((!type.IsUnboundGenericType) && // Don't rewrite unbound generic type "Nullable<>"
+                            (type.OriginalDefinition != null) &&
+                            (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T) &&
                             (aliasInfo == null))
                         {
                             GenericNameSyntax genericName;

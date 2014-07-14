@@ -6,10 +6,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
@@ -40,13 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 members.Add(member);
             }
 
-            SyntaxToken openBrace;
-            SyntaxToken closeBrace;
-            GetBraceTokens(destination, out openBrace, out closeBrace);
-
-            return destination.WithOpenBraceToken(openBrace)
-                                  .WithMembers(SyntaxFactory.SeparatedList<EnumMemberDeclarationSyntax>(members))
-                                  .WithCloseBraceToken(closeBrace);
+            return destination.EnsureOpenAndCloseBraceTokens()
+                .WithMembers(SyntaxFactory.SeparatedList<EnumMemberDeclarationSyntax>(members));
         }
 
         public static EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration(

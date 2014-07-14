@@ -2,9 +2,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -119,6 +117,75 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return indices
+        End Function
+
+        Private Function ReplaceTrailingColonToEndOfLineTrivia(Of TNode As SyntaxNode)(node As TNode) As TNode
+            Return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(Function(t) If(t.VisualBasicKind = SyntaxKind.ColonTrivia, SyntaxFactory.CarriageReturnLineFeed, t)))
+        End Function
+
+        Private Function EnsureProperList(Of TSyntax As SyntaxNode)(list As SyntaxList(Of TSyntax)) As SyntaxList(Of TSyntax)
+            Dim allElements = list
+            If Not allElements.Last().GetTrailingTrivia().Any(Function(t) t.VisualBasicKind = SyntaxKind.EndOfLineTrivia OrElse t.VisualBasicKind = SyntaxKind.ColonTrivia) Then
+                Return SyntaxFactory.SingletonList(Of TSyntax)(
+                    allElements.Last().WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed))
+            ElseIf allElements.Last().GetTrailingTrivia().Any(Function(t) t.VisualBasicKind = SyntaxKind.ColonTrivia) Then
+                Return SyntaxFactory.List(Of TSyntax)(
+                    allElements.Take(allElements.Count - 1).Concat(ReplaceTrailingColonToEndOfLineTrivia(allElements.Last())))
+            End If
+
+            Return list
+        End Function
+
+        Private Function EnsureProperInherits(destinationType As TypeBlockSyntax) As SyntaxList(Of InheritsStatementSyntax)
+            Dim allElements = destinationType.Inherits
+            If allElements.Count > 0 AndAlso
+               destinationType.Implements.Count = 0 Then
+                Return EnsureProperList(destinationType.Inherits)
+            End If
+
+            Return destinationType.Inherits
+        End Function
+
+        Private Function EnsureProperImplements(destinationType As TypeBlockSyntax) As SyntaxList(Of ImplementsStatementSyntax)
+            Dim allElements = destinationType.Implements
+            If allElements.Count > 0 Then
+                Return EnsureProperList(destinationType.Implements)
+            End If
+
+            Return destinationType.Implements
+        End Function
+
+        Private Function EnsureProperBegin(destinationType As TypeBlockSyntax) As TypeStatementSyntax
+            If destinationType.Inherits.Count = 0 AndAlso
+               destinationType.Implements.Count = 0 AndAlso
+               destinationType.Begin.GetTrailingTrivia().Any(Function(t) t.VisualBasicKind = SyntaxKind.ColonTrivia) Then
+                Return ReplaceTrailingColonToEndOfLineTrivia(destinationType.Begin)
+            End If
+
+            Return destinationType.Begin
+        End Function
+
+        Private Function EnsureEndTokens(destinationType As TypeBlockSyntax) As EndBlockStatementSyntax
+            If destinationType.End.IsMissing Then
+                Select Case (destinationType.VisualBasicKind)
+                    Case SyntaxKind.ClassBlock
+                        Return SyntaxFactory.EndClassStatement().WithAdditionalAnnotations(Formatter.Annotation)
+                    Case SyntaxKind.InterfaceBlock
+                        Return SyntaxFactory.EndInterfaceStatement().WithAdditionalAnnotations(Formatter.Annotation)
+                    Case SyntaxKind.StructureBlock
+                        Return SyntaxFactory.EndStructureStatement().WithAdditionalAnnotations(Formatter.Annotation)
+                End Select
+            End If
+
+            Return destinationType.End
+        End Function
+
+        <Extension>
+        Public Function FixTerminators(destinationType As TypeBlockSyntax) As TypeBlockSyntax
+            Return destinationType.WithInherits(EnsureProperInherits(destinationType)).
+                                   WithImplements(EnsureProperImplements(destinationType)).
+                                   WithBegin(EnsureProperBegin(destinationType)).
+                                   WithEnd(EnsureEndTokens(destinationType))
         End Function
     End Module
 End Namespace
