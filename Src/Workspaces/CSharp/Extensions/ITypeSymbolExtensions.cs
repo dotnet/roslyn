@@ -48,7 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static async Task<ISymbol> FindApplicableAlias(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
+       { 
+            var token = semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var declaration = token.GetAncestor<MemberDeclarationSyntax>();
+            if (declaration != null)
+            {
+                position = declaration.SpanStart;
+            }
+
             var root = await semanticModel.GetOriginalSemanticModel().SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             IEnumerable<UsingDirectiveSyntax> applicableUsings = GetApplicableUsings(position, root as CompilationUnitSyntax);
