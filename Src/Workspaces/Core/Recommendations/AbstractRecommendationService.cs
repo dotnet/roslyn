@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 case SymbolKind.Property:
                     isMember = true;
                     break;
+
+                case SymbolKind.TypeParameter:
+                    return ((ITypeParameterSymbol)symbol).TypeParameterKind != TypeParameterKind.Cref;
             }
 
             if (context.IsAttributeNameContext)
