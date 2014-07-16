@@ -285,6 +285,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End Get
         End Property
+
+        Friend Overrides Function BinderSpecificLookupOptions(options As LookupOptions) As LookupOptions
+            Return options
+        End Function
     End Class
 
 End Namespace

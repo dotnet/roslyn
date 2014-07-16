@@ -24,10 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End Get
         End Property
-
-        Friend Overrides Function BinderSpecificLookupOptions(options As LookupOptions) As LookupOptions
-            Return Me.ContainingBinder.BinderSpecificLookupOptions(options)
-        End Function
     End Class
 
 End Namespace

@@ -111,8 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' lookup options accordingly.
         ''' </summary>
         Friend Overridable Function BinderSpecificLookupOptions(options As LookupOptions) As LookupOptions
-            ' When early binding attributes, extension methods should always be ignored.
-            Return If(IsEarlyAttributeBinder, options Or LookupOptions.IgnoreExtensionMethods, options)
+            Return m_containingBinder.BinderSpecificLookupOptions(options)
         End Function
 
         ''' <summary>

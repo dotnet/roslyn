@@ -200,6 +200,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
+        Friend Overrides Function BinderSpecificLookupOptions(options As LookupOptions) As LookupOptions
+            ' When early binding attributes, extension methods should always be ignored.
+            Return ContainingBinder.BinderSpecificLookupOptions(options) Or LookupOptions.IgnoreExtensionMethods
+        End Function
+
     End Class
 
 End Namespace
