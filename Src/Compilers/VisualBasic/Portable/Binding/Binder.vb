@@ -110,9 +110,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the binding context requires specific binding options, then modify the given
         ''' lookup options accordingly.
         ''' </summary>
+        ''' <remarks>
+        ''' Overriders should consider <see cref="IgnoresAccessibility"/>.
+        ''' </remarks>
         Friend Overridable Function BinderSpecificLookupOptions(options As LookupOptions) As LookupOptions
             Return m_containingBinder.BinderSpecificLookupOptions(options)
         End Function
+
+        Protected ReadOnly Property IgnoresAccessibility As Boolean
+            Get
+                Return (BinderSpecificLookupOptions(Nothing) And LookupOptions.IgnoreAccessibility) =
+                    LookupOptions.IgnoreAccessibility
+            End Get
+        End Property
 
         ''' <summary>
         ''' Lookup the given name in the binder and containing binders.

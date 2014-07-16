@@ -148,7 +148,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                                                      Optional accessThroughType As TypeSymbol = Nothing,
                                                      Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
-            Return AccessCheck.CheckSymbolAccessibility(sym, m_typeSymbol, accessThroughType, useSiteDiagnostics, basesBeingResolved)
+            Return If(IgnoresAccessibility,
+                AccessCheckResult.Accessible,
+                AccessCheck.CheckSymbolAccessibility(sym, m_typeSymbol, accessThroughType, useSiteDiagnostics, basesBeingResolved))
         End Function
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol

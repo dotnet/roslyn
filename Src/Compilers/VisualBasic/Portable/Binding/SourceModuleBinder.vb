@@ -31,7 +31,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                                                      Optional accessThroughType As TypeSymbol = Nothing,
                                                      Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
-            Return AccessCheck.CheckSymbolAccessibility(sym, m_sourceModule.ContainingSourceAssembly, useSiteDiagnostics, basesBeingResolved)  ' accessThroughType doesn't matter at assembly level.
+            Return If(IgnoresAccessibility,
+                AccessCheckResult.Accessible,
+                AccessCheck.CheckSymbolAccessibility(sym, m_sourceModule.ContainingSourceAssembly, useSiteDiagnostics, basesBeingResolved))  ' accessThroughType doesn't matter at assembly level.
         End Function
 
         Public Overrides Function GetErrorSymbol(name As String,
