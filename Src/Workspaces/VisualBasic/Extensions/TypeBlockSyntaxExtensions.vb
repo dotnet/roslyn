@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         Private Function EnsureEndTokens(destinationType As TypeBlockSyntax) As EndBlockStatementSyntax
             If destinationType.End.IsMissing Then
-                Select Case (destinationType.VisualBasicKind)
+                Select Case destinationType.VisualBasicKind
                     Case SyntaxKind.ClassBlock
                         Return SyntaxFactory.EndClassStatement().WithAdditionalAnnotations(Formatter.Annotation)
                     Case SyntaxKind.InterfaceBlock
