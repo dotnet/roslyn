@@ -4,19 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Text;
-using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -184,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (verify)
             {
                 // Unsafe code might not verify, so don't try.
-                var csharpOptions = compilation.Options as Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions;
+                var csharpOptions = compilation.Options as CSharp.CSharpCompilationOptions;
                 verify = (csharpOptions == null || !csharpOptions.AllowUnsafe);
             }
 
@@ -692,7 +688,7 @@ Example app.config:
 
         #region IL Verification
 
-        internal abstract string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData);
+        internal abstract string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers);
 
         #endregion
 

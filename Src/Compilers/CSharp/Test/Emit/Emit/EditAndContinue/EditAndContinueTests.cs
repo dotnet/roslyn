@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
@@ -21,9 +22,9 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public partial class EditAndContinueTests : EmitMetadataTestBase
+    public class EditAndContinueTests : EditAndContinueTestBase
     {
         [Fact]
         public void DeltaHeapsStartWithEmptyItem()
@@ -1447,7 +1448,7 @@ class C
 
                 var diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
                 // Verify delta metadata contains expected rows.
                 using (var md1 = diff1.GetMetadata())
@@ -1549,8 +1550,6 @@ class C
 
                 CheckEncLog(reader1,
                     Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                    Row(17, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(18, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(19, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(20, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(21, TableIndex.MemberRef, EditAndContinueOperation.Default),
@@ -1562,9 +1561,8 @@ class C
                     Row(27, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(28, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(29, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(30, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                    Row(31, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(21, TableIndex.TypeRef, EditAndContinueOperation.Default),
@@ -1573,6 +1571,9 @@ class C
                     Row(24, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(25, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(26, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(27, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(28, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(29, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                     Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -1613,7 +1614,6 @@ class C
                     Row(4, TableIndex.Property, EditAndContinueOperation.Default),
                     Row(13, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                     Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                    Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -1621,6 +1621,8 @@ class C
                     Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(2, TableIndex.DeclSecurity, EditAndContinueOperation.Default),
                     Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                     Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                     Row(8, TableIndex.MethodImpl, EditAndContinueOperation.Default),
@@ -1637,9 +1639,6 @@ class C
                     Row(9, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
                     Row(10, TableIndex.InterfaceImpl, EditAndContinueOperation.Default));
                 CheckEncMap(reader1,
-                    Handle(16, TableIndex.TypeRef),
-                    Handle(17, TableIndex.TypeRef),
-                    Handle(18, TableIndex.TypeRef),
                     Handle(19, TableIndex.TypeRef),
                     Handle(20, TableIndex.TypeRef),
                     Handle(21, TableIndex.TypeRef),
@@ -1648,6 +1647,9 @@ class C
                     Handle(24, TableIndex.TypeRef),
                     Handle(25, TableIndex.TypeRef),
                     Handle(26, TableIndex.TypeRef),
+                    Handle(27, TableIndex.TypeRef),
+                    Handle(28, TableIndex.TypeRef),
+                    Handle(29, TableIndex.TypeRef),
                     Handle(4, TableIndex.TypeDef),
                     Handle(4, TableIndex.Field),
                     Handle(5, TableIndex.Field),
@@ -1667,8 +1669,6 @@ class C
                     Handle(8, TableIndex.InterfaceImpl),
                     Handle(9, TableIndex.InterfaceImpl),
                     Handle(10, TableIndex.InterfaceImpl),
-                    Handle(17, TableIndex.MemberRef),
-                    Handle(18, TableIndex.MemberRef),
                     Handle(19, TableIndex.MemberRef),
                     Handle(20, TableIndex.MemberRef),
                     Handle(21, TableIndex.MemberRef),
@@ -1680,7 +1680,8 @@ class C
                     Handle(27, TableIndex.MemberRef),
                     Handle(28, TableIndex.MemberRef),
                     Handle(29, TableIndex.MemberRef),
-                    Handle(12, TableIndex.CustomAttribute),
+                    Handle(30, TableIndex.MemberRef),
+                    Handle(31, TableIndex.MemberRef),
                     Handle(13, TableIndex.CustomAttribute),
                     Handle(14, TableIndex.CustomAttribute),
                     Handle(15, TableIndex.CustomAttribute),
@@ -1688,6 +1689,8 @@ class C
                     Handle(17, TableIndex.CustomAttribute),
                     Handle(18, TableIndex.CustomAttribute),
                     Handle(19, TableIndex.CustomAttribute),
+                    Handle(20, TableIndex.CustomAttribute),
+                    Handle(2, TableIndex.DeclSecurity),
                     Handle(6, TableIndex.StandAloneSig),
                     Handle(7, TableIndex.StandAloneSig),
                     Handle(8, TableIndex.StandAloneSig),
@@ -2690,7 +2693,7 @@ class C
             var method1 = compilation1.GetMember<MethodSymbol>("C.Main");
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
             diff1.VerifyIL("C.Main",
  @"{
   // Code size       22 (0x16)
@@ -2746,14 +2749,14 @@ class C
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
-            diff1.VerifyIL("C.M",
-@"{
+            diff1.VerifyIL("C.M", @"
+{
   // Code size       22 (0x16)
   .maxstack  3
-  .locals init (int V_0,
-  int V_1)
+  .locals init ([int] V_0,
+                int V_1)
   IL_0000:  nop
   IL_0001:  ldsfld     ""int[] C.F""
   IL_0006:  ldarg.1
@@ -2837,7 +2840,7 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M",
 @"{
@@ -2872,7 +2875,7 @@ class C
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetLocalMap(method2, method1), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
 
             diff2.VerifyIL("C.M",
 @"{
@@ -3140,7 +3143,7 @@ class C
                 var method1 = compilation1.GetMember<MethodSymbol>("C.F");
                 var diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
                 // Should not have generated call to ComputeStringHash nor
                 // added the method to <PrivateImplementationDetails>.
@@ -3314,7 +3317,7 @@ class C
                         SemanticEditKind.Update,
                         method0,
                         method1,
-                        GetLocalMap(method1, method0),
+                        GetEquivalentNodesMap(method1, method0),
                         preserveLocalVariables: true)));
 
                 // "Write" should be included in string table, but "WriteLine" should not.
@@ -3454,7 +3457,7 @@ class B : A<B>
             var method1 = compilation1.GetMember<MethodSymbol>("B.M");
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL(
 @"{
@@ -3514,7 +3517,7 @@ class B : A<B>
             var method2 = compilation2.GetMember<MethodSymbol>("B.M");
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetLocalMap(method2, method1), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
 
             diff2.VerifyIL(
 @"{
@@ -3573,7 +3576,7 @@ class B : A<B>
             var method3 = compilation3.GetMember<MethodSymbol>("B.N");
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method2, method3, GetLocalMap(method3, method2), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2), preserveLocalVariables: true)));
 
             diff3.VerifyIL(
 @"{
@@ -3667,7 +3670,7 @@ class B : A<B>
             var method2 = compilation2.GetMember<MethodSymbol>("C.M");
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetLocalMap(method2, method1), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
             diff2.VerifyIL("C.M",
 @"{
   // Code size       10 (0xa)
@@ -3748,15 +3751,15 @@ class B : A<B>
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(method0));
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-            diff1.VerifyIL("C.Main",
-@"{
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+            diff1.VerifyIL("C.Main", @"
+{
   // Code size       17 (0x11)
   .maxstack  1
-  .locals init (bool V_0,
-  bool V_1,
-  string V_2, //x
-  string V_3) //y
+  .locals init ([bool] V_0,
+                [bool] V_1,
+                string V_2, //x
+                string V_3) //y
   IL_0000:  nop
   IL_0001:  ldstr      ""A""
   IL_0006:  stloc.2
@@ -3798,58 +3801,50 @@ class B : A<B>
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables: false)));
 
-            diff1a.VerifyIL("C.M",
-@"{
-  // Code size       54 (0x36)
-  .maxstack  2
+            diff1a.VerifyIL("C.M", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  1
   .locals init (System.IDisposable V_0, //CS$3$0000
-  bool V_1,
-  System.IDisposable V_2) //x
-  IL_0000:  nop
+           System.IDisposable V_1) //x
+  IL_0000:  nop       
   IL_0001:  call       ""System.IDisposable C.F()""
-  IL_0006:  stloc.0
+  IL_0006:  stloc.0   
   .try
-{
-  IL_0007:  nop
-  IL_0008:  nop
-  IL_0009:  leave.s    IL_001b
-}
+  {
+    IL_0007:  nop       
+    IL_0008:  nop       
+    IL_0009:  leave.s    IL_0016
+  }
   finally
-{
-  IL_000b:  ldloc.0
-  IL_000c:  ldnull
-  IL_000d:  ceq
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
-  IL_0011:  brtrue.s   IL_001a
-  IL_0013:  ldloc.0
-  IL_0014:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0019:  nop
-  IL_001a:  endfinally
-}
-  IL_001b:  call       ""System.IDisposable C.F()""
-  IL_0020:  stloc.2
+  {
+    IL_000b:  ldloc.0   
+    IL_000c:  brfalse.s  IL_0015
+    IL_000e:  ldloc.0   
+    IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0014:  nop       
+    IL_0015:  endfinally
+  }
+  IL_0016:  call       ""System.IDisposable C.F()""
+  IL_001b:  stloc.1   
   .try
-{
-  IL_0021:  nop
-  IL_0022:  nop
-  IL_0023:  leave.s    IL_0035
-}
+  {
+    IL_001c:  nop       
+    IL_001d:  nop       
+    IL_001e:  leave.s    IL_002b
+  }
   finally
-{
-  IL_0025:  ldloc.2
-  IL_0026:  ldnull
-  IL_0027:  ceq
-  IL_0029:  stloc.1
-  IL_002a:  ldloc.1
-  IL_002b:  brtrue.s   IL_0034
-  IL_002d:  ldloc.2
-  IL_002e:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0033:  nop
-  IL_0034:  endfinally
+  {
+    IL_0020:  ldloc.1   
+    IL_0021:  brfalse.s  IL_002a
+    IL_0023:  ldloc.1   
+    IL_0024:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0029:  nop       
+    IL_002a:  endfinally
+  }
+  IL_002b:  ret       
 }
-  IL_0035:  ret
-}");
+");
 
             var diff1b = compilation1.EmitDifference(
                 generation0,
@@ -3857,56 +3852,46 @@ class B : A<B>
 
             diff1b.VerifyIL("C.M",
 @"{
-  // Code size       54 (0x36)
-  .maxstack  2
+  // Code size       44 (0x2c)
+  .maxstack  1
   .locals init (System.IDisposable V_0, //CS$3$0000
-  bool V_1,
-  System.IDisposable V_2, //x
-  bool V_3)
-  IL_0000:  nop
+           System.IDisposable V_1) //x
+  IL_0000:  nop       
   IL_0001:  call       ""System.IDisposable C.F()""
-  IL_0006:  stloc.0
+  IL_0006:  stloc.0   
   .try
-{
-  IL_0007:  nop
-  IL_0008:  nop
-  IL_0009:  leave.s    IL_001b
-}
+  {
+    IL_0007:  nop       
+    IL_0008:  nop       
+    IL_0009:  leave.s    IL_0016
+  }
   finally
-{
-  IL_000b:  ldloc.0
-  IL_000c:  ldnull
-  IL_000d:  ceq
-  IL_000f:  stloc.3
-  IL_0010:  ldloc.3
-  IL_0011:  brtrue.s   IL_001a
-  IL_0013:  ldloc.0
-  IL_0014:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0019:  nop
-  IL_001a:  endfinally
-}
-  IL_001b:  call       ""System.IDisposable C.F()""
-  IL_0020:  stloc.2
+  {
+    IL_000b:  ldloc.0   
+    IL_000c:  brfalse.s  IL_0015
+    IL_000e:  ldloc.0   
+    IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0014:  nop       
+    IL_0015:  endfinally
+  }
+  IL_0016:  call       ""System.IDisposable C.F()""
+  IL_001b:  stloc.1   
   .try
-{
-  IL_0021:  nop
-  IL_0022:  nop
-  IL_0023:  leave.s    IL_0035
-}
+  {
+    IL_001c:  nop       
+    IL_001d:  nop       
+    IL_001e:  leave.s    IL_002b
+  }
   finally
-{
-  IL_0025:  ldloc.2
-  IL_0026:  ldnull
-  IL_0027:  ceq
-  IL_0029:  stloc.3
-  IL_002a:  ldloc.3
-  IL_002b:  brtrue.s   IL_0034
-  IL_002d:  ldloc.2
-  IL_002e:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0033:  nop
-  IL_0034:  endfinally
-}
-  IL_0035:  ret
+  {
+    IL_0020:  ldloc.1   
+    IL_0021:  brfalse.s  IL_002a
+    IL_0023:  ldloc.1   
+    IL_0024:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0029:  nop       
+    IL_002a:  endfinally
+  }
+  IL_002b:  ret       
 }");
         }
 
@@ -4012,7 +3997,7 @@ class C
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<NamedTypeSymbol>("A")),
-                    new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M1",
 @"{
@@ -4040,7 +4025,7 @@ class C
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, method1, method2, GetLocalMap(method2, method1), preserveLocalVariables: true)));
+                    new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
 
             diff2.VerifyIL("C.M2",
 @"{
@@ -4068,7 +4053,7 @@ class C
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, method2, method3, GetLocalMap(method3, method2), preserveLocalVariables: true)));
+                    new SemanticEdit(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2), preserveLocalVariables: true)));
 
             diff3.VerifyIL("C.M2",
 @"{
@@ -4158,20 +4143,20 @@ namespace M
                 var method1 = compilation1.GetMember<MethodSymbol>("M.B.M");
                 var diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 using (var md1 = diff1.GetMetadata())
                 {
                     var reader1 = md1.Reader;
                     CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>f__AnonymousType3`1"); // one additional type
 
-                    diff1.VerifyIL("M.B.M",
-@"{
+                    diff1.VerifyIL("M.B.M", @"
+{
   // Code size       28 (0x1c)
   .maxstack  2
   .locals init (<>f__AnonymousType1<int, int> V_0, //x
-  int V_1,
-  <>f__AnonymousType2 V_2, //z
-  <>f__AnonymousType3<int> V_3) //y
+                [int] V_1,
+                <>f__AnonymousType2 V_2, //z
+                <>f__AnonymousType3<int> V_3) //y
   IL_0000:  nop
   IL_0001:  ldc.i4.3
   IL_0002:  ldc.i4.4
@@ -4265,7 +4250,7 @@ namespace M
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
             using (var md1 = diff1.GetMetadata())
             {
                 diff1.VerifyIL("C.F",
@@ -4380,68 +4365,68 @@ class B
                 var method1 = compilation1.GetMember<MethodSymbol>("B.G");
                 var diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 using (var md1 = diff1.GetMetadata())
                 {
                     var reader1 = md1.Reader;
                     CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames()); // no additional types
-                    diff1.VerifyIL("B.G",
-@"{
+                    diff1.VerifyIL("B.G", @"
+{
   // Code size       16 (0x10)
   .maxstack  2
   .locals init (int V_0, //x
-  object V_1,
-  object V_2)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  ldc.i4.1
-  IL_0005:  add
+           [object] V_1,
+           object V_2)
+  IL_0000:  nop       
+  IL_0001:  ldc.i4.1  
+  IL_0002:  stloc.0   
+  IL_0003:  ldloc.0   
+  IL_0004:  ldc.i4.1  
+  IL_0005:  add       
   IL_0006:  box        ""int""
-  IL_000b:  stloc.2
+  IL_000b:  stloc.2   
   IL_000c:  br.s       IL_000e
-  IL_000e:  ldloc.2
-  IL_000f:  ret
+  IL_000e:  ldloc.2   
+  IL_000f:  ret       
 }");
 
                     var method2 = compilation2.GetMember<MethodSymbol>("B.G");
                     var diff2 = compilation2.EmitDifference(
                         diff1.NextGeneration,
-                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetLocalMap(method2, method1), preserveLocalVariables: true)));
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
                     using (var md2 = diff2.GetMetadata())
                     {
                         var reader2 = md2.Reader;
                         CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>f__AnonymousType1`1"); // one additional type
-                        diff2.VerifyIL("B.G",
-@"{
+                        diff2.VerifyIL("B.G", @"
+{
   // Code size       33 (0x21)
   .maxstack  1
   .locals init ([unchanged] V_0,
-  object V_1,
-  [unchanged] V_2,
-  <>f__AnonymousType0<A> V_3, //x
-  <>f__AnonymousType1<int> V_4, //y
-  object V_5)
-  IL_0000:  nop
+           [object] V_1,
+           [unchanged] V_2,
+           <>f__AnonymousType0<A> V_3, //x
+           <>f__AnonymousType1<int> V_4, //y
+           object V_5)
+  IL_0000:  nop       
   IL_0001:  newobj     ""A..ctor()""
   IL_0006:  newobj     ""<>f__AnonymousType0<A>..ctor(A)""
-  IL_000b:  stloc.3
-  IL_000c:  ldc.i4.2
+  IL_000b:  stloc.3   
+  IL_000c:  ldc.i4.2  
   IL_000d:  newobj     ""<>f__AnonymousType1<int>..ctor(int)""
   IL_0012:  stloc.s    V_4
-  IL_0014:  ldloc.3
+  IL_0014:  ldloc.3   
   IL_0015:  callvirt   ""A <>f__AnonymousType0<A>.A.get""
   IL_001a:  stloc.s    V_5
   IL_001c:  br.s       IL_001e
   IL_001e:  ldloc.s    V_5
-  IL_0020:  ret
+  IL_0020:  ret       
 }");
 
                         var method3 = compilation3.GetMember<MethodSymbol>("B.G");
                         var diff3 = compilation3.EmitDifference(
                             diff2.NextGeneration,
-                            ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method2, method3, GetLocalMap(method3, method2), preserveLocalVariables: true)));
+                            ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2), preserveLocalVariables: true)));
                         using (var md3 = diff3.GetMetadata())
                         {
                             var reader3 = md3.Reader;
@@ -4451,11 +4436,11 @@ class B
   // Code size       39 (0x27)
   .maxstack  1
   .locals init ([unchanged] V_0,
-  object V_1,
-  [unchanged] V_2,
-  <>f__AnonymousType0<A> V_3, //x
-  <>f__AnonymousType1<int> V_4, //y
-  object V_5)
+           [object] V_1,
+           [unchanged] V_2,
+           <>f__AnonymousType0<A> V_3, //x
+           <>f__AnonymousType1<int> V_4, //y
+           object V_5)
   IL_0000:  nop
   IL_0001:  newobj     ""A..ctor()""
   IL_0006:  newobj     ""<>f__AnonymousType0<A>..ctor(A)""
@@ -4560,7 +4545,7 @@ class B
                 var method1G = compilation1.GetMember<MethodSymbol>("C.G");
                 var diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, GetLocalMap(method1F, method0F), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, GetEquivalentNodesMap(method1F, method0F), preserveLocalVariables: true)));
                 using (var md1 = diff1.GetMetadata())
                 {
                     var reader1 = md1.Reader;
@@ -4569,7 +4554,7 @@ class B
                     var method2G = compilation2.GetMember<MethodSymbol>("C.G");
                     var diff2 = compilation2.EmitDifference(
                         diff1.NextGeneration,
-                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1G, method2G, GetLocalMap(method2G, method1G), preserveLocalVariables: true)));
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1G, method2G, GetEquivalentNodesMap(method2G, method1G), preserveLocalVariables: true)));
                     using (var md2 = diff2.GetMetadata())
                     {
                         var reader2 = md2.Reader;
@@ -4578,7 +4563,7 @@ class B
                         var method3G = compilation3.GetMember<MethodSymbol>("C.G");
                         var diff3 = compilation3.EmitDifference(
                             diff2.NextGeneration,
-                            ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method2G, method3G, GetLocalMap(method3G, method2G), preserveLocalVariables: true)));
+                            ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method2G, method3G, GetEquivalentNodesMap(method3G, method2G), preserveLocalVariables: true)));
                         using (var md3 = diff3.GetMetadata())
                         {
                             var reader3 = md3.Reader;
@@ -4667,21 +4652,21 @@ class B
                 var method1 = compilation1.GetMember<MethodSymbol>("C.F");
                 var diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 using (var md1 = diff1.GetMetadata())
                 {
                     var reader1 = md1.Reader;
                     CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>f__AnonymousType0`1"); // one additional type
 
-                    diff1.VerifyIL("C.F",
-@"{
+                    diff1.VerifyIL("C.F", @"
+{
   // Code size       27 (0x1b)
   .maxstack  1
   .locals init ([unchanged] V_0,
-  object V_1, //y
-  object V_2,
-  <>f__AnonymousType0<object> V_3, //x
-  object V_4)
+                object V_1, //y
+                [object] V_2,
+                <>f__AnonymousType0<object> V_3, //x
+                object V_4)
   IL_0000:  nop
   IL_0001:  newobj     ""object..ctor()""
   IL_0006:  newobj     ""<>f__AnonymousType0<object>..ctor(object)""
@@ -4882,7 +4867,7 @@ class B
             var method1 = compilation1.GetMember<MethodSymbol>("C.M1");
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M1",
 @"{
@@ -4954,107 +4939,48 @@ class B
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-            diff1.VerifyIL("C.F",
-@"{
-  // Code size       45 (0x2d)
-  .maxstack  2
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+            
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  1
   .locals init ([unchanged] V_0,
-  [unchanged] V_1,
-  bool V_2,
-  object V_3,
-  C V_4, //c
-  System.IDisposable V_5, //CS$3$0000
-  bool V_6,
-  object V_7)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
+                [unchanged] V_1,
+                [bool] V_2,
+                [object] V_3,
+                C V_4, //c
+                System.IDisposable V_5, //CS$3$0000
+                object V_6)
+ -IL_0000:  nop
+ -IL_0001:  ldarg.0
   IL_0002:  stloc.s    V_5
   .try
-{
-  IL_0004:  nop
-  IL_0005:  ldarg.0
-  IL_0006:  castclass  ""C""
-  IL_000b:  stloc.s    V_4
-  IL_000d:  nop
-  IL_000e:  leave.s    IL_0024
-}
+  {
+   -IL_0004:  nop
+   -IL_0005:  ldarg.0
+    IL_0006:  castclass  ""C""
+    IL_000b:  stloc.s    V_4
+   -IL_000d:  nop
+    IL_000e:  leave.s    IL_001d
+  }
   finally
-{
-  IL_0010:  ldloc.s    V_5
-  IL_0012:  ldnull
-  IL_0013:  ceq
-  IL_0015:  stloc.s    V_6
-  IL_0017:  ldloc.s    V_6
-  IL_0019:  brtrue.s   IL_0023
-  IL_001b:  ldloc.s    V_5
-  IL_001d:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0022:  nop
-  IL_0023:  endfinally
-}
-  IL_0024:  ldloc.s    V_4
-  IL_0026:  stloc.s    V_7
-  IL_0028:  br.s       IL_002a
-  IL_002a:  ldloc.s    V_7
-  IL_002c:  ret
-}");
+  {
+   ~IL_0010:  ldloc.s    V_5
+    IL_0012:  brfalse.s  IL_001c
+    IL_0014:  ldloc.s    V_5
+    IL_0016:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001b:  nop
+    IL_001c:  endfinally
+  }
+ -IL_001d:  ldloc.s    V_4
+  IL_001f:  stloc.s    V_6
+  IL_0021:  br.s       IL_0023
+ -IL_0023:  ldloc.s    V_6
+  IL_0025:  ret
+}", methodToken: diff1.UpdatedMethods.Single());
         }
 
-        /// <summary>
-        /// Temporaries should only be named in debug builds.
-        /// </summary>
-        [Fact]
-        public void TemporaryLocals_DebugOnly()
-        {
-            var source =
-@"class C
-{
-    static System.IDisposable F()
-    {
-        return null;
-    }
-    static void M()
-    {
-        lock (F()) { }
-        using (F()) { }
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, debugInformationKind: DebugInformationKind.Full, optimize: false, concurrentBuild: false));
-            var compilation1 = CreateCompilationWithMscorlib(
-                source,
-                compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, debugInformationKind: DebugInformationKind.Full, optimize: true, concurrentBuild: false));
-            var compilation2 = CreateCompilationWithMscorlib(
-                source,
-                compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, debugInformationKind: DebugInformationKind.None, optimize: false, concurrentBuild: false));
-            var compilation3 = CreateCompilationWithMscorlib(
-                source,
-                compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, debugInformationKind: DebugInformationKind.None, optimize: true, concurrentBuild: false));
-
-            CompilationTestData testData;
-            ImmutableArray<string> names;
-
-            testData = new CompilationTestData();
-            compilation0.EmitToArray(debug: true, testData: testData);
-            names = GetLocalNames(testData.GetMethodData("C.M"));
-            Assert.True(names.SequenceEqual(new string[] { "CS$2$0000", "CS$520$0001", null, "CS$3$0002" }));
-
-            testData = new CompilationTestData();
-            compilation1.EmitToArray(debug: true, testData: testData);
-            names = GetLocalNames(testData.GetMethodData("C.M"));
-            Assert.True(names.SequenceEqual(new string[] { "CS$2$0000", "CS$520$0001", "CS$3$0002" }));
-
-            testData = new CompilationTestData();
-            compilation2.EmitToArray(debug: true, testData: testData);
-            names = GetLocalNames(testData.GetMethodData("C.M"));
-            Assert.True(names.SequenceEqual(new string[] { null, null, null }));
-
-            testData = new CompilationTestData();
-            compilation3.EmitToArray(debug: true, testData: testData);
-            names = GetLocalNames(testData.GetMethodData("C.M"));
-            Assert.True(names.SequenceEqual(new string[] { null, null }));
-        }
 
         /// <summary>
         /// Temporaries for locals used within a single
@@ -5089,17 +5015,17 @@ class B
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
-            diff1.VerifyIL("C.M",
-@"{
+            diff1.VerifyIL("C.M", @"
+{
   // Code size       37 (0x25)
   .maxstack  3
   .locals init (C V_0, //c
-  [unchanged] V_1,
-  int V_2,
-  C V_3,
-  int V_4)
+                [unchanged] V_1,
+                [int] V_2,
+                C V_3,
+                int V_4)
   IL_0000:  nop
   IL_0001:  newobj     ""C..ctor()""
   IL_0006:  stloc.0
@@ -5121,127 +5047,6 @@ class B
   IL_0024:  ret
 }");
         }
-
-        [Fact]
-        public void TemporaryLocals_Using()
-        {
-            var source =
-@"class C : System.IDisposable
-{
-    public void Dispose()
-    {
-    }
-    static System.IDisposable F()
-    {
-        return new C();
-    }
-    static void M()
-    {
-        using (F())
-        {
-            using (var u = F())
-            {
-            }
-            using (F())
-            {
-            }
-        }
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
-
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-
-            diff1.VerifyIL("C.M",
-@"{
-  // Code size       86 (0x56)
-  .maxstack  2
-  .locals init (System.IDisposable V_0, //CS$3$0000
-  System.IDisposable V_1, //u
-  bool V_2,
-  System.IDisposable V_3, //CS$3$0001
-  bool V_4)
-  IL_0000:  nop
-  IL_0001:  call       ""System.IDisposable C.F()""
-  IL_0006:  stloc.0
-  .try
-{
-  IL_0007:  nop
-  IL_0008:  call       ""System.IDisposable C.F()""
-  IL_000d:  stloc.1
-  .try
-{
-  IL_000e:  nop
-  IL_000f:  nop
-  IL_0010:  leave.s    IL_0024
-}
-  finally
-{
-  IL_0012:  ldloc.1
-  IL_0013:  ldnull
-  IL_0014:  ceq
-  IL_0016:  stloc.s    V_4
-  IL_0018:  ldloc.s    V_4
-  IL_001a:  brtrue.s   IL_0023
-  IL_001c:  ldloc.1
-  IL_001d:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0022:  nop
-  IL_0023:  endfinally
-}
-  IL_0024:  call       ""System.IDisposable C.F()""
-  IL_0029:  stloc.3
-  .try
-{
-  IL_002a:  nop
-  IL_002b:  nop
-  IL_002c:  leave.s    IL_0040
-}
-  finally
-{
-  IL_002e:  ldloc.3
-  IL_002f:  ldnull
-  IL_0030:  ceq
-  IL_0032:  stloc.s    V_4
-  IL_0034:  ldloc.s    V_4
-  IL_0036:  brtrue.s   IL_003f
-  IL_0038:  ldloc.3
-  IL_0039:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_003e:  nop
-  IL_003f:  endfinally
-}
-  IL_0040:  nop
-  IL_0041:  leave.s    IL_0055
-}
-  finally
-{
-  IL_0043:  ldloc.0
-  IL_0044:  ldnull
-  IL_0045:  ceq
-  IL_0047:  stloc.s    V_4
-  IL_0049:  ldloc.s    V_4
-  IL_004b:  brtrue.s   IL_0054
-  IL_004d:  ldloc.0
-  IL_004e:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0053:  nop
-  IL_0054:  endfinally
-}
-  IL_0055:  ret
-}");
-        }
-
-        /// <summary>
         /// Local names array (from PDB) may have fewer slots than method
         /// signature (from metadata) if the trailing slots are unnamed.
         /// </summary>
@@ -5263,8 +5068,8 @@ class B
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithAllowUnsafe(true).WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithAllowUnsafe(true).WithDebugInformationKind(DebugInformationKind.Full));
+            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
@@ -5274,73 +5079,61 @@ class B
                 ModuleMetadata.CreateFromImage(bytes0),
                 m => ImmutableArray.Create("o"));
 
-            testData0.GetMethodData("C.M").VerifyIL(
-@"
+            testData0.GetMethodData("C.M").VerifyIL(@"
 {
-  // Code size       28 (0x1c)
-  .maxstack  2
-  .locals init (System.IDisposable V_0, //o
-  bool V_1)
-  IL_0000:  nop
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (System.IDisposable V_0) //o
+  IL_0000:  nop       
   IL_0001:  call       ""System.IDisposable C.F()""
-  IL_0006:  stloc.0
+  IL_0006:  stloc.0   
   .try
-{
-  IL_0007:  nop
-  IL_0008:  nop
-  IL_0009:  leave.s    IL_001b
-}
+  {
+    IL_0007:  nop       
+    IL_0008:  nop       
+    IL_0009:  leave.s    IL_0016
+  }
   finally
-{
-  IL_000b:  ldloc.0
-  IL_000c:  ldnull
-  IL_000d:  ceq
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
-  IL_0011:  brtrue.s   IL_001a
-  IL_0013:  ldloc.0
-  IL_0014:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0019:  nop
-  IL_001a:  endfinally
-}
-  IL_001b:  ret
+  {
+    IL_000b:  ldloc.0   
+    IL_000c:  brfalse.s  IL_0015
+    IL_000e:  ldloc.0   
+    IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0014:  nop       
+    IL_0015:  endfinally
+  }
+  IL_0016:  ret       
 }");
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
-            diff1.VerifyIL("C.M",
-@"{
-  // Code size       28 (0x1c)
-  .maxstack  2
-  .locals init (System.IDisposable V_0, //o
-  bool V_1,
-  bool V_2)
-  IL_0000:  nop
+            diff1.VerifyIL("C.M", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (System.IDisposable V_0) //o
+  IL_0000:  nop       
   IL_0001:  call       ""System.IDisposable C.F()""
-  IL_0006:  stloc.0
+  IL_0006:  stloc.0   
   .try
-{
-  IL_0007:  nop
-  IL_0008:  nop
-  IL_0009:  leave.s    IL_001b
-}
+  {
+    IL_0007:  nop       
+    IL_0008:  nop       
+    IL_0009:  leave.s    IL_0016
+  }
   finally
-{
-  IL_000b:  ldloc.0
-  IL_000c:  ldnull
-  IL_000d:  ceq
-  IL_000f:  stloc.2
-  IL_0010:  ldloc.2
-  IL_0011:  brtrue.s   IL_001a
-  IL_0013:  ldloc.0
-  IL_0014:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0019:  nop
-  IL_001a:  endfinally
-}
-  IL_001b:  ret
+  {
+    IL_000b:  ldloc.0   
+    IL_000c:  brfalse.s  IL_0015
+    IL_000e:  ldloc.0   
+    IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0014:  nop       
+    IL_0015:  endfinally
+  }
+  IL_0016:  ret       
 }");
         }
 
@@ -5409,40 +5202,36 @@ class B
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
-            diff1.VerifyIL("C.M",
-@"{
-  // Code size       28 (0x1c)
-  .maxstack  2
-  .locals init (object V_0,
-  object V_1,
-  System.IDisposable V_2, //o
-  bool V_3)
+            diff1.VerifyIL("C.M", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init ([object] V_0,
+                [object] V_1,
+                System.IDisposable V_2) //o
   IL_0000:  nop
   IL_0001:  call       ""System.IDisposable C.F()""
   IL_0006:  stloc.2
   .try
-{
-  IL_0007:  nop
-  IL_0008:  nop
-  IL_0009:  leave.s    IL_001b
-}
+  {
+    IL_0007:  nop
+    IL_0008:  nop
+    IL_0009:  leave.s    IL_0016
+  }
   finally
-{
-  IL_000b:  ldloc.2
-  IL_000c:  ldnull
-  IL_000d:  ceq
-  IL_000f:  stloc.3
-  IL_0010:  ldloc.3
-  IL_0011:  brtrue.s   IL_001a
-  IL_0013:  ldloc.2
-  IL_0014:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0019:  nop
-  IL_001a:  endfinally
+  {
+    IL_000b:  ldloc.2
+    IL_000c:  brfalse.s  IL_0015
+    IL_000e:  ldloc.2
+    IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0014:  nop
+    IL_0015:  endfinally
+  }
+  IL_0016:  ret
 }
-  IL_001b:  ret
-}");
+");
         }
 
         [Fact]
@@ -5477,7 +5266,7 @@ class B
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M",
 @"
@@ -5496,1581 +5285,6 @@ class B
 }
 ");
         }
-
-        [Fact]
-        public void TemporaryLocals_Lock()
-        {
-            var source =
-@"class C
-{
-    static object F()
-    {
-        return null;
-    }
-    static void M()
-    {
-        lock (F())
-        {
-            lock (F())
-            {
-            }
-        }
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
-
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-
-            diff1.VerifyIL("C.M",
-@"{
-  // Code size       80 (0x50)
-  .maxstack  2
-  .locals init (object V_0, //CS$2$0000
-  bool V_1, //CS$520$0001
-  object V_2, //CS$2$0002
-  bool V_3, //CS$520$0003
-  bool V_4,
-  bool V_5)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.1
-  .try
-{
-  IL_0003:  call       ""object C.F()""
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0011:  nop
-  IL_0012:  nop
-  IL_0013:  ldc.i4.0
-  IL_0014:  stloc.3
-  .try
-{
-  IL_0015:  call       ""object C.F()""
-  IL_001a:  stloc.2
-  IL_001b:  ldloc.2
-  IL_001c:  ldloca.s   V_3
-  IL_001e:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0023:  nop
-  IL_0024:  nop
-  IL_0025:  nop
-  IL_0026:  leave.s    IL_003a
-}
-  finally
-{
-  IL_0028:  ldloc.3
-  IL_0029:  ldc.i4.0
-  IL_002a:  ceq
-  IL_002c:  stloc.s    V_5
-  IL_002e:  ldloc.s    V_5
-  IL_0030:  brtrue.s   IL_0039
-  IL_0032:  ldloc.2
-  IL_0033:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0038:  nop
-  IL_0039:  endfinally
-}
-  IL_003a:  nop
-  IL_003b:  leave.s    IL_004f
-}
-  finally
-{
-  IL_003d:  ldloc.1
-  IL_003e:  ldc.i4.0
-  IL_003f:  ceq
-  IL_0041:  stloc.s    V_5
-  IL_0043:  ldloc.s    V_5
-  IL_0045:  brtrue.s   IL_004e
-  IL_0047:  ldloc.0
-  IL_0048:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_004d:  nop
-  IL_004e:  endfinally
-}
-  IL_004f:  ret
-}");
-        }
-
-        /// <summary>
-        /// Using Monitor.Enter(object).
-        /// </summary>
-        [Fact]
-        public void TemporaryLocals_Lock_Pre40()
-        {
-            var source =
-@"class C
-{
-    static object F()
-    {
-        return null;
-    }
-    static void M()
-    {
-        lock (F())
-        {
-        }
-    }
-}";
-            var compilation0 = CreateCompilation(
-                source,
-                compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full),
-                references: new[] { MscorlibRef_v20 });
-            var compilation1 = CreateCompilation(
-                source,
-                compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full),
-                references: new[] { MscorlibRef_v20 });
-
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
-
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-
-            diff1.VerifyIL("C.M",
-@"{
-  // Code size       27 (0x1b)
-  .maxstack  1
-  .locals init (object V_0) //CS$2$0000
-  IL_0000:  nop
-  IL_0001:  call       ""object C.F()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  call       ""void System.Threading.Monitor.Enter(object)""
-  IL_000d:  nop
-  .try
-{
-  IL_000e:  nop
-  IL_000f:  nop
-  IL_0010:  leave.s    IL_001a
-}
-  finally
-{
-  IL_0012:  ldloc.0
-  IL_0013:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0018:  nop
-  IL_0019:  endfinally
-}
-  IL_001a:  ret
-}");
-        }
-
-        [Fact]
-        public void TemporaryLocals_Fixed()
-        {
-            var source =
-@"class C
-{
-    unsafe static void M(string s, int[] i)
-    {
-        fixed (char *p = s)
-        {
-            fixed (int *q = i)
-            {
-            }
-            fixed (char *r = s)
-            {
-            }
-        }
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithAllowUnsafe(true).WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithAllowUnsafe(true).WithDebugInformationKind(DebugInformationKind.Full));
-
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
-
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-
-            diff1.VerifyIL("C.M",
-@"
-{
-  // Code size      100 (0x64)
-  .maxstack  2
-  .locals init (char* V_0, //p
-  pinned string V_1, //CS$519$0000
-  bool V_2,
-  pinned int& V_3, //q
-  [unchanged] V_4,
-  char* V_5, //r
-  pinned string V_6, //CS$519$0001
-  bool V_7,
-  int[] V_8)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  stloc.1
-  IL_0003:  ldloc.1
-  IL_0004:  conv.i
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.1
-  IL_0007:  conv.i
-  IL_0008:  ldnull
-  IL_0009:  ceq
-  IL_000b:  stloc.s    V_7
-  IL_000d:  ldloc.s    V_7
-  IL_000f:  brtrue.s   IL_001b
-  IL_0011:  ldloc.0
-  IL_0012:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0017:  add
-  IL_0018:  stloc.0
-  IL_0019:  br.s       IL_001b
-  IL_001b:  nop
-  IL_001c:  ldarg.1
-  IL_001d:  dup
-  IL_001e:  stloc.s    V_8
-  IL_0020:  brfalse.s  IL_0028
-  IL_0022:  ldloc.s    V_8
-  IL_0024:  ldlen
-  IL_0025:  conv.i4
-  IL_0026:  brtrue.s   IL_002d
-  IL_0028:  ldc.i4.0
-  IL_0029:  conv.u
-  IL_002a:  stloc.3
-  IL_002b:  br.s       IL_0036
-  IL_002d:  ldloc.s    V_8
-  IL_002f:  ldc.i4.0
-  IL_0030:  ldelema    ""int""
-  IL_0035:  stloc.3
-  IL_0036:  nop
-  IL_0037:  nop
-  IL_0038:  ldc.i4.0
-  IL_0039:  conv.u
-  IL_003a:  stloc.3
-  IL_003b:  ldarg.0
-  IL_003c:  stloc.s    V_6
-  IL_003e:  ldloc.s    V_6
-  IL_0040:  conv.i
-  IL_0041:  stloc.s    V_5
-  IL_0043:  ldloc.s    V_6
-  IL_0045:  conv.i
-  IL_0046:  ldnull
-  IL_0047:  ceq
-  IL_0049:  stloc.s    V_7
-  IL_004b:  ldloc.s    V_7
-  IL_004d:  brtrue.s   IL_005b
-  IL_004f:  ldloc.s    V_5
-  IL_0051:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0056:  add
-  IL_0057:  stloc.s    V_5
-  IL_0059:  br.s       IL_005b
-  IL_005b:  nop
-  IL_005c:  nop
-  IL_005d:  ldnull
-  IL_005e:  stloc.s    V_6
-  IL_0060:  nop
-  IL_0061:  ldnull
-  IL_0062:  stloc.1
-  IL_0063:  ret
-}");
-        }
-
-        /// <summary>
-        /// Dev11 generates C$519$0000, CS$520$0001, CS$521$0002, ... for
-        /// multiple declarations within a single fixed statement.
-        /// Roslyn generates C$519$0000, CS$519$0001, CS$519$0002, ...
-        /// rather than using a unique TempKind for each.
-        /// </summary>
-        [WorkItem(770053, "DevDiv")]
-        [Fact]
-        public void TemporaryLocals_FixedMultiple()
-        {
-            var source =
-@"class C
-{
-    unsafe static void M(string s1, string s2, string s3, string s4)
-    {
-        fixed (char* p1 = s1, p2 = s2)
-        {
-            *p1 = *p2;
-        }
-        fixed (char* p1 = s1, p3 = s3, p2 = s4)
-        {
-            *p1 = *p2;
-            *p2 = *p3;
-            fixed (char *p4 = s2)
-            {
-                *p3 = *p4;
-            }
-        }
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithAllowUnsafe(true).WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithAllowUnsafe(true).WithDebugInformationKind(DebugInformationKind.Full));
-
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
-
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-
-            diff1.VerifyIL("C.M",
-@"{
-  // Code size      226 (0xe2)
-  .maxstack  2
-  .locals init (char* V_0, //p1
-  char* V_1, //p2
-  pinned string V_2, //CS$519$0000
-  pinned string V_3, //CS$519$0001
-  bool V_4,
-  char* V_5, //p1
-  char* V_6, //p3
-  char* V_7, //p2
-  pinned string V_8, //CS$519$0002
-  pinned string V_9, //CS$519$0003
-  pinned string V_10, //CS$519$0004
-  char* V_11, //p4
-  pinned string V_12, //CS$519$0005
-  bool V_13)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  stloc.2
-  IL_0003:  ldloc.2
-  IL_0004:  conv.i
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.2
-  IL_0007:  conv.i
-  IL_0008:  ldnull
-  IL_0009:  ceq
-  IL_000b:  stloc.s    V_13
-  IL_000d:  ldloc.s    V_13
-  IL_000f:  brtrue.s   IL_001b
-  IL_0011:  ldloc.0
-  IL_0012:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0017:  add
-  IL_0018:  stloc.0
-  IL_0019:  br.s       IL_001b
-  IL_001b:  ldarg.1
-  IL_001c:  stloc.3
-  IL_001d:  ldloc.3
-  IL_001e:  conv.i
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.3
-  IL_0021:  conv.i
-  IL_0022:  ldnull
-  IL_0023:  ceq
-  IL_0025:  stloc.s    V_13
-  IL_0027:  ldloc.s    V_13
-  IL_0029:  brtrue.s   IL_0035
-  IL_002b:  ldloc.1
-  IL_002c:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0031:  add
-  IL_0032:  stloc.1
-  IL_0033:  br.s       IL_0035
-  IL_0035:  nop
-  IL_0036:  ldloc.0
-  IL_0037:  ldloc.1
-  IL_0038:  ldind.u2
-  IL_0039:  stind.i2
-  IL_003a:  nop
-  IL_003b:  ldnull
-  IL_003c:  stloc.2
-  IL_003d:  ldnull
-  IL_003e:  stloc.3
-  IL_003f:  ldarg.0
-  IL_0040:  stloc.s    V_8
-  IL_0042:  ldloc.s    V_8
-  IL_0044:  conv.i
-  IL_0045:  stloc.s    V_5
-  IL_0047:  ldloc.s    V_8
-  IL_0049:  conv.i
-  IL_004a:  ldnull
-  IL_004b:  ceq
-  IL_004d:  stloc.s    V_13
-  IL_004f:  ldloc.s    V_13
-  IL_0051:  brtrue.s   IL_005f
-  IL_0053:  ldloc.s    V_5
-  IL_0055:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_005a:  add
-  IL_005b:  stloc.s    V_5
-  IL_005d:  br.s       IL_005f
-  IL_005f:  ldarg.2
-  IL_0060:  stloc.s    V_9
-  IL_0062:  ldloc.s    V_9
-  IL_0064:  conv.i
-  IL_0065:  stloc.s    V_6
-  IL_0067:  ldloc.s    V_9
-  IL_0069:  conv.i
-  IL_006a:  ldnull
-  IL_006b:  ceq
-  IL_006d:  stloc.s    V_13
-  IL_006f:  ldloc.s    V_13
-  IL_0071:  brtrue.s   IL_007f
-  IL_0073:  ldloc.s    V_6
-  IL_0075:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_007a:  add
-  IL_007b:  stloc.s    V_6
-  IL_007d:  br.s       IL_007f
-  IL_007f:  ldarg.3
-  IL_0080:  stloc.s    V_10
-  IL_0082:  ldloc.s    V_10
-  IL_0084:  conv.i
-  IL_0085:  stloc.s    V_7
-  IL_0087:  ldloc.s    V_10
-  IL_0089:  conv.i
-  IL_008a:  ldnull
-  IL_008b:  ceq
-  IL_008d:  stloc.s    V_13
-  IL_008f:  ldloc.s    V_13
-  IL_0091:  brtrue.s   IL_009f
-  IL_0093:  ldloc.s    V_7
-  IL_0095:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_009a:  add
-  IL_009b:  stloc.s    V_7
-  IL_009d:  br.s       IL_009f
-  IL_009f:  nop
-  IL_00a0:  ldloc.s    V_5
-  IL_00a2:  ldloc.s    V_7
-  IL_00a4:  ldind.u2
-  IL_00a5:  stind.i2
-  IL_00a6:  ldloc.s    V_7
-  IL_00a8:  ldloc.s    V_6
-  IL_00aa:  ldind.u2
-  IL_00ab:  stind.i2
-  IL_00ac:  ldarg.1
-  IL_00ad:  stloc.s    V_12
-  IL_00af:  ldloc.s    V_12
-  IL_00b1:  conv.i
-  IL_00b2:  stloc.s    V_11
-  IL_00b4:  ldloc.s    V_12
-  IL_00b6:  conv.i
-  IL_00b7:  ldnull
-  IL_00b8:  ceq
-  IL_00ba:  stloc.s    V_13
-  IL_00bc:  ldloc.s    V_13
-  IL_00be:  brtrue.s   IL_00cc
-  IL_00c0:  ldloc.s    V_11
-  IL_00c2:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_00c7:  add
-  IL_00c8:  stloc.s    V_11
-  IL_00ca:  br.s       IL_00cc
-  IL_00cc:  nop
-  IL_00cd:  ldloc.s    V_6
-  IL_00cf:  ldloc.s    V_11
-  IL_00d1:  ldind.u2
-  IL_00d2:  stind.i2
-  IL_00d3:  nop
-  IL_00d4:  ldnull
-  IL_00d5:  stloc.s    V_12
-  IL_00d7:  nop
-  IL_00d8:  ldnull
-  IL_00d9:  stloc.s    V_8
-  IL_00db:  ldnull
-  IL_00dc:  stloc.s    V_9
-  IL_00de:  ldnull
-  IL_00df:  stloc.s    V_10
-  IL_00e1:  ret
-}
-");
-        }
-
-        [Fact]
-        public void TemporaryLocals_ForEach()
-        {
-            var source =
-@"using System.Collections;
-using System.Collections.Generic;
-class C
-{
-    static IEnumerable F1() { return null; }
-    static List<object> F2() { return null; }
-    static IEnumerable F3() { return null; }
-    static List<object> F4() { return null; }
-    static void M()
-    {
-        foreach (var @x/*CS$5$0000*/ in F1())
-        {
-            foreach (object y/*CS$5$0001*/ in F2()) { }
-        }
-        foreach (var x/*CS$5$0001*/ in F4())
-        {
-            foreach (var y/*CS$5$0000*/ in F3()) { }
-            foreach (var z/*CS$5$0004*/ in F2()) { }
-        }
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
-
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-
-            diff1.VerifyIL("C.M",
-@"{
-  // Code size      309 (0x135)
-  .maxstack  2
-  .locals init (System.Collections.IEnumerator V_0, //CS$5$0000
-  object V_1, //x
-  System.Collections.Generic.List<object>.Enumerator V_2, //CS$5$0001
-  object V_3, //y
-  bool V_4,
-  [unchanged] V_5,
-  System.Collections.Generic.List<object>.Enumerator V_6, //CS$5$0002
-  object V_7, //x
-  System.Collections.IEnumerator V_8, //CS$5$0003
-  object V_9, //y
-  System.Collections.Generic.List<object>.Enumerator V_10, //CS$5$0004
-  object V_11, //z
-  bool V_12,
-  System.IDisposable V_13)
-  IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  call       ""System.Collections.IEnumerable C.F1()""
-  IL_0007:  callvirt   ""System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()""
-  IL_000c:  stloc.0
-  .try
-{
-  IL_000d:  br.s       IL_004e
-  IL_000f:  ldloc.0
-  IL_0010:  callvirt   ""object System.Collections.IEnumerator.Current.get""
-  IL_0015:  stloc.1
-  IL_0016:  nop
-  IL_0017:  nop
-  IL_0018:  call       ""System.Collections.Generic.List<object> C.F2()""
-  IL_001d:  callvirt   ""System.Collections.Generic.List<object>.Enumerator System.Collections.Generic.List<object>.GetEnumerator()""
-  IL_0022:  stloc.2
-  .try
-{
-  IL_0023:  br.s       IL_002f
-  IL_0025:  ldloca.s   V_2
-  IL_0027:  call       ""object System.Collections.Generic.List<object>.Enumerator.Current.get""
-  IL_002c:  stloc.3
-  IL_002d:  nop
-  IL_002e:  nop
-  IL_002f:  ldloca.s   V_2
-  IL_0031:  call       ""bool System.Collections.Generic.List<object>.Enumerator.MoveNext()""
-  IL_0036:  stloc.s    V_12
-  IL_0038:  ldloc.s    V_12
-  IL_003a:  brtrue.s   IL_0025
-  IL_003c:  leave.s    IL_004d
-}
-  finally
-{
-  IL_003e:  ldloca.s   V_2
-  IL_0040:  constrained. ""System.Collections.Generic.List<object>.Enumerator""
-  IL_0046:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_004b:  nop
-  IL_004c:  endfinally
-}
-  IL_004d:  nop
-  IL_004e:  ldloc.0
-  IL_004f:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_0054:  stloc.s    V_12
-  IL_0056:  ldloc.s    V_12
-  IL_0058:  brtrue.s   IL_000f
-  IL_005a:  leave.s    IL_0078
-}
-  finally
-{
-  IL_005c:  ldloc.0
-  IL_005d:  isinst     ""System.IDisposable""
-  IL_0062:  stloc.s    V_13
-  IL_0064:  ldloc.s    V_13
-  IL_0066:  ldnull
-  IL_0067:  ceq
-  IL_0069:  stloc.s    V_12
-  IL_006b:  ldloc.s    V_12
-  IL_006d:  brtrue.s   IL_0077
-  IL_006f:  ldloc.s    V_13
-  IL_0071:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0076:  nop
-  IL_0077:  endfinally
-}
-  IL_0078:  nop
-  IL_0079:  call       ""System.Collections.Generic.List<object> C.F4()""
-  IL_007e:  callvirt   ""System.Collections.Generic.List<object>.Enumerator System.Collections.Generic.List<object>.GetEnumerator()""
-  IL_0083:  stloc.s    V_6
-  .try
-{
-  IL_0085:  br         IL_0113
-  IL_008a:  ldloca.s   V_6
-  IL_008c:  call       ""object System.Collections.Generic.List<object>.Enumerator.Current.get""
-  IL_0091:  stloc.s    V_7
-  IL_0093:  nop
-  IL_0094:  nop
-  IL_0095:  call       ""System.Collections.IEnumerable C.F3()""
-  IL_009a:  callvirt   ""System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()""
-  IL_009f:  stloc.s    V_8
-  .try
-{
-  IL_00a1:  br.s       IL_00ae
-  IL_00a3:  ldloc.s    V_8
-  IL_00a5:  callvirt   ""object System.Collections.IEnumerator.Current.get""
-  IL_00aa:  stloc.s    V_9
-  IL_00ac:  nop
-  IL_00ad:  nop
-  IL_00ae:  ldloc.s    V_8
-  IL_00b0:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_00b5:  stloc.s    V_12
-  IL_00b7:  ldloc.s    V_12
-  IL_00b9:  brtrue.s   IL_00a3
-  IL_00bb:  leave.s    IL_00da
-}
-  finally
-{
-  IL_00bd:  ldloc.s    V_8
-  IL_00bf:  isinst     ""System.IDisposable""
-  IL_00c4:  stloc.s    V_13
-  IL_00c6:  ldloc.s    V_13
-  IL_00c8:  ldnull
-  IL_00c9:  ceq
-  IL_00cb:  stloc.s    V_12
-  IL_00cd:  ldloc.s    V_12
-  IL_00cf:  brtrue.s   IL_00d9
-  IL_00d1:  ldloc.s    V_13
-  IL_00d3:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_00d8:  nop
-  IL_00d9:  endfinally
-}
-  IL_00da:  nop
-  IL_00db:  call       ""System.Collections.Generic.List<object> C.F2()""
-  IL_00e0:  callvirt   ""System.Collections.Generic.List<object>.Enumerator System.Collections.Generic.List<object>.GetEnumerator()""
-  IL_00e5:  stloc.s    V_10
-  .try
-{
-  IL_00e7:  br.s       IL_00f4
-  IL_00e9:  ldloca.s   V_10
-  IL_00eb:  call       ""object System.Collections.Generic.List<object>.Enumerator.Current.get""
-  IL_00f0:  stloc.s    V_11
-  IL_00f2:  nop
-  IL_00f3:  nop
-  IL_00f4:  ldloca.s   V_10
-  IL_00f6:  call       ""bool System.Collections.Generic.List<object>.Enumerator.MoveNext()""
-  IL_00fb:  stloc.s    V_12
-  IL_00fd:  ldloc.s    V_12
-  IL_00ff:  brtrue.s   IL_00e9
-  IL_0101:  leave.s    IL_0112
-}
-  finally
-{
-  IL_0103:  ldloca.s   V_10
-  IL_0105:  constrained. ""System.Collections.Generic.List<object>.Enumerator""
-  IL_010b:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0110:  nop
-  IL_0111:  endfinally
-}
-  IL_0112:  nop
-  IL_0113:  ldloca.s   V_6
-  IL_0115:  call       ""bool System.Collections.Generic.List<object>.Enumerator.MoveNext()""
-  IL_011a:  stloc.s    V_12
-  IL_011c:  ldloc.s    V_12
-  IL_011e:  brtrue     IL_008a
-  IL_0123:  leave.s    IL_0134
-}
-  finally
-{
-  IL_0125:  ldloca.s   V_6
-  IL_0127:  constrained. ""System.Collections.Generic.List<object>.Enumerator""
-  IL_012d:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0132:  nop
-  IL_0133:  endfinally
-}
-  IL_0134:  ret
-}");
-        }
-
-        [Fact]
-        public void TemporaryLocals_ForEachArray()
-        {
-            var source =
-@"class C
-{
-    static void M(string a, object[] b, double[,,] c)
-    {
-        foreach (var x in a)
-        {
-            foreach (var y in b)
-            {
-            }
-        }
-        foreach (var x in c)
-        {
-        }
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
-
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-
-            diff1.VerifyIL("C.M",
-@"
-{
-  // Code size      223 (0xdf)
-  .maxstack  4
-  .locals init (string V_0, //CS$6$0000
-  int V_1, //CS$7$0001
-  char V_2, //x
-  object[] V_3, //CS$6$0002
-  int V_4, //CS$7$0003
-  object V_5, //y
-  bool V_6,
-  double[,,] V_7, //CS$6$0004
-  int V_8, //CS$263$0005
-  int V_9, //CS$264$0006
-  int V_10, //CS$265$0007
-  int V_11, //CS$7$0008
-  int V_12, //CS$8$0009
-  int V_13, //CS$9$0010
-  double V_14, //x
-  bool V_15)
-  IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ldarg.0
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.0
-  IL_0005:  stloc.1
-  IL_0006:  br.s       IL_0039
-  IL_0008:  ldloc.0
-  IL_0009:  ldloc.1
-  IL_000a:  callvirt   ""char string.this[int].get""
-  IL_000f:  stloc.2
-  IL_0010:  nop
-  IL_0011:  nop
-  IL_0012:  ldarg.1
-  IL_0013:  stloc.3
-  IL_0014:  ldc.i4.0
-  IL_0015:  stloc.s    V_4
-  IL_0017:  br.s       IL_0027
-  IL_0019:  ldloc.3
-  IL_001a:  ldloc.s    V_4
-  IL_001c:  ldelem.ref
-  IL_001d:  stloc.s    V_5
-  IL_001f:  nop
-  IL_0020:  nop
-  IL_0021:  ldloc.s    V_4
-  IL_0023:  ldc.i4.1
-  IL_0024:  add
-  IL_0025:  stloc.s    V_4
-  IL_0027:  ldloc.s    V_4
-  IL_0029:  ldloc.3
-  IL_002a:  ldlen
-  IL_002b:  conv.i4
-  IL_002c:  clt
-  IL_002e:  stloc.s    V_15
-  IL_0030:  ldloc.s    V_15
-  IL_0032:  brtrue.s   IL_0019
-  IL_0034:  nop
-  IL_0035:  ldloc.1
-  IL_0036:  ldc.i4.1
-  IL_0037:  add
-  IL_0038:  stloc.1
-  IL_0039:  ldloc.1
-  IL_003a:  ldloc.0
-  IL_003b:  callvirt   ""int string.Length.get""
-  IL_0040:  clt
-  IL_0042:  stloc.s    V_15
-  IL_0044:  ldloc.s    V_15
-  IL_0046:  brtrue.s   IL_0008
-  IL_0048:  nop
-  IL_0049:  ldarg.2
-  IL_004a:  stloc.s    V_7
-  IL_004c:  ldloc.s    V_7
-  IL_004e:  ldc.i4.0
-  IL_004f:  callvirt   ""int System.Array.GetUpperBound(int)""
-  IL_0054:  stloc.s    V_8
-  IL_0056:  ldloc.s    V_7
-  IL_0058:  ldc.i4.1
-  IL_0059:  callvirt   ""int System.Array.GetUpperBound(int)""
-  IL_005e:  stloc.s    V_9
-  IL_0060:  ldloc.s    V_7
-  IL_0062:  ldc.i4.2
-  IL_0063:  callvirt   ""int System.Array.GetUpperBound(int)""
-  IL_0068:  stloc.s    V_10
-  IL_006a:  ldloc.s    V_7
-  IL_006c:  ldc.i4.0
-  IL_006d:  callvirt   ""int System.Array.GetLowerBound(int)""
-  IL_0072:  stloc.s    V_11
-  IL_0074:  br.s       IL_00cf
-  IL_0076:  ldloc.s    V_7
-  IL_0078:  ldc.i4.1
-  IL_0079:  callvirt   ""int System.Array.GetLowerBound(int)""
-  IL_007e:  stloc.s    V_12
-  IL_0080:  br.s       IL_00ba
-  IL_0082:  ldloc.s    V_7
-  IL_0084:  ldc.i4.2
-  IL_0085:  callvirt   ""int System.Array.GetLowerBound(int)""
-  IL_008a:  stloc.s    V_13
-  IL_008c:  br.s       IL_00a5
-  IL_008e:  ldloc.s    V_7
-  IL_0090:  ldloc.s    V_11
-  IL_0092:  ldloc.s    V_12
-  IL_0094:  ldloc.s    V_13
-  IL_0096:  call       ""double[*,*,*].Get""
-  IL_009b:  stloc.s    V_14
-  IL_009d:  nop
-  IL_009e:  nop
-  IL_009f:  ldloc.s    V_13
-  IL_00a1:  ldc.i4.1
-  IL_00a2:  add
-  IL_00a3:  stloc.s    V_13
-  IL_00a5:  ldloc.s    V_13
-  IL_00a7:  ldloc.s    V_10
-  IL_00a9:  cgt
-  IL_00ab:  ldc.i4.0
-  IL_00ac:  ceq
-  IL_00ae:  stloc.s    V_15
-  IL_00b0:  ldloc.s    V_15
-  IL_00b2:  brtrue.s   IL_008e
-  IL_00b4:  ldloc.s    V_12
-  IL_00b6:  ldc.i4.1
-  IL_00b7:  add
-  IL_00b8:  stloc.s    V_12
-  IL_00ba:  ldloc.s    V_12
-  IL_00bc:  ldloc.s    V_9
-  IL_00be:  cgt
-  IL_00c0:  ldc.i4.0
-  IL_00c1:  ceq
-  IL_00c3:  stloc.s    V_15
-  IL_00c5:  ldloc.s    V_15
-  IL_00c7:  brtrue.s   IL_0082
-  IL_00c9:  ldloc.s    V_11
-  IL_00cb:  ldc.i4.1
-  IL_00cc:  add
-  IL_00cd:  stloc.s    V_11
-  IL_00cf:  ldloc.s    V_11
-  IL_00d1:  ldloc.s    V_8
-  IL_00d3:  cgt
-  IL_00d5:  ldc.i4.0
-  IL_00d6:  ceq
-  IL_00d8:  stloc.s    V_15
-  IL_00da:  ldloc.s    V_15
-  IL_00dc:  brtrue.s   IL_0076
-  IL_00de:  ret
-}");
-        }
-
-        /// <summary>
-        /// TempKind expects array with at most 256 dimensions.
-        /// (Should any edits in such cases be considered rude edits?
-        /// Or should we generate compile errors since the CLR throws
-        /// TypeLoadException if the number of dimensions exceeds 256?)
-        /// </summary>
-        //[Fact(Skip = "ArgumentException")]
-        public void TemporaryLocals_ForEachArray_Overflow()
-        {
-            var source =
-@"class C
-{
-    static void M(object o)
-    {
-        foreach (var x in (object[,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,])o)
-        {
-        }
-    }
-}";
-            // Make sure the source contains an array with too many dimensions.
-            var tooManyCommas = new string(',', 256);
-            Assert.True(source.IndexOf(tooManyCommas) > 0);
-
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
-
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-        }
-
-        [Fact]
-        public void TemporaryLocals_AddAndDelete()
-        {
-            var source0 =
-@"class C
-{
-    static object F1() { return null; }
-    static string F2() { return null; }
-    static System.IDisposable F3() { return null; }
-    static void M()
-    {
-        lock (F1()) { }
-        foreach (var c in F2()) { }
-        using (F3()) { }
-    }
-}";
-            // Delete one statement.
-            var source1 =
-@"class C
-{
-    static object F1() { return null; }
-    static string F2() { return null; }
-    static System.IDisposable F3() { return null; }
-    static void M()
-    {
-        lock (F1()) { }
-        foreach (var c in F2()) { }
-    }
-}";
-            // Add statement with same temp kind.
-            var source2 =
-@"class C
-{
-    static object F1() { return null; }
-    static string F2() { return null; }
-    static System.IDisposable F3() { return null; }
-    static void M()
-    {
-        using (F3()) { }
-        lock (F1()) { }
-        foreach (var c in F2()) { }
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source0, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation2 = CreateCompilationWithMscorlib(source2, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
-
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-
-            var method2 = compilation2.GetMember<MethodSymbol>("C.M");
-            var diff2 = compilation2.EmitDifference(
-                diff1.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetLocalMap(method2, method1), preserveLocalVariables: true)));
-
-            diff2.VerifyIL("C.M",
-@"{
-  // Code size      118 (0x76)
-  .maxstack  2
-  .locals init (object V_0, //CS$2$0001
-  bool V_1, //CS$520$0002
-  bool V_2,
-  string V_3, //CS$6$0003
-  int V_4, //CS$7$0004
-  char V_5, //c
-  [unchanged] V_6,
-  [unchanged] V_7,
-  System.IDisposable V_8, //CS$3$0000
-  bool V_9)
-  IL_0000:  nop
-  IL_0001:  call       ""System.IDisposable C.F3()""
-  IL_0006:  stloc.s    V_8
-  .try
-{
-  IL_0008:  nop
-  IL_0009:  nop
-  IL_000a:  leave.s    IL_0020
-}
-  finally
-{
-  IL_000c:  ldloc.s    V_8
-  IL_000e:  ldnull
-  IL_000f:  ceq
-  IL_0011:  stloc.s    V_9
-  IL_0013:  ldloc.s    V_9
-  IL_0015:  brtrue.s   IL_001f
-  IL_0017:  ldloc.s    V_8
-  IL_0019:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_001e:  nop
-  IL_001f:  endfinally
-}
-  IL_0020:  ldc.i4.0
-  IL_0021:  stloc.1
-  .try
-{
-  IL_0022:  call       ""object C.F1()""
-  IL_0027:  stloc.0
-  IL_0028:  ldloc.0
-  IL_0029:  ldloca.s   V_1
-  IL_002b:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0030:  nop
-  IL_0031:  nop
-  IL_0032:  nop
-  IL_0033:  leave.s    IL_0047
-}
-  finally
-{
-  IL_0035:  ldloc.1
-  IL_0036:  ldc.i4.0
-  IL_0037:  ceq
-  IL_0039:  stloc.s    V_9
-  IL_003b:  ldloc.s    V_9
-  IL_003d:  brtrue.s   IL_0046
-  IL_003f:  ldloc.0
-  IL_0040:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0045:  nop
-  IL_0046:  endfinally
-}
-  IL_0047:  nop
-  IL_0048:  call       ""string C.F2()""
-  IL_004d:  stloc.3
-  IL_004e:  ldc.i4.0
-  IL_004f:  stloc.s    V_4
-  IL_0051:  br.s       IL_0065
-  IL_0053:  ldloc.3
-  IL_0054:  ldloc.s    V_4
-  IL_0056:  callvirt   ""char string.this[int].get""
-  IL_005b:  stloc.s    V_5
-  IL_005d:  nop
-  IL_005e:  nop
-  IL_005f:  ldloc.s    V_4
-  IL_0061:  ldc.i4.1
-  IL_0062:  add
-  IL_0063:  stloc.s    V_4
-  IL_0065:  ldloc.s    V_4
-  IL_0067:  ldloc.3
-  IL_0068:  callvirt   ""int string.Length.get""
-  IL_006d:  clt
-  IL_006f:  stloc.s    V_9
-  IL_0071:  ldloc.s    V_9
-  IL_0073:  brtrue.s   IL_0053
-  IL_0075:  ret
-}");
-        }
-
-        [Fact]
-        public void TemporaryLocals_Insert()
-        {
-            var source0 =
-@"class C
-{
-    static object F1() { return null; }
-    static object F2() { return null; }
-    static object F3() { return null; }
-    static object F4() { return null; }
-    static void M()
-    {
-        lock (F1()) { }
-        lock (F2()) { }
-    }
-}";
-            var source1 =
-@"class C
-{
-    static object F1() { return null; }
-    static object F2() { return null; }
-    static object F3() { return null; }
-    static object F4() { return null; }
-    static void M()
-    {
-        lock (F3()) { } // added
-        lock (F1()) { }
-        lock (F4()) { } // replaced
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source0, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
-
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-
-            // Note that the order of unique ids in temporaries follows the
-            // order of declaration in the updated method. Specifically, the
-            // original temporary names (and unique ids) are not preserved.
-            // (Should not be an issue since the names are used by EnC only.)
-            diff1.VerifyIL("C.M",
-@"{
-  // Code size      129 (0x81)
-  .maxstack  2
-  .locals init (object V_0, //CS$2$0002
-  bool V_1, //CS$520$0003
-  bool V_2,
-  object V_3,
-  bool V_4,
-  object V_5, //CS$2$0000
-  bool V_6, //CS$520$0001
-  bool V_7,
-  object V_8, //CS$2$0004
-  bool V_9) //CS$520$0005
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.s    V_6
-  .try
-{
-  IL_0004:  call       ""object C.F3()""
-  IL_0009:  stloc.s    V_5
-  IL_000b:  ldloc.s    V_5
-  IL_000d:  ldloca.s   V_6
-  IL_000f:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0014:  nop
-  IL_0015:  nop
-  IL_0016:  nop
-  IL_0017:  leave.s    IL_002d
-}
-  finally
-{
-  IL_0019:  ldloc.s    V_6
-  IL_001b:  ldc.i4.0
-  IL_001c:  ceq
-  IL_001e:  stloc.s    V_7
-  IL_0020:  ldloc.s    V_7
-  IL_0022:  brtrue.s   IL_002c
-  IL_0024:  ldloc.s    V_5
-  IL_0026:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_002b:  nop
-  IL_002c:  endfinally
-}
-  IL_002d:  ldc.i4.0
-  IL_002e:  stloc.1
-  .try
-{
-  IL_002f:  call       ""object C.F1()""
-  IL_0034:  stloc.0
-  IL_0035:  ldloc.0
-  IL_0036:  ldloca.s   V_1
-  IL_0038:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_003d:  nop
-  IL_003e:  nop
-  IL_003f:  nop
-  IL_0040:  leave.s    IL_0054
-}
-  finally
-{
-  IL_0042:  ldloc.1
-  IL_0043:  ldc.i4.0
-  IL_0044:  ceq
-  IL_0046:  stloc.s    V_7
-  IL_0048:  ldloc.s    V_7
-  IL_004a:  brtrue.s   IL_0053
-  IL_004c:  ldloc.0
-  IL_004d:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0052:  nop
-  IL_0053:  endfinally
-}
-  IL_0054:  ldc.i4.0
-  IL_0055:  stloc.s    V_9
-  .try
-{
-  IL_0057:  call       ""object C.F4()""
-  IL_005c:  stloc.s    V_8
-  IL_005e:  ldloc.s    V_8
-  IL_0060:  ldloca.s   V_9
-  IL_0062:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0067:  nop
-  IL_0068:  nop
-  IL_0069:  nop
-  IL_006a:  leave.s    IL_0080
-}
-  finally
-{
-  IL_006c:  ldloc.s    V_9
-  IL_006e:  ldc.i4.0
-  IL_006f:  ceq
-  IL_0071:  stloc.s    V_7
-  IL_0073:  ldloc.s    V_7
-  IL_0075:  brtrue.s   IL_007f
-  IL_0077:  ldloc.s    V_8
-  IL_0079:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_007e:  nop
-  IL_007f:  endfinally
-}
-  IL_0080:  ret
-}");
-        }
-
-        /// <summary>
-        /// Should not reuse temporary locals
-        /// having different temporary kinds.
-        /// </summary>
-        [Fact]
-        public void TemporaryLocals_NoReuseDifferentTempKind()
-        {
-            var source =
-@"class A : System.IDisposable
-{
-    public object Current { get { return null; } }
-    public bool MoveNext() { return false; }
-    public void Dispose() { }
-    internal int this[A a] { get { return 0; } set { } }
-}
-class B
-{
-    public A GetEnumerator() { return null; }
-}
-class C
-{
-    static A F() { return null; }
-    static B G() { return null; }
-    static void M(A a)
-    {
-        a[/*V_9*/F()]++;
-        using (/*CS$3$0000*/F()) { }
-        lock (/*CS$2$0001*/F()) { }
-        foreach (var o in /*CS$5$0003*/G()) { }
-    }
-}";
-
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
-
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0),
-                m => GetLocalNames(methodData0));
-
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
-
-            diff1.VerifyIL("C.M",
-@"{
-  // Code size      170 (0xaa)
-  .maxstack  4
-  .locals init ([unchanged] V_0,
-  [unchanged] V_1,
-  int V_2,
-  A V_3, //CS$3$0000
-  bool V_4,
-  A V_5, //CS$2$0001
-  bool V_6, //CS$520$0002
-  A V_7, //CS$5$0003
-  object V_8, //o
-  A V_9,
-  A V_10,
-  int V_11,
-  bool V_12)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  stloc.s    V_9
-  IL_0004:  call       ""A C.F()""
-  IL_0009:  stloc.s    V_10
-  IL_000b:  ldloc.s    V_9
-  IL_000d:  ldloc.s    V_10
-  IL_000f:  callvirt   ""int A.this[A].get""
-  IL_0014:  stloc.s    V_11
-  IL_0016:  ldloc.s    V_9
-  IL_0018:  ldloc.s    V_10
-  IL_001a:  ldloc.s    V_11
-  IL_001c:  ldc.i4.1
-  IL_001d:  add
-  IL_001e:  callvirt   ""void A.this[A].set""
-  IL_0023:  nop
-  IL_0024:  call       ""A C.F()""
-  IL_0029:  stloc.3
-  .try
-{
-  IL_002a:  nop
-  IL_002b:  nop
-  IL_002c:  leave.s    IL_0040
-}
-  finally
-{
-  IL_002e:  ldloc.3
-  IL_002f:  ldnull
-  IL_0030:  ceq
-  IL_0032:  stloc.s    V_12
-  IL_0034:  ldloc.s    V_12
-  IL_0036:  brtrue.s   IL_003f
-  IL_0038:  ldloc.3
-  IL_0039:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_003e:  nop
-  IL_003f:  endfinally
-}
-  IL_0040:  ldc.i4.0
-  IL_0041:  stloc.s    V_6
-  .try
-{
-  IL_0043:  call       ""A C.F()""
-  IL_0048:  stloc.s    V_5
-  IL_004a:  ldloc.s    V_5
-  IL_004c:  ldloca.s   V_6
-  IL_004e:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0053:  nop
-  IL_0054:  nop
-  IL_0055:  nop
-  IL_0056:  leave.s    IL_006c
-}
-  finally
-{
-  IL_0058:  ldloc.s    V_6
-  IL_005a:  ldc.i4.0
-  IL_005b:  ceq
-  IL_005d:  stloc.s    V_12
-  IL_005f:  ldloc.s    V_12
-  IL_0061:  brtrue.s   IL_006b
-  IL_0063:  ldloc.s    V_5
-  IL_0065:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_006a:  nop
-  IL_006b:  endfinally
-}
-  IL_006c:  nop
-  IL_006d:  call       ""B C.G()""
-  IL_0072:  callvirt   ""A B.GetEnumerator()""
-  IL_0077:  stloc.s    V_7
-  .try
-{
-  IL_0079:  br.s       IL_0086
-  IL_007b:  ldloc.s    V_7
-  IL_007d:  callvirt   ""object A.Current.get""
-  IL_0082:  stloc.s    V_8
-  IL_0084:  nop
-  IL_0085:  nop
-  IL_0086:  ldloc.s    V_7
-  IL_0088:  callvirt   ""bool A.MoveNext()""
-  IL_008d:  stloc.s    V_12
-  IL_008f:  ldloc.s    V_12
-  IL_0091:  brtrue.s   IL_007b
-  IL_0093:  leave.s    IL_00a9
-}
-  finally
-{
-  IL_0095:  ldloc.s    V_7
-  IL_0097:  ldnull
-  IL_0098:  ceq
-  IL_009a:  stloc.s    V_12
-  IL_009c:  ldloc.s    V_12
-  IL_009e:  brtrue.s   IL_00a8
-  IL_00a0:  ldloc.s    V_7
-  IL_00a2:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_00a7:  nop
-  IL_00a8:  endfinally
-}
-  IL_00a9:  ret
-}");
-        }
-
-        [Fact]
-        public void SymbolMatcher_ConcurrentAccess()
-        {
-            var source =
-@"class A
-{
-    B F;
-    D P { get; set; }
-    void M(A a, B b, S s, I i) { }
-    delegate void D(S s);
-    class B { }
-    struct S { }
-    interface I { }
-}
-class B
-{
-    A M<T, U>() where T : A where U : T, I { return null; }
-    event D E;
-    delegate void D(S s);
-    struct S { }
-    interface I { }
-}";
-
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
-
-            var builder = ArrayBuilder<Symbol>.GetInstance();
-            var type = compilation1.GetMember<NamedTypeSymbol>("A");
-            builder.Add(type);
-            builder.AddRange(type.GetMembers());
-            type = compilation1.GetMember<NamedTypeSymbol>("B");
-            builder.Add(type);
-            builder.AddRange(type.GetMembers());
-            var members = builder.ToImmutableAndFree();
-            Assert.True(members.Length > 10);
-
-            for (int i = 0; i < 10; i++)
-            {
-                var matcher = new SymbolMatcher(
-                    null,
-                    compilation1.SourceAssembly,
-                    default(EmitContext),
-                    compilation0.SourceAssembly,
-                    default(EmitContext));
-                var tasks = new Task[10];
-                for (int j = 0; j < tasks.Length; j++)
-                {
-                    int startAt = i + j + 1;
-                    tasks[j] = Task.Run(() =>
-                    {
-                        MatchAll(matcher, members, startAt);
-                        Thread.Sleep(10);
-                    });
-                }
-                Task.WaitAll(tasks);
-            }
-        }
-
-        private static void MatchAll(SymbolMatcher matcher, ImmutableArray<Symbol> members, int startAt)
-        {
-            int n = members.Length;
-            for (int i = 0; i < n; i++)
-            {
-                var member = members[(i + startAt) % n];
-                var other = matcher.MapDefinition((Cci.IDefinition)member);
-                Assert.NotNull(other);
-            }
-        }
-
-        [Fact]
-        public void SymbolMatcher_TypeArguments()
-        {
-            const string source =
-@"class A<T>
-{
-    class B<U>
-    {
-        static A<V> M<V>(A<U>.B<T> x, A<object>.S y)
-        {
-            return null;
-        }
-        static A<V> M<V>(A<U>.B<T> x, A<V>.S y)
-        {
-            return null;
-        }
-    }
-    struct S
-    {
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
-
-            var matcher = new SymbolMatcher(
-                null,
-                compilation1.SourceAssembly,
-                default(EmitContext),
-                compilation0.SourceAssembly,
-                default(EmitContext));
-            var members = compilation1.GetMember<NamedTypeSymbol>("A.B").GetMembers("M");
-            Assert.Equal(members.Length, 2);
-            foreach (var member in members)
-            {
-                var other = matcher.MapDefinition((Cci.IMethodDefinition)member);
-                Assert.NotNull(other);
-            }
-        }
-
-        [Fact]
-        public void SymbolMatcher_Constraints()
-        {
-            const string source =
-@"interface I<T> where T : I<T>
-{
-}
-class C
-{
-    static void M<T>(I<T> o) where T : I<T>
-    {
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
-
-            var matcher = new SymbolMatcher(
-                null,
-                compilation1.SourceAssembly,
-                default(EmitContext),
-                compilation0.SourceAssembly,
-                default(EmitContext));
-            var member = compilation1.GetMember<MethodSymbol>("C.M");
-            var other = matcher.MapDefinition((Cci.IMethodDefinition)member);
-            Assert.NotNull(other);
-        }
-
-        [Fact]
-        public void SymbolMatcher_CustomModifiers()
-        {
-            var ilSource =
-@".class public abstract A
-{
-  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
-  .method public abstract virtual instance object modopt(A) [] F(int32 modopt(object) *p) { }
-}";
-            var metadataRef = CompileIL(ilSource);
-            const string source =
-@"unsafe class B : A
-{
-    public override object[] F(int* p) { return null; }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithAllowUnsafe(true), references: new[] { metadataRef });
-            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll.WithAllowUnsafe(true), references: new[] { metadataRef });
-
-            var member1 = compilation1.GetMember<MethodSymbol>("B.F");
-            Assert.Equal(((PointerTypeSymbol)member1.Parameters[0].Type).CustomModifiers.Length, 1);
-            Assert.Equal(((ArrayTypeSymbol)member1.ReturnType).CustomModifiers.Length, 1);
-
-            var matcher = new SymbolMatcher(
-                null,
-                compilation1.SourceAssembly,
-                default(EmitContext),
-                compilation0.SourceAssembly,
-                default(EmitContext));
-            var other = (MethodSymbol)matcher.MapDefinition((Cci.IMethodDefinition)member1);
-            Assert.NotNull(other);
-            Assert.Equal(((PointerTypeSymbol)other.Parameters[0].Type).CustomModifiers.Length, 1);
-            Assert.Equal(((ArrayTypeSymbol)other.ReturnType).CustomModifiers.Length, 1);
-        }
-
         /// <summary>
         /// Disallow edits that include "dynamic" operations.
         /// </summary>
@@ -7118,7 +5332,7 @@ class B
                 var method1 = compilation1.GetMember<MethodSymbol>("A.M");
                 var diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 diff1.Result.Diagnostics.Verify(
                     // (10,17): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     //     static void M(object o)
@@ -7131,7 +5345,7 @@ class B
                 method1 = compilation1.GetMember<MethodSymbol>("A.N");
                 diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 diff1.Result.Diagnostics.Verify();
 
                 // Explicit .ctor with dynamic operations.
@@ -7141,7 +5355,7 @@ class B
                 method1 = compilation1.GetMember<MethodSymbol>("A..ctor");
                 diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 diff1.Result.Diagnostics.Verify(
                     // (9,5): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     //     A() { }
@@ -7154,7 +5368,7 @@ class B
                 method1 = compilation1.GetMember<MethodSymbol>("A..cctor");
                 diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 diff1.Result.Diagnostics.Verify(
                     // (5,12): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     //     static A()
@@ -7167,7 +5381,7 @@ class B
                 method1 = compilation1.GetMember<MethodSymbol>("B..ctor");
                 diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 diff1.Result.Diagnostics.Verify(
                     // (19,7): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     // class B
@@ -7180,7 +5394,7 @@ class B
                 method1 = compilation1.GetMember<MethodSymbol>("B..cctor");
                 diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 diff1.Result.Diagnostics.Verify(
                     // (19,7): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     // class B
@@ -7235,7 +5449,7 @@ public interface I
                 var method1 = compilation1.GetMember<MethodSymbol>("C.M");
                 var diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 diff1.VerifyIL("C.M",
 @"{
   // Code size       11 (0xb)
@@ -7336,7 +5550,7 @@ public struct S
                 var method1A = compilation1A.GetMember<MethodSymbol>("C.M1");
                 var diff1A = compilation1A.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1A, GetLocalMap(method1A, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1A, GetEquivalentNodesMap(method1A, method0), preserveLocalVariables: true)));
                 diff1A.Result.Diagnostics.Verify(
                     // error CS7094: Cannot continue since the edit includes a reference to an embedded type: 'S'.
                     Diagnostic(ErrorCode.ERR_EnCNoPIAReference).WithArguments("S"),
@@ -7348,7 +5562,7 @@ public struct S
                 var method1B = compilation1B.GetMember<MethodSymbol>("C.M1");
                 var diff1B = compilation1B.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1B, GetLocalMap(method1B, method0), preserveLocalVariables: true)));
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1B, GetEquivalentNodesMap(method1B, method0), preserveLocalVariables: true)));
                 diff1B.VerifyIL("C<T>.M1",
 @"{
   // Code size        9 (0x9)
@@ -7634,196 +5848,6 @@ class C
                     Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("The method or operation is not implemented."));
 
                 Assert.False(diff1.Result.Success);
-            }
-        }
-
-        #region Helpers 
-
-        private static readonly LocalVariableNameProvider EmptyLocalsProvider = token => ImmutableArray<string>.Empty;
-
-        private static ImmutableArray<SyntaxNode> GetAllLocals(MethodSymbol method)
-        {
-            return CSharpDefinitionMap.LocalVariableDeclaratorsCollector.GetDeclarators(method);
-        }
-
-        private static ImmutableArray<string> GetLocalNames(MethodSymbol method)
-        {
-            var locals = GetAllLocals(method);
-            return locals.SelectAsArray(GetLocalName);
-        }
-
-        private static Func<SyntaxNode, SyntaxNode> GetLocalMap(MethodSymbol method1, MethodSymbol method0)
-        {
-            var tree1 = method1.Locations[0].SourceTree;
-            var tree0 = method0.Locations[0].SourceTree;
-            Assert.NotEqual(tree1, tree0);
-
-            var locals0 = GetAllLocals(method0);
-            return s =>
-                {
-                    var s1 = (SyntaxNode)s;
-                    Assert.Equal(s1.SyntaxTree, tree1);
-                    foreach (var s0 in locals0)
-                    {
-                        if (!SyntaxFactory.AreEquivalent(s0, s1))
-                        {
-                            continue;
-                        }
-                        // Make sure the containing statements are the same.
-                        var p0 = GetNearestStatement(s0);
-                        var p1 = GetNearestStatement(s1);
-                        if (SyntaxFactory.AreEquivalent(p0, p1))
-                        {
-                            return s0;
-                        }
-                    }
-                    return null;
-                };
-        }
-
-        private static string GetLocalName(SyntaxNode node)
-        {
-            switch (node.CSharpKind())
-            {
-                case SyntaxKind.VariableDeclarator:
-                    return ((VariableDeclaratorSyntax)node).Identifier.ToString();
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
-        private static ImmutableArray<string> GetLocalNames(CompilationTestData.MethodData methodData)
-        {
-            var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
-            return locals.SelectAsArray(l => l.Name);
-        }
-
-        private static StatementSyntax GetNearestStatement(SyntaxNode node)
-        {
-            while (node != null)
-            {
-                var statement = node as StatementSyntax;
-                if (statement != null)
-                {
-                    return statement;
-                }
-                node = node.Parent;
-            }
-            return null;
-        }
-
-        private static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
-        {
-            return new EditAndContinueLogEntry(MetadataTokens.Handle(table, rowNumber), operation);
-        }
-
-        private static Handle Handle(int rowNumber, TableIndex table)
-        {
-            return MetadataTokens.Handle(table, rowNumber);
-        }
-
-        private static void CheckEncLog(MetadataReader reader, params EditAndContinueLogEntry[] rows)
-        {
-            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString);
-        }
-
-        private static void CheckEncMap(MetadataReader reader, params Handle[] handles)
-        {
-            AssertEx.Equal(handles, reader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString);
-        }
-
-        private static void CheckAttributes(MetadataReader reader, params CustomAttributeRow[] rows)
-        {
-            AssertEx.Equal(rows, reader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
-        }
-
-        internal static void CheckNames(MetadataReader reader, StringHandle[] handles, params string[] expectedNames)
-        {
-            CheckNames(new[] { reader }, handles, expectedNames);
-        }
-
-        internal static void CheckNames(MetadataReader[] readers, StringHandle[] handles, params string[] expectedNames)
-        {
-            var actualNames = readers.GetStrings(handles);
-            AssertEx.Equal(actualNames, expectedNames);
-        }
-
-        private static string EncLogRowToString(EditAndContinueLogEntry row)
-        {
-            TableIndex tableIndex;
-            MetadataTokens.TryGetTableIndex(row.Handle.HandleType, out tableIndex);
-
-            return string.Format(
-                "Row({0}, TableIndex.{1}, EditAndContinueOperation.{2})",
-                MetadataTokens.GetRowNumber(row.Handle),
-                tableIndex,
-                row.Operation);
-        }
-
-        private static string EncMapRowToString(Handle handle)
-        {
-            TableIndex tableIndex;
-            MetadataTokens.TryGetTableIndex(handle.HandleType, out tableIndex);
-
-            return string.Format(
-                "Handle({0}, TableIndex.{1})",
-                MetadataTokens.GetRowNumber(handle),
-                tableIndex);
-        }
-
-        private static string AttributeRowToString(CustomAttributeRow row)
-        {
-            TableIndex parentTableIndex, constructorTableIndex;
-            MetadataTokens.TryGetTableIndex(row.ParentToken.HandleType, out parentTableIndex);
-            MetadataTokens.TryGetTableIndex(row.ConstructorToken.HandleType, out constructorTableIndex);
-
-            return string.Format(
-                "new CustomAttributeRow(Handle({0}, TableIndex.{1}), Handle({2}, TableIndex.{3}))",
-                MetadataTokens.GetRowNumber(row.ParentToken),
-                parentTableIndex,
-                MetadataTokens.GetRowNumber(row.ConstructorToken),
-                constructorTableIndex);
-        }
-
-        #endregion
-    }
-
-    internal static class CompilationDifferenceExtensions
-    {
-        internal static void VerifyIL(this CompilationDifference diff, string qualifiedMethodName, string expectedIL)
-        {
-            diff.VerifyIL(qualifiedMethodName, expectedIL, ToLocalInfo);
-        }
-
-        internal static string GetMethodIL(this CompilationDifference diff, string qualifiedMethodName)
-        {
-            return ILBuilderVisualizer.ILBuilderToString(diff.TestData.GetMethodData(qualifiedMethodName).ILBuilder, ToLocalInfo);
-        }
-
-        private static ILVisualizer.LocalInfo ToLocalInfo(Microsoft.Cci.ILocalDefinition local)
-        {
-            var signature = local.Signature;
-            if (signature == null)
-            {
-                return new ILVisualizer.LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference);
-            }
-            else
-            {
-                // Decode simple types only.
-                var typeName = (signature.Length == 1) ? GetTypeName((SignatureTypeCode)signature[0]) : null;
-                return new ILVisualizer.LocalInfo(null, typeName ?? "[unchanged]", false, false);
-            }
-        }
-
-        private static string GetTypeName(SignatureTypeCode typeCode)
-        {
-            switch (typeCode)
-            {
-                case SignatureTypeCode.Boolean: return "bool";
-                case SignatureTypeCode.Int32: return "int";
-                case SignatureTypeCode.String: return "string";
-                case SignatureTypeCode.Object: return "object";
-                default: return null;
             }
         }
     }

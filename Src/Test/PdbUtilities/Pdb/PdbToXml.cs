@@ -106,7 +106,7 @@ namespace Roslyn.Test.PdbUtilities
                             xmlWriter.Write(GetQualifiedMethodName(metadataReader, methodHandle));
                             xmlWriter.Write("]]></method>");
                             xmlWriter.WriteLine();
-                }
+                        }
 
                         xmlWriter.WriteLine("</available-methods>");
                         xmlWriter.WriteLine("</error>");

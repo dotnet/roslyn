@@ -29,7 +29,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return RewriteWhileStatement(node.Syntax, node.InnerLocals, rewrittenCondition, conditionSequencePointSpan, rewrittenBody, node.BreakLabel, node.ContinueLabel, node.HasErrors);
+            return RewriteWhileStatement(
+                node.Syntax, 
+                node.InnerLocals, 
+                AddConditionSequencePoint(rewrittenCondition, node), 
+                conditionSequencePointSpan, 
+                rewrittenBody, 
+                node.BreakLabel,
+                node.ContinueLabel,
+                node.HasErrors);
         }
 
         private BoundStatement RewriteWhileStatement(
@@ -82,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new BoundLabelStatement(syntax, continueLabel),
                         new BoundBlock(syntax,
                                        innerLocals,
-                                       ImmutableArray.Create<BoundStatement>(
+                                       ImmutableArray.Create(
                                             ifNotConditionGotoBreak,
                                             rewrittenBody,
                                             new BoundGotoStatement(syntax, continueLabel))),

@@ -200,10 +200,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     pdbFilePath = c.AssemblyName + ".pdb";
                 }
                 else
-                    {
+                {
                     pdbStream = null;
                     pdbFilePath = null;
-                    }
+                }
 
                 try
                 {
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 finally
                 {
                     if (pdbStream != null)
-                {
+                    {
                         pdb = pdbStream.ToImmutable();
                         pdbStream.Dispose();
                     }
@@ -333,6 +333,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             return mainModule.Image;
+        }
+
+        public ImmutableArray<byte> GetMainPdb()
+        {
+            if (mainModule == null)
+            {
+                throw new InvalidOperationException("You must call Emit before calling GetMainPdb.");
+            }
+
+            return mainModule.Pdb;
         }
 
         internal IList<ModuleData> GetAllModuleData()
@@ -721,13 +731,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
 
                     string pePath = Path.Combine(dumpDirectory, fileName + module.Kind.GetDefaultExtension());
-                    string pdbPath = (module.PDB != null) ? pdbPath = Path.Combine(dumpDirectory, fileName + ".pdb") : null;
+                    string pdbPath = (module.Pdb != null) ? pdbPath = Path.Combine(dumpDirectory, fileName + ".pdb") : null;
                     try
                     {
                         module.Image.WriteToFile(pePath);
                         if (pdbPath != null)
                         {
-                            module.PDB.WriteToFile(pdbPath);
+                            module.Pdb.WriteToFile(pdbPath);
                         }
                     }
                     catch (IOException)
@@ -809,7 +819,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public readonly OutputKind Kind;
         public readonly ImmutableArray<byte> Image;
-        public readonly ImmutableArray<byte> PDB;
+        public readonly ImmutableArray<byte> Pdb;
         public readonly bool InMemoryModule;
         private Guid? mvid;
 
@@ -818,7 +828,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.FullName = netModuleName;
             this.Kind = OutputKind.NetModule;
             this.Image = image;
-            this.PDB = pdb;
+            this.Pdb = pdb;
             this.InMemoryModule = inMemoryModule;
         }
 
@@ -827,7 +837,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.FullName = identity.GetDisplayName();
             this.Kind = kind;
             this.Image = image;
-            this.PDB = pdb;
+            this.Pdb = pdb;
             this.InMemoryModule = inMemoryModule;
         }
 
@@ -864,7 +874,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             info.AddByteArray("Image", this.Image);
 
             //public readonly ImmutableArray<byte> PDB;
-            info.AddByteArray("PDB", this.PDB);
+            info.AddByteArray("PDB", this.Pdb);
 
             //public readonly bool InMemoryModule;
             info.AddValue("InMemoryModule", this.InMemoryModule);
@@ -885,7 +895,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.Image = info.GetByteArray("Image");
 
             //public readonly ImmutableArray<byte> PDB;
-            this.PDB = info.GetByteArray("PDB");
+            this.Pdb = info.GetByteArray("PDB");
 
             //public readonly bool InMemoryModule;
             this.InMemoryModule = info.GetBoolean("InMemoryModule");

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -19,13 +18,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Switch key for the jump table
         /// </summary>
-        private readonly LocalDefinition keyLocal;
-        private readonly int keyArgument;
+        private readonly LocalOrParameter key;
 
         /// <summary>
         /// Primitive type of the switch key
         /// </summary>
-        private readonly Microsoft.Cci.PrimitiveTypeCode keyTypeCode;
+        private readonly Cci.PrimitiveTypeCode keyTypeCode;
 
         /// <summary>
         /// Fall through label for the jump table
@@ -48,36 +46,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ILBuilder builder,
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
-            Microsoft.Cci.PrimitiveTypeCode keyTypeCode,
-            LocalDefinition keyLocal = null,
-            int keyArgument = -1)
+            Cci.PrimitiveTypeCode keyTypeCode,
+            LocalOrParameter key)
         {
-            Debug.Assert(keyArgument == -1 ^ keyLocal == null, "cannot have both valid key argument and valid key local");
-
             this.builder = builder;
-            this.keyLocal = keyLocal;
-            this.keyArgument = keyArgument;
+            this.key = key;
             this.keyTypeCode = keyTypeCode;
             this.fallThroughLabel = fallThroughLabel;
 
             // Sort the switch case labels, see comments below for more details.
             Debug.Assert(caseLabels.Length > 0);
             Array.Sort(caseLabels, CompareIntegralSwitchLabels);
-            sortedCaseLabels = ImmutableArray.Create<KeyValuePair<ConstantValue, object>>(caseLabels);
-        }
-
-        private void EmitKeyLoad()
-        {
-            var local = this.keyLocal;
-
-            if (local != null)
-            {
-                builder.EmitLocalLoad(this.keyLocal);
-            }
-            else
-            {
-                builder.EmitLoadArgumentOpcode(this.keyArgument);
-            }
+            sortedCaseLabels = ImmutableArray.Create(caseLabels);
         }
 
         internal void EmitJumpTable()
@@ -423,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // ldc constant
             // branch branchCode targetLabel
 
-            EmitKeyLoad();
+            builder.EmitLoad(this.key);
             builder.EmitConstantValue(constant);
             builder.EmitBranch(branchCode, targetLabel, GetReverseBranchCode(branchCode));
         }
@@ -434,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(constant));
             Debug.Assert(targetLabel != null);
 
-            EmitKeyLoad();
+            builder.EmitLoad(this.key);
 
             if (constant.IsDefaultValue)
             {
@@ -476,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void EmitNormalizedSwitchKey(ConstantValue startConstant, ConstantValue endConstant, object bucketFallThroughLabel)
         {
-            EmitKeyLoad();
+            builder.EmitLoad(this.key);
 
             // Normalize the key to 0 if needed
 

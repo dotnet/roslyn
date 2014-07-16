@@ -26,7 +26,7 @@ class C
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll, "C+<F>d__0`1.MoveNext");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "C+<F>d__0`1.MoveNext");
 
             string expected = @"
 <symbols>
@@ -40,7 +40,7 @@ class C
           <bucket startOffset=""0x2d"" endOffset=""0xa8"" />
         </iteratorLocals>
       </customDebugInfo>
-      <sequencepoints total=""14"">
+      <sequencepoints total=""15"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x2c"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x2d"" start_row=""7"" start_column=""14"" end_row=""7"" end_column=""23"" file_ref=""0"" />
@@ -54,15 +54,22 @@ class C
         <entry il_offset=""0x81"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0x82"" start_row=""7"" start_column=""39"" end_row=""7"" end_column=""42"" file_ref=""0"" />
         <entry il_offset=""0x92"" start_row=""7"" start_column=""25"" end_row=""7"" end_column=""37"" file_ref=""0"" />
+        <entry il_offset=""0xa4"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0xa8"" start_row=""13"" start_column=""5"" end_row=""13"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xaf"" attributes=""1"" />
         <local name=""t"" il_index=""2"" il_start=""0x36"" il_end=""0x82"" attributes=""0"" />
+        <local name=""CS$4$0001"" il_index=""4"" il_start=""0x92"" il_end=""0xa8"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0xaf"">
         <namespace name=""System.Collections.Generic"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xaf"" attributes=""1"" />
         <scope startOffset=""0x36"" endOffset=""0x82"">
           <local name=""t"" il_index=""2"" il_start=""0x36"" il_end=""0x82"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0x92"" endOffset=""0xa8"">
+          <local name=""CS$4$0001"" il_index=""4"" il_start=""0x92"" il_end=""0xa8"" attributes=""1"" />
         </scope>
       </scope>
     </method>

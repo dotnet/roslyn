@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntax = node.Syntax;
 
-            BoundStatement ifConditionGotoStart = new BoundConditionalGoto(syntax, rewrittenCondition, true, startLabel);
+            BoundStatement ifConditionGotoStart = new BoundConditionalGoto(syntax, AddConditionSequencePoint(rewrittenCondition, node), true, startLabel);
 
             if (this.generateDebugInfo)
             {

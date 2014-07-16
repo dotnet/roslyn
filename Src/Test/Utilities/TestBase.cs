@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -11,12 +12,12 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
+using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.PdbUtilities;
+using Roslyn.Utilities;
 using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
@@ -683,6 +684,27 @@ namespace Roslyn.Test.Utilities
             }
 
             return actual;
+        }
+
+        public static Dictionary<int, string> GetSequencePointMarkers(string pdbXml)
+        {
+            return EnumerateSequencepointMarkers(pdbXml).ToDictionary(pair => pair.Key, pair => pair.Value);
+        }
+
+        public static IEnumerable<KeyValuePair<int, string>> EnumerateSequencepointMarkers(string pdbXml)
+        {
+            var doc = new XmlDocument();
+            doc.LoadXml(pdbXml);
+
+            foreach (XmlNode entry in doc.GetElementsByTagName("sequencepoints"))
+            {
+                foreach (XmlElement item in entry.ChildNodes)
+                {
+                    yield return KeyValuePair.Create(
+                        Convert.ToInt32(item.GetAttribute("il_offset"), 16),
+                        (item.GetAttribute("hidden") == "true") ? "~" : "-");
+                }
+            }
         }
 
         public static string GetTokenToLocationMap(Compilation compilation, bool maskToken = false)

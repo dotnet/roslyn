@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void EmitStringSwitchJumpTable(
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
-            LocalDefinition key,
+            LocalOrParameter key,
             LocalDefinition keyHash,
             SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate,
             SwitchStringJumpTableEmitter.GetStringHashCode computeStringHashcodeDelegate)
@@ -203,54 +203,28 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         /// <summary>
-        /// Primary method for emitting integer switch jump table
+        /// Primary method for emitting integer switch jump table.
         /// </summary>
         /// <param name="caseLabels">switch case labels</param>
-        /// <param name="fallThroughLabel">fall through label for the jump table</param>
-        /// <param name="keyLocal">Local holding the value to switch on.
+        /// <param name="fallThroughLabel">fall through label for the jump table.</param>
+        /// <param name="key">Local or parameter holding the value to switch on.
         /// This value has already been loaded onto the execution stack.
         /// </param>
-        /// <param name="keyTypeCode">Primitive type code of switch key</param>
+        /// <param name="keyTypeCode">Primitive type code of switch key.</param>
         internal void EmitIntegerSwitchJumpTable(
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
-            LocalDefinition keyLocal,
-            Microsoft.Cci.PrimitiveTypeCode keyTypeCode)
+            LocalOrParameter key,
+            Cci.PrimitiveTypeCode keyTypeCode)
         {
             Debug.Assert(caseLabels.Length > 0);
-            Debug.Assert(keyTypeCode != Microsoft.Cci.PrimitiveTypeCode.String);
+            Debug.Assert(keyTypeCode != Cci.PrimitiveTypeCode.String);
 
             // CONSIDER: SwitchIntegralJumpTableEmitter will modify the caseLabels array by sorting it.
             // CONSIDER: Currently, only purpose of creating this caseLabels array is for Emitting the jump table.
             // CONSIDER: If this requirement changes, we may want to pass in ArrayBuilder<KeyValuePair<ConstantValue, object>> instead.
 
-            var emitter = new SwitchIntegralJumpTableEmitter(this, caseLabels, fallThroughLabel, keyTypeCode, keyLocal, -1);
-            emitter.EmitJumpTable();
-        }
-
-        /// <summary>
-        /// Primary method for emitting integer switch jump table
-        /// </summary>
-        /// <param name="caseLabels">switch case labels</param>
-        /// <param name="fallThroughLabel">fall through label for the jump table</param>
-        /// <param name="keyArgumentIndex">Index of the parameter to switch on.
-        /// This value has already been loaded onto the execution stack.
-        /// </param>
-        /// <param name="keyTypeCode">Primitive type code of switch key</param>
-        internal void EmitIntegerSwitchJumpTable(
-            KeyValuePair<ConstantValue, object>[] caseLabels,
-            object fallThroughLabel,
-            int keyArgumentIndex,
-            Microsoft.Cci.PrimitiveTypeCode keyTypeCode)
-        {
-            Debug.Assert(caseLabels.Length > 0);
-            Debug.Assert(keyTypeCode != Microsoft.Cci.PrimitiveTypeCode.String);
-
-            // CONSIDER: SwitchIntegralJumpTableEmitter will modify the caseLabels array by sorting it.
-            // CONSIDER: Currently, only purpose of creating this caseLabels array is for Emitting the jump table.
-            // CONSIDER: If this requirement changes, we may want to pass in ArrayBuilder<KeyValuePair<ConstantValue, object>> instead.
-
-            var emitter = new SwitchIntegralJumpTableEmitter(this, caseLabels, fallThroughLabel, keyTypeCode, null, keyArgumentIndex);
+            var emitter = new SwitchIntegralJumpTableEmitter(this, caseLabels, fallThroughLabel, keyTypeCode, key);
             emitter.EmitJumpTable();
         }
 
@@ -366,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         /// <summary>
-        /// Generates code that loads an address of an element of a multidimensional array
+        /// Generates code that loads an address of an element of a multidimensional array.
         /// </summary>
         internal void EmitArrayElementAddress(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
@@ -380,9 +354,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         /// <summary>
-        /// Generates code that stores an element of a multidimensional array
+        /// Generates code that stores an element of a multidimensional array.
         /// </summary>
-        internal void EmitArrayElementStore(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitArrayElementStore(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
 
@@ -393,6 +367,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.EmitToken(store, syntaxNode, diagnostics);
         }
 
+        internal void EmitLoad(LocalOrParameter localOrParameter)
+        {
+            if (localOrParameter.Local != null)
+            {
+                EmitLocalLoad(localOrParameter.Local);
+            }
+            else
+            {
+                EmitLoadArgumentOpcode(localOrParameter.ParameterIndex);
+            }
+        }
 
         // Generate a "load local" opcode with the given slot number.
         internal void EmitLocalLoad(LocalDefinition local)

@@ -334,12 +334,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(params BoundStatement[] statements)
         {
-            return Block(ImmutableArray.Create<BoundStatement>(statements));
+            return Block(ImmutableArray.Create(statements));
         }
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, params BoundStatement[] statements)
         {
-            return Block(locals, ImmutableArray.Create<BoundStatement>(statements));
+            return Block(locals, ImmutableArray.Create(statements));
         }
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements)
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, left.Type) { WasCompilerGenerated = true };
         }
 
-        public BoundStatement If(BoundExpression condition, BoundStatement thenClause, BoundStatement elseClause)
+        public BoundStatement If(BoundExpression condition, BoundStatement thenClause, BoundStatement elseClauseOpt = null)
         {
             // We translate
             //    if (condition) thenClause else elseClause
@@ -596,17 +596,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       elseClause
             //       afterif:
             //    }
-            Debug.Assert(thenClause != null && elseClause != null);
+            Debug.Assert(thenClause != null);
+
+            var statements = ArrayBuilder<BoundStatement>.GetInstance();
             var afterif = new GeneratedLabelSymbol("afterif");
-            var alt = new GeneratedLabelSymbol("alternative");
-            return Block(
-                new BoundConditionalGoto(Syntax, condition, false, alt) { WasCompilerGenerated = true },
-                thenClause,
-                Goto(afterif),
-                Label(alt),
-                elseClause,
-                Label(afterif)
-                );
+
+            if (elseClauseOpt != null)
+            {
+                var alt = new GeneratedLabelSymbol("alternative");
+
+                statements.Add(new BoundConditionalGoto(Syntax, condition, false, alt) { WasCompilerGenerated = true });
+                statements.Add(thenClause);
+                statements.Add(Goto(afterif));
+                statements.Add(Label(alt));
+                statements.Add(elseClauseOpt);
+            }
+            else
+            {
+                statements.Add(new BoundConditionalGoto(Syntax, condition, false, afterif) { WasCompilerGenerated = true });
+                statements.Add(thenClause);
+            }
+
+            statements.Add(Label(afterif));
+            return Block(statements.ToImmutableAndFree());
         }
 
         public BoundStatement For(BoundExpression initialization, BoundExpression termination, BoundExpression increment, BoundStatement body)
@@ -635,11 +647,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                          ExpressionStatement(increment),
                          Label(lLoopCondition),
                          If(termination, Goto(lLoopStart)));
-        }
-
-        public BoundStatement If(BoundExpression condition, BoundStatement thenClause)
-        {
-            return If(condition, thenClause, Block());
         }
 
         public BoundThrowStatement Throw(BoundExpression e = null)

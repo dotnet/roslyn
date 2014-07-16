@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -17,27 +18,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
         #region Helpers
 
-        private CompilationVerifier CompileAndVerifyIL(string source, string methodName, string expectedOptimizedIL = null, string expectedUnoptimizedIL = null, 
-            MetadataReference[] references = null)
+        private CompilationVerifier CompileAndVerifyIL(
+            string source, 
+            string methodName, 
+            string expectedOptimizedIL = null, 
+            string expectedUnoptimizedIL = null, 
+            MetadataReference[] references = null,
+            [CallerFilePath]string callerPath = null,
+            [CallerLineNumber]int callerLine = 0)
         {
             references = references ?? new[] { SystemCoreRef, CSharpRef };
 
             // verify that we emit correct optimized and unoptimized IL:
-            var unoptimizedCompilation = CreateCompilationWithMscorlib45(source, references, compOptions: TestOptions.UnsafeDll.WithMetadataImportOptions(MetadataImportOptions.All).WithOptimizations(false));
-            var optimizedCompilation = CreateCompilationWithMscorlib45(source, references, compOptions: TestOptions.UnsafeDll.WithMetadataImportOptions(MetadataImportOptions.All).WithOptimizations(true));
+            var unoptimizedCompilation = CreateCompilationWithMscorlib45(source, references, compOptions: TestOptions.DebugDll.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All));
+            var optimizedCompilation = CreateCompilationWithMscorlib45(source, references, compOptions: TestOptions.OptimizedDll.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation);
-            var optimizedVerifier = CompileAndVerify(optimizedCompilation);
+            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation, emitPdb: true);
+            var optimizedVerifier = CompileAndVerify(optimizedCompilation, emitPdb: false);
 
             // check what IL we emit exactly:
             if (expectedUnoptimizedIL != null)
             {
-                unoptimizedVerifier.VerifyIL(methodName, expectedUnoptimizedIL, realIL: true);
+                unoptimizedVerifier.VerifyIL(methodName, expectedUnoptimizedIL, realIL: true, sequencePoints: methodName, callerPath: callerPath, callerLine: callerLine);
             }
 
             if (expectedOptimizedIL != null)
             {
-                optimizedVerifier.VerifyIL(methodName, expectedOptimizedIL, realIL: true);
+                optimizedVerifier.VerifyIL(methodName, expectedOptimizedIL, realIL: true, callerPath: callerPath, callerLine: callerLine);
             }
 
             // return null if ambiguous
@@ -3096,68 +3103,69 @@ class C
   // Code size      169 (0xa9)
   .maxstack  10
   .locals init (object V_0, //dy
-  bool V_1,
-  int V_2)
-  IL_0000:  ldnull
-  IL_0001:  stloc.0
-  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<M>o__SiteContainer0.<>p__Site2""
-  IL_0007:  brfalse.s  IL_000b
-  IL_0009:  br.s       IL_0037
-  IL_000b:  ldc.i4.0
-  IL_000c:  ldc.i4.s   83
-  IL_000e:  ldtoken    ""C""
-  IL_0013:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0018:  ldc.i4.1
-  IL_0019:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-  IL_001e:  dup
-  IL_001f:  ldc.i4.0
-  IL_0020:  ldc.i4.0
-  IL_0021:  ldnull
-  IL_0022:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0027:  stelem.ref
-  IL_0028:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.UnaryOperation(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Linq.Expressions.ExpressionType, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_002d:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0032:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<M>o__SiteContainer0.<>p__Site2""
-  IL_0037:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<M>o__SiteContainer0.<>p__Site2""
-  IL_003c:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>>.Target""
-  IL_0041:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<M>o__SiteContainer0.<>p__Site2""
-  IL_0046:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<M>o__SiteContainer0.<>p__Site1""
-  IL_004b:  brfalse.s  IL_004f
-  IL_004d:  br.s       IL_007e
-  IL_004f:  ldc.i4.0
-  IL_0050:  ldstr      ""Property_bool""
-  IL_0055:  ldtoken    ""C""
-  IL_005a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_005f:  ldc.i4.1
-  IL_0060:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-  IL_0065:  dup
-  IL_0066:  ldc.i4.0
-  IL_0067:  ldc.i4.0
-  IL_0068:  ldnull
-  IL_0069:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_006e:  stelem.ref
-  IL_006f:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0074:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0079:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<M>o__SiteContainer0.<>p__Site1""
-  IL_007e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<M>o__SiteContainer0.<>p__Site1""
-  IL_0083:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>>.Target""
-  IL_0088:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<M>o__SiteContainer0.<>p__Site1""
-  IL_008d:  ldloc.0
-  IL_008e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
-  IL_0093:  callvirt   ""bool System.Func<System.Runtime.CompilerServices.CallSite, object, bool>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
-  IL_0098:  ldc.i4.0
-  IL_0099:  ceq
-  IL_009b:  stloc.1
-  IL_009c:  ldloc.1
-  IL_009d:  brtrue.s   IL_00a3
-  IL_009f:  ldc.i4.1
-  IL_00a0:  stloc.2
-  IL_00a1:  br.s       IL_00a7
-  IL_00a3:  ldc.i4.0
-  IL_00a4:  stloc.2
+           bool V_1, //CS$4$0000
+           int V_2)
+ -IL_0000:  nop       
+ -IL_0001:  ldnull    
+  IL_0002:  stloc.0   
+ -IL_0003:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<M>o__SiteContainer0.<>p__Site2""
+  IL_0008:  brfalse.s  IL_000c
+  IL_000a:  br.s       IL_0038
+  IL_000c:  ldc.i4.0  
+  IL_000d:  ldc.i4.s   83
+  IL_000f:  ldtoken    ""C""
+  IL_0014:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0019:  ldc.i4.1  
+  IL_001a:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_001f:  dup       
+  IL_0020:  ldc.i4.0  
+  IL_0021:  ldc.i4.0  
+  IL_0022:  ldnull    
+  IL_0023:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0028:  stelem.ref
+  IL_0029:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.UnaryOperation(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Linq.Expressions.ExpressionType, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_002e:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0033:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<M>o__SiteContainer0.<>p__Site2""
+  IL_0038:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<M>o__SiteContainer0.<>p__Site2""
+  IL_003d:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>>.Target""
+  IL_0042:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<M>o__SiteContainer0.<>p__Site2""
+  IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<M>o__SiteContainer0.<>p__Site1""
+  IL_004c:  brfalse.s  IL_0050
+  IL_004e:  br.s       IL_007f
+  IL_0050:  ldc.i4.0  
+  IL_0051:  ldstr      ""Property_bool""
+  IL_0056:  ldtoken    ""C""
+  IL_005b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0060:  ldc.i4.1  
+  IL_0061:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0066:  dup       
+  IL_0067:  ldc.i4.0  
+  IL_0068:  ldc.i4.0  
+  IL_0069:  ldnull    
+  IL_006a:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_006f:  stelem.ref
+  IL_0070:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0075:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_007a:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<M>o__SiteContainer0.<>p__Site1""
+  IL_007f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<M>o__SiteContainer0.<>p__Site1""
+  IL_0084:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>>.Target""
+  IL_0089:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object>> C.<M>o__SiteContainer0.<>p__Site1""
+  IL_008e:  ldloc.0   
+  IL_008f:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
+  IL_0094:  callvirt   ""bool System.Func<System.Runtime.CompilerServices.CallSite, object, bool>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
+  IL_0099:  stloc.1   
+ ~IL_009a:  ldloc.1   
+  IL_009b:  brfalse.s  IL_00a2
+ -IL_009d:  nop       
+ -IL_009e:  ldc.i4.1  
+  IL_009f:  stloc.2   
+  IL_00a0:  br.s       IL_00a7
+ -IL_00a2:  nop       
+ -IL_00a3:  ldc.i4.0  
+  IL_00a4:  stloc.2   
   IL_00a5:  br.s       IL_00a7
-  IL_00a7:  ldloc.2
-  IL_00a8:  ret
+ -IL_00a7:  ldloc.2   
+  IL_00a8:  ret       
 }
 ", 
  expectedOptimizedIL: @"

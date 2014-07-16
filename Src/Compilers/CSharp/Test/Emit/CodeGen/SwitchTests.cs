@@ -2142,140 +2142,137 @@ class Test
 
             compVerifier.VerifyIL("Test.M", @"
 {
-  // Code size      375 (0x177)
+  // Code size      373 (0x175)
   .maxstack  3
   .locals init (string V_0, //value
-  string V_1,
-  uint V_2)
+           uint V_1)
   IL_0000:  ldstr      """"
-  IL_0005:  stloc.0
-  IL_0006:  ldarg.0
+  IL_0005:  stloc.0   
+  IL_0006:  ldarg.0   
   IL_0007:  brfalse.s  IL_0021
-  IL_0009:  ldarg.0
+  IL_0009:  ldarg.0   
   IL_000a:  ldstr      ""C#""
   IL_000f:  callvirt   ""int string.IndexOf(string)""
-  IL_0014:  ldc.i4.m1
+  IL_0014:  ldc.i4.m1 
   IL_0015:  beq.s      IL_0021
-  IL_0017:  ldarg.0
-  IL_0018:  ldc.i4.0
-  IL_0019:  ldc.i4.2
+  IL_0017:  ldarg.0   
+  IL_0018:  ldc.i4.0  
+  IL_0019:  ldc.i4.2  
   IL_001a:  callvirt   ""string string.Remove(int, int)""
   IL_001f:  starg.s    V_0
-  IL_0021:  ldarg.0
-  IL_0022:  stloc.1
-  IL_0023:  ldloc.1
-  IL_0024:  call       ""$$method0x6000001-ComputeStringHash""
-  IL_0029:  stloc.2
-  IL_002a:  ldloc.2
-  IL_002b:  ldc.i4     0xc60bf9f2
-  IL_0030:  bgt.un.s   IL_0065
-  IL_0032:  ldloc.2
-  IL_0033:  ldc.i4     0x390caefb
-  IL_0038:  bgt.un.s   IL_004d
-  IL_003a:  ldloc.2
-  IL_003b:  brfalse.s  IL_00a5
-  IL_003d:  ldloc.2
-  IL_003e:  ldc.i4     0x390caefb
-  IL_0043:  beq        IL_0108
-  IL_0048:  br         IL_016f
-  IL_004d:  ldloc.2
-  IL_004e:  ldc.i4     0x811c9dc5
-  IL_0053:  beq.s      IL_00b0
-  IL_0055:  ldloc.2
-  IL_0056:  ldc.i4     0xc60bf9f2
-  IL_005b:  beq        IL_00f9
-  IL_0060:  br         IL_016f
-  IL_0065:  ldloc.2
-  IL_0066:  ldc.i4     0xc80bfd18
-  IL_006b:  bgt.un.s   IL_0085
-  IL_006d:  ldloc.2
-  IL_006e:  ldc.i4     0xc70bfb85
-  IL_0073:  beq.s      IL_00ea
-  IL_0075:  ldloc.2
-  IL_0076:  ldc.i4     0xc80bfd18
-  IL_007b:  beq        IL_0126
-  IL_0080:  br         IL_016f
-  IL_0085:  ldloc.2
-  IL_0086:  ldc.i4     0xd10c0b43
-  IL_008b:  beq        IL_0117
-  IL_0090:  ldloc.2
-  IL_0091:  ldc.i4     0xd20c0cd6
-  IL_0096:  beq.s      IL_00d8
-  IL_0098:  ldloc.2
-  IL_0099:  ldc.i4     0xda0c196e
-  IL_009e:  beq.s      IL_00c6
-  IL_00a0:  br         IL_016f
-  IL_00a5:  ldloc.1
-  IL_00a6:  brfalse    IL_0135
-  IL_00ab:  br         IL_016f
-  IL_00b0:  ldloc.1
-  IL_00b1:  brfalse    IL_016f
-  IL_00b6:  ldloc.1
-  IL_00b7:  call       ""int string.Length.get""
-  IL_00bc:  brfalse    IL_016f
-  IL_00c1:  br         IL_016f
-  IL_00c6:  ldloc.1
-  IL_00c7:  ldstr      ""_""
-  IL_00cc:  call       ""bool string.op_Equality(string, string)""
-  IL_00d1:  brtrue.s   IL_0139
-  IL_00d3:  br         IL_016f
-  IL_00d8:  ldloc.1
-  IL_00d9:  ldstr      ""W""
-  IL_00de:  call       ""bool string.op_Equality(string, string)""
-  IL_00e3:  brtrue.s   IL_0141
-  IL_00e5:  br         IL_016f
-  IL_00ea:  ldloc.1
-  IL_00eb:  ldstr      ""B""
-  IL_00f0:  call       ""bool string.op_Equality(string, string)""
-  IL_00f5:  brtrue.s   IL_0149
-  IL_00f7:  br.s       IL_016f
-  IL_00f9:  ldloc.1
-  IL_00fa:  ldstr      ""C""
-  IL_00ff:  call       ""bool string.op_Equality(string, string)""
-  IL_0104:  brtrue.s   IL_0151
-  IL_0106:  br.s       IL_016f
-  IL_0108:  ldloc.1
-  IL_0109:  ldstr      ""<""
-  IL_010e:  call       ""bool string.op_Equality(string, string)""
-  IL_0113:  brtrue.s   IL_0159
-  IL_0115:  br.s       IL_016f
-  IL_0117:  ldloc.1
-  IL_0118:  ldstr      ""T""
-  IL_011d:  call       ""bool string.op_Equality(string, string)""
-  IL_0122:  brtrue.s   IL_0161
-  IL_0124:  br.s       IL_016f
-  IL_0126:  ldloc.1
-  IL_0127:  ldstr      ""M""
-  IL_012c:  call       ""bool string.op_Equality(string, string)""
-  IL_0131:  brtrue.s   IL_0169
-  IL_0133:  br.s       IL_016f
-  IL_0135:  ldnull
-  IL_0136:  stloc.0
-  IL_0137:  br.s       IL_016f
-  IL_0139:  ldstr      ""_""
-  IL_013e:  stloc.0
-  IL_013f:  br.s       IL_016f
-  IL_0141:  ldstr      ""W""
-  IL_0146:  stloc.0
-  IL_0147:  br.s       IL_016f
-  IL_0149:  ldstr      ""B""
-  IL_014e:  stloc.0
-  IL_014f:  br.s       IL_016f
-  IL_0151:  ldstr      ""C""
-  IL_0156:  stloc.0
-  IL_0157:  br.s       IL_016f
-  IL_0159:  ldstr      ""<""
-  IL_015e:  stloc.0
-  IL_015f:  br.s       IL_016f
-  IL_0161:  ldstr      ""T""
-  IL_0166:  stloc.0
-  IL_0167:  br.s       IL_016f
-  IL_0169:  ldstr      ""M""
-  IL_016e:  stloc.0
-  IL_016f:  ldloc.0
-  IL_0170:  ldarg.0
-  IL_0171:  call       ""bool string.op_Equality(string, string)""
-  IL_0176:  ret
+  IL_0021:  ldarg.0   
+  IL_0022:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_0027:  stloc.1   
+  IL_0028:  ldloc.1   
+  IL_0029:  ldc.i4     0xc60bf9f2
+  IL_002e:  bgt.un.s   IL_0063
+  IL_0030:  ldloc.1   
+  IL_0031:  ldc.i4     0x390caefb
+  IL_0036:  bgt.un.s   IL_004b
+  IL_0038:  ldloc.1   
+  IL_0039:  brfalse.s  IL_00a3
+  IL_003b:  ldloc.1   
+  IL_003c:  ldc.i4     0x390caefb
+  IL_0041:  beq        IL_0106
+  IL_0046:  br         IL_016d
+  IL_004b:  ldloc.1   
+  IL_004c:  ldc.i4     0x811c9dc5
+  IL_0051:  beq.s      IL_00ae
+  IL_0053:  ldloc.1   
+  IL_0054:  ldc.i4     0xc60bf9f2
+  IL_0059:  beq        IL_00f7
+  IL_005e:  br         IL_016d
+  IL_0063:  ldloc.1   
+  IL_0064:  ldc.i4     0xc80bfd18
+  IL_0069:  bgt.un.s   IL_0083
+  IL_006b:  ldloc.1   
+  IL_006c:  ldc.i4     0xc70bfb85
+  IL_0071:  beq.s      IL_00e8
+  IL_0073:  ldloc.1   
+  IL_0074:  ldc.i4     0xc80bfd18
+  IL_0079:  beq        IL_0124
+  IL_007e:  br         IL_016d
+  IL_0083:  ldloc.1   
+  IL_0084:  ldc.i4     0xd10c0b43
+  IL_0089:  beq        IL_0115
+  IL_008e:  ldloc.1   
+  IL_008f:  ldc.i4     0xd20c0cd6
+  IL_0094:  beq.s      IL_00d6
+  IL_0096:  ldloc.1   
+  IL_0097:  ldc.i4     0xda0c196e
+  IL_009c:  beq.s      IL_00c4
+  IL_009e:  br         IL_016d
+  IL_00a3:  ldarg.0   
+  IL_00a4:  brfalse    IL_0133
+  IL_00a9:  br         IL_016d
+  IL_00ae:  ldarg.0   
+  IL_00af:  brfalse    IL_016d
+  IL_00b4:  ldarg.0   
+  IL_00b5:  call       ""int string.Length.get""
+  IL_00ba:  brfalse    IL_016d
+  IL_00bf:  br         IL_016d
+  IL_00c4:  ldarg.0   
+  IL_00c5:  ldstr      ""_""
+  IL_00ca:  call       ""bool string.op_Equality(string, string)""
+  IL_00cf:  brtrue.s   IL_0137
+  IL_00d1:  br         IL_016d
+  IL_00d6:  ldarg.0   
+  IL_00d7:  ldstr      ""W""
+  IL_00dc:  call       ""bool string.op_Equality(string, string)""
+  IL_00e1:  brtrue.s   IL_013f
+  IL_00e3:  br         IL_016d
+  IL_00e8:  ldarg.0   
+  IL_00e9:  ldstr      ""B""
+  IL_00ee:  call       ""bool string.op_Equality(string, string)""
+  IL_00f3:  brtrue.s   IL_0147
+  IL_00f5:  br.s       IL_016d
+  IL_00f7:  ldarg.0   
+  IL_00f8:  ldstr      ""C""
+  IL_00fd:  call       ""bool string.op_Equality(string, string)""
+  IL_0102:  brtrue.s   IL_014f
+  IL_0104:  br.s       IL_016d
+  IL_0106:  ldarg.0   
+  IL_0107:  ldstr      ""<""
+  IL_010c:  call       ""bool string.op_Equality(string, string)""
+  IL_0111:  brtrue.s   IL_0157
+  IL_0113:  br.s       IL_016d
+  IL_0115:  ldarg.0   
+  IL_0116:  ldstr      ""T""
+  IL_011b:  call       ""bool string.op_Equality(string, string)""
+  IL_0120:  brtrue.s   IL_015f
+  IL_0122:  br.s       IL_016d
+  IL_0124:  ldarg.0   
+  IL_0125:  ldstr      ""M""
+  IL_012a:  call       ""bool string.op_Equality(string, string)""
+  IL_012f:  brtrue.s   IL_0167
+  IL_0131:  br.s       IL_016d
+  IL_0133:  ldnull    
+  IL_0134:  stloc.0   
+  IL_0135:  br.s       IL_016d
+  IL_0137:  ldstr      ""_""
+  IL_013c:  stloc.0   
+  IL_013d:  br.s       IL_016d
+  IL_013f:  ldstr      ""W""
+  IL_0144:  stloc.0   
+  IL_0145:  br.s       IL_016d
+  IL_0147:  ldstr      ""B""
+  IL_014c:  stloc.0   
+  IL_014d:  br.s       IL_016d
+  IL_014f:  ldstr      ""C""
+  IL_0154:  stloc.0   
+  IL_0155:  br.s       IL_016d
+  IL_0157:  ldstr      ""<""
+  IL_015c:  stloc.0   
+  IL_015d:  br.s       IL_016d
+  IL_015f:  ldstr      ""T""
+  IL_0164:  stloc.0   
+  IL_0165:  br.s       IL_016d
+  IL_0167:  ldstr      ""M""
+  IL_016c:  stloc.0   
+  IL_016d:  ldloc.0   
+  IL_016e:  ldarg.0   
+  IL_016f:  call       ""bool string.op_Equality(string, string)""
+  IL_0174:  ret       
 }
 "
             );
@@ -2295,8 +2292,8 @@ class Test
         [Fact]
         public void StringSwitch_HashTableSwitch_02()
         {
-            var text = @"using System;
-
+            var text = @"
+using System;
 using System.Text;
 
 class Test
@@ -2495,323 +2492,320 @@ class Test
 
             compVerifier.VerifyIL("Test.Switcheroo", @"
 {
-  // Code size     1117 (0x45d)
+  // Code size     1115 (0x45b)
   .maxstack  3
   .locals init (string V_0, //value
-  string V_1,
-  uint V_2)
+           uint V_1)
   IL_0000:  ldstr      """"
-  IL_0005:  stloc.0
-  IL_0006:  ldarg.0
+  IL_0005:  stloc.0   
+  IL_0006:  ldarg.0   
   IL_0007:  ldstr      ""C#""
   IL_000c:  callvirt   ""int string.IndexOf(string)""
-  IL_0011:  ldc.i4.m1
+  IL_0011:  ldc.i4.m1 
   IL_0012:  beq.s      IL_001e
-  IL_0014:  ldarg.0
-  IL_0015:  ldc.i4.0
-  IL_0016:  ldc.i4.2
+  IL_0014:  ldarg.0   
+  IL_0015:  ldc.i4.0  
+  IL_0016:  ldc.i4.2  
   IL_0017:  callvirt   ""string string.Remove(int, int)""
   IL_001c:  starg.s    V_0
-  IL_001e:  ldarg.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
-  IL_0021:  call       ""$$method0x6000001-ComputeStringHash""
-  IL_0026:  stloc.2
-  IL_0027:  ldloc.2
-  IL_0028:  ldc.i4     0xb2f29419
-  IL_002d:  bgt.un     IL_00e2
-  IL_0032:  ldloc.2
-  IL_0033:  ldc.i4     0x619348d8
-  IL_0038:  bgt.un.s   IL_008e
-  IL_003a:  ldloc.2
-  IL_003b:  ldc.i4     0x36758e37
-  IL_0040:  bgt.un.s   IL_0068
-  IL_0042:  ldloc.2
-  IL_0043:  ldc.i4     0x144fd20d
-  IL_0048:  beq        IL_02b0
-  IL_004d:  ldloc.2
-  IL_004e:  ldc.i4     0x14ca99e2
-  IL_0053:  beq        IL_025c
-  IL_0058:  ldloc.2
-  IL_0059:  ldc.i4     0x36758e37
-  IL_005e:  beq        IL_0208
-  IL_0063:  br         IL_0455
-  IL_0068:  ldloc.2
-  IL_0069:  ldc.i4     0x5398a778
-  IL_006e:  beq        IL_021d
-  IL_0073:  ldloc.2
-  IL_0074:  ldc.i4     0x616477cf
-  IL_0079:  beq        IL_01b4
-  IL_007e:  ldloc.2
-  IL_007f:  ldc.i4     0x619348d8
-  IL_0084:  beq        IL_02ef
-  IL_0089:  br         IL_0455
-  IL_008e:  ldloc.2
-  IL_008f:  ldc.i4     0x78a826a8
-  IL_0094:  bgt.un.s   IL_00bc
-  IL_0096:  ldloc.2
-  IL_0097:  ldc.i4     0x65b3e3e5
-  IL_009c:  beq        IL_02c5
-  IL_00a1:  ldloc.2
-  IL_00a2:  ldc.i4     0x7822b5bc
-  IL_00a7:  beq        IL_0286
-  IL_00ac:  ldloc.2
-  IL_00ad:  ldc.i4     0x78a826a8
-  IL_00b2:  beq        IL_01de
-  IL_00b7:  br         IL_0455
-  IL_00bc:  ldloc.2
-  IL_00bd:  ldc.i4     0x7f66da4e
-  IL_00c2:  beq        IL_0358
-  IL_00c7:  ldloc.2
-  IL_00c8:  ldc.i4     0xb13d374d
-  IL_00cd:  beq        IL_032e
-  IL_00d2:  ldloc.2
-  IL_00d3:  ldc.i4     0xb2f29419
-  IL_00d8:  beq        IL_0304
-  IL_00dd:  br         IL_0455
-  IL_00e2:  ldloc.2
-  IL_00e3:  ldc.i4     0xd59864f4
-  IL_00e8:  bgt.un.s   IL_013e
-  IL_00ea:  ldloc.2
-  IL_00eb:  ldc.i4     0xbf4a9f8e
-  IL_00f0:  bgt.un.s   IL_0118
-  IL_00f2:  ldloc.2
-  IL_00f3:  ldc.i4     0xb6e02d3a
-  IL_00f8:  beq        IL_029b
-  IL_00fd:  ldloc.2
-  IL_00fe:  ldc.i4     0xbaed3db3
-  IL_0103:  beq        IL_0319
-  IL_0108:  ldloc.2
-  IL_0109:  ldc.i4     0xbf4a9f8e
-  IL_010e:  beq        IL_0232
-  IL_0113:  br         IL_0455
-  IL_0118:  ldloc.2
-  IL_0119:  ldc.i4     0xc6284d42
-  IL_011e:  beq        IL_01f3
-  IL_0123:  ldloc.2
-  IL_0124:  ldc.i4     0xd1761402
-  IL_0129:  beq        IL_01c9
-  IL_012e:  ldloc.2
-  IL_012f:  ldc.i4     0xd59864f4
-  IL_0134:  beq        IL_0271
-  IL_0139:  br         IL_0455
-  IL_013e:  ldloc.2
-  IL_013f:  ldc.i4     0xeb323c73
-  IL_0144:  bgt.un.s   IL_016c
-  IL_0146:  ldloc.2
-  IL_0147:  ldc.i4     0xdca4b248
-  IL_014c:  beq        IL_0247
-  IL_0151:  ldloc.2
-  IL_0152:  ldc.i4     0xe926f470
-  IL_0157:  beq        IL_036d
-  IL_015c:  ldloc.2
-  IL_015d:  ldc.i4     0xeb323c73
-  IL_0162:  beq        IL_02da
-  IL_0167:  br         IL_0455
-  IL_016c:  ldloc.2
-  IL_016d:  ldc.i4     0xf1ea0ad5
-  IL_0172:  beq        IL_0343
-  IL_0177:  ldloc.2
-  IL_0178:  ldc.i4     0xfa67b44d
-  IL_017d:  beq.s      IL_019f
-  IL_017f:  ldloc.2
-  IL_0180:  ldc.i4     0xfea21584
-  IL_0185:  bne.un     IL_0455
-  IL_018a:  ldloc.1
-  IL_018b:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
-  IL_0190:  call       ""bool string.op_Equality(string, string)""
-  IL_0195:  brtrue     IL_0382
-  IL_019a:  br         IL_0455
-  IL_019f:  ldloc.1
-  IL_01a0:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
-  IL_01a5:  call       ""bool string.op_Equality(string, string)""
-  IL_01aa:  brtrue     IL_038d
-  IL_01af:  br         IL_0455
-  IL_01b4:  ldloc.1
-  IL_01b5:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
-  IL_01ba:  call       ""bool string.op_Equality(string, string)""
-  IL_01bf:  brtrue     IL_0398
-  IL_01c4:  br         IL_0455
-  IL_01c9:  ldloc.1
-  IL_01ca:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
-  IL_01cf:  call       ""bool string.op_Equality(string, string)""
-  IL_01d4:  brtrue     IL_03a3
-  IL_01d9:  br         IL_0455
-  IL_01de:  ldloc.1
-  IL_01df:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
-  IL_01e4:  call       ""bool string.op_Equality(string, string)""
-  IL_01e9:  brtrue     IL_03ae
-  IL_01ee:  br         IL_0455
-  IL_01f3:  ldloc.1
-  IL_01f4:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
-  IL_01f9:  call       ""bool string.op_Equality(string, string)""
-  IL_01fe:  brtrue     IL_03b9
-  IL_0203:  br         IL_0455
-  IL_0208:  ldloc.1
-  IL_0209:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
-  IL_020e:  call       ""bool string.op_Equality(string, string)""
-  IL_0213:  brtrue     IL_03c4
-  IL_0218:  br         IL_0455
-  IL_021d:  ldloc.1
-  IL_021e:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
-  IL_0223:  call       ""bool string.op_Equality(string, string)""
-  IL_0228:  brtrue     IL_03cf
-  IL_022d:  br         IL_0455
-  IL_0232:  ldloc.1
-  IL_0233:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
-  IL_0238:  call       ""bool string.op_Equality(string, string)""
-  IL_023d:  brtrue     IL_03d7
-  IL_0242:  br         IL_0455
-  IL_0247:  ldloc.1
-  IL_0248:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
-  IL_024d:  call       ""bool string.op_Equality(string, string)""
-  IL_0252:  brtrue     IL_03df
-  IL_0257:  br         IL_0455
-  IL_025c:  ldloc.1
-  IL_025d:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
-  IL_0262:  call       ""bool string.op_Equality(string, string)""
-  IL_0267:  brtrue     IL_03e7
-  IL_026c:  br         IL_0455
-  IL_0271:  ldloc.1
-  IL_0272:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
-  IL_0277:  call       ""bool string.op_Equality(string, string)""
-  IL_027c:  brtrue     IL_03ef
-  IL_0281:  br         IL_0455
-  IL_0286:  ldloc.1
-  IL_0287:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
-  IL_028c:  call       ""bool string.op_Equality(string, string)""
-  IL_0291:  brtrue     IL_03f7
-  IL_0296:  br         IL_0455
-  IL_029b:  ldloc.1
-  IL_029c:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
-  IL_02a1:  call       ""bool string.op_Equality(string, string)""
-  IL_02a6:  brtrue     IL_03ff
-  IL_02ab:  br         IL_0455
-  IL_02b0:  ldloc.1
-  IL_02b1:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
-  IL_02b6:  call       ""bool string.op_Equality(string, string)""
-  IL_02bb:  brtrue     IL_0407
-  IL_02c0:  br         IL_0455
-  IL_02c5:  ldloc.1
-  IL_02c6:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
-  IL_02cb:  call       ""bool string.op_Equality(string, string)""
-  IL_02d0:  brtrue     IL_040f
-  IL_02d5:  br         IL_0455
-  IL_02da:  ldloc.1
-  IL_02db:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
-  IL_02e0:  call       ""bool string.op_Equality(string, string)""
-  IL_02e5:  brtrue     IL_0417
-  IL_02ea:  br         IL_0455
-  IL_02ef:  ldloc.1
-  IL_02f0:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
-  IL_02f5:  call       ""bool string.op_Equality(string, string)""
-  IL_02fa:  brtrue     IL_041f
-  IL_02ff:  br         IL_0455
-  IL_0304:  ldloc.1
-  IL_0305:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
-  IL_030a:  call       ""bool string.op_Equality(string, string)""
-  IL_030f:  brtrue     IL_0427
-  IL_0314:  br         IL_0455
-  IL_0319:  ldloc.1
-  IL_031a:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
-  IL_031f:  call       ""bool string.op_Equality(string, string)""
-  IL_0324:  brtrue     IL_042f
-  IL_0329:  br         IL_0455
-  IL_032e:  ldloc.1
-  IL_032f:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
-  IL_0334:  call       ""bool string.op_Equality(string, string)""
-  IL_0339:  brtrue     IL_0437
-  IL_033e:  br         IL_0455
-  IL_0343:  ldloc.1
-  IL_0344:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
-  IL_0349:  call       ""bool string.op_Equality(string, string)""
-  IL_034e:  brtrue     IL_043f
-  IL_0353:  br         IL_0455
-  IL_0358:  ldloc.1
-  IL_0359:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
-  IL_035e:  call       ""bool string.op_Equality(string, string)""
-  IL_0363:  brtrue     IL_0447
-  IL_0368:  br         IL_0455
-  IL_036d:  ldloc.1
-  IL_036e:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
-  IL_0373:  call       ""bool string.op_Equality(string, string)""
-  IL_0378:  brtrue     IL_044f
-  IL_037d:  br         IL_0455
-  IL_0382:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
-  IL_0387:  stloc.0
-  IL_0388:  br         IL_0455
-  IL_038d:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
-  IL_0392:  stloc.0
-  IL_0393:  br         IL_0455
-  IL_0398:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
-  IL_039d:  stloc.0
-  IL_039e:  br         IL_0455
-  IL_03a3:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
-  IL_03a8:  stloc.0
-  IL_03a9:  br         IL_0455
-  IL_03ae:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
-  IL_03b3:  stloc.0
-  IL_03b4:  br         IL_0455
-  IL_03b9:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
-  IL_03be:  stloc.0
-  IL_03bf:  br         IL_0455
-  IL_03c4:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
-  IL_03c9:  stloc.0
-  IL_03ca:  br         IL_0455
-  IL_03cf:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
-  IL_03d4:  stloc.0
-  IL_03d5:  br.s       IL_0455
-  IL_03d7:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
-  IL_03dc:  stloc.0
-  IL_03dd:  br.s       IL_0455
-  IL_03df:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
-  IL_03e4:  stloc.0
-  IL_03e5:  br.s       IL_0455
-  IL_03e7:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
-  IL_03ec:  stloc.0
-  IL_03ed:  br.s       IL_0455
-  IL_03ef:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
-  IL_03f4:  stloc.0
-  IL_03f5:  br.s       IL_0455
-  IL_03f7:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
-  IL_03fc:  stloc.0
-  IL_03fd:  br.s       IL_0455
-  IL_03ff:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
-  IL_0404:  stloc.0
-  IL_0405:  br.s       IL_0455
-  IL_0407:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
-  IL_040c:  stloc.0
-  IL_040d:  br.s       IL_0455
-  IL_040f:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
-  IL_0414:  stloc.0
-  IL_0415:  br.s       IL_0455
-  IL_0417:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
-  IL_041c:  stloc.0
-  IL_041d:  br.s       IL_0455
-  IL_041f:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
-  IL_0424:  stloc.0
-  IL_0425:  br.s       IL_0455
-  IL_0427:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
-  IL_042c:  stloc.0
-  IL_042d:  br.s       IL_0455
-  IL_042f:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
-  IL_0434:  stloc.0
-  IL_0435:  br.s       IL_0455
-  IL_0437:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
-  IL_043c:  stloc.0
-  IL_043d:  br.s       IL_0455
-  IL_043f:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
-  IL_0444:  stloc.0
-  IL_0445:  br.s       IL_0455
-  IL_0447:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
-  IL_044c:  stloc.0
-  IL_044d:  br.s       IL_0455
-  IL_044f:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
-  IL_0454:  stloc.0
-  IL_0455:  ldloc.0
-  IL_0456:  ldarg.0
-  IL_0457:  call       ""bool string.op_Equality(string, string)""
-  IL_045c:  ret
+  IL_001e:  ldarg.0   
+  IL_001f:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_0024:  stloc.1   
+  IL_0025:  ldloc.1   
+  IL_0026:  ldc.i4     0xb2f29419
+  IL_002b:  bgt.un     IL_00e0
+  IL_0030:  ldloc.1   
+  IL_0031:  ldc.i4     0x619348d8
+  IL_0036:  bgt.un.s   IL_008c
+  IL_0038:  ldloc.1   
+  IL_0039:  ldc.i4     0x36758e37
+  IL_003e:  bgt.un.s   IL_0066
+  IL_0040:  ldloc.1   
+  IL_0041:  ldc.i4     0x144fd20d
+  IL_0046:  beq        IL_02ae
+  IL_004b:  ldloc.1   
+  IL_004c:  ldc.i4     0x14ca99e2
+  IL_0051:  beq        IL_025a
+  IL_0056:  ldloc.1   
+  IL_0057:  ldc.i4     0x36758e37
+  IL_005c:  beq        IL_0206
+  IL_0061:  br         IL_0453
+  IL_0066:  ldloc.1   
+  IL_0067:  ldc.i4     0x5398a778
+  IL_006c:  beq        IL_021b
+  IL_0071:  ldloc.1   
+  IL_0072:  ldc.i4     0x616477cf
+  IL_0077:  beq        IL_01b2
+  IL_007c:  ldloc.1   
+  IL_007d:  ldc.i4     0x619348d8
+  IL_0082:  beq        IL_02ed
+  IL_0087:  br         IL_0453
+  IL_008c:  ldloc.1   
+  IL_008d:  ldc.i4     0x78a826a8
+  IL_0092:  bgt.un.s   IL_00ba
+  IL_0094:  ldloc.1   
+  IL_0095:  ldc.i4     0x65b3e3e5
+  IL_009a:  beq        IL_02c3
+  IL_009f:  ldloc.1   
+  IL_00a0:  ldc.i4     0x7822b5bc
+  IL_00a5:  beq        IL_0284
+  IL_00aa:  ldloc.1   
+  IL_00ab:  ldc.i4     0x78a826a8
+  IL_00b0:  beq        IL_01dc
+  IL_00b5:  br         IL_0453
+  IL_00ba:  ldloc.1   
+  IL_00bb:  ldc.i4     0x7f66da4e
+  IL_00c0:  beq        IL_0356
+  IL_00c5:  ldloc.1   
+  IL_00c6:  ldc.i4     0xb13d374d
+  IL_00cb:  beq        IL_032c
+  IL_00d0:  ldloc.1   
+  IL_00d1:  ldc.i4     0xb2f29419
+  IL_00d6:  beq        IL_0302
+  IL_00db:  br         IL_0453
+  IL_00e0:  ldloc.1   
+  IL_00e1:  ldc.i4     0xd59864f4
+  IL_00e6:  bgt.un.s   IL_013c
+  IL_00e8:  ldloc.1   
+  IL_00e9:  ldc.i4     0xbf4a9f8e
+  IL_00ee:  bgt.un.s   IL_0116
+  IL_00f0:  ldloc.1   
+  IL_00f1:  ldc.i4     0xb6e02d3a
+  IL_00f6:  beq        IL_0299
+  IL_00fb:  ldloc.1   
+  IL_00fc:  ldc.i4     0xbaed3db3
+  IL_0101:  beq        IL_0317
+  IL_0106:  ldloc.1   
+  IL_0107:  ldc.i4     0xbf4a9f8e
+  IL_010c:  beq        IL_0230
+  IL_0111:  br         IL_0453
+  IL_0116:  ldloc.1   
+  IL_0117:  ldc.i4     0xc6284d42
+  IL_011c:  beq        IL_01f1
+  IL_0121:  ldloc.1   
+  IL_0122:  ldc.i4     0xd1761402
+  IL_0127:  beq        IL_01c7
+  IL_012c:  ldloc.1   
+  IL_012d:  ldc.i4     0xd59864f4
+  IL_0132:  beq        IL_026f
+  IL_0137:  br         IL_0453
+  IL_013c:  ldloc.1   
+  IL_013d:  ldc.i4     0xeb323c73
+  IL_0142:  bgt.un.s   IL_016a
+  IL_0144:  ldloc.1   
+  IL_0145:  ldc.i4     0xdca4b248
+  IL_014a:  beq        IL_0245
+  IL_014f:  ldloc.1   
+  IL_0150:  ldc.i4     0xe926f470
+  IL_0155:  beq        IL_036b
+  IL_015a:  ldloc.1   
+  IL_015b:  ldc.i4     0xeb323c73
+  IL_0160:  beq        IL_02d8
+  IL_0165:  br         IL_0453
+  IL_016a:  ldloc.1   
+  IL_016b:  ldc.i4     0xf1ea0ad5
+  IL_0170:  beq        IL_0341
+  IL_0175:  ldloc.1   
+  IL_0176:  ldc.i4     0xfa67b44d
+  IL_017b:  beq.s      IL_019d
+  IL_017d:  ldloc.1   
+  IL_017e:  ldc.i4     0xfea21584
+  IL_0183:  bne.un     IL_0453
+  IL_0188:  ldarg.0   
+  IL_0189:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
+  IL_018e:  call       ""bool string.op_Equality(string, string)""
+  IL_0193:  brtrue     IL_0380
+  IL_0198:  br         IL_0453
+  IL_019d:  ldarg.0   
+  IL_019e:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
+  IL_01a3:  call       ""bool string.op_Equality(string, string)""
+  IL_01a8:  brtrue     IL_038b
+  IL_01ad:  br         IL_0453
+  IL_01b2:  ldarg.0   
+  IL_01b3:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
+  IL_01b8:  call       ""bool string.op_Equality(string, string)""
+  IL_01bd:  brtrue     IL_0396
+  IL_01c2:  br         IL_0453
+  IL_01c7:  ldarg.0   
+  IL_01c8:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
+  IL_01cd:  call       ""bool string.op_Equality(string, string)""
+  IL_01d2:  brtrue     IL_03a1
+  IL_01d7:  br         IL_0453
+  IL_01dc:  ldarg.0   
+  IL_01dd:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
+  IL_01e2:  call       ""bool string.op_Equality(string, string)""
+  IL_01e7:  brtrue     IL_03ac
+  IL_01ec:  br         IL_0453
+  IL_01f1:  ldarg.0   
+  IL_01f2:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
+  IL_01f7:  call       ""bool string.op_Equality(string, string)""
+  IL_01fc:  brtrue     IL_03b7
+  IL_0201:  br         IL_0453
+  IL_0206:  ldarg.0   
+  IL_0207:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
+  IL_020c:  call       ""bool string.op_Equality(string, string)""
+  IL_0211:  brtrue     IL_03c2
+  IL_0216:  br         IL_0453
+  IL_021b:  ldarg.0   
+  IL_021c:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
+  IL_0221:  call       ""bool string.op_Equality(string, string)""
+  IL_0226:  brtrue     IL_03cd
+  IL_022b:  br         IL_0453
+  IL_0230:  ldarg.0   
+  IL_0231:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
+  IL_0236:  call       ""bool string.op_Equality(string, string)""
+  IL_023b:  brtrue     IL_03d5
+  IL_0240:  br         IL_0453
+  IL_0245:  ldarg.0   
+  IL_0246:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
+  IL_024b:  call       ""bool string.op_Equality(string, string)""
+  IL_0250:  brtrue     IL_03dd
+  IL_0255:  br         IL_0453
+  IL_025a:  ldarg.0   
+  IL_025b:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
+  IL_0260:  call       ""bool string.op_Equality(string, string)""
+  IL_0265:  brtrue     IL_03e5
+  IL_026a:  br         IL_0453
+  IL_026f:  ldarg.0   
+  IL_0270:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
+  IL_0275:  call       ""bool string.op_Equality(string, string)""
+  IL_027a:  brtrue     IL_03ed
+  IL_027f:  br         IL_0453
+  IL_0284:  ldarg.0   
+  IL_0285:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
+  IL_028a:  call       ""bool string.op_Equality(string, string)""
+  IL_028f:  brtrue     IL_03f5
+  IL_0294:  br         IL_0453
+  IL_0299:  ldarg.0   
+  IL_029a:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
+  IL_029f:  call       ""bool string.op_Equality(string, string)""
+  IL_02a4:  brtrue     IL_03fd
+  IL_02a9:  br         IL_0453
+  IL_02ae:  ldarg.0   
+  IL_02af:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
+  IL_02b4:  call       ""bool string.op_Equality(string, string)""
+  IL_02b9:  brtrue     IL_0405
+  IL_02be:  br         IL_0453
+  IL_02c3:  ldarg.0   
+  IL_02c4:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
+  IL_02c9:  call       ""bool string.op_Equality(string, string)""
+  IL_02ce:  brtrue     IL_040d
+  IL_02d3:  br         IL_0453
+  IL_02d8:  ldarg.0   
+  IL_02d9:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
+  IL_02de:  call       ""bool string.op_Equality(string, string)""
+  IL_02e3:  brtrue     IL_0415
+  IL_02e8:  br         IL_0453
+  IL_02ed:  ldarg.0   
+  IL_02ee:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
+  IL_02f3:  call       ""bool string.op_Equality(string, string)""
+  IL_02f8:  brtrue     IL_041d
+  IL_02fd:  br         IL_0453
+  IL_0302:  ldarg.0   
+  IL_0303:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
+  IL_0308:  call       ""bool string.op_Equality(string, string)""
+  IL_030d:  brtrue     IL_0425
+  IL_0312:  br         IL_0453
+  IL_0317:  ldarg.0   
+  IL_0318:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
+  IL_031d:  call       ""bool string.op_Equality(string, string)""
+  IL_0322:  brtrue     IL_042d
+  IL_0327:  br         IL_0453
+  IL_032c:  ldarg.0   
+  IL_032d:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
+  IL_0332:  call       ""bool string.op_Equality(string, string)""
+  IL_0337:  brtrue     IL_0435
+  IL_033c:  br         IL_0453
+  IL_0341:  ldarg.0   
+  IL_0342:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
+  IL_0347:  call       ""bool string.op_Equality(string, string)""
+  IL_034c:  brtrue     IL_043d
+  IL_0351:  br         IL_0453
+  IL_0356:  ldarg.0   
+  IL_0357:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
+  IL_035c:  call       ""bool string.op_Equality(string, string)""
+  IL_0361:  brtrue     IL_0445
+  IL_0366:  br         IL_0453
+  IL_036b:  ldarg.0   
+  IL_036c:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
+  IL_0371:  call       ""bool string.op_Equality(string, string)""
+  IL_0376:  brtrue     IL_044d
+  IL_037b:  br         IL_0453
+  IL_0380:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
+  IL_0385:  stloc.0   
+  IL_0386:  br         IL_0453
+  IL_038b:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
+  IL_0390:  stloc.0   
+  IL_0391:  br         IL_0453
+  IL_0396:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
+  IL_039b:  stloc.0   
+  IL_039c:  br         IL_0453
+  IL_03a1:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
+  IL_03a6:  stloc.0   
+  IL_03a7:  br         IL_0453
+  IL_03ac:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
+  IL_03b1:  stloc.0   
+  IL_03b2:  br         IL_0453
+  IL_03b7:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
+  IL_03bc:  stloc.0   
+  IL_03bd:  br         IL_0453
+  IL_03c2:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
+  IL_03c7:  stloc.0   
+  IL_03c8:  br         IL_0453
+  IL_03cd:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
+  IL_03d2:  stloc.0   
+  IL_03d3:  br.s       IL_0453
+  IL_03d5:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
+  IL_03da:  stloc.0   
+  IL_03db:  br.s       IL_0453
+  IL_03dd:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
+  IL_03e2:  stloc.0   
+  IL_03e3:  br.s       IL_0453
+  IL_03e5:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
+  IL_03ea:  stloc.0   
+  IL_03eb:  br.s       IL_0453
+  IL_03ed:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
+  IL_03f2:  stloc.0   
+  IL_03f3:  br.s       IL_0453
+  IL_03f5:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
+  IL_03fa:  stloc.0   
+  IL_03fb:  br.s       IL_0453
+  IL_03fd:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
+  IL_0402:  stloc.0   
+  IL_0403:  br.s       IL_0453
+  IL_0405:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
+  IL_040a:  stloc.0   
+  IL_040b:  br.s       IL_0453
+  IL_040d:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
+  IL_0412:  stloc.0   
+  IL_0413:  br.s       IL_0453
+  IL_0415:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
+  IL_041a:  stloc.0   
+  IL_041b:  br.s       IL_0453
+  IL_041d:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
+  IL_0422:  stloc.0   
+  IL_0423:  br.s       IL_0453
+  IL_0425:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
+  IL_042a:  stloc.0   
+  IL_042b:  br.s       IL_0453
+  IL_042d:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
+  IL_0432:  stloc.0   
+  IL_0433:  br.s       IL_0453
+  IL_0435:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
+  IL_043a:  stloc.0   
+  IL_043b:  br.s       IL_0453
+  IL_043d:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
+  IL_0442:  stloc.0   
+  IL_0443:  br.s       IL_0453
+  IL_0445:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
+  IL_044a:  stloc.0   
+  IL_044b:  br.s       IL_0453
+  IL_044d:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
+  IL_0452:  stloc.0   
+  IL_0453:  ldloc.0   
+  IL_0454:  ldarg.0   
+  IL_0455:  call       ""bool string.op_Equality(string, string)""
+  IL_045a:  ret       
 }
 "
             );

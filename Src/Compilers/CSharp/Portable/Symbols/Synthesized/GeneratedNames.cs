@@ -124,10 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // TODO: consider removing this special case, EE doesn't depend on the name. 
                 return SynthesizedLocalNamePrefix + "<>9__CachedAnonymousMethodDelegate" + uniqueId;
-        }
+            }
 
             if (kind == SynthesizedLocalKind.LambdaDisplayClass)
-        {
+            {
                 // Lambda display class local follows a different naming pattern.
                 // EE depends on the name format. 
                 return MakeLambdaDisplayClassStorageName(uniqueId);

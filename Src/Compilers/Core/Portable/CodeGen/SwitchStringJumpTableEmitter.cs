@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Switch key for the jump table
         /// </summary>
-        private readonly LocalDefinition key;
+        private readonly LocalOrParameter key;
 
         /// <summary>
         /// Switch case labels
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <param name="key">Key to compare</param>
         /// <param name="stringConstant">Case constant to compare the key against</param>
         /// <param name="targetLabel">Target label to branch to if key = stringConstant</param>
-        public delegate void EmitStringCompareAndBranch(LocalDefinition key, ConstantValue stringConstant, object targetLabel);
+        public delegate void EmitStringCompareAndBranch(LocalOrParameter key, ConstantValue stringConstant, object targetLabel);
 
         /// <summary>
         /// Delegate to compute string hash code.
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal SwitchStringJumpTableEmitter(
             ILBuilder builder,
-            LocalDefinition key,
+            LocalOrParameter key,
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
             LocalDefinition keyHash,
@@ -146,8 +146,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 builder: builder,
                 caseLabels: jumpTableLabels,
                 fallThroughLabel: this.fallThroughLabel,
-                keyTypeCode: Microsoft.Cci.PrimitiveTypeCode.UInt32,
-                keyLocal: keyHash);
+                keyTypeCode: Cci.PrimitiveTypeCode.UInt32,
+                key: keyHash);
 
             hashBucketJumpTableEmitter.EmitJumpTable();
 

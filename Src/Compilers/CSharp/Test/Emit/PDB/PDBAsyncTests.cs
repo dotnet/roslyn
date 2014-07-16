@@ -131,37 +131,42 @@ class Driver
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""TestCase"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
-      <sequencepoints total=""14"">
+      <sequencepoints total=""15"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x16"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x17"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""51"" file_ref=""0"" />
         <entry il_offset=""0x1d"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""71"" file_ref=""0"" />
         <entry il_offset=""0x3f"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""37"" file_ref=""0"" />
-        <entry il_offset=""0xbc"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0xc9"" start_row=""18"" start_column=""24"" end_row=""18"" end_column=""32"" file_ref=""0"" />
-        <entry il_offset=""0xd7"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""44"" file_ref=""0"" />
-        <entry il_offset=""0xe3"" start_row=""22"" start_column=""9"" end_row=""22"" end_column=""38"" file_ref=""0"" />
-        <entry il_offset=""0xee"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0xf0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x10a"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x112"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xb6"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0xbc"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xc0"" start_row=""18"" start_column=""24"" end_row=""18"" end_column=""32"" file_ref=""0"" />
+        <entry il_offset=""0xce"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""44"" file_ref=""0"" />
+        <entry il_offset=""0xda"" start_row=""22"" start_column=""9"" end_row=""22"" end_column=""38"" file_ref=""0"" />
+        <entry il_offset=""0xe5"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0xe7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x101"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x109"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x11f"" attributes=""1"" />
-        <local name=""dc2"" il_index=""1"" il_start=""0x16"" il_end=""0xf0"" attributes=""0"" />
-        <local name=""rez2"" il_index=""2"" il_start=""0x16"" il_end=""0xf0"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x116"" attributes=""1"" />
+        <local name=""dc2"" il_index=""1"" il_start=""0x16"" il_end=""0xe7"" attributes=""0"" />
+        <local name=""rez2"" il_index=""2"" il_start=""0x16"" il_end=""0xe7"" attributes=""0"" />
+        <local name=""CS$4$0001"" il_index=""7"" il_start=""0xb6"" il_end=""0xc0"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x11f"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x11f"" attributes=""1"" />
-        <scope startOffset=""0x16"" endOffset=""0xf0"">
-          <local name=""dc2"" il_index=""1"" il_start=""0x16"" il_end=""0xf0"" attributes=""0"" />
-          <local name=""rez2"" il_index=""2"" il_start=""0x16"" il_end=""0xf0"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x116"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x116"" attributes=""1"" />
+        <scope startOffset=""0x16"" endOffset=""0xe7"">
+          <local name=""dc2"" il_index=""1"" il_start=""0x16"" il_end=""0xe7"" attributes=""0"" />
+          <local name=""rez2"" il_index=""2"" il_start=""0x16"" il_end=""0xe7"" attributes=""0"" />
+          <scope startOffset=""0xb6"" endOffset=""0xc0"">
+            <local name=""CS$4$0001"" il_index=""7"" il_start=""0xb6"" il_end=""0xc0"" attributes=""1"" />
+          </scope>
         </scope>
       </scope>
-      <async-info catch-IL-offset=""0xf2"">
+      <async-info catch-IL-offset=""0xe9"">
         <kickoff-method declaringType=""TestCase"" methodName=""Run"" parameterNames="""" />
-        <await yield=""0x67"" resume=""0x87"" declaringType=""TestCase+&lt;Run&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x63"" resume=""0x83"" declaringType=""TestCase+&lt;Run&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
     <method containingType=""TestCase+&lt;&lt;Run&gt;b__0&gt;d__0"" name=""MoveNext"" parameterNames="""">
@@ -170,22 +175,22 @@ class Driver
         <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x16"" start_row=""16"" start_column=""32"" end_row=""16"" end_column=""33"" file_ref=""0"" />
         <entry il_offset=""0x17"" start_row=""16"" start_column=""34"" end_row=""16"" end_column=""58"" file_ref=""0"" />
-        <entry il_offset=""0x85"" start_row=""16"" start_column=""59"" end_row=""16"" end_column=""68"" file_ref=""0"" />
-        <entry il_offset=""0x89"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xa4"" start_row=""16"" start_column=""69"" end_row=""16"" end_column=""70"" file_ref=""0"" />
-        <entry il_offset=""0xac"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x80"" start_row=""16"" start_column=""59"" end_row=""16"" end_column=""68"" file_ref=""0"" />
+        <entry il_offset=""0x84"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x9f"" start_row=""16"" start_column=""69"" end_row=""16"" end_column=""70"" file_ref=""0"" />
+        <entry il_offset=""0xa7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xba"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xba"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb5"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xb5"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0xba"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xba"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xba"" attributes=""1"" />
+      <scope startOffset=""0x0"" endOffset=""0xb5"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb5"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xb5"" attributes=""1"" />
       </scope>
       <async-info>
         <kickoff-method declaringType=""TestCase"" methodName=""&lt;Run&gt;b__0"" parameterNames="""" />
-        <await yield=""0x3b"" resume=""0x57"" declaringType=""TestCase+&lt;&lt;Run&gt;b__0&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x39"" resume=""0x54"" declaringType=""TestCase+&lt;&lt;Run&gt;b__0&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -300,27 +305,27 @@ namespace ConsoleApplication1
         <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x16"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0x17"" start_row=""17"" start_column=""13"" end_row=""17"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0x85"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x87"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xa1"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xa9"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x81"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x83"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x9b"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0xa3"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb6"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb0"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0xb6"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb6"" attributes=""1"" />
+      <scope startOffset=""0x0"" endOffset=""0xb0"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb0"" attributes=""1"" />
       </scope>
-      <async-info catch-IL-offset=""0x89"">
+      <async-info catch-IL-offset=""0x84"">
         <kickoff-method declaringType=""ConsoleApplication1.Program"" methodName=""QBar"" parameterNames="""" />
-        <await yield=""0x3c"" resume=""0x57"" declaringType=""ConsoleApplication1.Program+&lt;QBar&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x3a"" resume=""0x55"" declaringType=""ConsoleApplication1.Program+&lt;QBar&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
     <method containingType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__1"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x19"" endOffset=""0x121"" />
+          <bucket startOffset=""0x19"" endOffset=""0x115"" />
         </iteratorLocals>
       </customDebugInfo>
       <sequencepoints total=""18"">
@@ -334,34 +339,34 @@ namespace ConsoleApplication1
         <entry il_offset=""0x49"" start_row=""22"" start_column=""22"" end_row=""22"" end_column=""27"" file_ref=""0"" />
         <entry il_offset=""0x57"" start_row=""23"" start_column=""13"" end_row=""23"" end_column=""14"" file_ref=""0"" />
         <entry il_offset=""0x58"" start_row=""24"" start_column=""17"" end_row=""24"" end_column=""55"" file_ref=""0"" />
-        <entry il_offset=""0xdc"" start_row=""25"" start_column=""17"" end_row=""25"" end_column=""39"" file_ref=""0"" />
-        <entry il_offset=""0xe9"" start_row=""26"" start_column=""13"" end_row=""26"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0xea"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xf8"" start_row=""22"" start_column=""28"" end_row=""22"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0x118"" start_row=""27"" start_column=""13"" end_row=""27"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0x121"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x13c"" start_row=""28"" start_column=""9"" end_row=""28"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x144"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xd6"" start_row=""25"" start_column=""17"" end_row=""25"" end_column=""39"" file_ref=""0"" />
+        <entry il_offset=""0xe3"" start_row=""26"" start_column=""13"" end_row=""26"" end_column=""14"" file_ref=""0"" />
+        <entry il_offset=""0xe4"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xf2"" start_row=""22"" start_column=""28"" end_row=""22"" end_column=""30"" file_ref=""0"" />
+        <entry il_offset=""0x10c"" start_row=""27"" start_column=""13"" end_row=""27"" end_column=""30"" file_ref=""0"" />
+        <entry il_offset=""0x115"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x130"" start_row=""28"" start_column=""9"" end_row=""28"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x138"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x152"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x152"" attributes=""1"" />
-        <local name=""z"" il_index=""2"" il_start=""0x49"" il_end=""0xea"" attributes=""0"" />
-        <local name=""newInt"" il_index=""3"" il_start=""0x57"" il_end=""0xea"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x146"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x146"" attributes=""1"" />
+        <local name=""z"" il_index=""2"" il_start=""0x49"" il_end=""0xe4"" attributes=""0"" />
+        <local name=""newInt"" il_index=""3"" il_start=""0x57"" il_end=""0xe4"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x152"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x152"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x152"" attributes=""1"" />
-        <scope startOffset=""0x49"" endOffset=""0xea"">
-          <local name=""z"" il_index=""2"" il_start=""0x49"" il_end=""0xea"" attributes=""0"" />
-          <scope startOffset=""0x57"" endOffset=""0xea"">
-            <local name=""newInt"" il_index=""3"" il_start=""0x57"" il_end=""0xea"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x146"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x146"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x146"" attributes=""1"" />
+        <scope startOffset=""0x49"" endOffset=""0xe4"">
+          <local name=""z"" il_index=""2"" il_start=""0x49"" il_end=""0xe4"" attributes=""0"" />
+          <scope startOffset=""0x57"" endOffset=""0xe4"">
+            <local name=""newInt"" il_index=""3"" il_start=""0x57"" il_end=""0xe4"" attributes=""0"" />
           </scope>
         </scope>
       </scope>
       <async-info>
         <kickoff-method declaringType=""ConsoleApplication1.Program"" methodName=""ZBar"" parameterNames="""" />
-        <await yield=""0x85"" resume=""0xa5"" declaringType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x81"" resume=""0xa1"" declaringType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -399,24 +404,24 @@ class TestCase
         <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x19"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1a"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x235"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x237"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x251"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x259"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x228"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x22a"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x244"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x24c"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x266"" attributes=""1"" />
-        <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x237"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x259"" attributes=""1"" />
+        <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x22a"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x266"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x266"" attributes=""1"" />
-        <scope startOffset=""0x19"" endOffset=""0x237"">
-          <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x237"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x259"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x259"" attributes=""1"" />
+        <scope startOffset=""0x19"" endOffset=""0x22a"">
+          <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x22a"" attributes=""0"" />
         </scope>
       </scope>
-      <async-info catch-IL-offset=""0x239"">
+      <async-info catch-IL-offset=""0x22c"">
         <kickoff-method declaringType=""TestCase"" methodName=""Await"" parameterNames=""d"" />
-        <await yield=""0x154"" resume=""0x1a6"" declaringType=""TestCase+&lt;Await&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x150"" resume=""0x19b"" declaringType=""TestCase+&lt;Await&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -478,24 +483,24 @@ class C
         <entry il_offset=""0x54"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""21"" file_ref=""0"" />
         <entry il_offset=""0x60"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""47"" file_ref=""0"" />
         <entry il_offset=""0x77"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0xed"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x163"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x1d6"" start_row=""18"" start_column=""5"" end_row=""18"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1d8"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x1f3"" start_row=""18"" start_column=""5"" end_row=""18"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1fb"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xe9"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x15b"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x1ca"" start_row=""18"" start_column=""5"" end_row=""18"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1cc"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x1e5"" start_row=""18"" start_column=""5"" end_row=""18"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1ed"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x208"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1fa"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x208"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x208"" attributes=""1"" />
+      <scope startOffset=""0x0"" endOffset=""0x1fa"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1fa"" attributes=""1"" />
       </scope>
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""b"" />
-        <await yield=""0xa1"" resume=""0xbf"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
-        <await yield=""0x117"" resume=""0x135"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
-        <await yield=""0x18d"" resume=""0x1a8"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x9f"" resume=""0xbd"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x111"" resume=""0x12f"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x183"" resume=""0x19e"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -559,24 +564,24 @@ class C
         <entry il_offset=""0x2b"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""21"" file_ref=""0"" />
         <entry il_offset=""0x32"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""47"" file_ref=""0"" />
         <entry il_offset=""0x44"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""47"" file_ref=""0"" />
-        <entry il_offset=""0xb4"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0xb6"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xd1"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0xd9"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xaf"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0xb1"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xcc"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0xd4"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xe6"" attributes=""1"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb6"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xe1"" attributes=""1"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb1"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0xe6"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xe6"" attributes=""1"" />
-        <scope startOffset=""0x16"" endOffset=""0xb6"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb6"" attributes=""1"" />
+      <scope startOffset=""0x0"" endOffset=""0xe1"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xe1"" attributes=""1"" />
+        <scope startOffset=""0x16"" endOffset=""0xb1"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb1"" attributes=""1"" />
         </scope>
       </scope>
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""b"" />
-        <await yield=""0x6a"" resume=""0x86"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x68"" resume=""0x83"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -628,7 +633,7 @@ class C
           <namespace usingCount=""2"" />
         </using>
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x19"" endOffset=""0x28d"" />
+          <bucket startOffset=""0x19"" endOffset=""0x283"" />
         </iteratorLocals>
       </customDebugInfo>
       <sequencepoints total=""10"">
@@ -637,23 +642,23 @@ class C
         <entry il_offset=""0x19"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1a"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""23"" file_ref=""0"" />
         <entry il_offset=""0x26"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x233"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""22"" file_ref=""0"" />
-        <entry il_offset=""0x28b"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x28d"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x2a8"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x2b0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x229"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""22"" file_ref=""0"" />
+        <entry il_offset=""0x281"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x283"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x29e"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x2a6"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2bd"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2b3"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x2bd"">
+      <scope startOffset=""0x0"" endOffset=""0x2b3"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2bd"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2b3"" attributes=""1"" />
       </scope>
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""o"" />
-        <await yield=""0x178"" resume=""0x1c5"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x176"" resume=""0x1bd"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -679,7 +684,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, compOptions: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__1.MoveNext");
 
             // One dynamic local entry for "d".
@@ -701,26 +706,26 @@ class C
         <entry il_offset=""0x19"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1a"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""23"" file_ref=""0"" />
         <entry il_offset=""0x21"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x22c"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x22e"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x249"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x251"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x220"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x222"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x23d"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x245"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x25e"" attributes=""1"" />
-        <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x22e"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x252"" attributes=""1"" />
+        <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x222"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x25e"">
+      <scope startOffset=""0x0"" endOffset=""0x252"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x25e"" attributes=""1"" />
-        <scope startOffset=""0x19"" endOffset=""0x22e"">
-          <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x22e"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x252"" attributes=""1"" />
+        <scope startOffset=""0x19"" endOffset=""0x222"">
+          <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x222"" attributes=""0"" />
         </scope>
       </scope>
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""o"" />
-        <await yield=""0x16e"" resume=""0x1be"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x16c"" resume=""0x1b4"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -752,159 +757,156 @@ class C
         return x;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, compOptions: TestOptions.DebugDll);
 
-            CompileAndVerify(comp).VerifyIL("C.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+            var v = CompileAndVerify(comp, emitPdb: true);
+            
+            v.VerifyIL("C.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      292 (0x124)
+  // Code size      279 (0x117)
   .maxstack  3
   .locals init (int V_0, //CS$524$0000
-  int V_1, //CS$523$0001
-  int V_2, //x
-  object V_3,
-  int V_4,
-  System.Runtime.CompilerServices.TaskAwaiter<int> V_5,
-  int V_6,
-  bool V_7,
-  C.<G>d__1 V_8,
-  object V_9,
-  System.Exception V_10)
-  IL_0000:  ldarg.0
+           int V_1, //CS$523$0001
+           int V_2, //x
+           object V_3,
+           int V_4,
+           System.Runtime.CompilerServices.TaskAwaiter<int> V_5,
+           int V_6,
+           C.<G>d__1 V_7,
+           object V_8,
+           System.Exception V_9)
+ ~IL_0000:  ldarg.0   
   IL_0001:  ldfld      ""int C.<G>d__1.<>1__state""
-  IL_0006:  stloc.0
+  IL_0006:  stloc.0   
   .try
-{
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
-  IL_000a:  br.s       IL_000c
-  IL_000c:  ldloc.0
-  IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0016
-  IL_0014:  br.s       IL_0074
-  IL_0016:  ldc.i4.s   42
-  IL_0018:  stloc.2
-  IL_0019:  ldarg.0
-  IL_001a:  ldnull
-  IL_001b:  stfld      ""object C.<G>d__1.<>7__wrap1""
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.0
-  IL_0022:  stfld      ""int C.<G>d__1.<>7__wrap2""
-  .try
-{
-  IL_0027:  leave.s    IL_0033
-}
-  catch object
-{
-  IL_0029:  stloc.3
-  IL_002a:  ldarg.0
-  IL_002b:  ldloc.3
-  IL_002c:  stfld      ""object C.<G>d__1.<>7__wrap1""
-  IL_0031:  leave.s    IL_0033
-}
-  IL_0033:  call       ""System.Threading.Tasks.Task<int> C.G()""
-  IL_0038:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-  IL_003d:  stloc.s    V_5
-  IL_003f:  ldloca.s   V_5
-  IL_0041:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-  IL_0046:  stloc.s    V_7
-  IL_0048:  ldloc.s    V_7
-  IL_004a:  brtrue.s   IL_0093
-  IL_004c:  ldarg.0
-  IL_004d:  ldc.i4.1
-  IL_004e:  dup
-  IL_004f:  stloc.0
-  IL_0050:  stfld      ""int C.<G>d__1.<>1__state""
-  IL_0055:  ldarg.0
-  IL_0056:  ldloc.s    V_5
-  IL_0058:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__$awaiter0""
-  IL_005d:  ldarg.0
-  IL_005e:  stloc.s    V_8
-  IL_0060:  ldarg.0
-  IL_0061:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
-  IL_0066:  ldloca.s   V_5
-  IL_0068:  ldloca.s   V_8
-  IL_006a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<G>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<G>d__1)""
-  IL_006f:  leave      IL_0123
-  IL_0074:  ldarg.0
-  IL_0075:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__$awaiter0""
-  IL_007a:  stloc.s    V_5
-  IL_007c:  ldarg.0
-  IL_007d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__$awaiter0""
-  IL_0082:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-  IL_0088:  ldarg.0
-  IL_0089:  ldc.i4.m1
-  IL_008a:  dup
-  IL_008b:  stloc.0
-  IL_008c:  stfld      ""int C.<G>d__1.<>1__state""
-  IL_0091:  br.s       IL_0093
-  IL_0093:  ldloca.s   V_5
-  IL_0095:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-  IL_009a:  stloc.s    V_6
-  IL_009c:  ldloca.s   V_5
-  IL_009e:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-  IL_00a4:  ldloc.s    V_6
-  IL_00a6:  stloc.s    V_4
-  IL_00a8:  ldloc.s    V_4
-  IL_00aa:  stloc.2
-  IL_00ab:  ldarg.0
-  IL_00ac:  ldfld      ""object C.<G>d__1.<>7__wrap1""
-  IL_00b1:  stloc.s    V_9
-  IL_00b3:  ldloc.s    V_9
-  IL_00b5:  ldnull
-  IL_00b6:  ceq
-  IL_00b8:  stloc.s    V_7
-  IL_00ba:  ldloc.s    V_7
-  IL_00bc:  brtrue.s   IL_00e3
-  IL_00be:  ldloc.s    V_9
-  IL_00c0:  isinst     ""System.Exception""
-  IL_00c5:  stloc.s    V_10
-  IL_00c7:  ldloc.s    V_10
-  IL_00c9:  ldnull
-  IL_00ca:  cgt.un
-  IL_00cc:  stloc.s    V_7
-  IL_00ce:  ldloc.s    V_7
-  IL_00d0:  brtrue.s   IL_00d5
-  IL_00d2:  ldloc.s    V_9
-  IL_00d4:  throw
-  IL_00d5:  ldloc.s    V_10
-  IL_00d7:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
-  IL_00dc:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-  IL_00e1:  br.s       IL_00e3
-  IL_00e3:  ldarg.0
-  IL_00e4:  ldfld      ""int C.<G>d__1.<>7__wrap2""
-  IL_00e9:  pop
-  IL_00ea:  ldarg.0
-  IL_00eb:  ldnull
-  IL_00ec:  stfld      ""object C.<G>d__1.<>7__wrap1""
-  IL_00f1:  ldloc.2
-  IL_00f2:  stloc.1
-  IL_00f3:  leave.s    IL_010f
-}
+  {
+   ~IL_0007:  ldloc.0   
+    IL_0008:  brfalse.s  IL_0012
+    IL_000a:  br.s       IL_000c
+    IL_000c:  ldloc.0   
+    IL_000d:  ldc.i4.1  
+    IL_000e:  beq.s      IL_0014
+    IL_0010:  br.s       IL_0016
+    IL_0012:  br.s       IL_0016
+    IL_0014:  br.s       IL_0075
+   -IL_0016:  nop       
+   -IL_0017:  ldc.i4.s   42
+    IL_0019:  stloc.2   
+   ~IL_001a:  ldarg.0   
+    IL_001b:  ldnull    
+    IL_001c:  stfld      ""object C.<G>d__1.<>7__wrap1""
+    IL_0021:  ldarg.0   
+    IL_0022:  ldc.i4.0  
+    IL_0023:  stfld      ""int C.<G>d__1.<>7__wrap2""
+    .try
+    {
+     -IL_0028:  nop       
+     -IL_0029:  nop       
+     ~IL_002a:  leave.s    IL_0036
+    }
+    catch object
+    {
+     ~IL_002c:  stloc.3   
+      IL_002d:  ldarg.0   
+      IL_002e:  ldloc.3   
+      IL_002f:  stfld      ""object C.<G>d__1.<>7__wrap1""
+      IL_0034:  leave.s    IL_0036
+    }
+   -IL_0036:  nop       
+   -IL_0037:  call       ""System.Threading.Tasks.Task<int> C.G()""
+    IL_003c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0041:  stloc.s    V_5
+    IL_0043:  ldloca.s   V_5
+    IL_0045:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_004a:  brtrue.s   IL_0092
+    IL_004c:  ldarg.0   
+    IL_004d:  ldc.i4.1  
+    IL_004e:  dup       
+    IL_004f:  stloc.0   
+    IL_0050:  stfld      ""int C.<G>d__1.<>1__state""
+    IL_0055:  ldarg.0   
+    IL_0056:  ldloc.s    V_5
+    IL_0058:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__$awaiter0""
+    IL_005d:  ldarg.0   
+    IL_005e:  stloc.s    V_7
+    IL_0060:  ldarg.0   
+    IL_0061:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
+    IL_0066:  ldloca.s   V_5
+    IL_0068:  ldloca.s   V_7
+    IL_006a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<G>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<G>d__1)""
+    IL_006f:  nop       
+    IL_0070:  leave      IL_0116
+    IL_0075:  ldarg.0   
+    IL_0076:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__$awaiter0""
+    IL_007b:  stloc.s    V_5
+    IL_007d:  ldarg.0   
+    IL_007e:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__$awaiter0""
+    IL_0083:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0089:  ldarg.0   
+    IL_008a:  ldc.i4.m1 
+    IL_008b:  dup       
+    IL_008c:  stloc.0   
+    IL_008d:  stfld      ""int C.<G>d__1.<>1__state""
+    IL_0092:  ldloca.s   V_5
+    IL_0094:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0099:  stloc.s    V_6
+    IL_009b:  ldloca.s   V_5
+    IL_009d:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_00a3:  ldloc.s    V_6
+    IL_00a5:  stloc.s    V_4
+    IL_00a7:  ldloc.s    V_4
+    IL_00a9:  stloc.2   
+   -IL_00aa:  nop       
+   ~IL_00ab:  ldarg.0   
+    IL_00ac:  ldfld      ""object C.<G>d__1.<>7__wrap1""
+    IL_00b1:  stloc.s    V_8
+    IL_00b3:  ldloc.s    V_8
+    IL_00b5:  brfalse.s  IL_00d4
+    IL_00b7:  ldloc.s    V_8
+    IL_00b9:  isinst     ""System.Exception""
+    IL_00be:  stloc.s    V_9
+    IL_00c0:  ldloc.s    V_9
+    IL_00c2:  brtrue.s   IL_00c7
+    IL_00c4:  ldloc.s    V_8
+    IL_00c6:  throw     
+    IL_00c7:  ldloc.s    V_9
+    IL_00c9:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00ce:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00d3:  nop       
+    IL_00d4:  ldarg.0   
+    IL_00d5:  ldfld      ""int C.<G>d__1.<>7__wrap2""
+    IL_00da:  pop       
+    IL_00db:  ldarg.0   
+    IL_00dc:  ldnull    
+    IL_00dd:  stfld      ""object C.<G>d__1.<>7__wrap1""
+   -IL_00e2:  ldloc.2   
+    IL_00e3:  stloc.1   
+    IL_00e4:  leave.s    IL_0101
+  }
   catch System.Exception
-{
-  IL_00f5:  stloc.s    V_10
-  IL_00f7:  nop
-  IL_00f8:  ldarg.0
-  IL_00f9:  ldc.i4.s   -2
-  IL_00fb:  stfld      ""int C.<G>d__1.<>1__state""
-  IL_0100:  ldarg.0
-  IL_0101:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
-  IL_0106:  ldloc.s    V_10
-  IL_0108:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-  IL_010d:  leave.s    IL_0123
-}
-  IL_010f:  ldarg.0
-  IL_0110:  ldc.i4.s   -2
-  IL_0112:  stfld      ""int C.<G>d__1.<>1__state""
-  IL_0117:  ldarg.0
-  IL_0118:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
-  IL_011d:  ldloc.1
-  IL_011e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_0123:  ret
-}         
-");
+  {
+   ~IL_00e6:  stloc.s    V_9
+    IL_00e8:  nop       
+    IL_00e9:  ldarg.0   
+    IL_00ea:  ldc.i4.s   -2
+    IL_00ec:  stfld      ""int C.<G>d__1.<>1__state""
+    IL_00f1:  ldarg.0   
+    IL_00f2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
+    IL_00f7:  ldloc.s    V_9
+    IL_00f9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00fe:  nop       
+    IL_00ff:  leave.s    IL_0116
+  }
+ -IL_0101:  ldarg.0   
+  IL_0102:  ldc.i4.s   -2
+  IL_0104:  stfld      ""int C.<G>d__1.<>1__state""
+ ~IL_0109:  ldarg.0   
+  IL_010a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
+  IL_010f:  ldloc.1   
+  IL_0110:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_0115:  nop       
+  IL_0116:  ret       
+}", sequencePoints: "C+<G>d__1.MoveNext");
 
             string actual = GetPdbXml(comp, "C+<G>d__1.MoveNext");
             string expected = @"
@@ -928,30 +930,30 @@ class C
         <entry il_offset=""0x2c"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x36"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0x37"" start_row=""16"" start_column=""13"" end_row=""16"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0xb0"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xb1"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xf8"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""18"" file_ref=""0"" />
-        <entry il_offset=""0xfc"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x117"" start_row=""20"" start_column=""5"" end_row=""20"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x11f"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xaa"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0xab"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xe2"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""18"" file_ref=""0"" />
+        <entry il_offset=""0xe6"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x101"" start_row=""20"" start_column=""5"" end_row=""20"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x109"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x12d"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x12d"" attributes=""1"" />
-        <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xfc"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x117"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x117"" attributes=""1"" />
+        <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xe6"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x12d"">
+      <scope startOffset=""0x0"" endOffset=""0x117"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x12d"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x12d"" attributes=""1"" />
-        <scope startOffset=""0x16"" endOffset=""0xfc"">
-          <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xfc"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x117"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x117"" attributes=""1"" />
+        <scope startOffset=""0x16"" endOffset=""0xe6"">
+          <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xe6"" attributes=""0"" />
         </scope>
       </scope>
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""G"" parameterNames="""" />
-        <await yield=""0x59"" resume=""0x79"" declaringType=""C+&lt;G&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x55"" resume=""0x75"" declaringType=""C+&lt;G&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>

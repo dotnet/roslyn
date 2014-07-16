@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Else
                 Dim type = map.MapReference(localInfo.Type)
                 Debug.Assert(type IsNot Nothing)
-                Return New EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.TempKind, localInfo.Signature)
+                Return New EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.SynthesizedKind, localInfo.Signature)
             End If
         End Function
 

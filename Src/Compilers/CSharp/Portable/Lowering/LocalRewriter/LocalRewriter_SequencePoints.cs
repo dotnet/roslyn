@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -195,6 +197,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             part = TextSpan.FromBounds(start, end);
             node = declarationSyntax.Parent;
+        }
+
+        internal BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundStatement containingStatement)
+        {
+            if (condition == null || !this.compilation.Options.EnableEditAndContinue || containingStatement.WasCompilerGenerated)
+            {
+                return condition;
+            }
+
+            // The local has to be associated with the syntax of the statement containing the condition since 
+            // EnC source mapping only operates on statements.
+            var local = factory.SynthesizedLocal(condition.Type, containingStatement.Syntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
+            
+            return new BoundSequence(
+                condition.Syntax, 
+                ImmutableArray.Create(local), 
+                ImmutableArray.Create<BoundExpression>(factory.AssignmentExpression(factory.Local(local), condition)),
+                new BoundSequencePointExpression(syntax: null, expression: factory.Local(local), type: condition.Type),
+                condition.Type);
         }
     }
 }

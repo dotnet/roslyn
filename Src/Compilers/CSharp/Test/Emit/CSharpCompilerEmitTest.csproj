@@ -8,6 +8,7 @@
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <OutDir>..\..\..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{4462B57A-7245-4146-B504-D46FDE762948}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -17,7 +18,6 @@
     <StyleCopEnabled>false</StyleCopEnabled>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <OutDir>..\..\..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
@@ -157,8 +157,11 @@
     <Compile Include="CodeGen\WinRTCollectionTests.cs" />
     <Compile Include="Emit\CompilationEmitTests.cs" />
     <Compile Include="Emit\DeterministicTests.cs" />
-    <Compile Include="Emit\EditAndContinueTests.AssemblyReferences.cs" />
-    <Compile Include="Emit\EditAndContinueTests.cs" />
+    <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.cs" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.cs" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinueTests.cs" />
+    <Compile Include="Emit\EditAndContinue\SymbolMatcherTests.cs" />
+    <Compile Include="Emit\EditAndContinue\SynthesizedLocalsTests.cs" />
     <Compile Include="Emit\EmitCustomModifiers.cs" />
     <Compile Include="Emit\EmitErrorTests.cs" />
     <Compile Include="Emit\EmitMetadata.cs" />

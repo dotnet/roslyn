@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 var type = map.MapReference(localInfo.Type);
                 Debug.Assert(type != null);
-                return new EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.TempKind, localInfo.Signature);
+                return new EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.SynthesizedKind, localInfo.Signature);
             }
         }
     }

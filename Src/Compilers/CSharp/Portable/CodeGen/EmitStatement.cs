@@ -163,39 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConditionalGoto(BoundConditionalGoto boundConditionalGoto)
         {
-            if (noOptimizations)
-            {
-                //TODO: what is the point of this? 
-                //native compiler does intentional dead-store here. Does it still help debugging?
-                var boolTemp = AllocateTemp(boundConditionalGoto.Condition.Type, boundConditionalGoto.Condition.Syntax);
-
-                ConstResKind crk = EmitCondExpr(boundConditionalGoto.Condition, boundConditionalGoto.JumpIfTrue);
-                builder.EmitLocalStore(boolTemp);
-
-                switch (crk)
-                {
-                    case ConstResKind.ConstFalse:
-                        break;
-                    case ConstResKind.ConstTrue:
-                        builder.EmitBranch(ILOpCode.Br, boundConditionalGoto.Label);
-                        break;
-                    case ConstResKind.NotAConst:
-                        builder.EmitLocalLoad(boolTemp);
-                        builder.EmitBranch(ILOpCode.Brtrue, boundConditionalGoto.Label);
-                        break;
-                    default:
-                        Debug.Assert(false);
-                        goto case ConstResKind.NotAConst;
-                }
-
-                this.FreeTemp(boolTemp);
-            }
-            else
-            {
-                object label = boundConditionalGoto.Label;
-                Debug.Assert(label != null);
-                EmitCondBranch(boundConditionalGoto.Condition, ref label, boundConditionalGoto.JumpIfTrue);
-            }
+            object label = boundConditionalGoto.Label;
+            Debug.Assert(label != null);
+            EmitCondBranch(boundConditionalGoto.Condition, ref label, boundConditionalGoto.JumpIfTrue);
         }
 
         // 3.17 The brfalse instruction transfers control to target if value (of type int32, int64, object reference, managed
@@ -504,30 +474,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSequenceCondBranch(BoundSequence sequence, ref object dest, bool sense)
         {
-            var hasLocals = !sequence.Locals.IsEmpty;
-
-            if (hasLocals)
-            {
-                builder.OpenLocalScope();
-
-                foreach (var local in sequence.Locals)
-                {
-                    DefineLocal(local, sequence.Syntax);
-                }
-            }
-
+            DefineLocals(sequence);
             EmitSideEffects(sequence);
             EmitCondBranch(sequence.Value, ref dest, sense);
-
-            if (hasLocals)
-            {
-                builder.CloseLocalScope();
-
-                foreach (var local in sequence.Locals)
-                {
-                    FreeLocal(local);
-                }
-            }
+            FreeLocals(sequence);
         }
 
         private void EmitLabelStatement(BoundLabelStatement boundLabelStatement)
@@ -1035,48 +985,59 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             Debug.Assert(switchCaseLabels != null);
 
-            var exprType = expression.Type;
             LocalDefinition temp = null;
+            LocalOrParameter key;
+            BoundSequence sequence = null;
+
+            if (expression.Kind == BoundKind.Sequence)
+            {
+                sequence = (BoundSequence)expression;
+                DefineLocals(sequence);
+                EmitSideEffects(sequence);
+                expression = sequence.Value;
+            }
+
+            if (expression.Kind == BoundKind.SequencePointExpression)
+            {
+                var sequencePointExpression = (BoundSequencePointExpression)expression;
+                EmitSequencePoint(sequencePointExpression);
+                expression = sequencePointExpression.Expression;
+            }
+
+            if (expression.Kind == BoundKind.Local && ((BoundLocal)expression).LocalSymbol.RefKind == RefKind.None)
+            {
+                key = this.GetLocal((BoundLocal)expression);
+            }
+            else if (expression.Kind == BoundKind.Parameter && ((BoundParameter)expression).ParameterSymbol.RefKind == RefKind.None)
+            {
+                key = ParameterSlot((BoundParameter)expression);
+            }
+            else
+            {
+                EmitExpression(expression, true);
+                temp = AllocateTemp(expression.Type, expression.Syntax);
+                builder.EmitLocalStore(temp);
+                key = temp;
+            }
 
             // Emit switch jump table            
             if (expression.Type.SpecialType != SpecialType.System_String)
             {
-                if (expression.Kind == BoundKind.Local && ((BoundLocal)expression).LocalSymbol.RefKind == RefKind.None)
-                {
-                    builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, this.GetLocal((BoundLocal)expression), exprType.EnumUnderlyingType().PrimitiveTypeCode);
-                }
-                else if (expression.Kind == BoundKind.Parameter && ((BoundParameter)expression).ParameterSymbol.RefKind == RefKind.None)
-                {
-                    builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, ParameterSlot((BoundParameter)expression), exprType.EnumUnderlyingType().PrimitiveTypeCode);
-                }
-                else
-                {
-                    EmitExpression(expression, true);
-                    temp = AllocateTemp(exprType, expression.Syntax);
-                    builder.EmitLocalStore(temp);
-
-                    builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, temp, exprType.EnumUnderlyingType().PrimitiveTypeCode);
-                }
+                builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingType().PrimitiveTypeCode);
             }
             else
             {
-                if (expression.Kind == BoundKind.Local && ((BoundLocal)expression).LocalSymbol.RefKind == RefKind.None)
-                {
-                    this.EmitStringSwitchJumpTable(switchStatement, switchCaseLabels, fallThroughLabel, this.GetLocal((BoundLocal)expression), expression.Syntax);
-                }
-                else
-                {
-                    EmitExpression(expression, true);
-                    temp = AllocateTemp(exprType, expression.Syntax);
-                    builder.EmitLocalStore(temp);
-
-                    this.EmitStringSwitchJumpTable(switchStatement, switchCaseLabels, fallThroughLabel, temp, expression.Syntax);
-                }
+                this.EmitStringSwitchJumpTable(switchStatement, switchCaseLabels, fallThroughLabel, key, expression.Syntax);
             }
 
             if (temp != null)
             {
                 FreeTemp(temp);
+            }
+
+            if (sequence != null)
+            {
+                FreeLocals(sequence);
             }
         }
 
@@ -1084,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             BoundSwitchStatement switchStatement,
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
             LabelSymbol fallThroughLabel,
-            LocalDefinition key,
+            LocalOrParameter key,
             CSharpSyntaxNode syntaxNode)
         {
             LocalDefinition keyHash = null;
@@ -1095,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(this.module.SupportsPrivateImplClass);
 
                 var privateImplClass = this.module.GetPrivateImplClass(syntaxNode, diagnostics);
-                Microsoft.Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName);
+                Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName);
 
                 // Heuristics and well-known member availability determine the existence
                 // of this helper.  Rather than reproduce that (language-specific) logic here,
@@ -1108,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // push 1 (uint return value)
                     // stackAdjustment = (pushCount - popCount) = 0
 
-                    builder.EmitLocalLoad(key);
+                    builder.EmitLoad(key);
                     builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
                     builder.EmitToken(stringHashMethodRef, syntaxNode, diagnostics);
 
@@ -1119,9 +1080,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
-            Microsoft.Cci.IReference stringEqualityMethodRef = module.Translate(switchStatement.StringEquality, syntaxNode, diagnostics);
+            Cci.IReference stringEqualityMethodRef = module.Translate(switchStatement.StringEquality, syntaxNode, diagnostics);
 
-            Microsoft.Cci.IMethodReference stringLengthRef = null;
+            Cci.IMethodReference stringLengthRef = null;
             var stringLengthMethod = module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
             if (stringLengthMethod != null && !stringLengthMethod.HasUseSiteError)
             {
@@ -1135,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // if (key == null)
                         //      goto targetLabel
-                        builder.EmitLocalLoad(keyArg);
+                        builder.EmitLoad(keyArg);
                         builder.EmitBranch(ILOpCode.Brfalse, targetLabel, ILOpCode.Brtrue);
                     }
                     else if (stringConstant.StringValue.Length == 0 && stringLengthRef != null)
@@ -1144,10 +1105,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         //      goto targetLabel
 
                         object skipToNext = new object();
-                        builder.EmitLocalLoad(keyArg);
+                        builder.EmitLoad(keyArg);
                         builder.EmitBranch(ILOpCode.Brfalse, skipToNext, ILOpCode.Brtrue);
 
-                        builder.EmitLocalLoad(keyArg);
+                        builder.EmitLoad(keyArg);
                         // Stack: key --> length
                         builder.EmitOpCode(ILOpCode.Call, 0);
                         var diag = DiagnosticBag.GetInstance();
@@ -1186,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <param name="stringConstant">Case constant to compare the key against</param>
         /// <param name="targetLabel">Target label to branch to if key = stringConstant</param>
         /// <param name="stringEqualityMethodRef">String equality method</param>
-        private void EmitStringCompareAndBranch(LocalDefinition key, SyntaxNode syntaxNode, ConstantValue stringConstant, object targetLabel, Microsoft.Cci.IReference stringEqualityMethodRef)
+        private void EmitStringCompareAndBranch(LocalOrParameter key, SyntaxNode syntaxNode, ConstantValue stringConstant, object targetLabel, Microsoft.Cci.IReference stringEqualityMethodRef)
         {
             // Emit compare and branch:
 
@@ -1207,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // stackAdjustment = (pushCount - popCount) = -1
 
-            builder.EmitLocalLoad(key);
+            builder.EmitLoad(key);
             builder.EmitConstantValue(stringConstant);
             builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
             builder.EmitToken(stringEqualityMethodRef, syntaxNode, diagnostics);

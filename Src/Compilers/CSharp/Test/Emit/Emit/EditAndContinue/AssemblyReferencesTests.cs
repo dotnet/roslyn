@@ -5,15 +5,16 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    partial class EditAndContinueTests
+    public class AssemblyReferencesTests : EditAndContinueTestBase
     {
         /// <summary>
         /// The baseline metadata might have less (or even different) references than

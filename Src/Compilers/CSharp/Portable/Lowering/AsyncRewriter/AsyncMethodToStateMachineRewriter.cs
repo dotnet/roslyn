@@ -267,8 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // if(!($awaiterTemp.IsCompleted)) { ... }
                     F.If(
-                    condition: F.Not(GenerateGetIsCompleted(awaiterTemp, isCompletedMethod)),
-                    thenClause: GenerateAwaitForIncompleteTask(awaiterTemp)));
+                        condition: F.Not(GenerateGetIsCompleted(awaiterTemp, isCompletedMethod)),
+                        thenClause: GenerateAwaitForIncompleteTask(awaiterTemp)));
 
             BoundExpression getResultCall = MakeCallMaybeDynamic(
                 F.Local(awaiterTemp),
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Local(notifyCompletionTemp),
                             F.NullOrDefault(notifyCompletionTemp.Type))),
 
-                    elseClause: F.Block(
+                    elseClauseOpt: F.Block(
                         F.ExpressionStatement(
                             F.Call(
                                 F.Field(F.This(), asyncMethodBuilderField),

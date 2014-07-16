@@ -4,10 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -26,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             private IList<ModuleData> allModuleData;
 
             internal ImmutableArray<byte> EmittedAssemblyData;
+            internal ImmutableArray<byte> EmittedAssemblyPdb;
 
             public CompilationVerifier(
                 CommonTestBase test, 
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     if (netModules.Any())
                     {
                         modules = modules.Concat(
-                            ImmutableArray.CreateRange<ModuleMetadata>(netModules.Select(m => ModuleMetadata.CreateFromImage(m.Image))));
+                            ImmutableArray.CreateRange(netModules.Select(m => ModuleMetadata.CreateFromImage(m.Image))));
                     }
                 }
 
@@ -124,47 +128,84 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 diagnostics = testEnvironment.GetDiagnostics();
                 EmittedAssemblyData = testEnvironment.GetMainImage();
+                EmittedAssemblyPdb = testEnvironment.GetMainPdb();
                 testData = testEnvironment.GetCompilationTestData();
 
                 return compilation.Assembly.Identity.GetDisplayName();
             }
 
-            public CompilationVerifier VerifyIL(string methodName, XCData expectedIL, bool realIL = false)
+            public CompilationVerifier VerifyIL(
+                string methodName, 
+                XCData expectedIL, 
+                bool realIL = false, 
+                string sequencePoints = null,
+                [CallerFilePath]string callerPath = null,
+                [CallerLineNumber]int callerLine = 0)
             {
-                return VerifyIL(methodName, expectedIL.Value, realIL);
+                return VerifyIL(methodName, expectedIL.Value, realIL, sequencePoints, callerPath, callerLine);
             }
 
-            public CompilationVerifier VerifyIL(string qualifiedMethodName, string expectedIL, bool realIL = false)
+            public CompilationVerifier VerifyIL(
+                string qualifiedMethodName,
+                string expectedIL, 
+                bool realIL = false, 
+                string sequencePoints = null,
+                [CallerFilePath]string callerPath = null,
+                [CallerLineNumber]int callerLine = 0)
             {
-                bool escapeQuotes = compilation is Microsoft.CodeAnalysis.CSharp.CSharpCompilation;
+                // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
+                // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
+
+                bool escapeQuotes = compilation is CSharp.CSharpCompilation;
 
                 var methodData = testData.GetMethodData(qualifiedMethodName);
 
                 // verify IL emitted via CCI, if any:
-                string actualCciIL = VisualizeIL(methodData, realIL, useRefEmitter: false);
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualCciIL, escapeQuotes);
+                string actualCciIL = VisualizeIL(methodData, realIL, sequencePoints, useRefEmitter: false);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualCciIL, escapeQuotes, callerPath, callerLine);
 
                 // verify IL emitted via ReflectionEmitter, if any:
-                string actualRefEmitIL = VisualizeIL(methodData, realIL, useRefEmitter: true);
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualRefEmitIL, escapeQuotes);
+                string actualRefEmitIL = VisualizeIL(methodData, realIL, sequencePoints, useRefEmitter: true);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualRefEmitIL, escapeQuotes, callerPath, callerLine);
 
                 return this;
             }
 
-            public string VisualizeIL(string qualifiedMethodName, bool realIL = false, bool useRefEmitter = false)
+            public CompilationVerifier VerifyPdb(string qualifiedMethodName, string expectedPdbXml)
             {
-                return VisualizeIL(testData.GetMethodData(qualifiedMethodName), realIL, useRefEmitter);
+                var actualPdbXml = GetPdbXml(this.compilation, qualifiedMethodName);
+                AssertXmlEqual(expectedPdbXml, actualPdbXml);
+
+                return this;
             }
 
-            private string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, bool useRefEmitter)
+            public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, bool useRefEmitter = false)
             {
+                return VisualizeIL(testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, useRefEmitter);
+            }
+
+            private string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints, bool useRefEmitter)
+            {
+                Dictionary<int, string> markers = null;
+
+                if (sequencePoints != null)
+                {
+                    var actualPdbXml = PdbToXmlConverter.ToXml(
+                        pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()), 
+                        peStream: new MemoryStream(EmittedAssemblyData.ToArray()), 
+                        options: PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, 
+                        methodName: sequencePoints);
+
+                    markers = GetSequencePointMarkers(actualPdbXml);
+                }
+
                 if (!realIL)
                 {
-                    return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder);
+                    return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder, markers: markers);
                 }
 
                 var module = this.GetModuleSymbolForEmittedImage();
-                return module != null ? test.VisualizeRealIL(module, methodData) : null;
+                return module != null ? test.VisualizeRealIL(module, methodData, markers) : null;
             }
 
             public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
@@ -181,10 +222,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public IModuleSymbol GetModuleSymbolForEmittedImage()
             {
-                return GetModuleSymbolForEmittedImage(ref lazyModuleSymbol, ref EmittedAssemblyData);
+                return GetModuleSymbolForEmittedImage(ref lazyModuleSymbol, EmittedAssemblyData);
             }
 
-            private IModuleSymbol GetModuleSymbolForEmittedImage(ref IModuleSymbol moduleSymbol, ref ImmutableArray<byte> peImage)
+            private IModuleSymbol GetModuleSymbolForEmittedImage(ref IModuleSymbol moduleSymbol, ImmutableArray<byte> peImage)
             {
                 if (peImage.IsDefault)
                 {

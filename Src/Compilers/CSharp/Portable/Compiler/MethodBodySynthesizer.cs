@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind: LookupResultKind.Viable,
                 type: boolType)
             { WasCompilerGenerated = true };
-
+            
             // branchfalse (tmp0 == tmp1) LOOP
             BoundStatement loopEnd = new BoundConditionalGoto(syntax,
                 condition: loopExitCondition,

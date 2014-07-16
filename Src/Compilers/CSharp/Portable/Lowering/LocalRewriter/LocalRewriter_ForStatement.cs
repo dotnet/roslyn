@@ -3,8 +3,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.OuterLocals,
                 rewrittenInitializer,
                 node.InnerLocals,
-                rewrittenCondition,
+                AddConditionSequencePoint(rewrittenCondition, node),
                 conditionSyntax,
                 rewrittenIncrement,
                 rewrittenBody,
@@ -52,16 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The sequence point behavior exhibited here is different from that of the native compiler.  In the native
             // compiler, if you have something like 
             //
-            // for(int i = 0, j = 0; ; i++, j++)
-            //     ^--------------^    ^------^   
+            // for([|int i = 0, j = 0|]; ; [|i++, j++|])
             //
             // then all the initializers are treated as a single sequence point, as are
             // all the loop incrementers.
             //
             // We now make each one individually a sequence point:
             //
-            // for(int i = 0, j = 0; ; i++, j++)
-            //     ^-------^  ^---^    ^-^  ^-^
+            // for([|int i = 0|], [|j = 0|]; ; [|i++|], [|j++|])
             //
             // If we decide that we want to preserve the native compiler stepping behavior
             // then we'll need to be a bit fancy here. The initializer and increment statements
@@ -91,8 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // for (initializer; condition; increment)
                     //   body;
                     //
-                    // becomes the following (with
-                    // block added for locals)
+                    // becomes the following (with block added for locals)
                     //
                     // {
                     //   initializer;

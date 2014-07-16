@@ -1557,33 +1557,33 @@ public class Test : IDisposable
     public void Dispose() { }
 }
 ";
-            var expectedXml = @"
-<symbols>
-  <entryPoint declaringType=""Test"" methodName=""Main"" parameterNames="""" />
-  <methods>
-    <method containingType=""Test"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
-          <namespace usingCount=""1"" />
-        </using>
-      </customDebugInfo>
-      <sequencepoints total=""6"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xb"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x1b"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
-      <locals />
-      <scope startOffset=""0x0"" endOffset=""0x1c"">
-        <namespace name=""System"" />
-      </scope>
-    </method>
-  </methods>
-</symbols>";
-            
-            AssertXmlEqual(expectedXml, GetPdbXml(source, TestOptions.Exe, "Test.Main"));
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll, emitPdb: true);
+
+            v.VerifyIL("Test.Main", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (Test V_0) //CS$3$0000
+ -IL_0000:  nop       
+ -IL_0001:  newobj     ""Test..ctor()""
+  IL_0006:  stloc.0   
+  .try
+  {
+   -IL_0007:  nop       
+   -IL_0008:  nop       
+    IL_0009:  leave.s    IL_0016
+  }
+  finally
+  {
+   ~IL_000b:  ldloc.0   
+    IL_000c:  brfalse.s  IL_0015
+    IL_000e:  ldloc.0   
+    IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0014:  nop       
+    IL_0015:  endfinally
+  }
+ -IL_0016:  ret       
+}", sequencePoints: "Test.Main");
         }
 
         [Fact]

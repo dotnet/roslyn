@@ -103,7 +103,13 @@ namespace Roslyn.Test.Utilities
             return spans;
         }
 
-        internal static string ILBuilderToString(ILBuilder builder, Func<Cci.ILocalDefinition, LocalInfo> mapLocal = null)
+        /// <remarks>
+        /// Invoked via Reflection from <see cref="ILBuilder.GetDebuggerDisplay()"/>
+        /// </remarks>
+        internal static string ILBuilderToString(
+            ILBuilder builder,
+            Func<Cci.ILocalDefinition, LocalInfo> mapLocal = null,
+            IReadOnlyDictionary<int, string> markers = null)
         {
             var sb = new StringBuilder();
 
@@ -117,7 +123,7 @@ namespace Roslyn.Test.Utilities
 
             if (ilStream != null)
             {
-                visualizer.DumpMethod(sb, builder.MaxStack, ilStream, locals, GetHandlerSpans(builder.RealizedExceptionHandlers));
+                visualizer.DumpMethod(sb, builder.MaxStack, ilStream, locals, GetHandlerSpans(builder.RealizedExceptionHandlers), markers);
             }
             else
             {

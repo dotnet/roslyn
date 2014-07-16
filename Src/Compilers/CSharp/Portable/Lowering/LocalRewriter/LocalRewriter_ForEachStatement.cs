@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             BoundStatement result = RewriteForStatement(
                 syntax: forEachSyntax,
-                outerLocals: node.OuterLocals.AddRange(ImmutableArray.Create<LocalSymbol>(stringVar, positionVar)),
+                outerLocals: node.OuterLocals.AddRange(ImmutableArray.Create(stringVar, positionVar)),
                 rewrittenInitializer: initializer,
                 innerLocals: ImmutableArray<LocalSymbol>.Empty,
                 rewrittenCondition: exitCondition,

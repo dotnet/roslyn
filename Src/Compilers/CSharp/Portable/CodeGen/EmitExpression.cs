@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
@@ -409,6 +407,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSequencePointExpression(BoundSequencePointExpression node, bool used)
         {
+            EmitSequencePoint(node);
+
+            // used is true to ensure that something is emitted
+            EmitExpression(node.Expression, used: true);
+            EmitPopIfUnused(used);
+        }
+
+        private void EmitSequencePoint(BoundSequencePointExpression node)
+        {
             AssertExplicitSequencePointAllowed();
 
             var syntax = node.Syntax;
@@ -420,29 +427,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    EmitSequencePoint(node.Syntax);
+                    EmitSequencePoint(syntax);
                 }
             }
-
-            // used is true to ensure that something is emitted
-            EmitExpression(node.Expression, used: true);
-            EmitPopIfUnused(used);
         }
 
         private void EmitSequenceExpression(BoundSequence sequence, bool used)
         {
-            var hasLocals = !sequence.Locals.IsEmpty;
-
-            if (hasLocals)
-            {
-                builder.OpenLocalScope();
-
-                foreach (var local in sequence.Locals)
-                {
-                    DefineLocal(local, sequence.Syntax);
-                }
-            }
-
+            DefineLocals(sequence);
             EmitSideEffects(sequence);
 
             // CONSIDER:    LocalRewriter.RewriteNestedObjectOrCollectionInitializerExpression may create a bound sequence with an unused BoundTypeExpression as the value,
@@ -457,14 +449,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitExpression(sequence.Value, used);
             }
 
-            if (hasLocals)
-            {
-                builder.CloseLocalScope();
+            FreeLocals(sequence);
+        }
 
-                foreach (var local in sequence.Locals)
-                {
-                    FreeLocal(local);
-                }
+        private void DefineLocals(BoundSequence sequence)
+        {
+            if (sequence.Locals.IsEmpty)
+            {
+                return;
+            }
+
+            builder.OpenLocalScope();
+
+            foreach (var local in sequence.Locals)
+            {
+                DefineLocal(local, sequence.Syntax);
+            }
+        }
+
+        private void FreeLocals(BoundSequence sequence)
+        {
+            if (sequence.Locals.IsEmpty)
+            {
+                return;
+            }
+
+            builder.CloseLocalScope();
+
+            foreach (var local in sequence.Locals)
+            {
+                FreeLocal(local);
             }
         }
 
@@ -1803,18 +1817,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Sequence:
                     {
                         var sequence = (BoundSequence)assignmentOperator.Left;
-                        var hasLocals = !sequence.Locals.IsEmpty;
 
-                        if (hasLocals)
-                        {
-                            builder.OpenLocalScope();
-
-                            foreach (var local in sequence.Locals)
-                            {
-                                DefineLocal(local, sequence.Syntax);
-                            }
-                        }
-
+                        DefineLocals(sequence);
                         EmitSideEffects(sequence);
 
                         BoundLocal referencedLocal = DigForLocal(sequence.Value);
@@ -1826,22 +1830,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                         lhsUsesStack = EmitAssignmentPreamble(assignmentOperator.Update(sequence.Value, assignmentOperator.Right, assignmentOperator.RefKind, assignmentOperator.Type));
 
-                        if (hasLocals)
-                        {
-                            builder.CloseLocalScope();
-
-                            foreach (var local in sequence.Locals)
-                            {
-                                if (local != doNotRelease)
-                                {
-                                    FreeLocal(local);
-                                }
-                                else
-                                {
-                                    throw ExceptionUtilities.Unreachable;
-                                }
-                            }
-                        }
+                        FreeLocals(sequence);
+                        Debug.Assert(!sequence.Locals.Any(l => l == doNotRelease));
                     }
                     break;
 

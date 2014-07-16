@@ -1761,36 +1761,35 @@ public class D
 }
 ");
 
-            CompileAndVerify(source, options: TestOptions.Exe.WithOptimizations(false), emitPdb: true, expectedOutput: "42123").
-                VerifyIL("D.M",
+            var v = CompileAndVerify(source, options: TestOptions.DebugExe, emitPdb: true, expectedOutput: "42123");
+
+            v.VerifyIL("D.M",
 @"{
-  // Code size       24 (0x18)
-  .maxstack  2
+  // Code size       21 (0x15)
+  .maxstack  1
   .locals init (System.Exception V_0, //ex
            int V_1, //y
-           bool V_2,
+           bool V_2, //CS$4$0000
            int V_3)
-  IL_0000:  nop       
-  IL_0001:  ldc.i4.s   123
+ -IL_0000:  nop       
+ -IL_0001:  ldc.i4.s   123
   IL_0003:  stloc.1   
-  IL_0004:  ldarg.0   
-  IL_0005:  ldc.i4.0  
-  IL_0006:  ceq       
-  IL_0008:  stloc.2   
-  IL_0009:  ldloc.2   
-  IL_000a:  brtrue.s   IL_0011
-  IL_000c:  nop       
-  IL_000d:  ldloc.1   
-  IL_000e:  stloc.3   
-  IL_000f:  br.s       IL_0016
-  IL_0011:  nop       
-  IL_0012:  ldarg.1   
-  IL_0013:  stloc.3   
-  IL_0014:  br.s       IL_0016
-  IL_0016:  ldloc.3   
-  IL_0017:  ret       
+ -IL_0004:  ldarg.0   
+  IL_0005:  stloc.2   
+ ~IL_0006:  ldloc.2   
+  IL_0007:  brfalse.s  IL_000e
+ -IL_0009:  nop       
+ -IL_000a:  ldloc.1   
+  IL_000b:  stloc.3   
+  IL_000c:  br.s       IL_0013
+ -IL_000e:  nop       
+ -IL_000f:  ldarg.1   
+  IL_0010:  stloc.3   
+  IL_0011:  br.s       IL_0013
+ -IL_0013:  ldloc.3   
+  IL_0014:  ret       
 }
-");
+", sequencePoints: "D.M");
         }
 
         [Fact]
@@ -5162,74 +5161,77 @@ public class D
 }
 ");
 
-            CompileAndVerify(source, options: TestOptions.Exe.WithOptimizations(false), emitPdb: true, expectedOutput: @"1").
-                VerifyIL("D.Main",
+            var v = CompileAndVerify(source, options: TestOptions.DebugExe, emitPdb: true, expectedOutput: @"1");
+
+            v.VerifyIL("D.Main",
 @"{
-  // Code size       79 (0x4f)
+  // Code size       82 (0x52)
   .maxstack  2
   .locals init (int V_0, //x
-    int V_1, //y
-    bool V_2)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  stloc.0
-  IL_0003:  ldc.i4.2
-  IL_0004:  stloc.1
-  IL_0005:  ldloc.0
-  IL_0006:  ldloc.1
-  IL_0007:  clt
-  IL_0009:  ldc.i4.0
-  IL_000a:  ceq
-  IL_000c:  stloc.2
-  IL_000d:  ldloc.2
-  IL_000e:  brtrue.s   IL_004e
-  IL_0010:  nop
-  IL_0011:  ldloc.1
-  IL_0012:  ldloc.0
-  IL_0013:  cgt
-  IL_0015:  ldc.i4.0
-  IL_0016:  ceq
-  IL_0018:  stloc.2
-  IL_0019:  ldloc.2
-  IL_001a:  brtrue.s   IL_004d
-  IL_001c:  nop
-  IL_001d:  ldloc.1
-  IL_001e:  ldloc.0
-  IL_001f:  clt
-  IL_0021:  stloc.2
-  IL_0022:  ldloc.2
-  IL_0023:  brtrue.s   IL_004c
-  IL_0025:  nop
-  IL_0026:  ldloc.1
-  IL_0027:  ldloc.0
-  IL_0028:  ceq
-  IL_002a:  stloc.2
-  IL_002b:  ldloc.2
-  IL_002c:  brtrue.s   IL_0037
-  IL_002e:  nop
-  IL_002f:  ldc.i4.1
-  IL_0030:  call       ""void System.Console.Write(int)""
-  IL_0035:  nop
-  IL_0036:  nop
-  IL_0037:  ldloc.1
-  IL_0038:  ldloc.0
-  IL_0039:  ceq
-  IL_003b:  ldc.i4.0
-  IL_003c:  ceq
-  IL_003e:  stloc.2
-  IL_003f:  ldloc.2
-  IL_0040:  brtrue.s   IL_004b
-  IL_0042:  nop
-  IL_0043:  ldc.i4.1
-  IL_0044:  call       ""void System.Console.Write(int)""
-  IL_0049:  nop
-  IL_004a:  nop
-  IL_004b:  nop
-  IL_004c:  nop
-  IL_004d:  nop
-  IL_004e:  ret
+           int V_1, //y
+           bool V_2, //CS$4$0000
+           bool V_3, //CS$4$0001
+           bool V_4, //CS$4$0002
+           bool V_5, //CS$4$0003
+           bool V_6) //CS$4$0004
+ -IL_0000:  nop       
+ -IL_0001:  ldc.i4.1  
+  IL_0002:  stloc.0   
+ -IL_0003:  ldc.i4.2  
+  IL_0004:  stloc.1   
+ -IL_0005:  ldloc.0   
+  IL_0006:  ldloc.1   
+  IL_0007:  clt       
+  IL_0009:  stloc.2   
+ ~IL_000a:  ldloc.2   
+  IL_000b:  brfalse.s  IL_0051
+ -IL_000d:  nop       
+ -IL_000e:  ldloc.1   
+  IL_000f:  ldloc.0   
+  IL_0010:  cgt       
+  IL_0012:  stloc.3   
+ ~IL_0013:  ldloc.3   
+  IL_0014:  brfalse.s  IL_0050
+ -IL_0016:  nop       
+ -IL_0017:  ldloc.1   
+  IL_0018:  ldloc.0   
+  IL_0019:  clt       
+  IL_001b:  ldc.i4.0  
+  IL_001c:  ceq       
+  IL_001e:  stloc.s    V_4
+ ~IL_0020:  ldloc.s    V_4
+  IL_0022:  brfalse.s  IL_004f
+ -IL_0024:  nop       
+ -IL_0025:  ldloc.1   
+  IL_0026:  ldloc.0   
+  IL_0027:  ceq       
+  IL_0029:  ldc.i4.0  
+  IL_002a:  ceq       
+  IL_002c:  stloc.s    V_5
+ ~IL_002e:  ldloc.s    V_5
+  IL_0030:  brfalse.s  IL_003b
+ -IL_0032:  nop       
+ -IL_0033:  ldc.i4.1  
+  IL_0034:  call       ""void System.Console.Write(int)""
+  IL_0039:  nop       
+ -IL_003a:  nop       
+ -IL_003b:  ldloc.1   
+  IL_003c:  ldloc.0   
+  IL_003d:  ceq       
+  IL_003f:  stloc.s    V_6
+ ~IL_0041:  ldloc.s    V_6
+  IL_0043:  brfalse.s  IL_004e
+ -IL_0045:  nop       
+ -IL_0046:  ldc.i4.1  
+  IL_0047:  call       ""void System.Console.Write(int)""
+  IL_004c:  nop       
+ -IL_004d:  nop       
+ -IL_004e:  nop       
+ -IL_004f:  nop       
+ -IL_0050:  nop       
+ -IL_0051:  ret       
 }
-");
+", sequencePoints: "D.Main");
         }
 
         [Fact]
@@ -12408,28 +12410,27 @@ class C
 ";
             // Nop after Debugger.Break(), even though it isn't at the end of a statement.
             var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithOptimizations(false));
-            CompileAndVerify(comp, emitPdb: true).VerifyIL("C.Main", @"
+            var v = CompileAndVerify(comp, emitPdb: true);
+            
+            v.VerifyIL("C.Main", @"
 {
-  // Code size       23 (0x17)
+  // Code size       19 (0x13)
   .maxstack  2
-  .locals init (int V_0, //i
-  bool V_1)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
+  .locals init (int V_0) //i
+  IL_0000:  nop       
+  IL_0001:  ldc.i4.0  
+  IL_0002:  stloc.0   
   IL_0003:  br.s       IL_000d
-  IL_0005:  nop
-  IL_0006:  nop
+  IL_0005:  nop       
+  IL_0006:  nop       
   IL_0007:  call       ""void System.Diagnostics.Debugger.Break()""
-  IL_000c:  nop
-  IL_000d:  ldloc.0
+  IL_000c:  nop       
+  IL_000d:  ldloc.0   
   IL_000e:  ldc.i4.s   10
-  IL_0010:  clt
-  IL_0012:  stloc.1
-  IL_0013:  ldloc.1
-  IL_0014:  brtrue.s   IL_0005
-  IL_0016:  ret
-}");
+  IL_0010:  blt.s      IL_0005
+  IL_0012:  ret       
+}
+");
         }
 
         [Fact]

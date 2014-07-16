@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenConsequence = VisitStatement(node.Consequence);
             var rewrittenAlternative = VisitStatement(node.AlternativeOpt);
             var syntax = (IfStatementSyntax)node.Syntax;
-            var result = RewriteIfStatement(syntax, node.Locals, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.HasErrors);
+            var result = RewriteIfStatement(syntax, node.Locals, AddConditionSequencePoint(rewrittenCondition, node), rewrittenConsequence, rewrittenAlternative, node.HasErrors);
 
             // add sequence point before the whole statement
             if (this.generateDebugInfo && !node.WasCompilerGenerated)

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected BoundNode(BoundKind kind, CSharpSyntaxNode syntax)
         {
-            Debug.Assert(kind == BoundKind.SequencePoint || syntax != null);
+            Debug.Assert(kind == BoundKind.SequencePoint || kind == BoundKind.SequencePointExpression || syntax != null);
 
             this.kind = kind;
             this.Syntax = syntax;

@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     pdbStream,
                     result.Baseline,
                     testData,
-                    result);
+                    result,
+                    updatedMethodTokens.ToImmutableArray());
             }
         }
     }

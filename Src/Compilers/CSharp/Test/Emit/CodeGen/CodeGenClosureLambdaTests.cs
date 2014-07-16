@@ -4324,53 +4324,41 @@ class D
 
             verifier.VerifyIL("C.M<T>", @"
 {
-  // Code size       84 (0x54)
+  // Code size       70 (0x46)
   .maxstack  4
   .locals init (C.<>c__DisplayClass0<T> V_0, //CS$<>8__locals0
-  bool V_1,
-  T V_2, //last
-  System.Func<T, bool> V_3)
+           T V_1, //last
+           System.Func<T, bool> V_2)
   IL_0000:  newobj     ""C.<>c__DisplayClass0<T>..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
-  IL_0007:  ldarg.1
+  IL_0005:  stloc.0   
+  IL_0006:  ldloc.0   
+  IL_0007:  ldarg.1   
   IL_0008:  stfld      ""int C.<>c__DisplayClass0<T>.p""
-  IL_000d:  ldarg.0
-  IL_000e:  ldnull
-  IL_000f:  ceq
-  IL_0011:  stloc.1
-  IL_0012:  ldloc.1
-  IL_0013:  brtrue.s   IL_0051
-  IL_0015:  ldarg.0
-  IL_0016:  ldloc.0
-  IL_0017:  ldfld      ""System.Func<T, bool> C.<>c__DisplayClass0<T>.CS$<>9__CachedAnonymousMethodDelegate2""
-  IL_001c:  dup
-  IL_001d:  brtrue.s   IL_0035
-  IL_001f:  pop
-  IL_0020:  ldloc.0
-  IL_0021:  ldloc.0
-  IL_0022:  ldftn      ""bool C.<>c__DisplayClass0<T>.<M>b__1(T)""
-  IL_0028:  newobj     ""System.Func<T, bool>..ctor(object, System.IntPtr)""
-  IL_002d:  dup
-  IL_002e:  stloc.3
-  IL_002f:  stfld      ""System.Func<T, bool> C.<>c__DisplayClass0<T>.CS$<>9__CachedAnonymousMethodDelegate2""
-  IL_0034:  ldloc.3
-  IL_0035:  call       ""T System.Linq.Enumerable.LastOrDefault<T>(System.Collections.Generic.IEnumerable<T>, System.Func<T, bool>)""
-  IL_003a:  stloc.2
-  IL_003b:  ldarg.0
-  IL_003c:  call       ""int System.Linq.Enumerable.Count<T>(System.Collections.Generic.IEnumerable<T>)""
-  IL_0041:  ldc.i4.1
-  IL_0042:  cgt
-  IL_0044:  ldc.i4.0
-  IL_0045:  ceq
-  IL_0047:  stloc.1
-  IL_0048:  ldloc.1
-  IL_0049:  brtrue.s   IL_0051
-  IL_004b:  ldarg.0
-  IL_004c:  callvirt   ""void System.Collections.Generic.List<T>.Reverse()""
-  IL_0051:  ldc.i4.0
-  IL_0052:  stloc.1
-  IL_0053:  ret
+  IL_000d:  ldarg.0   
+  IL_000e:  brfalse.s  IL_0045
+  IL_0010:  ldarg.0   
+  IL_0011:  ldloc.0   
+  IL_0012:  ldfld      ""System.Func<T, bool> C.<>c__DisplayClass0<T>.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0017:  dup       
+  IL_0018:  brtrue.s   IL_0030
+  IL_001a:  pop       
+  IL_001b:  ldloc.0   
+  IL_001c:  ldloc.0   
+  IL_001d:  ldftn      ""bool C.<>c__DisplayClass0<T>.<M>b__1(T)""
+  IL_0023:  newobj     ""System.Func<T, bool>..ctor(object, System.IntPtr)""
+  IL_0028:  dup       
+  IL_0029:  stloc.2   
+  IL_002a:  stfld      ""System.Func<T, bool> C.<>c__DisplayClass0<T>.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_002f:  ldloc.2   
+  IL_0030:  call       ""T System.Linq.Enumerable.LastOrDefault<T>(System.Collections.Generic.IEnumerable<T>, System.Func<T, bool>)""
+  IL_0035:  stloc.1   
+  IL_0036:  ldarg.0   
+  IL_0037:  call       ""int System.Linq.Enumerable.Count<T>(System.Collections.Generic.IEnumerable<T>)""
+  IL_003c:  ldc.i4.1  
+  IL_003d:  ble.s      IL_0045
+  IL_003f:  ldarg.0   
+  IL_0040:  callvirt   ""void System.Collections.Generic.List<T>.Reverse()""
+  IL_0045:  ret       
 }
 ");
         }

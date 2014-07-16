@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public readonly int Offset;
         public readonly ITypeReference Type;
         public readonly LocalSlotConstraints Constraints;
-        public readonly int TempKind;
+        public readonly int SynthesizedKind;
         public readonly byte[] Signature;
 
         public EncLocalInfo(byte[] signature)
@@ -27,18 +27,18 @@ namespace Microsoft.CodeAnalysis.Emit
             this.Offset = -1;
             this.Type = null;
             this.Constraints = default(LocalSlotConstraints);
-            this.TempKind = 0;
+            this.SynthesizedKind = 0;
             this.Signature = signature;
         }
 
-        public EncLocalInfo(int offset, ITypeReference type, LocalSlotConstraints constraints, int tempKind, byte[] signature)
+        public EncLocalInfo(int offset, ITypeReference type, LocalSlotConstraints constraints, int synthesizedKind, byte[] signature)
         {
             Debug.Assert(type != null);
 
             this.Offset = offset;
             this.Type = type;
             this.Constraints = constraints;
-            this.TempKind = tempKind;
+            this.SynthesizedKind = synthesizedKind;
             this.Signature = signature;
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(other.Type != null);
 
             return (this.Offset == other.Offset) &&
-                (this.TempKind == other.TempKind) &&
+                (this.SynthesizedKind == other.SynthesizedKind) &&
                 this.Type.Equals(other.Type) &&
                 (this.Constraints == other.Constraints);
         }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int result = this.Offset.GetHashCode();
             result = Hash.Combine(result, this.Type.GetHashCode());
             result = Hash.Combine(result, this.Constraints.GetHashCode());
-            result = Hash.Combine(result, this.TempKind.GetHashCode());
+            result = Hash.Combine(result, this.SynthesizedKind.GetHashCode());
             return result;
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return "[default]";
             }
 
-            return string.Format("[Offset={0}, Type={1}, Constraints={2}, TempKind={3}]", this.Offset, this.Type, this.Constraints, this.TempKind);
+            return string.Format("[Offset={0}, Type={1}, Constraints={2}, SynthesizedKind={3}]", this.Offset, this.Type, this.Constraints, this.SynthesizedKind);
         }
     }
 }

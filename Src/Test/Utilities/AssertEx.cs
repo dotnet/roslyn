@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -380,21 +381,25 @@ namespace Roslyn.Test.Utilities
             Assert.True(false, "No exception was thrown.");
         }
 
-        public static void AssertEqualToleratingWhitespaceDifferences(string expected, string actual, bool escapeQuotes = false)
+        public static void AssertEqualToleratingWhitespaceDifferences(string expected, string actual, bool escapeQuotes = true, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
         {
-            expected = Normalize(expected);
-            actual = Normalize(actual);
-            Assert.True(expected == actual, GetAssertMessage(expected, actual, escapeQuotes));
+            var normalizedExpected = NormalizeWhitespace(expected);
+            var normalizedActual = NormalizeWhitespace(actual);
+
+            if (normalizedExpected != normalizedActual)
+            {
+                Assert.True(false, GetAssertMessage(expected, actual, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine));
+            }
         }
 
         public static void AssertContainsToleratingWhitespaceDifferences(string expectedSubString, string actualString)
         {
-            expectedSubString = Normalize(expectedSubString);
-            actualString = Normalize(actualString);
+            expectedSubString = NormalizeWhitespace(expectedSubString);
+            actualString = NormalizeWhitespace(actualString);
             Assert.Contains(expectedSubString, actualString);
         }
 
-        private static string Normalize(string input)
+        internal static string NormalizeWhitespace(string input)
         {
             var output = new StringBuilder();
             var inputLines = input.Split('\n', '\r');
@@ -403,7 +408,7 @@ namespace Roslyn.Test.Utilities
                 var trimmedLine = line.Trim();
                 if (trimmedLine.Length > 0)
                 {
-                    if (!(trimmedLine.StartsWith("{") || trimmedLine.StartsWith("}")))
+                    if (!(trimmedLine.StartsWith("{", StringComparison.Ordinal) || trimmedLine.StartsWith("}", StringComparison.Ordinal)))
                     {
                         output.Append("  ");
                     }
@@ -415,29 +420,58 @@ namespace Roslyn.Test.Utilities
             return output.ToString();
         }
 
-        public static string GetAssertMessage(string expected, string actual, bool escapeQuotes = false)
+        public static string GetAssertMessage(string expected, string actual, bool escapeQuotes = false, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
         {
-            return GetAssertMessage(DiffUtil.Lines(expected), DiffUtil.Lines(actual), escapeQuotes);
+            return GetAssertMessage(DiffUtil.Lines(expected), DiffUtil.Lines(actual), escapeQuotes, expectedValueSourcePath, expectedValueSourceLine);
         }
 
-        public static string GetAssertMessage<T>(IEnumerable<T> expected, IEnumerable<T> actual, bool escapeQuotes)
+        public static string GetAssertMessage<T>(IEnumerable<T> expected, IEnumerable<T> actual, bool escapeQuotes, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
         {
-            return GetAssertMessage(expected, actual, toString: escapeQuotes ? new Func<T, string>(t => t.ToString().Replace("\"", "\"\"")) : null, separator: "\r\n");
+            Func<T, string> toString = escapeQuotes ? new Func<T, string>(t => t.ToString().Replace("\"", "\"\"")) : null;
+            return GetAssertMessage(expected, actual, toString: toString, separator: "\r\n", expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
-        public static string GetAssertMessage<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, Func<T, string> toString = null, string separator = ",\r\n")
+        private static readonly string DiffToolPath = Environment.GetEnvironmentVariable("ROSLYN_DIFFTOOL");
+
+        public static string GetAssertMessage<T>(
+            IEnumerable<T> expected, 
+            IEnumerable<T> actual, 
+            IEqualityComparer<T> comparer = null, 
+            Func<T, string> toString = null, 
+            string separator = ",\r\n",
+            string expectedValueSourcePath = null,
+            int expectedValueSourceLine = 0)
         {
             if (toString == null)
             {
-                toString = new Func<T, string>(obj => obj.ToString());
+                toString = new Func<T, string>(obj => obj?.ToString() ?? "<null>");
             }
+
+            var actualString = string.Join(separator, actual.Select(toString));
 
             var message = new StringBuilder();
             message.AppendLine();
             message.AppendLine("Actual:");
-            message.AppendLine(string.Join(separator, actual.Select(toString)));
+            message.AppendLine(actualString);
             message.AppendLine("Differences:");
             message.AppendLine(DiffUtil.DiffReport(expected, actual, comparer, toString, separator));
+
+            // add a link to a .cmd file that opens a diff tool:
+            if (!string.IsNullOrEmpty(DiffToolPath) && expectedValueSourcePath != null && expectedValueSourceLine != 0)
+            {
+                var actualFile = Path.GetTempFileName();
+                var testFileLines = File.ReadAllLines(expectedValueSourcePath);
+
+                File.WriteAllLines(actualFile, testFileLines.Take(expectedValueSourceLine));
+                File.AppendAllText(actualFile, actualString);
+                File.AppendAllLines(actualFile, testFileLines.Skip(expectedValueSourceLine + expected.Count()));
+
+                var compareCmd = Path.GetTempFileName() + ".cmd";
+                File.WriteAllText(compareCmd, string.Format("\"{0}\" \"{1}\" \"{2}\"", DiffToolPath, actualFile, expectedValueSourcePath));
+
+                message.AppendLine("file://" + compareCmd);
+            }
+
             return message.ToString();
         }
     }

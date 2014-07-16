@@ -200,7 +200,7 @@ namespace Roslyn.Test.MetadataUtilities
             int i = 0;
             foreach (var local in locals)
             {
-                sb.Append(i == 0 ? "  .locals init (" : "           ");
+                sb.Append(i == 0 ? "  .locals init (" : new string(' ', "  .locals init (".Length));
                 if (local.IsPinned)
                 {
                     sb.Append("pinned ");
@@ -234,10 +234,11 @@ namespace Roslyn.Test.MetadataUtilities
             int maxStack,
             byte[] ilBytes,
             ImmutableArray<LocalInfo> locals,
-            IReadOnlyList<HandlerSpan> exceptionHandlers)
+            IReadOnlyList<HandlerSpan> exceptionHandlers,
+            IReadOnlyDictionary<int, string> markers = null)
         {
             var builder = new StringBuilder();
-            this.DumpMethod(builder, maxStack, ilBytes, locals, exceptionHandlers);
+            this.DumpMethod(builder, maxStack, ilBytes, locals, exceptionHandlers, markers);
             return builder.ToString();
         }
 
@@ -246,12 +247,13 @@ namespace Roslyn.Test.MetadataUtilities
             int maxStack,
             byte[] ilBytes,
             ImmutableArray<LocalInfo> locals,
-            IReadOnlyList<HandlerSpan> exceptionHandlers)
+            IReadOnlyList<HandlerSpan> exceptionHandlers,
+            IReadOnlyDictionary<int, string> markers = null)
         {
             sb.AppendLine("{");
 
             VisualizeHeader(sb, ilBytes.Length, maxStack, locals);
-            DumpILBlock(ilBytes, ilBytes.Length, sb, exceptionHandlers);
+            DumpILBlock(ilBytes, ilBytes.Length, sb, exceptionHandlers, 0, markers);
 
             sb.AppendLine("}");
         }
@@ -265,7 +267,8 @@ namespace Roslyn.Test.MetadataUtilities
             int length,
             StringBuilder sb,
             IReadOnlyList<HandlerSpan> spans = null,
-            int blockOffset = 0)
+            int blockOffset = 0,
+            IReadOnlyDictionary<int, string> markers = null)
         {
             if (ilBytes == null)
             {
@@ -273,7 +276,7 @@ namespace Roslyn.Test.MetadataUtilities
             }
 
             int spanIndex = 0;
-            int curIndex = DumpILBlock(ilBytes, length, sb, spans, blockOffset, 0, spanIndex, IndentString, out spanIndex);
+            int curIndex = DumpILBlock(ilBytes, length, sb, spans, blockOffset, 0, spanIndex, IndentString, markers, out spanIndex);
             Debug.Assert(curIndex == length);
             Debug.Assert(spans == null || spanIndex == spans.Count);
         }
@@ -287,6 +290,7 @@ namespace Roslyn.Test.MetadataUtilities
             int curIndex,
             int spanIndex,
             string indent,
+            IReadOnlyDictionary<int, string> markers,
             out int nextSpanIndex)
         {
             int lastSpanIndex = spanIndex - 1;
@@ -313,7 +317,7 @@ namespace Roslyn.Test.MetadataUtilities
                     sb.Append("{");
                     sb.AppendLine();
 
-                    curIndex = DumpILBlock(ilBytes, length, sb, spans, blockOffset, curIndex, spanIndex + 1, indent + IndentString, out spanIndex);
+                    curIndex = DumpILBlock(ilBytes, length, sb, spans, blockOffset, curIndex, spanIndex + 1, indent + IndentString, markers, out spanIndex);
 
                     sb.Append(indent);
                     sb.Append("}");
@@ -321,7 +325,19 @@ namespace Roslyn.Test.MetadataUtilities
                 }
                 else
                 {
-                    sb.Append(string.Format("{0}IL_{1:x4}:", indent, curIndex + blockOffset));
+                    int ilOffset = curIndex + blockOffset;
+                    string marker;
+                    if (markers != null && markers.TryGetValue(ilOffset, out marker))
+                    {
+                        sb.Append(indent.Substring(0, indent.Length - marker.Length));
+                        sb.Append(marker);
+                    }
+                    else
+                    {
+                        sb.Append(indent);
+                    }
+
+                    sb.AppendFormat("IL_{0:x4}:", ilOffset);
 
                     OpCode opCode;
                     int expectedSize;
@@ -344,8 +360,9 @@ namespace Roslyn.Test.MetadataUtilities
                         sb.AppendLine(string.Format("  <unknown 0x{0}{1:X2}>", expectedSize == 2 ? "fe" : "", op1));
                         continue;
                     }
-                    
-                    sb.Append(string.Format("  {0,-10}", opCode.ToString()));
+
+                    sb.Append("  ");
+                    sb.AppendFormat(opCode.OperandType == OperandType.InlineNone ? "{0}" : "{0,-10}", opCode);
 
                     switch (opCode.OperandType)
                     {

@@ -1563,44 +1563,38 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeExe, emitPdb: true, expectedOutput: @"h");
+            var compVerifier = CompileAndVerify(text, options: TestOptions.DebugExe, emitPdb: true, expectedOutput: @"h");
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       35 (0x23)
   .maxstack  2
   .locals init (char* V_0, //p
-      pinned string V_1,
-      bool V_2)
-  IL_0000:  nop
+           pinned string V_1) //CS$519$0000
+ -IL_0000:  nop       
   IL_0001:  ldstr      ""hello""
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
-  IL_0008:  conv.i
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.1
-  IL_000b:  conv.i
-  IL_000c:  ldnull
-  IL_000d:  ceq
-  IL_000f:  stloc.2
-  IL_0010:  ldloc.2
-  IL_0011:  brtrue.s   IL_001d
-  IL_0013:  ldloc.0
-  IL_0014:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0019:  add
-  IL_001a:  stloc.0
-  IL_001b:  br.s       IL_001d
-  IL_001d:  nop
-  IL_001e:  ldloc.0
-  IL_001f:  ldind.u2
-  IL_0020:  call       ""void System.Console.WriteLine(char)""
-  IL_0025:  nop
-  IL_0026:  nop
-  IL_0027:  ldnull
-  IL_0028:  stloc.1
-  IL_0029:  ret
+  IL_0006:  stloc.1   
+ -IL_0007:  ldloc.1   
+  IL_0008:  conv.i    
+  IL_0009:  stloc.0   
+  IL_000a:  ldloc.1   
+  IL_000b:  conv.i    
+  IL_000c:  brfalse.s  IL_0016
+  IL_000e:  ldloc.0   
+  IL_000f:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0014:  add       
+  IL_0015:  stloc.0   
+ -IL_0016:  nop       
+ -IL_0017:  ldloc.0   
+  IL_0018:  ldind.u2  
+  IL_0019:  call       ""void System.Console.WriteLine(char)""
+  IL_001e:  nop       
+ -IL_001f:  nop       
+ ~IL_0020:  ldnull    
+  IL_0021:  stloc.1   
+ -IL_0022:  ret       
 }
-");
+", sequencePoints: "C.Main");
         }
 
         [Fact]
@@ -1627,77 +1621,67 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeExe, emitPdb: true, expectedOutput: @"hTrue");
+            var compVerifier = CompileAndVerify(text, options: TestOptions.DebugExe, emitPdb: true, expectedOutput: @"hTrue");
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       89 (0x59)
+  // Code size       75 (0x4b)
   .maxstack  2
   .locals init (string V_0, //s
-      char* V_1, //p
-      pinned string V_2,
-      bool V_3,
-      char* V_4) //p
-  IL_0000:  nop
-  IL_0001:  ldstr      ""hello""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  stloc.2
-  IL_0009:  ldloc.2
-  IL_000a:  conv.i
-  IL_000b:  stloc.1
-  IL_000c:  ldloc.2
-  IL_000d:  conv.i
-  IL_000e:  ldnull
-  IL_000f:  ceq
-  IL_0011:  stloc.3
-  IL_0012:  ldloc.3
-  IL_0013:  brtrue.s   IL_001f
-  IL_0015:  ldloc.1
-  IL_0016:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_001b:  add
-  IL_001c:  stloc.1
-  IL_001d:  br.s       IL_001f
-  IL_001f:  nop
-  IL_0020:  ldloc.1
-  IL_0021:  ldind.u2
-  IL_0022:  call       ""void System.Console.Write(char)""
-  IL_0027:  nop
-  IL_0028:  nop
-  IL_0029:  ldnull
-  IL_002a:  stloc.2
-  IL_002b:  ldnull
-  IL_002c:  stloc.0
-  IL_002d:  ldloc.0
-  IL_002e:  stloc.2
-  IL_002f:  ldloc.2
-  IL_0030:  conv.i
-  IL_0031:  stloc.s    V_4
-  IL_0033:  ldloc.2
-  IL_0034:  conv.i
-  IL_0035:  ldnull
-  IL_0036:  ceq
-  IL_0038:  stloc.3
-  IL_0039:  ldloc.3
-  IL_003a:  brtrue.s   IL_0048
-  IL_003c:  ldloc.s    V_4
-  IL_003e:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0043:  add
-  IL_0044:  stloc.s    V_4
-  IL_0046:  br.s       IL_0048
-  IL_0048:  nop
-  IL_0049:  ldloc.s    V_4
-  IL_004b:  ldc.i4.0
-  IL_004c:  conv.u
-  IL_004d:  ceq
-  IL_004f:  call       ""void System.Console.Write(bool)""
-  IL_0054:  nop
-  IL_0055:  nop
-  IL_0056:  ldnull
-  IL_0057:  stloc.2
-  IL_0058:  ret
+           char* V_1, //p
+           pinned string V_2, //CS$519$0000
+           char* V_3, //p
+           pinned string V_4) //CS$519$0001
+ -IL_0000:  nop       
+ -IL_0001:  ldstr      ""hello""
+  IL_0006:  stloc.0   
+  IL_0007:  ldloc.0   
+  IL_0008:  stloc.2   
+ -IL_0009:  ldloc.2   
+  IL_000a:  conv.i    
+  IL_000b:  stloc.1   
+  IL_000c:  ldloc.2   
+  IL_000d:  conv.i    
+  IL_000e:  brfalse.s  IL_0018
+  IL_0010:  ldloc.1   
+  IL_0011:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0016:  add       
+  IL_0017:  stloc.1   
+ -IL_0018:  nop       
+ -IL_0019:  ldloc.1   
+  IL_001a:  ldind.u2  
+  IL_001b:  call       ""void System.Console.Write(char)""
+  IL_0020:  nop       
+ -IL_0021:  nop       
+ ~IL_0022:  ldnull    
+  IL_0023:  stloc.2   
+ -IL_0024:  ldnull    
+  IL_0025:  stloc.0   
+  IL_0026:  ldloc.0   
+  IL_0027:  stloc.s    V_4
+ -IL_0029:  ldloc.s    V_4
+  IL_002b:  conv.i    
+  IL_002c:  stloc.3   
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  conv.i    
+  IL_0030:  brfalse.s  IL_003a
+  IL_0032:  ldloc.3   
+  IL_0033:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0038:  add       
+  IL_0039:  stloc.3   
+ -IL_003a:  nop       
+ -IL_003b:  ldloc.3   
+  IL_003c:  ldc.i4.0  
+  IL_003d:  conv.u    
+  IL_003e:  ceq       
+  IL_0040:  call       ""void System.Console.Write(bool)""
+  IL_0045:  nop       
+ -IL_0046:  nop       
+ ~IL_0047:  ldnull    
+  IL_0048:  stloc.s    V_4
+ -IL_004a:  ret       
 }
-");
+", sequencePoints: "C.Main");
         }
 
         [Fact]
@@ -4632,87 +4616,81 @@ unsafe class C
             // NB: "pinned System.IntPtr&" (which ildasm displays as "pinned native int&"), not void.
             var expectedIL = @"
 {
-  // Code size      118 (0x76)
+  // Code size      109 (0x6d)
   .maxstack  2
   .locals init (C V_0, //c
-  pinned System.IntPtr& V_1, //p
-  pinned System.IntPtr& V_2, //q
-  void* V_3, //r
-  char[] V_4,
-  pinned string V_5,
-  bool V_6)
-  IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  newobj     ""C..ctor()""
-  IL_0007:  stloc.0
-  IL_0008:  ldloc.0
+           pinned System.IntPtr& V_1, //p
+           pinned System.IntPtr& V_2, //q
+           void* V_3, //r
+           char[] V_4,
+           pinned string V_5) //CS$519$0000
+ -IL_0000:  nop       
+ -IL_0001:  nop       
+ -IL_0002:  newobj     ""C..ctor()""
+  IL_0007:  stloc.0   
+ -IL_0008:  ldloc.0   
   IL_0009:  ldflda     ""char C.c""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.0
+  IL_000e:  stloc.1   
+ -IL_000f:  ldloc.0   
   IL_0010:  ldfld      ""char[] C.a""
-  IL_0015:  dup
+  IL_0015:  dup       
   IL_0016:  stloc.s    V_4
   IL_0018:  brfalse.s  IL_0020
   IL_001a:  ldloc.s    V_4
-  IL_001c:  ldlen
-  IL_001d:  conv.i4
+  IL_001c:  ldlen     
+  IL_001d:  conv.i4   
   IL_001e:  brtrue.s   IL_0025
-  IL_0020:  ldc.i4.0
-  IL_0021:  conv.u
-  IL_0022:  stloc.2
+  IL_0020:  ldc.i4.0  
+  IL_0021:  conv.u    
+  IL_0022:  stloc.2   
   IL_0023:  br.s       IL_002e
   IL_0025:  ldloc.s    V_4
-  IL_0027:  ldc.i4.0
+  IL_0027:  ldc.i4.0  
   IL_0028:  ldelema    ""char""
-  IL_002d:  stloc.2
+  IL_002d:  stloc.2   
   IL_002e:  ldstr      ""hello""
   IL_0033:  stloc.s    V_5
-  IL_0035:  ldloc.s    V_5
-  IL_0037:  conv.i
-  IL_0038:  stloc.3
+ -IL_0035:  ldloc.s    V_5
+  IL_0037:  conv.i    
+  IL_0038:  stloc.3   
   IL_0039:  ldloc.s    V_5
-  IL_003b:  conv.i
-  IL_003c:  ldnull
-  IL_003d:  ceq
-  IL_003f:  stloc.s    V_6
-  IL_0041:  ldloc.s    V_6
-  IL_0043:  brtrue.s   IL_004f
-  IL_0045:  ldloc.3
-  IL_0046:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_004b:  add
-  IL_004c:  stloc.3
-  IL_004d:  br.s       IL_004f
-  IL_004f:  nop
-  IL_0050:  ldloc.1
-  IL_0051:  conv.i
-  IL_0052:  ldind.u2
+  IL_003b:  conv.i    
+  IL_003c:  brfalse.s  IL_0046
+  IL_003e:  ldloc.3   
+  IL_003f:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0044:  add       
+  IL_0045:  stloc.3   
+ -IL_0046:  nop       
+ -IL_0047:  ldloc.1   
+  IL_0048:  conv.i    
+  IL_0049:  ldind.u2  
+  IL_004a:  call       ""void System.Console.Write(int)""
+  IL_004f:  nop       
+ -IL_0050:  ldloc.2   
+  IL_0051:  conv.i    
+  IL_0052:  ldind.u2  
   IL_0053:  call       ""void System.Console.Write(int)""
-  IL_0058:  nop
-  IL_0059:  ldloc.2
-  IL_005a:  conv.i
-  IL_005b:  ldind.u2
-  IL_005c:  call       ""void System.Console.Write(int)""
-  IL_0061:  nop
-  IL_0062:  ldloc.3
-  IL_0063:  ldind.u2
-  IL_0064:  call       ""void System.Console.Write(int)""
-  IL_0069:  nop
-  IL_006a:  nop
-  IL_006b:  ldc.i4.0
-  IL_006c:  conv.u
-  IL_006d:  stloc.1
-  IL_006e:  ldc.i4.0
-  IL_006f:  conv.u
-  IL_0070:  stloc.2
-  IL_0071:  ldnull
-  IL_0072:  stloc.s    V_5
-  IL_0074:  nop
-  IL_0075:  ret
+  IL_0058:  nop       
+ -IL_0059:  ldloc.3   
+  IL_005a:  ldind.u2  
+  IL_005b:  call       ""void System.Console.Write(int)""
+  IL_0060:  nop       
+ -IL_0061:  nop       
+ ~IL_0062:  ldc.i4.0  
+  IL_0063:  conv.u    
+  IL_0064:  stloc.1   
+  IL_0065:  ldc.i4.0  
+  IL_0066:  conv.u    
+  IL_0067:  stloc.2   
+  IL_0068:  ldnull    
+  IL_0069:  stloc.s    V_5
+ -IL_006b:  nop       
+ -IL_006c:  ret       
 }
 ";
             var expectedOutput = @"970104";
-            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeExe, emitPdb: true, expectedOutput: expectedOutput).VerifyIL("C.Main", expectedIL);
-            CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeExe, emitPdb: true, expectedOutput: expectedOutput).VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.DebugExe, emitPdb: true, expectedOutput: expectedOutput).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
+            CompileAndVerify(string.Format(template, "checked"), options: TestOptions.DebugExe, emitPdb: true, expectedOutput: expectedOutput).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
         }
 
         [Fact]
@@ -9366,54 +9344,59 @@ public unsafe class C
 }
 
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeExe.WithOptimizations(false), expectedOutput: "System.Byte[]");
-            compVerifier.VerifyIL("C.ToManagedByteArray", @"
+            var v = CompileAndVerify(text, options: TestOptions.DebugExe, emitPdb: true, expectedOutput: "System.Byte[]");
+            v.VerifyIL("C.ToManagedByteArray", @"
 {
-  // Code size       58 (0x3a)
+  // Code size       63 (0x3f)
   .maxstack  2
-  .locals init (bool V_0,
-  byte[] V_1,
-  byte[] V_2, //bytes
-  pinned byte& V_3, //pBytes
-  byte[] V_4)
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  cgt.un
-  IL_0004:  stloc.0
-  IL_0005:  ldloc.0
-  IL_0006:  brtrue.s   IL_0010
-  IL_0008:  ldsfld     ""byte[] C._emptyArray""
-  IL_000d:  stloc.1
-  IL_000e:  br.s       IL_0038
-  IL_0010:  ldarg.0
-  IL_0011:  newarr     ""byte""
-  IL_0016:  stloc.2
-  IL_0017:  ldloc.2
-  IL_0018:  dup
-  IL_0019:  stloc.s    V_4
-  IL_001b:  brfalse.s  IL_0023
-  IL_001d:  ldloc.s    V_4
-  IL_001f:  ldlen
-  IL_0020:  conv.i4
-  IL_0021:  brtrue.s   IL_0028
-  IL_0023:  ldc.i4.0
-  IL_0024:  conv.u
-  IL_0025:  stloc.3
-  IL_0026:  br.s       IL_0031
-  IL_0028:  ldloc.s    V_4
-  IL_002a:  ldc.i4.0
-  IL_002b:  ldelema    ""byte""
-  IL_0030:  stloc.3
-  IL_0031:  ldc.i4.0
-  IL_0032:  conv.u
-  IL_0033:  stloc.3
-  IL_0034:  ldloc.2
-  IL_0035:  stloc.1
-  IL_0036:  br.s       IL_0038
-  IL_0038:  ldloc.1
-  IL_0039:  ret
+  .locals init (bool V_0, //CS$4$0000
+           byte[] V_1,
+           byte[] V_2, //bytes
+           pinned byte& V_3, //pBytes
+           byte[] V_4)
+ -IL_0000:  nop       
+ -IL_0001:  ldarg.0   
+  IL_0002:  ldc.i4.0  
+  IL_0003:  ceq       
+  IL_0005:  stloc.0   
+ ~IL_0006:  ldloc.0   
+  IL_0007:  brfalse.s  IL_0012
+ -IL_0009:  nop       
+ -IL_000a:  ldsfld     ""byte[] C._emptyArray""
+  IL_000f:  stloc.1   
+  IL_0010:  br.s       IL_003d
+ -IL_0012:  nop       
+ -IL_0013:  ldarg.0   
+  IL_0014:  newarr     ""byte""
+  IL_0019:  stloc.2   
+ -IL_001a:  ldloc.2   
+  IL_001b:  dup       
+  IL_001c:  stloc.s    V_4
+  IL_001e:  brfalse.s  IL_0026
+  IL_0020:  ldloc.s    V_4
+  IL_0022:  ldlen     
+  IL_0023:  conv.i4   
+  IL_0024:  brtrue.s   IL_002b
+  IL_0026:  ldc.i4.0  
+  IL_0027:  conv.u    
+  IL_0028:  stloc.3   
+  IL_0029:  br.s       IL_0034
+  IL_002b:  ldloc.s    V_4
+  IL_002d:  ldc.i4.0  
+  IL_002e:  ldelema    ""byte""
+  IL_0033:  stloc.3   
+ -IL_0034:  nop       
+ -IL_0035:  nop       
+ ~IL_0036:  ldc.i4.0  
+  IL_0037:  conv.u    
+  IL_0038:  stloc.3   
+ -IL_0039:  ldloc.2   
+  IL_003a:  stloc.1   
+  IL_003b:  br.s       IL_003d
+ -IL_003d:  ldloc.1   
+  IL_003e:  ret       
 }
-");
+", sequencePoints: "C.ToManagedByteArray");
         }
 
         #endregion

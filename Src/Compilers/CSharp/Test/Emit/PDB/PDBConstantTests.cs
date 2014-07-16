@@ -162,7 +162,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x22"" endOffset=""0x6b"" />
+          <bucket startOffset=""0x22"" endOffset=""0x67"" />
         </iteratorLocals>
       </customDebugInfo>
       <sequencepoints total=""11"">
@@ -176,15 +176,15 @@ class C
         <entry il_offset=""0x4c"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0x4d"" start_row=""9"" start_column=""33"" end_row=""9"" end_column=""36"" file_ref=""0"" />
         <entry il_offset=""0x5d"" start_row=""9"" start_column=""25"" end_row=""9"" end_column=""31"" file_ref=""0"" />
-        <entry il_offset=""0x6b"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x67"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
         <constant name=""x"" value=""1"" type=""Int32"" />
         <constant name=""y"" value=""2"" type=""Int32"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x6f"">
+      <scope startOffset=""0x0"" endOffset=""0x6b"">
         <namespace name=""System.Collections.Generic"" />
-        <scope startOffset=""0x21"" endOffset=""0x6f"">
+        <scope startOffset=""0x21"" endOffset=""0x6b"">
           <constant name=""x"" value=""1"" type=""Int32"" />
           <scope startOffset=""0x2b"" endOffset=""0x4d"">
             <constant name=""y"" value=""2"" type=""Int32"" />

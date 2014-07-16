@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private static EncLocalInfo GetLocalInfo(
             IReadOnlyDictionary<SyntaxNode, int> declaratorToIndex,
-            Microsoft.Cci.ILocalDefinition localDef,
+            Cci.ILocalDefinition localDef,
             byte[] signature)
         {
             var def = localDef as LocalDefinition;

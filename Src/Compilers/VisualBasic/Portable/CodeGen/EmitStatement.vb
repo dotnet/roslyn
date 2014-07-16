@@ -1107,7 +1107,7 @@ OtherExpressions:
                    WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean)
 
             Dim stringCompareMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(compareStringMember), MethodSymbol)
-            Dim stringCompareMethodRef As Microsoft.Cci.IReference = Me._module.Translate(stringCompareMethod, needDeclaration:=False, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics)
+            Dim stringCompareMethodRef As Cci.IReference = Me._module.Translate(stringCompareMethod, needDeclaration:=False, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics)
 
             Dim compareDelegate As SwitchStringJumpTableEmitter.EmitStringCompareAndBranch =
                 Sub(keyArg, stringConstant, targetLabel)
@@ -1135,7 +1135,7 @@ OtherExpressions:
         ''' <param name="stringConstant">Case constant to compare the key against</param>
         ''' <param name="targetLabel">Target label to branch to if key = stringConstant</param>
         ''' <param name="stringCompareMethodRef">String equality method</param>
-        Private Sub EmitStringCompareAndBranch(key As LocalDefinition, syntaxNode As SyntaxNode, stringConstant As ConstantValue, targetLabel As Object, stringCompareMethodRef As Microsoft.Cci.IReference)
+        Private Sub EmitStringCompareAndBranch(key As LocalOrParameter, syntaxNode As SyntaxNode, stringConstant As ConstantValue, targetLabel As Object, stringCompareMethodRef As Microsoft.Cci.IReference)
             ' Emit compare and branch:
 
             ' If key = stringConstant Then
@@ -1162,7 +1162,7 @@ OtherExpressions:
 
             ' NOTE: We generate string switch table only for Option Compare Binary, i.e. TextCompare = False
 
-            _builder.EmitLocalLoad(key)
+            _builder.EmitLoad(key)
             _builder.EmitConstantValue(stringConstant)
             _builder.EmitConstantValue(ConstantValue.False)
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=-2)

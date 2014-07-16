@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed class LocalDefinition : Cci.ILocalDefinition
     {
         //TODO: locals are really just typed slots. They do not have names.
@@ -67,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.dynamicTransformFlags = dynamicTransformFlags;
             this.constraints = constraints;
             this.isDynamic = isDynamic;
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            return string.Format("{0}: {1} ({2})", slot, name ?? "<unnamed>", type);
         }
 
         public object Identity
