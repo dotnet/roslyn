@@ -60,6 +60,38 @@ class C
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
+        [WorkItem(984896)]
+        [Fact]
+        public void TestAssemblyAttributesErr()
+        {
+            string code = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using M = System.Math;
+
+namespace My
+{
+    using A.B;
+
+    // TODO: <Insert justification for suppressing TestId>
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(""Test"",""TestId"",Justification=""<Pending>"")]
+public unsafe partial class A : C, I
+    {
+
+    }
+}
+";
+
+            var source = CreateCompilationWithMscorlibAndSystemCore(code);
+
+            // the following should not crash
+            source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], null, true);
+        }
+
+
         [Fact, WorkItem(545326, "DevDiv")]
         public void TestAssemblyAttributes_Bug13670()
         {
@@ -3420,6 +3452,7 @@ class C<T>
                 Assert.Equal("XAttribute", attribute.AttributeClass.Name);
             });
         }
+
 
         #endregion
 

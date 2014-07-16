@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class Imports
     {
         internal static readonly Imports Empty = new Imports(null, null,
-            ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, ImmutableArray<AliasAndExternAliasDirective>.Empty, default(ImmutableArray<Diagnostic>));
+            ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, ImmutableArray<AliasAndExternAliasDirective>.Empty, null);
 
         private readonly CSharpCompilation compilation;
-        private readonly ImmutableArray<Diagnostic> diagnostics;
+        private readonly DiagnosticBag diagnostics;
 
         // completion state that tracks whether validation was done/not done/currently in process. 
         private SymbolCompletionState state;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Dictionary<string, AliasAndUsingDirective> usingAliases,
             ImmutableArray<NamespaceOrTypeAndUsingDirective> usings,
             ImmutableArray<AliasAndExternAliasDirective> externs,
-            ImmutableArray<Diagnostic> diagnostics)
+            DiagnosticBag diagnostics)
         {
             Debug.Assert(!usings.IsDefault && !externs.IsDefault);
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // using Foo::Baz;
             // extern alias Foo;
 
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = new DiagnosticBag();
 
             var externAliases = BuildExternAliases(externAliasDirectives, binder, diagnostics);
             var usings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     usingsBinder = new InContainerBinder(binder.Container, binder.Next,
-                        new Imports(binder.Compilation, null, ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, externAliases, default(ImmutableArray<Diagnostic>)));
+                        new Imports(binder.Compilation, null, ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, externAliases, null));
                 }
 
                 var uniqueUsings = new HashSet<NamespaceOrTypeSymbol>();
@@ -207,13 +207,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new Imports(binder.Compilation, usingAliases, usings.ToImmutableAndFree(), externAliases, diagnostics.ToReadOnlyAndFree());
+            if (diagnostics.IsEmptyWithoutResolution)
+            {
+                diagnostics = null;
+            }
+
+            return new Imports(binder.Compilation, usingAliases, usings.ToImmutableAndFree(), externAliases, diagnostics);
         }
 
         public static Imports FromGlobalUsings(CSharpCompilation compilation)
         {
             var usings = compilation.Options.Usings;
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = new DiagnosticBag();
             var usingsBinder = new InContainerBinder(compilation.GlobalNamespace, new BuckStopsHereBinder(compilation));
             var boundUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
 
@@ -235,7 +240,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundUsings.Add(new NamespaceOrTypeAndUsingDirective(usingsBinder.BindNamespaceOrTypeSymbol(qualifiedName, diagnostics), null));
             }
 
-            return new Imports(compilation, null, boundUsings.ToImmutableAndFree(), ImmutableArray<AliasAndExternAliasDirective>.Empty, diagnostics.ToReadOnlyAndFree());
+            if (diagnostics.IsEmptyWithoutResolution)
+            {
+                diagnostics = null;
+            }
+
+            return new Imports(compilation, null, boundUsings.ToImmutableAndFree(), ImmutableArray<AliasAndExternAliasDirective>.Empty, diagnostics);
         }
 
         public static Imports FromCustomDebugInfo(
@@ -244,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<NamespaceOrTypeAndUsingDirective> usings,
             ImmutableArray<AliasAndExternAliasDirective> externs)
         {
-            return new Imports(compilation, usingAliases, usings, externs, ImmutableArray<Diagnostic>.Empty);
+            return new Imports(compilation, usingAliases, usings, externs, null);
         }
 
         private static ImmutableArray<AliasAndExternAliasDirective> BuildExternAliases(
@@ -362,9 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semanticDiagnostics.AddRange(alias.Alias.AliasTargetDiagnostics);
             }
 
-            if (!this.diagnostics.IsEmpty)
+            if (diagnostics != null && !diagnostics.IsEmptyWithoutResolution)
             {
-                semanticDiagnostics.AddRange(diagnostics);
+                semanticDiagnostics.AddRange(diagnostics.AsEnumerable());
             }
         }
 
