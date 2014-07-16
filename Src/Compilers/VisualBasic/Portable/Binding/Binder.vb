@@ -110,9 +110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the binding context requires specific binding options, then modify the given
         ''' lookup options accordingly.
         ''' </summary>
-        ''' <remarks>
-        ''' Overriders should consider <see cref="IgnoresAccessibility"/>.
-        ''' </remarks>
         Friend Overridable Function BinderSpecificLookupOptions(options As LookupOptions) As LookupOptions
             Return m_containingBinder.BinderSpecificLookupOptions(options)
         End Function
@@ -284,6 +281,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' access, use the qualifier type "accessThroughType" if not Nothing (if Nothing just check protected
         ''' access with no qualifier).
         ''' </summary>
+        ''' <remarks>
+        ''' Overriding methods should consider <see cref="IgnoresAccessibility"/>.
+        ''' </remarks>
         Public Overridable Function CheckAccessibility(sym As Symbol,
                                                        <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                                                        Optional accessThroughType As TypeSymbol = Nothing,
