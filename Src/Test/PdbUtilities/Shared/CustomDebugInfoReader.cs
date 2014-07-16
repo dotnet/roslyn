@@ -441,8 +441,10 @@ namespace Roslyn.Utilities.Pdb
             ImmutableArray<string> importStrings = GetImportStrings(reader.GetBaselineMethod(methodToken));
 
             // Follow at most one forward link.
-            if (importStrings.Length == 1)
+            if (importStrings.Length > 0)
             {
+                // As in PdbUtil::GetRawNamespaceListCore, we consider only the first string when
+                // checking for forwarding.
                 string importString = importStrings[0];
                 if (importString.Length >= 2 && importString[0] == '@')
                 {
@@ -474,6 +476,10 @@ namespace Roslyn.Utilities.Pdb
         /// </summary>
         /// <remarks>
         /// Doesn't consider forwarding.
+        /// TODO (acasey): VB doesn't just check the root scope - it digs around to find the best
+        /// match based on the IL offset and then walks up to the root scope (see PdbUtil::GetScopeFromOffset).
+        /// However, it's not clear that this matters, since imports can't be scoped in VB.  This is probably
+        /// just based on the way they were extracting locals and constants based on a specific scope.
         /// </remarks>
         private static ImmutableArray<string> GetImportStrings(this ISymUnmanagedMethod method)
         {
