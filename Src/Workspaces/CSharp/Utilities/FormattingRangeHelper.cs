@@ -329,7 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             return previousToken.IsKind(SyntaxKind.OpenBraceToken) &&
                                     (previousToken.Parent.IsKind(SyntaxKind.Block) ||
-                                     (previousToken.Parent != null && (previousToken.Parent is TypeDeclarationSyntax || previousToken.Parent is NamespaceDeclarationSyntax)));
+                                     previousToken.Parent is TypeDeclarationSyntax ||
+                                     previousToken.Parent is NamespaceDeclarationSyntax);
         }
 
         private static bool IsSpecialContainingNode(SyntaxNode node)

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         /// <summary>
-        /// Returns the list of using directives that affect 'node'.  The list will be returned in
+        /// Returns the list of using directives that affect <paramref name="node"/>. The list will be returned in
         /// top down order.  
         /// </summary>
         public static IEnumerable<UsingDirectiveSyntax> GetEnclosingUsingDirectives(this SyntaxNode node)
