@@ -1,18 +1,19 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
     /// <summary>
-    /// Enum to uniquely identify each function location
+    /// Enum to uniquely identify each function location.
     /// </summary>
-    internal enum FunctionId : int
+    internal enum FunctionId
     {
         [PerfGoal(InteractionClass.Instant)]
         AdornmentManager_OnLayoutChanged = 1,
 
         [PerfGoal(InteractionClass.Instant)]
         AdornmentManager_UpdateInvalidSpans,
+
+        AsyncFix,
 
         AsynchronousTagger_UIUpdateTask,
         Tagging_TagSource_RecomputeTags,

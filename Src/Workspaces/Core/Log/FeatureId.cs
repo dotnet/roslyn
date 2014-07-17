@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
     /// <summary>
-    /// Enum to uniquely identify each feature
+    /// Enum to uniquely identify each feature.
     /// </summary>
     internal enum FeatureId
     {
         AdornmentManager = 1,
+        AsyncFix,
         AsynchronousTagger,
         AsynchronousViewTagger,
         AsyncToken,
