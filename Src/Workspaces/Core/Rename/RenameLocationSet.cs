@@ -103,19 +103,9 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 symbol = await ReferenceProcessing.FindDefinitionSymbolAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
                 var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+                var intermediateResult = new RenameLocationSet(symbol, solution, optionSet, originalSymbolResult, overloadsResult: null, stringsResult: null, commentsResult: null);
 
-                var overloadsResult = optionSet.GetOption(RenameOptions.RenameOverloads)
-                    ? await GetOverloadsAsync(symbol, solution, cancellationToken).ConfigureAwait(false)
-                    : null;
-
-                var stringsAndComments = await ReferenceProcessing.GetRenamableLocationsInStringsAndCommentsAsync(
-                    symbol,
-                    solution,
-                    optionSet.GetOption(RenameOptions.RenameInStrings),
-                    optionSet.GetOption(RenameOptions.RenameInComments),
-                    cancellationToken).ConfigureAwait(false);
-
-                return new RenameLocationSet(symbol, solution, optionSet, originalSymbolResult, overloadsResult, stringsAndComments.Item1, stringsAndComments.Item2);
+                return await intermediateResult.FindWithUpdatedOptionsAsync(optionSet, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -124,21 +114,22 @@ namespace Microsoft.CodeAnalysis.Rename
             Contract.ThrowIfNull(this.optionSet, "FindWithUpdatedOptionsAsync can only be called on a result of FindAsync");
             using (Logger.LogBlock(FeatureId.Rename, FunctionId.Rename_AllRenameLocations, cancellationToken))
             {
-                var overloadsResult = optionSet.GetOption(RenameOptions.RenameOverloads) && this.overloadsResult == null
-                ? await GetOverloadsAsync(this.symbol, this.solution, cancellationToken).ConfigureAwait(false)
-                : null;
+                var overloadsResult = this.overloadsResult ?? (optionSet.GetOption(RenameOptions.RenameOverloads)
+                    ? await GetOverloadsAsync(this.symbol, this.solution, cancellationToken).ConfigureAwait(false)
+                    : null);
 
                 var stringsAndComments = await ReferenceProcessing.GetRenamableLocationsInStringsAndCommentsAsync(
                     this.symbol,
                     this.solution,
+                    this.originalSymbolResult.Locations,
                     optionSet.GetOption(RenameOptions.RenameInStrings) && this.stringsResult == null,
                     optionSet.GetOption(RenameOptions.RenameInComments) && this.commentsResult == null,
                     cancellationToken).ConfigureAwait(false);
 
-                return new RenameLocationSet(symbol, solution, optionSet, originalSymbolResult,
-                    overloadsResult != null ? overloadsResult : this.overloadsResult,
-                    stringsAndComments.Item1 != null ? stringsAndComments.Item1 : this.stringsResult,
-                    stringsAndComments.Item2 != null ? stringsAndComments.Item2 : this.commentsResult);
+                return new RenameLocationSet(this.symbol, this.solution, optionSet, this.originalSymbolResult,
+                    this.overloadsResult ?? overloadsResult,
+                    this.stringsResult ?? stringsAndComments.Item1,
+                    this.commentsResult ?? stringsAndComments.Item2);
             }
         }
 

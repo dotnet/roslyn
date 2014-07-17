@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 // okay, because its only ever going to be computed and assigned once
-                return this.GetProjectsThatThisProjectTransitivelyDependsOn_NoLock(projectId);
+                return this.GetProjectsThatDirectlyDependOnThisProject_NoLock(projectId);
             }
         }
 

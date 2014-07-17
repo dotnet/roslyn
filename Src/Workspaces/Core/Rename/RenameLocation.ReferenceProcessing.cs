@@ -362,6 +362,7 @@ namespace Microsoft.CodeAnalysis.Rename
             internal static async Task<Tuple<IEnumerable<RenameLocation>, IEnumerable<RenameLocation>>> GetRenamableLocationsInStringsAndCommentsAsync(
                 ISymbol originalSymbol,
                 Solution solution,
+                ISet<RenameLocation> renameLocations,
                 bool renameInStrings,
                 bool renameInComments,
                 CancellationToken cancellationToken)
@@ -374,14 +375,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 var renameText = originalSymbol.Name;
                 List<RenameLocation> stringLocations = renameInStrings ? new List<RenameLocation>() : null;
                 List<RenameLocation> commentLocations = renameInComments ? new List<RenameLocation>() : null;
-                var dependentProjects = await DependentProjectsFinder.GetDependentProjectsAsync(originalSymbol, solution, projects: null, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                foreach (var project in dependentProjects)
+                foreach (var documentsGroupedByLanguage in RenameUtilities.GetDocumentsAffectedByRename(originalSymbol, solution, renameLocations).GroupBy(d => d.Project.Language))
                 {
-                    foreach (var document in project.Documents)
+                    var syntaxFactsLanguageService = solution.Workspace.Services.GetLanguageServices(documentsGroupedByLanguage.Key).GetService<ISyntaxFactsService>();
+                    foreach (var document in documentsGroupedByLanguage)
                     {
-                        var syntaxFactsLanguageService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-
                         if (renameInStrings)
                         {
                             await AddLocationsToRenameInStringsAsync(document, renameText, syntaxFactsLanguageService,

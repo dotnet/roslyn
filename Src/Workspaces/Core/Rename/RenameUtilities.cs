@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -45,6 +46,43 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             return symbols;
+        }
+
+        private static bool IsSymbolDefinedInsideMethod(ISymbol symbol)
+        {
+            return
+                symbol.Kind == SymbolKind.Local ||
+                symbol.Kind == SymbolKind.Label ||
+                symbol.Kind == SymbolKind.RangeVariable ||
+                symbol.Kind == SymbolKind.Parameter;
+        }
+
+        internal static IEnumerable<Document> GetDocumentsAffectedByRename(ISymbol symbol, Solution solution, IEnumerable<RenameLocation> renameLocations)
+        {
+            if (IsSymbolDefinedInsideMethod(symbol))
+            {
+                // if the symbol was declared inside of a method, don't check for conflicts in non-renamed documents.
+                return renameLocations.Select(l => solution.GetDocument(l.DocumentId));
+            }
+            else
+            {
+                var documentIdOfRenameSymbolDeclaration = solution.GetDocument(symbol.Locations.First(l => l.IsInSource).SourceTree);
+                if (symbol.DeclaredAccessibility == Accessibility.Private)
+                {
+                    // private members or classes cannot be used outside of the project, so we should only scan documents of this project.
+                    Contract.ThrowIfFalse(renameLocations.Select(l => l.DocumentId.ProjectId).Distinct().Count() == 1);
+                    return documentIdOfRenameSymbolDeclaration.Project.Documents;
+                }
+                else
+                {
+                    // We are trying to figure out the projects that directly depend on the project that contains the declaration for 
+                    // the rename symbol.  Other projects should not be affected by the rename.
+                    var symbolProjectId = documentIdOfRenameSymbolDeclaration.Project.Id;
+                    var relevantProjects = SpecializedCollections.SingletonEnumerable(symbolProjectId).Concat(
+                        solution.GetProjectDependencyGraph().GetProjectsThatDirectlyDependOnThisProject(symbolProjectId));
+                    return relevantProjects.SelectMany(p => solution.GetProject(p).Documents);
+                }
+            }
         }
     }
 }

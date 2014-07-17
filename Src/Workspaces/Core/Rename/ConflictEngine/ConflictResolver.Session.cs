@@ -545,83 +545,32 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             /// <summary>
-            /// The method determines the set of document that has to be processed for Rename and also gives the possible set of Names
-            /// that has to be checked for conflict
+            /// The method determines the set of documents that need to be processed for Rename and also determines
+           ///  the possible set of names that need to be checked for conflicts.
             /// </summary>
             private async Task FindDocumentsAndPossibleNameConflicts()
             {
-                var allSourceTrees = renameLocationSet.Locations.Select(loc => loc.Location.SourceTree).Distinct();
                 var symbol = renameLocationSet.Symbol;
-                var newSolution = renameLocationSet.Solution;
-
-                var dependencyGraph = newSolution.GetProjectDependencyGraph();
+                var solution = renameLocationSet.Solution;
+                var dependencyGraph = solution.GetProjectDependencyGraph();
                 this.topologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(cancellationToken).ToList();
 
-                if (symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Label || symbol.Kind == SymbolKind.RangeVariable)
+                var allRenamedDocuments = renameLocationSet.Locations.Select(loc => loc.Location.SourceTree).Distinct().Select(solution.GetDocument);
+                this.documentsIdsToBeCheckedForConflict.AddRange(allRenamedDocuments.Select(d => d.Id));
+
+                var documentsFromAffectedProjects = RenameUtilities.GetDocumentsAffectedByRename(symbol, solution, renameLocationSet.Locations);
+                foreach (var language in documentsFromAffectedProjects.Select(d => d.Project.Language).Distinct())
                 {
-                    // locals, labels and range variables cannot affect locations outside of the current method, therefore there's no need 
-                    // to go through all other documents, because they can never reference this.
-                    var sourceTree = allSourceTrees.Single();
-                    var currentDocument = newSolution.GetDocument(sourceTree);
-                    documentsIdsToBeCheckedForConflict.Add(currentDocument.Id);
-
-                    var renameRewriterLanguageService = currentDocument.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
-                    renameRewriterLanguageService.TryAddPossibleNameConflicts(symbol, replacementText, possibleNameConflicts);
+                    solution.Workspace.Services.GetLanguageServices(language).GetService<IRenameRewriterLanguageService>()
+                        .TryAddPossibleNameConflicts(symbol, replacementText, possibleNameConflicts);
                 }
-                else if (symbol.Kind == SymbolKind.Parameter)
-                {
-                    var sourceTree = symbol.Locations.First().SourceTree;
-                    var currentDocument = newSolution.GetDocument(sourceTree);
-                    foreach (var location in renameLocationSet.Locations)
-                    {
-                        documentsIdsToBeCheckedForConflict.Add(location.DocumentId);
-                    }
 
-                    var renameRewriterLanguageService = currentDocument.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
-                    renameRewriterLanguageService.TryAddPossibleNameConflicts(symbol, replacementText, possibleNameConflicts);
-                }
-                else
-                {
-                    // all documents where actual renames are being performed must be part of the set of documentIds
-                    foreach (var sourceTree in allSourceTrees)
-                    {
-                        documentsIdsToBeCheckedForConflict.Add(newSolution.GetDocument(sourceTree).Id);
-                    }
-
-                    // now add all documents that might contain conflicts
-                    if ((symbol.Kind == SymbolKind.Field && ((IFieldSymbol)symbol).DeclaredAccessibility == Accessibility.Private) ||
-                        (symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).DeclaredAccessibility == Accessibility.Private) ||
-                        (symbol.Kind == SymbolKind.NamedType && ((INamedTypeSymbol)symbol).DeclaredAccessibility == Accessibility.Private))
-                    {
-                        // private members or classes cannot be used outside of the project, so we should only scan documents of this project.
-                        var firstDocument = newSolution.GetDocument(allSourceTrees.First());
-                        Debug.Assert(allSourceTrees.All(tree => newSolution.GetDocument(tree).Project == firstDocument.Project));
-                        await DetermineDocumentsAndConflictingNamesAsync(firstDocument.Project).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        // We are trying to figure out the projects that directly depend on the project that contains the declaration for 
-                        // the rename symbol.  Other projects should not be affected by the rename, or they miss a reference to that project.
-                        var symbolProjectId = this.documentIdOfRenameSymbolDeclaration.ProjectId;
-                        var relevantProjects = SpecializedCollections.SingletonEnumerable<ProjectId>(symbolProjectId).Concat(
-                                dependencyGraph.GetProjectsThatDirectlyDependOnThisProject(symbolProjectId));
-
-                        foreach (var pid in relevantProjects)
-                        {
-                            var project = newSolution.GetProject(pid);
-                            await DetermineDocumentsAndConflictingNamesAsync(project).ConfigureAwait(false);
-                        }
-                    }
-                }
+                await AddDocumentsWithPotentialConflicts(documentsFromAffectedProjects).ConfigureAwait(false);
             }
 
-            private async Task DetermineDocumentsAndConflictingNamesAsync(Project project)
+            private async Task AddDocumentsWithPotentialConflicts(IEnumerable<Document> documents)
             {
-                var symbol = renameLocationSet.Symbol;
-                var renameRewriterLanguageService = project.LanguageServices.GetService<IRenameRewriterLanguageService>();
-                renameRewriterLanguageService.TryAddPossibleNameConflicts(symbol, replacementText, possibleNameConflicts);
-
-                foreach (var document in project.Documents)
+                foreach (var document in documents)
                 {
                     if (this.documentsIdsToBeCheckedForConflict.Contains(document.Id))
                     {
