@@ -509,38 +509,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNodeOrToken ChildThatContainsPosition(int position)
         {
             //PERF: it is very important to keep this method fast.
-            //      if there are ways to make it faster through some use of green nodes and such - 
-            //      it would be a welcome change.
-            var childList = this.ChildNodesAndTokens();
 
-            int left = 0;
-            int right = childList.Count - 1;
-
-            while (left <= right)
+            if (!FullSpan.Contains(position))
             {
-                int middle = left + ((right - left) / 2);
-                SyntaxNodeOrToken node = ChildSyntaxList.ItemInternal(childList.Node, middle);
-
-                if (position < node.Position)
-                {
-                    right = middle - 1;
-                }
-                else
-                {
-                    if (position >= node.EndPosition)
-                    {
-                        left = middle + 1;
-                        continue;
-                    }
-
-                    return node;
-                }
+                throw new ArgumentOutOfRangeException("position");
             }
 
-            // we could check up front that index is within FullSpan,
-            // but we want to optimize for the common case where position is valid.
-            Debug.Assert(!FullSpan.Contains(position), "Position is valid. How could we not find a child?");
-            throw new ArgumentOutOfRangeException("position");
+            SyntaxNodeOrToken childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(this, position);
+            Debug.Assert(childNodeOrToken.FullSpan.Contains(position), "ChildThatContainsPosition's return value does not contain the requested position.");
+            return childNodeOrToken;
         }
         #endregion
 

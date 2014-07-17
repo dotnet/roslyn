@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -156,6 +157,69 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new SyntaxNodeOrToken(node, greenChild, position, index);
+        }
+
+        /// <summary>
+        /// Locate the node or token that is a child of the given <see cref="SyntaxNode"/> and contains the given position.
+        /// </summary>
+        /// <param name="node">The <see cref="SyntaxNode"/> to search.</param>
+        /// <param name="targetPosition">The position.</param>
+        /// <returns>The node or token that spans the given position.</returns>
+        /// <remarks>
+        /// Assumes that <paramref name="targetPosition"/> is within the span of <paramref name="node"/>.
+        /// </remarks>
+        internal static SyntaxNodeOrToken ChildThatContainsPosition(SyntaxNode node, int targetPosition)
+        {
+            // The targetPosition must already be within this node
+            Debug.Assert(node.FullSpan.Contains(targetPosition));
+
+            var red = node;
+            var green = node.Green;
+            var position = node.Position;
+            var idx = 0;
+
+#if DEBUG
+            int dbgLoopCount = 0;
+#endif
+            do
+            {
+#if DEBUG
+                // Since we never have "lists of lists" this should never loop more than once.
+                Debug.Assert(dbgLoopCount < 2, "A list of lists. Impossible!");
+                dbgLoopCount++;
+#endif
+                // Find the green node that spans the target position.
+                // We will be skipping whole slots here so we will not loop for long
+                // The max possible number of slots is 11 (TypeDeclarationSyntax)
+                // and typically much less than that
+                for (int slotIndex = 0; ; slotIndex++)
+                {
+                    GreenNode greenChild = green.GetSlot(slotIndex);
+                    if (greenChild != null)
+                    {
+                        var endPosition = position + greenChild.FullWidth;
+                        if (targetPosition < endPosition)
+                        {
+                            // Realize the red node (if any)
+                            if (red != null)
+                            {
+                                red = red.GetNodeSlot(slotIndex);
+                            }
+
+                            // Descend into the child element
+                            green = greenChild;
+                            break;
+                        }
+
+                        position = endPosition;
+                        idx += Occupancy(greenChild);
+                    }
+                }
+            } while (green.IsList);
+
+            // Reached a single node or token.
+            // If it is a node, we are done. Otherwise, make a token with current child and position.
+            return red ?? new SyntaxNodeOrToken(node, green, position, idx);
         }
 
         /// <summary>
