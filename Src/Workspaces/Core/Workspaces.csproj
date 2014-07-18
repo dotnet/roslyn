@@ -7,6 +7,7 @@
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <OutDir>..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -15,7 +16,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <OutDir>..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Collections.Immutable">
@@ -302,6 +302,7 @@
     <Compile Include="CodeCleanup\Providers\PredefinedCodeCleanupProviderNames.cs" />
     <Compile Include="CodeCleanup\Providers\SimpleCodeCleanupProvider.cs" />
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
+    <Compile Include="Log\ISupportTelemetry.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationService.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationService_FindDeclaration.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerator.cs" />
