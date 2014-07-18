@@ -14,10 +14,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public abstract class TestDiagnosticAnalyzer<TSyntaxKind> :
-        ICodeBlockStartedAnalyzer,
-        ICodeBlockEndedAnalyzer,
-        ICompilationStartedAnalyzer,
-        ICompilationEndedAnalyzer,
+        ICodeBlockNestedAnalyzerFactory,
+        ICodeBlockAnalyzer,
+        ICompilationNestedAnalyzerFactory,
+        ICompilationAnalyzer,
         ISemanticModelAnalyzer,
         IDiagnosticAnalyzer,
         ISymbolAnalyzer,
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected static readonly ImmutableArray<TSyntaxKind> AllSyntaxKinds = GetAllEnumValues<TSyntaxKind>();
 
-        protected static readonly ImmutableArray<string> AllInterfaceMemberNames = ImmutableArray<string>.Empty.AddRange(typeof(TestDiagnosticAnalyzer<TSyntaxKind>).GetInterfaces().SelectMany(i => GetInterfaceMemberNames(i)));
+        protected static readonly ImmutableArray<string> AllInterfaceMemberNames = ImmutableArray<string>.Empty.AddRange(typeof(TestDiagnosticAnalyzer<TSyntaxKind>).GetInterfaces().SelectMany(i => GetInterfaceMemberNames(i)).Distinct());
 
         protected static readonly DiagnosticDescriptor DefaultDiagnostic =
             new DiagnosticDescriptor("CA7777", "CA7777_AnalyzerTestDiagnostic", "I'm here for test purposes", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
@@ -48,27 +48,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         #region Implementation
 
-        ICodeBlockEndedAnalyzer ICodeBlockStartedAnalyzer.OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        IDiagnosticAnalyzer ICodeBlockNestedAnalyzerFactory.CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember(codeBlock, ownerSymbol);
             OnOptions(options);
             return this;
         }
 
-        void ICodeBlockEndedAnalyzer.OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        void ICodeBlockAnalyzer.AnalyzeCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember(codeBlock, ownerSymbol);
             OnOptions(options);
         }
 
-        ICompilationEndedAnalyzer ICompilationStartedAnalyzer.OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        IDiagnosticAnalyzer ICompilationNestedAnalyzerFactory.CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember();
             OnOptions(options);
             return this;
         }
 
-        void ICompilationEndedAnalyzer.OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        void ICompilationAnalyzer.AnalyzeCompilation(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             OnInterfaceMember();
             OnOptions(options);

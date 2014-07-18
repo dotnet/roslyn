@@ -5982,11 +5982,11 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
 
     <DiagnosticAnalyzer>
     MustInherit Class MockAbstractDiagnosticAnalyzer
-        Implements ICompilationStartedAnalyzer, ICompilationEndedAnalyzer
+        Implements ICompilationNestedAnalyzerFactory, ICompilationAnalyzer
 
         Public MustOverride ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
-        Public MustOverride Function OnCompilationStarted(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) As ICompilationEndedAnalyzer Implements ICompilationStartedAnalyzer.OnCompilationStarted
-        Public MustOverride Sub OnCompilationEnded(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ICompilationEndedAnalyzer.OnCompilationEnded
+        Public MustOverride Function CreateAnalzyerWithinCompilation(compilation As Compilation, options As AnalyzerOptions, cancellationToken As CancellationToken) As IDiagnosticAnalyzer Implements ICompilationNestedAnalyzerFactory.CreateAnalyzerWithinCompilation
+        Public MustOverride Sub AnalyzeCompilation(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ICompilationAnalyzer.AnalyzeCompilation
     End Class
 
     <DiagnosticAnalyzer>
@@ -5997,11 +5997,11 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
         Friend Shared Test01 As DiagnosticDescriptor = New DiagnosticDescriptor("Test01", "", "Throwing a test1 diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
         Friend Shared Test03 As DiagnosticDescriptor = New DiagnosticDescriptor("Test03", "", "Throwing a test3 diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
-        Public Overrides Function OnCompilationStarted(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) As ICompilationEndedAnalyzer
+        Public Overrides Function CreateAnalzyerWithinCompilation(compilation As Compilation, options As AnalyzerOptions, cancellationToken As CancellationToken) As IDiagnosticAnalyzer
             Return Nothing
         End Function
 
-        Public Overrides Sub OnCompilationEnded(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken)
+        Public Overrides Sub AnalyzeCompilation(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)

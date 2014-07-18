@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     /// until run time. When a constructor calls a virtual method, it is possible that the constructor for the 
     /// instance that invokes the method has not executed. 
     /// </summary>
-    public abstract class CA2214DiagnosticAnalyzer : ICodeBlockStartedAnalyzer
+    public abstract class CA2214DiagnosticAnalyzer : ICodeBlockNestedAnalyzerFactory
     {
         internal const string RuleId = "CA2214";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             }
         }
 
-        public ICodeBlockEndedAnalyzer OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             return ShouldOmitThisDiagnostic(ownerSymbol, semanticModel.Compilation) ?
                 null :
                 GetCodeBlockEndedAnalyzer(ownerSymbol as IMethodSymbol);
         }
 
-        protected abstract ICodeBlockEndedAnalyzer GetCodeBlockEndedAnalyzer(IMethodSymbol constructorSymbol);
+        protected abstract IDiagnosticAnalyzer GetCodeBlockEndedAnalyzer(IMethodSymbol constructorSymbol);
 
         private static bool ShouldOmitThisDiagnostic(ISymbol symbol, Compilation compilation)
         {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             return false;
         }
 
-        protected abstract class AbstractSyntaxNodeAnalyzer : ICodeBlockEndedAnalyzer
+        protected abstract class AbstractSyntaxNodeAnalyzer : IDiagnosticAnalyzer
         {
             public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
@@ -86,10 +86,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 {
                     return ImmutableArray.Create(Rule);
                 }
-            }
-
-            public void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
             }
         }
     }

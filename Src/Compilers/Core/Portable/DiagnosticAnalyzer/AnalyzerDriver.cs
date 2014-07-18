@@ -151,13 +151,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Action<Diagnostic> addDiagnosticWithGlobalSuppression = GetDiagnosticSinkWithSuppression(compilation, addDiagnosticCore: addDiagnostic, symbolOpt: null);
 
-            var compilationAnalyzers = ArrayBuilder<ICompilationEndedAnalyzer>.GetInstance();
-            foreach (var factory in analyzers.OfType<ICompilationStartedAnalyzer>())
+            var compilationAnalyzers = ArrayBuilder<IDiagnosticAnalyzer>.GetInstance();
+            foreach (var factory in analyzers.OfType<ICompilationNestedAnalyzerFactory>())
             {
                 // Catch Exception from factory.OnCompilationStarted
                 ExecuteAndCatchIfThrows(factory, addDiagnostic, continueOnError, cancellationToken, () =>
                 {
-                    var a = factory.OnCompilationStarted(compilation, addDiagnosticWithGlobalSuppression, analyzerOptions, cancellationToken);
+                    var a = factory.CreateAnalyzerWithinCompilation(compilation, analyzerOptions, cancellationToken);
                     if (a != null && a != factory) compilationAnalyzers.Add(a);
                 });
             }
@@ -170,10 +170,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 RunAnalyzers(model, tree.GetRoot().FullSpan, analyzersArray, addDiagnostic, analyzerOptions, continueOnError, cancellationToken);
             }
 
-            foreach (var a in compilationAnalyzers.Concat(analyzers.OfType<ICompilationEndedAnalyzer>()))
+            foreach (var a in compilationAnalyzers.Concat(analyzers.OfType<ICompilationAnalyzer>()).OfType<ICompilationAnalyzer>())
             {
                 // Catch Exception from a.OnCompilationEnded
-                ExecuteAndCatchIfThrows(a, addDiagnostic, continueOnError, cancellationToken, () => { a.OnCompilationEnded(compilation, addDiagnosticWithGlobalSuppression, analyzerOptions, cancellationToken); });
+                ExecuteAndCatchIfThrows(a, addDiagnostic, continueOnError, cancellationToken, () => { a.AnalyzeCompilation(compilation, addDiagnosticWithGlobalSuppression, analyzerOptions, cancellationToken); });
             }
         }
 
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool continueOnError,
             Func<SyntaxNode, TSyntaxKind> getKind)
         {
-            var bodyAnalyzers = analyzers.OfType<ICodeBlockStartedAnalyzer>().ToArray();
+            var bodyAnalyzers = analyzers.OfType<ICodeBlockNestedAnalyzerFactory>().ToArray();
 
             // process the bodies
             foreach (var d in declarations)
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static void ProcessBody<TSyntaxKind>(
             SemanticModel semanticModel,
             ImmutableArray<IDiagnosticAnalyzer> analyzers,
-            ICodeBlockStartedAnalyzer[] bodyAnalyzers,
+            ICodeBlockNestedAnalyzerFactory[] bodyAnalyzers,
             ISymbol symbol,
             SyntaxNode syntax,
             CancellationToken cancellationToken,
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool continueOnError,
             Func<SyntaxNode, TSyntaxKind> getKind)
         {
-            var endedAnalyzers = ArrayBuilder<ICodeBlockEndedAnalyzer>.GetInstance();
+            var endedAnalyzers = ArrayBuilder<IDiagnosticAnalyzer>.GetInstance();
             PooledDictionary<TSyntaxKind, ArrayBuilder<ISyntaxNodeAnalyzer<TSyntaxKind>>> nodeAnalyzersByKind = null;
 
             foreach (var a in bodyAnalyzers)
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Catch Exception from a.OnCodeBlockStarted
                 ExecuteAndCatchIfThrows(a, addDiagnostic, continueOnError, cancellationToken, () =>
                 {
-                    var analyzer = a.OnCodeBlockStarted(syntax, symbol, semanticModel, addDiagnostic, analyzerOptions, cancellationToken);
+                    var analyzer = a.CreateAnalyzerWithinCodeBlock(syntax, symbol, semanticModel, analyzerOptions, cancellationToken);
                     if (analyzer != null && analyzer != a)
                     {
                         endedAnalyzers.Add(analyzer);
@@ -392,10 +392,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 nodeAnalyzersByKind.Free();
             }
 
-            foreach (var a in endedAnalyzers.Concat(analyzers.OfType<ICodeBlockEndedAnalyzer>()))
+            foreach (var a in endedAnalyzers.Concat(analyzers.OfType<ICodeBlockAnalyzer>()).OfType<ICodeBlockAnalyzer>())
             {
                 // Catch Exception from a.OnCodeBlockEnded
-                ExecuteAndCatchIfThrows(a, addDiagnostic, continueOnError, cancellationToken, () => { a.OnCodeBlockEnded(syntax, symbol, semanticModel, addDiagnostic, analyzerOptions, cancellationToken); });
+                ExecuteAndCatchIfThrows(a, addDiagnostic, continueOnError, cancellationToken, () => { a.AnalyzeCodeBlock(syntax, symbol, semanticModel, addDiagnostic, analyzerOptions, cancellationToken); });
             }
 
             endedAnalyzers.Free();

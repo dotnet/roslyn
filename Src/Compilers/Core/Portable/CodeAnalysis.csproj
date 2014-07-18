@@ -175,10 +175,10 @@
     <Compile Include="DiagnosticAnalyzer\CompilationEvent.cs" />
     <Compile Include="DiagnosticAnalyzer\AsyncQueue.cs" />
     <Compile Include="DiagnosticAnalyzer\DiagnosticAnalyzerAttribute.cs" />
-    <Compile Include="DiagnosticAnalyzer\ICodeBlockEndedAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\ICodeBlockStartedAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\ICompilationEndedAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\ICompilationStartedAnalyzer.cs" />
+    <Compile Include="DiagnosticAnalyzer\ICodeBlockAnalyzer.cs" />
+    <Compile Include="DiagnosticAnalyzer\ICodeBlockNestedAnalyzerFactory.cs" />
+    <Compile Include="DiagnosticAnalyzer\ICompilationAnalyzer.cs" />
+    <Compile Include="DiagnosticAnalyzer\ICompilationNestedAnalyzerFactory.cs" />
     <Compile Include="DiagnosticAnalyzer\ISemanticModelAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\IDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\ISymbolAnalyzer.cs" />

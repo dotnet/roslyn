@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 {
     [DiagnosticAnalyzer]
     [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed class CA1017DiagnosticAnalyzer : ICompilationStartedAnalyzer
+    public sealed class CA1017DiagnosticAnalyzer : ICompilationAnalyzer
     {
         internal const string RuleId = "CA1017";
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public void AnalyzeCompilation(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             if (AssemblyHasPublicTypes(compilation.Assembly))
             {
                 var comVisibleAttributeSymbol = WellKnownTypes.ComVisibleAttribute(compilation);
                 if (comVisibleAttributeSymbol == null)
                 {
-                    return null;
+                    return;
                 }
 
                 var attributeInstance = compilation.Assembly.GetAttributes().FirstOrDefault(a => a.AttributeClass.Equals(comVisibleAttributeSymbol));
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 }
             }
 
-            return null;
+            return;
         }
 
         private static bool AssemblyHasPublicTypes(IAssemblySymbol assembly)

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
     [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp)]
     public class CSharpCA2214DiagnosticAnalyzer : CA2214DiagnosticAnalyzer
     {
-        protected override ICodeBlockEndedAnalyzer GetCodeBlockEndedAnalyzer(IMethodSymbol constructorSymbol)
+        protected override IDiagnosticAnalyzer GetCodeBlockEndedAnalyzer(IMethodSymbol constructorSymbol)
         {
             return new SyntaxNodeAnalyzer(constructorSymbol);
         }

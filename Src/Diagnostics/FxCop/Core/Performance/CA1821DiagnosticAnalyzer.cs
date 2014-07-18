@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
 {
-    public abstract class CA1821DiagnosticAnalyzer : ICodeBlockStartedAnalyzer
+    public abstract class CA1821DiagnosticAnalyzer : ICodeBlockNestedAnalyzerFactory
     {
         internal const string RuleId = "CA1821";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
             }
         }
 
-        public ICodeBlockEndedAnalyzer OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var method = ownerSymbol as IMethodSymbol;
             if (method == null)
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
             return overridden.ContainingType.SpecialType == SpecialType.System_Object; // it is object.Finalize
         }
 
-        protected abstract class AbstractCodeBlockEndedAnalyzer : ICodeBlockEndedAnalyzer
+        protected abstract class AbstractCodeBlockEndedAnalyzer : ICodeBlockAnalyzer
         {
             public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
                 }
             }
 
-            public void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public void AnalyzeCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 if (IsEmptyFinalizer(codeBlock, semanticModel))
                 {

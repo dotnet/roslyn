@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // TODO: should these be made lazy?
         internal ImmutableArray<IDiagnosticAnalyzer> analyzers;
-        private ImmutableArray<ICodeBlockStartedAnalyzer> bodyAnalyzers;
+        private ImmutableArray<ICodeBlockNestedAnalyzerFactory> bodyAnalyzers;
         private ImmutableArray<ISemanticModelAnalyzer> semanticModelAnalyzers;
         private ImmutableArray<ImmutableArray<ISymbolAnalyzer>> declarationAnalyzersByKind; // indexed by symbol kind (of interest)
-        internal ImmutableArray<ICodeBlockStartedAnalyzer> codeBlockStartedAnalyzers;
-        internal ImmutableArray<ICodeBlockEndedAnalyzer> codeBlockEndedAnalyzers;
+        internal ImmutableArray<ICodeBlockNestedAnalyzerFactory> codeBlockStartedAnalyzers;
+        internal ImmutableArray<ICodeBlockAnalyzer> codeBlockEndedAnalyzers;
         private Task initialWorker;
         protected AnalyzerOptions analyzerOptions;
 
@@ -185,10 +185,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             
             ImmutableInterlocked.InterlockedInitialize(ref this.analyzers, effectiveAnalyzers);
             ImmutableInterlocked.InterlockedInitialize(ref declarationAnalyzersByKind, MakeDeclarationAnalyzersByKind());
-            ImmutableInterlocked.InterlockedInitialize(ref bodyAnalyzers, analyzers.OfType<ICodeBlockStartedAnalyzer>().ToImmutableArray());
+            ImmutableInterlocked.InterlockedInitialize(ref bodyAnalyzers, analyzers.OfType<ICodeBlockNestedAnalyzerFactory>().ToImmutableArray());
             ImmutableInterlocked.InterlockedInitialize(ref semanticModelAnalyzers, analyzers.OfType<ISemanticModelAnalyzer>().ToImmutableArray());
-            ImmutableInterlocked.InterlockedInitialize(ref codeBlockStartedAnalyzers, analyzers.OfType<ICodeBlockStartedAnalyzer>().ToImmutableArray());
-            ImmutableInterlocked.InterlockedInitialize(ref codeBlockEndedAnalyzers, analyzers.OfType<ICodeBlockEndedAnalyzer>().ToImmutableArray());
+            ImmutableInterlocked.InterlockedInitialize(ref codeBlockStartedAnalyzers, analyzers.OfType<ICodeBlockNestedAnalyzerFactory>().ToImmutableArray());
+            ImmutableInterlocked.InterlockedInitialize(ref codeBlockEndedAnalyzers, analyzers.OfType<ICodeBlockAnalyzer>().ToImmutableArray());
 
             // Invoke the syntax tree analyzers
             // TODO: How can the caller restrict this to one or a set of trees, or a span in a tree, rather than all trees in the compilation?
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async Task ProcessCompilationCompleted(CompilationCompletedEvent endEvent, CancellationToken cancellationToken)
         {
             var tasks = ArrayBuilder<Task>.GetInstance();
-            foreach (var da in analyzers.OfType<ICompilationEndedAnalyzer>())
+            foreach (var da in analyzers.OfType<ICompilationAnalyzer>())
             {
                 // TODO: is the overhead of creating tasks here too high compared to the cost of running them sequentially?
                 tasks.Add(Task.Run(() =>
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ExecuteAndCatchIfThrows(da, addDiagnostic, continueOnError, cancellationToken, () =>
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        da.OnCompilationEnded(compilation, addDiagnostic, this.analyzerOptions, cancellationToken);
+                        da.AnalyzeCompilation(compilation, addDiagnostic, this.analyzerOptions, cancellationToken);
                     });
                 }));
             }
@@ -506,12 +506,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (!IsDiagnosticAnalyzerSuppressed(analyzer, compilation.Options, addDiagnostic, continueOnError, cancellationToken))
                 {
                     effectiveAnalyzers.Add(analyzer);
-                    var startAnalyzer = analyzer as ICompilationStartedAnalyzer;
+                    var startAnalyzer = analyzer as ICompilationNestedAnalyzerFactory;
                     if (startAnalyzer != null)
                     {
                         ExecuteAndCatchIfThrows(startAnalyzer, addDiagnostic, continueOnError, cancellationToken, () =>
                         {
-                            var compilationAnalyzer = startAnalyzer.OnCompilationStarted(compilation, addDiagnostic, analyzerOptions, cancellationToken);
+                            var compilationAnalyzer = startAnalyzer.CreateAnalyzerWithinCompilation(compilation, analyzerOptions, cancellationToken);
                             if (compilationAnalyzer != null) effectiveAnalyzers.Add(compilationAnalyzer);
                         });
                     }
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var symbol = symbolEvent.Symbol;
             var syntax = await decl.GetSyntaxAsync().ConfigureAwait(false);
-            var endedAnalyzers = ArrayBuilder<ICodeBlockEndedAnalyzer>.GetInstance();
+            var endedAnalyzers = ArrayBuilder<ICodeBlockAnalyzer>.GetInstance();
             endedAnalyzers.AddRange(codeBlockEndedAnalyzers);
             var nodeAnalyzers = ArrayBuilder<ISyntaxNodeAnalyzer<TSyntaxKind>>.GetInstance();
             nodeAnalyzers.AddRange(analyzers.OfType<ISyntaxNodeAnalyzer<TSyntaxKind>>());
@@ -632,8 +632,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Catch Exception from da.OnCodeBlockStarted
                 ExecuteAndCatchIfThrows(da, addDiagnostic, continueOnError, cancellationToken, () =>
                 {
-                    var blockStatefulAnalyzer = da.OnCodeBlockStarted(syntax, symbol, symbolEvent.SemanticModel(decl), addDiagnostic, analyzerOptions, cancellationToken);
-                    var endedAnalyzer = blockStatefulAnalyzer as ICodeBlockEndedAnalyzer;
+                    var blockStatefulAnalyzer = da.CreateAnalyzerWithinCodeBlock(syntax, symbol, symbolEvent.SemanticModel(decl), analyzerOptions, cancellationToken);
+                    var endedAnalyzer = blockStatefulAnalyzer as ICodeBlockAnalyzer;
                     if (endedAnalyzer != null)
                     {
                         endedAnalyzers.Add(endedAnalyzer);
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var a in endedAnalyzers)
             {
                 // Catch Exception from a.OnCodeBlockEnded
-                ExecuteAndCatchIfThrows(a, addDiagnostic, continueOnError, cancellationToken, () => a.OnCodeBlockEnded(syntax, symbol, semanticModel, addDiagnostic, analyzerOptions, cancellationToken));
+                ExecuteAndCatchIfThrows(a, addDiagnostic, continueOnError, cancellationToken, () => a.AnalyzeCodeBlock(syntax, symbol, semanticModel, addDiagnostic, analyzerOptions, cancellationToken));
             }
 
             endedAnalyzers.Free();

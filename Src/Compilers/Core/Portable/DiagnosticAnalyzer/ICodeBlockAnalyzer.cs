@@ -1,20 +1,17 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// An analyzer that is invoked when the compiler has analyzed a method body or field initializer, and which can return
-    /// an additional analyzer to be used for method body.
+    /// An analyzer that is invoked after running all other analyzers on a method body or field initializer.
     /// </summary>
-    public interface ICodeBlockStartedAnalyzer : IDiagnosticAnalyzer
+    public interface ICodeBlockAnalyzer : IDiagnosticAnalyzer
     {
         /// <summary>
-        /// Invoked when the compiler has performed semantic analysis on a method body or field
-        /// initializer, and which can return an additional analyzer to be used for the body.
+        /// Invoked after running all other analyzers on a method body or field initializer.
         /// </summary>
         /// <param name="codeBlock">The code block of a method or a field initializer</param>
         /// <param name="ownerSymbol">The method or field</param>
@@ -22,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="addDiagnostic">A delegate to be used to emit diagnostics</param>
         /// <param name="options">A set of options passed in from the host.</param>
         /// <param name="cancellationToken">A token for cancelling the computation</param>
-        /// <returns>An analyzer that will be used for the method body, or null</returns>
-        ICodeBlockEndedAnalyzer OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken);
+        void AnalyzeCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken);
     }
 }

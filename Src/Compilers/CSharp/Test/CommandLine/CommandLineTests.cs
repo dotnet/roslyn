@@ -6315,10 +6315,10 @@ using System.Diagnostics; // Unused.
     }
 
     [DiagnosticAnalyzer]
-    abstract class CompilationStartedAnalyzer : ICompilationStartedAnalyzer
+    abstract class CompilationStartedAnalyzer : ICompilationNestedAnalyzerFactory
     {
         public abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-        public abstract ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken);
+        public abstract IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken);
     }
 
     [DiagnosticAnalyzer]
@@ -6342,7 +6342,7 @@ using System.Diagnostics; // Unused.
             }
         }
 
-        public override ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             return null;
         }

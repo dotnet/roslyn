@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    public abstract class DirectlyAwaitingTaskAnalyzer<TSyntaxKind> : IDiagnosticAnalyzer, ICompilationStartedAnalyzer
+    public abstract class DirectlyAwaitingTaskAnalyzer<TSyntaxKind> : IDiagnosticAnalyzer, ICompilationNestedAnalyzerFactory
     {
         internal const string NameForExportAttribute = "DirectlyAwaitingTaskAnalyzer";
 
@@ -19,7 +19,7 @@ namespace Roslyn.Diagnostics.Analyzers
             get { return ImmutableArray.Create(DirectlyAwaitingTaskAnalyzerRule.Rule); }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             if (compilation.AssemblyName.Contains("FxCopAnalyzer") ||
                 compilation.AssemblyName.Contains("FxCopDiagnosticFixers"))
@@ -43,7 +43,7 @@ namespace Roslyn.Diagnostics.Analyzers
         protected abstract SyntaxNode GetAwaitedExpression(SyntaxNode awaitNode);
         protected abstract TSyntaxKind AwaitSyntaxKind { get; }
 
-        private sealed class CodeBlockAnalyzer : ICompilationEndedAnalyzer, ICodeBlockStartedAnalyzer
+        private sealed class CodeBlockAnalyzer : ICodeBlockNestedAnalyzerFactory
         {
             private readonly DirectlyAwaitingTaskAnalyzer<TSyntaxKind> analyzer;
             private readonly Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes;
@@ -59,17 +59,13 @@ namespace Roslyn.Diagnostics.Analyzers
                 get { return ImmutableArray.Create(DirectlyAwaitingTaskAnalyzerRule.Rule); }
             }
 
-            public ICodeBlockEndedAnalyzer OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 return new SyntaxNodeAnalyzer(analyzer, taskTypes);
             }
-
-            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
-            }
         }
 
-        private sealed class SyntaxNodeAnalyzer : ISyntaxNodeAnalyzer<TSyntaxKind>, ICodeBlockEndedAnalyzer
+        private sealed class SyntaxNodeAnalyzer : ISyntaxNodeAnalyzer<TSyntaxKind>
         {
             private readonly DirectlyAwaitingTaskAnalyzer<TSyntaxKind> analyzer;
             private readonly Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes;
@@ -105,10 +101,6 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     addDiagnostic(Diagnostic.Create(DirectlyAwaitingTaskAnalyzerRule.Rule, expression.GetLocation()));
                 }
-            }
-
-            public void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
             }
         }
     }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
 {
     [DiagnosticAnalyzer]
     [ExportDiagnosticAnalyzer(PInvokeInteroperabilityRuleName, LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed class PInvokeDiagnosticAnalyzer : ICompilationStartedAnalyzer
+    public sealed class PInvokeDiagnosticAnalyzer : ICompilationNestedAnalyzerFactory
     {
         public const string PInvokeInteroperabilityRuleName = "PInvokeInteroperability";
         public const string CA1401 = "CA1401";
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
             }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var dllImportType = compilation.GetTypeByMetadataName("System.Runtime.InteropServices.DllImportAttribute");
             if (dllImportType == null)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
             return new Analyzer(dllImportType, marshalAsType, stringBuilderType, unmanagedType);
         }
 
-        private sealed class Analyzer : ISymbolAnalyzer, ICompilationEndedAnalyzer
+        private sealed class Analyzer : ISymbolAnalyzer
         {
             private INamedTypeSymbol dllImportType;
             private INamedTypeSymbol marshalAsType;
@@ -165,10 +165,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                         addDiagnostic(defaultLocation.CreateDiagnostic(RuleCA2101));
                     }
                 }
-            }
-
-            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
             }
 
             private UnmanagedType? GetParameterMarshaling(AttributeData attributeData)

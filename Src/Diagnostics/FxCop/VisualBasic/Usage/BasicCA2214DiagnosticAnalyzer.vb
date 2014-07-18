@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     Public Class BasicCA2214DiagnosticAnalyzer
         Inherits CA2214DiagnosticAnalyzer
 
-        Protected Overrides Function GetCodeBlockEndedAnalyzer(constructorSymbol As IMethodSymbol) As ICodeBlockEndedAnalyzer
+        Protected Overrides Function GetCodeBlockEndedAnalyzer(constructorSymbol As IMethodSymbol) As IDiagnosticAnalyzer
             Return New SyntaxNodeAnalyzer(constructorSymbol)
         End Function
 

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
 {
     [DiagnosticAnalyzer]
     [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed class CA1708DiagnosticAnalyzer : AbstractNamedTypeAnalyzer, ICompilationStartedAnalyzer
+    public sealed class CA1708DiagnosticAnalyzer : AbstractNamedTypeAnalyzer, ICompilationAnalyzer
     {
         internal const string RuleId = "CA1708";
         internal const string Namespace = "Namespaces";
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
             }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public void AnalyzeCompilation(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var globalNamespaces = compilation.GlobalNamespace.GetNamespaceMembers()
                 .Where(item => item.ContainingAssembly == compilation.Assembly);
@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
 
             CheckTypeNames(globalTypes, addDiagnostic);
             CheckNamespaceMembers(globalNamespaces, compilation, addDiagnostic);
-
-            return null;
         }
         
         public override void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)

@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             expectedArguments = expectedArguments.Where(a => IsOnCodeBlockSupported(a.SymbolKind, a.MethodKind, a.ReturnsVoid));
 
-            var actualOnCodeBlockStartedArguments = callLog.Where(FilterByInterface<ICodeBlockStartedAnalyzer>)
+            var actualOnCodeBlockStartedArguments = callLog.Where(FilterByInterface<ICodeBlockNestedAnalyzerFactory>)
                 .Select(e => new { SymbolKind = e.SymbolKind.Value, MethodKind = e.MethodKind ?? InvalidMethodKind, e.ReturnsVoid }).Distinct();
-            var actualOnCodeBlockEndedArguments = callLog.Where(FilterByInterface<ICodeBlockEndedAnalyzer>)
+            var actualOnCodeBlockEndedArguments = callLog.Where(FilterByInterface<ICodeBlockAnalyzer>)
                 .Select(e => new { SymbolKind = e.SymbolKind.Value, MethodKind = e.MethodKind ?? InvalidMethodKind, e.ReturnsVoid }).Distinct();
 
             if (!allowUnexpectedCalls)

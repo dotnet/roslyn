@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
     [DiagnosticAnalyzer]
     [ExportDiagnosticAnalyzer(RuleNameForExportAttribute, LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed class SerializationRulesDiagnosticAnalyzer : ICompilationStartedAnalyzer
+    public sealed class SerializationRulesDiagnosticAnalyzer : ICompilationNestedAnalyzerFactory
     {
         internal const string RuleNameForExportAttribute = "SerializationRules";
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var iserializableTypeSymbol = compilation.GetTypeByMetadataName("System.Runtime.Serialization.ISerializable");
             if (iserializableTypeSymbol == null)
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             return new Analyzer(iserializableTypeSymbol, serializationInfoTypeSymbol, streamingContextTypeSymbol, serializableAttributeTypeSymbol);
         }
 
-        private sealed class Analyzer : AbstractNamedTypeAnalyzer, ICompilationEndedAnalyzer
+        private sealed class Analyzer : AbstractNamedTypeAnalyzer
         {
             private INamedTypeSymbol iserializableTypeSymbol;
             private INamedTypeSymbol serializationInfoTypeSymbol;
@@ -168,10 +168,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             private bool IsSerializable(ITypeSymbol namedTypeSymbol)
             {
                 return namedTypeSymbol.GetAttributes().Any(a => a.AttributeClass == this.serializableAttributeTypeSymbol);
-            }
-
-            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
             }
         }
     }

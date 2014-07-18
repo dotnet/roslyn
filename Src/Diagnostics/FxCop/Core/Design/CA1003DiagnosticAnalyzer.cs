@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 {
-    public abstract class CA1003DiagnosticAnalyzer : ICompilationStartedAnalyzer
+    public abstract class CA1003DiagnosticAnalyzer : ICompilationNestedAnalyzerFactory
     {
         internal const string RuleId = "CA1003";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var eventHandler = WellKnownTypes.EventHandler(compilation);
             if (eventHandler == null)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             return GetAnalyzer(compilation, eventHandler, genericEventHandler, eventArgs, comSourceInterfacesAttribute);
         }
 
-        protected abstract class AnalyzerBase : ISymbolAnalyzer, ICompilationEndedAnalyzer
+        protected abstract class AnalyzerBase : ISymbolAnalyzer
         {
             private Compilation compilation;
             private INamedTypeSymbol eventHandler;
@@ -119,10 +119,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                         addDiagnostic(eventSymbol.CreateDiagnostic(Rule));
                     }
                 }
-            }
-
-            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
             }
 
             protected abstract bool IsViolatingEventHandler(INamedTypeSymbol type);

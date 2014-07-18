@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
 {
-    public abstract class CA1309DiagnosticAnalyzer : ICompilationStartedAnalyzer
+    public abstract class CA1309DiagnosticAnalyzer : ICompilationNestedAnalyzerFactory
     {
         internal const string RuleId = "CA1309";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
             }
         }
 
-        public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public IDiagnosticAnalyzer CreateAnalyzerWithinCompilation(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var stringComparisonType = compilation.GetTypeByMetadataName(StringComparisonTypeName);
             return stringComparisonType != null ? GetAnalyzer(stringComparisonType) : null;
         }
 
-        protected abstract class AbstractCodeBlockAnalyzer : ICompilationEndedAnalyzer
+        protected abstract class AbstractCodeBlockAnalyzer : IDiagnosticAnalyzer
         {
             protected INamedTypeSymbol StringComparisonType { get; private set; }
 
@@ -56,10 +56,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
                 {
                     return ImmutableArray.Create(Rule);
                 }
-            }
-
-            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
             }
 
             protected static bool IsEqualsOrCompare(string methodName)

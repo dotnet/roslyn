@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// Cause:
     /// A public or protected method has a name that starts with Get, takes no parameters, and returns a value that is not an array.
     /// </summary>
-    public abstract class CA1024DiagnosticAnalyzer : ICodeBlockStartedAnalyzer
+    public abstract class CA1024DiagnosticAnalyzer : ICodeBlockNestedAnalyzerFactory
     {
         internal const string RuleId = "CA1024";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        public ICodeBlockEndedAnalyzer OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var methodSymbol = ownerSymbol as IMethodSymbol;
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         protected abstract CA1024CodeBlockEndedAnalyzer GetCodeBlockEndedAnalyzer();
 
-        protected abstract class CA1024CodeBlockEndedAnalyzer : ICodeBlockEndedAnalyzer
+        protected abstract class CA1024CodeBlockEndedAnalyzer : ICodeBlockAnalyzer
         {
             protected bool suppress = false;
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 suppress = true;
             }
 
-            public void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public void AnalyzeCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 if (!suppress)
                 {

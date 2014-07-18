@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             public abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
         }
 
-        protected class WarningOnCompilationEndedAnalyzer : AbstractMockAnalyzer, ICompilationEndedAnalyzer
+        protected class WarningOnCompilationEndedAnalyzer : AbstractMockAnalyzer, ICompilationAnalyzer
         {
             public const string Id = "CompilationEnded";
             private static DiagnosticDescriptor rule = GetRule(Id);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            public void OnCompilationEnded(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public void AnalyzeCompilation(Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
             {
                 addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, Location.None, Id));
             }
@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
         }
 
-        // Produces a warning for the start and end of every code body and every invocation expression within that code body
-        protected class WarningOnCodeBodyAnalyzer : AbstractMockAnalyzer, ICodeBlockStartedAnalyzer
+        // Produces a warning for the end of every code body and every invocation expression within that code body
+        protected class WarningOnCodeBodyAnalyzer : AbstractMockAnalyzer, ICodeBlockNestedAnalyzerFactory
         {
             public const string Id = "CodeBody";
             private static DiagnosticDescriptor rule = GetRule(Id);
@@ -129,10 +129,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            public ICodeBlockEndedAnalyzer OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+            public IDiagnosticAnalyzer CreateAnalyzerWithinCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
             {
-                addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, ownerSymbol.Locations.First(), ownerSymbol.Name + ":start"));
-
                 if (this.language == LanguageNames.CSharp)
                 {
                     return new CSharpCodeBodyAnalyzer();
@@ -143,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            protected class CSharpCodeBodyAnalyzer : ISyntaxNodeAnalyzer<CSharp.SyntaxKind>, ICodeBlockEndedAnalyzer
+            protected class CSharpCodeBodyAnalyzer : ISyntaxNodeAnalyzer<CSharp.SyntaxKind>, ICodeBlockAnalyzer
             {
                 public ImmutableArray<CSharp.SyntaxKind> SyntaxKindsOfInterest
                 {
@@ -161,7 +159,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     }
                 }
 
-                public void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+                public void AnalyzeCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
                 {
                     addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, ownerSymbol.Locations.First(), ownerSymbol.Name + ":end"));
                 }
@@ -172,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            protected class BasicCodeBodyAnalyzer : ISyntaxNodeAnalyzer<VisualBasic.SyntaxKind>, ICodeBlockEndedAnalyzer
+            protected class BasicCodeBodyAnalyzer : ISyntaxNodeAnalyzer<VisualBasic.SyntaxKind>, ICodeBlockAnalyzer
             {
                 public ImmutableArray<VisualBasic.SyntaxKind> SyntaxKindsOfInterest
                 {
@@ -190,7 +188,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     }
                 }
 
-                public void OnCodeBlockEnded(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+                public void AnalyzeCodeBlock(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
                 {
                     addDiagnostic(CodeAnalysis.Diagnostic.Create(rule, ownerSymbol.Locations.First(), ownerSymbol.Name + ":end"));
                 }
