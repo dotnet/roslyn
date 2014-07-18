@@ -44,6 +44,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Use in an exception filter to report a fatal error. 
+        /// Unless the exception is <see cref="NotImplementedException"/> 
+        /// it calls <see cref="Handler"/>. The exception is passed thru (the method returns false).
+        /// </summary>
+        /// <returns>False to avoid catching the exception.</returns>
+        [DebuggerHidden]
+        public static bool ReportUnlessNotImplemented(Exception exception)
+        {
+            if (exception is NotImplementedException)
+            {
+                return false;
+            }
+
+            return Report(exception);
+        }
+
+        /// <summary>
         /// Use in an exception filter to report a fatal error.
         /// Calls <see cref="Handler"/> and passes the exception thru (the method returns false).
         /// </summary>
