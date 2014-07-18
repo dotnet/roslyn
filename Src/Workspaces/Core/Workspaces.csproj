@@ -302,7 +302,6 @@
     <Compile Include="CodeCleanup\Providers\PredefinedCodeCleanupProviderNames.cs" />
     <Compile Include="CodeCleanup\Providers\SimpleCodeCleanupProvider.cs" />
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
-    <Compile Include="Log\ISupportTelemetry.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationService.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationService_FindDeclaration.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerator.cs" />
