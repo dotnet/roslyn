@@ -1,10 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
-Imports System.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -48,7 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         End Function
 
-        <Fact()> Public Sub TestParents()
+        <Fact>
+        Public Sub TestParents()
             Dim simpleTree = CreateSimpleTree()
 
             Assert.Null(simpleTree.Parent)
@@ -64,7 +63,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(argList, argList.Arguments.GetWithSeparators(3).Parent)
         End Sub
 
-        <Fact()> Public Sub TestChildren()
+        <Fact>
+        Public Sub TestChildren()
             Dim simpleTree = CreateSimpleTree()
             Dim invocation As InvocationExpressionSyntax = CType(CType(simpleTree, BinaryExpressionSyntax).Right, InvocationExpressionSyntax)
             Dim argList As ArgumentListSyntax = invocation.ArgumentList
@@ -298,7 +298,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         End Sub
 
-        <Fact()> Public Sub TestSpans()
+        <Fact>
+        Public Sub TestSpans()
             Dim dig1 = CreateIntegerLiteral(3)
             Assert.Equal(New TextSpan(0, 1), dig1.Span)
             Assert.Equal(New TextSpan(0, 1), dig1.FullSpan)
@@ -326,7 +327,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(New TextSpan(15, 1), argList.Arguments(2).Span)
         End Sub
 
-        <Fact()> Public Sub TestSpans2()
+        <Fact>
+        Public Sub TestSpans2()
             Dim stmt1 = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword, trailing:=spaceTrivia), CreateIntegerLiteral(5))
             Dim stmt2 = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword, trailing:=spaceTrivia), CreateIntegerLiteral(178))
             Dim listBldr = SyntaxNodeOrTokenListBuilder.Create()
@@ -362,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestSpans2_Invalid()
             ' Validate the exceptions being generated when Invalid arguments are used for a TextSpan Constructor
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub()
@@ -385,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
 
         ' Test that a list with 0 items works correctly.
-        <Fact()>
+        <Fact>
         Public Sub TestEmptyList()
             Dim l = New SyntaxTokenList
             Assert.Equal(0, l.Count)
@@ -407,7 +409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Test that list with 1 item works correctly.
-        <Fact()>
+        <Fact>
         Public Sub TestSingletonList()
             Dim l = New SyntaxTokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia))
             Assert.NotNull(l)
@@ -436,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Test list with 3 items.
-        <Fact()>
+        <Fact>
         Public Sub TestList()
             Dim bldr = New SyntaxTokenListBuilder(8)
             bldr.Add(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia))
@@ -502,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Check that empty separated list works.
-        <Fact()>
+        <Fact>
         Public Sub TestEmptySeparatedList()
             CheckEmptySeparatedList(New SeparatedSyntaxList(Of TypeSyntax)(DirectCast(Nothing, VisualBasicSyntaxNode), 0))
             Dim statement = SyntaxFactory.InheritsStatement(SyntaxFactory.Token(SyntaxKind.InheritsKeyword, trailing:=spaceTrivia), (New SeparatedSyntaxListBuilder(Of TypeSyntax)).ToList)
@@ -531,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Check that singleton separated list works
-        <Fact()>
+        <Fact>
         Public Sub TestSingletonSeparatedList()
             CheckSingletonSeparatedList(New SeparatedSyntaxList(Of TypeSyntax)(New SyntaxNodeOrTokenList(CreateSimpleTypeName("foo"), 0)), 0)
             Dim bldr = SeparatedSyntaxListBuilder(Of TypeSyntax).Create()
@@ -542,8 +544,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("Inherits foo ", statement.ToFullString)
         End Sub
 
-        ' CHeck that separated list with separators in it works.
-        <Fact()>
+        ' Check that separated list with separators in it works.
+        <Fact>
         Public Sub TestSeparatedList()
             Dim bldr = SeparatedSyntaxListBuilder(Of TypeSyntax).Create()
             bldr.Add(CreateSimpleTypeName("aaa"))
@@ -599,7 +601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         ' Check that trivia seems to work.
         ' Note that whitespace constructor allows any text, so we leverage that in this test for simplicity.
-        <Fact()>
+        <Fact>
         Public Sub TestTrivia()
             Dim white_a = SyntaxFactory.WhitespaceTrivia("AAA")
             Dim white_b = SyntaxFactory.WhitespaceTrivia("B")
@@ -694,7 +696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(11, follTrivia(0).FullSpan.End)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestKeywordFactoryMethods()
             ' Check simple factory for keyword.
             Dim keyword = SyntaxFactory.Token(SyntaxKind.AliasKeyword, trailing:=spaceTrivia)
@@ -739,7 +741,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("'foo", keyword.LeadingTrivia()(1).ToString)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestNonTerminalFactoryMethods()
             Dim endTry As EndBlockStatementSyntax
 
@@ -755,7 +757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Check that IsToken, IsTrivia, IsTerminal properties returns correct thing.
-        <Fact()>
+        <Fact>
         Public Sub TestTokenTriviaClassification()
             Dim endIfStmt = SyntaxFactory.EndIfStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword, trailing:=spaceTrivia), SyntaxFactory.Token(SyntaxKind.IfKeyword, trailing:=spaceTrivia))
             Dim plusToken = SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=spaceTrivia)
@@ -769,7 +771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Check that ToString, ToFullString, and ValueText are correct on a token.
-        <Fact()>
+        <Fact>
         Public Sub TestTokenText()
             ' keyword without trivia
             Dim keyword = SyntaxFactory.Token(SyntaxKind.PartialKeyword, "ParTIAL")
@@ -814,14 +816,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                                       Nothing, Nothing, Nothing)
         End Function
 
-        <Fact()>
+        <Fact>
         Public Sub TestSpansOnMethodStatement()
             VerifyAllSpans(CreateMethodStatement())
         End Sub
 
         ' Check that the ToString and ToFullString are correct on a non-terminal that includes
         ' a list and a separated list.
-        <Fact()> Public Sub TestNonTerminalText()
+        <Fact>
+        Public Sub TestNonTerminalText()
             Dim methodStatement = CreateMethodStatement()
 
             Assert.Equal("public Overloads      SUB   MySub ( ByVal Param1 As Integer , ByVal Param2 As String , ByRef Param3 As Double )",
@@ -831,7 +834,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Check that IsMissing seems to do the right thing.
-        <Fact()> Public Sub IsMissing()
+        <Fact>
+        Public Sub IsMissing()
             Dim ident = SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "hello", spaceTrivia)
             Assert.False(ident.IsMissing)
             ident = SyntaxFactory.MissingIdentifier()
@@ -912,7 +916,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Test simple errors on a token and its associated trivia.
-        <Fact()> Public Sub SimpleTokenErrors()
+        <Fact>
+        Public Sub SimpleTokenErrors()
             Dim kwModule = SyntaxFactory.Token(SyntaxKind.ModuleKeyword, trailing:=spaceTrivia)
             CheckErrorList(kwModule, {}, {})
             Assert.Equal(6, kwModule.Span.Length)
@@ -942,7 +947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Test a complex case with a few errors in it.
-        <Fact()>
+        <Fact>
         Public Sub ComplexErrors()
             Dim bldr = SyntaxNodeOrTokenListBuilder.Create()
             bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia)),
@@ -1088,7 +1093,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         End Class
 
-        <Fact()>
+        <Fact>
         Public Sub TestRewritingVisitor()
             Dim rewriter As VisualBasicSyntaxRewriter
             Dim simpleTree = CreateSimpleTree()
@@ -1133,7 +1138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("PUBLIC OVERLOADS      SUB   MYSUB ( BYVAL PARAM2 AS STRING , BYVAL PARAM1 AS INTEGER , BYREF PARAM3 AS DOUBLE )", newMethod.ToString)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestReplacer()
             Dim simpleTree = CreateSimpleTree()
             Assert.Equal("1- X( 3, 4+ 8, 9)", simpleTree.ToString)
@@ -1542,7 +1547,7 @@ End Class</x>.Value)
             Assert.Equal("a   ", id2.ToFullString())
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestTriviaExtensions()
             Dim simpleTree = CreateSimpleTree()
             Assert.Equal("1- X( 3, 4+ 8, 9) ", simpleTree.ToFullString())
@@ -1564,7 +1569,7 @@ End Class</x>.Value)
         <WorkItem(872867, "DevDiv/Personal")>
         <WorkItem(878887, "DevDiv/Personal")>
         <WorkItem(878902, "DevDiv/Personal")>
-        <Fact()>
+        <Fact>
         Public Sub TestCommonSyntaxNode()
             'Dim node As SyntaxNode = ParseAndVerify(" Module M1" & vbCrLf & "End Module")
             'Assert.False(node.Errors.Any())
@@ -1594,7 +1599,7 @@ End Class</x>.Value)
         End Sub
 
         <WorkItem(879737, "DevDiv/Personal")>
-        <Fact()>
+        <Fact>
         Public Sub TestDiagnostic()
             'Dim node As SyntaxNode =
             '    ParseAndVerify(
@@ -1618,7 +1623,7 @@ End Class</x>.Value)
             Assert.Equal(30678, tree.GetDiagnostics(node)(1).Code)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestStructuredTrivia()
             Dim xmlStartElement = SyntaxFactory.XmlElementStartTag(
                 SyntaxFactory.Token(spaceTrivia, SyntaxKind.LessThanToken, trailing:=Nothing),
@@ -1677,7 +1682,7 @@ End Class</x>.Value)
         End Sub
 
         ' Check that the children list preserved identity.
-        <Fact()>
+        <Fact>
         Public Sub ChildrenListObjectIdentity()
             Dim tree = CreateSimpleTree()
 
@@ -1705,7 +1710,7 @@ End Class</x>.Value)
         End Function
 
         ' Check that specific children accessors preserve object identifier
-        <Fact()>
+        <Fact>
         Public Sub ChildAccessorObjectIdentity()
             Dim tree = CreateSimpleTree()
 
@@ -1739,7 +1744,7 @@ End Class</x>.Value)
         End Sub
 
         ' Check that specific children accessors preserve object identifier
-        <Fact()>
+        <Fact>
         Public Sub TestTreeIterator()
             Dim tree = CreateSimpleTree()
 
@@ -1765,7 +1770,7 @@ End Class</x>.Value)
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestGetNextToken()
             Dim prog = ParseAndVerify(<![CDATA[Module Module1
     dim xxxx :: Dim yyyy
@@ -1824,7 +1829,7 @@ End Module
             Assert.Equal(vbLf, tk_zero3.LeadingTrivia.ToString)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestCommonSyntaxTokenGetPreviousToken()
             Dim text =
                 "Class C(Of T)" & vbCrLf &
@@ -1883,7 +1888,7 @@ End Module
         End Sub
 
 
-        <Fact()>
+        <Fact>
         Public Sub TestFirstLastDirective()
             Dim prog = ParseAndVerify(<![CDATA[
 #const x =1
@@ -1913,7 +1918,7 @@ End Module
             Assert.Equal(Nothing, lDir1)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestNextPrevDirective()
             Dim prog = ParseAndVerify(<![CDATA[
 #const x =1
@@ -1949,7 +1954,7 @@ End Module
         End Sub
 
         <WorkItem(537404, "DevDiv")>
-        <Fact()>
+        <Fact>
         Public Sub TestNodeTokenConversion01()
             Dim prog = ParseAndVerify(<![CDATA[ Class A
     dim x As
@@ -1975,7 +1980,7 @@ End Class
         End Sub
 
         <WorkItem(537403, "DevDiv")>
-        <Fact()>
+        <Fact>
         Public Sub TestNodeTokenConversion02()
 
             Dim node As VisualBasicSyntaxNode = Nothing
@@ -1986,14 +1991,14 @@ End Class
         End Sub
 
         <WorkItem(537673, "DevDiv")>
-        <Fact()>
+        <Fact>
         Public Sub SyntaxTriviaDefaultIsDirective()
             Dim trivia As New SyntaxTrivia()
             Assert.False(trivia.IsDirective)
         End Sub
 
         <WorkItem(538362, "DevDiv")>
-        <Fact(), WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(530316, "DevDiv")>
         Public Sub TestGetNextTokenCommon()
             Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText("public class foo : end class")
 
@@ -2081,14 +2086,14 @@ End Class]]>
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() root.FindNode(invalidSpan))
             invalidSpan = New TextSpan(classDecl2.FullSpan.Start - 1, root.FullSpan.End)
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl2.FindNode(invalidSpan))
-            invalidSpan = new TextSpan(classDecl.FullSpan.End, root.FullSpan.End)
+            invalidSpan = New TextSpan(classDecl.FullSpan.End, root.FullSpan.End)
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl2.FindNode(invalidSpan))
             ' Parent node's span.
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl.FindNode(root.FullSpan))
         End Sub
 
         <WorkItem(539940, "DevDiv")>
-                                     <Fact()>
+        <Fact>
         Public Sub TestFindTrivaNoTriviaExistsAtPosition()
             Dim code = <code>Class Foo
     Sub Bar()
@@ -2104,7 +2109,7 @@ End Class</code>.Value
             Assert.Equal(24, trivia.Span.End)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestChildNodes()
             Dim text = "m(a,b,c)"
             Dim expression = SyntaxFactory.ParseExpression(text)
@@ -2114,7 +2119,7 @@ End Class</code>.Value
             Assert.Equal(SyntaxKind.ArgumentList, nodes(1).VisualBasicKind)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestAncestors()
             Dim text = "a + (b - (c * (d / e)))"
             Dim expression = SyntaxFactory.ParseExpression(text)
@@ -2131,7 +2136,7 @@ End Class</code>.Value
             Assert.Equal(SyntaxKind.AddExpression, nodes(6).VisualBasicKind)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestAncestorsOrSelf()
             Dim text = "a + (b - (c * (d / e)))"
             Dim expression = SyntaxFactory.ParseExpression(text)
@@ -2149,7 +2154,7 @@ End Class</code>.Value
             Assert.Equal(SyntaxKind.AddExpression, nodes(7).VisualBasicKind)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestDescendantNodes()
             Dim text = <![CDATA[
     ''' Foo
@@ -2182,7 +2187,7 @@ End Class</code>.Value
             Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(3).VisualBasicKind)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestDescendantNodesOrSelf()
             Dim text = <![CDATA[
     ''' Foo
@@ -2219,7 +2224,7 @@ End Class</code>.Value
             Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(4).VisualBasicKind)
         End Sub
 
-        <Fact(), WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(530316, "DevDiv")>
         Public Sub TestDescendantTrivia()
             Dim text = <![CDATA[' Foo
 a + b
@@ -2234,7 +2239,7 @@ a + b
             Assert.Equal(SyntaxKind.WhitespaceTrivia, list(3).VisualBasicKind)
         End Sub
 
-        <Fact(), WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(530316, "DevDiv")>
         Public Sub TestDescendantTriviaIntoStructuredTrivia()
             Dim text = <![CDATA[
 ''' <foo >
@@ -2253,7 +2258,7 @@ a + b
             Assert.Equal(SyntaxKind.WhitespaceTrivia, list(6).VisualBasicKind)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxNodeToString()
 
             Dim text = "Imports System"
@@ -2278,7 +2283,7 @@ a + b
             Assert.Equal(" ", trivia.ToFullString())
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestRemoveNodeInSeparatedList_KeepExteriorTrivia()
             Dim expr = SyntaxFactory.ParseExpression("m(a, b, c)")
 
@@ -2291,7 +2296,7 @@ a + b
             Assert.Equal("m(a , c)", text)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestRemoveNodeInSeparatedList_KeepNoTrivia()
             Dim expr = SyntaxFactory.ParseExpression("m(a, b, c)")
 
@@ -2304,7 +2309,7 @@ a + b
             Assert.Equal("m(a, c)", text)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestRemoveOnlyNodeInSeparatedList_KeepExteriorTrivia()
             Dim expr = SyntaxFactory.ParseExpression("m(  a  )")
 
@@ -2317,7 +2322,7 @@ a + b
             Assert.Equal("m(    )", text)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestRemoveFirstNodeInSeparatedList_KeepExteriorTrivia()
             Dim expr = SyntaxFactory.ParseExpression("m(  a  , b, c)")
 
@@ -2330,7 +2335,7 @@ a + b
             Assert.Equal("m(     b, c)", text)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestRemoveLastNodeInSeparatedList_KeepExteriorTrivia()
             Dim expr = SyntaxFactory.ParseExpression("m(a, b , c )")
 
@@ -2343,7 +2348,7 @@ a + b
             Assert.Equal("m(a, b   )", text)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestRemoveFirstNodeInList_KeepExteriorTrivia()
             Dim text = <![CDATA[
 <A> <B> <C>
@@ -2368,7 +2373,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestRemoveLastNodeInList_KeepExteriorTrivia()
             Dim text = <![CDATA[
 <A> <B> <C>
@@ -2393,7 +2398,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestMiddleLastNodeInList_KeepExteriorTrivia()
             Dim text = <![CDATA[
 <A> <B> <C>
@@ -2418,7 +2423,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestRemove_KeepUnbalancedDirectives()
             Dim text = <![CDATA[
 #If True
@@ -2449,7 +2454,7 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(530316, "DevDiv")>
         Public Sub TestRemove_KeepExternalTrivia_KeepUnbalancedDirectives()
             Dim text = <![CDATA[
 #If True
@@ -2488,7 +2493,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestRemove_KeepDirectives()
             Dim text = <![CDATA[
 #If True
@@ -2529,7 +2534,7 @@ End Class
             Assert.Equal(expected, result)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Test_SyntaxTree_ParseTextInvalid()
             Assert.Throws(Of ArgumentNullException)(Sub()
                                                         Dim treeFromSourceWithPath_Invalid1 = VisualBasicSyntaxTree.ParseText("", path:=Nothing)
@@ -2541,7 +2546,7 @@ End Class
                                                     End Sub)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestSyntaxTree_GetChangesValid()
             ' Added for coverage on GetChanges and SyntaxDiffer
             Dim SourceText = <String>
@@ -2590,7 +2595,7 @@ End Module
             Assert.Equal(ChangesFromTransform, changes2UsingCommonSyntax)
         End Sub
 
-        <Fact()>
+        <Fact, WorkItem(658329, "DevDiv")>
         Public Sub TestSyntaxTree_GetChangesInValid()
             'GetChanges with two Scenarios where either new or old tree is nothing
             Dim SourceText = <String>
@@ -2609,16 +2614,10 @@ End Module
             Dim FirstImportsClause As ImportsStatementSyntax = Root.Imports(0)
             Dim BlankTree As SyntaxTree = Nothing
 
-            Dim BlankToSomethingChange = FirstImportsClause.SyntaxTree.GetChanges(BlankTree)
-            Assert.Equal(1, BlankToSomethingChange.Count)
-            Assert.Equal(New TextSpan(0, 0), BlankToSomethingChange(0).Span)
-
-            Assert.Throws(Of NullReferenceException)(Sub()
-                                                         Dim SomethingToBlankChange = BlankTree.GetChanges(FirstImportsClause.SyntaxTree)
-                                                     End Sub)
+            Assert.Throws(Of ArgumentNullException)(Sub() FirstImportsClause.SyntaxTree.GetChanges(BlankTree))
         End Sub
 
-        <Fact(skip:="658329")>
+        <Fact, WorkItem(658329, "DevDiv")>
         Public Sub TestSyntaxTree_GetChangeSpans()
             Dim oldTree = VisualBasicSyntaxTree.ParseText("class A : End Class")
             Dim newTree = oldTree.WithInsertAt(0, "class B : End Class")
@@ -2627,7 +2626,7 @@ End Module
             Dim spans = newTree.GetChangedSpans(oldTree)
             Assert.Equal(1, spans.Count)
 
-            'Test Overload with COmmonSyntaxTree
+            'Test Overload with CommonSyntaxTree
             Dim span2 = CType(newTree, SyntaxTree).GetChangedSpans(CType(oldTree, SyntaxTree))
             Assert.Equal(1, spans.Count)
             Assert.Equal(spans(0), span2(0)) ' Ensure Both spans from overloads returns same
@@ -2635,17 +2634,10 @@ End Module
             ' Invalid operations with a null tree
             Dim BlankTree As SyntaxTree = Nothing
 
-            span2 = newTree.GetChangedSpans(BlankTree)
-
-            span2 = CType(newTree, SyntaxTree).GetChangedSpans(CType(BlankTree, SyntaxTree))
-            Assert.Equal(1, span2.Count)
-
-            Assert.Throws(Of ArgumentNullException)(Sub()
-                                                        Dim SomethingToBlankChnage = BlankTree.GetChangedSpans(CType(newTree, SyntaxTree))
-                                                    End Sub)
+            Assert.Throws(Of ArgumentNullException)(Sub() newTree.GetChangedSpans(BlankTree))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestSyntaxList_Failures()
             'Validate the exceptions being generated when Invalid arguments are used for a TextSpan Constructor           
 
@@ -2676,12 +2668,12 @@ End Module
                                                           End Sub)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Test_CConst_CreateWithTypeCharacters()
             'Added for Code Coverage 
-            Dim compilationDef = _
+            Dim compilationDef =
 <compilation name="CConst.vb">
-                                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 Imports System
 
 #Const char_a = "c"c
@@ -2713,17 +2705,17 @@ Public Module Module1
     End Sub
 
 End Module    </file>
-                                                                                                                                                 </compilation>
+</compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Test_UnaryOperators()
-            Dim compilationDef = _
+            Dim compilationDef =
 <compilation name="CConst.vb">
-                                                                                                                                                         <file name="a.vb">
+    <file name="a.vb">
 'Type Types
 #If -1S Then
 'Short
@@ -2880,7 +2872,7 @@ Module Module1
 End Module
 
 </file>
-                                                                                                                                                     </compilation>
+</compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             compilation.VerifyDiagnostics()
@@ -2889,9 +2881,9 @@ End Module
         <Fact(Skip:="658398")>
         Public Sub Test_UnaryOperatorsInvalid()
             'Added for Code Coverage 
-            Dim compilationDef = _
+            Dim compilationDef =
 <compilation name="CConst.vb">
-                                                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 Imports System
 Imports Microsoft.VisualBasic
 
@@ -2928,14 +2920,14 @@ Module Module1
 End Module
 
 </file>
-                                                                                                                                                         </compilation>
+</compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             compilation.VerifyDiagnostics()
             'TODO add the appropriate errors once bug is fixed
         End Sub
 
-        <Fact()>
+        <Fact>
         Sub TestInvalidModuleScenario_AddingTreesWithImplementsAndInherits()
             'Verifies we can hit the inheritable and implements slots on module blocks through usage of the AddInherits/AddImplements methods in the  ModuleBlockSyntax.
             ' Although Modules do not support inheritance or Implements
@@ -2993,12 +2985,12 @@ End Interface
             Assert.True(Root.ToFullString.Contains("Inherits aaa"))
             Assert.True(Root.ToFullString.Contains("Implements Ifoo"))
 
-            Dim compilationDef = _
+            Dim compilationDef =
 <compilation name="Test">
-                                                                                                                                                                 <file name="a.vb">
-                                                                                                                                                                     <%= root.ToFullString %>
-                                                                                                                                                                 </file>
-                                                                                                                                                             </compilation>
+    <file name="a.vb">
+        <%= Root.ToFullString %>
+    </file>
+</compilation>
 
             'Verify Compile Errors when try to use
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -3007,7 +2999,7 @@ End Interface
                                                                                                                               BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantImplement, "Implements Ifoo"))
         End Sub
 
-        <Fact()>
+        <Fact>
         Sub TestSyntaxNode_GetDirectivesMultiplePresent()
             Dim SourceText = <String>
 Imports System
@@ -3040,7 +3032,7 @@ End Module
             Assert.Equal("Microsoft.CodeAnalysis.VisualBasic.Syntax.IfDirectiveTriviaSyntax", x(0).GetType.ToString)
         End Sub
 
-        <Fact()>
+        <Fact>
         Sub TestSyntaxNode_GetDirectivesNonePresent()
             Dim SourceText = <String>
 Imports System
@@ -3063,7 +3055,7 @@ End Module
             Assert.Equal(0, x.Count)
         End Sub
 
-        <Fact()>
+        <Fact>
         Sub TestSyntaxNode_GetDirectivesIncorrectUnbalanced()
             Dim SourceText = <String>
 Imports System
@@ -3088,7 +3080,7 @@ End Module
         End Sub
 
 #Region "Equality Verifications"
-        <Fact()>
+        <Fact>
         Sub Test_GlobalImportsEqual()
             Dim SourceText = <String>
 Imports System
@@ -3111,7 +3103,7 @@ End Module
             Assert.Equal(1, x.Count)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Test_GlobalImports_Equals()
             Dim SourceText = <String>
 Imports System
@@ -3141,37 +3133,37 @@ End Module
             End If
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Test_CompilationOptions_Equals()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GetSemanticInfo">
-                                                                                                                                                                                             <file name="allon.vb">
+    <file name="allon.vb">
 Option Strict On
 Option Infer On
 Option Explicit On
 Option Compare Text
     </file>
-                                                                                                                                                                                         </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
+</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
 
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GetSemanticInfo">
-                                                                                                                                                                                             <file name="allon.vb">
+    <file name="allon.vb">
 Option Strict On
 Option Infer On
 Option Explicit On
 Option Compare Text
     </file>
-                                                                                                                                                                                         </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(False).WithOptionCompareText(False))
+</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(False).WithOptionCompareText(False))
 
             Dim Compilation3 = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GetSemanticInfo">
-                                                                                                                                                                                             <file name="allon.vb">
+    <file name="allon.vb">
 Option Strict On
 Option Infer On
 Option Explicit On
 Option Compare Text
     </file>
-                                                                                                                                                                                         </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
+</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
 
 
             Dim vbpo1 = compilation.Options
@@ -3187,14 +3179,14 @@ Option Compare Text
 
             Dim compilation4 = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="CompileOptions">
-                                                                                                                                                                                             <file name="allon.vb">
+    <file name="allon.vb">
 Option Strict Off
 Module Module1
 Sub Main
 End Sub
 End Module
     </file>
-                                                                                                                                                                                         </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
+</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
 
             vbpo1 = compilation4.Options
             Dim ObjCommonCompilationOptions As CompilationOptions = vbpo1
@@ -3202,7 +3194,7 @@ End Module
             Assert.False(RetValue)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Test_ParseOptions_Equals()
             Dim po1 = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic10)
             Dim po2 = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic9)
@@ -3210,14 +3202,14 @@ End Module
 
             Dim POcompilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compile1">
-                                                                                                                                                                                                 <file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System
 Module Module1
 Sub Main
 End Sub
 End Module
         ]]></file>
-                                                                                                                                                                                             </compilation>, parseOptions:=po1)
+</compilation>, parseOptions:=po1)
 
             Assert.Equal(po1, po1)
             Assert.Equal(po1, po3)
@@ -3229,11 +3221,11 @@ End Module
 #End Region
 
 #Region "SyntaxWalker Verification Tests For Specific Node Types"
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyGroupByClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="LinqQueryGroupBy">
-                                                                                                                                                                                                     <file name="Test.vb">
+    <file name="Test.vb">
 Module Module1
     Sub main()
         Dim words = New String() {"blueberry", "chimpanzee", "abacus", "banana", "apple", "cheese"}
@@ -3245,7 +3237,7 @@ Module Module1
     End Sub
 End Module            
     </file>
-                                                                                                                                                                                                 </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3254,11 +3246,11 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.GroupByClause.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyCatchFilterClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                         <file name="Test.vb">
+    <file name="Test.vb">
 Module Module1
     Sub Main()        
         Try
@@ -3268,7 +3260,7 @@ Module Module1
     End Sub
 End Module          
     </file>
-                                                                                                                                                                                                     </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3277,11 +3269,11 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.CatchFilterClause.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyDistinctClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                             <file name="Test.vb">
+    <file name="Test.vb">
 Module Module1
     Sub Main()        
        Dim q = From c In {1, 2, 3, 4, 5, 3, 2}
@@ -3289,7 +3281,7 @@ Module Module1
     End Sub
 End Module          
     </file>
-                                                                                                                                                                                                         </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3298,11 +3290,11 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.DistinctClause.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyCaseRange()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                 <file name="Test.vb">
+    <file name="Test.vb">
 Module Module1
     Sub Main()
         Dim number As Integer = 8
@@ -3313,7 +3305,7 @@ Module Module1
     End Sub
 End Module
             </file>
-                                                                                                                                                                                                             </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3322,11 +3314,11 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.RangeCaseClause.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyHandlesClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                     <file name="Test.vb">
+    <file name="Test.vb">
             Imports System
 
         Public Class ContainerClass
@@ -3353,7 +3345,7 @@ End Module
             End Sub
         End Class
                         </file>
-                                                                                                                                                                                                                 </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3364,11 +3356,11 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.WithEventsEventContainer.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyKeywordEventContainerSyntax()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                         <file name="Test.vb">
+    <file name="Test.vb">
 Imports System
 Module Module1
     Sub Main()
@@ -3389,7 +3381,7 @@ Class ContainerClass
     End Class
 End Class
     </file>
-                                                                                                                                                                                                                     </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3398,11 +3390,11 @@ End Class
             Assert.Equal(1, collector.GetCount(SyntaxKind.KeywordEventContainer.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyOmmittedArgument()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                             <file name="Test.vb">
+    <file name="Test.vb">
             Imports System
 
 Module Module1
@@ -3414,7 +3406,7 @@ Module Module1
     End Sub
 End Module
     </file>
-                                                                                                                                                                                                                         </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3423,11 +3415,11 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.OmittedArgument.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyMidExpressionClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                 <file name="Test.vb">
+    <file name="Test.vb">
         Module Module1
             Sub Main()
                 Dim s As String = "abcdef"
@@ -3438,7 +3430,7 @@ End Module
         End Module
 
             </file>
-                                                                                                                                                                                                                             </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3447,11 +3439,11 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.MidExpression.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyAggregateClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                     <file name="Test.vb">
+    <file name="Test.vb">
                 Module Module1
                 Sub main()
                      Dim words() = {"cherry", "apple", "blueberry", "cherry"}
@@ -3461,7 +3453,7 @@ End Module
                 End Sub
                 End Module            
     </file>
-                                                                                                                                                                                                                                 </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3470,11 +3462,11 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.AggregateClause.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyDirectives()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                         <file name="Test.vb">
+    <file name="Test.vb">
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3499,7 +3491,7 @@ Module Program
 #End Region
 End Module
                             </file>
-                                                                                                                                                                                                                                     </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3517,11 +3509,11 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.EndRegionDirectiveTrivia.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyPartitionClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                             <file name="Test.vb">
+    <file name="Test.vb">
         Module Module1
             Sub Main()        
               Dim numbers() = {5, 4, 1, 3, 9, 8, 6, 7, 2, 0}
@@ -3530,7 +3522,7 @@ End Module
             End Sub
         End Module          
             </file>
-                                                                                                                                                                                                                                         </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3539,11 +3531,11 @@ End Module
             Assert.Equal(1, collector.GetCount("PartitionClauseSyntax"))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyPartitionWhileClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                 <file name="Test.vb">
+    <file name="Test.vb">
                 Module Module1
                     Sub Main()        
                    Dim numbers() = {5, 4, 1, 3, 9, 8, 6, 7, 2, 0}
@@ -3553,7 +3545,7 @@ End Module
                     End Sub
                 End Module          
     </file>
-                                                                                                                                                                                                                                             </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3562,11 +3554,11 @@ End Module
             Assert.Equal(1, collector.GetCount("PartitionWhileClauseSyntax"))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMethod_VerifyRangeArgument()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                     <file name="Test.vb">
+    <file name="Test.vb">
         Imports System
         Module Module1
             Sub Main()
@@ -3574,7 +3566,7 @@ End Module
             End Sub
         End Module
     </file>
-                                                                                                                                                                                                                                                 </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3583,11 +3575,11 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.RangeArgument.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMehhod_VerifyXMLBracketName()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                         <file name="Test.vb">
+    <file name="Test.vb">
         Imports System
 Module Module1
     Sub Main()
@@ -3599,7 +3591,7 @@ Module Module1
     End Sub
 End Module
                     </file>
-                                                                                                                                                                                                                                                     </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3608,16 +3600,16 @@ End Module
             Assert.Equal(2, collector.GetCount(SyntaxKind.XmlBracketedName.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMehthod_VerifyImcompleteSyntaxClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                             <file name="Test.vb">
+    <file name="Test.vb">
                  &lt;Dim:clscompliant(true)&gt;
                     Module Module1
                     End Module
                     </file>
-                                                                                                                                                                                                                                                         </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3626,18 +3618,18 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.IncompleteMember.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMehthod_VerifySkippedTokenTriva()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                                 <file name="Test.vb">                
+    <file name="Test.vb">                
                     OptImports System
                     Module Module1
                     Sub main
                     End Sub
                     End Module
                     </file>
-                                                                                                                                                                                                                                                             </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3646,7 +3638,7 @@ End Module
             Assert.Equal(1, collector.GetCount(SyntaxKind.SkippedTokensTrivia.ToString))
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SyntaxWalkerMehthod_VerifyInferredFieldName()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">

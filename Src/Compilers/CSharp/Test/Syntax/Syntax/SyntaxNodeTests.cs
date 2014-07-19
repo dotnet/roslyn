@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -2711,7 +2710,7 @@ namespace HelloWorld
             Assert.Equal(ChangesFromTransform, changes2UsingCommonSyntax);
         }
 
-        [Fact]
+        [Fact, WorkItem(658329, "DevDiv")]
         public void TestSyntaxTree_GetChangesInvalid()
         {
             string SourceText = @"using System;
@@ -2740,18 +2739,11 @@ namespace HelloWorld
             Assert.Equal(0, ChangesForDifferentTrees.Count);
 
             // With null tree
-            SyntaxTree BlankTree =null;
-            var BlankToSomethingChange = FirstUsingClause.SyntaxTree.GetChanges(BlankTree);
-            Assert.Equal(1, BlankToSomethingChange.Count);
-            Assert.Equal<TextSpan>(new TextSpan(0, 0), BlankToSomethingChange[0].Span);
-            Assert.Throws<System.NullReferenceException>(delegate
-            {
-                  var SomethingToBlankChange = BlankTree.GetChanges(FirstUsingClause .SyntaxTree);
-            });          
-
+            SyntaxTree BlankTree = null;
+            Assert.Throws<ArgumentNullException>(() => FirstUsingClause.SyntaxTree.GetChanges(BlankTree));
         }
 
-        [Fact]
+        [Fact, WorkItem(658329, "DevDiv")]
         public void TestSyntaxTree_GetChangedSpansInvalid()
         {
             string SourceText = @"using System;
@@ -2781,13 +2773,7 @@ namespace HelloWorld
             
             // With null tree
             SyntaxTree BlankTree = null;
-            var BlankToSomethingChange = FirstUsingClause.SyntaxTree.GetChangedSpans(BlankTree);
-            Assert.Equal(1, BlankToSomethingChange.Count);
-            Assert.Throws<System.NullReferenceException>(delegate
-            {
-                var SomethingToBlankChange = BlankTree.GetChangedSpans(FirstUsingClause.SyntaxTree);
-            });
-
+            Assert.Throws<ArgumentNullException>(() => FirstUsingClause.SyntaxTree.GetChangedSpans(BlankTree));
         }
     }
 }

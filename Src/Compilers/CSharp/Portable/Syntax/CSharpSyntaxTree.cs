@@ -2,8 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,8 +12,6 @@ using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-using System.Collections.Immutable;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -28,26 +27,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new abstract CSharpParseOptions Options { get; }
 
-        // REVIEW: I would prefer to not expose CloneAsRoot and make the functionality 
-        // internal to CaaS layer, to ensure that for a given SyntaxTree there can not 
-        // be multiple trees claiming to be its children. 
+        // REVIEW: I would prefer to not expose CloneAsRoot and make the functionality
+        // internal to CaaS layer, to ensure that for a given SyntaxTree there can not
+        // be multiple trees claiming to be its children.
         // 
-        // However, as long as we provide GetRoot extensibility point on SyntaxTree 
-        // the guarantee above cannot be implemented and we have to provide some way for 
+        // However, as long as we provide GetRoot extensibility point on SyntaxTree
+        // the guarantee above cannot be implemented and we have to provide some way for
         // creating root nodes.
         //
-        // Therefore I place CloneAsRoot API on SyntaxTree and make it protected to 
+        // Therefore I place CloneAsRoot API on SyntaxTree and make it protected to
         // at least limit its visibility to SyntaxTree extenders.
 
         /// <summary>
-        /// Produces a clone of a CSharpSyntaxNode which will have current syntax tree as its parent.
+        /// Produces a clone of a <see cref="CSharpSyntaxNode"/> which will have current syntax tree as its parent.
         /// 
-        /// Caller must guarantee that if the same instance of CSharpSyntaxNode makes multiple calls 
+        /// Caller must guarantee that if the same instance of <see cref="CSharpSyntaxNode"/> makes multiple calls
         /// to this function, only one result is observable.
         /// </summary>
         /// <typeparam name="T">Type of the syntax node.</typeparam>
         /// <param name="node">The original syntax node.</param>
-        /// <returns>A clone of the original syntax node that has current SyntaxTree as its parent.</returns>
+        /// <returns>A clone of the original syntax node that has current <see cref="CSharpSyntaxTree"/> as its parent.</returns>
         protected T CloneNodeAsRoot<T>(T node) where T : CSharpSyntaxNode
         {
             return CSharpSyntaxNode.CloneNodeAsRoot(node, this);
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public new abstract CSharpSyntaxNode GetRoot(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Gets the root node of the syntax tree if it is available.
+        /// Gets the root node of the syntax tree if it is already available.
         /// </summary>
         public abstract bool TryGetRoot(out CSharpSyntaxNode root);
 
@@ -73,19 +72,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return Task.FromResult(node);
             }
-            else
-            {
-                return Task.Factory.StartNew(() => this.GetRoot(cancellationToken), cancellationToken); // TODO: Should we use ExceptionFilter.ExecuteWithErrorReporting here?
-            }
+
+            return Task.Factory.StartNew(() => this.GetRoot(cancellationToken), cancellationToken); // TODO: Should we use ExceptionFilter.ExecuteWithErrorReporting here?
         }
 
         /// <summary>
-        /// Returns the root of the syntax tree strongly typed to <see cref="CompilationUnitSyntax"/>.
+        /// Gets the root of the syntax tree statically typed as <see cref="CompilationUnitSyntax"/>.
         /// </summary>
         /// <remarks>
-        /// Ensure that <see cref="P:HasCompilationUnitRoot"/> is true for this tree prior to invoking this method.
+        /// Ensure that <see cref="SyntaxTree.HasCompilationUnitRoot"/> is true for this tree prior to invoking this method.
         /// </remarks>
-        /// <exception cref="InvalidCastException">Throws this exception if <see cref="P:HasCompilationUnitRoot"/> is false.</exception>
+        /// <exception cref="InvalidCastException">Throws this exception if <see cref="SyntaxTree.HasCompilationUnitRoot"/> is false.</exception>
         public CompilationUnitSyntax GetCompilationUnitRoot(CancellationToken cancellationToken = default(CancellationToken))
         {
             return (CompilationUnitSyntax)this.GetRoot(cancellationToken);
@@ -95,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Determines if two trees are the same, disregarding trivia differences.
         /// </summary>
         /// <param name="tree">The tree to compare against.</param>
-        /// <param name="topLevel"> If true then the trees are equivalent if the contained nodes and tokens declaring
-        /// metadata visible symbolic information are equivalent, ignoring any differences of nodes inside method bodies
-        /// or initializer expressions, otherwise all nodes and tokens must be equivalent. 
+        /// <param name="topLevel">
+        /// If true then the trees are equivalent if the contained nodes and tokens declaring metadata visible symbolic information are equivalent,
+        /// ignoring any differences of nodes inside method bodies or initializer expressions, otherwise all nodes and tokens must be equivalent.
         /// </param>
         public override bool IsEquivalentTo(SyntaxTree tree, bool topLevel = false)
         {
@@ -110,31 +107,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(this.HasCompilationUnitRoot);
 
-                if (Options.Kind == SourceCodeKind.Interactive || Options.Kind == SourceCodeKind.Script)
-                {
-                    return this.GetCompilationUnitRoot().GetReferenceDirectives().Count > 0;
-                }
-
-                return false;
+                return (Options.Kind == SourceCodeKind.Interactive || Options.Kind == SourceCodeKind.Script) &&
+                        this.GetCompilationUnitRoot().GetReferenceDirectives().Count > 0;
             }
         }
 
         #region Preprocessor Symbols
         private bool hasDirectives;
-        private Syntax.InternalSyntax.DirectiveStack directives;
+        private InternalSyntax.DirectiveStack directives;
 
-        internal void SetDirectiveStack(Syntax.InternalSyntax.DirectiveStack directives)
+        internal void SetDirectiveStack(InternalSyntax.DirectiveStack directives)
         {
             this.directives = directives;
             this.hasDirectives = true;
         }
 
-        private Syntax.InternalSyntax.DirectiveStack GetDirectives()
+        private InternalSyntax.DirectiveStack GetDirectives()
         {
             if (!this.hasDirectives)
             {
-                var root = this.GetRoot(CancellationToken.None);
-                var stack = (root.CsGreen).ApplyDirectives(default(InternalSyntax.DirectiveStack));
+                var stack = this.GetRoot().CsGreen.ApplyDirectives(default(InternalSyntax.DirectiveStack));
                 SetDirectiveStack(stack);
             }
 
@@ -143,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsAnyPreprocessorSymbolDefined(ImmutableArray<string> conditionalSymbols)
         {
-            System.Diagnostics.Debug.Assert(conditionalSymbols != null);
+            Debug.Assert(conditionalSymbols != null);
 
             foreach (string conditionalSymbol in conditionalSymbols)
             {
@@ -163,21 +155,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsPreprocessorSymbolDefined(InternalSyntax.DirectiveStack directives, string symbolName)
         {
-            var defState = directives.IsDefined(symbolName);
-            switch (defState)
+            switch (directives.IsDefined(symbolName))
             {
-                default:
-                case InternalSyntax.DefineState.Unspecified:
-                    return this.Options.PreprocessorSymbols.Contains(symbolName);
                 case InternalSyntax.DefineState.Defined:
                     return true;
                 case InternalSyntax.DefineState.Undefined:
                     return false;
+                default:
+                    return this.Options.PreprocessorSymbols.Contains(symbolName);
             }
         }
 
         /// <summary>
-        /// Stores positions where preprocessor state change. Sorted by position.
+        /// Stores positions where preprocessor state changes. Sorted by position.
         /// The updated state can be found in <see cref="preprocessorStates"/> array at the same index.
         /// </summary>
         private ImmutableArray<int> preprocessorStateChangePositions;
@@ -185,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Preprocessor states corresponding to positions in <see cref="preprocessorStateChangePositions"/>.
         /// </summary>
-        private ImmutableArray<Syntax.InternalSyntax.DirectiveStack> preprocessorStates;
+        private ImmutableArray<InternalSyntax.DirectiveStack> preprocessorStates;
 
         internal bool IsPreprocessorSymbolDefined(string symbolName, int position)
         {
@@ -195,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int searchResult = preprocessorStateChangePositions.BinarySearch(position);
-            Syntax.InternalSyntax.DirectiveStack directives;
+            InternalSyntax.DirectiveStack directives;
 
             if (searchResult < 0)
             {
@@ -207,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    directives = Syntax.InternalSyntax.DirectiveStack.Empty;
+                    directives = InternalSyntax.DirectiveStack.Empty;
                 }
             }
             else
@@ -220,9 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void BuildPreprocessorStateChangeMap()
         {
-            Syntax.InternalSyntax.DirectiveStack currentState = Syntax.InternalSyntax.DirectiveStack.Empty;
+            InternalSyntax.DirectiveStack currentState = InternalSyntax.DirectiveStack.Empty;
             var positions = ArrayBuilder<int>.GetInstance();
-            var states = ArrayBuilder<Syntax.InternalSyntax.DirectiveStack>.GetInstance();
+            var states = ArrayBuilder<InternalSyntax.DirectiveStack>.GetInstance();
 
             foreach (DirectiveTriviaSyntax directive in this.GetRoot().GetDirectives(d =>
                                                                         {
@@ -290,12 +280,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableInterlocked.InterlockedInitialize(ref preprocessorStates, states.ToImmutableAndFree());
             ImmutableInterlocked.InterlockedInitialize(ref preprocessorStateChangePositions, positions.ToImmutableAndFree());
         }
+
         #endregion
 
         #region Factories
 
         /// <summary>
-        /// Create a new syntax tree from a syntax node.
+        /// Creates a new syntax tree from a syntax node.
         /// </summary>
         public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions options = null, string path = "", Encoding encoding = null)
         {
@@ -318,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Create a new syntax tree from a syntax node and with
+        /// Creates a new syntax tree from a syntax node and with
         /// text that should correspond to the syntax node.
         /// </summary>
         internal static SyntaxTree Create(CSharpSyntaxNode root, SourceText text)
@@ -335,11 +326,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// <para>
         /// Internal helper for <see cref="CSharpSyntaxNode"/> class to create a new syntax tree rooted at the given root node.
         /// This method does not create a clone of the given root, but instead preserves it's reference identity.
-        /// 
-        /// NOTE: This method is only intended to be used from <see cref="P:CSharpSyntaxNode.SyntaxTree"/> property.
-        /// NOTE: Do not use this method elsewhere, instead use <see cref="M:SyntaxTree.Create"/> method for creating a syntax tree.
+        /// </para>
+        /// <para>NOTE: This method is only intended to be used from <see cref="CSharpSyntaxNode.SyntaxTree"/> property.</para>
+        /// <para>NOTE: Do not use this method elsewhere, instead use <see cref="Create(CSharpSyntaxNode, CSharpParseOptions, string, Encoding)"/> method for creating a syntax tree.</para>
         /// </summary>
         internal static SyntaxTree CreateWithoutClone(CSharpSyntaxNode root)
         {
@@ -409,12 +401,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region Changes
 
         /// <summary>
-        /// Create a new syntax based off this tree using a new source text. 
-        /// 
-        /// If the new source text is a minor change from the current source text an incremental parse will occur
-        /// reusing most of the current syntax tree internal data.  Otherwise, a full parse will using the new
-        /// source text.
+        /// Creates a new syntax based off this tree using a new source text.
         /// </summary>
+        /// <remarks>
+        /// If the new source text is a minor change from the current source text an incremental parse will occur
+        /// reusing most of the current syntax tree internal data.  Otherwise, a full parse will occur using the new
+        /// source text.
+        /// </remarks>
         public override SyntaxTree WithChangedText(SourceText newText)
         {
             using (Logger.LogBlock(FunctionId.CSharp_SyntaxTree_IncrementalParse, message: this.FilePath))
@@ -432,11 +425,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return this.WithChanges(newText, changes);
                 }
-                else
-                {
-                    // if we do not easily know the old text, then specify entire text as changed so we do a full reparse.
-                    return this.WithChanges(newText, new TextChangeRange[] { new TextChangeRange(new TextSpan(0, this.Length), newText.Length) });
-                }
+
+                // if we do not easily know the old text, then specify entire text as changed so we do a full reparse.
+                return this.WithChanges(newText, new[] { new TextChangeRange(new TextSpan(0, this.Length), newText.Length) });
             }
         }
 
@@ -458,15 +449,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             using (var lexer = new InternalSyntax.Lexer(newText, this.Options))
+            using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree?.GetRoot(), changes))
             {
-                CSharpSyntaxNode oldRoot = oldTree != null ? oldTree.GetRoot() : null;
-                using (var parser = new InternalSyntax.LanguageParser(lexer, oldRoot, changes))
-                {
-                    var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
-                    var tree = new ParsedSyntaxTree(newText, newText.Encoding, this.FilePath, this.Options, compilationUnit, parser.Directives);
-                    tree.VerifySource(changes);
-                    return tree;
-                }
+                var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
+                var tree = new ParsedSyntaxTree(newText, newText.Encoding, this.FilePath, this.Options, compilationUnit, parser.Directives);
+                tree.VerifySource(changes);
+                return tree;
             }
         }
 
@@ -474,20 +462,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Produces a pessimistic list of spans that denote the regions of text in this tree that
         /// are changed from the text of the old tree.
         /// </summary>
-        /// <param name="oldTree">The old tree.</param>
+        /// <param name="oldTree">The old tree. Cannot be <c>null</c>.</param>
         /// <remarks>The list is pessimistic because it may claim more or larger regions than actually changed.</remarks>
         public override IList<TextSpan> GetChangedSpans(SyntaxTree oldTree)
         {
+            if (oldTree == null)
+            {
+                throw new ArgumentNullException("oldTree");
+            }
+
             return SyntaxDiffer.GetPossiblyDifferentTextSpans(oldTree, this);
         }
 
         /// <summary>
         /// Gets a list of text changes that when applied to the old tree produce this tree.
         /// </summary>
-        /// <param name="oldTree">The old tree.</param>
+        /// <param name="oldTree">The old tree. Cannot be <c>null</c>.</param>
         /// <remarks>The list of changes may be different than the original changes that produced this tree.</remarks>
         public override IList<TextChange> GetChanges(SyntaxTree oldTree)
         {
+            if (oldTree == null)
+            {
+                throw new ArgumentNullException("oldTree");
+            }
+
             return SyntaxDiffer.GetTextChanges(oldTree, this);
         }
 
@@ -499,29 +497,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the location in terms of path, line and column for a given span.
         /// </summary>
         /// <param name="span">Span within the tree.</param>
-        /// <param name="cancellationToken">Cancallation token.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// <see cref="FileLinePositionSpan"/> that contains path, line and column information.
-        /// The values are not affected by line mapping directives (<code>#line</code>).
         /// </returns>
+        /// <remarks>The values are not affected by line mapping directives (<c>#line</c>).</remarks>
         public override FileLinePositionSpan GetLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
         {
             return new FileLinePositionSpan(this.FilePath, GetLinePosition(span.Start), GetLinePosition(span.End));
         }
 
         /// <summary>
-        /// Gets the location in terms of path, line and column after applying source line mapping directives (<code>#line</code>). 
+        /// Gets the location in terms of path, line and column after applying source line mapping directives (<c>#line</c>). 
         /// </summary>
         /// <param name="span">Span within the tree.</param>
-        /// <param name="cancellationToken">Cancallation token.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
-        /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
-        /// 
-        /// If the location path is mapped the resulting path is the path specified in the corresponding <code>#line</code>,
+        /// <para>A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.</para>
+        /// <para>
+        /// If the location path is mapped the resulting path is the path specified in the corresponding <c>#line</c>,
         /// otherwise it's <see cref="SyntaxTree.FilePath"/>.
-        /// 
-        /// A location path is considered mapped if the first <code>#line</code> directive that preceeds it and that 
-        /// either specifies an explicit file path or is <code>#line default</code> exists and specifies an explicit path.
+        /// </para>
+        /// <para>
+        /// A location path is considered mapped if the first <c>#line</c> directive that preceeds it and that
+        /// either specifies an explicit file path or is <c>#line default</c> exists and specifies an explicit path.
+        /// </para>
         /// </returns>
         public override FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// primarily for diagnostics and source locations.
         /// </summary>
         /// <param name="span">The source <see cref="TextSpan" /> to convert.</param>
-        /// <param name="isHiddenPosition">Returns a boolean indicating whether this span is considered hidden or not.</param>
+        /// <param name="isHiddenPosition">When the method returns, contains a boolean value indicating whether this span is considered hidden or not.</param>
         /// <returns>A resulting <see cref="FileLinePositionSpan"/>.</returns>
         internal override FileLinePositionSpan GetMappedLineSpanAndVisibility(TextSpan span, out bool isHiddenPosition)
         {
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Are there any hidden regions in the tree?
+        /// Gets a boolean value indicating whether there are any hidden regions in the tree.
         /// </summary>
         /// <returns>True if there is at least one hidden region.</returns>
         public override bool HasHiddenRegions()
@@ -578,7 +578,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lazyLineDirectiveMap.HasAnyHiddenRegions();
         }
 
-        // Given the error code and the source location, get the warning state based on pragma warning directives.
+        /// <summary>
+        /// Given the error code and the source location, get the warning state based on <c>#pragma warning</c> directives.
+        /// </summary>
+        /// <param name="id">Error code.</param>
+        /// <param name="position">Source location.</param>
         internal ReportDiagnostic GetPragmaDirectiveWarningState(string id, int position)
         {
             if (lazyPragmaWarningStateMap == null)
@@ -591,6 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private CSharpLineDirectiveMap lazyLineDirectiveMap;
+
         private CSharpPragmaWarningStateMap lazyPragmaWarningStateMap;
 
         private LinePosition GetLinePosition(int position)
@@ -599,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Gets a <see cref="Location"/> for the specified text span.
+        /// Gets a <see cref="Location"/> for the specified text <paramref name="span"/>.
         /// </summary>
         public override Location GetLocation(TextSpan span)
         {
@@ -612,13 +617,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Gets a list of all the diagnostics in the sub tree that has the specified node as its root.
-        /// This method does not filter diagnostics based on #pragmas and compiler options
-        /// like nowarn, warnaserror etc.
         /// </summary>
+        /// <remarks>
+        /// This method does not filter diagnostics based on <c>#pragma</c>s and compiler options
+        /// like /nowarn, /warnaserror etc.
+        /// </remarks>
         public override IEnumerable<Diagnostic> GetDiagnostics(SyntaxNode node)
         {
             if (node == null)
+            {
                 throw new ArgumentNullException("node");
+            }
 
             return GetDiagnostics(node.Green, node.Position);
         }
@@ -626,7 +635,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private IEnumerable<Diagnostic> GetDiagnostics(GreenNode greenNode, int position)
         {
             if (greenNode == null)
+            {
                 throw new InvalidOperationException();
+            }
 
             if (greenNode.ContainsDiagnostics)
             {
@@ -647,40 +658,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Gets a list of all the diagnostics associated with the token and any related trivia.
-        /// This method does not filter diagnostics based on #pragmas and compiler options
-        /// like nowarn, warnaserror etc.
         /// </summary>
+        /// <remarks>
+        /// This method does not filter diagnostics based on <c>#pragma</c>s and compiler options
+        /// like /nowarn, /warnaserror etc.
+        /// </remarks>
         public override IEnumerable<Diagnostic> GetDiagnostics(SyntaxToken token)
         {
-            return GetDiagnostics((InternalSyntax.CSharpSyntaxNode)token.Node, token.Position);
+            return GetDiagnostics(token.Node, token.Position);
         }
 
         /// <summary>
         /// Gets a list of all the diagnostics associated with the trivia.
-        /// This method does not filter diagnostics based on #pragmas and compiler options
-        /// like nowarn, warnaserror etc.
         /// </summary>
+        /// <remarks>
+        /// This method does not filter diagnostics based on <c>#pragma</c>s and compiler options
+        /// like /nowarn, /warnaserror etc.
+        /// </remarks>
         public override IEnumerable<Diagnostic> GetDiagnostics(SyntaxTrivia trivia)
         {
-            return GetDiagnostics((InternalSyntax.CSharpSyntaxNode)trivia.UnderlyingNode, trivia.Position);
+            return GetDiagnostics(trivia.UnderlyingNode, trivia.Position);
         }
 
         /// <summary>
         /// Gets a list of all the diagnostics in either the sub tree that has the specified node as its root or
         /// associated with the token and its related trivia. 
-        /// This method does not filter diagnostics based on #pragmas and compiler options
-        /// like nowarn, warnaserror etc.
         /// </summary>
+        /// <remarks>
+        /// This method does not filter diagnostics based on <c>#pragma</c>s and compiler options
+        /// like /nowarn, /warnaserror etc.
+        /// </remarks>
         public override IEnumerable<Diagnostic> GetDiagnostics(SyntaxNodeOrToken nodeOrToken)
         {
-            return GetDiagnostics((InternalSyntax.CSharpSyntaxNode)nodeOrToken.UnderlyingNode, nodeOrToken.Position);
+            return GetDiagnostics(nodeOrToken.UnderlyingNode, nodeOrToken.Position);
         }
 
         /// <summary>
         /// Gets a list of all the diagnostics in the syntax tree.
-        /// This method does not filter diagnostics based on #pragmas and compiler options
-        /// like nowarn, warnaserror etc.
         /// </summary>
+        /// <remarks>
+        /// This method does not filter diagnostics based on <c>#pragma</c>s and compiler options
+        /// like /nowarn, /warnaserror etc.
+        /// </remarks>
         public override IEnumerable<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
         {
             return this.GetDiagnostics(this.GetRoot(cancellationToken));

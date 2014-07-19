@@ -1,8 +1,5 @@
 ' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.ObjectModel
-Imports System.IO
-Imports System.Runtime.CompilerServices
 Imports System.Text
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -15,6 +12,7 @@ Imports Parser = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Parser
 Imports Scanner = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Scanner
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
+
     ''' <summary>
     ''' The parsed representation of a Visual Basic source document.
     ''' </summary>
@@ -36,20 +34,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Produces a clone of a SyntaxNode which will have current syntax tree as its parent.
+        ''' Produces a clone of a <see cref="VisualBasicSyntaxNode"/> which will have current syntax tree as its parent.
         ''' 
-        ''' Caller must guarantee that if the same instance of SyntaxNode makes multiple calls 
+        ''' Caller must guarantee that if the same instance of <see cref="VisualBasicSyntaxNode"/> makes multiple calls
         ''' to this function, only one result is observable.
         ''' </summary>
         ''' <typeparam name="T">Type of the syntax node.</typeparam>
         ''' <param name="node">The original syntax node.</param>
-        ''' <returns>A clone of the original syntax node that has current SyntaxTree as its parent.</returns>
+        ''' <returns>A clone of the original syntax node that has current <see cref="VisualBasicSyntaxTree"/> as its parent.</returns>
         Protected Function CloneNodeAsRoot(Of T As VisualBasicSyntaxNode)(node As T) As T
             Return VisualBasicSyntaxNode.CloneNodeAsRoot(node, Me)
         End Function
 
         ''' <summary>
-        ''' Gets the root node of the syntax tree. 
+        ''' Gets the root node of the syntax tree.
         ''' </summary>
         Public MustOverride Shadows Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
 
@@ -60,23 +58,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim node As VisualBasicSyntaxNode = Nothing
             If Me.TryGetRoot(node) Then
                 Return Task.FromResult(node)
-            Else
-                Return Task.Factory.StartNew(Function() Me.GetRoot(cancellationToken), cancellationToken) ' TODO: Should we use ExceptionFilter.ExecuteWithErrorReporting here?
             End If
+
+            Return Task.Factory.StartNew(Function() Me.GetRoot(cancellationToken), cancellationToken) ' TODO: Should we use ExceptionFilter.ExecuteWithErrorReporting here?
         End Function
 
         ''' <summary>
-        ''' Gets the root node of the syntax tree if it is available.
+        ''' Gets the root node of the syntax tree if it is already available.
         ''' </summary>
         Public MustOverride Shadows Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean
 
         ''' <summary>
-        ''' Returns the root of the syntax tree strongly typed to <see cref="CompilationUnitSyntax"/>.
+        ''' Gets the root of the syntax tree statically typed as <see cref="CompilationUnitSyntax"/>.
         ''' </summary>
         ''' <remarks>
-        ''' Ensure that <see cref="P:HasCompilationUnitRoot"/> is true for this tree prior to invoking this method.
+        ''' Ensure that <see cref="SyntaxTree.HasCompilationUnitRoot"/> is true for this tree prior to invoking this method.
         ''' </remarks>
-        ''' <exception cref="InvalidCastException">Throws this exception if <see cref="P:HasCompilationUnitRoot"/> is false.</exception>
+        ''' <exception cref="InvalidCastException">Throws this exception if <see cref="SyntaxTree.HasCompilationUnitRoot"/> is false.</exception>
         Public Function GetCompilationUnitRoot(Optional cancellationToken As CancellationToken = Nothing) As CompilationUnitSyntax
             Return DirectCast(Me.GetRoot(cancellationToken), CompilationUnitSyntax)
         End Function
@@ -85,46 +83,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 Debug.Assert(Me.HasCompilationUnitRoot)
 
-                If Options.Kind = SourceCodeKind.Interactive OrElse Options.Kind = SourceCodeKind.Script Then
-                    Return GetCompilationUnitRoot().GetReferenceDirectives().Any()
-                End If
-
-                Return False
+                Return (Options.Kind = SourceCodeKind.Interactive OrElse Options.Kind = SourceCodeKind.Script) AndAlso
+                        GetCompilationUnitRoot().GetReferenceDirectives().Count > 0
             End Get
         End Property
 
         ''' <summary>
-        ''' Create a new syntax based off this tree using a new source text. 
-        ''' 
-        ''' If the new source text is a minor change from the current source text an incremental parse will occur
-        ''' reusing most of the current syntax tree internal data.  Otherwise, a full parse will using the new
-        ''' source text.
+        ''' Creates a new syntax based off this tree using a new source text.
         ''' </summary>
+        ''' <remarks>
+        ''' If the new source text is a minor change from the current source text an incremental parse will occur
+        ''' reusing most of the current syntax tree internal data.  Otherwise, a full parse will occur using the new
+        ''' source text.
+        ''' </remarks>
         Public Overrides Function WithChangedText(newText As SourceText) As SyntaxTree
             Using Logger.LogBlock(FunctionId.VisualBasic_SyntaxTree_IncrementalParse, message:=Me.FilePath)
                 ' try to find the changes between the old text and the new text.
                 Dim oldText As SourceText = Nothing
                 If Me.TryGetText(oldText) Then
-                    Dim changes = newText.GetChangeRanges(oldText)
-                    Return Me.WithChanges(newText, changes.ToArray())
-                Else
-                    ' if we do not easily know the old text, then specify entire text as changed so we do a full reparse.
-                    Return Me.WithChanges(newText, New TextChangeRange() {New TextChangeRange(New TextSpan(0, Me.Length), newText.Length)})
+                    Return Me.WithChanges(newText, newText.GetChangeRanges(oldText).ToArray())
                 End If
+
+                ' if we do not easily know the old text, then specify entire text as changed so we do a full reparse.
+                Return Me.WithChanges(newText, {New TextChangeRange(New TextSpan(0, Me.Length), newText.Length)})
             End Using
         End Function
 
         ''' <summary>
-        ''' Apply a text change to this syntax tree, returning a new syntax tree with the
-        ''' changes applied to it.
+        ''' Applies a text change to this syntax tree, returning a new syntax tree with the changes applied to it.
         ''' </summary>
         Private Function WithChanges(newText As SourceText, changes As TextChangeRange()) As SyntaxTree
-            Dim scanner As Scanner
-
             If changes Is Nothing Then
                 Throw New ArgumentNullException("changes")
             End If
 
+            Dim scanner As Scanner
             If changes.Length = 1 AndAlso changes(0).Span = New TextSpan(0, Me.Length) AndAlso changes(0).NewLength = newText.Length Then
                 ' if entire text is replaced then do a full reparse
                 scanner = New Scanner(newText, Options)
@@ -134,10 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim node As InternalSyntax.CompilationUnitSyntax
             Using scanner
-                Dim parser As New Parser(scanner)
-
-                Dim parsedTree = TryCast(Me, ParsedSyntaxTree)
-                node = parser.ParseCompilationUnit()
+                node = New Parser(scanner).ParseCompilationUnit()
             End Using
 
             Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
@@ -148,10 +138,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private _lineDirectiveMap As VisualBasicLineDirectiveMap  ' created on demand
+
         Friend Shared ReadOnly Dummy As VisualBasicSyntaxTree = New DummySyntaxTree()
 
         ''' <summary>
-        ''' Create a new syntax tree from a syntax node.
+        ''' Creates a new syntax tree from a syntax node.
         ''' </summary>
         Public Shared Function Create(root As VisualBasicSyntaxNode,
                                       Optional options As VisualBasicParseOptions = Nothing,
@@ -171,11 +162,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' <para>
         ''' Internal helper for <see cref="VisualBasicSyntaxNode"/> class to create a new syntax tree rooted at the given root node.
-        ''' This method does not create a clone of the given root, but instead preserves it's reference identity.
-        '''
-        ''' NOTE: This method is only intended to be used from <see cref="P:SyntaxNode.SyntaxTree"/> property.
-        ''' NOTE: Do not use this method elsewhere, instead use <see cref="M:SyntaxTree.Create"/> method for creating a syntax tree.
+        ''' This method does not create a clone of the given root, but instead preserves its reference identity.
+        ''' </para>
+        ''' <para>NOTE: This method is only intended to be used from <see cref="SyntaxNode.SyntaxTree"/> property.</para>
+        ''' <para>NOTE: Do not use this method elsewhere, instead use <see cref="Create"/> method for creating a syntax tree.</para>
         ''' </summary>
         Friend Shared Function CreateWithoutClone(root As VisualBasicSyntaxNode) As SyntaxTree
             Debug.Assert(root IsNot Nothing)
@@ -208,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Produce a syntax tree by parsing the source text.
+        ''' Creates a syntax tree by parsing the source text.
         ''' </summary>
         Public Shared Function ParseText(text As SourceText,
                                          Optional options As VisualBasicParseOptions = Nothing,
@@ -249,8 +241,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Gets a list of all the diagnostics in the sub tree that has the specified node as its root.
-        ''' This method does not filter diagnostics based on compiler options like nowarn, warnaserror etc.
         ''' </summary>
+        ''' <remarks>
+        ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
+        ''' </remarks>
         Public Overrides Function GetDiagnostics(node As SyntaxNode) As IEnumerable(Of Diagnostic)
             If node Is Nothing Then Throw New ArgumentNullException("node")
 
@@ -259,33 +253,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Gets a list of all the diagnostics associated with the token and any related trivia.
-        ''' This method does not filter diagnostics based on compiler options like nowarn, warnaserror etc.
         ''' </summary>
+        ''' <remarks>
+        ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
+        ''' </remarks>
         Public Overrides Function GetDiagnostics(token As SyntaxToken) As IEnumerable(Of Diagnostic)
             Return Me.GetDiagnostics(DirectCast(token.Node, InternalSyntax.SyntaxToken), token.Position, InDocumentationComment(token))
         End Function
 
         ''' <summary>
         ''' Gets a list of all the diagnostics associated with the trivia.
-        ''' This method does not filter diagnostics based on compiler options like nowarn, warnaserror etc.
         ''' </summary>
+        ''' <remarks>
+        ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
+        ''' </remarks>
         Public Overrides Function GetDiagnostics(trivia As SyntaxTrivia) As IEnumerable(Of Diagnostic)
             Return Me.GetDiagnostics(DirectCast(trivia.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), trivia.Position, InDocumentationComment(trivia))
         End Function
 
         ''' <summary>
         ''' Gets a list of all the diagnostics in either the sub tree that has the specified node as its root or
-        ''' associated with the token and its related trivia. 
-        ''' This method does not filter diagnostics based on compiler options like nowarn, warnaserror etc.
+        ''' associated with the token and its related trivia.
         ''' </summary>
+        ''' <remarks>
+        ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
+        ''' </remarks>
         Public Overrides Function GetDiagnostics(nodeOrToken As SyntaxNodeOrToken) As IEnumerable(Of Diagnostic)
             Return Me.GetDiagnostics(DirectCast(nodeOrToken.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), nodeOrToken.Position, InDocumentationComment(nodeOrToken))
         End Function
 
         ''' <summary>
         ''' Gets a list of all the diagnostics in the syntax tree.
-        ''' This method does not filter diagnostics based on compiler options like nowarn, warnaserror etc.
         ''' </summary>
+        ''' <remarks>
+        ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
+        ''' </remarks>
         Public Overrides Function GetDiagnostics(Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of Diagnostic)
             Return Me.GetDiagnostics(Me.GetRoot(cancellationToken).VbGreen, 0, False)
         End Function
@@ -321,19 +323,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 node = node.Parent
             End While
 
-            If foundXml AndAlso node IsNot Nothing Then
-                Return node.IsKind(SyntaxKind.DocumentationCommentTrivia)
-            End If
-
-            Return False
+            Return foundXml AndAlso node IsNot Nothing AndAlso node.IsKind(SyntaxKind.DocumentationCommentTrivia)
         End Function
 
         Private Function InDocumentationComment(node As SyntaxNodeOrToken) As Boolean
             If node.IsToken Then
                 Return InDocumentationComment(node.AsToken)
-            Else
-                Return InDocumentationComment(node.AsNode)
             End If
+
+            Return InDocumentationComment(node.AsNode)
         End Function
 
         Private Function InDocumentationComment(token As SyntaxToken) As Boolean
@@ -345,23 +343,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Gets the location in terms of path, line and column for a given span.
+        ''' Gets the location in terms of path, line and column for a given <paramref name="span"/>.
         ''' </summary>
         ''' <param name="span">Span within the tree.</param>
-        ''' <param name="cancellationToken">Cancallation token.</param>
+        ''' <param name="cancellationToken">Cancellation token.</param>
         ''' <returns>
         ''' <see cref="FileLinePositionSpan"/> that contains path, line and column information.
-        ''' The values are Not affected by line mapping directives (<code>#ExternalSource</code>).
         ''' </returns>
+        ''' <remarks>
+        ''' The values are not affected by line mapping directives (<c>#ExternalSource</c>).
+        ''' </remarks>
         Public Overrides Function GetLineSpan(span As TextSpan, Optional cancellationToken As CancellationToken = Nothing) As FileLinePositionSpan
             Return New FileLinePositionSpan(Me.FilePath, GetLinePosition(span.Start), GetLinePosition(span.End))
         End Function
 
         ''' <summary>
-        ''' Gets the location in terms of path, line and column after applying source line mapping directives (<code>#ExternalSource</code>). 
+        ''' Gets the location in terms of path, line and column after applying source line mapping directives (<c>#ExternalSource</c>).
         ''' </summary>
         ''' <param name="span">Span within the tree.</param>
-        ''' <param name="cancellationToken">Cancallation token.</param>
+        ''' <param name="cancellationToken">Cancellation token.</param>
         ''' <returns>
         ''' A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         '''
@@ -420,7 +420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Gets a location for the specified text span.
+        ''' Gets a location for the specified text <paramref name="span"/>.
         ''' </summary>
         Public Overrides Function GetLocation(span As TextSpan) As Location
             If Me.IsEmbeddedSyntaxTree Then
@@ -428,6 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf Me.IsMyTemplate Then
                 Return New MyTemplateLocation(Me, span)
             End If
+
             Return New SourceLocation(Me, span)
         End Function
 
@@ -435,19 +436,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Determines if two trees are the same, disregarding trivia differences.
         ''' </summary>
         ''' <param name="tree">The tree to compare against.</param>
-        ''' <param name="topLevel"> If true then the trees are equivalent if the contained nodes and tokens declaring
-        ''' metadata visible symbolic information are equivalent, ignoring any differences of nodes inside method bodies
-        ''' or initializer expressions, otherwise all nodes and tokens must be equivalent. 
+        ''' <param name="topLevel">
+        ''' If true then the trees are equivalent if the contained nodes and tokens declaring metadata visible symbolic information are equivalent,
+        ''' ignoring any differences of nodes inside method bodies or initializer expressions, otherwise all nodes and tokens must be equivalent.
         ''' </param>
         Public Overrides Function IsEquivalentTo(tree As SyntaxTree, Optional topLevel As Boolean = False) As Boolean
             Return SyntaxFactory.AreEquivalent(Me, tree, topLevel)
         End Function
 
+        ''' <summary>
+        ''' Produces a pessimistic list of spans that denote the regions of text in this tree that
+        ''' are changed from the text of the old tree.
+        ''' </summary>
+        ''' <param name="oldTree">The old tree. Cannot be <c>Nothing</c>.</param>
+        ''' <remarks>The list is pessimistic because it may claim more or larger regions than actually changed.</remarks>
         Public Overrides Function GetChangedSpans(oldTree As SyntaxTree) As IList(Of TextSpan)
+            If oldTree Is Nothing Then
+                Throw New ArgumentNullException("oldTree")
+            End If
+
             Return SyntaxDiffer.GetPossiblyDifferentTextSpans(oldTree.GetRoot(), Me.GetRoot())
         End Function
 
+        ''' <summary>
+        ''' Gets a list of text changes that when applied to the old tree produce this tree.
+        ''' </summary>
+        ''' <param name="oldTree">The old tree. Cannot be <c>Nothing</c>.</param>
+        ''' <remarks>The list of changes may be different than the original changes that produced this tree.</remarks>
         Public Overrides Function GetChanges(oldTree As SyntaxTree) As IList(Of TextChange)
+            If oldTree Is Nothing Then
+                Throw New ArgumentNullException("oldTree")
+            End If
+
             Return SyntaxDiffer.GetTextChanges(oldTree, Me)
         End Function
 
@@ -487,8 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property ConditionalSymbols As ConditionalSymbolsMap
             Get
                 If _lazySymbolsMap Is ConditionalSymbolsMap.Uninitialized Then
-                    Dim root = Me.GetRoot(CancellationToken.None)
-                    Interlocked.CompareExchange(_lazySymbolsMap, ConditionalSymbolsMap.Create(root, Options), ConditionalSymbolsMap.Uninitialized)
+                    Interlocked.CompareExchange(_lazySymbolsMap, ConditionalSymbolsMap.Create(Me.GetRoot(CancellationToken.None), Options), ConditionalSymbolsMap.Uninitialized)
                 End If
 
                 Return _lazySymbolsMap
@@ -496,14 +515,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Function IsAnyPreprocessorSymbolDefined(conditionalSymbolNames As IEnumerable(Of String), atNode As SyntaxNodeOrToken) As Boolean
-            System.Diagnostics.Debug.Assert(conditionalSymbolNames IsNot Nothing)
+            Debug.Assert(conditionalSymbolNames IsNot Nothing)
 
             Dim conditionalSymbolsMap As ConditionalSymbolsMap = Me.ConditionalSymbols
             If conditionalSymbolsMap Is Nothing Then
                 Return False
             End If
 
-            For Each conditionalSymbolName In conditionalSymbolNames
+            For Each conditionalSymbolName As String In conditionalSymbolNames
                 If conditionalSymbolsMap.IsConditionalSymbolDefined(conditionalSymbolName, atNode) Then
                     Return True
                 End If
