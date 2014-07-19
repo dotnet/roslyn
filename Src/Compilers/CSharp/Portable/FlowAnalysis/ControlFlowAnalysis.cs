@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -21,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly RegionAnalysisContext context;
 
-        private IEnumerable<SyntaxNode> entryPoints;
-        private IEnumerable<SyntaxNode> exitPoints;
+        private ImmutableArray<SyntaxNode> entryPoints;
+        private ImmutableArray<SyntaxNode> exitPoints;
         private object regionStartPointIsReachable;
         private object regionEndPointIsReachable;
         private bool? succeeded = null;
@@ -35,16 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A collection of statements outside the region that jump into the region.
         /// </summary>
-        public override IEnumerable<SyntaxNode> EntryPoints
+        public override ImmutableArray<SyntaxNode> EntryPoints
         {
             get
             {
                 if (entryPoints == null)
                 {
                     this.succeeded = !context.Failed;
-                    var result = context.Failed ? Enumerable.Empty<SyntaxNode>() :
-                            EntryPointsWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, out this.succeeded);
-                    Interlocked.CompareExchange(ref entryPoints, result, null);
+                    var result = context.Failed ? ImmutableArray<SyntaxNode>.Empty :
+                            ((IEnumerable<SyntaxNode>)EntryPointsWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, out this.succeeded)).ToImmutableArray();
+                    ImmutableInterlocked.InterlockedInitialize(ref entryPoints, result);
                 }
 
                 return entryPoints;
@@ -54,16 +50,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A collection of statements inside the region that jump to locations outside the region.
         /// </summary>
-        public override IEnumerable<SyntaxNode> ExitPoints
+        public override ImmutableArray<SyntaxNode> ExitPoints
         {
             get
             {
                 if (exitPoints == null)
                 {
                     var result = Succeeded
-                        ? ExitPointsWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion)
-                        : Enumerable.Empty<SyntaxNode>();
-                    Interlocked.CompareExchange(ref exitPoints, result, null);
+                        ? ((IEnumerable<SyntaxNode>)ExitPointsWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion)).ToImmutableArray()
+                        : ImmutableArray<SyntaxNode>.Empty;
+                    ImmutableInterlocked.InterlockedInitialize(ref exitPoints, result);
                 }
 
                 return exitPoints;
@@ -122,14 +118,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A collection of return (or yield break) statements found within the region that return from the enclosing method or lambda.
         /// </summary>
-        // [Obsolete("The return statements in a region are now included in the result of ExitPoints.", false)]
-        public override IEnumerable<SyntaxNode> ReturnStatements
+        public override ImmutableArray<SyntaxNode> ReturnStatements
         {
             // Return statements out of the region are computed in precisely the same
             // way that jumps out of the region are computed.
             get
             {
-                return ExitPoints.Where(s => s.IsKind(SyntaxKind.ReturnStatement) || s.IsKind(SyntaxKind.YieldBreakStatement));
+                return ExitPoints.WhereAsArray(s => s.IsKind(SyntaxKind.ReturnStatement) || s.IsKind(SyntaxKind.YieldBreakStatement));
             }
         }
 

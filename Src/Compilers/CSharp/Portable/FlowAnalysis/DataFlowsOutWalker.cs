@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -18,15 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     class DataFlowsOutWalker : AbstractRegionDataFlowPass
     {
-        private readonly HashSet<Symbol> dataFlowsIn;
+        private readonly ImmutableArray<ISymbol> dataFlowsIn;
 
-        DataFlowsOutWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, HashSet<Symbol> unassignedVariables, HashSet<Symbol> dataFlowsIn)
+        DataFlowsOutWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, HashSet<Symbol> unassignedVariables, ImmutableArray<ISymbol> dataFlowsIn)
             : base(compilation, member, node, firstInRegion, lastInRegion, unassignedVariables, trackUnassignments: true)
         {
             this.dataFlowsIn = dataFlowsIn;
         }
 
-        internal static HashSet<Symbol> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, HashSet<Symbol> unassignedVariables, HashSet<Symbol> dataFlowsIn)
+        internal static HashSet<Symbol> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, HashSet<Symbol> unassignedVariables, ImmutableArray<ISymbol> dataFlowsIn)
         {
             var walker = new DataFlowsOutWalker(compilation, member, node, firstInRegion, lastInRegion, unassignedVariables, dataFlowsIn);
             try
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to handle loops properly, we must assume that every variable that flows in is
             // assigned at the beginning of the loop.  If it isn't, then it must be in a loop
             // and flow out of the region in that loop (and into the region inside the loop).
-            foreach (var variable in dataFlowsIn)
+            foreach (Symbol variable in dataFlowsIn)
             {
                 int slot = this.MakeSlot(variable);
                 if (slot > 0 && !this.State.IsAssigned(slot))

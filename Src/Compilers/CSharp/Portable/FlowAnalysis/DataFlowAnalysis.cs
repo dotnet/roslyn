@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Enumerable = System.Linq.Enumerable;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -21,17 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly RegionAnalysisContext context;
 
-        private IEnumerable<Symbol> variablesDeclared;
+        private ImmutableArray<ISymbol> variablesDeclared;
         private HashSet<Symbol> unassignedVariables;
-        private HashSet<Symbol> dataFlowsIn;
-        private HashSet<Symbol> dataFlowsOut;
-        private IEnumerable<Symbol> alwaysAssigned;
-        private IEnumerable<Symbol> readInside;
-        private IEnumerable<Symbol> writtenInside;
-        private IEnumerable<Symbol> readOutside;
-        private IEnumerable<Symbol> writtenOutside;
-        private IEnumerable<Symbol> captured;
-        private IEnumerable<Symbol> unsafeAddressTaken;
+        private ImmutableArray<ISymbol> dataFlowsIn;
+        private ImmutableArray<ISymbol> dataFlowsOut;
+        private ImmutableArray<ISymbol> alwaysAssigned;
+        private ImmutableArray<ISymbol> readInside;
+        private ImmutableArray<ISymbol> writtenInside;
+        private ImmutableArray<ISymbol> readOutside;
+        private ImmutableArray<ISymbol> writtenOutside;
+        private ImmutableArray<ISymbol> captured;
+        private ImmutableArray<ISymbol> unsafeAddressTaken;
         private HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes;
         private bool? succeeded = null;
 
@@ -45,19 +42,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// bounded by a method's body or a field's initializer, so method parameter symbols are never included
         /// in the result, but lambda parameters might appear in the result.
         /// </summary>
-        public override IEnumerable<ISymbol> VariablesDeclared
+        public override ImmutableArray<ISymbol> VariablesDeclared
         {
             // Variables declared in the region is computed by a simple scan.
             // ISSUE: are these only variables declared at the top level in the region,
             // or are we to include variables declared in deeper scopes within the region?
             get
             {
-                if (variablesDeclared == null)
+                if (variablesDeclared.IsDefault)
                 {
                     var result = Succeeded
-                        ? VariablesDeclaredWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion)
-                        : Enumerable.Empty<Symbol>();
-                    Interlocked.CompareExchange(ref variablesDeclared, result, null);
+                        ? ((IEnumerable<ISymbol>)VariablesDeclaredWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion)).ToImmutableArray()
+                        : ImmutableArray<ISymbol>.Empty;
+                    ImmutableInterlocked.InterlockedInitialize(ref variablesDeclared, result);
                 }
 
                 return variablesDeclared;
@@ -83,16 +80,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A collection of the local variables for which a value assigned outside the region may be used inside the region.
         /// </summary>
-        public override IEnumerable<ISymbol> DataFlowsIn
+        public override ImmutableArray<ISymbol> DataFlowsIn
         {
             get
             {
                 if (dataFlowsIn == null)
                 {
                     succeeded = !context.Failed;
-                    var result = context.Failed ? new HashSet<Symbol>() :
-                        DataFlowsInWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, UnassignedVariables, UnassignedVariableAddressOfSyntaxes, out succeeded);
-                    Interlocked.CompareExchange(ref dataFlowsIn, result, null);
+                    var result = context.Failed ? ImmutableArray<ISymbol>.Empty :
+                        ((IEnumerable<ISymbol>)DataFlowsInWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, UnassignedVariables, UnassignedVariableAddressOfSyntaxes, out succeeded)).ToImmutableArray();
+                    ImmutableInterlocked.InterlockedInitialize(ref dataFlowsIn, result);
                 }
 
                 return dataFlowsIn;
@@ -103,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A collection of the local variables for which a value assigned inside the region may be used outside the region.
         /// Note that every reachable assignment to a ref or out variable will be included in the results.
         /// </summary>
-        public override IEnumerable<ISymbol> DataFlowsOut
+        public override ImmutableArray<ISymbol> DataFlowsOut
         {
             get
             {
@@ -111,9 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (dataFlowsOut == null)
                 {
                     var result = Succeeded
-                        ? DataFlowsOutWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, UnassignedVariables, dataFlowsIn)
-                        : new HashSet<Symbol>();
-                    Interlocked.CompareExchange(ref dataFlowsOut, result, null);
+                        ? ((IEnumerable<ISymbol>)DataFlowsOutWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, UnassignedVariables, dataFlowsIn)).ToImmutableArray()
+                        : ImmutableArray<ISymbol>.Empty;
+                    ImmutableInterlocked.InterlockedInitialize(ref dataFlowsOut, result);
                 }
 
                 return dataFlowsOut;
@@ -123,16 +120,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A collection of the local variables for which a value is always assigned inside the region.
         /// </summary>
-        public override IEnumerable<ISymbol> AlwaysAssigned
+        public override ImmutableArray<ISymbol> AlwaysAssigned
         {
             get
             {
                 if (alwaysAssigned == null)
                 {
                     var result = Succeeded
-                        ? AlwaysAssignedWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion)
-                        : Enumerable.Empty<Symbol>();
-                    Interlocked.CompareExchange(ref alwaysAssigned, result, null);
+                        ? ((IEnumerable<ISymbol>)AlwaysAssignedWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion)).ToImmutableArray()
+                        : ImmutableArray<ISymbol>.Empty;
+                    ImmutableInterlocked.InterlockedInitialize(ref alwaysAssigned, result);
                 }
 
                 return alwaysAssigned;
@@ -142,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A collection of the local variables that are read inside the region.
         /// </summary>
-        public override IEnumerable<ISymbol> ReadInside
+        public override ImmutableArray<ISymbol> ReadInside
         {
             get
             {
@@ -158,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A collection of local variables that are written inside the region.
         /// </summary>
-        public override IEnumerable<ISymbol> WrittenInside
+        public override ImmutableArray<ISymbol> WrittenInside
         {
             get
             {
@@ -174,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A collection of the local variables that are read outside the region.
         /// </summary>
-        public override IEnumerable<ISymbol> ReadOutside
+        public override ImmutableArray<ISymbol> ReadOutside
         {
             get
             {
@@ -190,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A collection of local variables that are written outside the region.
         /// </summary>
-        public override IEnumerable<ISymbol> WrittenOutside
+        public override ImmutableArray<ISymbol> WrittenOutside
         {
             get
             {
@@ -205,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AnalyzeReadWrite()
         {
-            IEnumerable<Symbol> readInside, writtenInside, readOutside, writtenOutside, captured, unsafeAddressTaken;
+            ImmutableArray<ISymbol> readInside, writtenInside, readOutside, writtenOutside, captured, unsafeAddressTaken;
             if (Succeeded)
             {
                 ReadWriteWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, UnassignedVariableAddressOfSyntaxes,
@@ -215,22 +212,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = Enumerable.Empty<Symbol>();
+                readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = ImmutableArray<ISymbol>.Empty;
             }
 
-            Interlocked.CompareExchange(ref this.readInside, readInside, null);
-            Interlocked.CompareExchange(ref this.writtenInside, writtenInside, null);
-            Interlocked.CompareExchange(ref this.readOutside, readOutside, null);
-            Interlocked.CompareExchange(ref this.writtenOutside, writtenOutside, null);
-            Interlocked.CompareExchange(ref this.captured, captured, null);
-            Interlocked.CompareExchange(ref this.unsafeAddressTaken, unsafeAddressTaken, null);
+            ImmutableInterlocked.InterlockedInitialize(ref this.readInside, readInside);
+            ImmutableInterlocked.InterlockedInitialize(ref this.writtenInside, writtenInside);
+            ImmutableInterlocked.InterlockedInitialize(ref this.readOutside, readOutside);
+            ImmutableInterlocked.InterlockedInitialize(ref this.writtenOutside, writtenOutside);
+            ImmutableInterlocked.InterlockedInitialize(ref this.captured, captured);
+            ImmutableInterlocked.InterlockedInitialize(ref this.unsafeAddressTaken, unsafeAddressTaken);
         }
 
         /// <summary>
         /// A collection of the non-constant local variables and parameters that have been referenced in anonymous functions
         /// and therefore must be moved to a field of a frame class.
         /// </summary>
-        public override IEnumerable<ISymbol> Captured
+        public override ImmutableArray<ISymbol> Captured
         {
             get
             {
@@ -250,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// If there are any of these in the region, then a method should not be extracted.
         /// </remarks>
-        public override IEnumerable<ISymbol> UnsafeAddressTaken
+        public override ImmutableArray<ISymbol> UnsafeAddressTaken
         {
             get
             {

@@ -1,6 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -391,19 +391,26 @@ End Module
 
             Dim statementDataAnalysis = semantics.AnalyzeDataFlow(CType(typeOfExpressions(4).Parent.Parent.Parent, StatementSyntax))
 
-            Assert.Equal(expressionAnalysis.AlwaysAssigned, statementDataAnalysis.AlwaysAssigned)
-            Assert.Equal(expressionAnalysis.Captured, statementDataAnalysis.Captured)
-            Assert.Equal(expressionAnalysis.DataFlowsIn, statementDataAnalysis.DataFlowsIn)
-            Assert.Equal(expressionAnalysis.DataFlowsOut, statementDataAnalysis.DataFlowsOut)
-            Assert.Equal(expressionAnalysis.ReadInside, statementDataAnalysis.ReadInside)
-            Assert.Equal(expressionAnalysis.ReadOutside, statementDataAnalysis.ReadOutside)
+            AssertSequenceEqual(expressionAnalysis.AlwaysAssigned, statementDataAnalysis.AlwaysAssigned)
+            AssertSequenceEqual(expressionAnalysis.Captured, statementDataAnalysis.Captured)
+            AssertSequenceEqual(expressionAnalysis.DataFlowsIn, statementDataAnalysis.DataFlowsIn)
+            AssertSequenceEqual(expressionAnalysis.DataFlowsOut, statementDataAnalysis.DataFlowsOut)
+            AssertSequenceEqual(expressionAnalysis.ReadInside, statementDataAnalysis.ReadInside)
+            AssertSequenceEqual(expressionAnalysis.ReadOutside, statementDataAnalysis.ReadOutside)
             Assert.Equal(expressionAnalysis.Succeeded, statementDataAnalysis.Succeeded)
-            Assert.Equal(expressionAnalysis.VariablesDeclared, statementDataAnalysis.VariablesDeclared)
-            Assert.Equal(expressionAnalysis.WrittenInside, statementDataAnalysis.WrittenInside)
-            Assert.Equal(expressionAnalysis.WrittenOutside, statementDataAnalysis.WrittenOutside)
+            AssertSequenceEqual(expressionAnalysis.VariablesDeclared, statementDataAnalysis.VariablesDeclared)
+            AssertSequenceEqual(expressionAnalysis.WrittenInside, statementDataAnalysis.WrittenInside)
+            AssertSequenceEqual(expressionAnalysis.WrittenOutside, statementDataAnalysis.WrittenOutside)
 
             Assert.False(semantics.GetConstantValue(typeOfExpressions(5)).HasValue)
 
+        End Sub
+
+        Private Shared Sub AssertSequenceEqual(Of TElement)(a1 As ImmutableArray(Of TElement), a2 As ImmutableArray(Of TElement))
+            Assert.Equal(a1.Length, a2.Length)
+            For i As Integer = 0 To a1.Length - 1
+                Assert.Equal(a1(i), a2(i))
+            Next
         End Sub
 
         <Fact>

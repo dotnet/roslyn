@@ -2,6 +2,7 @@
 
 Imports System
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -20,16 +21,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _context As RegionAnalysisContext
 
-        Private _variablesDeclared As IEnumerable(Of Symbol)
+        Private _variablesDeclared As ImmutableArray(Of ISymbol)
         Private _unassignedVariables As HashSet(Of Symbol)
-        Private _dataFlowsIn As HashSet(Of Symbol)
-        Private _dataFlowsOut As HashSet(Of Symbol)
-        Private _alwaysAssigned As IEnumerable(Of Symbol)
-        Private _readInside As IEnumerable(Of Symbol)
-        Private _writtenInside As IEnumerable(Of Symbol)
-        Private _readOutside As IEnumerable(Of Symbol)
-        Private _writtenOutside As IEnumerable(Of Symbol)
-        Private _captured As IEnumerable(Of Symbol)
+        Private _dataFlowsIn As ImmutableArray(Of ISymbol)
+        Private _dataFlowsOut As ImmutableArray(Of ISymbol)
+        Private _alwaysAssigned As ImmutableArray(Of ISymbol)
+        Private _readInside As ImmutableArray(Of ISymbol)
+        Private _writtenInside As ImmutableArray(Of ISymbol)
+        Private _readOutside As ImmutableArray(Of ISymbol)
+        Private _writtenOutside As ImmutableArray(Of ISymbol)
+        Private _captured As ImmutableArray(Of ISymbol)
         Private _succeeded As Boolean?
         Private _invalidRegionDetected As Boolean
 
@@ -41,12 +42,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' A collection of the local variables that are declared within the region. Note that the region must be 
         ''' bounded by a method's body or a field's initializer, so parameter symbols are never included in the result.
         ''' </summary>
-        Public Overrides ReadOnly Property VariablesDeclared As IEnumerable(Of ISymbol)
+        Public Overrides ReadOnly Property VariablesDeclared As ImmutableArray(Of ISymbol)
             Get
-                If _variablesDeclared Is Nothing Then
-                    Dim result = If(Me._context.Failed, Enumerable.Empty(Of Symbol)(),
-                                    VariablesDeclaredWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo))
-                    Interlocked.CompareExchange(_variablesDeclared, result, Nothing)
+                If _variablesDeclared.IsDefault Then
+                    Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
+                                    DirectCast(VariablesDeclaredWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo), IEnumerable(Of ISymbol)).ToImmutableArray())
+                    ImmutableInterlocked.InterlockedCompareExchange(_variablesDeclared, result, Nothing)
                 End If
                 Return _variablesDeclared
             End Get
@@ -66,13 +67,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A collection of the local variables for which a value assigned outside the region may be used inside the region.
         ''' </summary>
-        Public Overrides ReadOnly Property DataFlowsIn As IEnumerable(Of ISymbol)
+        Public Overrides ReadOnly Property DataFlowsIn As ImmutableArray(Of ISymbol)
             Get
-                If _dataFlowsIn Is Nothing Then
+                If _dataFlowsIn.IsDefault Then
                     Me._succeeded = Not Me._context.Failed
-                    Dim result = If(Me._context.Failed, New HashSet(Of Symbol)(),
-                                    DataFlowsInWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _succeeded, _invalidRegionDetected))
-                    Interlocked.CompareExchange(_dataFlowsIn, result, Nothing)
+                    Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
+                                    DirectCast(DataFlowsInWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _succeeded, _invalidRegionDetected), IEnumerable(Of ISymbol)).ToImmutableArray())
+                    ImmutableInterlocked.InterlockedCompareExchange(_dataFlowsIn, result.ToImmutableArray(), Nothing)
                 End If
                 Return _dataFlowsIn
             End Get
@@ -81,13 +82,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A collection of the local variables for which a value assigned inside the region may be used outside the region.
         ''' </summary>
-        Public Overrides ReadOnly Property DataFlowsOut As IEnumerable(Of ISymbol)
+        Public Overrides ReadOnly Property DataFlowsOut As ImmutableArray(Of ISymbol)
             Get
                 Dim discarded = DataFlowsIn
-                If _dataFlowsOut Is Nothing Then
-                    Dim result = If(Me._context.Failed, New HashSet(Of Symbol)(),
-                                    DataFlowsOutWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _dataFlowsIn))
-                    Interlocked.CompareExchange(_dataFlowsOut, result, Nothing)
+                If _dataFlowsOut.IsDefault Then
+                    Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
+                                    DirectCast(DataFlowsOutWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _dataFlowsIn), IEnumerable(Of ISymbol)).ToImmutableArray())
+                    ImmutableInterlocked.InterlockedCompareExchange(_dataFlowsOut, result, Nothing)
                 End If
                 Return _dataFlowsOut
             End Get
@@ -96,12 +97,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A collection of the local variables for which a value is always assigned inside the region.
         ''' </summary>
-        Public Overrides ReadOnly Property AlwaysAssigned As IEnumerable(Of ISymbol)
+        Public Overrides ReadOnly Property AlwaysAssigned As ImmutableArray(Of ISymbol)
             Get
-                If _alwaysAssigned Is Nothing Then
-                    Dim result = If(Me._context.Failed, Enumerable.Empty(Of Symbol)(),
-                                    AlwaysAssignedWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo))
-                    Interlocked.CompareExchange(_alwaysAssigned, result, Nothing)
+                If _alwaysAssigned.IsDefault Then
+                    Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
+                                    DirectCast(AlwaysAssignedWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo), IEnumerable(Of ISymbol)).ToImmutableArray())
+                    ImmutableInterlocked.InterlockedCompareExchange(_alwaysAssigned, result, Nothing)
                 End If
                 Return _alwaysAssigned
             End Get
@@ -110,9 +111,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A collection of the local variables that are read inside the region.
         ''' </summary>
-        Public Overrides ReadOnly Property ReadInside As IEnumerable(Of ISymbol)
+        Public Overrides ReadOnly Property ReadInside As ImmutableArray(Of ISymbol)
             Get
-                If _readInside Is Nothing Then
+                If _readInside.IsDefault Then
                     AnalyzeReadWrite()
                 End If
                 Return _readInside
@@ -122,9 +123,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A collection of local variables that are written inside the region.
         ''' </summary>
-        Public Overrides ReadOnly Property WrittenInside As IEnumerable(Of ISymbol)
+        Public Overrides ReadOnly Property WrittenInside As ImmutableArray(Of ISymbol)
             Get
-                If _writtenInside Is Nothing Then
+                If _writtenInside.IsDefault Then
                     AnalyzeReadWrite()
                 End If
                 Return _writtenInside
@@ -134,9 +135,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A collection of the local variables that are read outside the region.
         ''' </summary>
-        Public Overrides ReadOnly Property ReadOutside As IEnumerable(Of ISymbol)
+        Public Overrides ReadOnly Property ReadOutside As ImmutableArray(Of ISymbol)
             Get
-                If _readOutside Is Nothing Then
+                If _readOutside.IsDefault Then
                     AnalyzeReadWrite()
                 End If
                 Return _readOutside
@@ -146,9 +147,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A collection of local variables that are written inside the region.
         ''' </summary>
-        Public Overrides ReadOnly Property WrittenOutside As IEnumerable(Of ISymbol)
+        Public Overrides ReadOnly Property WrittenOutside As ImmutableArray(Of ISymbol)
             Get
-                If _writtenOutside Is Nothing Then
+                If _writtenOutside.IsDefault Then
                     AnalyzeReadWrite()
                 End If
                 Return _writtenOutside
@@ -156,14 +157,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Sub AnalyzeReadWrite()
-            Dim readInside As IEnumerable(Of Symbol) = Nothing
-            Dim writtenInside As IEnumerable(Of Symbol) = Nothing
-            Dim readOutside As IEnumerable(Of Symbol) = Nothing
-            Dim writtenOutside As IEnumerable(Of Symbol) = Nothing
-            Dim captured As IEnumerable(Of Symbol) = Nothing
+            Dim readInside As ImmutableArray(Of ISymbol) = Nothing
+            Dim writtenInside As ImmutableArray(Of ISymbol) = Nothing
+            Dim readOutside As ImmutableArray(Of ISymbol) = Nothing
+            Dim writtenOutside As ImmutableArray(Of ISymbol) = Nothing
+            Dim captured As ImmutableArray(Of ISymbol) = Nothing
 
             If Not Me.Succeeded Then
-                readInside = Enumerable.Empty(Of Symbol)()
+                readInside = ImmutableArray(Of ISymbol).Empty
                 writtenInside = readInside
                 readOutside = readInside
                 writtenOutside = readInside
@@ -179,20 +180,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     captured:=captured)
             End If
 
-            Interlocked.CompareExchange(Me._readInside, readInside, Nothing)
-            Interlocked.CompareExchange(Me._writtenInside, writtenInside, Nothing)
-            Interlocked.CompareExchange(Me._readOutside, readOutside, Nothing)
-            Interlocked.CompareExchange(Me._writtenOutside, writtenOutside, Nothing)
-            Interlocked.CompareExchange(Me._captured, captured, Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._readInside, readInside, Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._writtenInside, writtenInside, Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._readOutside, readOutside, Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._writtenOutside, writtenOutside, Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._captured, captured, Nothing)
         End Sub
 
         ''' <summary>
         ''' A collection of the local variables that have been referenced in anonymous functions
         ''' and therefore must be moved to a field of a frame class.
         ''' </summary>
-        Public Overrides ReadOnly Property Captured As IEnumerable(Of ISymbol)
+        Public Overrides ReadOnly Property Captured As ImmutableArray(Of ISymbol)
             Get
-                If Me._captured Is Nothing Then
+                If Me._captured.IsDefault Then
                     AnalyzeReadWrite()
                 End If
 
@@ -216,9 +217,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property UnsafeAddressTaken As IEnumerable(Of ISymbol)
+        Public Overrides ReadOnly Property UnsafeAddressTaken As ImmutableArray(Of ISymbol)
             Get
-                Return SpecializedCollections.EmptyEnumerable(Of ISymbol)
+                Return ImmutableArray(Of ISymbol).Empty
             End Get
         End Property
     End Class

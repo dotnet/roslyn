@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -14,22 +15,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits AbstractRegionDataFlowPass
 
         Friend Overloads Shared Sub Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
-                                            ByRef readInside As IEnumerable(Of Symbol),
-                                            ByRef writtenInside As IEnumerable(Of Symbol),
-                                            ByRef readOutside As IEnumerable(Of Symbol),
-                                            ByRef writtenOutside As IEnumerable(Of Symbol),
-                                            ByRef captured As IEnumerable(Of Symbol))
+                                            ByRef readInside As ImmutableArray(Of ISymbol),
+                                            ByRef writtenInside As ImmutableArray(Of ISymbol),
+                                            ByRef readOutside As ImmutableArray(Of ISymbol),
+                                            ByRef writtenOutside As ImmutableArray(Of ISymbol),
+                                            ByRef captured As ImmutableArray(Of ISymbol))
 
             Dim walker = New ReadWriteWalker(info, region)
             Try
                 If walker.Analyze() Then
-                    readInside = walker.readInside
-                    writtenInside = walker.writtenInside
-                    readOutside = walker.readOutside
-                    writtenOutside = walker.writtenOutside
-                    captured = walker.captured
+                    readInside = walker.readInside.Cast(Of ISymbol).ToImmutableArray()
+                    writtenInside = walker.writtenInside.Cast(Of ISymbol).ToImmutableArray()
+                    readOutside = walker.readOutside.Cast(Of ISymbol).ToImmutableArray()
+                    writtenOutside = walker.writtenOutside.Cast(Of ISymbol).ToImmutableArray()
+                    captured = walker.captured.Cast(Of ISymbol).ToImmutableArray()
                 Else
-                    readInside = Enumerable.Empty(Of Symbol)()
+                    readInside = ImmutableArray(Of ISymbol).Empty
                     writtenInside = readInside
                     readOutside = readInside
                     writtenOutside = readInside

@@ -2,6 +2,7 @@
 
 Imports System
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -20,11 +21,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly context As RegionAnalysisContext
 
-        Private _entryPoints As IEnumerable(Of SyntaxNode)
-        Private _exitPoints As IEnumerable(Of SyntaxNode)
+        Private _entryPoints As ImmutableArray(Of SyntaxNode)
+        Private _exitPoints As ImmutableArray(Of SyntaxNode)
         Private _regionStartPointIsReachable As Object
         Private _regionEndPointIsReachable As Object
-        Private _returnStatements As IEnumerable(Of SyntaxNode)
+        Private _returnStatements As ImmutableArray(Of SyntaxNode)
         Private _succeeded As Boolean?
 
         Friend Sub New(_context As RegionAnalysisContext)
@@ -34,13 +35,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A collection of statements outside the region that jump into the region.
         ''' </summary>
-        Public Overrides ReadOnly Property EntryPoints As IEnumerable(Of SyntaxNode)
+        Public Overrides ReadOnly Property EntryPoints As ImmutableArray(Of SyntaxNode)
             Get
-                If _entryPoints Is Nothing Then
+                If _entryPoints.IsDefault Then
                     Me._succeeded = Not Me.context.Failed
-                    Dim result = If(Me.context.Failed, Enumerable.Empty(Of SyntaxNode)(),
-                                    EntryPointsWalker.Analyze(context.AnalysisInfo, context.RegionInfo, _succeeded))
-                    Interlocked.CompareExchange(_entryPoints, result, Nothing)
+                    Dim result = If(Me.context.Failed, ImmutableArray(Of SyntaxNode).Empty,
+                                    DirectCast(EntryPointsWalker.Analyze(context.AnalysisInfo, context.RegionInfo, _succeeded), IEnumerable(Of SyntaxNode)).ToImmutableArray())
+                    ImmutableInterlocked.InterlockedCompareExchange(_entryPoints, result, Nothing)
                 End If
                 Return _entryPoints
             End Get
@@ -49,12 +50,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A collection of statements inside the region that jump to locations outside the region.
         ''' </summary>
-        Public Overrides ReadOnly Property ExitPoints As IEnumerable(Of SyntaxNode)
+        Public Overrides ReadOnly Property ExitPoints As ImmutableArray(Of SyntaxNode)
             Get
-                If _exitPoints Is Nothing Then
-                    Dim result = If(Me.context.Failed, Enumerable.Empty(Of SyntaxNode)(),
-                                    ExitPointsWalker.Analyze(context.AnalysisInfo, context.RegionInfo))
-                    Interlocked.CompareExchange(_exitPoints, result, Nothing)
+                If _exitPoints.IsDefault Then
+                    Dim result = If(Me.context.Failed, ImmutableArray(Of SyntaxNode).Empty,
+                                    DirectCast(ExitPointsWalker.Analyze(context.AnalysisInfo, context.RegionInfo), IEnumerable(Of SyntaxNode)).ToImmutableArray())
+                    ImmutableInterlocked.InterlockedCompareExchange(_exitPoints, result, Nothing)
                 End If
                 Return _exitPoints
             End Get
@@ -100,16 +101,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A collection of return, exit sub, exit function, exit operator and exit property statements found within the region that return to the enclosing method.
         ''' </summary>
-        Public Overrides ReadOnly Property ReturnStatements As IEnumerable(Of SyntaxNode)
-            ' <Obsolete("The return statements in a region are now included in the result of ExitPoints.", False)>
+        Public Overrides ReadOnly Property ReturnStatements As ImmutableArray(Of SyntaxNode)
             Get
-                Return ExitPoints.Where(Function(s As SyntaxNode) As Boolean
-                                            Return s.IsKind(SyntaxKind.ReturnStatement) Or
+                Return ExitPoints.WhereAsArray(Function(s As SyntaxNode) As Boolean
+                                                   Return s.IsKind(SyntaxKind.ReturnStatement) Or
                                                 s.IsKind(SyntaxKind.ExitSubStatement) Or
                                                 s.IsKind(SyntaxKind.ExitFunctionStatement) Or
                                                 s.IsKind(SyntaxKind.ExitOperatorStatement) Or
                                                 s.IsKind(SyntaxKind.ExitPropertyStatement)
-                                        End Function)
+                                               End Function)
             End Get
         End Property
 

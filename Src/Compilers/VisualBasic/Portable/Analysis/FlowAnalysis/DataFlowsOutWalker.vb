@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -12,12 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' which their assigned values flow out of the region.
     ''' A variable assigned inside is used outside if an analysis that
     ''' treats assignments in the region as un-assigning the variable would
-    ''' cause "unassigned" errors outside the region.</summary>
-    ''' <remarks></remarks>
+    ''' cause "unassigned" errors outside the region.
+    ''' </summary>
     Class DataFlowsOutWalker
         Inherits AbstractRegionDataFlowPass
 
-        Private ReadOnly dataFlowsIn As HashSet(Of Symbol)
+        Private ReadOnly dataFlowsIn As ImmutableArray(Of ISymbol)
         Private ReadOnly originalUnassigned As HashSet(Of Symbol)
         Private ReadOnly dataFlowsOut As New HashSet(Of Symbol)()
 #If DEBUG Then
@@ -26,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
 
         Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
-                unassignedVariables As HashSet(Of Symbol), originalUnassigned As HashSet(Of Symbol), dataFlowsIn As HashSet(Of Symbol))
+                unassignedVariables As HashSet(Of Symbol), originalUnassigned As HashSet(Of Symbol), dataFlowsIn As ImmutableArray(Of ISymbol))
 
             MyBase.New(info, region, unassignedVariables, trackUnassignments:=True, trackStructsWithIntrinsicTypedFields:=True)
 
@@ -35,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
-                                                 unassignedVariables As HashSet(Of Symbol), dataFlowsIn As HashSet(Of Symbol)) As HashSet(Of Symbol)
+                                                 unassignedVariables As HashSet(Of Symbol), dataFlowsIn As ImmutableArray(Of ISymbol)) As HashSet(Of Symbol)
 
             ' remove static locals from unassigned, otherwise they will never reach ReportUnassigned(...)
             Dim unassignedWithoutStatic As New HashSet(Of Symbol)
@@ -64,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' to handle loops properly, we must assume that every variable (except static locals) 
             ' that flows in is assigned at the beginning of the loop.  If it isn't, then it must 
             ' be in a loop and flow out of the region in that loop (and into the region inside the loop).
-            For Each variable In dataFlowsIn
+            For Each variable As Symbol In dataFlowsIn
                 Dim slot As Integer = Me.MakeSlot(variable)
                 If Not Me.State.IsAssigned(slot) AndAlso variable.Kind <> SymbolKind.RangeVariable AndAlso
                         (variable.Kind <> SymbolKind.Local OrElse Not DirectCast(variable, LocalSymbol).IsStatic) Then
