@@ -326,7 +326,7 @@ namespace Roslyn.Utilities
             }
 
             // We now have the request counted for, register for cancellation. It is critical this is
-            // done outside the lock, as our reigstration may immediately fire and we want to avoid the
+            // done outside the lock, as our registration may immediately fire and we want to avoid the
             // reentrancy
             request.RegisterForCancellation(OnAsynchronousRequestCancelled, cancellationToken);
 
