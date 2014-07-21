@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            return semanticModel.LookupSymbols(expr.SpanStart, container: symbol, name: name);
+            return semanticModel.LookupSymbols(expr.SpanStart, container: symbol, name: name, includeReducedExtensionMethods: true);
         }
 
         public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SyntaxToken token)
