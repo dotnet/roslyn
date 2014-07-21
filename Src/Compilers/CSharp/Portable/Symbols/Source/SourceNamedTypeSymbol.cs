@@ -57,12 +57,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (TypeSyntax t in inheritedTypeDecls)
                 {
-                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics);
+                    TypeSyntax typeToBind;
+
+                    if (t.Kind == SyntaxKind.BaseClassWithArguments)
+                    {
+                        typeToBind = ((BaseClassWithArgumentsSyntax)t).BaseClass;
+                    }
+                    else
+                    {
+                        typeToBind = t;
+                    }
+
+                    TypeSymbol bt = baseBinder.BindType(typeToBind, unusedDiagnostics);
                    
                     if (bt == @base)
                     {
                         unusedDiagnostics.Free();
-                        return t.GetLocation();
+                        return typeToBind.GetLocation();
                     }
                 }
             }

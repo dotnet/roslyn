@@ -3703,5 +3703,30 @@ class Program
                 );
         }
 
+        [Fact, WorkItem(965894, "DevDiv")]
+        public void Bug965894()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+
+namespace CSharpVNext
+{
+    class Book(string title)
+    {
+        public string Title{ get; } = title;
+    }
+
+    class Magazine(string title) : Book(title), IDisposable
+    {}
+}
+", compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            comp.VerifyDiagnostics(
+    // (11,49): error CS0535: 'CSharpVNext.Magazine' does not implement interface member 'System.IDisposable.Dispose()'
+    //     class Magazine(string title) : Book(title), IDisposable
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDisposable").WithArguments("CSharpVNext.Magazine", "System.IDisposable.Dispose()").WithLocation(11, 49)
+                );
+        }
+
     }
 }

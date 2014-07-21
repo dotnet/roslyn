@@ -152,12 +152,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var b in bases.Types)
                     {
                         var tmpDiag = DiagnosticBag.GetInstance();
-                        var curBaseSym = baseBinder.BindType(b, tmpDiag);
+
+                        TypeSyntax typeToBind;
+
+                        if (b.Kind == SyntaxKind.BaseClassWithArguments)
+                        {
+                            typeToBind = ((BaseClassWithArgumentsSyntax)b).BaseClass;
+                        }
+                        else
+                        {
+                            typeToBind = b;
+                        }
+
+                        var curBaseSym = baseBinder.BindType(typeToBind, tmpDiag);
                         tmpDiag.Free();
 
                         if (baseSym.Equals(curBaseSym))
                         {
-                            return new SourceLocation(b);
+                            return new SourceLocation(typeToBind);
                         }
                     }
                 }
