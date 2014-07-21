@@ -1888,17 +1888,10 @@ namespace Microsoft.Cci
         public static string GetMangledName(INamedTypeReference namedType)
         {
             string unmangledName = namedType.Name;
-            if (!namedType.MangleName)
-            {
-                return unmangledName;
-            }
 
-            if (namedType.GenericParameterCount == 0)
-            {
-                return unmangledName;
-            }
-
-            return MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount);
+            return namedType.MangleName
+                ? MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount)
+                : unmangledName;
         }
 
         private static string GetMangledAndEscapedName(INamedTypeReference namedType)

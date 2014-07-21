@@ -1717,8 +1717,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool encounteredForwardingCycle;
             string fullName;
 
-            string arityString = arity == 0 ? "" : ("`" + arity);
-
             if ((object)qualifierOpt != null)
             {
                 if (qualifierOpt.IsType)
@@ -1737,7 +1735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     bool qualifierIsCompilationGlobalNamespace = ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace);
 
-                    fullName = simpleName + arityString;
+                    fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(simpleName, arity);
                     if (!qualifierIsCompilationGlobalNamespace)
                     {
                         fullName = qualifierOpt.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) + "." + fullName;
@@ -1787,7 +1785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return diagnostics.Add(code, location);
             }
 
-            fullName = simpleName + arityString;
+            fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(simpleName, arity);
             forwardedToAssembly = GetForwardedToAssembly(fullName, arity, out encounteredForwardingCycle);
 
             if (encounteredForwardingCycle)

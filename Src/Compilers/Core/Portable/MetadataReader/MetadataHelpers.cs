@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static string ComposeAritySuffixedMetadataName(string name, int arity)
         {
-            return name + GetAritySuffix(arity);
+            return arity == 0 ? name : name + GetAritySuffix(arity);
         }
 
         internal static int InferTypeArityFromMetadataName(string emittedTypeName)
