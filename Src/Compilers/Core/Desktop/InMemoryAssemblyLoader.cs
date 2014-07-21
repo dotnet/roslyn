@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Controls access to the loader's data structures.
         /// </summary>
-        private static readonly object guard = new CommonLock();
+        private static readonly object guard = new object();
 
         private static bool hookedAssemblyResolve = false;
 

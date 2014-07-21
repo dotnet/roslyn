@@ -761,7 +761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ' This lock is used in the implementation of AtomicStoreReferenceAndDiagnostics
-        Private ReadOnly diagnosticLock As New CommonLock()
+        Private ReadOnly diagnosticLock As New Object()
 
         ' Checks if the given diagnostic bag has all lazy obsolete diagnostics.
         Private Shared Function HasAllLazyDiagnostics(diagBag As DiagnosticBag) As Boolean

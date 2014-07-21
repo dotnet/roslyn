@@ -111,7 +111,6 @@
     <Compile Include="Collections\SmallConcurrentSetOfInts.cs" />
     <Compile Include="Collections\SmallDictionary.cs" />
     <Compile Include="Collections\UnionCollection.cs" />
-    <Compile Include="CommonLock.cs" />
     <Compile Include="Compilation\CandidateReason.cs" />
     <Compile Include="Compilation\CommonMemberResolutionKind.cs" />
     <Compile Include="Compilation\CommonMemberResolutionResult.cs" />

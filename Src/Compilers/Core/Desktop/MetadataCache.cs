@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Internal for testing.
         /// </summary>
-        internal static readonly object Guard = new CommonLock();
+        internal static readonly object Guard = new object();
 
         /// <summary>
         /// Return amount of GC collections occurred so far.

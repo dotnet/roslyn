@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         /// Once lazyAssemblySymbol is set the Compilation.referenceManager field and ReferenceManager
         /// state should not change.
         /// </summary>
-        internal static object SymbolCacheAndReferenceManagerStateGuard = new CommonLock();
+        internal static object SymbolCacheAndReferenceManagerStateGuard = new object();
 
         /// <summary>
         /// Enumerates all referenced assemblies.
