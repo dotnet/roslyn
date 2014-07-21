@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If rightPart.Kind = SyntaxKind.GenericName Then
                         arity = DirectCast(rightPart, GenericNameSyntax).Arity
-                        fullName = currDiagName & "`" & arity
+                        fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(currDiagName, arity)
                     End If
 
                     forwardedToAssembly = GetForwardedToAssembly(containingAssembly, fullName, arity, encounteredForwardingCycle)
