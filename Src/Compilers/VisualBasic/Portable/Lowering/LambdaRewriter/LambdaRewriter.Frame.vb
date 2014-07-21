@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.m_type = parameter.Type.InternalSubstituteTypeParameters(frame.TypeMap)
 
                     If parameter.IsMe Then
-                        Me.m_name = StringConstants.LiftedMePrefix
+                        Me.m_name = StringConstants.LiftedMeName
                         Me.m_isMe = True
                     Else
                         Me.m_name = StringConstants.LiftedLocalPrefix & captured.Name

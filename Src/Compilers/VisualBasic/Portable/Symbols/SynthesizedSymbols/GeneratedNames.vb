@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Generates the name of a state machine field name for captured me reference
         ''' </summary>
         Public Shared Function MakeStateMachineCapturedMeName() As String
-            Return StringConstants.LiftedMePrefix
+            Return StringConstants.LiftedMeName
         End Function
 
         ''' <summary>
