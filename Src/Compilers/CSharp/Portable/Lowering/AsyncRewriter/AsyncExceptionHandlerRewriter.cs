@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// with surrogate replacements that keep actual handler code in regular code blocks.
     /// That allows these constructs to be further lowered at the async lowering pass.
     /// </summary>
-    internal sealed class AsyncHandlerRewriter : BoundTreeRewriter
+    internal sealed class AsyncExceptionHandlerRewriter : BoundTreeRewriter
     {
         private readonly bool generateDebugInfo;
         private readonly CSharpCompilation compilation;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AwaitCatchFrame currentAwaitCatchFrame = null;
         AwaitFinallyFrame currentAwaitFinallyFrame = new AwaitFinallyFrame(null, null);
 
-        private AsyncHandlerRewriter(
+        private AsyncExceptionHandlerRewriter(
             bool generateDebugInfo,
             MethodSymbol containingMethod,
             NamedTypeSymbol containingType,
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compilation = containingType.DeclaringCompilation;
             var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-            var rewriter = new AsyncHandlerRewriter(generateDebugInfo, containingSymbol, containingType, factory, compilation, diagnostics, analysis);
+            var rewriter = new AsyncExceptionHandlerRewriter(generateDebugInfo, containingSymbol, containingType, factory, compilation, diagnostics, analysis);
             var loweredStatement = (BoundStatement)rewriter.Visit(statement);
 
             return loweredStatement;

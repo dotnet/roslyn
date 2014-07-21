@@ -367,7 +367,7 @@
     <Compile Include="FlowAnalysis\VariablesDeclaredWalker.cs" />
     <Compile Include="LanguageVersion.cs" />
     <Compile Include="Lowering\AsyncRewriter\AsyncConstructor.cs" />
-    <Compile Include="Lowering\AsyncRewriter\AsyncHandlerRewriter.cs" />
+    <Compile Include="Lowering\AsyncRewriter\AsyncExceptionHandlerRewriter.cs" />
     <Compile Include="Lowering\AsyncRewriter\AsyncMethodBuilderMemberCollection.cs" />
     <Compile Include="Lowering\AsyncRewriter\AsyncMethodToStateMachineRewriter.cs" />
     <Compile Include="Lowering\AsyncRewriter\AsyncRewriter.cs" />
@@ -865,7 +865,7 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-    <Import Project="..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
+    <Import Project="..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // is that we may need access to exception locals and it would be fairly hard to do
                 // if these locals are captured into closures (possibly nested ones).
                 Debug.Assert(method.IteratorElementType == null);
-                loweredBody = AsyncHandlerRewriter.Rewrite(
+                loweredBody = AsyncExceptionHandlerRewriter.Rewrite(
                     generateDebugInfo,
                     method,
                     method.ContainingType,
