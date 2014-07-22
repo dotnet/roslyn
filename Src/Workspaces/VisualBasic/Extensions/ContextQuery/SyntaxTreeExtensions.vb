@@ -66,6 +66,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return allowedParentBlocks.Contains(SyntaxKind.CompilationUnit)
             End If
 
+            If syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken) Then
+                Return False
+            End If
+
             ' If we're within a method/event/property, then always no
             Dim method = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
             If method IsNot Nothing AndAlso
