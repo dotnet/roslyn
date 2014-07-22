@@ -444,7 +444,7 @@ namespace Roslyn.Test.Utilities
         {
             if (toString == null)
             {
-                toString = new Func<T, string>(obj => obj?.ToString() ?? "<null>");
+                toString = new Func<T, string>(obj => (obj != null) ? obj.ToString() : "<null>");
             }
 
             var actualString = string.Join(separator, actual.Select(toString));

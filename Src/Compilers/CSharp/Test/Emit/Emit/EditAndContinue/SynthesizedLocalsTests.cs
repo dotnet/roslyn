@@ -2255,66 +2255,32 @@ class C
 
             var v0 = CompileAndVerify(compilation0, emitPdb: true);
 
+            // Validate presence of a hidden sequence point @IL_001c that is required for proper function remapping.
             v0.VerifyIL("C.M", @"
 {
   // Code size       32 (0x20)
   .maxstack  1
   .locals init (int V_0, //i
-  bool V_1) //CS$4$0000
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
+                bool V_1) //CS$4$0000
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.1
   IL_0002:  stloc.0
-  IL_0003:  br.s       IL_0015
-  IL_0005:  nop
-  IL_0006:  ldc.i4.1
+ ~IL_0003:  br.s       IL_0015
+ -IL_0005:  nop
+ -IL_0006:  ldc.i4.1
   IL_0007:  call       ""void System.Console.WriteLine(int)""
   IL_000c:  nop
-  IL_000d:  nop
-  IL_000e:  ldloc.0
+ -IL_000d:  nop
+ -IL_000e:  ldloc.0
   IL_000f:  call       ""void C.G(int)""
   IL_0014:  nop
-  IL_0015:  ldloc.0
+ -IL_0015:  ldloc.0
   IL_0016:  call       ""bool C.F(int)""
   IL_001b:  stloc.1
-  IL_001c:  ldloc.1
+ ~IL_001c:  ldloc.1
   IL_001d:  brtrue.s   IL_0005
-  IL_001f:  ret
-}");
-            // Validate presence of a hidden sequence point @IL_001c that is required for proper function remapping.
-            v0.VerifyPdb("C.M", @"
-<symbols>
-  <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames=""i"" />
-      </customDebugInfo>
-      <sequencepoints total=""10"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""14"" end_row=""9"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x3"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x5"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x6"" start_row=""11"" start_column=""13"" end_row=""11"" end_column=""41"" file_ref=""0"" />
-        <entry il_offset=""0xd"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xe"" start_row=""9"" start_column=""31"" end_row=""9"" end_column=""35"" file_ref=""0"" />
-        <entry il_offset=""0x15"" start_row=""9"" start_column=""25"" end_row=""9"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x1c"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x1f"" start_row=""13"" start_column=""5"" end_row=""13"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
-      <locals>
-        <local name=""i"" il_index=""0"" il_start=""0x1"" il_end=""0x1f"" attributes=""0"" />
-        <local name=""CS$4$0000"" il_index=""1"" il_start=""0x15"" il_end=""0x1f"" attributes=""1"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x20"">
-        <scope startOffset=""0x1"" endOffset=""0x1f"">
-          <local name=""i"" il_index=""0"" il_start=""0x1"" il_end=""0x1f"" attributes=""0"" />
-          <scope startOffset=""0x15"" endOffset=""0x1f"">
-            <local name=""CS$4$0000"" il_index=""1"" il_start=""0x15"" il_end=""0x1f"" attributes=""1"" />
-          </scope>
-        </scope>
-      </scope>
-    </method>
-  </methods>
-</symbols>");
+ -IL_001f:  ret
+}", sequencePoints: "C.M");
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
