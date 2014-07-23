@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,15 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenIncrement = (BoundStatement)Visit(node.Increment);
             var rewrittenBody = (BoundStatement)Visit(node.Body);
 
-            SyntaxNodeOrToken conditionSyntax = ((BoundNode)rewrittenCondition ?? node).Syntax;
-
             return RewriteForStatement(
                 node.Syntax,
                 node.OuterLocals,
                 rewrittenInitializer,
                 node.InnerLocals,
                 AddConditionSequencePoint(rewrittenCondition, node),
-                conditionSyntax,
+                node.Condition?.Syntax,
+                default(TextSpan),
                 rewrittenIncrement,
                 rewrittenBody,
                 node.BreakLabel,
@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement rewrittenInitializer,
             ImmutableArray<LocalSymbol> innerLocals,
             BoundExpression rewrittenCondition,
-            SyntaxNodeOrToken conditionSyntax,
+            CSharpSyntaxNode conditionSyntaxOpt,
+            TextSpan conditionSpanOpt,
             BoundStatement rewrittenIncrement,
             BoundStatement rewrittenBody,
             GeneratedLabelSymbol breakLabel,
@@ -114,13 +115,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (this.generateDebugInfo)
                         {
-                            if (conditionSyntax.IsToken)
+                            if (!conditionSpanOpt.IsEmpty)
                             {
-                                ifNotConditionGotoBreak = new BoundSequencePointWithSpan(syntax, ifNotConditionGotoBreak, conditionSyntax.Span);
+                                ifNotConditionGotoBreak = new BoundSequencePointWithSpan(syntax, ifNotConditionGotoBreak, conditionSpanOpt);
                             }
                             else
                             {
-                                ifNotConditionGotoBreak = new BoundSequencePoint((CSharpSyntaxNode)conditionSyntax.AsNode(), ifNotConditionGotoBreak);
+                                // hidden sequence point if there is no condition
+                                ifNotConditionGotoBreak = new BoundSequencePoint(conditionSyntaxOpt, ifNotConditionGotoBreak);
                             }
                         }
 
@@ -150,13 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var endLabel = new GeneratedLabelSymbol("end");
-
             // for (initializer; condition; increment)
             //   body;
             //
-            // becomes the following (with
-            // block added for locals)
+            // becomes the following (with block added for locals)
             //
             // {
             //   initializer;
@@ -170,13 +169,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // break:
             // }
 
+            var endLabel = new GeneratedLabelSymbol("end");
+
             //  initializer;
             //  goto end;
 
-            //mark the initial jump as hidden.
-            //We do it to tell that this is not a part of previous statement.
-            //This jump may be a target of another jump (for example if loops are nested) and that will make 
-            //impression of the previous statement being re-executed
+            // Mark the initial jump as hidden.
+            // We do it to tell that this is not a part of previous statement.
+            // This jump may be a target of another jump (for example if loops are nested) and that will make 
+            // impression of the previous statement being re-executed
             var gotoEnd = new BoundSequencePoint(null, new BoundGotoStatement(syntax, endLabel));
             statementBuilder.Add(gotoEnd);
 
@@ -217,15 +218,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.generateDebugInfo)
             {
-                if (conditionSyntax.IsToken)
-                {
-                    branchBack = new BoundSequencePointWithSpan(syntax, branchBack, conditionSyntax.Span);
+                if (!conditionSpanOpt.IsEmpty)
+                {   
+                    branchBack = new BoundSequencePointWithSpan(syntax, branchBack, conditionSpanOpt);
                 }
                 else
                 {
-                    //if there is no condition, make this a hidden point so that 
-                    //it does not count as a part of previous statement
-                    branchBack = new BoundSequencePoint((CSharpSyntaxNode)conditionSyntax.AsNode(), branchBack);
+                    // hidden sequence point if there is no condition
+                    branchBack = new BoundSequencePoint(conditionSyntaxOpt, branchBack);
                 }
             }
 

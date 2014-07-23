@@ -1153,7 +1153,7 @@ class Test
         <entry il_offset=""0xb6"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0xb8"" start_row=""32"" start_column=""9"" end_row=""32"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0xb9"" start_row=""34"" start_column=""9"" end_row=""34"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xba"" start_row=""31"" start_column=""9"" end_row=""34"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0xba"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
         <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0xbc"" attributes=""0"" />

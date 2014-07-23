@@ -562,7 +562,7 @@ public class SeqPointForWhile
         #region ForStatement
 
         [Fact]
-        public void ForStatement()
+        public void ForStatement1()
         {
             var source = @"
 class C
@@ -609,6 +609,96 @@ class C
             <local name=""CS$4$0000"" il_index=""1"" il_start=""0x15"" il_end=""0x1f"" attributes=""1"" />
           </scope>
         </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+";
+
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void ForStatement2()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+        for (;;)
+        {
+            System.Console.WriteLine(1);
+        }
+    }
+}";
+            string actual = GetPdbXml(source, TestOptions.DebugDll, "C.M");
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""6"">
+        <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x3"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x4"" start_row=""8"" start_column=""13"" end_row=""8"" end_column=""41"" file_ref=""0"" />
+        <entry il_offset=""0xb"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0xc"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>
+";
+
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void ForStatement3()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+        int i = 0;
+        for (;;i++)
+        {
+            System.Console.WriteLine(i);
+        }
+    }
+}";
+            string actual = GetPdbXml(source, TestOptions.DebugDll, "C.M");
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""8"">
+        <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""19"" file_ref=""0"" />
+        <entry il_offset=""0x3"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x5"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x6"" start_row=""9"" start_column=""13"" end_row=""9"" end_column=""41"" file_ref=""0"" />
+        <entry il_offset=""0xd"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0xe"" start_row=""7"" start_column=""16"" end_row=""7"" end_column=""19"" file_ref=""0"" />
+        <entry il_offset=""0x14"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+      </sequencepoints>
+      <locals>
+        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x16"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x16"">
+        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x16"" attributes=""0"" />
       </scope>
     </method>
   </methods>

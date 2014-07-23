@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             string source;
             MarkupTestFile.GetPositionAndSpan(markup, out source, out position, out expectedSpan);
             var pdb = GetPdbXml(source, compilationOptions, methodName, parseOptions);
-            bool hasBreakpoint = CheckIfSpanWithinSequencePoints(expectedSpan.Value, source, pdb);
+            bool hasBreakpoint = CheckIfSpanWithinSequencePoints(expectedSpan.GetValueOrDefault(), source, pdb);
 
             Assert.True(hasBreakpoint);
         }

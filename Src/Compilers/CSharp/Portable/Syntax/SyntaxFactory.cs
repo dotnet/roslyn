@@ -1406,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         public static bool AreEquivalent(SyntaxNode oldNode, SyntaxNode newNode, bool topLevel)
         {
-            return SyntaxEquivalence.AreEquivalent((CSharpSyntaxNode)oldNode, (CSharpSyntaxNode)newNode, ignoreChildNode: null, topLevel: topLevel);
+            return SyntaxEquivalence.AreEquivalent(oldNode, newNode, ignoreChildNode: null, topLevel: topLevel);
         }
 
         /// <summary>
@@ -1420,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         public static bool AreEquivalent(SyntaxNode oldNode, SyntaxNode newNode, Func<SyntaxKind, bool> ignoreChildNode = null)
         {
-            return SyntaxEquivalence.AreEquivalent((CSharpSyntaxNode)oldNode, (CSharpSyntaxNode)newNode, ignoreChildNode: ignoreChildNode, topLevel: false);
+            return SyntaxEquivalence.AreEquivalent(oldNode, newNode, ignoreChildNode: ignoreChildNode, topLevel: false);
         }
 
         /// <summary>
