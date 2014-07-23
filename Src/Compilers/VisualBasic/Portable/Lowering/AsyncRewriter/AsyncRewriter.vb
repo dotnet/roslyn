@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Sub GenerateFields()
-            Me._builderField = Me.F.SynthesizeField(Me._builderType, Me.Method, GeneratedNames.MakeStateMachineBuilderFieldName(), Accessibility.Friend)
+            Me._builderField = Me.F.StateMachineField(Me._builderType, Me.Method, GeneratedNames.MakeStateMachineBuilderFieldName(), Accessibility.Friend)
         End Sub
 
         Protected Overrides Sub InitializeStateMachine(bodyBuilder As ArrayBuilder(Of BoundStatement), frameType As NamedTypeSymbol, stateMachineLocal As LocalSymbol)
@@ -153,29 +153,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return rewriter.Rewrite()
         End Function
 
-        Private Function StartMoveNextMethodImplementation() As SynthesizedImplementationMethod
-            Dim methodToImplement As MethodSymbol = Me.F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext)
-
-            ' Errors must be reported before and if any thispoint should not be reachable
-            Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
-
-            Dim result As New SynthesizedImplementationMethod(Me.F.CurrentType,
-                                                              "MoveNext",
-                                                              methodToImplement,
-                                                              Me.F.Syntax,
-                                                              DebugAttributes.CompilerGeneratedAttribute,
-                                                              Accessibility.Friend,
-                                                              True,
-                                                              asyncKickoffMethod:=Me.Method)
-
-            Me.F.AddMethod(Me.F.CurrentType, result)
-            Me.F.CurrentMethod = result
-            Return result
-        End Function
-
         Protected Overrides Sub GenerateMethodImplementations()
             ' Add IAsyncStateMachine.MoveNext()
-            GenerateMoveNext(Me.StartMoveNextMethodImplementation())
+            GenerateMoveNext(Me.StartMethodImplementation(
+                    WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext,
+                    "MoveNext",
+                    DebugAttributes.CompilerGeneratedAttribute, Accessibility.Friend, True, asyncKickoffMethod:=Me.Method))
 
             'Add IAsyncStateMachine.SetStateMachine()
             Me.StartMethodImplementation(
@@ -431,7 +414,7 @@ lCaptureRValue:
                     Debug.Assert(Not expression.IsLValue, "Need to support LValues of type " + expression.GetType.Name)
                     Me.lastExpressionCaptureNumber += 1
                     Return New CapturedRValueExpression(
-                                    Me.F.SynthesizeField(
+                                    Me.F.StateMachineField(
                                         expression.Type,
                                         Me.Method,
                                         GeneratedNames.MakeStateMachineExpressionCaptureName(Me.lastExpressionCaptureNumber),

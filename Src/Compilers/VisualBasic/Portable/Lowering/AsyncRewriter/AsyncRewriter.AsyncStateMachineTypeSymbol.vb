@@ -17,8 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend NotInheritable Class AsyncStateMachineTypeSymbol
             Inherits AbstractStateMachineTypeSymbol
+            Implements ISynthesizedMethodBodyImplementationSymbol
 
             Private ReadOnly _constructor As SynthesizedSimpleConstructorSymbol
+            Private ReadOnly _asyncMethod As MethodSymbol
 
             Protected Friend Sub New(topLevelMethod As MethodSymbol,
                                      typeIndex As Integer,
@@ -32,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Me._constructor = New SynthesizedSimpleConstructorSymbol(Me)
                 Me._constructor.SetParameters(ImmutableArray(Of ParameterSymbol).Empty)
+                Me._asyncMethod = topLevelMethod
             End Sub
 
             Public Overrides ReadOnly Property TypeKind As TypeKind
@@ -49,6 +52,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Protected Friend Overrides ReadOnly Property Constructor As MethodSymbol
                 Get
                     Return Me._constructor
+                End Get
+            End Property
+
+            Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+                Get
+                    ' This method contains user code from the async method
+                    Return True
+                End Get
+            End Property
+
+            Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
+                Get
+                    Return _asyncMethod
                 End Get
             End Property
         End Class

@@ -125,11 +125,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub GenerateFields()
             ' Add a field: T current
-            currentField = F.SynthesizeField(elementType, Me.Method, GeneratedNames.MakeIteratorCurrentFieldName(), Accessibility.Friend)
+            currentField = F.StateMachineField(elementType, Me.Method, GeneratedNames.MakeIteratorCurrentFieldName(), Accessibility.Friend)
 
             ' if it is an Enumerable, add a field: initialThreadId As Integer
             initialThreadIdField = If(isEnumerable,
-                F.SynthesizeField(F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeIteratorInitialThreadIdName()),
+                F.StateMachineField(F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeIteratorInitialThreadIdName()),
                 Nothing)
 
         End Sub

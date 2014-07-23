@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend Class SynthesizedSimpleConstructorSymbol
         Inherits SynthesizedConstructorBase
+        Implements ISynthesizedMethodBodyImplementationSymbol
 
         Private _parameters As ImmutableArray(Of ParameterSymbol)
 
@@ -44,6 +45,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
+            Get
+                Dim symbol As ISynthesizedMethodBodyImplementationSymbol = CType(ContainingSymbol, ISynthesizedMethodBodyImplementationSymbol)
+                Return symbol.Method
+            End Get
+        End Property
     End Class
 
 End Namespace

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Function AllocateField(type As TypeSymbol) As FieldSymbol
                 Dim field As FieldSymbol = Nothing
                 If Not Me.AllocatedFields.TryPop(type, field) Then
-                    field = F.SynthesizeField(type,
+                    field = F.StateMachineField(type,
                                               F.CurrentMethod,
                                               GeneratedNames.MakeStateMachineStackSpillFieldName(
                                                   Me.F.CompilationState.GenerateTempNumber()),

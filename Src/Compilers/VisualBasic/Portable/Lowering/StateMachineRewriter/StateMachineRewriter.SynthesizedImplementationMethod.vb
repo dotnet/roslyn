@@ -32,6 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend NotInheritable Class SynthesizedImplementationMethod
             Inherits MethodToClassRewriter(Of TProxy).SynthesizedMethod
+            Implements ISynthesizedMethodBodyImplementationSymbol
 
             Private ReadOnly _interfaceMethod As MethodSymbol
             Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
@@ -39,6 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _debugAttributes As DebugAttributes
             Private ReadOnly _accessibility As Accessibility
             Private ReadOnly _enableDebugInfo As Boolean
+            Private ReadOnly _hasMethodBodyDependency As Boolean
             Private ReadOnly _associatedProperty As PropertySymbol
             Private ReadOnly _asyncKickoffMethod As MethodSymbol
 
@@ -49,6 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            attributes As DebugAttributes,
                            declaredAccessibility As Accessibility,
                            enableDebugInfo As Boolean,
+                           hasMethodBodyDependency As Boolean,
                            Optional associatedProperty As PropertySymbol = Nothing,
                            Optional asyncKickoffMethod As MethodSymbol = Nothing)
 
@@ -58,6 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._debugAttributes = attributes
                 Me._accessibility = declaredAccessibility
                 Me._enableDebugInfo = enableDebugInfo
+                Me._hasMethodBodyDependency = hasMethodBodyDependency
 
                 Debug.Assert(Not interfaceMethod.IsGenericMethod)
                 Me._interfaceMethod = interfaceMethod
@@ -206,6 +210,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End Function
 
+            Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+                Get
+                    Return _hasMethodBodyDependency
+                End Get
+            End Property
+
+            Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
+                Get
+                    Dim symbol As ISynthesizedMethodBodyImplementationSymbol = CType(ContainingSymbol, ISynthesizedMethodBodyImplementationSymbol)
+                    Return symbol.Method
+                End Get
+            End Property
         End Class
     End Class
 End Namespace

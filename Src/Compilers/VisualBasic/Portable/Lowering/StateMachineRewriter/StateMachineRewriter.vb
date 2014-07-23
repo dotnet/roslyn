@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Add a field: int _state
             Dim intType = Me.F.SpecialType(SpecialType.System_Int32)
-            Me.StateField = Me.F.SynthesizeField(intType, Me.Method, GeneratedNames.MakeStateMachineStateFieldName(), Accessibility.Friend)
+            Me.StateField = Me.F.StateMachineField(intType, Me.Method, GeneratedNames.MakeStateMachineStateFieldName(), Accessibility.Friend)
 
             Me.GenerateFields()
 
@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: without generation of any errors/warnings. Roslyn has to match this behavior
 
                 proxy = CreateParameterCapture(
-                            Me.F.SynthesizeField(
+                            Me.F.StateMachineField(
                                 Method.ContainingType,
                                 Me.Method,
                                 If(isMeOfClosureType,
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Me.PreserveInitialLocals Then
                     Dim initialMe As TProxy = If(Me.Method.ContainingType.IsStructureType(),
                                                  CreateParameterCapture(
-                                                     Me.F.SynthesizeField(
+                                                     Me.F.StateMachineField(
                                                          Me.Method.ContainingType,
                                                          Me.Method,
                                                          GeneratedNames.MakeIteratorParameterProxyName(GeneratedNames.MakeStateMachineCapturedMeName()),
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Debug.Assert(Not parameter.IsByRef)
                 proxy = CreateParameterCapture(
-                            F.SynthesizeField(
+                            F.StateMachineField(
                                 paramType,
                                 Me.Method,
                                 GeneratedNames.MakeStateMachineParameterName(parameter.Name),
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Me.PreserveInitialLocals Then
                     Me.InitialParameters.Add(parameter,
                                              CreateParameterCapture(
-                                                 Me.F.SynthesizeField(
+                                                 Me.F.StateMachineField(
                                                      paramType,
                                                      Me.Method,
                                                      GeneratedNames.MakeIteratorParameterProxyName(parameter.Name),
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.nextLocalNumber += 1
             End If
 
-            Return F.SynthesizeField(localType, Me.Method, proxyName, Accessibility.Friend)
+            Return F.StateMachineField(localType, Me.Method, proxyName, Accessibility.Friend)
         End Function
 
         ''' <summary>
@@ -358,25 +358,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Function StartMethodImplementation(interfaceMethod As WellKnownMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean) As SynthesizedImplementationMethod
+        Friend Function StartMethodImplementation(interfaceMethod As WellKnownMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedImplementationMethod
             Dim methodToImplement As MethodSymbol = Me.F.WellKnownMember(Of MethodSymbol)(interfaceMethod)
 
-            Return StartMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo)
+            Return StartMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo, hasMethodBodyDependency, associatedProperty, asyncKickoffMethod)
         End Function
 
-        Friend Function StartMethodImplementation(interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean) As SynthesizedImplementationMethod
+        Friend Function StartMethodImplementation(interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedImplementationMethod
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol)
 
-            Return StartMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo)
+            Return StartMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo, hasMethodBodyDependency, associatedProperty, asyncKickoffMethod)
         End Function
 
-        Friend Function StartMethodImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean) As SynthesizedImplementationMethod
+        Friend Function StartMethodImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedImplementationMethod
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol).AsMember(interfaceType)
 
-            Return StartMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo)
+            Return StartMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo, hasMethodBodyDependency, associatedProperty, asyncKickoffMethod)
         End Function
 
-        Private Function StartMethodImplementation(methodToImplement As MethodSymbol, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean) As SynthesizedImplementationMethod
+        Private Function StartMethodImplementation(methodToImplement As MethodSymbol, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedImplementationMethod
             ' Errors must be reported before and if any thispoint should not be reachable
             Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
 
@@ -386,7 +386,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               Me.F.Syntax,
                                                               dbgAttrs,
                                                               accessibility,
-                                                              enableDebugInfo)
+                                                              enableDebugInfo,
+                                                              hasMethodBodyDependency,
+                                                              associatedProperty,
+                                                              asyncKickoffMethod)
 
             Me.F.AddMethod(Me.F.CurrentType, result)
             Me.F.CurrentMethod = result
@@ -405,14 +408,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return StartPropertyGetImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo)
         End Function
 
-        Private Function StartPropertyGetImplementation(methodToImplement As MethodSymbol, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean) As MethodSymbol
+        Private Function StartPropertyGetImplementation(methodToImplement As MethodSymbol, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False) As MethodSymbol
             Dim prop As New SynthesizedImplementationReadOnlyProperty(Me.F.CurrentType,
-                                                    name,
-                                                    methodToImplement,
-                                                    Me.F.Syntax,
-                                                    dbgAttrs,
-                                                    accessibility,
-                                                    enableDebugInfo)
+                                                                      name,
+                                                                      methodToImplement,
+                                                                      Me.F.Syntax,
+                                                                      dbgAttrs,
+                                                                      accessibility,
+                                                                      enableDebugInfo,
+                                                                      hasMethodBodyDependency)
 
             Me.F.AddProperty(Me.F.CurrentType, prop)
 

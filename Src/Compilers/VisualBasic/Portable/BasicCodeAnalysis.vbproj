@@ -519,6 +519,7 @@
     <Compile Include="Lowering\MethodToClassRewriter\MethodToClassRewriter.SynthesizedMethod.vb" />
     <Compile Include="Lowering\MethodToClassRewriter\MethodToClassRewriter.vb" />
     <Compile Include="Lowering\Rewriter.vb" />
+    <Compile Include="Lowering\StateMachineRewriter\StateMachineFieldSymbol.vb" />
     <Compile Include="Lowering\StateMachineRewriter\StateMachineRewriter.AbstractStateMachineTypeSymbol.vb" />
     <Compile Include="Lowering\StateMachineRewriter\StateMachineRewriter.StateMachineMethodToClassRewriter.vb" />
     <Compile Include="Lowering\StateMachineRewriter\StateMachineRewriter.SynthesizedImplementationMethod.vb" />

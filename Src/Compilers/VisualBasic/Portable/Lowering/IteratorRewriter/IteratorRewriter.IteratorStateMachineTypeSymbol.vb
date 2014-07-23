@@ -17,8 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend NotInheritable Class IteratorStateMachineTypeSymbol
             Inherits AbstractStateMachineTypeSymbol
+            Implements ISynthesizedMethodBodyImplementationSymbol
 
             Private ReadOnly _constructor As SynthesizedSimpleConstructorSymbol
+            Private ReadOnly _iteratorMethod As MethodSymbol
 
             Protected Friend Sub New(topLevelMethod As MethodSymbol,
                                      typeIndex As Integer,
@@ -39,6 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     New SynthesizedParameterSymbol(Me._constructor, intType, 0, False, GeneratedNames.MakeStateMachineStateFieldName()))
 
                 Me._constructor.SetParameters(parameters)
+                Me._iteratorMethod = topLevelMethod
             End Sub
 
             Private Shared Function GetIteratorInterfaces(elementType As TypeSymbol,
@@ -74,6 +77,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Protected Friend Overrides ReadOnly Property Constructor As MethodSymbol
                 Get
                     Return Me._constructor
+                End Get
+            End Property
+
+            Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+                Get
+                    ' This method contains user code from the iterator method
+                    Return True
+                End Get
+            End Property
+
+            Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
+                Get
+                    Return _iteratorMethod
                 End Get
             End Property
         End Class

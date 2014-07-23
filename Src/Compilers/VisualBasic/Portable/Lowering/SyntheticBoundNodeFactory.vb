@@ -107,8 +107,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Public Function SynthesizeField(fieldType As TypeSymbol, implicitlyDefinedBy As Symbol, name As String, Optional accessibility As Accessibility = Accessibility.Private) As SynthesizedFieldSymbol
-            Dim result As New SynthesizedFieldSymbol(Me.CurrentType, implicitlyDefinedBy, fieldType, name, accessibility:=accessibility)
+        Public Function StateMachineField(fieldType As TypeSymbol, implicitlyDefinedBy As Symbol, name As String, Optional accessibility As Accessibility = Accessibility.Private) As SynthesizedFieldSymbol
+            Dim result As New StateMachineFieldSymbol(Me.CurrentType, implicitlyDefinedBy, fieldType, name, accessibility:=accessibility)
             AddField(CurrentType, result)
             Return result
         End Function

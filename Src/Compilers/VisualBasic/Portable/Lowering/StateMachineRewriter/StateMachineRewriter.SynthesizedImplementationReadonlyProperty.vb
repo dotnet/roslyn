@@ -24,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend NotInheritable Class SynthesizedImplementationReadOnlyProperty
             Inherits SynthesizedPropertyBase
+            Implements ISynthesizedMethodBodyImplementationSymbol
 
             Private ReadOnly getter As SynthesizedImplementationMethod
             Private ReadOnly propName As String
@@ -34,7 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            syntax As VisualBasicSyntaxNode,
                            attributes As DebugAttributes,
                            declaredAccessibility As Accessibility,
-                           enableDebugInfo As Boolean)
+                           enableDebugInfo As Boolean,
+                           hasMethodBodyDependency As Boolean)
 
                 Me.propName = name
 
@@ -56,6 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              attributes,
                                                              declaredAccessibility,
                                                              enableDebugInfo,
+                                                             hasMethodBodyDependency,
                                                              associatedProperty:=Me)
 
             End Sub
@@ -153,6 +156,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides ReadOnly Property IsShared As Boolean
                 Get
                     Return Me.getter.IsShared
+                End Get
+            End Property
+
+            Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+                Get
+                    Return Me.getter.HasMethodBodyDependency
+                End Get
+            End Property
+
+            Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
+                Get
+                    Dim symbol As ISynthesizedMethodBodyImplementationSymbol = CType(ContainingSymbol, ISynthesizedMethodBodyImplementationSymbol)
+                    Return symbol.Method
                 End Get
             End Property
         End Class

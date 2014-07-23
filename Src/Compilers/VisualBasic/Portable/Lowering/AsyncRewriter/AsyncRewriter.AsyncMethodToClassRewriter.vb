@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim result As FieldSymbol = Nothing
                 If Not Me._awaiterFields.TryGetValue(awaiterType, result) Then
                     Dim name As String = GeneratedNames.MakeStateMachineAwaiterFieldName(CompilationState.GenerateTempNumber())
-                    result = Me.F.SynthesizeField(awaiterType, Me._method, name, Accessibility.Friend)
+                    result = Me.F.StateMachineField(awaiterType, Me._method, name, Accessibility.Friend)
                     Me._awaiterFields.Add(awaiterType, result)
                 End If
                 Return result

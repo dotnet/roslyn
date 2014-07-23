@@ -24,10 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend NotInheritable Class Frame
             Inherits InstanceTypeSymbol
+            Implements ISynthesizedMethodBodyImplementationSymbol
 
             Private ReadOnly m_containingSymbol As Symbol
             Private ReadOnly m_name As String
             Private ReadOnly m_typeParameters As ImmutableArray(Of TypeParameterSymbol)
+            Private ReadOnly m_topLevelMethod As MethodSymbol
 
             'NOTE: this does not include captured parent frame references 
             Friend ReadOnly m_captured_locals As New ArrayBuilder(Of CapturedVariable)
@@ -71,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Me.m_typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(enclosingMethod.TypeParameters, Me, CreateTypeParameter)
                 Me.TypeMap = TypeSubstitution.Create(enclosingMethod, enclosingMethod.TypeParameters, Me.TypeArgumentsNoUseSiteDiagnostics)
+                Me.m_topLevelMethod = enclosingMethod
             End Sub
 
             Public Overrides ReadOnly Property Arity As Integer
@@ -325,6 +328,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw ExceptionUtilities.Unreachable
             End Sub
 
+            Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+                Get
+                    ' This method contains user code from the lamda
+                    Return True
+                End Get
+            End Property
+
+            Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
+                Get
+                    Return m_topLevelMethod
+                End Get
+            End Property
         End Class
 
         ''' <summary>
@@ -528,6 +543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Class SynthesizedLambdaConstructor
             Inherits SynthesizedMethod
+            Implements ISynthesizedMethodBodyImplementationSymbol
 
             Friend Sub New(
                 syntaxNode As VisualBasicSyntaxNode,
@@ -579,6 +595,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End Function
 
+            Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
+                Get
+                    Dim symbol As ISynthesizedMethodBodyImplementationSymbol = CType(ContainingSymbol, ISynthesizedMethodBodyImplementationSymbol)
+                    Return symbol.Method
+                End Get
+            End Property
         End Class
 
         ''' <summary>
