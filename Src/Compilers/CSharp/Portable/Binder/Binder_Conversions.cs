@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If we could access the member thru implicit "this" the receiver would be a BoundThisReference.
                 // If it is null it means that the instance member is inaccessible.
-                if (ContainingMember().IsStatic || receiverOpt == null)
+                if (receiverOpt == null || ContainingMember().IsStatic)
                 {
                     Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, memberSymbol);
                     return true;

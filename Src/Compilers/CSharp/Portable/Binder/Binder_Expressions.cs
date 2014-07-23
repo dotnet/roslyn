@@ -1380,17 +1380,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, member);
                     hasErrors = true;
                 }
-
-                // not an instance member if the container is a type, like when binding default parameter values.
-                var containingMember = ContainingMember();
-                bool locationIsInstanceMember = !containingMember.IsStatic &&
-                    (containingMember.Kind != SymbolKind.NamedType || currentType.IsScriptClass);
-
-                if (!hasErrors && !locationIsInstanceMember)
+                else
                 {
-                    // error CS0120: An object reference is required for the non-static field, method, or property '{0}'
-                    Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, member);
-                    hasErrors = true;
+                    // not an instance member if the container is a type, like when binding default parameter values.
+                    var containingMember = ContainingMember();
+                    bool locationIsInstanceMember = !containingMember.IsStatic &&
+                        (containingMember.Kind != SymbolKind.NamedType || currentType.IsScriptClass);
+
+                    if (!locationIsInstanceMember)
+                    {
+                        // error CS0120: An object reference is required for the non-static field, method, or property '{0}'
+                        Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, member);
+                        hasErrors = true;
+                    }
                 }
 
                 hasErrors = hasErrors || IsRefOrOutThisParameterCaptured(node, diagnostics);
