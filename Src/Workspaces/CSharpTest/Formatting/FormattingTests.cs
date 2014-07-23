@@ -1361,6 +1361,28 @@ class foo
 class foo{int x = 0;}", false, changingOptions);
         }
 
+        [WorkItem(991480)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void TestLeaveStatementMethodDeclarationSameLineNotAffectingForStatement()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.LeaveStatementMethodDeclarationSameLine, false);
+            AssertFormat(@"class Program
+{
+    static void Main(string[] args)
+    {
+        for (int d = 0; d < 10; ++d)
+        { }
+    }
+}", @"class Program
+{
+    static void Main(string[] args)
+    {
+        for (int d = 0; d < 10; ++d) { }
+    }
+}", false, changingOptions);
+        }
+
         [WorkItem(751789, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NewLineForOpenBracesDefault()

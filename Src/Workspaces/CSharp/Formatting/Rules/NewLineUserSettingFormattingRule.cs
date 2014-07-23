@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Insert a newline between the previous statement and this one.
             // ; *
             if (previousToken.CSharpKind() == SyntaxKind.SemicolonToken
-                && previousToken.Parent is StatementSyntax
+                && (previousToken.Parent is StatementSyntax && !previousToken.Parent.IsKind(SyntaxKind.ForStatement))
                 && !optionSet.GetOption(CSharpFormattingOptions.LeaveStatementMethodDeclarationSameLine))
             {
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
