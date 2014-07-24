@@ -7376,14 +7376,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
 
-            // access cannot be void or a pointer
-            if (accessType.IsPointerType() || accessType.SpecialType == SpecialType.System_Void)
+            // access cannot be a pointer
+            if (accessType.IsPointerType())
             {
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
 
             // if access has value type, the type of the conditional access is nullable of that
-            if (accessType.IsValueType && !accessType.IsNullableType())
+            if (accessType.IsValueType && !accessType.IsNullableType() && accessType.SpecialType != SpecialType.System_Void)
             {
                 accessType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(accessType);
             }

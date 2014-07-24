@@ -22037,5 +22037,35 @@ class Program
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(6, 18)
                );
         }
+
+        [Fact]
+        public void ConditionalMemberAccessNotStatement()
+        {
+            var text = @"
+class Program
+{
+    static void Main()
+    {
+        var x = new int[10];
+
+        x?.Length;
+        x?[1];
+        x?.ToString()[1];
+    }
+}
+";
+            CreateExperimentalCompilationWithMscorlib45(text, compOptions: TestOptions.UnsafeExe).VerifyDiagnostics(
+    // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x?.Length;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.Length").WithLocation(8, 9),
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x?[1];
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x?[1]").WithLocation(9, 9),
+    // (10,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x?.ToString()[1];
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.ToString()[1]").WithLocation(10, 9)
+               );
+        }
+
     }
 }

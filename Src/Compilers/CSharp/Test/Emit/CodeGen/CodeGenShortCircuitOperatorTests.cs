@@ -960,7 +960,7 @@ public class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, expectedOutput: "NULL#System.Int32[]");
+            var comp = CompileAndVerify(source, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
   // Code size       38 (0x26)
@@ -1010,7 +1010,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, expectedOutput: "NULL#System.Int32[]");
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
   // Code size       38 (0x26)
@@ -1055,7 +1055,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#System.Int32[]");
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
   // Code size      353 (0x161)
@@ -1198,7 +1198,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1221,7 +1221,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#-1");
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#-1");
         }
 
         [Fact]
@@ -1245,7 +1245,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1269,7 +1269,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -1293,7 +1293,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -1311,7 +1311,7 @@ public class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, expectedOutput: "");
+            var comp = CompileAndVerify(source, expectedOutput: "");
             comp.VerifyIL("C.Main", @"
 {
   // Code size       32 (0x20)
@@ -1351,7 +1351,7 @@ public class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, expectedOutput: "");
+            var comp = CompileAndVerify(source, expectedOutput: "");
             comp.VerifyIL("C.Main", @"
 {
   // Code size       50 (0x32)
@@ -1401,30 +1401,28 @@ public class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, expectedOutput: "");
+            var comp = CompileAndVerify(source, expectedOutput: "");
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       52 (0x34)
+  // Code size       42 (0x2a)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldstr      ""qqq""
   IL_0005:  callvirt   ""string object.ToString()""
   IL_000a:  callvirt   ""int string.Length.get""
-  IL_000f:  newobj     ""int?..ctor(int)""
-  IL_0014:  pop
-  IL_0015:  ldc.i4.1
-  IL_0016:  stloc.0
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  call       ""string int.ToString()""
-  IL_001e:  dup
-  IL_001f:  brtrue.s   IL_0023
-  IL_0021:  pop
-  IL_0022:  ret
-  IL_0023:  callvirt   ""string object.ToString()""
-  IL_0028:  callvirt   ""int string.Length.get""
-  IL_002d:  newobj     ""int?..ctor(int)""
-  IL_0032:  pop
-  IL_0033:  ret
+  IL_000f:  pop
+  IL_0010:  ldc.i4.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""string int.ToString()""
+  IL_0019:  dup
+  IL_001a:  brtrue.s   IL_001e
+  IL_001c:  pop
+  IL_001d:  ret
+  IL_001e:  callvirt   ""string object.ToString()""
+  IL_0023:  callvirt   ""int string.Length.get""
+  IL_0028:  pop
+  IL_0029:  ret
 }
 ");
         }
@@ -1449,7 +1447,7 @@ public class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"3
+            var comp = CompileAndVerify(source, expectedOutput: @"3
 1");
             comp.VerifyIL("C.Main", @"
 {
@@ -1504,7 +1502,7 @@ public class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, expectedOutput: "");
+            var comp = CompileAndVerify(source, expectedOutput: "");
             comp.VerifyIL("C.Main", @"
 {
   // Code size       95 (0x5f)
@@ -1573,7 +1571,7 @@ public class C
     }
 }";
 
-            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"3
+            var comp = CompileAndVerify(source, expectedOutput: @"3
 1");
             comp.VerifyIL("C.Main", @"
 {
@@ -1672,7 +1670,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"System.Exception: a
+            var comp = CompileAndVerify(source, expectedOutput: @"System.Exception: a
 System.Exception");
             comp.VerifyIL("Program.M<T>", @"
 {
@@ -1701,6 +1699,289 @@ System.Exception");
   IL_0038:  ret
 }
 ");
+
         }
+
+        [Fact]
+        [WorkItem(991400, "DevDiv")]
+        public void ConditionalMemberAccessStatement()
+        {
+            var source = @"
+class Program
+{
+    class C1
+    {
+        public void Print0()
+        {
+            System.Console.WriteLine(""print0"");
+        }
+
+        public int Print1()
+        {
+            System.Console.WriteLine(""print1"");
+            return 1;
+        }
+
+        public object Print2()
+        {
+            System.Console.WriteLine(""print2"");
+            return 1;
+        }
+    }
+
+    static void M(C1 x)
+    {
+        x?.Print0();
+        x?.Print1();
+        x?.Print2();
+    }
+ 
+    static void Main()
+    {
+        M(null);
+        M(new C1());
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"print0
+print1
+print2");
+            comp.VerifyIL("Program.M(Program.C1)", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  brtrue.s   IL_0007
+  IL_0004:  pop
+  IL_0005:  br.s       IL_000c
+  IL_0007:  callvirt   ""void Program.C1.Print0()""
+  IL_000c:  ldarg.0
+  IL_000d:  dup
+  IL_000e:  brtrue.s   IL_0013
+  IL_0010:  pop
+  IL_0011:  br.s       IL_0019
+  IL_0013:  callvirt   ""int Program.C1.Print1()""
+  IL_0018:  pop
+  IL_0019:  ldarg.0
+  IL_001a:  dup
+  IL_001b:  brtrue.s   IL_001f
+  IL_001d:  pop
+  IL_001e:  ret
+  IL_001f:  callvirt   ""object Program.C1.Print2()""
+  IL_0024:  pop
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(991400, "DevDiv")]
+        public void ConditionalMemberAccessStatement01()
+        {
+            var source = @"
+class Program
+{
+    struct S1
+    {
+        public void Print0()
+        {
+            System.Console.WriteLine(""print0"");
+        }
+
+        public int Print1()
+        {
+            System.Console.WriteLine(""print1"");
+            return 1;
+        }
+
+        public object Print2()
+        {
+            System.Console.WriteLine(""print2"");
+            return 1;
+        }
+    }
+
+    static void M(S1? x)
+    {
+        x?.Print0();
+        x?.Print1();
+        x?.Print2()?.ToString().ToString()?.ToString();
+    }
+ 
+    static void Main()
+    {
+        M(null);
+        M(new S1());
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"print0
+print1
+print2");
+            comp.VerifyIL("Program.M(Program.S1?)", @"
+{
+  // Code size      105 (0x69)
+  .maxstack  2
+  .locals init (Program.S1 V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool Program.S1?.HasValue.get""
+  IL_0007:  brfalse.s  IL_0018
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""Program.S1 Program.S1?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""void Program.S1.Print0()""
+  IL_0018:  ldarga.s   V_0
+  IL_001a:  call       ""bool Program.S1?.HasValue.get""
+  IL_001f:  brfalse.s  IL_0031
+  IL_0021:  ldarga.s   V_0
+  IL_0023:  call       ""Program.S1 Program.S1?.GetValueOrDefault()""
+  IL_0028:  stloc.0
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  call       ""int Program.S1.Print1()""
+  IL_0030:  pop
+  IL_0031:  ldarga.s   V_0
+  IL_0033:  call       ""bool Program.S1?.HasValue.get""
+  IL_0038:  brtrue.s   IL_003d
+  IL_003a:  ldnull
+  IL_003b:  br.s       IL_004c
+  IL_003d:  ldarga.s   V_0
+  IL_003f:  call       ""Program.S1 Program.S1?.GetValueOrDefault()""
+  IL_0044:  stloc.0
+  IL_0045:  ldloca.s   V_0
+  IL_0047:  call       ""object Program.S1.Print2()""
+  IL_004c:  dup
+  IL_004d:  brtrue.s   IL_0053
+  IL_004f:  pop
+  IL_0050:  ldnull
+  IL_0051:  br.s       IL_005d
+  IL_0053:  callvirt   ""string object.ToString()""
+  IL_0058:  callvirt   ""string object.ToString()""
+  IL_005d:  dup
+  IL_005e:  brtrue.s   IL_0062
+  IL_0060:  pop
+  IL_0061:  ret
+  IL_0062:  callvirt   ""string object.ToString()""
+  IL_0067:  pop
+  IL_0068:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(991400, "DevDiv")]
+        public void ConditionalMemberAccessStatement02()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    class C1
+    {
+        public void Print0(int i)
+        {
+            System.Console.WriteLine(""print0"");
+        }
+
+        public int Print1(int i)
+        {
+            System.Console.WriteLine(""print1"");
+            return 1;
+        }
+
+        public object Print2(int i)
+        {
+            System.Console.WriteLine(""print2"");
+            return 1;
+        }
+    }
+
+    static async Task<int> Val()
+    {
+        await Task.Yield();
+        return 1;
+    }
+
+    static async Task<int> M(C1 x)
+    {
+        x?.Print0(await Val());
+        x?.Print1(await Val());
+        x?.Print2(await Val());
+        return 1;
+    }
+
+    static void Main()
+    {
+        M(null).Wait();
+        M(new C1()).Wait();
+    }
+}
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+print1
+print2");
+        }
+
+        [Fact]
+        [WorkItem(991400, "DevDiv")]
+        public void ConditionalMemberAccessStatement03()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    struct C1
+    {
+        public void Print0(int i)
+        {
+            System.Console.WriteLine(""print0"");
+        }
+
+        public int Print1(int i)
+        {
+            System.Console.WriteLine(""print1"");
+            return 1;
+        }
+
+        public object Print2(int i)
+        {
+            System.Console.WriteLine(""print2"");
+            return 1;
+        }
+    }
+
+    static async Task<int> Val()
+    {
+        await Task.Yield();
+        return 1;
+    }
+
+    static async Task<int> M(C1? x)
+    {
+        x?.Print0(await Val());
+        x?.Print1(await Val());
+        x?.Print2(await Val());
+        return 1;
+    }
+
+    static void Main()
+    {
+        M(null).Wait();
+        M(new C1()).Wait();
+    }
+}
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+print1
+print2");
+        }
+
     }
 }

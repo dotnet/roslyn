@@ -1450,16 +1450,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                EmitArguments(expression.Arguments, constructor.Parameters);
+                if (!used && 
+                    expression.Constructor.OriginalDefinition == module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor))
+                {
+                    // creating nullable has no sideeffects, so we will just evaluate the arg
+                    EmitExpression(expression.Arguments[0], used: false);
+                }
+                else
+                {
+                    EmitArguments(expression.Arguments, constructor.Parameters);
 
-                var stackAdjustment = GetObjCreationStackBehavior(expression);
-                builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
+                    var stackAdjustment = GetObjCreationStackBehavior(expression);
+                    builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
 
-                // for variadic ctors emit expanded ctor token
-                EmitSymbolToken(constructor, expression.Syntax,
-                                constructor.IsVararg ? (BoundArgListOperator)expression.Arguments[expression.Arguments.Length - 1] : null);
+                    // for variadic ctors emit expanded ctor token
+                    EmitSymbolToken(constructor, expression.Syntax,
+                                    constructor.IsVararg ? (BoundArgListOperator)expression.Arguments[expression.Arguments.Length - 1] : null);
 
-                EmitPopIfUnused(used);
+                    EmitPopIfUnused(used);
+                }
             }
         }
 

@@ -404,13 +404,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(token2.IsMissing);
             Assert.False(token2.ContainsDiagnostics);
 
-            Assert.True(IsStatementExpression(expr1.Green));
-            Assert.True(IsStatementExpression(expr2.Green));
+            Assert.True(IsStatementExpression(expr1));
+            Assert.True(IsStatementExpression(expr2));
         }
 
-        internal static bool IsStatementExpression(GreenNode expression)
+        internal static bool IsStatementExpression(CSharpSyntaxNode expression)
         {
-            return SyntaxFacts.IsStatementExpression(((Syntax.InternalSyntax.CSharpSyntaxNode)expression).Kind, expression.IsMissing);
+            return SyntaxFacts.IsStatementExpression(expression);
         }
 
         [WorkItem(545049, "DevDiv")]
@@ -450,8 +450,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(token2.IsMissing);
             Assert.False(token2.ContainsDiagnostics);
 
-            Assert.True(IsStatementExpression(expr1.Green));
-            Assert.True(IsStatementExpression(expr2.Green));
+            Assert.True(IsStatementExpression(expr1));
+            Assert.True(IsStatementExpression(expr2));
         }
 
         [Fact]

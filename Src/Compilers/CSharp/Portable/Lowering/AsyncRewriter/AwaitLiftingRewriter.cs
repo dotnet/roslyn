@@ -508,13 +508,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // spill the receiver if there were await expressions in the arguments
                 var ss2 = new BoundSpillSequence2();
-                receiver = Spill(ss2, VisitExpression(ref ss2, node.ReceiverOpt), refKind: node.ReceiverOpt.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
+
+                receiver = node.ReceiverOpt;
+                var refKind = ReceiverSpillRefKind(receiver);
+
+                receiver = Spill(ss2, VisitExpression(ref ss2, receiver), refKind: refKind);
                 ss2.IncludeSequence(ss);
                 ss = ss2;
             }
 
             return UpdateExpression(ss, node.Update(receiver, node.Method, arguments));
         }
+
+        private static RefKind ReceiverSpillRefKind(BoundExpression receiver)
+        {
+            if (!receiver.Type.IsReferenceType)
+            {
+                switch (receiver.Kind)
+                {
+                    case BoundKind.Parameter:
+                    case BoundKind.Local:
+                    case BoundKind.ArrayAccess:
+                    case BoundKind.ThisReference:
+                    case BoundKind.BaseReference:
+                    case BoundKind.PointerIndirectionOperator:
+                    case BoundKind.RefValueOperator:
+                    case BoundKind.FieldAccess:
+                        return RefKind.Ref;
+                }
+            }
+
+            return RefKind.None;
+        }
+
         public override BoundNode VisitConditionalGoto(BoundConditionalGoto node)
         {
             BoundSpillSequence2 ss = null;
@@ -537,17 +563,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UpdateExpression(ss1, node.Update(condition, consequence, alternative, node.ConstantValueOpt, node.Type));
             }
 
-            var tmp = F.SynthesizedLocal(node.Type);
             if (ss1 == null) ss1 = new BoundSpillSequence2();
             if (ss2 == null) ss2 = new BoundSpillSequence2();
             if (ss3 == null) ss3 = new BoundSpillSequence2();
 
-            ss1.Add(tmp);
-            ss1.Add(
-                F.If(condition,
-                    UpdateStatement(ss2, F.Assignment(F.Local(tmp), consequence)),
-                    UpdateStatement(ss3, F.Assignment(F.Local(tmp), alternative))));
-            return ss1.Update(F.Local(tmp));
+            if (node.Type.SpecialType == SpecialType.System_Void)
+            {
+                ss1.Add(
+                    F.If(condition,
+                        UpdateStatement(ss2, F.ExpressionStatement(consequence)),
+                        UpdateStatement(ss3, F.ExpressionStatement(alternative))));
+
+                return ss1.Update(F.Default(node.Type));
+            }
+            else
+            {
+                var tmp = F.SynthesizedLocal(node.Type);
+                ss1.Add(tmp);
+                ss1.Add(
+                    F.If(condition,
+                        UpdateStatement(ss2, F.Assignment(F.Local(tmp), consequence)),
+                        UpdateStatement(ss3, F.Assignment(F.Local(tmp), alternative))));
+
+                return ss1.Update(F.Local(tmp));
+            }
         }
         public override BoundNode VisitConversion(BoundConversion node)
         {

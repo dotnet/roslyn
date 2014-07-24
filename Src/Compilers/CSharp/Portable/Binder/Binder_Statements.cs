@@ -1661,7 +1661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.UninitializedVarDeclarationExpression:
                     if (valueKind != BindValueKind.OutParameter)
-            {
+                    {
                         return ((UninitializedVarDeclarationExpression)expr).FailInference(this, diagnostics);
                     }
 
@@ -3170,7 +3170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsValidStatementExpression(CSharpSyntaxNode syntax, BoundExpression expression)
         {
-            bool syntacticallyValid = SyntaxFacts.IsStatementExpression(syntax.Kind, syntax.IsMissing);
+            bool syntacticallyValid = SyntaxFacts.IsStatementExpression(syntax);
             if (!syntacticallyValid)
             {
                 return false;

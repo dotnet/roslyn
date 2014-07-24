@@ -312,5 +312,65 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
         }
+
+        internal static bool IsStatementExpression(CSharpSyntaxNode syntax)
+        {
+            // The grammar gives:
+            //
+            // expression-statement:
+            //     statement-expression ;
+            //
+            // statement-expression:
+            //     invocation-expression
+            //     object-creation-expression
+            //     assignment
+            //     post-increment-expression
+            //     post-decrement-expression
+            //     pre-increment-expression
+            //     pre-decrement-expression
+            //     await-expression
+
+            switch (syntax.Kind)
+            {
+                case SyntaxKind.InvocationExpression:
+                case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.SimpleAssignmentExpression:
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.PostIncrementExpression:
+                case SyntaxKind.PostDecrementExpression:
+                case SyntaxKind.PreIncrementExpression:
+                case SyntaxKind.PreDecrementExpression:
+                case SyntaxKind.AwaitExpression:
+                    return true;
+
+                case SyntaxKind.ConditionalAccessExpression:
+                    var access = (ConditionalAccessExpressionSyntax)syntax;
+                    return IsStatementExpression(access.WhenNotNull);
+
+                // Allow missing IdentifierNames; they will show up in error cases
+                // where there is no statement whatsoever.
+
+                case SyntaxKind.IdentifierName:
+                    return syntax.IsMissing;
+
+                // TODO: The native implementation also disallows delegate
+                // creation expressions with the ERR_IllegalStatement error, 
+                // so that needs to go into the semantic analysis somewhere
+                // if we intend to carry it forward.
+
+                default:
+                    return false;
+            }
+        }
+
     }
 }

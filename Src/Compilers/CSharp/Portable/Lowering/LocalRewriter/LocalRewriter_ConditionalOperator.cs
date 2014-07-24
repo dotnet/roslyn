@@ -85,9 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //TODO: if AccessExpression does not contain awaits, the node could be left unlowered (saves a temp),
             //      but there seem to be no way of knowing that without walking AccessExpression.
+            //      For now we will just check that we are in an async method, but it would be nice
+            //      to have something more precise.
+            var isAsync = this.factory.CurrentMethod.IsAsync;
+
             var needToLower = receiverType.IsNullableType() || 
-                this.inExpressionLambda || 
-                this.factory.CurrentMethod.IsAsync || 
+                this.inExpressionLambda ||
+                isAsync || 
                 node.Type.IsDynamic();
 
             var previousConditionalAccesTarget = currentConditionalAccessTarget;
