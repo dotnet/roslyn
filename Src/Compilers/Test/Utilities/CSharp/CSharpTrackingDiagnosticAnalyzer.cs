@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     public class CSharpTrackingDiagnosticAnalyzer : TrackingDiagnosticAnalyzer<SyntaxKind>
     {
         static readonly Regex omittedSyntaxKindRegex =
-            new Regex(@"Using|Extern|Parameter|Constraint|Specifier|Initializer|Global|Method|Destructor|MemberBindingExpression|ElementBindingExpression|ArrowExpressionClause");
-
+            new Regex(@"Using|Extern|Parameter|Constraint|Specifier|Initializer|Global|Method|Destructor|MemberBindingExpression|ElementBindingExpression|ArrowExpressionClause|NameOfExpression");
+        
         protected override bool IsOnCodeBlockSupported(SymbolKind symbolKind, MethodKind methodKind, bool returnsVoid)
         {
             return base.IsOnCodeBlockSupported(symbolKind, methodKind, returnsVoid) && methodKind != MethodKind.EventRaise;

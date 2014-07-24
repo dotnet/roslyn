@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// and attribute name lookup with "Attribute" suffix is skipped.
         /// </summary>
         VerbatimNameAttributeTypeOnly = (1 << 12) | AttributeTypeOnly,
+
+        /// <summary>
+        /// Consider named types of any arity when arity zero is specified. It is specifically desired for nameof in such situations: nameof(System.Collections.Generic.List)
+        /// </summary>
+        AllNamedTypesOnArityZero = 1 << 13,
     }
 
     internal static class LookupOptionExtensions

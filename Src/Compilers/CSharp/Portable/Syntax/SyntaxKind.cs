@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         EqualsKeyword,
         AscendingKeyword,
         DescendingKeyword,
+        NameOfKeyword,
         AsyncKeyword,
         AwaitKeyword,
 
@@ -393,6 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         MakeRefExpression,
         RefValueExpression,
         RefTypeExpression,
+        NameOfExpression,
 
         // query expressions
         QueryExpression,

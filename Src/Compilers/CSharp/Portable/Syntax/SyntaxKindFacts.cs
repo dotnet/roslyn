@@ -1046,6 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ParamKeyword:
                 case SyntaxKind.PropertyKeyword:
                 case SyntaxKind.TypeVarKeyword:
+                case SyntaxKind.NameOfKeyword:
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.AwaitKeyword:
                     return true;
@@ -1143,6 +1144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.AsyncKeyword;
                 case "await":
                     return SyntaxKind.AwaitKeyword;
+                case "nameof":
+                    return SyntaxKind.NameOfKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1534,6 +1537,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "async";
                 case SyntaxKind.AwaitKeyword:
                     return "await";
+                case SyntaxKind.NameOfKeyword:
+                    return "nameof";
                 default:
                     return string.Empty;
             }

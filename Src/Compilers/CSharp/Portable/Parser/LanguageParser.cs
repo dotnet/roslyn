@@ -5354,13 +5354,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool ScanPossibleTypeArgumentList()
         {
             SyntaxToken lastTokenOfList = null;
-            return ScanPossibleTypeArgumentList(ref lastTokenOfList);
+            return ScanPossibleTypeArgumentList(ref lastTokenOfList) != ScanTypeFlags.NotType;
         }
 
-        private bool ScanPossibleTypeArgumentList(ref SyntaxToken lastTokenOfList)
+        private ScanTypeFlags ScanPossibleTypeArgumentList(ref SyntaxToken lastTokenOfList)
         {
             if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
             {
+                ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
+
                 do
                 {
                     lastTokenOfList = this.EatToken();
@@ -5368,19 +5370,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // We currently do not have the ability to scan attributes, so if this is an open square, we early out and assume it is an attribute
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                     {
-                        return true;
+                        return result;
                     }
 
                     if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
                     {
                         lastTokenOfList = EatToken();
-                        return true;
+                        return result;
                     }
 
-                    if (this.ScanType(out lastTokenOfList) == ScanTypeFlags.NotType)
+                    switch (this.ScanType(out lastTokenOfList))
                     {
-                        lastTokenOfList = null;
-                        return false;
+                        case ScanTypeFlags.NotType:
+                            lastTokenOfList = null;
+                            return ScanTypeFlags.NotType;
+
+                        case ScanTypeFlags.MustBeType:
+                        case ScanTypeFlags.GenericTypeOrMethod:
+                            result = ScanTypeFlags.GenericTypeOrMethod;
+                            break;
                     }
                 }
                 while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
@@ -5388,13 +5396,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
                 {
                     lastTokenOfList = null;
-                    return false;
+                    return ScanTypeFlags.NotType;
                 }
 
                 lastTokenOfList = this.EatToken();
+                return result;
             }
 
-            return true;
+            return ScanTypeFlags.NonGenericTypeOrExpression;
         }
 
         // ParseInstantiation: Parses the generic argument/parameter parts of the name.
@@ -5799,7 +5808,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             MustBeType,
 
             /// <summary>
-            /// Might be a generic (qualified) type name or an expression.
+            /// Might be a generic (qualified) type name or a method name.
+            /// </summary>
+            GenericTypeOrMethod,
+
+            /// <summary>
+            /// Might be a generic (qualified) type name or an expression or a method name.
             /// </summary>
             GenericTypeOrExpression,
 
@@ -5875,47 +5889,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        private enum NamedTypePart
-        {
-            NotName,
-            GenericName,
-            SimpleName
-        }
-
-        private NamedTypePart ScanNamedTypePart()
+        private void ScanNamedTypePart()
         {
             SyntaxToken lastTokenOfType;
-            return ScanNamedTypePart(out lastTokenOfType);
+            ScanNamedTypePart(out lastTokenOfType);
         }
 
-        private NamedTypePart ScanNamedTypePart(out SyntaxToken lastTokenOfType)
+        private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType)
         {
             if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken || !this.IsTrueIdentifier())
             {
                 lastTokenOfType = null;
-                return NamedTypePart.NotName;
+                return ScanTypeFlags.NotType;
             }
 
             lastTokenOfType = this.EatToken();
             if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
             {
-                if (!this.ScanPossibleTypeArgumentList(ref lastTokenOfType))
-                {
-                    return NamedTypePart.NotName;
-                }
-
-                return NamedTypePart.GenericName;
+                return this.ScanPossibleTypeArgumentList(ref lastTokenOfType);
             }
             else
             {
-                return NamedTypePart.SimpleName;
+                return ScanTypeFlags.NonGenericTypeOrExpression;
             }
-        }
-
-        private static ScanTypeFlags NamedTypePartToScanTypeFlags(NamedTypePart st)
-        {
-            Debug.Assert(st != NamedTypePart.NotName);
-            return st == NamedTypePart.GenericName ? ScanTypeFlags.GenericTypeOrExpression : ScanTypeFlags.NonGenericTypeOrExpression;
         }
 
         private ScanTypeFlags ScanNonArrayType()
@@ -5929,13 +5925,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ScanTypeFlags result;
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
-                var partResult = this.ScanNamedTypePart(out lastTokenOfType);
-                if (partResult == NamedTypePart.NotName)
+                result = this.ScanNamedTypePart(out lastTokenOfType);
+                if (result == ScanTypeFlags.NotType)
                 {
                     return ScanTypeFlags.NotType;
                 }
-
-                result = NamedTypePartToScanTypeFlags(partResult);
 
                 bool isAlias = this.CurrentToken.Kind == SyntaxKind.ColonColonToken;
 
@@ -5949,14 +5943,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     lastTokenOfType = this.EatToken();
 
-                    partResult = this.ScanNamedTypePart(out lastTokenOfType);
-
-                    if (partResult == NamedTypePart.NotName)
+                    result = this.ScanNamedTypePart(out lastTokenOfType);
+                    if (result == ScanTypeFlags.NotType)
                     {
                         return ScanTypeFlags.NotType;
                     }
-
-                    result = NamedTypePartToScanTypeFlags(partResult);
                 }
 
                 if (isAlias)
@@ -5990,6 +5981,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (result == ScanTypeFlags.GenericTypeOrExpression || result == ScanTypeFlags.NonGenericTypeOrExpression)
                 {
                     result = ScanTypeFlags.PointerOrMultiplication;
+                }
+                else if (result == ScanTypeFlags.GenericTypeOrMethod)
+                {
+                    result = ScanTypeFlags.MustBeType;
                 }
             }
 
@@ -6431,6 +6426,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return this.ParseExpressionStatement();
                     }
             }
+        }
+
+        private bool IsPossibleNameOfExpression()
+        {
+            return this.CurrentToken.ContextualKind == SyntaxKind.NameOfKeyword &&
+                   this.PeekToken(1).Kind == SyntaxKind.OpenParenToken && this.PeekToken(2).Kind != SyntaxKind.CloseParenToken;
         }
 
         private bool IsPossibleLabeledStatement()
@@ -7568,6 +7569,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return syntaxFactory.YieldStatement(kind, yieldToken, returnOrBreak, arg, semi);
         }
 
+        private ExpressionSyntax ParseNameOfExpression()
+        {
+            ExpressionSyntax result;
+            var identifier = this.ParseIdentifierName();
+            var resetPoint = this.GetResetPoint();
+            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+            var type = this.ParseTypeName();
+            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+
+            if (closeParen.IsMissing)
+            {
+                // If the argument is not parsed as a TypeSyntax, the current token is not CloseParenToken. 
+                // In this case, come back to the reset point and parse it as an invocation expression.
+                this.Reset(ref resetPoint);
+                result = syntaxFactory.InvocationExpression(identifier, this.ParseParenthesizedArgumentList());
+            }
+            else
+            {
+                result = syntaxFactory.NameOfExpression(identifier, openParen, type, closeParen);
+            }
+            this.Release(ref resetPoint);
+            return result;
+        }
+
         private SwitchStatementSyntax ParseSwitchStatement()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.SwitchKeyword);
@@ -7817,7 +7842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             SyntaxKind nextTokenKind;
 
-            if (st == ScanTypeFlags.MustBeType && this.CurrentToken.Kind != SyntaxKind.DotToken)
+            if ((st == ScanTypeFlags.MustBeType || st == ScanTypeFlags.GenericTypeOrMethod) && this.CurrentToken.Kind != SyntaxKind.DotToken)
             {
                 // If the current token is an identifier, which is not followed by a '=' or a ',', treat it as a declaration expression.
                 return this.CurrentToken.Kind != SyntaxKind.IdentifierToken ||
@@ -8124,6 +8149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.RefValueExpression:
                 case SyntaxKind.RefTypeExpression:
                 case SyntaxKind.AwaitExpression:
+                case SyntaxKind.NameOfExpression:
                     return 13;
                 case SyntaxKind.CastExpression:
                     return 14;
@@ -8399,6 +8425,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         else if (this.IsPossibleLambdaExpression(precedence))
                         {
                             expr = this.ParseLambdaExpression();
+                        }
+                        else if (this.IsPossibleNameOfExpression())
+                        {
+                            expr = this.ParseNameOfExpression();
                         }
                         else
                         {
@@ -9157,7 +9187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // check for ambiguous type or expression followed by disambiguating token.  i.e.
             //
             // "(A)b" is a cast.  But "(A)+b" is not a cast.  
-            return IsAnyTypeOrExpr(type) && CanFollowCast(this.CurrentToken.Kind);
+            return (type == ScanTypeFlags.GenericTypeOrMethod || type == ScanTypeFlags.GenericTypeOrExpression || type == ScanTypeFlags.NonGenericTypeOrExpression) && CanFollowCast(this.CurrentToken.Kind);
         }
 
         private bool ScanAsyncLambda(uint precedence)
@@ -9203,11 +9233,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 return isAsync;
             }
-        }
-
-        private static bool IsAnyTypeOrExpr(ScanTypeFlags st)
-        {
-            return st == ScanTypeFlags.GenericTypeOrExpression || st == ScanTypeFlags.NonGenericTypeOrExpression;
         }
 
         private static bool CanFollowCast(SyntaxKind kind)

@@ -481,4 +481,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return true; }
         }
     }
+
+    partial class BoundNameOfOperator
+    {
+        public override ConstantValue ConstantValue
+        {
+            get
+            {
+                return this.ConstantValueOpt;
+            }
+        }
+    }
 }

@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExpressionBodiedProperty = MessageBase + 12692,
         IDS_FeatureExpressionBodiedIndexer = MessageBase + 12693,
         IDS_VersionExperimental = MessageBase + 12694,
+        IDS_FeatureNameof = MessageBase + 12695,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -153,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureExpressionBodiedMethod:
                 case MessageID.IDS_FeatureExpressionBodiedProperty:
                 case MessageID.IDS_FeatureExpressionBodiedIndexer:
+                case MessageID.IDS_FeatureNameof:
                     return LanguageVersion.CSharp6;
 
                 // C# 5 features.

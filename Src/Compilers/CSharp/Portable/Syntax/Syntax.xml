@@ -3825,4 +3825,36 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
+  <Node Name="NameOfExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="NameOfExpression"/>
+    <Field Name="NameOfIdentifier" Type="IdentifierNameSyntax">
+      <PropertyComment>
+        <summary>nameof contexual keyword.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierName"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Argument" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>The argument.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for nameof expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an NameOfExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
 </Tree>

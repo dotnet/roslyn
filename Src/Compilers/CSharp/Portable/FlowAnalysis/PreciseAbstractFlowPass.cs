@@ -2204,6 +2204,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
             VisitAddressOfOperator(node, shouldReadOperand: false);

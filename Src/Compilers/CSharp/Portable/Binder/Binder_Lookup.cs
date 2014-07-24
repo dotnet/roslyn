@@ -1326,22 +1326,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.NamedType:
-                    NamedTypeSymbol namedType = (NamedTypeSymbol)symbol;
-                    // non-declared types only appear as using aliases (aliases are arity 0)
-                    Debug.Assert(object.ReferenceEquals(namedType.ConstructedFrom, namedType));
-                    if (namedType.Arity != arity || options.IsAttributeTypeLookup() && arity != 0)
+                    if (arity != 0 || (options & LookupOptions.AllNamedTypesOnArityZero) == 0)
                     {
-                        if (namedType.Arity == 0)
+                        NamedTypeSymbol namedType = (NamedTypeSymbol)symbol;
+                        // non-declared types only appear as using aliases (aliases are arity 0)
+                        Debug.Assert(object.ReferenceEquals(namedType.ConstructedFrom, namedType));
+                        if (namedType.Arity != arity || options.IsAttributeTypeLookup() && arity != 0)
                         {
-                            // The non-generic {1} '{0}' cannot be used with type arguments
-                            diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_HasNoTypeVars, namedType, MessageID.IDS_SK_TYPE.Localize()) : null;
+                            if (namedType.Arity == 0)
+                            {
+                                // The non-generic {1} '{0}' cannot be used with type arguments
+                                diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_HasNoTypeVars, namedType, MessageID.IDS_SK_TYPE.Localize()) : null;
+                            }
+                            else
+                            {
+                                // Using the generic {1} '{0}' requires {2} type arguments
+                                diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadArity, namedType, MessageID.IDS_SK_TYPE.Localize(), namedType.Arity) : null;
+                            }
+                            return true;
                         }
-                        else
-                        {
-                            // Using the generic {1} '{0}' requires {2} type arguments
-                            diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadArity, namedType, MessageID.IDS_SK_TYPE.Localize(), namedType.Arity) : null;
-                        }
-                        return true;
                     }
                     break;
 

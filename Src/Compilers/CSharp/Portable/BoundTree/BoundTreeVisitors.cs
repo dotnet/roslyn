@@ -116,6 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitPropertyAccess(node as BoundPropertyAccess, arg);
                 case BoundKind.Lambda:
                     return VisitLambda(node as BoundLambda, arg);
+                case BoundKind.NameOfOperator:
+                    return VisitNameOfOperator(node as BoundNameOfOperator, arg);
             }
 
             return VisitInternal(node, arg);
