@@ -147,22 +147,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim crefBinder = CreateDocumentationCommentBinderForSymbol(Me.Module, Me._symbol, Me._syntaxTree, DocumentationCommentBinder.BinderType.Cref)
                         Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-
-                        Dim result As ImmutableArray(Of Symbol) = crefBinder.BindInsideCrefAttributeValue(reference, preserveAliases:=False, useSiteDiagnostics:=useSiteDiagnostics)
-
+                        Dim diagnostics = DiagnosticBag.GetInstance
+                        Dim result As ImmutableArray(Of Symbol) = crefBinder.BindInsideCrefAttributeValue(reference, preserveAliases:=False, diagnosticBag:=diagnostics, useSiteDiagnostics:=useSiteDiagnostics)
+                        Dim errorLocations = diagnostics.ToReadOnlyAndFree().SelectAsArray(Function(x) x.Location).WhereAsArray(Function(x) x IsNot Nothing)
                         If Not useSiteDiagnostics.IsNullOrEmpty AndAlso Me._reportDiagnostics Then
-                            Me._diagnostics.Add(node, useSiteDiagnostics)
+                            ProcessErrorLocations(node, errorLocations, useSiteDiagnostics, Nothing)
                         End If
 
                         If result.IsEmpty Then
                             ' We were not able to find anything by this name,
                             ' generate diagnostic and use errorneous 
-                            ProcessBadNameInCrefAttribute(crefAttr, ERRID.WRN_XMLDocCrefAttributeNotFound1)
+                            ProcessErrorLocations(crefAttr, errorLocations, Nothing, ERRID.WRN_XMLDocCrefAttributeNotFound1)
 
                         ElseIf result.Length > 1 AndAlso reference.Signature IsNot Nothing Then
                             ' In strict mode we don't allow ambiguities
-                            ProcessBadNameInCrefAttribute(crefAttr, ERRID.WRN_XMLDocCrefAttributeNotFound1)
-
+                            ProcessErrorLocations(crefAttr, errorLocations, Nothing, ERRID.WRN_XMLDocCrefAttributeNotFound1)
                         Else
                             ' Dev11 seems to ignore any ambiguity and use the first symbol it finds,
                             ' we have to repro this behavior
@@ -193,8 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             If smallestSymbolCommentId Is Nothing Then
                                 ' some symbols were found, but none of them has id
-                                ProcessBadNameInCrefAttribute(crefAttr, errid)
-
+                                ProcessErrorLocations(crefAttr, errorLocations, Nothing, errid)
                             ElseIf Me._writer IsNot Nothing Then
                                 ' Write [<id>]
                                 Me._writer.Write(smallestSymbolCommentId)
@@ -263,7 +261,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     MyBase.DefaultVisit(node)
                 End Sub
 
-                Private Sub ProcessBadNameInCrefAttribute(crefAttribute As XmlCrefAttributeSyntax, errid As ERRID)
+                Private Sub ProcessErrorLocations(node As SyntaxNode, errorLocations As ImmutableArray(Of Location), useSiteDiagnostics As HashSet(Of DiagnosticInfo), errid As Nullable(Of ERRID))
+                    Dim crefAttr = TryCast(node, XmlCrefAttributeSyntax)
+                    If crefAttr IsNot Nothing AndAlso errid.HasValue Then
+                        If errorLocations.Length = 0 Then
+                            ProcessBadNameInCrefAttribute(crefAttr, crefAttr.GetLocation, errid.Value)
+                        Else
+                            For Each location In errorLocations
+                                ProcessBadNameInCrefAttribute(crefAttr, location, errid.Value)
+                            Next
+                        End If
+                    ElseIf errorLocations.Length = 0 AndAlso useSiteDiagnostics IsNot Nothing Then
+                        Me._diagnostics.Add(node, useSiteDiagnostics)
+                    ElseIf useSiteDiagnostics IsNot Nothing Then
+                        For Each location In errorLocations
+                            Me._diagnostics.Add(location, useSiteDiagnostics)
+                        Next
+                    End If
+                End Sub
+
+                Private Sub ProcessBadNameInCrefAttribute(crefAttribute As XmlCrefAttributeSyntax, errorLocation As Location, errid As ERRID)
                     ' Write [!:<name>]
                     If Me._writer IsNot Nothing Then
                         Me._writer.Write("!:")
@@ -274,7 +291,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Visit(reference) ' This will write the name to XML
 
                     If Me._reportDiagnostics Then
-                        Me._diagnostics.Add(errid, crefAttribute.GetLocation(), reference.ToFullString().TrimEnd())
+                        Dim location = If(errorLocation, reference.GetLocation)
+                        Me._diagnostics.Add(errid, location, reference.ToFullString().TrimEnd())
                     End If
                 End Sub
 

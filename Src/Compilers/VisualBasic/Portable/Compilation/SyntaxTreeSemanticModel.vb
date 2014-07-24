@@ -578,10 +578,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim isTopLevel As Boolean
                 If node.Kind = SyntaxKind.CrefReference Then
                     isTopLevel = True
-                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, CrefReferenceSyntax), preserveAlias, Nothing)
+                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, CrefReferenceSyntax), preserveAlias, Nothing, Nothing)
                 Else
                     isTopLevel = node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.CrefReference
-                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, TypeSyntax), preserveAlias, Nothing)
+                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, TypeSyntax), preserveAlias, Nothing, Nothing)
                 End If
 
                 If isTopLevel Then

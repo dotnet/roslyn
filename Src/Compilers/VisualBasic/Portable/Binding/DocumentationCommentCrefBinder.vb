@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Friend Overrides Function BindInsideCrefAttributeValue(reference As CrefReferenceSyntax, preserveAliases As Boolean, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+        Friend Overrides Function BindInsideCrefAttributeValue(reference As CrefReferenceSyntax, preserveAliases As Boolean, diagnosticBag As DiagnosticBag, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
             ' If the node has trailing syntax nodes, it should report error, unless the name 
             ' is a VB intrinsic type (which ensures compatibility with Dev11)
             If HasTrailingSkippedTokensAndShouldReportError(reference) Then
@@ -96,13 +96,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Bind signature and return type if present
             Dim signatureTypes As ArrayBuilder(Of SignatureElement) = Nothing
             Dim returnType As TypeSymbol = Nothing
-            BindSignatureAndReturnValue(reference, typeParameters, signatureTypes, returnType)
+            BindSignatureAndReturnValue(reference, typeParameters, signatureTypes, returnType, diagnosticBag)
 
             ' Create only if needed
             Debug.Assert(signatureTypes Is Nothing OrElse signatureTypes.Count > 0)
             Dim signatureParameterCount As Integer = If(signatureTypes Is Nothing, 0, signatureTypes.Count)
 
-            '  Choose between between symbols those with matcvhing signatures
+            '  Choose between symbols those with matching signatures
             Dim candidatePointer As Integer = 0
             Dim goodPointer As Integer = 0
 
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return symbols.ToImmutableAndFree()
         End Function
 
-        Friend Overrides Function BindInsideCrefAttributeValue(name As TypeSyntax, preserveAliases As Boolean, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+        Friend Overrides Function BindInsideCrefAttributeValue(name As TypeSyntax, preserveAliases As Boolean, diagnosticBag As DiagnosticBag, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
             Dim isPartOfSignatureOrReturnType As Boolean = False
             Dim crefReference As CrefReferenceSyntax = GetEnclosingCrefReference(name, isPartOfSignatureOrReturnType)
 
@@ -207,18 +207,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If isPartOfSignatureOrReturnType Then
-                Return BindInsideCrefSignatureOrReturnType(crefReference, name, preserveAliases)
+                Return BindInsideCrefSignatureOrReturnType(crefReference, name, preserveAliases, diagnosticBag)
             Else
                 Return BindInsideCrefReferenceName(name, crefReference.Signature.ArgumentTypes.Count, preserveAliases, useSiteDiagnostics)
             End If
         End Function
 
-        Private Function BindInsideCrefSignatureOrReturnType(crefReference As CrefReferenceSyntax, name As TypeSyntax, preserveAliases As Boolean) As ImmutableArray(Of Symbol)
+        Private Function BindInsideCrefSignatureOrReturnType(crefReference As CrefReferenceSyntax, name As TypeSyntax, preserveAliases As Boolean, diagnosticBag As DiagnosticBag) As ImmutableArray(Of Symbol)
             Dim typeParameterAwareBinder As Binder = Me.GetOrCreateTypeParametersAwareBinder(crefReference)
 
-            Dim diagnostics = DiagnosticBag.GetInstance
-            Dim result As Symbol = typeParameterAwareBinder.BindNamespaceOrTypeOrAliasSyntax(name, diagnostics)
-            diagnostics.Free()
+            Dim result As Symbol
+            If (diagnosticBag Is Nothing) Then
+                Dim diagnostics = DiagnosticBag.GetInstance
+                result = typeParameterAwareBinder.BindNamespaceOrTypeOrAliasSyntax(name, diagnostics)
+                diagnostics.Free()
+            Else
+                result = typeParameterAwareBinder.BindNamespaceOrTypeOrAliasSyntax(name, diagnosticBag)
+            End If
 
             If result IsNot Nothing AndAlso result.Kind = SymbolKind.Alias AndAlso Not preserveAliases Then
                 result = DirectCast(result, AliasSymbol).Target
@@ -441,13 +446,14 @@ lAgain:
         Private Sub BindSignatureAndReturnValue(reference As CrefReferenceSyntax,
                                                 typeParameters As Dictionary(Of String, CrefTypeParameterSymbol),
                                                 <Out> ByRef signatureTypes As ArrayBuilder(Of SignatureElement),
-                                                <Out> ByRef returnType As TypeSymbol)
+                                                <Out> ByRef returnType As TypeSymbol,
+                                                diagnosticBag As DiagnosticBag)
 
             signatureTypes = Nothing
             returnType = Nothing
 
             Dim typeParameterAwareBinder As Binder = Me.GetOrCreateTypeParametersAwareBinder(typeParameters)
-            Dim diagnostcsToDiscard = DiagnosticBag.GetInstance()
+            Dim diagnostic = If(diagnosticBag, DiagnosticBag.GetInstance())
 
             Dim signature As CrefSignatureSyntax = reference.Signature
             Debug.Assert(signature IsNot Nothing)
@@ -458,16 +464,16 @@ lAgain:
                 For Each part In signature.ArgumentTypes
                     signatureTypes.Add(
                         New SignatureElement(
-                            typeParameterAwareBinder.BindTypeSyntax(part.Type, diagnostcsToDiscard),
+                            typeParameterAwareBinder.BindTypeSyntax(part.Type, diagnostic),
                             part.Modifier.VisualBasicKind = SyntaxKind.ByRefKeyword))
                 Next
             End If
 
             If reference.AsClause IsNot Nothing Then
-                returnType = typeParameterAwareBinder.BindTypeSyntax(reference.AsClause.Type, diagnostcsToDiscard)
+                returnType = typeParameterAwareBinder.BindTypeSyntax(reference.AsClause.Type, diagnostic)
             End If
 
-            diagnostcsToDiscard.Free()
+            If diagnosticBag Is Nothing Then diagnostic.Free()
         End Sub
 
         Private Sub CollectCrefNameSymbolsStrict(nameFromCref As TypeSyntax,

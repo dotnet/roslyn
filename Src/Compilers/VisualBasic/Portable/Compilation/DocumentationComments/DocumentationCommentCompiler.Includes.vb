@@ -618,15 +618,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim binder As binder = Me.GetOrCreateBinder(DocumentationCommentBinder.BinderType.Cref)
                             Dim reference As CrefReferenceSyntax = DirectCast(attr, XmlCrefAttributeSyntax).Reference
                             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                            Dim bindResult As ImmutableArray(Of Symbol) = binder.BindInsideCrefAttributeValue(reference, preserveAliases:=False, useSiteDiagnostics:=useSiteDiagnostics)
+                            Dim diagnostics = DiagnosticBag.GetInstance
+                            Dim bindResult As ImmutableArray(Of Symbol) = binder.BindInsideCrefAttributeValue(reference, preserveAliases:=False, diagnosticBag:=diagnostics, useSiteDiagnostics:=useSiteDiagnostics)
 
+                            Dim errorLocations = diagnostics.ToReadOnlyAndFree().SelectAsArray(Function(x) x.Location).WhereAsArray(Function(x) x IsNot Nothing)
                             If Me.ProduceXmlDiagnostics AndAlso Not useSiteDiagnostics.IsNullOrEmpty Then
-                                Me._diagnostics.Add(XmlLocation.Create(attribute, currentXmlFilePath), useSiteDiagnostics)
+                                ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), Nothing, useSiteDiagnostics, errorLocations, Nothing)
                             End If
 
                             If bindResult.IsDefaultOrEmpty Then
                                 If Me.ProduceXmlDiagnostics Then
-                                    Me._diagnostics.Add(ERRID.WRN_XMLDocCrefAttributeNotFound1, XmlLocation.Create(attribute, currentXmlFilePath), reference.ToFullString().TrimEnd())
+                                    ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), reference.ToFullString().TrimEnd(), useSiteDiagnostics, errorLocations, ERRID.WRN_XMLDocCrefAttributeNotFound1)
                                 End If
                                 attribute.Value = "?:" + attribute.Value
 
@@ -638,11 +640,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' those out, from the rest we take the symbol with 'smallest' location
                                 Dim symbolCommentId As String = Nothing
                                 Dim smallestSymbol As Symbol = Nothing
-                                Dim errid As errid = errid.WRN_XMLDocCrefAttributeNotFound1
+                                Dim errid As ERRID = ERRID.WRN_XMLDocCrefAttributeNotFound1
 
                                 For Each symbol In bindResult
                                     If symbol.Kind = SymbolKind.TypeParameter Then
-                                        errid = errid.WRN_XMLDocCrefToTypeParameter
+                                        errid = ERRID.WRN_XMLDocCrefToTypeParameter
                                         Continue For
                                     End If
 
@@ -664,7 +666,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 If symbolCommentId Is Nothing Then
                                     If Me.ProduceXmlDiagnostics Then
-                                        Me._diagnostics.Add(errid, XmlLocation.Create(attribute, currentXmlFilePath), reference.ToString())
+                                        ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), reference.ToString(), Nothing, errorLocations, errid)
                                     End If
                                     attribute.Value = "?:" + attribute.Value
 
@@ -697,6 +699,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Throw ExceptionUtilities.UnexpectedValue(attr.Kind)
 
                     End Select
+                End Sub
+
+                Private Sub ProcessErrorLocations(currentXmlLocation As XmlLocation, referenceName As String, useSiteDiagnostics As HashSet(Of DiagnosticInfo), errorLocations As ImmutableArray(Of Location), errid As Nullable(Of ERRID))
+                    If errorLocations.Length = 0 Then
+                        If useSiteDiagnostics IsNot Nothing Then
+                            Me._diagnostics.Add(currentXmlLocation, useSiteDiagnostics)
+                        ElseIf errid.HasValue Then
+                            Me._diagnostics.Add(errid.Value, currentXmlLocation, referenceName)
+                        End If
+                    ElseIf errid.HasValue Then
+                        For Each location In errorLocations
+                            Me._diagnostics.Add(errid.Value, location, referenceName)
+                        Next
+                    Else
+                        For Each location In errorLocations
+                            Me._diagnostics.Add(location, useSiteDiagnostics)
+                        Next
+                    End If
                 End Sub
 
                 Private Function BindName(attribute As XAttribute,
