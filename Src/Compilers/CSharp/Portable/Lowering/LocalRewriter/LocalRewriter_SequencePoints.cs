@@ -209,13 +209,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The local has to be associated with the syntax of the statement containing the condition since 
             // EnC source mapping only operates on statements.
             var local = factory.SynthesizedLocal(condition.Type, containingStatement.Syntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
-            
-            return new BoundSequence(
-                condition.Syntax, 
-                ImmutableArray.Create(local), 
-                ImmutableArray.Create<BoundExpression>(factory.AssignmentExpression(factory.Local(local), condition)),
-                new BoundSequencePointExpression(syntax: null, expression: factory.Local(local), type: condition.Type),
-                condition.Type);
+
+            var condConst = condition.ConstantValue;
+            if (condConst == null)
+            {
+                return new BoundSequence(
+                    condition.Syntax,
+                    ImmutableArray.Create(local),
+                    ImmutableArray.Create<BoundExpression>(factory.AssignmentExpression(factory.Local(local), condition)),
+                    new BoundSequencePointExpression(syntax: null, expression: factory.Local(local), type: condition.Type),
+                    condition.Type);
+            }
+            else
+            {
+                // const expression must stay a const to not invalidate results of control flow analysis
+                return new BoundSequence(
+                    condition.Syntax,
+                    ImmutableArray.Create(local),
+                    ImmutableArray.Create<BoundExpression>(factory.AssignmentExpression(factory.Local(local), condition)),
+                    condition,
+                    condition.Type);
+            }
         }
     }
 }

@@ -1864,5 +1864,72 @@ class Program
 -4
 -5");
         }
+
+        [Fact, WorkItem(992882, "DevDiv")]
+        public void InfiniteLoopVerify()
+        {
+            var text =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        for (;true;)
+        {
+            System.Console.WriteLine(""z"");
+        }
+    }
+}
+";
+
+            string expectedIL = @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldstr      ""z""
+  IL_0005:  call       ""void System.Console.WriteLine(string)""
+  IL_000a:  br.s       IL_0000
+}";
+            CompileAndVerify(text).
+                VerifyIL("Program.Main", expectedIL);
+        }
+
+        [Fact, WorkItem(992882, "DevDiv")]
+        public void InfiniteLoopVerify01()
+        {
+            var text =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        for (;true;)
+        {
+            System.Console.WriteLine(""z"");
+        }
+    }
+}
+";
+
+            string expectedIL = @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (bool V_0) //CS$4$0000
+  IL_0000:  nop
+  IL_0001:  br.s       IL_0010
+  IL_0003:  nop
+  IL_0004:  ldstr      ""z""
+  IL_0009:  call       ""void System.Console.WriteLine(string)""
+  IL_000e:  nop
+  IL_000f:  nop
+  IL_0010:  ldc.i4.1
+  IL_0011:  stloc.0
+  IL_0012:  br.s       IL_0003
+}";
+            CompileAndVerify(text, options: TestOptions.Exe.WithOptimizations(false).WithDebugInformationKind(DebugInformationKind.Full), emitPdb: true).
+                VerifyIL("Program.Main", expectedIL);
+        }
+
     }
 }
