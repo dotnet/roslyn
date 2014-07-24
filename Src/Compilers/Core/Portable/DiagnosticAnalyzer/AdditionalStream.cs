@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -9,10 +10,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class AdditionalStream
     {
-        internal AdditionalStream()
-        {
-        }
-
         /// <summary>
         /// Path to the stream.
         /// </summary>
@@ -21,6 +18,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Opens a <see cref="Stream"/> that allows reading the content.
         /// </summary>
-        public abstract Stream OpenRead();
+        public abstract Stream OpenRead(CancellationToken cancellationToken = default(CancellationToken));
     }
 }

@@ -103,6 +103,33 @@ namespace Microsoft.CodeAnalysis
                 docs.Add(doc);
             }
 
+            // construct file infos for additional files.
+            var additionalDocs = new List<DocumentInfo>();
+            foreach (var fileArg in commandLineArguments.AdditionalStreams)
+            {
+                var absolutePath = Path.IsPathRooted(fileArg.Path) || string.IsNullOrEmpty(projectDirectory)
+                        ? Path.GetFullPath(fileArg.Path)
+                        : Path.GetFullPath(Path.Combine(projectDirectory, fileArg.Path));
+
+                var relativePath = FilePathUtilities.GetRelativePath(projectDirectory, absolutePath);
+                var isWithinProject = !Path.IsPathRooted(relativePath);
+
+                var folderRoot = isWithinProject ? Path.GetDirectoryName(relativePath) : "";
+                var folders = isWithinProject ? GetFolders(relativePath) : null;
+                var name = Path.GetFileName(relativePath);
+                var id = DocumentId.CreateNewId(projectId, absolutePath);
+
+                var doc = DocumentInfo.Create(
+                   id: id,
+                   name: name,
+                   folders: folders,
+                   sourceCodeKind: SourceCodeKind.Regular,
+                   loader: new FileTextLoader(absolutePath, commandLineArguments.Encoding),
+                   filePath: absolutePath);
+
+                additionalDocs.Add(doc);
+            }
+
             // If /out is not specified and the project is a console app the csc.exe finds out the Main method
             // and names the compilation after the file that contains it. We don't want to create a compilation, 
             // bind Mains etc. here. Besides the msbuild always includes /out in the command line it produces.
@@ -126,6 +153,7 @@ namespace Microsoft.CodeAnalysis
                     .WithMetadataReferenceProvider(referenceProvider),
                 parseOptions: commandLineArguments.ParseOptions,
                 documents: docs,
+                additionalDocuments: additionalDocs,
                 metadataReferences: boundMetadataReferences,
                 analyzerReferences: boundAnalyzerReferences);
 

@@ -854,6 +854,8 @@
     <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
     <Compile Include="Workspace\Solution\AbstractLinkedFileMergeConflictCommentAdditionService.cs" />
+    <Compile Include="Workspace\Solution\AdditionalDocumentStream.cs" />
+    <Compile Include="Workspace\Solution\TextDocumentState.cs" />
     <Compile Include="Workspace\Solution\BranchId.cs" />
     <Compile Include="Workspace\Solution\Document.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
@@ -877,6 +879,7 @@
     <Compile Include="Workspace\Solution\ProjectInfo.cs" />
     <Compile Include="Workspace\Solution\ProjectReference.cs" />
     <Compile Include="Workspace\Solution\ProjectState.cs" />
+    <Compile Include="Workspace\Solution\TextDocument.cs" />
     <Compile Include="Workspace\Solution\RecoverableTextAndVersion.cs" />
     <Compile Include="Workspace\Solution\SemanticDocument.cs" />
     <Compile Include="Workspace\Solution\Solution.CompilationTracker.cs">

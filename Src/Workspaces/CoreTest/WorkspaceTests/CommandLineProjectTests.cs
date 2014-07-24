@@ -83,5 +83,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(0, docInfo.Folders.Count);
             Assert.Equal("foo.cs", docInfo.Name);
         }
+
+        [Fact]
+        public void TestAdditionalFiles()
+        {
+            string commandLine = @"foo.cs /additionalfile:bar.cs";
+            var ws = new CustomWorkspace();
+            var info = CommandLineProject.CreateProjectInfo(ws, "TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
+
+            var firstDoc = info.Documents.Single();
+            var secondDoc = info.AdditionalDocuments.Single();
+            Assert.Equal("foo.cs", firstDoc.Name);
+            Assert.Equal("bar.cs", secondDoc.Name);
+        }
     }
 }

@@ -68,6 +68,26 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A document in the current solution was changed.
         /// </summary>
-        DocumentChanged
+        DocumentChanged,
+
+        /// <summary>
+        /// An additional document was added to the current solution.
+        /// </summary>
+        AdditionalDocumentAdded,
+
+        /// <summary>
+        /// An additional document was removed from the current solution.
+        /// </summary>
+        AdditionalDocumentRemoved,
+
+        /// <summary>
+        /// An additional document in the current solution was reloaded.
+        /// </summary>
+        AdditionalDocumentReloaded,
+
+        /// <summary>
+        /// An additional document in the current solution was changed.
+        /// </summary>
+        AdditionalDocumentChanged
     }
 }

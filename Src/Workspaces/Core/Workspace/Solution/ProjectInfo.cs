@@ -80,6 +80,11 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; private set; }
 
         /// <summary>
+        /// The list of non-source documents associated with this project.
+        /// </summary>
+        public IReadOnlyList<DocumentInfo> AdditionalDocuments { get; private set; }
+
+        /// <summary>
         /// True if this is a submission project for interactive sessions.
         /// </summary>
         public bool IsSubmission { get; private set; }
@@ -103,6 +108,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ProjectReference> projectReferences,
             IEnumerable<MetadataReference> metadataReferences,
             IEnumerable<AnalyzerReference> analyzerReferences,
+            IEnumerable<DocumentInfo> additionalDocuments,
             bool isSubmission,
             Type hostObjectType)
         {
@@ -139,6 +145,7 @@ namespace Microsoft.CodeAnalysis
             this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
             this.MetadataReferences = metadataReferences.ToImmutableReadOnlyListOrEmpty();
             this.AnalyzerReferences = analyzerReferences.ToImmutableReadOnlyListOrEmpty();
+            this.AdditionalDocuments = additionalDocuments.ToImmutableReadOnlyListOrEmpty();
             this.IsSubmission = isSubmission;
             this.HostObjectType = hostObjectType;
         }
@@ -160,6 +167,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ProjectReference> projectReferences = null,
             IEnumerable<MetadataReference> metadataReferences = null,
             IEnumerable<AnalyzerReference> analyzerReferences = null,
+            IEnumerable<DocumentInfo> additionalDocuments = null,
             bool isSubmission = false,
             Type hostObjectType = null)
         {
@@ -177,6 +185,7 @@ namespace Microsoft.CodeAnalysis
                 projectReferences,
                 metadataReferences,
                 analyzerReferences,
+                additionalDocuments,
                 isSubmission,
                 hostObjectType);
         }
@@ -195,6 +204,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ProjectReference> projectReferences = null,
             IEnumerable<MetadataReference> metadataReferences = null,
             IEnumerable<AnalyzerReference> analyzerReferences = null,
+            IEnumerable<DocumentInfo> additionalDocuments = null,
             Optional<bool> isSubmission = default(Optional<bool>),
             Optional<Type> hostObjectType = default(Optional<Type>))
         {
@@ -211,6 +221,7 @@ namespace Microsoft.CodeAnalysis
             var newProjectReferences = projectReferences ?? this.ProjectReferences;
             var newMetadataReferences = metadataReferences ?? this.MetadataReferences;
             var newAnalyzerReferences = analyzerReferences ?? this.AnalyzerReferences;
+            var newAdditionalDocuments = additionalDocuments ?? this.AdditionalDocuments;
             var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : this.IsSubmission;
             var newHostObjectType = hostObjectType.HasValue ? hostObjectType.Value : this.HostObjectType;
 
@@ -227,6 +238,7 @@ namespace Microsoft.CodeAnalysis
                 newProjectReferences == this.ProjectReferences &&
                 newMetadataReferences == this.MetadataReferences &&
                 newAnalyzerReferences == this.AnalyzerReferences &&
+                newAdditionalDocuments == this.AdditionalDocuments &&
                 newIsSubmission == this.IsSubmission &&
                 newHostObjectType == this.HostObjectType)
             {
@@ -247,6 +259,7 @@ namespace Microsoft.CodeAnalysis
                     newProjectReferences,
                     newMetadataReferences,
                     newAnalyzerReferences,
+                    newAdditionalDocuments,
                     newIsSubmission,
                     newHostObjectType);
         }
@@ -254,6 +267,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo> documents)
         {
             return this.With(documents: documents.ToImmutableReadOnlyListOrEmpty());
+        }
+
+        public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo> additionalDocuments)
+        {
+            return this.With(additionalDocuments: additionalDocuments.ToImmutableReadOnlyListOrEmpty());
         }
 
         public ProjectInfo WithVersion(VersionStamp version)

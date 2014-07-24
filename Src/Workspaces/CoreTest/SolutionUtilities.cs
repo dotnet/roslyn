@@ -34,6 +34,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return newSolution.GetDocument(documentId);
         }
 
+        public static TextDocument GetSingleChangedAdditionalDocument(Solution oldSolution, Solution newSolution)
+        {
+            var projectDifferences = GetSingleChangedProjectChanges(oldSolution, newSolution);
+            var documentId = projectDifferences.GetChangedAdditionalDocuments().Single();
+
+            return newSolution.GetAdditionalDocument(documentId);
+        }
+
         public static IEnumerable<DocumentId> GetChangedDocuments(Solution oldSolution, Solution newSolution)
         {
             var changedDocuments = new List<DocumentId>();

@@ -674,6 +674,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when the text of a document is changed on disk.
+        /// </summary>
+        protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+        {
+            using (this.serializationLock.DisposableWait())
+            {
+                CheckAdditionalDocumentIsInCurrentSolution(documentId);
+
+                var oldSolution = this.CurrentSolution;
+
+                var newSolution = oldSolution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                newSolution = this.SetCurrentSolution(newSolution);
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
+        /// <summary>
         /// Call this method when the text of a document is updated in the host environment.
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
@@ -689,6 +707,24 @@ namespace Microsoft.CodeAnalysis
                 this.OnDocumentTextChanged(newDocument);
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
+        /// <summary>
+        /// Call this method when the text of a document is updated in the host environment.
+        /// </summary>
+        protected internal void OnAdditionalDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
+        {
+            using (this.serializationLock.DisposableWait())
+            {
+                CheckAdditionalDocumentIsInCurrentSolution(documentId);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithAdditionalDocumentText(documentId, newText, mode));
+
+                var newDocument = newSolution.GetAdditionalDocument(documentId);
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
         }
 
@@ -710,6 +746,47 @@ namespace Microsoft.CodeAnalysis
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
         }
+
+        /// <summary>
+        /// Call this method when an additional document is added to a project in the host environment.
+        /// </summary>
+        protected internal void OnAdditionalDocumentAdded(DocumentInfo documentInfo)
+        {
+            using (this.serializationLock.DisposableWait())
+            {
+                var documentId = documentInfo.Id;
+
+                CheckProjectIsInCurrentSolution(documentId.ProjectId);
+                CheckDocumentIsNotInCurrentSolution(documentId);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.AddAdditionalDocument(documentInfo));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentAdded, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
+        /// <summary>
+        /// Call this method when an additional document is removed from a project in the host environment.
+        /// </summary>
+        protected internal void OnAdditionalDocumentRemoved(DocumentId documentId)
+        {
+            using (this.serializationLock.DisposableWait())
+            {
+                CheckAdditionalDocumentIsInCurrentSolution(documentId);
+
+                this.CheckDocumentCanBeRemoved(documentId);
+
+                var oldSolution = this.CurrentSolution;
+
+                this.ClearDocumentData(documentId);
+
+                var newSolution = this.SetCurrentSolution(oldSolution.RemoveAdditionalDocument(documentId));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentRemoved, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
         #endregion
 
         #region Apply Changes
@@ -836,12 +913,26 @@ namespace Microsoft.CodeAnalysis
                 this.RemoveDocument(documentId);
             }
 
+            // removed documents
+            foreach (var documentId in projectChanges.GetRemovedAdditionalDocuments())
+            {
+                this.RemoveAdditionalDocument(documentId);
+            }
+
             // added documents
             foreach (var documentId in projectChanges.GetAddedDocuments())
             {
                 var doc = projectChanges.NewProject.GetDocument(documentId);
                 var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
                 this.AddDocument(documentId, doc.Folders, doc.Name, text, doc.SourceCodeKind);
+            }
+
+            // added documents
+            foreach (var documentId in projectChanges.GetAddedAdditionalDocuments())
+            {
+                var doc = projectChanges.NewProject.GetAdditionalDocument(documentId);
+                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
+                this.AddAdditionalDocument(documentId, doc.Folders, doc.Name, text);
             }
 
             // changed documents
@@ -872,6 +963,17 @@ namespace Microsoft.CodeAnalysis
 
                 // we have both old and new text, just update using the new text.
                 this.ChangedDocumentText(documentId, newText);
+            }
+
+            // changed additional documents
+            foreach (var documentId in projectChanges.GetChangedAdditionalDocuments())
+            {
+                var oldDoc = projectChanges.OldProject.GetAdditionalDocument(documentId);
+                var newDoc = projectChanges.NewProject.GetAdditionalDocument(documentId);
+
+                // We don't understand the text of additional documents and so we just replace the entire text.
+                var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
+                this.ChangedAdditionalDocumentText(documentId, currentText);
             }
         }
 
@@ -973,6 +1075,37 @@ namespace Microsoft.CodeAnalysis
         {
             throw new NotSupportedException();
         }
+
+        /// <summary>
+        /// This method is called during ApplyChanges to add a new additional document to a project.
+        /// 
+        /// Override this method to implement the capability of adding additional documents.
+        /// </summary>
+        protected virtual void AddAdditionalDocument(DocumentId documentId, IEnumerable<string> folders, string name, SourceText text = null)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// This method is called during ApplyChanges to remove an additional document from a project.
+        /// 
+        /// Override this method to implement the capability of removing additional documents.
+        /// </summary>
+        protected virtual void RemoveAdditionalDocument(DocumentId documentId)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// This method is called to change the text of an additional document.
+        /// 
+        /// Override this method to implement the capability of changing additional document text.
+        /// </summary>
+        protected virtual void ChangedAdditionalDocumentText(DocumentId id, SourceText text)
+        {
+            throw new NotSupportedException();
+        }
+
         #endregion
 
         #region Checks and Asserts
@@ -1122,6 +1255,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Throws an exception if an additional document is not part of the current solution.
+        /// </summary>
+        protected void CheckAdditionalDocumentIsInCurrentSolution(DocumentId documentId)
+        {
+            if (this.CurrentSolution.GetAdditionalDocument(documentId) == null)
+            {
+                throw new ArgumentException(string.Format(
+                    WorkspacesResources.ProjectOrDocumentNotInWorkspace,
+                    this.GetDocumentName(documentId)));
+            }
+        }
+
+        /// <summary>
         /// Throws an exception if a document is already part of the current solution.
         /// </summary>
         protected void CheckDocumentIsNotInCurrentSolution(DocumentId documentId)
@@ -1131,6 +1277,19 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(string.Format(
                     WorkspacesResources.ProjectOrDocumentAlreadyInWorkspace,
                     this.GetDocumentName(documentId)));
+            }
+        }
+
+        /// <summary>
+        /// Throws an exception if an additional document is already part of the current solution.
+        /// </summary>
+        protected void CheckAdditionalDocumentIsNotInCurrentSolution(DocumentId documentId)
+        {
+            if (this.CurrentSolution.ContainsAdditionalDocument(documentId))
+            {
+                throw new ArgumentException(string.Format(
+                    WorkspacesResources.ProjectOrDocumentAlreadyInWorkspace,
+                    this.GetAdditionalDocumentName(documentId)));
             }
         }
 
@@ -1153,6 +1312,17 @@ namespace Microsoft.CodeAnalysis
             var name = document != null ? document.Name : "<Document" + documentId.Id + ">";
             return name;
         }
+
+        /// <summary>
+        /// Gets the name to use for an additional document in an error message.
+        /// </summary>
+        protected virtual string GetAdditionalDocumentName(DocumentId documentId)
+        {
+            var document = this.CurrentSolution.GetAdditionalDocument(documentId);
+            var name = document != null ? document.Name : "<Document" + documentId.Id + ">";
+            return name;
+        }
+
         #endregion
     }
 }

@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public AnalyzerOptions(IEnumerable<AdditionalStream> additionalStreams, IDictionary<string, string> globalOptions)
         {
-            this.AdditionalStreams = additionalStreams.ToImmutableArray();
-            this.GlobalOptions = globalOptions.ToImmutableDictionary();
+            this.AdditionalStreams = additionalStreams == null ? ImmutableArray<AdditionalStream>.Empty : additionalStreams.ToImmutableArray();
+            this.GlobalOptions = globalOptions == null ? ImmutableDictionary<string, string>.Empty : globalOptions.ToImmutableDictionary();
         }
     }
 }

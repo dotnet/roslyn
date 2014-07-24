@@ -19,15 +19,18 @@ namespace Microsoft.CodeAnalysis
             private readonly DocumentId documentId;
             internal readonly SourceTextContainer TextContainer;
             private EventHandler<TextChangeEventArgs> weakOnTextChanged;
+            private readonly Action<Workspace, DocumentId, SourceText, PreservationMode> onChangedHandler;
 
             internal TextTracker(
                 Workspace workspace,
                 DocumentId documentId,
-                SourceTextContainer textContainer)
+                SourceTextContainer textContainer,
+                Action<Workspace, DocumentId, SourceText, PreservationMode> onChangedHandler)
             {
                 this.workspace = workspace;
                 this.documentId = documentId;
                 this.TextContainer = textContainer;
+                this.onChangedHandler = onChangedHandler;
 
                 // use weak event so TextContainer cannot accidently keep workspace alive.
                 this.weakOnTextChanged = WeakEventHandler<TextChangeEventArgs>.Create(this, (target, sender, args) => target.OnTextChanged(sender, args));
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // ok, the version changed.  Report that we've got an edit so that we can analyze
                 // this source file and update anything accordingly.
-                this.workspace.OnDocumentTextChanged(this.documentId, e.NewText, mode: PreservationMode.PreserveIdentity);
+                onChangedHandler(this.workspace, this.documentId, e.NewText, PreservationMode.PreserveIdentity); 
             }
         }
     }

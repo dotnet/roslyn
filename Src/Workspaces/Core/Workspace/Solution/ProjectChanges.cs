@@ -116,6 +116,17 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public IEnumerable<DocumentId> GetAddedAdditionalDocuments()
+        {
+            foreach (var id in this.newProject.AdditionalDocumentIds)
+            {
+                if (!this.oldProject.ContainsAdditionalDocument(id))
+                {
+                    yield return id;
+                }
+            }
+        }
+
         public IEnumerable<DocumentId> GetChangedDocuments()
         {
             // if the document states are different then there is a change.
@@ -130,11 +141,36 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public IEnumerable<DocumentId> GetChangedAdditionalDocuments()
+        {
+            // if the document states are different then there is a change.
+            foreach (var id in this.newProject.AdditionalDocumentIds)
+            {
+                var newState = this.newProject.GetAdditionalDocumentState(id);
+                var oldState = this.oldProject.GetAdditionalDocumentState(id);
+                if (oldState != null && newState != oldState)
+                {
+                    yield return id;
+                }
+            }
+        }
+
         public IEnumerable<DocumentId> GetRemovedDocuments()
         {
             foreach (var id in this.oldProject.DocumentIds)
             {
                 if (!this.newProject.ContainsDocument(id))
+                {
+                    yield return id;
+                }
+            }
+        }
+
+        public IEnumerable<DocumentId> GetRemovedAdditionalDocuments()
+        {
+            foreach (var id in this.oldProject.AdditionalDocumentIds)
+            {
+                if (!this.newProject.ContainsAdditionalDocument(id))
                 {
                     yield return id;
                 }

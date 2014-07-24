@@ -370,6 +370,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// True if the solution contains the additional document in one of its projects
+        /// </summary>
+        public bool ContainsAdditionalDocument(DocumentId documentId)
+        {
+            return
+                documentId != null &&
+                this.ContainsProject(documentId.ProjectId) &&
+                this.GetProjectState(documentId.ProjectId).ContainsAdditionalDocument(documentId);
+        }
+
+        /// <summary>
         /// Gets the documentId in this solution with the specified syntax tree.
         /// </summary>
         public DocumentId GetDocumentId(SyntaxTree syntaxTree)
@@ -412,6 +423,19 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        /// <summary>
+        /// Gets the additional document in this solution with the specified document ID.
+        /// </summary>
+        public TextDocument GetAdditionalDocument(DocumentId documentId)
+        {
+            if (documentId != null && this.ContainsAdditionalDocument(documentId))
+            {
+                return this.GetProject(documentId.ProjectId).GetAdditionalDocument(documentId);
+            }
+
+            return null;
+        }
+
         private DocumentState GetDocumentState(DocumentId documentId)
         {
             if (documentId != null)
@@ -420,6 +444,20 @@ namespace Microsoft.CodeAnalysis
                 if (projectState != null)
                 {
                     return projectState.GetDocumentState(documentId);
+                }
+            }
+
+            return null;
+        }
+
+        private TextDocumentState GetAdditionalDocumentState(DocumentId documentId)
+        {
+            if (documentId != null)
+            {
+                var projectState = this.GetProjectState(documentId.ProjectId);
+                if (projectState != null)
+                {
+                    return projectState.GetAdditionalDocumentState(documentId);
                 }
             }
 
@@ -1194,6 +1232,84 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the corresponding project updated to include a new
+        /// additional document instance defined by its name and text.
+        /// </summary>
+        public Solution AddAdditionalDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string> folders = null, string filePath = null)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException("documentId");
+            }
+
+            CheckContainsProject(documentId.ProjectId);
+            CheckNotContainsAdditionalDocument(documentId);
+
+            if (name == null)
+            {
+                throw new ArgumentNullException("displayName");
+            }
+
+            if (text == null)
+            {
+                throw new ArgumentNullException("text");
+            }
+
+            var project = this.GetProjectState(documentId.ProjectId);
+
+            var version = VersionStamp.Create();
+            var loader = TextLoader.From(TextAndVersion.Create(text, version, name));
+
+            var info = DocumentInfo.Create(
+                documentId,
+                name: name,
+                folders: folders,
+                sourceCodeKind: project.ParseOptions.Kind,
+                loader: loader,
+                filePath: filePath);
+
+            var doc = TextDocumentState.Create(
+                info,
+                this.solutionServices);
+
+            return this.AddAdditionalDocument(doc);
+        }
+
+        public Solution AddAdditionalDocument(DocumentInfo documentInfo)
+        {
+            if (documentInfo == null)
+            {
+                throw new ArgumentNullException("documentInfo");
+            }
+
+            CheckContainsProject(documentInfo.Id.ProjectId);
+            CheckNotContainsAdditionalDocument(documentInfo.Id);
+
+            var project = this.GetProjectState(documentInfo.Id.ProjectId);
+
+            var doc = TextDocumentState.Create(
+                documentInfo,
+                this.solutionServices);
+
+            return this.AddAdditionalDocument(doc);
+        }
+
+        private Solution AddAdditionalDocument(TextDocumentState state)
+        {
+            if (state == null)
+            {
+                throw new ArgumentNullException("document");
+            }
+
+            CheckContainsProject(state.Id.ProjectId);
+
+            var oldProject = this.GetProjectState(state.Id.ProjectId);
+            var newProject = oldProject.AddAdditionalDocument(state);
+
+            return this.ForkProject(newProject);
+        }
+
+        /// <summary>
         /// Creates a new solution instance that no longer includes the specified document.
         /// </summary>
         [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
@@ -1206,6 +1322,19 @@ namespace Microsoft.CodeAnalysis
             var newProject = oldProject.RemoveDocument(documentId);
 
             return this.ForkProject(newProject, CompilationTranslationAction.RemoveDocument(oldDocument), withDocumentListChange: true);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified additional document.
+        /// </summary>
+        public Solution RemoveAdditionalDocument(DocumentId documentId)
+        {
+            CheckContainsAdditionalDocument(documentId);
+
+            var oldProject = this.GetProjectState(documentId.ProjectId);
+            var newProject = oldProject.RemoveAdditionalDocument(documentId);
+
+            return this.ForkProject(newProject);
         }
 
         /// <summary>
@@ -1279,6 +1408,36 @@ namespace Microsoft.CodeAnalysis
             return newSolution;
         }
 
+        /// <summary>
+        /// Creates a new solution instance with the additional document specified updated to have the text
+        /// specified.
+        /// </summary>
+        public Solution WithAdditionalDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException("documentId");
+            }
+
+            if (text == null)
+            {
+                throw new ArgumentNullException("text");
+            }
+
+            CheckContainsAdditionalDocument(documentId);
+
+            var oldDocument = this.GetAdditionalDocumentState(documentId);
+
+            SourceText oldText;
+            if (oldDocument.TryGetText(out oldText) && text == oldText)
+            {
+                return this;
+            }
+
+            var newSolution = this.WithTextDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
+            return newSolution;
+        }
+
         internal async Task<Solution> WithMergedLinkedFileChangesAsync(Solution oldSolution, SolutionChanges? solutionChanges = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution));
@@ -1322,6 +1481,29 @@ namespace Microsoft.CodeAnalysis
             var oldDocument = this.GetDocumentState(documentId);
 
             return WithDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the additional document specified updated to have the text
+        /// and version specified.
+        /// </summary>
+        public Solution WithAdditionalDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException("documentId");
+            }
+
+            if (textAndVersion == null)
+            {
+                throw new ArgumentNullException("textAndVersion");
+            }
+
+            CheckContainsAdditionalDocument(documentId);
+
+            var oldDocument = this.GetAdditionalDocumentState(documentId);
+
+            return WithTextDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
         }
 
         /// <summary>
@@ -1405,6 +1587,21 @@ namespace Microsoft.CodeAnalysis
             return this.WithDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
         }
 
+        /// <summary>
+        /// Creates a new solution instance with the additional document specified updated to have the text
+        /// supplied by the text loader.
+        /// </summary>
+        public Solution WithAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        {
+            CheckContainsAdditionalDocument(documentId);
+
+            var oldDocument = this.GetAdditionalDocumentState(documentId);
+
+            // assumes that text has changed. user could have closed a doc without saving and we are loading text from closed file with
+            // old content. also this should make sure we don't re-use latest doc version with data associated with opened document.
+            return this.WithTextDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
+        }
+
         private Solution WithDocumentState(DocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
         {
             if (newDocument == null)
@@ -1441,6 +1638,34 @@ namespace Microsoft.CodeAnalysis
 
             return this.ForkProject(newProject, CompilationTranslationAction.TouchDocument(oldDocument, newDocument));
         }
+
+        private Solution WithTextDocumentState(TextDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        {
+            if (newDocument == null)
+            {
+                throw new ArgumentNullException("newDocument");
+            }
+
+            CheckContainsAdditionalDocument(newDocument.Id);
+
+            if (newDocument == this.GetAdditionalDocumentState(newDocument.Id))
+            {
+                // old and new documents are the same instance
+                return this;
+            }
+
+            var oldProject = this.GetProjectState(newDocument.Id.ProjectId);
+            var newProject = oldProject.UpdateAdditionalDocument(newDocument, textChanged, recalculateDependentVersions);
+
+            if (oldProject == newProject)
+            {
+                // old and new projects are the same instance
+                return this;
+            }
+            
+            return this.ForkProject(newProject);
+        }
+
 
         /// <summary>
         /// Creates a new snapshot with an updated project and an action that will produce a new
@@ -1502,7 +1727,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets the set of <see cref="DocumentId"/>s in this <see cref="Solution"/> with a
-        /// <see cref="Document.FilePath"/> that matches the given file path.
+        /// <see cref="TextDocument.FilePath"/> that matches the given file path.
         /// </summary>
         public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string filePath)
         {
@@ -1848,11 +2073,31 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        private void CheckNotContainsAdditionalDocument(DocumentId documentId)
+        {
+            Contract.Requires(!this.ContainsAdditionalDocument(documentId));
+
+            if (this.ContainsAdditionalDocument(documentId))
+            {
+                throw new InvalidOperationException(WorkspacesResources.DocumentAlreadyInSolution);
+            }
+        }
+
         private void CheckContainsDocument(DocumentId documentId)
         {
             Contract.Requires(this.ContainsDocument(documentId));
 
             if (!this.ContainsDocument(documentId))
+            {
+                throw new InvalidOperationException(WorkspacesResources.DocumentNotInSolution);
+            }
+        }
+
+        private void CheckContainsAdditionalDocument(DocumentId documentId)
+        {
+            Contract.Requires(this.ContainsAdditionalDocument(documentId));
+
+            if (!this.ContainsAdditionalDocument(documentId))
             {
                 throw new InvalidOperationException(WorkspacesResources.DocumentNotInSolution);
             }

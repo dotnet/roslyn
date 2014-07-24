@@ -16,14 +16,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class DocumentState
+    internal partial class DocumentState : TextDocumentState
     {
         private readonly HostLanguageServices languageServices;
-        private readonly SolutionServices solutionServices;
-        private readonly DocumentInfo info;
         private readonly ParseOptions options;
 
-        private readonly ValueSource<TextAndVersion> textSource;
         private readonly ValueSource<TreeAndVersion> treeSource;
 
         private DocumentState(
@@ -33,18 +30,11 @@ namespace Microsoft.CodeAnalysis
             ParseOptions options,
             ValueSource<TextAndVersion> textSource,
             ValueSource<TreeAndVersion> treeSource)
+            : base(solutionServices, info, textSource)
         {
             this.languageServices = languageServices;
-            this.solutionServices = solutionServices;
-            this.info = info;
             this.options = options;
-            this.textSource = textSource;
             this.treeSource = treeSource;
-        }
-
-        public bool IsGenerated
-        {
-            get { return info.IsGenerated; }
         }
 
         public static DocumentState Create(
@@ -80,51 +70,6 @@ namespace Microsoft.CodeAnalysis
         private static string GetSyntaxTreeFilePath(DocumentInfo info)
         {
             return info.FilePath ?? info.Name;
-        }
-
-        private static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
-        {
-            return new ConstantValueSource<TextAndVersion>(text);
-        }
-
-        private static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services)
-        {
-            return new AsyncLazy<TextAndVersion>(c => LoadTextAsync(loader, documentId, services, c), cacheResult: true);
-        }
-
-        private static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
-        {
-            return new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage, services.TextCache);
-        }
-
-        private static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services)
-        {
-            return new RecoverableTextAndVersion(
-                new AsyncLazy<TextAndVersion>(c => LoadTextAsync(loader, documentId, services, c), cacheResult: false),
-                services.TemporaryStorage,
-                services.TextCache);
-        }
-
-        private static async Task<TextAndVersion> LoadTextAsync(TextLoader loader, DocumentId documentId, SolutionServices services, CancellationToken cancellationToken)
-        {
-            try
-            {
-                using (ExceptionHelpers.SuppressFailFast())
-                {
-                    var result = await loader.LoadTextAndVersionAsync(services.Workspace, documentId, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-                    return result;
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // if load text is failed due to a cancellation, make sure we propagate it out to the caller
-                throw;
-            }
-            catch (IOException e)
-            {
-                services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
-                return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
-            }
         }
 
         private static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
@@ -300,7 +245,7 @@ namespace Microsoft.CodeAnalysis
                 this.treeSource);
         }
 
-        public DocumentState UpdateText(SourceText newText, PreservationMode mode)
+        public new DocumentState UpdateText(SourceText newText, PreservationMode mode)
         {
             if (newText == null)
             {
@@ -345,7 +290,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public DocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
+        public new DocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
         {
             if (newTextAndVersion == null)
             {
@@ -370,7 +315,7 @@ namespace Microsoft.CodeAnalysis
                 newTreeSource);
         }
 
-        public DocumentState UpdateText(TextLoader loader, PreservationMode mode)
+        public new DocumentState UpdateText(TextLoader loader, PreservationMode mode)
         {
             if (loader == null)
             {
@@ -485,77 +430,6 @@ namespace Microsoft.CodeAnalysis
             return TextAndVersion.Create(root.GetText(encoding), version, filePath);
         }
 
-        public bool TryGetText(out SourceText text)
-        {
-            TextAndVersion textAndVersion;
-            if (this.textSource.TryGetValue(out textAndVersion))
-            {
-                text = textAndVersion.Text;
-                return true;
-            }
-            else
-            {
-                text = null;
-                return false;
-            }
-        }
-
-        public bool TryGetTextVersion(out VersionStamp version)
-        {
-            // try fast path first
-            if (TryGetTextVersionFromRecoverableTextAndVersion(out version))
-            {
-                return true;
-            }
-
-            TextAndVersion textAndVersion;
-            if (this.textSource.TryGetValue(out textAndVersion))
-            {
-                version = textAndVersion.Version;
-                return true;
-            }
-            else
-            {
-                version = default(VersionStamp);
-                return false;
-            }
-        }
-
-        public async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
-        {
-            var textAndVersion = await this.textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return textAndVersion.Text;
-        }
-
-        public async Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
-        {
-            // try fast path first
-            VersionStamp version;
-            if (TryGetTextVersionFromRecoverableTextAndVersion(out version))
-            {
-                return version;
-            }
-
-            TextAndVersion textAndVersion;
-            if (this.textSource.TryGetValue(out textAndVersion))
-            {
-                return textAndVersion.Version;
-            }
-            else
-            {
-                textAndVersion = await this.textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                return textAndVersion.Version;
-            }
-        }
-
-        private bool TryGetTextVersionFromRecoverableTextAndVersion(out VersionStamp version)
-        {
-            version = default(VersionStamp);
-
-            var recoverable = this.textSource as RecoverableTextAndVersion;
-            return recoverable != null && recoverable.TryGetTextVersion(out version);
-        }
-
         private VersionStamp GetNewerVersion()
         {
             TextAndVersion textAndVersion;
@@ -565,7 +439,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             TreeAndVersion treeAndVersion;
-            if (this.treeSource.TryGetValue(out treeAndVersion))
+            if (this.treeSource.TryGetValue(out treeAndVersion) && treeAndVersion != null)
             {
                 return treeAndVersion.Version.GetNewerVersion();
             }
@@ -578,7 +452,7 @@ namespace Microsoft.CodeAnalysis
             syntaxTree = default(SyntaxTree);
 
             TreeAndVersion treeAndVersion;
-            if (this.treeSource.TryGetValue(out treeAndVersion))
+            if (this.treeSource.TryGetValue(out treeAndVersion) && treeAndVersion != null)
             {
                 syntaxTree = treeAndVersion.Tree;
                 BindSyntaxTreeToId(syntaxTree, this.Id);
@@ -612,7 +486,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public async Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
+        public override async Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
         {
             TreeAndVersion treeAndVersion;
             if (this.treeSource.TryGetValue(out treeAndVersion))

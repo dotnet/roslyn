@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Solution solution;
         private readonly ProjectState projectState;
         private ImmutableHashMap<DocumentId, Document> idToDocumentMap = ImmutableHashMap<DocumentId, Document>.Empty;
+        private ImmutableHashMap<DocumentId, TextDocument> idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, TextDocument>.Empty;
 
         internal Project(Solution solution, ProjectState projectState)
         {
@@ -185,6 +186,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// The options used by analyzers for this project.
+        /// </summary>
+        public AnalyzerOptions AnalyzerOptions
+        {
+            get
+            {
+                return this.projectState.AnalyzerOptions;
+            }
+        }
+
+        /// <summary>
         /// The options used when building the compilation for this project.
         /// </summary>
         public CompilationOptions CompilationOptions
@@ -240,6 +252,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// All the additional document IDs associated with this project.
+        /// </summary>
+        public IReadOnlyList<DocumentId> AdditionalDocumentIds
+        {
+            get
+            {
+                return projectState.AdditionalDocumentIds;
+            }
+        }
+
+        /// <summary>
         /// All the documents associated with this project.
         /// </summary>
         public IEnumerable<Document> Documents
@@ -250,12 +273,28 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public IEnumerable<TextDocument> AdditionalDocuments
+        {
+            get
+            {
+                return projectState.AdditionalDocumentIds.Select(GetAdditionalDocument);
+            }
+        }
+
         /// <summary>
         /// True if the project contains a document with the specified ID.
         /// </summary>
         public bool ContainsDocument(DocumentId documentId)
         {
             return this.projectState.ContainsDocument(documentId);
+        }
+
+        /// <summary>
+        /// True if the project contains an additional document with the specified ID.
+        /// </summary>
+        public bool ContainsAdditionalDocument(DocumentId documentId)
+        {
+            return this.projectState.ContainsAdditionalDocument(documentId);
         }
 
         /// <summary>
@@ -287,15 +326,39 @@ namespace Microsoft.CodeAnalysis
             return ImmutableHashMapExtensions.GetOrAdd(ref this.idToDocumentMap, documentId, createDocumentFunction, this);
         }
 
+        /// <summary>
+        /// Get the additional document in this project with the specified document Id.
+        /// </summary>
+        public TextDocument GetAdditionalDocument(DocumentId documentId)
+        {
+            if (!ContainsAdditionalDocument(documentId))
+            {
+                return null;
+            }
+
+            return ImmutableHashMapExtensions.GetOrAdd(ref this.idToAdditionalDocumentMap, documentId, createAdditionalDocumentFunction, this);
+        }
+
         internal DocumentState GetDocumentState(DocumentId documentId)
         {
             return this.projectState.GetDocumentState(documentId);
+        }
+
+        internal TextDocumentState GetAdditionalDocumentState(DocumentId documentId)
+        {
+            return this.projectState.GetAdditionalDocumentState(documentId);
         }
 
         private static readonly Func<DocumentId, Project, Document> createDocumentFunction = CreateDocument;
         private static Document CreateDocument(DocumentId documentId, Project project)
         {
             return new Document(project, project.projectState.GetDocumentState(documentId));
+        }
+
+        private static readonly Func<DocumentId, Project, TextDocument> createAdditionalDocumentFunction = CreateAdditionalDocument;
+        private static TextDocument CreateAdditionalDocument(DocumentId documentId, Project project)
+        {
+            return new TextDocument(project, project.projectState.GetAdditionalDocumentState(documentId));
         }
 
         /// <summary>

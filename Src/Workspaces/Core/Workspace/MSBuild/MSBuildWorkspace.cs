@@ -833,7 +833,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        protected override void AddDocument(DocumentId documentId, IEnumerable<string> folders, string name, SourceText text = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+        protected override void ChangedAdditionalDocumentText(DocumentId documentId, SourceText text)
+        {
+            var document = this.CurrentSolution.GetAdditionalDocument(documentId);
+            if (document != null)
+            {
+                this.SaveDocumentText(documentId, document.FilePath, text);
+                this.OnAdditionalDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
+            }
+        }
+
+        private void AddDocumentCore(DocumentId documentId, IEnumerable<string> folders, string name, SourceText text = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, bool isAdditionalDocument = false)
         {
             System.Diagnostics.Debug.Assert(this.applyChangesProjectFile != null);
 
@@ -842,7 +852,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             IProjectFileLoader loader;
             if (this.TryGetLoaderFromProjectPath(project.FilePath, ReportMode.Ignore, out loader))
             {
-                var extension = this.applyChangesProjectFile.GetDocumentExtension(sourceCodeKind);
+                var extension = isAdditionalDocument ? Path.GetExtension(name) : this.applyChangesProjectFile.GetDocumentExtension(sourceCodeKind);
                 var fileName = Path.ChangeExtension(name, extension);
 
                 var relativePath = folders != null ? Path.Combine(Path.Combine(folders.ToArray()), fileName) : fileName;
@@ -856,7 +866,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 this.applyChangesProjectFile.AddDocument(relativePath);
 
                 // add to solution
-                this.OnDocumentAdded(documentInfo);
+                if (isAdditionalDocument)
+                {
+                    this.OnAdditionalDocumentAdded(documentInfo);
+                }
+                else
+                {
+                    this.OnDocumentAdded(documentInfo);
+                }
 
                 // save text to disk
                 if (text != null)
@@ -864,6 +881,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     this.SaveDocumentText(documentId, fullPath, text);
                 }
             }
+        }
+
+        protected override void AddDocument(DocumentId documentId, IEnumerable<string> folders, string name, SourceText text = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+        {
+            AddDocumentCore(documentId, folders, name, text, sourceCodeKind, isAdditionalDocument: false);
+        }
+
+        protected override void AddAdditionalDocument(DocumentId documentId, IEnumerable<string> folders, string name, SourceText text = null)
+        {
+            AddDocumentCore(documentId, folders, name, text, SourceCodeKind.Regular, isAdditionalDocument: true);
         }
 
         private void SaveDocumentText(DocumentId id, string fullPath, SourceText newText)
@@ -897,6 +924,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 this.applyChangesProjectFile.RemoveDocument(document.FilePath);
                 this.DeleteDocumentFile(document.Id, document.FilePath);
                 this.OnDocumentRemoved(documentId);
+            }
+        }
+
+        protected override void RemoveAdditionalDocument(DocumentId documentId)
+        {
+            System.Diagnostics.Debug.Assert(this.applyChangesProjectFile != null);
+
+            var document = this.CurrentSolution.GetAdditionalDocument(documentId);
+            if (document != null)
+            {
+                this.applyChangesProjectFile.RemoveDocument(document.FilePath);
+                this.DeleteDocumentFile(document.Id, document.FilePath);
+                this.OnAdditionalDocumentRemoved(documentId);
             }
         }
 

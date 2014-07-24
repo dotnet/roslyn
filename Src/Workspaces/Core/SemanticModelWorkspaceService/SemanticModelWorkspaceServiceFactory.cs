@@ -315,6 +315,10 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     case WorkspaceChangeKind.DocumentAdded:
                     case WorkspaceChangeKind.DocumentReloaded:
                     case WorkspaceChangeKind.DocumentChanged:
+                    case WorkspaceChangeKind.AdditionalDocumentAdded:
+                    case WorkspaceChangeKind.AdditionalDocumentRemoved:
+                    case WorkspaceChangeKind.AdditionalDocumentChanged:
+                    case WorkspaceChangeKind.AdditionalDocumentReloaded:
                         break;
                     default:
                         Contract.Fail("Unknown event");

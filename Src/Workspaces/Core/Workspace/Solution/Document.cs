@@ -19,17 +19,12 @@ namespace Microsoft.CodeAnalysis
     /// It provides access to the source text, parsed syntax tree and the corresponding semantic model.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public partial class Document
+    public partial class Document : TextDocument
     {
         private readonly DocumentState state;
 
         private WeakReference<SemanticModel> model;
         private Task<SyntaxTree> syntaxTreeResultTask;
-
-        /// <summary>
-        /// The project this document belongs to.
-        /// </summary>
-        public Project Project { get; private set; }
 
         internal Document(Project project, DocumentState state)
         {
@@ -48,43 +43,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// The document's identifier. Many document instances may share the same ID, but only one
-        /// document in a solution may have that ID.
-        /// </summary>
-        public DocumentId Id
+        internal override TextDocumentState GetDocumentState()
         {
-            get { return this.state.Id; }
-        }
-
-        /// <summary>
-        /// The path to the document file or null if there is no document file.
-        /// </summary>
-        public string FilePath
-        {
-            get { return this.state.FilePath; }
-        }
-
-        /// <summary>
-        /// The name of the document.
-        /// </summary>
-        public string Name
-        {
-            get
-            {
-                return this.state.Name;
-            }
-        }
-
-        /// <summary>
-        /// The sequence of logical folders the document is contained in.
-        /// </summary>
-        public IReadOnlyList<string> Folders
-        {
-            get
-            {
-                return this.state.Folders;
-            }
+            return this.state;
         }
 
         /// <summary>
@@ -96,22 +57,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return this.state.SourceCodeKind;
             }
-        }
-
-        /// <summary>
-        /// Get the current text for the document if it is already loaded and available.
-        /// </summary>
-        public bool TryGetText(out SourceText text)
-        {
-            return this.state.TryGetText(out text);
-        }
-
-        /// <summary>
-        /// Gets the version of the document's text if it is already loaded and available.
-        /// </summary>
-        public bool TryGetTextVersion(out VersionStamp version)
-        {
-            return this.state.TryGetTextVersion(out version);
         }
 
         /// <summary>
@@ -169,22 +114,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the current text for the document asynchronously.
-        /// </summary>
-        public Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return this.state.GetTextAsync(cancellationToken);
-        }
-
-        /// <summary>
-        /// Gets the version of the document's text.
-        /// </summary>
-        public Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return this.state.GetTextVersionAsync(cancellationToken);
-        }
-
-        /// <summary>
         /// Gets the version of the syntax tree. This is generally the newer of the text version and the project's version.
         /// </summary>
         public async Task<VersionStamp> GetSyntaxVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -194,13 +123,6 @@ namespace Microsoft.CodeAnalysis
             return textVersion.GetNewerVersion(projectVersion);
         }
 
-        /// <summary>
-        /// Gets the version of the document's top level signature.
-        /// </summary>
-        internal Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return this.state.GetTopLevelChangeTextVersionAsync(cancellationToken);
-        }
 
         /// <summary>
         /// <code>true</code> if this Document supports providing data through the
@@ -451,7 +373,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the list of <see cref="DocumentId"/>s that are linked to this
         /// <see cref="Document" />. <see cref="Document"/>s are considered to be linked if they
-        /// share the same <see cref="FilePath" />. This <see cref="DocumentId"/> is excluded from the 
+        /// share the same <see cref="TextDocument.FilePath" />. This <see cref="DocumentId"/> is excluded from the 
         /// result.
         /// </summary>
         public ImmutableArray<DocumentId> GetLinkedDocumentIds()
