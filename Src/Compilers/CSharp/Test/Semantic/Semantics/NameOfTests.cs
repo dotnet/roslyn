@@ -543,5 +543,36 @@ class Program
                 //     Program(string s = nameof(global::Program))
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "nameof(global::Program)").WithArguments("nameof operator", "6").WithLocation(4, 24));
         }
+
+        [Fact(Skip = "994549")]
+        public void TestNameofIndexerName()
+        {
+            var source = @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        var t = typeof(C);
+        foreach (var m in t.GetMethods())
+        {
+            System.Console.WriteLine(m.Name);
+        }
+    }
+    public int Other(int index) { return 0; }
+    [System.Runtime.CompilerServices.IndexerName(""_"" + nameof(Other))]
+    public int this[int index]
+    {
+        get { return Other(index); }
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: @"Main
+Other
+get__Other
+ToString
+Equals
+GetHashCode
+GetType");
+        }
     }
 }
