@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopRulesResources.ChangeToAPropertyIfAppropriate,
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: true);
+                                                                         isEnabledByDefault: true,
+                                                                         customTags: DiagnosticCustomTags.Microsoft);
         private const string GetHashCodeName = "GetHashCode";
         private const string GetEnumeratorName = "GetEnumerator";
 

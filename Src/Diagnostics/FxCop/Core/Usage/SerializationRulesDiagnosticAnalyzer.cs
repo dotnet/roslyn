@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          "{0}",
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: true);
+                                                                         isEnabledByDefault: true,
+                                                                         customTags: DiagnosticCustomTags.Microsoft);
 
         // Mark ISerializable types with SerializableAttribute
         internal const string RuleCA2237Id = "CA2237";
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopRulesResources.AddSerializableAttributeToType,
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: true);
+                                                                         isEnabledByDefault: true,
+                                                                         customTags: DiagnosticCustomTags.Microsoft);
 
         // Mark all non-serializable fields
         internal const string RuleCA2235Id = "CA2235";
@@ -42,7 +44,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopRulesResources.FieldIsOfNonSerializableType,
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: true);
+                                                                         isEnabledByDefault: true,
+                                                                         customTags: DiagnosticCustomTags.Microsoft);
 
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(RuleCA2229, RuleCA2235, RuleCA2237);
 

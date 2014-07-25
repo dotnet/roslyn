@@ -25,13 +25,16 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                           FxCopRulesResources.StaticHolderTypeIsNotStatic,
                                                                           FxCopDiagnosticCategory.Usage,
                                                                           DiagnosticSeverity.Warning,
-                                                                          isEnabledByDefault: true);
+                                                                          isEnabledByDefault: true,
+                                                                          customTags: DiagnosticCustomTags.Microsoft);
+
         internal static readonly DiagnosticDescriptor CA1053Rule = new DiagnosticDescriptor(CA1053RuleId,
                                                                           FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructors,
                                                                           FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructorsMessage,
                                                                           FxCopDiagnosticCategory.Usage,
                                                                           DiagnosticSeverity.Warning,
-                                                                          isEnabledByDefault: true);
+                                                                          isEnabledByDefault: true,
+                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

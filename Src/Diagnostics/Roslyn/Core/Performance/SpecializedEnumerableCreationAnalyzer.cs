@@ -27,7 +27,8 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticsResources.UseEmptyEnumerableMessage,
             "Performance",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
+            isEnabledByDefault: true,
+            customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor UseSingletonEnumerableRule = new DiagnosticDescriptor(
             "RS0002",
@@ -35,7 +36,8 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticsResources.UseSingletonEnumerableMessage,
             "Performance",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
+            isEnabledByDefault: true,
+            customTags: WellKnownDiagnosticTags.Telemetry);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

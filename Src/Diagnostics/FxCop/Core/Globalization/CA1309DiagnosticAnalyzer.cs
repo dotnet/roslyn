@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
                                                                              FxCopRulesResources.StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase,
                                                                              FxCopDiagnosticCategory.Globalization,
                                                                              DiagnosticSeverity.Warning,
-                                                                             isEnabledByDefault: true);
+                                                                             isEnabledByDefault: true,
+                                                                             customTags: DiagnosticCustomTags.Microsoft);
 
         internal const string CompareMethodName = "Compare";
         internal const string EqualsMethodName = "Equals";

@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             FxCopRulesResources.UseGenericEventHandlerInstances,
             FxCopDiagnosticCategory.Design,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
+            isEnabledByDefault: true,
+            customTags: DiagnosticCustomTags.Microsoft);
 
         protected abstract AnalyzerBase GetAnalyzer(
             Compilation compilation,

@@ -16,5 +16,10 @@
         /// Indicates that the diagnostic is related to build.
         /// </summary>
         public const string Build = "Build";
+
+        /// <summary>
+        /// Indicates that the diagnostic can be used for telemetry
+        /// </summary>
+        public const string Telemetry = "Telemetry";
     }
 }

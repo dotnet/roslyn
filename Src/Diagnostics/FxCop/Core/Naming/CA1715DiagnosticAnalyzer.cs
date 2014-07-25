@@ -19,13 +19,17 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
                                                                                       FxCopRulesResources.InterfaceNamesShouldStartWithI,
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
-                                                                                      isEnabledByDefault: true);
+                                                                                      isEnabledByDefault: true,
+                                                                                      customTags: DiagnosticCustomTags.Microsoft);
+
         internal static readonly DiagnosticDescriptor TypeParameterRule = new DiagnosticDescriptor(RuleId,
                                                                                       FxCopRulesResources.TypeParameterNamesShouldStartWithT,
                                                                                       FxCopRulesResources.TypeParameterNamesShouldStartWithT,
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
-                                                                                      isEnabledByDefault: true);
+                                                                                      isEnabledByDefault: true,
+                                                                                      customTags: DiagnosticCustomTags.Microsoft);
+
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(InterfaceRule, TypeParameterRule);
 
         public ImmutableArray<SymbolKind> SymbolKindsOfInterest

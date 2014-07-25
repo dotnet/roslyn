@@ -42,19 +42,25 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                        FxCopRulesResources.EnumsShouldZeroValueFlagsRename,
                                                                        FxCopDiagnosticCategory.Design,
                                                                        DiagnosticSeverity.Warning,
-                                                                       isEnabledByDefault: true);
+                                                                       isEnabledByDefault: true,
+                                                                       customTags: DiagnosticCustomTags.Microsoft);
+
         internal static DiagnosticDescriptor RuleMultipleZero = new DiagnosticDescriptor(RuleId,
                                                                FxCopRulesResources.EnumsShouldHaveZeroValue,
                                                                FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero,
                                                                FxCopDiagnosticCategory.Design,
                                                                DiagnosticSeverity.Warning,
-                                                               isEnabledByDefault: true);
+                                                               isEnabledByDefault: true,
+                                                               customTags: DiagnosticCustomTags.Microsoft);
+
         internal static DiagnosticDescriptor RuleNoZero = new DiagnosticDescriptor(RuleId,
                                                                FxCopRulesResources.EnumsShouldHaveZeroValue,
                                                                FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue,
                                                                FxCopDiagnosticCategory.Design,
                                                                DiagnosticSeverity.Warning,
-                                                               isEnabledByDefault: true);
+                                                               isEnabledByDefault: true,
+                                                               customTags: DiagnosticCustomTags.Microsoft);
+
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(RuleRename, RuleMultipleZero, RuleNoZero);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

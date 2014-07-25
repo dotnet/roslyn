@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
@@ -14,9 +15,11 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal class DiagnosticWithInfo : Diagnostic
     {
+        private static readonly IReadOnlyList<string> CompilerCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
+
         private readonly DiagnosticInfo info;
         private readonly Location location;
-        
+
         internal DiagnosticWithInfo(DiagnosticInfo info, Location location)
         {
             Debug.Assert(info != null);
@@ -39,8 +42,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                // Compiler diagnostics don't have any custom tags.
-                return SpecializedCollections.EmptyReadOnlyList<string>();
+                return CompilerCustomTags;
             }
         }
 

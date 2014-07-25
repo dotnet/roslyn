@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
                                                                          FxCopRulesResources.DoNotLockOnWeakIdentity,
                                                                          FxCopDiagnosticCategory.Reliability,
                                                                          DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: true);
+                                                                         isEnabledByDefault: true,
+                                                                         customTags: DiagnosticCustomTags.Microsoft);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
