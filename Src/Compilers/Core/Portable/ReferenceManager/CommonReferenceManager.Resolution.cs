@@ -396,10 +396,22 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 newMetadata = peReference.GetMetadata();
+
+                // make sure basic structure of the PE image is valid:
+                var assemblyMetadata = newMetadata as AssemblyMetadata;
+                if (assemblyMetadata != null)
+                {
+                    bool dummy = assemblyMetadata.IsValidAssembly();
+                }
+                else
+                {
+                    bool dummy = ((ModuleMetadata)newMetadata).Module.IsLinkedModule;
+                }
             }
             catch (Exception e) if (e is BadImageFormatException || e is IOException)
             {
                 newDiagnostic = PortableExecutableReference.ExceptionToDiagnostic(e, messageProvider, location, peReference.Display, peReference.Properties.Kind);
+                newMetadata = null;
             }
 
             lock (ObservedMetadata)

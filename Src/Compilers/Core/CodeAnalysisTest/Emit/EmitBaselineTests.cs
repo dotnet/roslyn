@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var peModule = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.Basic.Members);
             var peReader = peModule.Module.PEReaderOpt;
 
-            var mdBytes = peReader.ReadAllMetadataBytes();
+            var mdBytes = peReader.GetMetadata().GetContent();
             var mdBytesHandle = PinnedImmutableArray.Create(mdBytes);
             var mdModule = ModuleMetadata.CreateFromMetadata(mdBytesHandle.Pointer, mdBytes.Length);
 

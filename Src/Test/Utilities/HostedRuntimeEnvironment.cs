@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     bool isManifestModule = peRef.Properties.Kind == MetadataImageKind.Assembly;
                     foreach (var module in EnumerateModules(metadata))
                     {
-                        ImmutableArray<byte> bytes = module.Module.PEReaderOpt.ReadAllBytes();
+                        ImmutableArray<byte> bytes = module.Module.PEReaderOpt.GetEntireImage().GetContent();
                         if (isManifestModule)
                         {
                             dependencies.Add(new ModuleData(((AssemblyMetadata)metadata).Assembly.Identity, OutputKind.DynamicallyLinkedLibrary, bytes, pdb: default(ImmutableArray<byte>), inMemoryModule: !(r is MetadataFileReference)));
