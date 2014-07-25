@@ -551,16 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var method in type.GetMethodsToEmit())
                 {
-                    if (method.IsImplicitConstructor)
-                    {
-                        ConsList<Imports> debugImports;
-                        var body = BindMethodBody(method, ImmutableArray<LocalSymbol>.Empty, compilationState, diagnostics, generateDebugInfo: false, debugImports: out debugImports);
-                        compilationState.AddSynthesizedMethod(method, body);
-                    }
-                    else
-                    {
-                        method.GenerateMethodBody(compilationState, diagnostics);
-                    }
+                    method.GenerateMethodBody(compilationState, diagnostics);
                 }
             }
 
@@ -1469,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="compilation">Used to retrieve binder.</param>
         /// <param name="localsDeclaredInInitializer">Locals declared in the initializer are returned through this parameter.</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
-        private static BoundExpression BindConstructorInitializer(MethodSymbol constructor, ImmutableArray<LocalSymbol> initializationScopeLocals, DiagnosticBag diagnostics, CSharpCompilation compilation, out ImmutableArray<LocalSymbol> localsDeclaredInInitializer)
+        internal static BoundExpression BindConstructorInitializer(MethodSymbol constructor, ImmutableArray<LocalSymbol> initializationScopeLocals, DiagnosticBag diagnostics, CSharpCompilation compilation, out ImmutableArray<LocalSymbol> localsDeclaredInInitializer)
         {
             localsDeclaredInInitializer = ImmutableArray<LocalSymbol>.Empty;
 
