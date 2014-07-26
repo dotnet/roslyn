@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 IEnumerable<ClassifiedSpan> result;
                 if (TryClassifySymbol(name, symbolInfo, semanticModel, cancellationToken, out result) ||
                     TryClassifyFromIdentifier(name, symbolInfo, out result) ||
-                    TryClassifyValueIdentifier(name, symbolInfo, out result))
+                    TryClassifyValueIdentifier(name, symbolInfo, out result) ||
+                    TryClassifyNameOfIdentifier(name, symbolInfo, out result))
                 {
                     return result;
                 }
@@ -265,6 +266,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             {
                 result = SpecializedCollections.SingletonEnumerable(
                     new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
+                return true;
+            }
+
+            result = null;
+            return false;
+        }
+
+        private bool TryClassifyNameOfIdentifier(NameSyntax name, SymbolInfo symbolInfo, out IEnumerable<ClassifiedSpan> result)
+        {
+            var identifierName = name as IdentifierNameSyntax;
+            if (identifierName != null &&
+                identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword) &&
+                symbolInfo.Symbol == null &&
+                !symbolInfo.CandidateSymbols.Any())
+            {
+                result = SpecializedCollections.SingletonEnumerable(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
                 return true;
             }
 

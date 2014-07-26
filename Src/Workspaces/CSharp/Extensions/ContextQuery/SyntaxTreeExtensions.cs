@@ -1795,6 +1795,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     return false;
                 }
+
+                // nameof(
+                if (token.Parent.IsKind(SyntaxKind.NameOfExpression))
+                {
+                    return true;
+                }
             }
 
             // Foo(|
