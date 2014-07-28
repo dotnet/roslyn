@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -87,6 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return this.methodSymbol;
             }
+        }
+
+        internal override bool IsInstanceMemberContext(out SymbolKind kind)
+        {
+            kind = SymbolKind.Method;
+            return !this.methodSymbol.IsStatic;
         }
 
         internal void MakeIterator()
@@ -190,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void LookupSymbolsInSingleBinder(
+        internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if (parameterMap == null || (options & LookupOptions.NamespaceAliasesOnly) != 0) return;

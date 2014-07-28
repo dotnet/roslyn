@@ -140,22 +140,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool IsAnonymousTypesAllowed()
         {
-            if ((object)this.ContainingMemberOrLambda == null)
+            var member = this.ContainingMemberOrLambda;
+            if ((object)member == null)
             {
                 return false;
             }
 
-            switch (this.ContainingMemberOrLambda.Kind)
+            switch (member.Kind)
             {
                 case SymbolKind.Method:
                     return true;
 
                 case SymbolKind.Field:
-                    return !((FieldSymbol)this.ContainingMemberOrLambda).IsConst;
+                    return !((FieldSymbol)member).IsConst;
 
                 case SymbolKind.NamedType:
                     //  allow usage of anonymous types in script classes
-                    return ((NamedTypeSymbol)this.ContainingMemberOrLambda).IsScriptClass;
+                    return this.IsScriptClass;
             }
 
             return false;

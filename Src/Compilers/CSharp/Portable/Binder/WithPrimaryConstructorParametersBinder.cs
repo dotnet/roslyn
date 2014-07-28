@@ -1,8 +1,7 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void LookupSymbolsInSingleBinder(
+        internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if ((options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.MustBeInvocableIfMember)) != 0)

@@ -2,12 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateErrorType();
         }
 
-        protected override void LookupSymbolsInSingleBinder(
+        internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if ((options & LookupOptions.NamespaceAliasesOnly) != 0) return;

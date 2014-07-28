@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual void LookupSymbolsInSingleBinder(
+        internal virtual void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
         }

@@ -45,6 +45,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.BinderMap.TryGetValue(node, out binder) ? binder : Next.GetBinder(node);
         }
 
+        internal override bool IsInstanceMemberContext(out SymbolKind kind)
+        {
+            kind = this.memberSymbol.Kind;
+            // Skip lambdas.
+            if ((kind == SymbolKind.Method) && ((MethodSymbol)this.memberSymbol).MethodKind == MethodKind.LambdaMethod)
+            {
+                return base.IsInstanceMemberContext(out kind);
+            }
+            return !this.memberSymbol.IsStatic;
+        }
+
         private SmallDictionary<CSharpSyntaxNode, Binder> BinderMap
         {
             get

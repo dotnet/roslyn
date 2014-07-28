@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if a reference to "this" is available.</returns>
         private bool HasThis(bool isExplicit, out bool inStaticContext)
         {
-            var member = this.ContainingMemberOrLambda.ContainingNonLambdaMember();
-            if (member.IsStatic)
+            SymbolKind kind;
+            if (!this.IsInstanceMemberContext(out kind))
             {
-                inStaticContext = member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Method || member.Kind == SymbolKind.Property;
+                inStaticContext = (kind == SymbolKind.Field) || (kind == SymbolKind.Method) || (kind == SymbolKind.Property);
                 return false;
             }
 
@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var containingType = member.ContainingType;
-            bool inTopLevelScriptMember = (object)containingType != null && containingType.IsScriptClass;
+            bool inTopLevelScriptMember = this.IsScriptClass;
 
             // "this" is not allowed in field initializers (that are not script variable initializers):
             if (InFieldInitializer && !inTopLevelScriptMember)
@@ -1241,17 +1240,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // base type of the current type, then there should be a "this" associated with the
             // method group. Otherwise, it should be null.
 
-            var currentType = this.ContainingType;
+            var thisType = this.ThisType;
             var declaringType = members[0].ContainingType;
             var instanceType = (NamedTypeSymbol)declaringType.OriginalDefinition;
 
-            if (SynthesizeMethodGroupReceiverIsInstanceTypeOrAnyBaseInstanceType(instanceType, currentType))
+            if (SynthesizeMethodGroupReceiverIsInstanceTypeOrAnyBaseInstanceType(instanceType, thisType))
             {
-                return ThisReference(syntax, wasCompilerGenerated: true);
+                return ThisReference(syntax, thisType, wasCompilerGenerated: true);
             }
             else
             {
-                return TryBindInteractiveReceiver(syntax, this.ContainingMemberOrLambda, currentType, declaringType);
+                return TryBindInteractiveReceiver(syntax, this.ContainingMemberOrLambda, thisType, declaringType);
             }
         }
 
@@ -1578,13 +1577,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var currentType = this.ContainingType;
+            var thisType = this.ThisType;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (currentType.IsEqualToOrDerivedFrom(member.ContainingType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
+            if (thisType.IsEqualToOrDerivedFrom(member.ContainingType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
             {
                 bool hasErrors = false;
-                if (InFieldInitializer && !currentType.IsScriptClass)
+                if (InFieldInitializer && !this.IsScriptClass)
                 {
                     //can't access "this" in field initializers
                     Error(diagnostics, ErrorCode.ERR_FieldInitRefNonstatic, node, member);
@@ -1599,11 +1598,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // not an instance member if the container is a type, like when binding default parameter values.
-                    var containingMember = ContainingMember();
-                    bool locationIsInstanceMember = !containingMember.IsStatic &&
-                        (containingMember.Kind != SymbolKind.NamedType || currentType.IsScriptClass);
-
-                    if (!locationIsInstanceMember)
+                    SymbolKind kind;
+                    if (!IsInstanceMemberContext(out kind) || (kind == SymbolKind.NamedType))
                     {
                         // error CS0120: An object reference is required for the non-static field, method, or property '{0}'
                         Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, member);
@@ -1612,11 +1608,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 hasErrors = hasErrors || IsRefOrOutThisParameterCaptured(node, diagnostics);
-                return ThisReference(node, hasErrors, wasCompilerGenerated: true);
+                return ThisReference(node, thisType, hasErrors, wasCompilerGenerated: true);
             }
             else
             {
-                return TryBindInteractiveReceiver(node, this.ContainingMemberOrLambda, currentType, member.ContainingType);
+                return TryBindInteractiveReceiver(node, this.ContainingMemberOrLambda, thisType, member.ContainingType);
             }
         }
 
@@ -1763,12 +1759,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = IsRefOrOutThisParameterCaptured(node, diagnostics);
             }
 
-            return ThisReference(node, hasErrors);
+            var thisType = this.ThisType;
+            return ThisReference(node, thisType, hasErrors);
         }
 
-        private BoundThisReference ThisReference(CSharpSyntaxNode node, bool hasErrors = false, bool wasCompilerGenerated = false)
+        private BoundThisReference ThisReference(CSharpSyntaxNode node, NamedTypeSymbol thisTypeOpt, bool hasErrors = false, bool wasCompilerGenerated = false)
         {
-            return new BoundThisReference(node, this.ContainingType ?? CreateErrorType(), hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
+            return new BoundThisReference(node, thisTypeOpt ?? CreateErrorType(), hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
         }
 
         private bool IsRefOrOutThisParameterCaptured(CSharpSyntaxNode node, DiagnosticBag diagnostics)
@@ -1787,7 +1784,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBaseReference BindBase(BaseExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            NamedTypeSymbol baseType = (object)this.ContainingType == null ? null : this.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            var thisType = this.ThisType;
+            var baseType = (object)thisType == null ? null : thisType.BaseTypeNoUseSiteDiagnostics;
             bool hasErrors = true;
 
             bool inStaticContext;
@@ -3975,7 +3973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     errorLocation = constructor.Locations[0];
                 }
 
-                BoundExpression receiver = new BoundThisReference(nonNullSyntax, initializerType) { WasCompilerGenerated = true };
+                BoundExpression receiver = ThisReference(nonNullSyntax, initializerType, wasCompilerGenerated: true);
 
                 if (initializerType.IsErrorType())
                 {

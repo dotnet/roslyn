@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.LookupLocal(nameToken);
         }
 
-        protected override void LookupSymbolsInSingleBinder(
+        internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(options.AreValid());

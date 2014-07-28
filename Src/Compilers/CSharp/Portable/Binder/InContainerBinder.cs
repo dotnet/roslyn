@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -112,6 +110,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override bool IsInstanceMemberContext(out SymbolKind kind)
+        {
+            kind = this.container.Kind;
+            return !this.container.IsStatic;
+        }
+
+        internal override bool IsScriptClass
+        {
+            get
+            {
+                var type = this.container as NamedTypeSymbol;
+                return ((object)type != null) && type.IsScriptClass;
+            }
+        }
+
+        internal override NamedTypeSymbol ThisType
+        {
+            get { return this.container as NamedTypeSymbol; }
+        }
+
         internal override bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
         {
             var type = container as NamedTypeSymbol;
@@ -151,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void LookupSymbolsInSingleBinder(
+        internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(result.IsClear);

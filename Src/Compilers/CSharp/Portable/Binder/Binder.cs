@@ -268,6 +268,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal virtual bool IsInstanceMemberContext(out SymbolKind kind)
+        {
+            return this.next.IsInstanceMemberContext(out kind);
+        }
+
+        internal virtual bool IsScriptClass
+        {
+            get { return this.next.IsScriptClass; }
+        }
+
+        internal virtual NamedTypeSymbol ThisType
+        {
+            get { return this.next.ThisType; }
+        }
+
         internal ParameterSymbol ThisParameter
         {
             get { return this.ContainingMemberOrLambda.EnclosingThisSymbol(); }

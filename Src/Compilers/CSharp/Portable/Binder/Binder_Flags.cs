@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -29,6 +30,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override Symbol ContainingMemberOrLambda
             {
                 get { return this.containingMemberOrLambda; }
+            }
+
+            internal override bool IsInstanceMemberContext(out SymbolKind kind)
+            {
+                kind = this.containingMemberOrLambda.Kind;
+                // Skip lambdas.
+                if ((kind == SymbolKind.Method) && ((MethodSymbol)this.containingMemberOrLambda).MethodKind == MethodKind.LambdaMethod)
+                {
+                    return base.IsInstanceMemberContext(out kind);
+                }
+                return !this.containingMemberOrLambda.IsStatic;
             }
         }
 
