@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         class ComplainAboutX : ISyntaxNodeAnalyzer<SyntaxKind>
         {
             private static readonly DiagnosticDescriptor CA9999_UseOfVariableThatStartsWithX =
-                new DiagnosticDescriptor(id: "CA9999", description: "CA9999_UseOfVariableThatStartsWithX", messageFormat: "Use of variable whose name starts with 'x': '{0}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new DiagnosticDescriptor(id: "CA9999", title: "CA9999_UseOfVariableThatStartsWithX", messageFormat: "Use of variable whose name starts with 'x': '{0}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {

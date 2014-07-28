@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
     public abstract partial class CodeAction
     {
         /// <summary>
-        /// The description of the action that may appear in a menu.
+        /// A short title describing the action that may appear in a menu.
         /// </summary>
-        public abstract string Description { get; }
+        public abstract string Title { get; }
 
         /// <summary>
         /// The sequence of operations that define the code action.
@@ -131,18 +131,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         private sealed class DocumentChangeAction : CodeAction
         {
-            private readonly string description;
+            private readonly string title;
             private readonly Func<CancellationToken, Task<Document>> createChangedDocument;
 
-            public DocumentChangeAction(string description, Func<CancellationToken, Task<Document>> createChangedDocument)
+            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
             {
-                this.description = description;
+                this.title = title;
                 this.createChangedDocument = createChangedDocument;
             }
 
-            public override string Description
+            public override string Title
             {
-                get { return this.description; }
+                get { return this.title; }
             }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -191,18 +191,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         private sealed class SolutionChangeAction : CodeAction
         {
-            private readonly string description;
+            private readonly string title;
             private readonly Func<CancellationToken, Task<Solution>> createChangedSolution;
 
-            public SolutionChangeAction(string description, Func<CancellationToken, Task<Solution>> createChangedSolution)
+            public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
             {
-                this.description = description;
+                this.title = title;
                 this.createChangedSolution = createChangedSolution;
             }
 
-            public override string Description
+            public override string Title
             {
-                get { return this.description; }
+                get { return this.title; }
             }
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)

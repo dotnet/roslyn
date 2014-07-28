@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis
         public string Id { get; private set; }
 
         /// <summary>
-        /// A short localizable description of the diagnostic.
+        /// A short localizable title describing the diagnostic.
         /// </summary>
-        public string Description { get; private set; }
+        public string Title { get; private set; }
 
         /// <summary>
         /// A localizable format message string, which can be passed as the first argument to <see cref="M:System.String.Format"/> when creating the diagnostic message with this descriptor.
@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis
         /// Create a DiagnosticDescriptor, which provides description about a <see cref="Diagnostic"/>.
         /// </summary>
         /// <param name="id">A unique identifier for the diagnostic. For example, code analysis diagnostic ID "CA1001".</param>
-        /// <param name="description">A short localizable description of the diagnostic. For example, for CA1001: "Types that own disposable fields should be disposable".</param>
+        /// <param name="title">A short localizable title describing the diagnostic. For example, for CA1001: "Types that own disposable fields should be disposable".</param>
         /// <param name="messageFormat">A localizable format message string, which can be passed as the first argument to <see cref="M:System.String.Format"/> when creating the diagnostic message with this descriptor.
         /// For example, for CA1001: "Implement IDisposable on '{0}' because it creates members of the following IDisposable types: '{1}'."</param>
         /// <param name="category">The category of the diagnostic (like Design, Naming etc.). For example, for CA1001: "Microsoft.Design".</param>
         /// <param name="defaultSeverity">Default severity of the diagnostic.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default.</param>
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
-        public DiagnosticDescriptor(string id, string description, string messageFormat, string category, DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, params string[] customTags)
+        public DiagnosticDescriptor(string id, string title, string messageFormat, string category, DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, params string[] customTags)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             this.Id = id;
-            this.Description = description;
+            this.Title = title;
             this.Category = category;
             this.MessageFormat = messageFormat;
             this.DefaultSeverity = defaultSeverity;

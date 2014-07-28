@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
     public abstract class CodeActionOperation
     {
         /// <summary>
-        /// A description of the effect of the operation.
+        /// A short title describing of the effect of the operation.
         /// </summary>
-        public virtual string Description
+        public virtual string Title
         {
             get { return null; }
         }

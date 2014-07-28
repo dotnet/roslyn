@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="id">A unique identifier for the diagnostic. For example, code analysis diagnostic ID "CA1001".</param>
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
         public TriggerDiagnosticDescriptor(string id, params string[] customTags)
-            : base (id, description: "", messageFormat: "", category: TriggerCategory, defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: true, customTags: customTags)
+            : base (id, title: "", messageFormat: "", category: TriggerCategory, defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: true, customTags: customTags)
         {
         }
     }

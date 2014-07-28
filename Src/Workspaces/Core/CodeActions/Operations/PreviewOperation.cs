@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     {
         /// <summary>
         /// Gets a custom preview control for the operation.
-        /// If preview is null and <see cref="CodeActionOperation.Description"/> is non-null, then <see cref="CodeActionOperation.Description"/> is used to generate the preview.
+        /// If preview is null and <see cref="CodeActionOperation.Title"/> is non-null, then <see cref="CodeActionOperation.Title"/> is used to generate the preview.
         /// </summary>
         public abstract object GetPreview();
     }
