@@ -1802,7 +1802,7 @@ class C1
         }
 
         [WorkItem(918072, "DevDiv")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "996321"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAnalyzerReferenceLoadStandalone()
         {
 #if !MSBUILD12

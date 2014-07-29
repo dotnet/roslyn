@@ -254,7 +254,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private class CSharpCompilerInputs :
 #if !MSBUILD12
-                MSB.Tasks.Hosting.ICscHostObject4, MSB.Tasks.Hosting.IAnalyzerHostObject
+                MSB.Tasks.Hosting.ICscHostObject4
+            //// ' TODO : Remove this after the next base drop update (once we get a new IAnalyzerHostObject interface)
+            //// , MSB.Tasks.Hosting.IAnalyzerHostObject
 #else
                 MSB.Tasks.Hosting.ICscHostObject4
 #endif

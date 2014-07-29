@@ -253,7 +253,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Class VisualBasicCompilerInputs
                 Implements MSB.Tasks.Hosting.IVbcHostObject5, MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded
 #If Not MSBUILD12 Then
-                Implements MSB.Tasks.Hosting.IAnalyzerHostObject
+                ' TODO : Remove this after the next base drop update (once we get a new IAnalyzerHostObject interface)
+                ' Implements MSB.Tasks.Hosting.IAnalyzerHostObject
 #End If
                 Private _projectFile As VisualBasicProjectFile
                 Private _initialized As Boolean
@@ -583,7 +584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
 #If Not MSBUILD12 Then
-                Public Function SetAnalyzers(analyzerReferences() As MSB.Framework.ITaskItem) As Boolean Implements MSB.Tasks.Hosting.IAnalyzerHostObject.SetAnalyzers
+                Public Function SetAnalyzers(analyzerReferences() As MSB.Framework.ITaskItem) As Boolean ' Implements MSB.Tasks.Hosting.IAnalyzerHostObject.SetAnalyzers
 #Else
                 Public Function SetAnalyzers(analyzerReferences() As MSB.Framework.ITaskItem) As Boolean
 #End If
@@ -643,7 +644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
 #If Not MSBUILD12 Then
-                Public Function SetRuleSet(ruleSetFile As String) As Boolean Implements MSB.Tasks.Hosting.IAnalyzerHostObject.SetRuleSet
+                Public Function SetRuleSet(ruleSetFile As String) As Boolean ' Implements MSB.Tasks.Hosting.IAnalyzerHostObject.SetRuleSet
 #Else
                 Public Function SetRuleSet(ruleSetFile As String) As Boolean
 #End If
