@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     // next process
                     handle = p.Handle;
                 }
-                catch (InvalidOperationException)
-                { }
+                catch (InvalidOperationException) { }
 
                 if (handle != IntPtr.Zero &&
                     QueryFullProcessImageName(handle,
@@ -95,14 +94,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             int flags,
             StringBuilder exeNameBuffer,
             ref int bufferSize);
-
-        private static string WorkingDirectory
-        {
-            get
-            {
-                return Environment.CurrentDirectory;
-            }
-        }
 
         private static string msbuildExecutable;
         private static string MSBuildExecutable
@@ -139,12 +130,40 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
         }
 
-        private static string CompilerServerExecutable = Path.Combine(WorkingDirectory, "VBCSCompiler.exe");
-        private static string BuildTaskDll = Path.Combine(WorkingDirectory, "Roslyn.Compilers.BuildTasks.dll");
-        private static string CSharpCompilerClientExecutable = Path.Combine(WorkingDirectory, "csc2.exe");
-        private static string BasicCompilerClientExecutable = Path.Combine(WorkingDirectory, "vbc2.exe");
-        private static string CSharpCompilerExecutable = Path.Combine(WorkingDirectory, "csc.exe");
-        private static string BasicCompilerExecutable = Path.Combine(WorkingDirectory, "vbc.exe");
+        private static string workingDirectory = Environment.CurrentDirectory;
+        private static string ResolveExecutablePath(string exeName)
+        {
+            var path = Path.Combine(workingDirectory, exeName);
+            if (File.Exists(path))
+            {
+                return path;
+            }
+            else
+            {
+                path = Path.Combine(MSBuildDirectory, exeName);
+                if (File.Exists(path))
+                {
+                    var currentAssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
+                    var loadedAssemblyVersion = Assembly.LoadFile(path).GetName().Version;
+                    if (currentAssemblyVersion == loadedAssemblyVersion)
+                    {
+                        return path;
+                    }
+                }
+                return null;
+            }
+        }
+
+        private static string CompilerServerExecutable = ResolveExecutablePath("VBCSCompiler.exe");
+        private static string BuildTaskDll = ResolveExecutablePath("Roslyn.Compilers.BuildTasks.dll");
+        private static string CSharpCompilerExecutable = ResolveExecutablePath("csc.exe");
+        private static string BasicCompilerExecutable = ResolveExecutablePath("vbc.exe");
+
+        // The native client executables can't be loaded via Assembly.Load, so we just use the
+        // compiler server resolved path
+        private static string clientExecutableBasePath = Path.GetDirectoryName(CompilerServerExecutable);
+        private static string CSharpCompilerClientExecutable = Path.Combine(clientExecutableBasePath, "csc2.exe");
+        private static string BasicCompilerClientExecutable = Path.Combine(clientExecutableBasePath, "vbc2.exe");
 
         // In order that the compiler server doesn't stay around and prevent future builds, we explicitly
         // kill it after each test.
@@ -891,6 +910,7 @@ EndGlobal
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + BuildTaskDll + @""" />
   <PropertyGroup>
+    <CscToolPath>" + clientExecutableBasePath + @"</CscToolPath>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -975,6 +995,7 @@ namespace HelloProj
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + BuildTaskDll + @""" />
   <PropertyGroup>
+    <CscToolPath>" + clientExecutableBasePath + @"</CscToolPath>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -1042,6 +1063,7 @@ namespace HelloLib
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""" + BuildTaskDll + @""" />
   <PropertyGroup>
+    <VbcToolPath>" + clientExecutableBasePath + @"</VbcToolPath>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
     <ProductVersion>

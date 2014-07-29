@@ -22,21 +22,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Represents a single connection from a client process. Handles the named pipe
         /// from when the client connects to it, until the request is finished or abandoned.
-        /// A new thread is created to actually service the connection and do the operation.
+        /// A new task is created to actually service the connection and do the operation.
         /// </summary>
-        /// <remarks>
-        /// Why do we directly create threads instead of using TPL Tasks? Two reasons:
-        /// 1) Compilation tasks are long-running and compute bound. Using a thread pool
-        ///    won't provide much advantage and may provide a disadvantage -- we don't want
-        ///    a short compilation to get "stuck" waiting for a long compilation to finish.
-        ///    We could use TaskCreationOptions.LongRunning, but that causes TPL to create a new
-        ///    thread anyway.
-        /// 2) Although it's not currently implemented, using a thread allows us to control
-        ///    stack size, and possibly to abort the thread.
-        ///    
-        /// So in this specific case, we don't get any advantage from TPL, and we might want the
-        /// flexibility of directly controlling the thread.
-        /// </remarks>
         private class Connection
         {
             private const string LogFormat = "Connection {0}: {1}"; // {0} = this.identifer, {1} = normal log message
@@ -175,22 +162,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else
                 {
-                    // CONSIDER: If we want to be more aggressive, we could wait a small timeout for the 
-                    // cancel to finish, and if the thread hasn't terminated, then call thread.Abort().
-                    // This would give up CPU resources more quickly in case, say, a compilation is taking a very
-                    // long time and isn't checking the cancellation token often enough (say it enters an
-                    // infinite loop because of a bug).
-                    //
-                    // I don't think this is strictly needed, though, because once we mark the connection as
-                    // finished (by called FinishConnection), the compilation process is free to go away, 
-                    // so the process will be terminated anyway once the process timeout expires (around 30 seconds),
-                    // no matter if the thread dies or not. Since ThreadAbortExceptions make me a little nervous,
-                    // I've chosen not to go this route for now.
-                    //
-                    // If we decide to extend the process timeout significantly, and the compiler isn't 
-                    // responsive to cancellation requests, then using thread.Abort() might be necessary, because
-                    // people will look askance at the compiler burning lots of CPU after the compilation is cancelled.
-
                     Log("Setting cancellation token to cancelled state.");
                     cancellationTokenSource.Cancel();
                     FinishConnection(CompletionReason.Cancelled);
