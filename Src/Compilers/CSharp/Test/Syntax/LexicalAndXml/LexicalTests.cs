@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -13,7 +12,6 @@ using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
-//test
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LexicalTests
@@ -2384,6 +2382,70 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDebuggerObjectAddressIdentifiers()
+        {
+            var token = LexToken("@0x0");
+            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
+            Assert.Equal("@", token.Text);
+            Assert.Equal("@", token.Value);
+
+            token = DebuggerLexToken("@0x0");
+            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            VerifyNoErrors(token);
+            Assert.Equal("@0x0", token.Text);
+            Assert.Equal("0x0", token.Value);
+
+            token = DebuggerLexToken("@0X012345678");
+            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            VerifyNoErrors(token);
+            Assert.Equal("@0X012345678", token.Text);
+            Assert.Equal("0X012345678", token.Value);
+
+            token = DebuggerLexToken("@0x9abcdefA");
+            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            VerifyNoErrors(token);
+            Assert.Equal("@0x9abcdefA", token.Text);
+            Assert.Equal("0x9abcdefA", token.Value);
+
+            token = DebuggerLexToken("@0xBCDEF");
+            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            VerifyNoErrors(token);
+            Assert.Equal("@0xBCDEF", token.Text);
+            Assert.Equal("0xBCDEF", token.Value);
+
+            token = DebuggerLexToken("@0x");
+            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
+            Assert.Equal("@", token.Text);
+            Assert.Equal("@", token.Value);
+
+            token = LexToken("@0b1c2d3e4f");
+            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
+            Assert.Equal("@", token.Text);
+            Assert.Equal("@", token.Value);
+
+            token = DebuggerLexToken("@0b1c2d3e4f");
+            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
+            Assert.Equal("@", token.Text);
+            Assert.Equal("@", token.Value);
+
+            token = DebuggerLexToken("@0x12u");
+            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
+            Assert.Equal("@", token.Text);
+            Assert.Equal("@", token.Value);
+
+            token = DebuggerLexToken("@0xffff0000ffff0000ffff0000");
+            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            VerifyError(token, ErrorCode.ERR_IntOverflow);
+            Assert.Equal("@0xffff0000ffff0000ffff0000", token.Text);
+            Assert.Equal("0xffff0000ffff0000ffff0000", token.Value);
+        }
+
+        [Fact]
         public void TestDebuggerAliasIdentifiers()
         {
             string text = "123#";
@@ -2598,7 +2660,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(expectedBits, ToHexString((decimal)token.Value));
         }
 
-        static string ToHexString(decimal d)
+        private static void VerifyNoErrors(SyntaxToken token)
+        {
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+        }
+
+        private static void VerifyError(SyntaxToken token, ErrorCode expected)
+        {
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)expected, errors[0].Code);
+        }
+
+        private static string ToHexString(decimal d)
         {
             return string.Join("", decimal.GetBits(d).Select(word => string.Format("{0:x8}", word)));
         }

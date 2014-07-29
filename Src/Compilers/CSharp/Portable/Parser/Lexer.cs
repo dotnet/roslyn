@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1696,6 +1695,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TextWindow.AdvanceChar();
             }
 
+            bool isObjectAddress = false;
+
             while (true)
             {
                 char surrogateCharacter = SlidingTextWindow.InvalidCharacter;
@@ -1788,6 +1789,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
 
                     case '0':
+                        {
+                            if (this.identLen == 0)
+                            {
+                                // Debugger syntax allows @0x[hexdigit]+ for object address identifiers.
+                                if (info.IsVerbatim &&
+                                    this.ModeIs(LexerMode.DebuggerSyntax) &&
+                                    (char.ToLower(TextWindow.PeekChar(1)) == 'x'))
+                                {
+                                    isObjectAddress = true;
+                                }
+                                else
+                                {
+                                    goto LoopExit;
+                                }
+                            }
+
+                            // Again, these are the 'common' identifier characters...
+                            break;
+                        }
                     case '1':
                     case '2':
                     case '3':
@@ -1897,15 +1917,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     info.StringValue = TextWindow.Intern(this.identBuffer, 0, this.identLen);
                 }
 
+                if (isObjectAddress)
+                {
+                    // @0x[hexdigit]+
+                    const int objectAddressOffset = 2;
+                    Debug.Assert(string.Equals(info.Text.Substring(0, objectAddressOffset + 1), "@0x", StringComparison.OrdinalIgnoreCase));
+                    var valueText = TextWindow.Intern(this.identBuffer, objectAddressOffset, this.identLen - objectAddressOffset);
+                    // Verify valid hex value.
+                    if ((valueText.Length == 0) || !valueText.All(IsValidHexDigit))
+                    {
+                        goto Fail;
+                    }
+                    // Parse hex value to check for overflow.
+                    this.GetValueUInt64(valueText, isHex: true);
+                }
+
                 return true;
             }
-            else
+
+        Fail:
+            info.Text = null;
+            info.StringValue = null;
+            TextWindow.Reset(start);
+            return false;
+        }
+
+        private static bool IsValidHexDigit(char c)
+        {
+            if ((c >= '0') && (c <= '9'))
             {
-                info.Text = null;
-                info.StringValue = null;
-                TextWindow.Reset(start);
-                return false;
+                return true;
             }
+            c = char.ToLower(c);
+            return (c >= 'a') && (c <= 'f');
         }
 
         /// <summary>
