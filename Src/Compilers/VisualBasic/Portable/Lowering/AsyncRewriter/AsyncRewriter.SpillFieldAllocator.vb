@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class AsyncRewriter
-        Inherits StateMachineRewriter(Of AsyncStateMachineTypeSymbol, CapturedSymbolOrExpression)
+        Inherits StateMachineRewriter(Of AsyncStateMachine, CapturedSymbolOrExpression)
 
         ''' <summary>
         ''' Spill field allocator controlls allocation and reusage of the set of fields 

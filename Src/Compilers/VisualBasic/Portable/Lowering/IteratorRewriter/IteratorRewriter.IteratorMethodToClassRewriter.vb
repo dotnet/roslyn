@@ -44,8 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Sub GenerateMoveNextAndDispose(Body As BoundStatement,
-                                           moveNextMethod As SynthesizedImplementationMethod,
-                                           disposeMethod As SynthesizedImplementationMethod)
+                                           moveNextMethod As SynthesizedStateMachineMethod,
+                                           disposeMethod As SynthesizedStateMachineMethod)
 
                 ' Generate the body for MoveNext()
                 F.CurrentMethod = moveNextMethod

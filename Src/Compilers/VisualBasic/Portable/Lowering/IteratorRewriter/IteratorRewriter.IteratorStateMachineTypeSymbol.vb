@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits StateMachineRewriter(Of IteratorStateMachineTypeSymbol, FieldSymbol)
 
         Friend NotInheritable Class IteratorStateMachineTypeSymbol
-            Inherits AbstractStateMachineTypeSymbol
+            Inherits SynthesizedContainer
             Implements ISynthesizedMethodBodyImplementationSymbol
 
             Private ReadOnly _constructor As SynthesizedSimpleConstructorSymbol

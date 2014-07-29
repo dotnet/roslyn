@@ -117,6 +117,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const XmlRemoveNamespaceAttributesMethodName As String = "RemoveNamespaceAttributes"
 
         Friend Const ValueProperty As String = "Value"
+
+        '// !! Do not change the following strings. Other teams (FxCop) use this string to identify lambda functions in its analysis
+        '// If you have to change this string, please contact the VB language PM and consider the impact of that break.
+        Friend Const LAMBDA_PREFIX As String = "_Lambda$__"
+        Friend Const CLOSURE_GENERICPARAM_PREFIX As String = "$CLS"
+        Friend Const CLOSURE_MYSTUB_PREFIX As String = "$VB$ClosureStub_"
+
     End Class
 
     Friend Module Constants

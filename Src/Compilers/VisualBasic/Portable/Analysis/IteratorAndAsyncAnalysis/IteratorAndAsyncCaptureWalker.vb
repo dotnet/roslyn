@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' is already rewritten into an objectc creation
             If right.Kind = BoundKind.ObjectCreationExpression Then
                 Dim objCreation = DirectCast(right, BoundObjectCreationExpression)
-                If TypeOf objCreation.Type Is LambdaRewriter.Frame AndAlso objCreation.Arguments.Length = 1 Then
+                If TypeOf objCreation.Type Is LambdaFrame AndAlso objCreation.Arguments.Length = 1 Then
                     Dim arg0 As BoundExpression = objCreation.Arguments(0)
                     If arg0.Kind = BoundKind.Local AndAlso DirectCast(arg0, BoundLocal).LocalSymbol Is local Then
                         Return True

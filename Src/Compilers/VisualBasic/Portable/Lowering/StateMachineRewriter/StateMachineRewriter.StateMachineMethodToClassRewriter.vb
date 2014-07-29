@@ -10,7 +10,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Friend MustInherit Class StateMachineRewriter(Of TStateMachineState As AbstractStateMachineTypeSymbol, TProxy)
+    Partial Friend MustInherit Class StateMachineRewriter(Of TStateMachineState As SynthesizedContainer, TProxy)
 
         Friend MustInherit Class StateMachineMethodToClassRewriter
             Inherits MethodToClassRewriter(Of TProxy)

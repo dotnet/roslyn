@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _topLevelMethod As MethodSymbol
 
         ' for each block with lifted (captured) variables, the corresponding frame type
-        Private ReadOnly frames As Dictionary(Of BoundNode, Frame) = New Dictionary(Of BoundNode, Frame)()
+        Private ReadOnly frames As Dictionary(Of BoundNode, LambdaFrame) = New Dictionary(Of BoundNode, LambdaFrame)()
 
         ' the current set of frame pointers in scope.  Each is either a local variable (where introduced),
         ' or the "this" parameter when at the top level. Keys in this map are never constructed types.
@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Continue For
                 End If
 
-                Dim frame As Frame = Nothing
+                Dim frame As LambdaFrame = Nothing
                 If Not frames.TryGetValue(node, frame) Then
                     ' if the control variable of a for each is lifted, make sure it's using the copy constructor
                     Debug.Assert(captured.Kind <> SymbolKind.Local OrElse
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  copyConstructor)
 
                     Dim containingType As NamedTypeSymbol = _topLevelMethod.ContainingType
-                    frame = New Frame(node.Syntax, containingType, _topLevelMethod, copyConstructor AndAlso Not _analysis.symbolsCapturedWithoutCopyCtor.Contains(captured), CompilationState.GenerateTempNumber())
+                    frame = New LambdaFrame(node.Syntax, containingType, _topLevelMethod, copyConstructor AndAlso Not _analysis.symbolsCapturedWithoutCopyCtor.Contains(captured), CompilationState.GenerateTempNumber())
                     frames(node) = frame
                     If CompilationState.EmitModule IsNot Nothing Then
                         CompilationState.EmitModule.AddSynthesizedDefinition(containingType, frame)
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                Dim proxy As CapturedVariable = New CapturedVariable(frame, captured)
+                Dim proxy As LambdaCapturedVariable = New LambdaCapturedVariable(frame, captured)
                 Proxies.Add(captured, proxy)
                 If CompilationState.EmitModule IsNot Nothing Then
                     frame.m_captured_locals.Add(proxy)
@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         constructedProxyField.Type)
         End Function
 
-        Private Function MakeFrameCtor(frame As Frame, diagnostics As DiagnosticBag) As BoundBlock
+        Private Function MakeFrameCtor(frame As LambdaFrame, diagnostics As DiagnosticBag) As BoundBlock
             Dim constructor = frame.Constructor
             Dim syntaxNode As VisualBasicSyntaxNode = constructor.Syntax
 
@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Constructs a concrete frame type if needed.
         ''' </summary>
-        Private Shared Function ConstructFrameType(Of T As TypeSymbol)(type As Frame, typeArguments As ImmutableArray(Of T)) As NamedTypeSymbol
+        Friend Shared Function ConstructFrameType(Of T As TypeSymbol)(type As LambdaFrame, typeArguments As ImmutableArray(Of T)) As NamedTypeSymbol
             If type.CanConstruct Then
                 Return type.Construct(StaticCast(Of TypeSymbol).From(typeArguments))
             Else
@@ -357,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="F">A function that computes the translation of the node.  It receives lists of added statements and added symbols</param>
         ''' <returns>The translated statement, as returned from F</returns>
         Private Function IntroduceFrame(node As BoundNode,
-                                        frame As Frame,
+                                        frame As LambdaFrame,
                                         F As Func(Of ArrayBuilder(Of BoundExpression), ArrayBuilder(Of LocalSymbol), BoundNode),
                                         Optional origLambda As LambdaSymbol = Nothing) As BoundNode
 
@@ -394,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Proxies.TryGetValue(innermostFramePointer, oldInnermostFrameProxy)
 
                 If _analysis.needsParentFrame.Contains(node) Then
-                    Dim capturedFrame = New CapturedVariable(frame, innermostFramePointer)
+                    Dim capturedFrame = New LambdaCapturedVariable(frame, innermostFramePointer)
                     Dim frameParent = capturedFrame.AsMember(frameType)
                     Dim left As BoundExpression = New BoundFieldAccess(syntaxNode,
                                                                        New BoundLocal(syntaxNode, framePointer, frameType),
@@ -566,7 +566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitBlock(node As BoundBlock) As BoundNode
-            Dim frame As Frame = Nothing
+            Dim frame As LambdaFrame = Nothing
 
             ' Test if this frame has captured variables and requires the introduction of a closure class.
             If frames.TryGetValue(node, frame) Then
@@ -580,7 +580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitSequence(node As BoundSequence) As BoundNode
-            Dim frame As Frame = Nothing
+            Dim frame As LambdaFrame = Nothing
 
             ' Test if this frame has captured variables and requires the introduction of a closure class.
             If frames.TryGetValue(node, frame) Then
@@ -594,7 +594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitCatchBlock(node As BoundCatchBlock) As BoundNode
-            Dim frame As Frame = Nothing
+            Dim frame As LambdaFrame = Nothing
 
             ' Test if this frame has captured variables and requires the introduction of a closure class.
             If frames.TryGetValue(node, frame) Then
@@ -688,7 +688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitStatementList(node As BoundStatementList) As BoundNode
-            Dim frame As Frame = Nothing
+            Dim frame As LambdaFrame = Nothing
 
             ' Test if this frame has captured variables and requires the introduction of a closure class.
             ' That can occur for a BoundStatementList if it is the body of a method with captured parameters.
@@ -718,7 +718,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lambdaSyntax = lambda.Syntax
 
             Dim node As BoundBlock = lambda.Body
-            Dim frame As Frame = Nothing
+            Dim frame As LambdaFrame = Nothing
             Dim rewrittenBody As BoundBlock = Nothing
 
             If frames.TryGetValue(node, frame) Then
@@ -854,7 +854,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim oldInnermostFramePointer = innermostFramePointer
             Dim oldTypeSubstitution = currentLambdaBodyTypeSubstitution
 
-            Dim containerAsFrame = TryCast(translatedLambdaContainer, Frame)
+            Dim containerAsFrame = TryCast(translatedLambdaContainer, LambdaFrame)
 
             Me._currentMethod = generatedMethod
 
@@ -930,7 +930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If (shouldCacheStaticlambda OrElse shouldCacheInLoop) Then
                 ' replace the expression "new Delegate(frame.M)" with "(frame.cache == null) ? (frame.cache = new Delegate(frame.M)) : frame.cache"
                 Dim cacheFieldName As String = "_ClosureCache$__" & CompilationState.GenerateTempNumber()
-                Dim cachedFieldType As TypeSymbol = If(lambdaIsStatic, type, type.InternalSubstituteTypeParameters(CType(translatedLambdaContainer, Frame).TypeMap))
+                Dim cachedFieldType As TypeSymbol = If(lambdaIsStatic, type, type.InternalSubstituteTypeParameters(CType(translatedLambdaContainer, LambdaFrame).TypeMap))
                 Dim cacheField As FieldSymbol = New SynthesizedFieldSymbol(translatedLambdaContainer, implicitlyDefinedBy:=node.LambdaSymbol,
                                                             type:=cachedFieldType, name:=cacheFieldName,
                                                             accessibility:=If(Not lambdaIsStatic, Accessibility.Public, Accessibility.Private),

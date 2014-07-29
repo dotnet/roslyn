@@ -15,7 +15,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class AsyncRewriter
-        Inherits StateMachineRewriter(Of AsyncStateMachineTypeSymbol, CapturedSymbolOrExpression)
+        Inherits StateMachineRewriter(Of AsyncStateMachine, CapturedSymbolOrExpression)
 
         Private Structure SpillBuilder
             Private _locals As ArrayBuilder(Of LocalSymbol)

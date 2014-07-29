@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' because it has to capture l-values on stack as well
     ''' </typeparam>
     ''' <remarks></remarks>
-    Partial Friend MustInherit Class StateMachineRewriter(Of TStateMachineState As AbstractStateMachineTypeSymbol, TProxy)
+    Partial Friend MustInherit Class StateMachineRewriter(Of TStateMachineState As SynthesizedContainer, TProxy)
 
         Protected ReadOnly Body As BoundStatement
         Protected ReadOnly Method As MethodSymbol
@@ -358,29 +358,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Function StartMethodImplementation(interfaceMethod As WellKnownMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedImplementationMethod
+        Friend Function StartMethodImplementation(interfaceMethod As WellKnownMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedStateMachineMethod
             Dim methodToImplement As MethodSymbol = Me.F.WellKnownMember(Of MethodSymbol)(interfaceMethod)
 
             Return StartMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo, hasMethodBodyDependency, associatedProperty, asyncKickoffMethod)
         End Function
 
-        Friend Function StartMethodImplementation(interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedImplementationMethod
+        Friend Function StartMethodImplementation(interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedStateMachineMethod
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol)
 
             Return StartMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo, hasMethodBodyDependency, associatedProperty, asyncKickoffMethod)
         End Function
 
-        Friend Function StartMethodImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedImplementationMethod
+        Friend Function StartMethodImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedStateMachineMethod
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol).AsMember(interfaceType)
 
             Return StartMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, enableDebugInfo, hasMethodBodyDependency, associatedProperty, asyncKickoffMethod)
         End Function
 
-        Private Function StartMethodImplementation(methodToImplement As MethodSymbol, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedImplementationMethod
+        Private Function StartMethodImplementation(methodToImplement As MethodSymbol, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing, Optional asyncKickoffMethod As MethodSymbol = Nothing) As SynthesizedStateMachineMethod
             ' Errors must be reported before and if any thispoint should not be reachable
             Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
 
-            Dim result As New SynthesizedImplementationMethod(Me.F.CurrentType,
+            Dim result As New SynthesizedStateMachineMethod(Me.F.CurrentType,
                                                               name,
                                                               methodToImplement,
                                                               Me.F.Syntax,
@@ -409,7 +409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function StartPropertyGetImplementation(methodToImplement As MethodSymbol, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, enableDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False) As MethodSymbol
-            Dim prop As New SynthesizedImplementationReadOnlyProperty(Me.F.CurrentType,
+            Dim prop As New SynthesizedStateMachineProperty(Me.F.CurrentType,
                                                                       name,
                                                                       methodToImplement,
                                                                       Me.F.Syntax,

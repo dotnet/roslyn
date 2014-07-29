@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Public NotOverridable Overrides ReadOnly Property IsVararg As Boolean
+        Public Overrides ReadOnly Property IsVararg As Boolean
             Get
                 Return False
             End Get
