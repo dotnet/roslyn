@@ -1629,7 +1629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
-            aliasReplacement = GetAliasForSymbol(DirectCast(symbol, INamespaceOrTypeSymbol), node, semanticModel)
+            aliasReplacement = DirectCast(symbol, INamespaceOrTypeSymbol).GetAliasForSymbol(node, semanticModel)
             If aliasReplacement IsNot Nothing And preferAliasToQualifiedName Then
                 Return ValidateAliasForTarget(aliasReplacement, semanticModel, node, symbol)
             End If
@@ -1654,30 +1654,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
             Return False
-        End Function
-
-        Private Function GetAliasForSymbol(symbol As INamespaceOrTypeSymbol, node As SyntaxNode, semanticModel As SemanticModel) As IAliasSymbol
-            ' NOTE(cyrusn): If we're in an imports clause, we can't use aliases.
-            Dim clause = node.AncestorsAndSelf().OfType(Of ImportsClauseSyntax).FirstOrDefault()
-            If clause IsNot Nothing Then
-                Return Nothing
-            End If
-
-            Dim originalSemanticModel = DirectCast(semanticModel.GetOriginalSemanticModel(), SemanticModel)
-            If Not originalSemanticModel.SyntaxTree.HasCompilationUnitRoot Then
-                Return Nothing
-            End If
-
-            Dim aliasSymbol As IAliasSymbol = Nothing
-            If Not AliasSymbolCache.TryGetAliasSymbol(originalSemanticModel, 0, symbol, aliasSymbol) Then
-                ' build cache first
-                AliasSymbolCache.AddAliasSymbols(originalSemanticModel, 0, originalSemanticModel.GetAliasSymbols())
-
-                ' retry
-                AliasSymbolCache.TryGetAliasSymbol(originalSemanticModel, 0, symbol, aliasSymbol)
-            End If
-
-            Return aliasSymbol
         End Function
 
         <Extension()>
