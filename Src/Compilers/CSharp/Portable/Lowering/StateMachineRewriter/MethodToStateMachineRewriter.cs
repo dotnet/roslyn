@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol originalMethod,
             FieldSymbol state,
             HashSet<Symbol> variablesCaptured,
-            Dictionary<Symbol, CapturedSymbolReplacement> initialProxies,
+            IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> initialProxies,
             DiagnosticBag diagnostics,
             bool useFinalizerBookkeeping,
             bool generateDebugInfo)

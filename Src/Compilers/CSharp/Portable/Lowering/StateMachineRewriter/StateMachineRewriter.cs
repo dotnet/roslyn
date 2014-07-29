@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly SyntheticBoundNodeFactory F;
         protected readonly SynthesizedContainer stateMachineClass;
         protected FieldSymbol stateField;
-        protected Dictionary<Symbol, CapturedSymbolReplacement> variableProxies;
+        protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> variableProxies;
         protected HashSet<Symbol> variablesCaptured;
         protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
         protected readonly bool generateDebugInfo;
@@ -45,22 +45,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// True if the initial values of locals in the rewritten method need to be preserved. (e.g. enumerable iterator methods)
         /// </summary>
-        abstract protected bool PreserveInitialParameterValues { get; }
+        protected abstract bool PreserveInitialParameterValues { get; }
 
         /// <summary>
-        /// Add fields to the state machine class that are unique to async or iterator methods.
+        /// Add fields to the state machine class that control the state machine.
         /// </summary>
-        abstract protected void GenerateFields();
+        protected virtual void GenerateControlFields()
+        {
+            // Add a field: int _state
+            var intType = F.SpecialType(SpecialType.System_Int32);
+            this.stateField = F.StateMachineField(intType, GeneratedNames.MakeStateMachineStateName(), IsStateFieldPublic);
+        }
 
         /// <summary>
         /// Initialize the state machine class.
         /// </summary>
-        abstract protected void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal);
+        protected abstract void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal);
 
         /// <summary>
         /// Generate implementation-specific state machine initialization for the replacement method body.
         /// </summary>
-        abstract protected BoundStatement GenerateReplacementBody(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType);
+        protected abstract BoundStatement GenerateReplacementBody(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType);
 
         /// <summary>
         /// Generate implementation-specific state machine member method implementations.
@@ -78,26 +83,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             F.OpenNestedType(stateMachineClass);
 
-            // Add a field: int _state
-            var intType = F.SpecialType(SpecialType.System_Int32);
-            stateField = F.StateMachineField(intType, GeneratedNames.MakeStateMachineStateName(), IsStateFieldPublic);
+            GenerateControlFields();
 
-            GenerateFields();
-
-            // and fields for the initial values of all the parameters of the method
+            // fields for the initial values of all the parameters of the method
             if (PreserveInitialParameterValues)
             {
                 initialParameters = new Dictionary<Symbol, CapturedSymbolReplacement>();
             }
 
-            // add fields for the captured variables of the method
+            // fields for the captured variables of the method
             var captured = IteratorAndAsyncCaptureWalker.Analyze(compilationState.ModuleBuilderOpt.Compilation, method, body);
 
             this.variablesCaptured = new HashSet<Symbol>(captured.Keys);
 
-            this.variableProxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
-
-            CreateInitialProxies(captured);
+            this.variableProxies = CreateInitialProxies(captured);
 
             GenerateMethodImplementations();
 
@@ -105,8 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ReplaceOriginalMethod();
         }
 
-        private void CreateInitialProxies(MultiDictionary<Symbol, CSharpSyntaxNode> captured)
+        private IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> CreateInitialProxies(MultiDictionary<Symbol, CSharpSyntaxNode> captured)
         {
+            var proxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
+
             var typeMap = stateMachineClass.TypeMap;
 
             var orderedCaptured =
@@ -114,30 +115,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 orderby local.Name, (local.Locations.Length == 0) ? 0 : local.Locations[0].SourceSpan.Start
                 select local;
 
-            foreach (var sym in orderedCaptured)
+            foreach (var capturedVariable in orderedCaptured)
             {
-                var local = sym as LocalSymbol;
-                if ((object)local != null && 
-                    (local.SynthesizedLocalKind == SynthesizedLocalKind.None || 
-                     local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass))
+                if (capturedVariable.Kind == SymbolKind.Local)
                 {
-                    // create proxies for user-defined variables and for lambda closures:
-                    Debug.Assert(local.RefKind == RefKind.None); 
-                    MakeInitialProxy(typeMap, captured, local);
-                    continue;
+                    var local = (LocalSymbol)capturedVariable;
+                    if (local.SynthesizedLocalKind == SynthesizedLocalKind.None ||
+                        local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass)
+                    {
+                        // create proxies for user-defined variables and for lambda closures:
+                        Debug.Assert(local.RefKind == RefKind.None);
+                        proxies.Add(local, MakeInitialProxy(typeMap, captured, local));
+                    }
                 }
-
-                var parameter = sym as ParameterSymbol;
-                if ((object)parameter != null)
+                else
                 {
+                    var parameter = (ParameterSymbol)capturedVariable;
                     if (parameter.IsThis)
                     {
                         var proxyField = F.StateMachineField(method.ContainingType, GeneratedNames.ThisProxyName(), isPublic: true);
-                        variableProxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField));
+                        proxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField));
 
                         if (PreserveInitialParameterValues)
                         {
-                            var initialThis = method.ContainingType.IsStructType() ? 
+                            var initialThis = method.ContainingType.IsStructType() ?
                                 F.StateMachineField(method.ContainingType, GeneratedNames.StateMachineThisParameterProxyName(), isPublic: true) : proxyField;
 
                             initialParameters.Add(parameter, new CapturedToFrameSymbolReplacement(initialThis));
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type), parameter.Name, isPublic: true);
-                        variableProxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField));
+                        proxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField));
 
                         if (PreserveInitialParameterValues)
                         {
@@ -154,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             initialParameters.Add(parameter, new CapturedToFrameSymbolReplacement(
                                 F.StateMachineField(typeMap.SubstituteType(parameter.Type), proxyName, isPublic: true)));
                         }
+
                         if (parameter.Type.IsRestrictedType())
                         {
                             // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
@@ -162,9 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
+            return proxies;
         }
 
-        private void MakeInitialProxy(TypeMap TypeMap, MultiDictionary<Symbol, CSharpSyntaxNode> locations, LocalSymbol local)
+        private CapturedSymbolReplacement MakeInitialProxy(TypeMap TypeMap, MultiDictionary<Symbol, CSharpSyntaxNode> locations, LocalSymbol local)
         {
             Debug.Assert(local.RefKind == RefKind.None);
             CapturedSymbolReplacement result = new CapturedToFrameSymbolReplacement(MakeHoistedLocalField(TypeMap, local, local.Type));
@@ -178,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            variableProxies.Add(local, result);
+            return result;
         }
 
         private int nextLocalNumber = 1;
@@ -210,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializeStateMachine(bodyBuilder, frameType, stateMachineVariable);
 
             // plus code to initialize all of the parameter proxies result.proxy
-            Dictionary<Symbol, CapturedSymbolReplacement> copyDest = PreserveInitialParameterValues ? initialParameters : variableProxies;
+            var proxies = PreserveInitialParameterValues ? initialParameters : variableProxies;
 
             // starting with the "this" proxy
             if (!method.IsStatic)
@@ -218,16 +222,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)method.ThisParameter != null);
 
                 CapturedSymbolReplacement proxy;
-                if (copyDest.TryGetValue(method.ThisParameter, out proxy))
+                if (proxies.TryGetValue(method.ThisParameter, out proxy))
+                {
                     bodyBuilder.Add(F.Assignment(proxy.Replacement(F.Syntax, frameType1 => F.Local(stateMachineVariable)), F.This()));
+                }
             }
 
             foreach (var parameter in method.Parameters)
             {
                 CapturedSymbolReplacement proxy;
-                if (copyDest.TryGetValue(parameter, out proxy))
+                if (proxies.TryGetValue(parameter, out proxy))
+                {
                     bodyBuilder.Add(F.Assignment(proxy.Replacement(F.Syntax, frameType1 => F.Local(stateMachineVariable)),
                                                  F.Parameter(parameter)));
+                }
             }
 
             bodyBuilder.Add(GenerateReplacementBody(stateMachineVariable, frameType));

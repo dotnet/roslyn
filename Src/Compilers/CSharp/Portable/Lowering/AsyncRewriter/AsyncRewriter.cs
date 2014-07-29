@@ -77,8 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
-        protected override void GenerateFields()
+        protected override void GenerateControlFields()
         {
+            base.GenerateControlFields();
+
             builderField = F.StateMachineField(asyncMethodBuilderMemberCollection.BuilderType, GeneratedNames.AsyncBuilderFieldName(), isPublic: true);
         }
 

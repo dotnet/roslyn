@@ -86,8 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return isEnumerable; }
         }
 
-        protected override void GenerateFields()
+        protected override void GenerateControlFields()
         {
+            base.GenerateControlFields();
+            
             // Add a field: T current
             currentField = F.StateMachineField(elementType, GeneratedNames.MakeIteratorCurrentBackingFieldName(), isPublic: false);
 

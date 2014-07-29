@@ -11,15 +11,20 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// A walker that computes the set of local variables of an iterator
-    /// method that must be moved to fields of the generated class.
+    /// A walker that computes the set of local variables of an iterator/async
+    /// method that must be hoisted to the state machine.
     /// </summary>
+    /// <remarks>
+    /// Data flow analysis is used to calculate the locals. At yield/await we mark all variables as "unassigned".
+    /// When a read from an unassigned variables is reported we add the variable to the captured set.
+    /// "this" parameter is captured if a reference to "this", "base" or an instance field is encountered.
+    /// Variables used in finally also need to be captured if there is a yield in the corresponding try block.
+    /// </remarks>
     internal sealed class IteratorAndAsyncCaptureWalker : DataFlowPass
     {
         // The analyzer collects captured variables and their usages. The syntax locations are used to report errors.
         private readonly MultiDictionary<Symbol, CSharpSyntaxNode> variablesCaptured = new MultiDictionary<Symbol, CSharpSyntaxNode>();
 
-        private readonly Dictionary<LocalSymbol, BoundExpression> refLocalInitializers = new Dictionary<LocalSymbol, BoundExpression>();
         private bool seenYieldInCurrentTry = false;
 
         private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, CaptureWalkerEmptyStructTypeCache emptyStructCache, HashSet<Symbol> initiallyAssignedVariables)
@@ -45,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = walker.variablesCaptured;
 
-
             if (!method.IsStatic && method.ContainingType.TypeKind == TypeKind.Struct)
             {
                 // It is possible that the enclosing method only *writes* to the enclosing struct, but in that
@@ -53,81 +57,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result.Add(method.ThisParameter, node.Syntax);
             }
 
-            foreach (var variable in result.Keys.ToArray()) // take a snapshot, as we are modifying the underlying multidictionary
-            {
-                var local = variable as LocalSymbol;
-                if ((object)local != null && local.RefKind != RefKind.None)
-                {
-                    walker.AddSpillsForRef(walker.refLocalInitializers[local], result[local]);
-                }
-            }
-
             walker.Free();
             return result;
         }
 
-        /// <summary>
-        /// If a ref variable is to be spilled, sometimes that causes us to need to spill
-        /// the thing the ref variable was initialized with.  For example, if the variable
-        /// was initialized with "structVariable.field", then the struct variable needs to
-        /// be spilled.  This method adds to the spill set things that need to be spilled
-        /// based on the given refInitializer expression.
-        /// </summary>
-        private void AddSpillsForRef(BoundExpression refInitializer, IEnumerable<CSharpSyntaxNode> locations)
+        private void MarkLocalsUnassigned()
         {
-            while (true)
+            for (int i = 0; i < nextVariableSlot; i++)
             {
-                if (refInitializer == null) return;
-                switch (refInitializer.Kind)
+                var symbol = variableBySlot[i].Symbol;
+                var local = symbol as LocalSymbol;
+                if ((object)local != null && !local.IsConst)
                 {
-                    case BoundKind.Local:
-                        var local = (BoundLocal)refInitializer;
-                        if (!variablesCaptured.ContainsKey(local.LocalSymbol))
-                        {
-                            foreach (var loc in locations)
-                            {
-                                variablesCaptured.Add(local.LocalSymbol, loc);
-                            }
+                    SetSlotState(i, false);
+                    continue;
+                }
 
-                            if (local.LocalSymbol.RefKind != RefKind.None)
-                            {
-                                refInitializer = refLocalInitializers[local.LocalSymbol];
-                                continue;
-                            }
-                        }
-                        return;
-
-                    case BoundKind.FieldAccess:
-                        var field = (BoundFieldAccess)refInitializer;
-                        if (!field.FieldSymbol.IsStatic && field.FieldSymbol.ContainingType.IsValueType)
-                        {
-                            refInitializer = field.ReceiverOpt;
-                            continue;
-                        }
-                        return;
-
-                    default:
-                        return;
+                var parameter = symbol as ParameterSymbol;
+                if ((object)parameter != null)
+                {
+                    SetSlotState(i, false);
                 }
             }
         }
 
-        public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
+        public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
-            if (node.Left.Kind == BoundKind.Local && node.RefKind != RefKind.None)
-            {
-                var localSymbol = ((BoundLocal)node.Left).LocalSymbol;
-                Debug.Assert(localSymbol.RefKind != RefKind.None);
-                refLocalInitializers.Add(localSymbol, node.Right);
-            }
+            base.VisitAwaitExpression(node);
+            MarkLocalsUnassigned();
+            return null;
+        }
 
-            return base.VisitAssignmentOperator(node);
+        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
+        {
+            base.VisitYieldReturnStatement(node);
+            MarkLocalsUnassigned();
+            seenYieldInCurrentTry = true;
+            return null;
         }
 
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
             variablesCaptured.Clear();
-            refLocalInitializers.Clear();
             return base.Scan(ref badRegion);
         }
 
@@ -201,41 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitBaseReference(node);
         }
 
-        private void MarkLocalsUnassigned()
-        {
-            for (int i = 0; i < nextVariableSlot; i++)
-            {
-                var symbol = variableBySlot[i].Symbol;
-                var local = symbol as LocalSymbol;
-                if ((object)local != null && !local.IsConst)
-                {
-                    SetSlotState(i, false);
-                    continue;
-                }
-
-                var parameter = symbol as ParameterSymbol;
-                if ((object)parameter != null)
-                {
-                    SetSlotState(i, false);
-                }
-            }
-        }
-
-        public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
-        {
-            base.VisitAwaitExpression(node);
-            MarkLocalsUnassigned();
-            return null;
-        }
-
-        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
-        {
-            base.VisitYieldReturnStatement(node);
-            MarkLocalsUnassigned();
-            seenYieldInCurrentTry = true;
-            return null;
-        }
-
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var origSeenYieldInCurrentTry = this.seenYieldInCurrentTry;
@@ -258,79 +194,79 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private sealed class OutsideVariablesUsedInside : BoundTreeWalker
-    {
-        private HashSet<Symbol> localsInScope = new HashSet<Symbol>();
-        private readonly MultiDictionary<Symbol, CSharpSyntaxNode> variablesCaptured;
-        private readonly MethodSymbol topLevelMethod;
-
-        public OutsideVariablesUsedInside(MultiDictionary<Symbol, CSharpSyntaxNode> variablesCaptured, MethodSymbol topLevelMethod)
         {
-            this.variablesCaptured = variablesCaptured;
-            this.topLevelMethod = topLevelMethod;
-        }
+            private HashSet<Symbol> localsInScope = new HashSet<Symbol>();
+            private readonly MultiDictionary<Symbol, CSharpSyntaxNode> variablesCaptured;
+            private readonly MethodSymbol topLevelMethod;
 
-        public override BoundNode VisitBlock(BoundBlock node)
-        {
-            AddVariables(node.Locals);
-            return base.VisitBlock(node);
-        }
-
-        private void AddVariables(ImmutableArray<LocalSymbol> locals)
-        {
-            foreach (var local in locals)
+            public OutsideVariablesUsedInside(MultiDictionary<Symbol, CSharpSyntaxNode> variablesCaptured, MethodSymbol topLevelMethod)
             {
-                AddVariable(local);
+                this.variablesCaptured = variablesCaptured;
+                this.topLevelMethod = topLevelMethod;
             }
-        }
 
-        public override BoundNode VisitCatchBlock(BoundCatchBlock node)
-        {
-            AddVariables(node.Locals);
-            return base.VisitCatchBlock(node);
-        }
-
-        private void AddVariable(Symbol local)
-        {
-            if ((object)local != null) localsInScope.Add(local);
-        }
-
-        public override BoundNode VisitSequence(BoundSequence node)
-        {
-            AddVariables(node.Locals);
-            return base.VisitSequence(node);
-        }
-
-        public override BoundNode VisitThisReference(BoundThisReference node)
-        {
-            Capture(this.topLevelMethod.ThisParameter, node.Syntax);
-            return base.VisitThisReference(node);
-        }
-
-        public override BoundNode VisitBaseReference(BoundBaseReference node)
-        {
-            Capture(this.topLevelMethod.ThisParameter, node.Syntax);
-            return base.VisitBaseReference(node);
-        }
-
-        public override BoundNode VisitLocal(BoundLocal node)
-        {
-            Capture(node.LocalSymbol, node.Syntax);
-            return base.VisitLocal(node);
-        }
-
-        public override BoundNode VisitParameter(BoundParameter node)
-        {
-            Capture(node.ParameterSymbol, node.Syntax);
-            return base.VisitParameter(node);
-        }
-
-        private void Capture(Symbol s, CSharpSyntaxNode syntax)
-        {
-            if ((object)s != null && !localsInScope.Contains(s))
+            public override BoundNode VisitBlock(BoundBlock node)
             {
-                this.variablesCaptured.Add(s, syntax);
+                AddVariables(node.Locals);
+                return base.VisitBlock(node);
+            }
+
+            private void AddVariables(ImmutableArray<LocalSymbol> locals)
+            {
+                foreach (var local in locals)
+                {
+                    AddVariable(local);
+                }
+            }
+
+            public override BoundNode VisitCatchBlock(BoundCatchBlock node)
+            {
+                AddVariables(node.Locals);
+                return base.VisitCatchBlock(node);
+            }
+
+            private void AddVariable(Symbol local)
+            {
+                if ((object)local != null) localsInScope.Add(local);
+            }
+
+            public override BoundNode VisitSequence(BoundSequence node)
+            {
+                AddVariables(node.Locals);
+                return base.VisitSequence(node);
+            }
+
+            public override BoundNode VisitThisReference(BoundThisReference node)
+            {
+                Capture(this.topLevelMethod.ThisParameter, node.Syntax);
+                return base.VisitThisReference(node);
+            }
+
+            public override BoundNode VisitBaseReference(BoundBaseReference node)
+            {
+                Capture(this.topLevelMethod.ThisParameter, node.Syntax);
+                return base.VisitBaseReference(node);
+            }
+
+            public override BoundNode VisitLocal(BoundLocal node)
+            {
+                Capture(node.LocalSymbol, node.Syntax);
+                return base.VisitLocal(node);
+            }
+
+            public override BoundNode VisitParameter(BoundParameter node)
+            {
+                Capture(node.ParameterSymbol, node.Syntax);
+                return base.VisitParameter(node);
+            }
+
+            private void Capture(Symbol s, CSharpSyntaxNode syntax)
+            {
+                if ((object)s != null && !localsInScope.Contains(s))
+                {
+                    this.variablesCaptured.Add(s, syntax);
+                }
             }
         }
     }
-}
 }

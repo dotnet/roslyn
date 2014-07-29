@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol state,
             FieldSymbol builder,
             HashSet<Symbol> variablesCaptured,
-            Dictionary<Symbol, CapturedSymbolReplacement> initialProxies,
+            IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> initialProxies,
             DiagnosticBag diagnostics,
             bool generateDebugInfo)
             : base(F, method, state, variablesCaptured, initialProxies, diagnostics,
