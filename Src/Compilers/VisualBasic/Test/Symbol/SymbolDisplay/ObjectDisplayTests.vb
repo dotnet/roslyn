@@ -146,8 +146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             ' non-printable characters are replaced by spaces if quoting is disabled
             Assert.Equal(s, FormatPrimitiveUsingHexadecimalNumbers(s, quoteStrings:=False))
-            Assert.Equal("a....b", ObjectDisplay.FormatLiteral(s, quote:=False, nonPrintableSubstitute:="."c, useHexadecimalNumbers:=False))
-            Assert.Equal("""a....b""", ObjectDisplay.FormatLiteral(s, quote:=True, nonPrintableSubstitute:="."c, useHexadecimalNumbers:=True))
+            Assert.Equal("a....b", ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.None, nonPrintableSubstitute:="."c))
+            Assert.Equal("""a....b""", ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.UseHexadecimalNumbers, nonPrintableSubstitute:="."c))
 
             ' "well-known" characters:
             Assert.Equal("""a"" & vbBack", FormatPrimitiveUsingHexadecimalNumbers("a" & vbBack, quoteStrings:=True))
@@ -186,11 +186,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Try
         End Sub
 
+        <Fact>
+        Public Sub TypeSuffixes()
+            Dim booleanValue As Boolean = True
+            Assert.Equal("True", FormatPrimitiveIncludingTypeSuffix(booleanValue))
+
+            Dim sbyteValue As Byte = &H2A
+            Assert.Equal("42", FormatPrimitiveIncludingTypeSuffix(sbyteValue))
+
+            Dim byteValue As Byte = &H2A
+            Assert.Equal("42", FormatPrimitiveIncludingTypeSuffix(byteValue))
+
+            Dim shortValue As Short = &H2A
+            Assert.Equal("42S", FormatPrimitiveIncludingTypeSuffix(shortValue))
+
+            Dim ushortValue As UShort = &H2A
+            Assert.Equal("42US", FormatPrimitiveIncludingTypeSuffix(ushortValue))
+
+            Dim integerValue As Integer = &H2A
+            Assert.Equal("42I", FormatPrimitiveIncludingTypeSuffix(integerValue))
+
+            Dim uintegerValue As UInteger = &H2A
+            Assert.Equal("42UI", FormatPrimitiveIncludingTypeSuffix(uintegerValue))
+
+            Dim longValue As Long = &H2A
+            Assert.Equal("42L", FormatPrimitiveIncludingTypeSuffix(longValue))
+
+            Dim ulongValue As ULong = &H2A
+            Assert.Equal("42UL", FormatPrimitiveIncludingTypeSuffix(ulongValue))
+
+            Dim singleValue As Single = 3.14159
+            Assert.Equal("3.14159F", FormatPrimitiveIncludingTypeSuffix(singleValue))
+
+            Dim doubleValue As Double = 26.2
+            Assert.Equal("26.2R", FormatPrimitiveIncludingTypeSuffix(doubleValue))
+
+            Dim decimalValue As Decimal = 12.5D
+            Assert.Equal("12.5D", FormatPrimitiveIncludingTypeSuffix(decimalValue, useHexadecimalNumbers:=True))
+        End Sub
+
         Private Function FormatPrimitive(obj As Object, Optional quoteStrings As Boolean = False) As String
-            Return ObjectDisplay.FormatPrimitive(obj, quoteStrings, useHexadecimalNumbers:=False)
+            Return ObjectDisplay.FormatPrimitive(obj, If(quoteStrings, ObjectDisplayOptions.UseQuotes, ObjectDisplayOptions.None))
         End Function
+
         Private Function FormatPrimitiveUsingHexadecimalNumbers(obj As Object, Optional quoteStrings As Boolean = False) As String
-            Return ObjectDisplay.FormatPrimitive(obj, quoteStrings, useHexadecimalNumbers:=True)
+            Dim options = If(quoteStrings, ObjectDisplayOptions.UseQuotes, ObjectDisplayOptions.None)
+            Return ObjectDisplay.FormatPrimitive(obj, options Or ObjectDisplayOptions.UseHexadecimalNumbers)
+        End Function
+
+        Private Function FormatPrimitiveIncludingTypeSuffix(obj As Object, Optional useHexadecimalNumbers As Boolean = False) As String
+            Dim options = If(useHexadecimalNumbers, ObjectDisplayOptions.UseHexadecimalNumbers, ObjectDisplayOptions.None)
+            Return ObjectDisplay.FormatPrimitive(obj, options Or ObjectDisplayOptions.IncludeTypeSuffix)
         End Function
 
     End Class

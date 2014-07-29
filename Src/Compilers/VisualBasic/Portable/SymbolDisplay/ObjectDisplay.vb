@@ -24,8 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         ''' Returns a string representation of an object of primitive type.
         ''' </summary>
         ''' <param name="obj">A value to display as a string.</param>
-        ''' <param name="quoteStrings">Whether or not to quote string literals.</param>
-        ''' <param name="useHexadecimalNumbers">Whether or not to display integral literals in hexadecimal.</param>
+        ''' <param name="options">Options used to customize formatting of an Object value.</param>
         ''' <returns>A string representation of an object of primitive type (or null if the type is not supported).</returns>
         ''' <remarks>
         ''' Handles <see cref="Boolean"/>, <see cref="String"/>, <see cref="Char"/>, <see cref="SByte"/>
@@ -33,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         ''' <see cref="Long"/>, <see cref="ULong"/>, <see cref="Double"/>, <see cref="Single"/>, <see cref="Decimal"/>,
         ''' <see cref="Date"/>, and <c>Nothing</c>.
         ''' </remarks>
-        Public Function FormatPrimitive(obj As Object, quoteStrings As Boolean, useHexadecimalNumbers As Boolean) As String
+        Public Function FormatPrimitive(obj As Object, options As ObjectDisplayOptions) As String
             If obj Is Nothing Then
                 Return NullLiteral
             End If
@@ -44,11 +43,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             End If
 
             If type Is GetType(Integer) Then
-                Return FormatLiteral(DirectCast(obj, Integer), useHexadecimalNumbers)
+                Return FormatLiteral(DirectCast(obj, Integer), options)
             End If
 
             If type Is GetType(String) Then
-                Return FormatLiteral(DirectCast(obj, String), quoteStrings)
+                Return FormatLiteral(DirectCast(obj, String), options)
             End If
 
             If type Is GetType(Boolean) Then
@@ -56,47 +55,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             End If
 
             If type Is GetType(Char) Then
-                Return FormatLiteral(DirectCast(obj, Char), quoteStrings, useHexadecimalNumbers)
+                Return FormatLiteral(DirectCast(obj, Char), options)
             End If
 
             If type Is GetType(Byte) Then
-                Return FormatLiteral(DirectCast(obj, Byte), useHexadecimalNumbers)
+                Return FormatLiteral(DirectCast(obj, Byte), options)
             End If
 
             If type Is GetType(Short) Then
-                Return FormatLiteral(DirectCast(obj, Short), useHexadecimalNumbers)
+                Return FormatLiteral(DirectCast(obj, Short), options)
             End If
 
             If type Is GetType(Long) Then
-                Return FormatLiteral(DirectCast(obj, Long), useHexadecimalNumbers)
+                Return FormatLiteral(DirectCast(obj, Long), options)
             End If
 
             If type Is GetType(Double) Then
-                Return FormatLiteral(DirectCast(obj, Double))
+                Return FormatLiteral(DirectCast(obj, Double), options)
             End If
 
             If type Is GetType(ULong) Then
-                Return FormatLiteral(DirectCast(obj, ULong), useHexadecimalNumbers)
+                Return FormatLiteral(DirectCast(obj, ULong), options)
             End If
 
             If type Is GetType(UInteger) Then
-                Return FormatLiteral(DirectCast(obj, UInteger), useHexadecimalNumbers)
+                Return FormatLiteral(DirectCast(obj, UInteger), options)
             End If
 
             If type Is GetType(UShort) Then
-                Return FormatLiteral(DirectCast(obj, UShort), useHexadecimalNumbers)
+                Return FormatLiteral(DirectCast(obj, UShort), options)
             End If
 
             If type Is GetType(SByte) Then
-                Return FormatLiteral(DirectCast(obj, SByte), useHexadecimalNumbers)
+                Return FormatLiteral(DirectCast(obj, SByte), options)
             End If
 
             If type Is GetType(Single) Then
-                Return FormatLiteral(DirectCast(obj, Single))
+                Return FormatLiteral(DirectCast(obj, Single), options)
             End If
 
             If type Is GetType(Decimal) Then
-                Return FormatLiteral(DirectCast(obj, Decimal))
+                Return FormatLiteral(DirectCast(obj, Decimal), options)
             End If
 
             If type Is GetType(Date) Then
@@ -120,18 +119,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         ''' Formats string literal.
         ''' </summary>
         ''' <param name="value">Literal value.</param>
-        ''' <param name="quote">True to double-quote the value. Also enables pretty-listing of non-printable characters using ChrW function and vb* constants.</param>
-        ''' <param name="nonPrintableSubstitute">If specified non-printable characters are replaced by this character.</param>
-        ''' <param name="useHexadecimalNumbers">Use hexadecimal numbers as arguments to ChrW functions.</param>
-        Friend Function FormatLiteral(value As String, Optional quote As Boolean = True, Optional nonPrintableSubstitute As Char = Nothing, Optional useHexadecimalNumbers As Boolean = True) As String
+        ''' <param name="options">Options used to customize formatting of a literal value.</param>
+        Friend Function FormatLiteral(value As String, options As ObjectDisplayOptions, Optional nonPrintableSubstitute As Char = Nothing) As String
+            ValidateOptions(options)
+
             If value Is Nothing Then
                 Throw New ArgumentNullException()
             End If
 
-            Return FormatString(value, quote, nonPrintableSubstitute, useHexadecimalNumbers)
+            Dim pooledBuilder = PooledStringBuilder.GetInstance()
+            Dim sb = pooledBuilder.Builder
+
+            For Each token As Integer In TokenizeString(value, options.IncludesOption(ObjectDisplayOptions.UseQuotes), nonPrintableSubstitute,
+                                                        options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
+                sb.Append(ChrW(token And &HFFFF)) ' lower 16 bits of token contains the Unicode char value
+            Next
+
+            Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(c As Char, quote As Boolean, useHexadecimalNumbers As Boolean) As String
+        Friend Function FormatLiteral(c As Char, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
             Dim wellKnown = GetWellKnownCharacterName(c)
             If wellKnown IsNot Nothing Then
                 Return wellKnown
@@ -139,10 +148,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
             If Not IsPrintable(c) Then
                 Dim codepoint = AscW(c)
-                Return If(useHexadecimalNumbers, "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
+                Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
             End If
 
-            If quote Then
+            If options.IncludesOption(ObjectDisplayOptions.UseQuotes) Then
                 Return """"c & EscapeQuote(c) & """"c & "c"
             Else
                 Return c
@@ -153,95 +162,172 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Return If(c = """", """""", c)
         End Function
 
-        Friend Function FormatLiteral(value As SByte, useHexadecimalNumbers As Boolean) As String
-            If useHexadecimalNumbers Then
+        Friend Function FormatLiteral(value As SByte, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
+            If options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) Then
                 Return "&H" & If(value >= 0, value.ToString("X2"), CInt(value).ToString("X8"))
             Else
                 Return value.ToString(CultureInfo.InvariantCulture)
             End If
         End Function
 
-        Friend Function FormatLiteral(value As Byte, useHexadecimalNumbers As Boolean) As String
-            If useHexadecimalNumbers Then
+        Friend Function FormatLiteral(value As Byte, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
+            If options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) Then
                 Return "&H" & value.ToString("X2")
             Else
                 Return value.ToString(CultureInfo.InvariantCulture)
             End If
         End Function
 
-        Friend Function FormatLiteral(value As Short, useHexadecimalNumbers As Boolean) As String
-            If useHexadecimalNumbers Then
-                Return "&H" & If(value >= 0, value.ToString("X4"), CInt(value).ToString("X8"))
+        Friend Function FormatLiteral(value As Short, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
+            Dim pooledBuilder = PooledStringBuilder.GetInstance()
+            Dim sb = pooledBuilder.Builder
+
+            If options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) Then
+                sb.Append("&H")
+                sb.Append(If(value >= 0, value.ToString("X4"), CInt(value).ToString("X8")))
             Else
-                Return value.ToString(CultureInfo.InvariantCulture)
+                sb.Append(value.ToString(CultureInfo.InvariantCulture))
             End If
+
+            If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
+                sb.Append("S"c)
+            End If
+
+            Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As UShort, useHexadecimalNumbers As Boolean) As String
-            If useHexadecimalNumbers Then
-                Return "&H" & value.ToString("X4")
+        Friend Function FormatLiteral(value As UShort, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
+            Dim pooledBuilder = PooledStringBuilder.GetInstance()
+            Dim sb = pooledBuilder.Builder
+
+            If options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) Then
+                sb.Append("&H")
+                sb.Append(value.ToString("X4"))
             Else
-                Return value.ToString(CultureInfo.InvariantCulture)
+                sb.Append(value.ToString(CultureInfo.InvariantCulture))
             End If
+
+            If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
+                sb.Append("US")
+            End If
+
+            Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As Integer, useHexadecimalNumbers As Boolean) As String
-            If useHexadecimalNumbers Then
-                Return "&H" & value.ToString("X8")
+        Friend Function FormatLiteral(value As Integer, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
+            Dim pooledBuilder = PooledStringBuilder.GetInstance()
+            Dim sb = pooledBuilder.Builder
+
+            If options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) Then
+                sb.Append("&H")
+                sb.Append(value.ToString("X8"))
             Else
-                Return value.ToString(CultureInfo.InvariantCulture)
+                sb.Append(value.ToString(CultureInfo.InvariantCulture))
             End If
+
+            If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
+                sb.Append("I"c)
+            End If
+
+            Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As UInteger, useHexadecimalNumbers As Boolean) As String
-            If useHexadecimalNumbers Then
-                Return "&H" & value.ToString("X8")
+        Friend Function FormatLiteral(value As UInteger, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
+            Dim pooledBuilder = PooledStringBuilder.GetInstance()
+            Dim sb = pooledBuilder.Builder
+
+            If options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) Then
+                sb.Append("&H")
+                sb.Append(value.ToString("X8"))
             Else
-                Return value.ToString(CultureInfo.InvariantCulture)
+                sb.Append(value.ToString(CultureInfo.InvariantCulture))
             End If
+
+            If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
+                sb.Append("UI")
+            End If
+
+            Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As Long, useHexadecimalNumbers As Boolean) As String
-            If useHexadecimalNumbers Then
-                Return "&H" & value.ToString("X16")
+        Friend Function FormatLiteral(value As Long, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
+            Dim pooledBuilder = PooledStringBuilder.GetInstance()
+            Dim sb = pooledBuilder.Builder
+
+            If options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) Then
+                sb.Append("&H")
+                sb.Append(value.ToString("X16"))
             Else
-                Return value.ToString(CultureInfo.InvariantCulture)
+                sb.Append(value.ToString(CultureInfo.InvariantCulture))
             End If
+
+            If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
+                sb.Append("L"c)
+            End If
+
+            Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As ULong, useHexadecimalNumbers As Boolean) As String
-            If useHexadecimalNumbers Then
-                Return "&H" & value.ToString("X16")
+        Friend Function FormatLiteral(value As ULong, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
+            Dim pooledBuilder = PooledStringBuilder.GetInstance()
+            Dim sb = pooledBuilder.Builder
+
+            If options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) Then
+                sb.Append("&H")
+                sb.Append(value.ToString("X16"))
             Else
-                Return value.ToString(CultureInfo.InvariantCulture)
+                sb.Append(value.ToString(CultureInfo.InvariantCulture))
             End If
+
+            If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
+                sb.Append("UL")
+            End If
+
+            Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As Double) As String
-            Return value.ToString("R", CultureInfo.InvariantCulture)
+        Friend Function FormatLiteral(value As Double, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
+            Dim result = value.ToString("R", CultureInfo.InvariantCulture)
+
+            Return If(options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix), result & "R", result)
         End Function
 
-        Friend Function FormatLiteral(value As Single) As String
-            Return value.ToString("R", CultureInfo.InvariantCulture)
+        Friend Function FormatLiteral(value As Single, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
+            Dim result = value.ToString("R", CultureInfo.InvariantCulture)
+
+            Return If(options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix), result & "F", result)
         End Function
 
-        Friend Function FormatLiteral(value As Decimal) As String
-            Return value.ToString(CultureInfo.InvariantCulture)
+        Friend Function FormatLiteral(value As Decimal, options As ObjectDisplayOptions) As String
+            ValidateOptions(options)
+
+            Dim result = value.ToString(CultureInfo.InvariantCulture)
+
+            Return If(options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix), result & "D", result)
         End Function
 
         Friend Function FormatLiteral(value As DateTime) As String
             Return value.ToString("#M/d/yyyy hh:mm:ss tt#", CultureInfo.InvariantCulture)
-        End Function
-
-        Friend Function FormatString(str As String, quote As Boolean, nonPrintableSubstitute As Char, useHexadecimalNumbers As Boolean) As String
-            Dim pooledBuilder = PooledStringBuilder.GetInstance()
-            Dim sb = pooledBuilder.Builder
-
-            For Each token As Integer In TokenizeString(str, quote, nonPrintableSubstitute, useHexadecimalNumbers)
-                sb.Append(ChrW(token And &HFFFF)) ' lower 16 bits of token contains the Unicode char value
-            Next
-
-            Return pooledBuilder.ToStringAndFree()
         End Function
 
         Private Function Character(c As Char) As Integer
@@ -410,6 +496,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
             Return Nothing
         End Function
+
+        <Conditional("DEBUG")>
+        Private Sub ValidateOptions(options As ObjectDisplayOptions)
+            ' This option is not supported and has no meaning in Visual Basic...should not be passed...
+            Debug.Assert(Not options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints))
+        End Sub
 
     End Module
 

@@ -143,7 +143,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public static string FormatPrimitive(object obj, bool quoteStrings, bool useHexadecimalNumbers)
         {
-            return ObjectDisplay.FormatPrimitive(obj, quoteStrings, useHexadecimalNumbers);
+            var options = ObjectDisplayOptions.None;
+            if (quoteStrings)
+            {
+                options |= ObjectDisplayOptions.UseQuotes;
+            }
+            if (useHexadecimalNumbers)
+            {
+                options |= ObjectDisplayOptions.UseHexadecimalNumbers;
+            }
+            return ObjectDisplay.FormatPrimitive(obj, options);
         }
 
         /// <summary>
@@ -157,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public static string FormatLiteral(string value, bool quote)
         {
-            return ObjectDisplay.FormatLiteral(value, quote);
+            return ObjectDisplay.FormatLiteral(value, quote ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None);
         }
 
         /// <summary>
@@ -171,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public static string FormatLiteral(char c, bool quote)
         {
-            return ObjectDisplay.FormatLiteral(c, quote);
+            return ObjectDisplay.FormatLiteral(c, quote ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None);
         }
     }
 }

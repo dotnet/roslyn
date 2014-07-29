@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
@@ -23,8 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns a string representation of an object of primitive type.
         /// </summary>
         /// <param name="obj">A value to display as a string.</param>
-        /// <param name="quoteStrings">Whether or not to quote string literals.</param>
-        /// <param name="useHexadecimalNumbers">Whether or not to display integral literals in hexadecimal.</param>
+        /// <param name="options">Options used to customize formatting of an object value.</param>
         /// <returns>A string representation of an object of primitive type (or null if the type is not supported).</returns>
         /// <remarks>
         /// Handles <see cref="bool"/>, <see cref="string"/>, <see cref="char"/>, <see cref="sbyte"/>
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
         /// and <c>null</c>.
         /// </remarks>
-        public static string FormatPrimitive(object obj, bool quoteStrings, bool useHexadecimalNumbers)
+        public static string FormatPrimitive(object obj, ObjectDisplayOptions options)
         {
             if (obj == null)
             {
@@ -47,12 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (type == typeof(int))
             {
-                return FormatLiteral((int)obj, useHexadecimalNumbers);
+                return FormatLiteral((int)obj, options);
             }
 
             if (type == typeof(string))
             {
-                return FormatLiteral((string)obj, quoteStrings);
+                return FormatLiteral((string)obj, options);
             }
 
             if (type == typeof(bool))
@@ -62,57 +62,57 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (type == typeof(char))
             {
-                return FormatLiteral((char)obj, quoteStrings);
+                return FormatLiteral((char)obj, options);
             }
 
             if (type == typeof(byte))
             {
-                return FormatLiteral((byte)obj, useHexadecimalNumbers);
+                return FormatLiteral((byte)obj, options);
             }
 
             if (type == typeof(short))
             {
-                return FormatLiteral((short)obj, useHexadecimalNumbers);
+                return FormatLiteral((short)obj, options);
             }
 
             if (type == typeof(long))
             {
-                return FormatLiteral((long)obj, useHexadecimalNumbers);
+                return FormatLiteral((long)obj, options);
             }
 
             if (type == typeof(double))
             {
-                return FormatLiteral((double)obj);
+                return FormatLiteral((double)obj, options);
             }
 
             if (type == typeof(ulong))
             {
-                return FormatLiteral((ulong)obj, useHexadecimalNumbers);
+                return FormatLiteral((ulong)obj, options);
             }
 
             if (type == typeof(uint))
             {
-                return FormatLiteral((uint)obj, useHexadecimalNumbers);
+                return FormatLiteral((uint)obj, options);
             }
 
             if (type == typeof(ushort))
             {
-                return FormatLiteral((ushort)obj, useHexadecimalNumbers);
+                return FormatLiteral((ushort)obj, options);
             }
 
             if (type == typeof(sbyte))
             {
-                return FormatLiteral((sbyte)obj, useHexadecimalNumbers);
+                return FormatLiteral((sbyte)obj, options);
             }
 
             if (type == typeof(float))
             {
-                return FormatLiteral((float)obj);
+                return FormatLiteral((float)obj, options);
             }
 
             if (type == typeof(decimal))
             {
-                return FormatLiteral((decimal)obj);
+                return FormatLiteral((decimal)obj, options);
             }
 
             return null;
@@ -246,58 +246,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns a C# string literal with the given value.
         /// </summary>
         /// <param name="value">The value that the resulting string literal should have.</param>
-        /// <param name="quote">True to put (double) quotes around the string literal.</param>
+        /// <param name="options">Options used to customize formatting of an object value.</param>
         /// <returns>A string literal with the given value.</returns>
         /// <remarks>
         /// Escapes non-printable characters.
         /// </remarks>
-        public static string FormatLiteral(string value, bool quote)
+        public static string FormatLiteral(string value, ObjectDisplayOptions options)
         {
+            ValidateOptions(options);
+
             if (value == null)
             {
                 throw new ArgumentNullException("value");
             }
 
-            return FormatString(value, quote ? '"' : '\0', escapeNonPrintable: true);
+            return FormatString(value, options.IncludesOption(ObjectDisplayOptions.UseQuotes) ? '"' : '\0', escapeNonPrintable: true);
         }
 
         /// <summary>
         /// Returns a C# character literal with the given value.
         /// </summary>
         /// <param name="c">The value that the resulting character literal should have.</param>
-        /// <param name="quote">True to put (single) quotes around the character literal.</param>
+        /// <param name="options">Options used to customize formatting of an object value.</param>
         /// <returns>A character literal with the given value.</returns>
-        /// <remarks>
-        /// Escapes non-printable characters.
-        /// </remarks>
-        public static string FormatLiteral(char c, bool quote)
+        internal static string FormatLiteral(char c, ObjectDisplayOptions options)
         {
-            return FormatLiteral(c, quote, includeCodePoints: false, useHexadecimalNumbers: false);
-        }
-
-        /// <summary>
-        /// Returns a C# character literal with the given value.
-        /// </summary>
-        /// <param name="c">The value that the resulting character literal should have.</param>
-        /// <param name="quote">True to put (single) quotes around the character literal.</param>
-        /// <param name="includeCodePoints">True to include the code point before the character literal.</param>
-        /// <param name="useHexadecimalNumbers">True to use hexadecimal for the code point.  Ignored if <paramref name="includeCodePoints"/> is false.</param>
-        /// <returns>A character literal with the given value.</returns>
-        internal static string FormatLiteral(char c, bool quote, bool includeCodePoints, bool useHexadecimalNumbers)
-        {
-            var result = FormatString(c.ToString(), quote ? '\'' : '\0', escapeNonPrintable: !includeCodePoints);
+            var includeCodePoints = options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints);
+            var result = FormatString(c.ToString(),
+                                      quote: options.IncludesOption(ObjectDisplayOptions.UseQuotes) ? '\'' : '\0',
+                                      escapeNonPrintable: !includeCodePoints);
             if (includeCodePoints)
             {
-                var codepoint = useHexadecimalNumbers ? "0x" + ((int)c).ToString("x4") : ((int)c).ToString();
+                var codepoint = options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) ? "0x" + ((int)c).ToString("x4") : ((int)c).ToString();
                 return codepoint + " " + result;
             }
 
             return result;
         }
 
-        internal static string FormatLiteral(sbyte value, bool useHexadecimalNumbers)
+        internal static string FormatLiteral(sbyte value, ObjectDisplayOptions options)
         {
-            if (useHexadecimalNumbers)
+            ValidateOptions(options);
+
+            if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
                 // Special Case: for sbyte and short, specifically, negatives are shown
                 // with extra precision.
@@ -309,9 +300,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static string FormatLiteral(byte value, bool useHexadecimalNumbers)
+        internal static string FormatLiteral(byte value, ObjectDisplayOptions options)
         {
-            if (useHexadecimalNumbers)
+            ValidateOptions(options);
+
+            if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
                 return "0x" + value.ToString("x2");
             }
@@ -321,9 +314,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static string FormatLiteral(short value, bool useHexadecimalNumbers)
+        internal static string FormatLiteral(short value, ObjectDisplayOptions options)
         {
-            if (useHexadecimalNumbers)
+            ValidateOptions(options);
+
+            if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
                 // Special Case: for sbyte and short, specifically, negatives are shown
                 // with extra precision.
@@ -335,9 +330,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static string FormatLiteral(ushort value, bool useHexadecimalNumbers)
+        internal static string FormatLiteral(ushort value, ObjectDisplayOptions options)
         {
-            if (useHexadecimalNumbers)
+            ValidateOptions(options);
+
+            if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
                 return "0x" + value.ToString("x4");
             }
@@ -347,9 +344,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static string FormatLiteral(int value, bool useHexadecimalNumbers)
+        internal static string FormatLiteral(int value, ObjectDisplayOptions options)
         {
-            if (useHexadecimalNumbers)
+            ValidateOptions(options);
+
+            if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
                 return "0x" + value.ToString("x8");
             }
@@ -359,55 +358,113 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static string FormatLiteral(uint value, bool useHexadecimalNumbers)
+        internal static string FormatLiteral(uint value, ObjectDisplayOptions options)
         {
-            if (useHexadecimalNumbers)
+            ValidateOptions(options);
+
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var sb = pooledBuilder.Builder;
+
+            if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
-                return "0x" + value.ToString("x8");
+                sb.Append("0x");
+                sb.Append(value.ToString("x8"));
             }
             else
             {
-                return value.ToString(CultureInfo.InvariantCulture);
+                sb.Append(value.ToString(CultureInfo.InvariantCulture));
             }
+
+            if (options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix))
+            {
+                sb.Append('U');
+            }
+
+            return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatLiteral(long value, bool useHexadecimalNumbers)
+        internal static string FormatLiteral(long value, ObjectDisplayOptions options)
         {
-            if (useHexadecimalNumbers)
+            ValidateOptions(options);
+
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var sb = pooledBuilder.Builder;
+
+            if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
-                return "0x" + value.ToString("x16");
+                sb.Append("0x");
+                sb.Append(value.ToString("x16"));
             }
             else
             {
-                return value.ToString(CultureInfo.InvariantCulture);
+                sb.Append(value.ToString(CultureInfo.InvariantCulture));
             }
+
+            if (options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix))
+            {
+                sb.Append('L');
+            }
+
+            return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatLiteral(ulong value, bool useHexadecimalNumbers)
+        internal static string FormatLiteral(ulong value, ObjectDisplayOptions options)
         {
-            if (useHexadecimalNumbers)
+            ValidateOptions(options);
+
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var sb = pooledBuilder.Builder;
+
+            if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
-                return "0x" + value.ToString("x16");
+                sb.Append("0x");
+                sb.Append(value.ToString("x16"));
             }
             else
             {
-                return value.ToString(CultureInfo.InvariantCulture);
+                sb.Append(value.ToString(CultureInfo.InvariantCulture));
             }
+
+            if (options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix))
+            {
+                sb.Append("UL");
+            }
+
+            return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatLiteral(double value)
+        internal static string FormatLiteral(double value, ObjectDisplayOptions options)
         {
-            return value.ToString("R", CultureInfo.InvariantCulture);
+            ValidateOptions(options);
+
+            var result = value.ToString("R", CultureInfo.InvariantCulture);
+
+            return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "D" : result;
         }
 
-        internal static string FormatLiteral(float value)
+        internal static string FormatLiteral(float value, ObjectDisplayOptions options)
         {
-            return value.ToString("R", CultureInfo.InvariantCulture);
+            ValidateOptions(options);
+
+            var result = value.ToString("R", CultureInfo.InvariantCulture);
+
+            return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "F" : result;
         }
 
-        internal static string FormatLiteral(decimal value)
+        internal static string FormatLiteral(decimal value, ObjectDisplayOptions options)
         {
-            return value.ToString(CultureInfo.InvariantCulture);
+            ValidateOptions(options);
+
+            var result = value.ToString(CultureInfo.InvariantCulture);
+
+            return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "M" : result;
+        }
+
+        [Conditional("DEBUG")]
+        private static void ValidateOptions(ObjectDisplayOptions options)
+        {
+            // These options are mutually exclusive in C# unless we're formatting a char...should not be passed otherwise...
+            Debug.Assert(!(options.IncludesOption(ObjectDisplayOptions.UseQuotes) && options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers)));
         }
     }
 }

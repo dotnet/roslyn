@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 4-byte signed integer value to be represented by the returned token.</param>
         public static SyntaxToken Literal(int value)
         {
-            return Literal(ObjectDisplay.FormatLiteral(value, useHexadecimalNumbers: false), value);
+            return Literal(ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None), value);
         }
 
         /// <summary>
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 4-byte unsigned integer value to be represented by the returned token.</param>
         public static SyntaxToken Literal(uint value)
         {
-            return Literal(ObjectDisplay.FormatLiteral(value, useHexadecimalNumbers: false) + "U", value);
+            return Literal(ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.IncludeTypeSuffix), value);
         }
 
         /// <summary>
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 8-byte signed integer value to be represented by the returned token.</param>
         public static SyntaxToken Literal(long value)
         {
-            return Literal(ObjectDisplay.FormatLiteral(value, useHexadecimalNumbers: false) + "L", value);
+            return Literal(ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.IncludeTypeSuffix), value);
         }
 
         /// <summary>
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 8-byte unsigned integer value to be represented by the returned token.</param>
         public static SyntaxToken Literal(ulong value)
         {
-            return Literal(ObjectDisplay.FormatLiteral(value, useHexadecimalNumbers: false) + "UL", value);
+            return Literal(ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.IncludeTypeSuffix), value);
         }
 
         /// <summary>
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 4-byte floating point value to be represented by the returned token.</param>
         public static SyntaxToken Literal(float value)
         {
-            return Literal(ObjectDisplay.FormatLiteral(value) + "F", value);
+            return Literal(ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.IncludeTypeSuffix), value);
         }
 
         /// <summary>
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 8-byte floating point value to be represented by the returned token.</param>
         public static SyntaxToken Literal(double value)
         {
-            return Literal(ObjectDisplay.FormatLiteral(value), value);
+            return Literal(ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None), value);
         }
 
         /// <summary>
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The decimal value to be represented by the returned token.</param>
         public static SyntaxToken Literal(decimal value)
         {
-            return Literal(ObjectDisplay.FormatLiteral(value) + "M", value);
+            return Literal(ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.IncludeTypeSuffix), value);
         }
 
         /// <summary>
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The character value to be represented by the returned token.</param>
         public static SyntaxToken Literal(char value)
         {
-            return Literal(ObjectDisplay.FormatLiteral(value, quote: true, includeCodePoints: false, useHexadecimalNumbers: false), value);
+            return Literal(ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes), value);
         }
 
         /// <summary>

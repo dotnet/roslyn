@@ -118,7 +118,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <see cref="Date"/>, and <c>Nothing</c>.
         ''' </remarks>
         Public Function FormatPrimitive(obj As Object, quoteStrings As Boolean, useHexadecimalNumbers As Boolean) As String
-            Return ObjectDisplay.FormatPrimitive(obj, quoteStrings, useHexadecimalNumbers)
+            Dim options = ObjectDisplayOptions.None
+            If quoteStrings Then
+                options = options Or ObjectDisplayOptions.UseQuotes
+            End If
+            If useHexadecimalNumbers Then
+                options = options Or ObjectDisplayOptions.UseHexadecimalNumbers
+            End If
+            Return ObjectDisplay.FormatPrimitive(obj, options)
         End Function
 
         Friend Sub AddSymbolDisplayParts(parts As ArrayBuilder(Of SymbolDisplayPart), str As String)

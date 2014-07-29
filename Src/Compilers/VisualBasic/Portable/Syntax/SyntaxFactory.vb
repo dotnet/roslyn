@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind IntegerLiteralToken from a 4-byte signed integer value. </summary> 
         ''' <param name="value">The 4-byte signed integer value to be represented by the returned token.</param>
         Public Shared Function Literal(value As Integer) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value, useHexadecimalNumbers:=False), value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None), value)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 4-byte signed integer value. </summary> 
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' value. </summary>
         ''' <param name="value">The 4-byte unsigned integer value to be represented by the returned token.</param>
         Public Shared Function Literal(value As UInteger) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value, useHexadecimalNumbers:=False) & "UI", value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.IncludeTypeSuffix), value)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 4-byte unsigned integer value. </summary>
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind IntegerLiteralToken from an 8-byte signed integer value. </summary>
         ''' <param name="value">The 8-byte signed integer value to be represented by the returned token.</param>
         Public Shared Function Literal(value As Long) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value, useHexadecimalNumbers:=False) & "L", value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.IncludeTypeSuffix), value)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 8-byte signed integer value. </summary>
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind IntegerLiteralToken from an 8-byte unsigned integer value. </summary>
         ''' <param name="value">The 8-byte unsigned integer value to be represented by the returned token.</param>
         Public Shared Function Literal(value As ULong) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value, useHexadecimalNumbers:=False) & "UL", value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.IncludeTypeSuffix), value)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 8-byte unsigned integer value. </summary>
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind FloatingLiteralToken from a 4-byte floating point value. </summary>
         ''' <param name="value">The 4-byte floating point value to be represented by the returned token.</param>
         Public Shared Function Literal(value As Single) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value) & "F", value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.IncludeTypeSuffix), value)
         End Function
 
         ''' <summary> Creates a token with kind FloatingLiteralToken from the text and corresponding 4-byte floating point value. </summary>
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind FloatingLiteralToken from an 8-byte floating point value. </summary>
         ''' <param name="value">The 8-byte floating point value to be represented by the returned token.</param>
         Public Shared Function Literal(value As Double) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value), value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None), value)
         End Function
 
         ''' <summary> Creates a token with kind FloatingLiteralToken from the text and corresponding 8-byte floating point value. </summary>
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind DecimalLiteralToken from a decimal value. </summary>
         ''' <param name="value">The decimal value to be represented by the returned token.</param>
         Public Shared Function Literal(value As Decimal) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value) + "D", value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.IncludeTypeSuffix), value)
         End Function
 
         ''' <summary> Creates a token with kind DecimalLiteralToken from the text and corresponding decimal value. </summary>
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind StringLiteralToken from a string value. </summary>
         ''' <param name="value">The string value to be represented by the returned token.</param>
         Public Shared Function Literal(value As String) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value, quote:=True, useHexadecimalNumbers:=False), value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes), value)
         End Function
 
         ''' <summary> Creates a token with kind StringLiteralToken from the text and corresponding string value. </summary>
@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind CharacterLiteralToken from a character value. </summary>
         ''' <param name="value">The character value to be represented by the returned token.</param>
         Public Shared Function Literal(value As Char) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value, quote:=True, useHexadecimalNumbers:=False), value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes), value)
         End Function
 
         ''' <summary> Creates a token with kind CharacterLiteralToken from the text and corresponding character value. </summary>
