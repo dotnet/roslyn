@@ -24,6 +24,11 @@
       <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
       <Name>CodeAnalysis.Desktop</Name>
     </ProjectReference>
+    <ProjectReference Include="..\VBCSCompiler\VBCSCompiler.csproj">
+      <Project>{9508F118-F62E-4C16-A6F4-7C3B56E166AD}</Project>
+      <Name>VBCSCompiler</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
       <Name>PdbUtilities</Name>
@@ -31,6 +36,10 @@
     <ProjectReference Include="..\..\..\Test\Utilities\TestUtilities.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
+      <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.vbproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
@@ -40,13 +49,17 @@
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>CompilerTestUtilities2</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
+      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MSBuildTasks\MSBuildTasks.csproj">
       <Project>{AC2BE224-FB28-40D4-B174-63CABDD488ED}</Project>
       <Name>MSBuildTasks</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VBCSCompiler\VBCSCompiler.csproj">
-      <Project>{9508f118-f62e-4c16-a6f4-7c3b56e166ad}</Project>
-      <Name>VBCSCompiler</Name>
+    <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
@@ -86,6 +99,7 @@
     <Compile Include="AssemblyAttributes.cs" />
     <Compile Include="CompilerServerTests.cs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>

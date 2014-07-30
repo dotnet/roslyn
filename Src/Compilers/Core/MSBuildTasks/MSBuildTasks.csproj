@@ -17,13 +17,21 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
+  <ItemGroup Label="Linked Files">
+    <Compile Include="..\VBCSCompiler\BuildProtocol.cs">
+      <Link>BuildProtocol.cs</Link>
+    </Compile>
+    <Compile Include="..\VBCSCompiler\CompilerServerLogger.cs">
+      <Link>CompilerServerLogger.cs</Link>
+    </Compile>
+  </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Collections.Immutable">
       <HintPath>..\..\..\packages\Microsoft.Bcl.Immutable.1.1.20-beta\lib\portable-net45+win8\System.Collections.Immutable.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
@@ -43,6 +51,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BuildClient.cs" />
+    <Compile Include="CommandLineSplitter.cs" />
     <Compile Include="Csc.cs" />
     <Compile Include="CscTaskFactory.cs" />
     <Compile Include="MSBuildTasksResources.Designer.cs">
@@ -50,16 +60,17 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>MSBuildTasksResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="NativeMethods.cs" />
     <Compile Include="RoslynTaskFactory_T.cs" />
     <Compile Include="TaskUtilities.cs" />
     <Compile Include="Vbc.cs" />
     <Compile Include="VbcTaskFactory.cs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="MSBuildTasksResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>MSBuildTasksResources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">

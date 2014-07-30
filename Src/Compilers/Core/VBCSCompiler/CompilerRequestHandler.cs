@@ -39,25 +39,29 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public BuildResponse HandleRequest(BuildRequest req, CancellationToken cancellationToken)
         {
-            switch (req.Language)
+            switch (req.Id)
             {
-                case BuildProtocolConstants.RequestLanguage.RequestId_CSharpCompile:
+                case BuildProtocolConstants.RequestId_CSharpCompile:
                     CompilerServerLogger.Log("Request to compile C#");
                     return CSharpCompile(req, cancellationToken);
 
-                case BuildProtocolConstants.RequestLanguage.RequestId_VisualBasicCompile:
+                case BuildProtocolConstants.RequestId_VisualBasicCompile:
                     CompilerServerLogger.Log("Request to compile VB");
                     return BasicCompile(req, cancellationToken);
 
+                case BuildProtocolConstants.RequestId_Analyze:
+                    CompilerServerLogger.Log("Request to analyze managed code");
+                    return Analyze(req, cancellationToken);
+
                 default:
-                    CompilerServerLogger.Log("Got request with id '{0}'", req.Language);
+                    CompilerServerLogger.Log("Got request with id '{0}'", req.Id);
                     for (int i = 0; i < req.Arguments.Length; ++i)
                     {
                         CompilerServerLogger.Log("Request argument '{0}[{1}]' = '{2}'", req.Arguments[i].ArgumentId, req.Arguments[i].ArgumentIndex, req.Arguments[i].Value);
                     }
 
                     // We can't do anything with a request we don't know about. 
-                    return new CompletedBuildResponse(0, "", "");
+                    return new BuildResponse(0, "", "");
             }
         }
 
@@ -69,15 +73,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             foreach (BuildRequest.Argument arg in req.Arguments)
             {
-                if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.ArgumentId_CurrentDirectory)
+                if (arg.ArgumentId == BuildProtocolConstants.ArgumentId_CurrentDirectory)
                 {
                     currentDirectory = arg.Value;
                 }
-                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.ArgumentId_LibEnvVariable)
+                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId_LibEnvVariable)
                 {
                     libDirectory = arg.Value;
                 }
-                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.ArgumentId_CommandLineArgument)
+                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId_CommandLineArgument)
                 {
                     uint argIndex = arg.ArgumentIndex;
                     while (argIndex >= commandLineArguments.Count)
@@ -104,13 +108,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // If we don't have a current directory, compilation can't proceed. This shouldn't ever happen,
                 // because our clients always send the current directory.
                 Debug.Assert(false, "Client did not send current directory; this is required.");
-                return new CompletedBuildResponse(-1, "", "");
+                return new BuildResponse(-1, "", "");
             }
 
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
             int returnCode = CSharpCompile(currentDirectory, libDirectory, commandLineArguments, output, cancellationToken);
 
-            return new CompletedBuildResponse(returnCode, output.ToString(), "");
+            return new BuildResponse(returnCode, output.ToString(), "");
         }
 
         /// <summary>
@@ -144,13 +148,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // If we don't have a current directory, compilation can't proceed. This shouldn't ever happen,
                 // because our clients always send the current directory.
                 Debug.Assert(false, "Client did not send current directory; this is required.");
-                return new CompletedBuildResponse(-1, "", "");
+                return new BuildResponse(-1, "", "");
             }
 
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
             int returnCode = BasicCompile(currentDirectory, libDirectory, commandLineArguments, output, cancellationToken);
 
-            return new CompletedBuildResponse(returnCode, output.ToString(), "");
+            return new BuildResponse(returnCode, output.ToString(), "");
         }
 
         /// <summary>
@@ -167,6 +171,26 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             return VisualBasicCompilerServer.RunCompiler(commandLineArguments, currentDirectory, libDirectory, output, cancellationToken);
+        }
+
+        /// <summary>
+        /// A request to analyze managed source code files. Unpack the arguments and current directory and invoke
+        /// the analyzer, then create a response with the result of compilation.
+        /// </summary>
+        private BuildResponse Analyze(BuildRequest req, CancellationToken cancellationToken)
+        {
+            string currentDirectory;
+            string libDirectory;
+            var commandLineArguments = GetCommandLineArguments(req, out currentDirectory, out libDirectory);
+
+            // Server based execution of Roslyn Diagnostic Providers (Disabled for now).
+            throw new NotImplementedException("Server based execution of Roslyn Diagnostic Providers NYI.");
+
+            // TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+            // var task = Microsoft.CodeAnalysis.Diagnostics.CommandLineDiagnosticService.ComputeAndWriteDiagnosticsAsync(commandLineArguments, output, cancellationToken);
+            // task.Wait(cancellationToken);
+            // int returnCode = task.Result;
+            // return new BuildResponse(returnCode, "", output.ToString());
         }
     }
 }

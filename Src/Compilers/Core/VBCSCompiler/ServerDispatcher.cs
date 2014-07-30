@@ -49,24 +49,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CompilerServerLogger.Log("Process started");
 
             int dieTimeout;
-            // First try to get the die timeout from an environment variable,
-            // then try to get the die timeout from the app.config file.
+            // Try to get the die timeout from the app.config file.
             // Set to default if any failures
             try
             {
-                string dieTimeoutStr;
-                if (((dieTimeoutStr = Environment.GetEnvironmentVariable("RoslynDieTimeout")) != null ||
-                     (dieTimeoutStr = ConfigurationManager.AppSettings["dieTimeout"]) != null)
-                    && int.TryParse(dieTimeoutStr, out dieTimeout)
-                    && dieTimeout > 0)
-                {
-                    // The die timeout settings are stored in seconds, not
-                    // milliseconds
-                    dieTimeout *= 1000;
-                }
-                else
+                string dieTimeoutStr = ConfigurationManager.AppSettings["dieTimeout"];
+                if (!int.TryParse(dieTimeoutStr, out dieTimeout))
                 {
                     dieTimeout = DefaultServerDieTimeout;
+                }
+                else if (dieTimeout > 0)
+                {
+                    // The die timeout in the app.config file is stored in 
+                    // seconds, not milliseconds
+                    dieTimeout *= 1000;
                 }
                 CompilerServerLogger.Log("Die timeout is: " + dieTimeout + "milliseconds.");
             }
