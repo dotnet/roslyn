@@ -1962,7 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ThisReference:
                     case BoundKind.BaseReference:
                         {
-                            accessedLocalOrParameterOpt = this.ThisParameter;
+                            accessedLocalOrParameterOpt = this.ContainingMemberOrLambda.EnclosingThisSymbol();
                             return false;
                         }
                     case BoundKind.Local:

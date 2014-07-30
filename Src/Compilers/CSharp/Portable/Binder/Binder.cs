@@ -258,13 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 var member = this.ContainingMemberOrLambda;
-                var type = member as NamedTypeSymbol;
-                if ((object)type == null && (object)member != null)
-                {
-                    type = member.ContainingType;
-                }
-
-                return type;
+                Debug.Assert((object)member == null || member.Kind != SymbolKind.ErrorType);
+                return (object)member == null
+                    ? null
+                    : member.Kind == SymbolKind.NamedType
+                        ? (NamedTypeSymbol)member 
+                        : member.ContainingType;
             }
         }
 
@@ -281,11 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal virtual NamedTypeSymbol ThisType
         {
             get { return this.next.ThisType; }
-        }
-
-        internal ParameterSymbol ThisParameter
-        {
-            get { return this.ContainingMemberOrLambda.EnclosingThisSymbol(); }
         }
 
         /// <summary>

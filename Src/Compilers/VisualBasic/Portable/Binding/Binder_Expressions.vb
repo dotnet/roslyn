@@ -1737,7 +1737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If IsMeOrMyBaseOrMyClassInSharedContext() Then
                 errorId = If(implicitReference,
                              ERRID.ERR_BadInstanceMemberAccess,
-                             If(Me.ContainingType IsNot Nothing AndAlso Me.ContainingType.IsModuleType,
+                             If(containingType IsNot Nothing AndAlso containingType.IsModuleType,
                                 ERRID.ERR_UseOfKeywordFromModule1,
                                 ERRID.ERR_UseOfKeywordNotInInstanceMethod1))
                 Return False
