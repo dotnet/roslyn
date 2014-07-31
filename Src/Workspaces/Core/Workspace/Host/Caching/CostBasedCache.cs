@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// 
     /// the size of the upper bound will be decreased to its normal level once those activities have ceased.
     /// </summary>
-    internal class CostBasedCache<T> : IObjectCache<T> where T : class
+    internal partial class CostBasedCache<T> : IObjectCache<T> where T : class
     {
         // constant to indicate that cost is not evaluated yet.
         private const long UnitializedCost = -1;
@@ -36,29 +37,6 @@ namespace Microsoft.CodeAnalysis.Host
 
         // cache hit threshold where it would slow down cache decay rate
         private const float CacheHitThreshold = 0.8F;
-
-        // delegate cache to avoid allocations
-        private readonly Func<long, T, bool, string> logAddOrAccessed;
-        private readonly Func<long, int, string> logEvictedOrRemoved;
-        private readonly Func<T, CacheEntry, CacheEntry> updateCacheEntry;
-        private readonly Func<KeyValuePair<T, CacheEntry>, double> rankGetter;
-        private readonly Comparison<SnapshotItem> comparer;
-
-        // delegate that will return an identity of a cached item regardless of its version
-        private readonly Func<T, string> uniqueIdGetter;
-
-        // current cache id
-        private readonly int cacheId;
-
-        // evict items without waiting for next item access
-        private readonly bool eagarlyEvict;
-
-        // minimum number of entries to keep in the cache
-        private readonly int minCount;
-
-        // lower and upper bound of the cache in terms of cost
-        private readonly long minCost;
-        private readonly long maxCost;
 
         // control variable for exponential decaying algorithm that is used to
         // determine current cost upper bound
@@ -79,6 +57,9 @@ namespace Microsoft.CodeAnalysis.Host
         // pre-allocated list to be re-used during eviction
         private readonly List<SnapshotItem> evictionCandidateList = new List<SnapshotItem>();
 
+        // option service
+        private readonly IOptionService optionService;
+
         // hold onto last time the task ran
         private int lastTimeTaskRan;
 
@@ -88,45 +69,29 @@ namespace Microsoft.CodeAnalysis.Host
         // thread that is successful at setting the slot gets to fill it with a running task.
         private Task taskSlot;
 
-        // cache hit rate for diagnostic purpose
-        private float cacheHitRate;
+        // evict items without waiting for next item access
+        protected bool eagarlyEvict;
 
-        // entry that holds onto various info
-        // not a struct since it will be stored in concurrent dictionary as a value
-        // and that would wrap it into a class anyways
-        private class CacheEntry
-        {
-            public readonly long ItemId;
-            public readonly int CreatedTime;
-            public readonly IWeakAction<T> EvictAction;
+        // minimum number of entries to keep in the cache
+        protected int minCount;
 
-            public DateTime LastTimeAccessed;
-            public int AccessCount;
-            public long Cost;
-
-            public CacheEntry(long itemId, IWeakAction<T> evictor)
-            {
-                this.ItemId = itemId;
-                this.CreatedTime = Environment.TickCount;
-                this.EvictAction = evictor;
-
-                this.LastTimeAccessed = DateTime.UtcNow;
-                this.AccessCount = 1;
-                this.Cost = UnitializedCost;
-            }
-        }
+        // lower and upper bound of the cache in terms of cost
+        protected long minCost;
+        protected long maxCost;
 
         protected CostBasedCache(
+            IOptionService optionService,
             int minCount, long minCost, long maxCost,
             double coolingRate, int fixedIncAmount, TimeSpan dataCollectionTimeSpan,
             Func<T, long> costCalculator,
             Func<T, string> uniqueIdGetter)
-            : this(minCount, minCost, maxCost, coolingRate, fixedIncAmount,
-                  dataCollectionTimeSpan, costCalculator, false, uniqueIdGetter)
+            : this(optionService, minCount, minCost, maxCost, coolingRate, fixedIncAmount,
+                   dataCollectionTimeSpan, costCalculator, false, uniqueIdGetter)
         {
         }
 
         protected CostBasedCache(
+            IOptionService optionService,
             int minCount, long minCost, long maxCost,
             double coolingRate, int fixedIncAmount, TimeSpan dataCollectionTimeSpan,
             Func<T, long> costCalculator,
@@ -167,6 +132,10 @@ namespace Microsoft.CodeAnalysis.Host
             this.currentCostUpperBound = minCost;
 
             this.rankGetter = RankingAlgorithm;
+
+            // respond to option change
+            this.optionService = optionService;
+            this.optionService.OptionChanged += OnOptionChanged;
         }
 
         private static double RankingAlgorithm(KeyValuePair<T, CacheEntry> item)
@@ -359,10 +328,10 @@ namespace Microsoft.CodeAnalysis.Host
 
             ResetEvictionStates();
 
-            EagarlyEvict();
+            EvictEagarly();
         }
 
-        private void EagarlyEvict()
+        private void EvictEagarly()
         {
             if (!this.eagarlyEvict || this.taskSlot != null || items.Count <= minCount)
             {
@@ -387,41 +356,6 @@ namespace Microsoft.CodeAnalysis.Host
                     return;
                 }
             }
-        }
-
-        private void UpdateCacheHitRate(List<SnapshotItem> cacheItems)
-        {
-            var cacheHit = 0;
-
-            for (int i = 0; i < cacheItems.Count; i++)
-            {
-                var item = cacheItems[i];
-                if (item.Entry.CreatedTime < this.lastTimeTaskRan)
-                {
-                    cacheHit++;
-                }
-            }
-
-            // item that has survived last eviction vs new item added after the last eviction
-            this.cacheHitRate = (float)cacheHit / Math.Max(1, cacheItems.Count);
-        }
-
-        private void LogCacheRankInformation(List<SnapshotItem> snapshot)
-        {
-#if false
-            // log everything inside of the cache for diagnostic purpose
-            var now = Environment.TickCount;
-
-            Func<SnapshotItem, string> logMessage = i =>
-            {
-                return string.Join(",", now, this.cacheId, i.Rank, i.Entry.AccessCount, i.Entry.CreatedTime, i.Entry.LastTimeAccessed, i.Entry.ItemId, this.uniqueIdGetter(i.Item));
-            };
-
-            foreach (var item in snapshot)
-            {
-                Logger.Log(FeatureId.Cache, FunctionId.Cache_ItemRank, logMessage, item);
-            }
-#endif
         }
 
         private int GetIndexAndCostToDelete(double costUpperBound, List<SnapshotItem> snapshot, out long cost)
@@ -518,70 +452,14 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private string LogAddOrAccessed(long itemId, T item, bool cacheHit)
+        private void OnOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            return string.Join(",", cacheId, itemId, item.GetType(), this.uniqueIdGetter(item), cacheHit);
+            OnOptionChanged(e);
         }
 
-        private string LogEvictedOrRemoved(long itemId, int accessCount)
+        protected virtual void OnOptionChanged(OptionChangedEventArgs e)
         {
-            return string.Join(",", cacheId, itemId, accessCount);
-        }
-
-        private struct SnapshotItem
-        {
-            public T Item { get; private set; }
-            public double Rank { get; private set; }
-            public CacheEntry Entry { get; private set; }
-
-            public SnapshotItem(T item, double rank, CacheEntry entry)
-                : this()
-            {
-                this.Item = item;
-                this.Rank = rank;
-                this.Entry = entry;
-            }
-        }
-
-        // internal information to show in diagnostic
-        internal long CurrentCostUpperBound
-        {
-            get
-            {
-                return this.currentCostUpperBound;
-            }
-        }
-
-        internal int CurrentItemCount
-        {
-            get
-            {
-                return this.items.Count;
-            }
-        }
-
-        internal long MinCost
-        {
-            get
-            {
-                return this.minCost;
-            }
-        }
-
-        internal long MaxCost
-        {
-            get
-            {
-                return this.maxCost;
-            }
-        }
-
-        internal float CacheHitRate
-        {
-            get
-            {
-                return this.cacheHitRate;
-            }
+            // do nothing
         }
     }
 }

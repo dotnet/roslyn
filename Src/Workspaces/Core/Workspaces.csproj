@@ -350,6 +350,10 @@
     <Compile Include="CodeGeneration\SyntaxAnnotationExtensions.cs" />
     <Compile Include="CodeGeneration\TypeGenerator.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
+    <Compile Include="Workspace\Host\Caching\AbstractCacheServiceFactory.cs" />
+    <Compile Include="Workspace\Host\Caching\CacheOptions.cs" />
+    <Compile Include="Workspace\Host\Caching\CostBasedCache.Nested.cs" />
+    <Compile Include="Workspace\Host\Caching\CostBasedCache_Logging.cs" />
     <Compile Include="Workspace\Host\Mef\DiagnosticProviderMetadata.cs" />
     <Compile Include="Diagnostics\ExportDiagnosticAnalyzerAttribute.cs" />
     <Compile Include="Differencing\Edit.cs" />
@@ -801,7 +805,6 @@
     <Compile Include="Workspace\Host\Caching\CacheId.cs" />
     <Compile Include="Workspace\Host\Caching\CompilationCacheServiceFactory.cs" />
     <Compile Include="Workspace\Host\Caching\CostBasedCache.cs" />
-    <Compile Include="Workspace\Host\Caching\ICompilationCache.cs" />
     <Compile Include="Workspace\Host\Caching\ICompilationCacheService.cs" />
     <Compile Include="Workspace\Host\Caching\IObjectCache.cs" />
     <Compile Include="Workspace\Host\Caching\ISyntaxTreeCacheService.cs" />

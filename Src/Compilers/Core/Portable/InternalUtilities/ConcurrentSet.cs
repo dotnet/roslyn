@@ -96,6 +96,14 @@ namespace Roslyn.Utilities
             return dictionary.TryRemove(value, out b);
         }
 
+        /// <summary>
+        /// Clear the set
+        /// </summary>
+        public void Clear()
+        {
+            dictionary.Clear();
+        }
+
         public struct KeyEnumerator
         {
             private readonly IEnumerator<KeyValuePair<T, byte>> kvpEnumerator;

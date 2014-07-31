@@ -728,28 +728,9 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private ValueSource<Compilation> Retain(Solution solution, Compilation compilation)
             {
-                var caches = solution.Services.CompilationCacheService;
-                if (caches != null)
+                var cache = solution.Services.CompilationCacheService;
+                if (cache != null)
                 {
-                    // If the solution supports compilation caches, get the appropriate compilation cache.
-                    // This will ensure the primary compilation cache is not polluted by items from a branched solution.
-                    //
-                    // The secondary cache could get an inProgress compilation that belongs to the primary branch, but as
-                    // soon as the background compiler brings those compilations to their final state, it will be moved to the
-                    // primary cache.
-                    //
-                    // Another case is if a compilation is brought to a final state by a branched solution. The final compilation
-                    // could be in a secondary cache.
-                    //
-                    // We can add a bit more information in the compilation tracker and fork compilation tracker a bit more to let
-                    // it know which branch the compilation tracker belongs to.
-                    //
-                    // But all those cases where a compilation goes to the secondary cache should be either temporary or about ones
-                    // the editor currently doesn't use (no opened file from the compilation). 
-                    //
-                    // So, until we have evidence to the contrary, let's leave the logic simple.
-                    var cache = (solution.BranchId == solution.Workspace.PrimaryBranchId) ? caches.Primary : caches.Secondary;
-
                     return new CachedObjectSource<Compilation>(compilation, cache);
                 }
                 else

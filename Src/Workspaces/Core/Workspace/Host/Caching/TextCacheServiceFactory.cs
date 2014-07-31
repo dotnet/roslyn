@@ -2,19 +2,40 @@
 
 using System;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     [ExportWorkspaceServiceFactory(typeof(ITextCacheService), ServiceLayer.Default)]
-    internal partial class TextCacheServiceFactory : IWorkspaceServiceFactory
+    internal partial class TextCacheServiceFactory : AbstractCacheServiceFactory
     {
-        // 4M chars * 2bytes/char = 8 MB
-        private const long DefaultSize = 1 << 20;
-        private const int DefaultTextCount = 8;
+        // 1M chars * 2bytes/char = 2 MB
+        public const long CacheSize = 1 << 20;
+        public const int TextCount = 8;
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        protected override IWorkspaceService CreateCache(IOptionService service)
         {
-            return new TextCacheService(DefaultTextCount, DefaultSize, itemCost: tv => tv.Text.Length);
+            int count;
+            long size;
+            GetInitialCacheValues(service, CacheOptions.TextCacheCount, CacheOptions.TextCacheSize, out count, out size);
+
+            return new TextCacheService(service, count, size, itemCost: tv => tv.Text.Length);
+        }
+
+        protected override long InitialCacheSize
+        {
+            get
+            {
+                return CacheSize;
+            }
+        }
+
+        protected override int InitialMinimumCount
+        {
+            get
+            {
+                return TextCount;
+            }
         }
 
         private class TextCacheService : CostBasedCache<TextAndVersion>, ITextCacheService
@@ -33,9 +54,24 @@ namespace Microsoft.CodeAnalysis.Host
 
             private static readonly Func<TextAndVersion, string> uniqueIdGetter = tv => tv.FilePath;
 
-            public TextCacheService(int minCount, long minCost, Func<TextAndVersion, long> itemCost)
-                : base(minCount, minCost, minCost * UpperBoundRatio, CoolingRate, Increment, TimeSpan.FromMilliseconds(200), itemCost, uniqueIdGetter)
+            public TextCacheService(IOptionService service, int minCount, long minCost, Func<TextAndVersion, long> itemCost)
+                : base(service, minCount, minCost, minCost * UpperBoundRatio, CoolingRate, Increment, TimeSpan.FromMilliseconds(200), itemCost, uniqueIdGetter)
             {
+            }
+
+            protected override void OnOptionChanged(OptionChangedEventArgs e)
+            {
+                if (e.Option == CacheOptions.TextCacheCount)
+                {
+                    this.minCount = (int)e.Value;
+                }
+                else if (e.Option == CacheOptions.TextCacheSize)
+                {
+                    var cost = (long)e.Value;
+
+                    this.minCost = cost;
+                    this.maxCost = cost * UpperBoundRatio;
+                }
             }
         }
     }

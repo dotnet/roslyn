@@ -2,19 +2,40 @@
 
 using System;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     [ExportWorkspaceServiceFactory(typeof(ISyntaxTreeCacheService), ServiceLayer.Default)]
-    internal partial class SyntaxTreeCacheServiceFactory : IWorkspaceServiceFactory
+    internal partial class SyntaxTreeCacheServiceFactory : AbstractCacheServiceFactory
     {
         // 4M chars * 2bytes/char = 8MB of raw text, with some syntax nodes deduplicated.
-        private const long DefaultSize = 4 * 1024 * 1024;
-        private const int DefaultTextCount = 8;
+        public const long CacheSize = 4 * 1024 * 1024;
+        public const int TreeCount = 8;
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        protected override IWorkspaceService CreateCache(IOptionService service)
         {
-            return new SyntaxTreeCacheService(DefaultTextCount, DefaultSize, tv => tv.FullSpan.Length);
+            int count;
+            long size;
+            GetInitialCacheValues(service, CacheOptions.SyntaxTreeCacheCount, CacheOptions.SyntaxTreeCacheSize, out count, out size);
+
+            return new SyntaxTreeCacheService(service, count, size, tv => tv.FullSpan.Length);
+        }
+
+        protected override long InitialCacheSize
+        {
+            get
+            {
+                return CacheSize;
+            }
+        }
+
+        protected override int InitialMinimumCount
+        {
+            get
+            {
+                return TreeCount;
+            }
         }
 
         private class SyntaxTreeCacheService : CostBasedCache<SyntaxNode>, ISyntaxTreeCacheService
@@ -34,11 +55,26 @@ namespace Microsoft.CodeAnalysis.Host
             private static readonly Func<SyntaxNode, string> uniqueIdGetter =
                 t => t.SyntaxTree == null ? string.Empty : t.SyntaxTree.FilePath;
 
-            public SyntaxTreeCacheService(int minCount, long minCost, Func<SyntaxNode, long> itemCost)
-                : base(minCount, minCost, minCost * UpperBoundRatio,
+            public SyntaxTreeCacheService(IOptionService service, int minCount, long minCost, Func<SyntaxNode, long> itemCost)
+                : base(service, minCount, minCost, minCost * UpperBoundRatio,
                        CoolingRate, Increment, TimeSpan.FromMilliseconds(500),
                        itemCost, uniqueIdGetter)
             {
+            }
+
+            protected override void OnOptionChanged(OptionChangedEventArgs e)
+            {
+                if (e.Option == CacheOptions.SyntaxTreeCacheCount)
+                {
+                    this.minCount = (int)e.Value;
+                }
+                else if (e.Option == CacheOptions.SyntaxTreeCacheSize)
+                {
+                    var cost = (long)e.Value;
+
+                    this.minCost = cost;
+                    this.maxCost = cost * UpperBoundRatio;
+                }
             }
         }
     }

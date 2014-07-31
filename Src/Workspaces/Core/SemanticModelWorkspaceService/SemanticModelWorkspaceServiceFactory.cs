@@ -502,9 +502,9 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         return new ConstantValueSource<Compilation>(compilation);
                     }
 
-                    if (project.Solution.BranchId == workspace.PrimaryBranchId && compilationCache.Primary != null)
+                    if (project.Solution.BranchId == workspace.PrimaryBranchId)
                     {
-                        return new CachedObjectSource<Compilation>(compilation, compilationCache.Primary);
+                        return new CachedObjectSource<Compilation>(compilation, compilationCache);
                     }
 
                     return new ConstantValueSource<Compilation>(compilation);
