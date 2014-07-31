@@ -618,7 +618,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns a new compilation with a given event queue. 
+        ''' Returns a new compilation with a given event queue.
         ''' </summary>
         Public Overrides Function WithEventQueue(eventQueue As AsyncQueue(Of CompilationEvent)) As Compilation
             Return New VisualBasicCompilation(
@@ -2009,9 +2009,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Not (hasError OrElse hasWarnAsError)
         End Function
 
-        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of IDiagnosticAnalyzer), options As AnalyzerOptions, cancellationToken As CancellationToken) As AnalyzerDriver3
+        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of IDiagnosticAnalyzer), options As AnalyzerOptions, cancellationToken As CancellationToken) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.VisualBasicKind
-            Return New AnalyzerDriver3(Of VisualBasic.SyntaxKind)(analyzers, getKind, options, cancellationToken)
+            Return New AnalyzerDriver(Of VisualBasic.SyntaxKind)(analyzers, getKind, options, cancellationToken)
         End Function
 
 #End Region

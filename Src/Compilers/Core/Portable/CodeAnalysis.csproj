@@ -138,7 +138,6 @@
     <Compile Include="CryptographicHashProvider.cs" />
     <Compile Include="CvtRes.cs" />
     <Compile Include="DiagnosticAnalyzer\AdditionalStream.cs" />
-    <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver3.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerImageReference.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerOptions.cs" />
@@ -314,6 +313,8 @@
     <Compile Include="MetadataReference\PortableExecutableReference.cs" />
     <Compile Include="MetadataReference\ReferenceDirective.cs" />
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
+    <Compile Include="SymbolDisplay\ObjectDisplayExtensions.cs" />
+    <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="OutputKind.cs" />
     <Compile Include="PEWriter\BinaryWriter.cs" />

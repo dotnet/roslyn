@@ -872,6 +872,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal abstract ImmutableArray<DeclarationInSpan> DeclarationsInSpanInternal(TextSpan span);
 
+        /// <summary>
+        /// Takes a Node and returns a set of declarations that overlap the node's span.
+        /// </summary>
+        protected internal abstract ImmutableArray<DeclarationInSpan> DeclarationsInNodeInternal(SyntaxNode node);
+
+        /// <summary>
+        /// Takes a Symbol and syntax for one of its declaring syntax reference and returns the topmost syntax node to be used by syntax analyzer.
+        /// </summary>
+        protected internal virtual SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
+        {
+            return declaringSyntax;
+        }
+        
         protected internal struct DeclarationInSpan
         {
             public DeclarationInSpan(SyntaxNode declaration, SyntaxNode body) : this()
@@ -884,13 +897,5 @@ namespace Microsoft.CodeAnalysis
 
             public SyntaxNode Body { get; private set; }
         }
-
-        protected internal abstract void RunAnalyzersCore(
-            TextSpan span,
-            ImmutableArray<IDiagnosticAnalyzer> analyzers,
-            Action<Diagnostic> addDiagnostic,
-            AnalyzerOptions analyzerOptions,
-            bool continueOnError,
-            CancellationToken cancellationToken = default(CancellationToken));
     }
 }

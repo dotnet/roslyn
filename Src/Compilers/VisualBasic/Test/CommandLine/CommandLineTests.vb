@@ -3318,7 +3318,8 @@ Dim b = Loc
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact>
+        <WorkItem(997208)>
+        <Fact(Skip:="997208")>
         Public Sub VbRuntime02()
 
             Dim dir = Temp.CreateDirectory()

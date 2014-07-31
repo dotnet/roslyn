@@ -501,10 +501,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If m_lazyImplementedEvents.IsDefault Then
                     Dim diagnostics = DiagnosticBag.GetInstance()
-                    ContainingSourceModule.AtomicStoreArrayAndDiagnostics(m_lazyImplementedEvents,
+                    If ContainingSourceModule.AtomicStoreArrayAndDiagnostics(m_lazyImplementedEvents,
                                                                           ComputeImplementedEvents(diagnostics),
                                                                           diagnostics,
-                                                                          CompilationStage.Declare)
+                                                                          CompilationStage.Declare) Then
+                        DeclaringCompilation.SymbolDeclaredEvent(Me)
+                    End If
                     diagnostics.Free()
                 End If
 

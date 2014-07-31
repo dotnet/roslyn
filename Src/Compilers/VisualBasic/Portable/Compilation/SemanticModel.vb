@@ -3454,6 +3454,23 @@ _Default:
             Return builder.ToImmutable()
         End Function
 
+        Protected Overrides Function DeclarationsInNodeInternal(node As SyntaxNode) As ImmutableArray(Of SemanticModel.DeclarationInSpan)
+            Dim builder = ArrayBuilder(Of DeclarationInSpan).GetInstance()
+            DeclarationsInSpanCore(node, node.Span, builder)
+            Return builder.ToImmutable()
+        End Function
+
+        Protected Overrides Function GetTopmostNodeForDiagnosticAnalysis(symbol As ISymbol, declaringSyntax As SyntaxNode) As SyntaxNode
+            Select Case symbol.Kind
+                Case SymbolKind.Method, SymbolKind.Event, SymbolKind.Property
+                    Return declaringSyntax.Parent
+                Case SymbolKind.Field
+                    Return declaringSyntax.Parent.Parent
+                Case Else
+                    Return declaringSyntax
+            End Select
+        End Function
+
         Private Sub DeclarationsInSpanCore(node As SyntaxNode, span As TextSpan, builder As ArrayBuilder(Of DeclarationInSpan))
             If Not node.Span.OverlapsWith(span) Then Return
             Select Case node.VisualBasicKind()
@@ -3545,21 +3562,6 @@ _Default:
                     Return '' perhaps assert that this does Not happen? What about error cases?
             End Select
         End Sub
-
-        Protected Overrides Sub RunAnalyzersCore(span As TextSpan,
-                                                 analyzers As ImmutableArray(Of IDiagnosticAnalyzer),
-                                                 addDiagnostic As Action(Of Diagnostic),
-                                                 options As AnalyzerOptions,
-                                                 continueOnError As Boolean,
-                                                 Optional cancellationToken As CancellationToken = Nothing)
-            AnalyzerDriver.RunAnalyzersCore(Me, span, analyzers,
-                                                         Function(node) node.VisualBasicKind(),
-                                                         addDiagnostic,
-                                                         options,
-                                                         continueOnError,
-                                                         cancellationToken)
-        End Sub
-
 #End Region
 
 #Region "Logging Helpers"

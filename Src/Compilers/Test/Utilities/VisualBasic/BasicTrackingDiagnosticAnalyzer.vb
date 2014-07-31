@@ -8,8 +8,9 @@ Public Class BasicTrackingDiagnosticAnalyzer
         "Print|With|Label|Stop|Continue|Resume|SingleLine|Error|Clause|Forever|Re[Dd]im|Mid|Type|Cast|Exponentiate|Erase|Date|Concatenate|Like|Divide|UnaryPlus")
 
     Protected Overrides Function IsOnCodeBlockSupported(symbolKind As SymbolKind, methodKind As MethodKind, returnsVoid As Boolean) As Boolean
-        Return symbolKind <> SymbolKind.Event AndAlso
-            methodKind <> MethodKind.Destructor AndAlso methodKind <> MethodKind.ExplicitInterfaceImplementation
+        Return MyBase.IsOnCodeBlockSupported(symbolKind, methodKind, returnsVoid) AndAlso
+            methodKind <> methodKind.Destructor AndAlso
+            methodKind <> methodKind.ExplicitInterfaceImplementation
     End Function
 
     Protected Overrides Function IsAnalyzeNodeSupported(syntaxKind As SyntaxKind) As Boolean

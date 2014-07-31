@@ -4552,6 +4552,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutable();
         }
 
+        protected internal override ImmutableArray<DeclarationInSpan> DeclarationsInNodeInternal(SyntaxNode node)
+        {
+            var builder = ArrayBuilder<DeclarationInSpan>.GetInstance();
+            DeclarationsInSpanCore(node, node.Span, builder);
+            return builder.ToImmutable();
+        }
+
         private void DeclarationsInSpanCore(SyntaxNode node, TextSpan span, ArrayBuilder<DeclarationInSpan> builder)
         {
             if (!node.Span.OverlapsWith(span)) return;
@@ -4670,17 +4677,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return; // perhaps assert that this does not happen? What about error cases?
             }
-        }
-
-        protected internal override void RunAnalyzersCore(
-            TextSpan span,
-            ImmutableArray<IDiagnosticAnalyzer> analyzers,
-            Action<Diagnostic> addDiagnostic,
-            AnalyzerOptions options,
-            bool continueOnError,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            AnalyzerDriver.RunAnalyzersCore(this, span, analyzers, n => n.CSharpKind(), addDiagnostic, options, continueOnError, cancellationToken);
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupSymbolsCore(int position, INamespaceOrTypeSymbol container, string name, bool includeReducedExtensionMethods)

@@ -286,13 +286,8 @@ namespace Microsoft.CodeAnalysis
 
             var analyzerOptions = new AnalyzerOptions(Arguments.AdditionalStreams, Arguments.AdditionalOptions);
 
-            AnalyzerDriver3 analyzerDriver3 = null;
-            var featureAnalyzer3 = compilation.Feature("analyzer3");
-            bool useNewAnalyzerDriver = featureAnalyzer3 != null && featureAnalyzer3 != "false";
-            if (useNewAnalyzerDriver)
-            {
-                compilation = AnalyzerDriver3.AttachAnalyzerDriverToCompilation(compilation, analyzers, out analyzerDriver3, analyzerOptions, cancellationToken);
-            }
+            AnalyzerDriver analyzerDriver;
+            compilation = AnalyzerDriver.AttachAnalyzerDriverToCompilation(compilation, analyzers, out analyzerDriver, analyzerOptions, cancellationToken);
 
             EmitResult emitResult;
 
@@ -393,16 +388,7 @@ namespace Microsoft.CodeAnalysis
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                IEnumerable<Diagnostic> analyzerDiagnostics;
-                if (useNewAnalyzerDriver)
-                {
-                    analyzerDiagnostics = analyzerDriver3.GetDiagnosticsAsync().Result;
-                }
-                else
-                {
-                    analyzerDiagnostics = AnalyzerDriver.GetDiagnostics(compilation, analyzers, analyzerOptions, default(CancellationToken));
-                }
-
+                var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
                 if (PrintErrors(analyzerDiagnostics, consoleOutput))
                 {
                     return Failed;

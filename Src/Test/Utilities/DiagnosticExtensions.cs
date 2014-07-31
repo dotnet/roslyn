@@ -193,14 +193,10 @@ namespace Microsoft.CodeAnalysis
             where TCompilation : Compilation
             where TSyntaxKind : struct
         {
-#if !ANALYZER_DRIVER_3
-            diagnostics = AnalyzerDriver.GetDiagnostics(c, analyzers, options, CancellationToken.None, continueOnError).ToImmutableArray();
-#else
-            var driver = new AnalyzerDriver3<TSyntaxKind>(analyzers.ToImmutableArray(), getKind, options, default(CancellationToken));
+            var driver = new AnalyzerDriver<TSyntaxKind>(analyzers.ToImmutableArray(), getKind, options, default(CancellationToken));
             c = (TCompilation)c.WithEventQueue(driver.CompilationEventQueue);
             var discarded = c.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync().Result;
-#endif
             return c; // note this is a new compilation
         }
 
@@ -213,11 +209,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(this Compilation compilation, IEnumerable<Diagnostic> diagnostics)
         {
-#if !ANALYZER_DRIVER_3
             return AnalyzerDriver.GetEffectiveDiagnostics(diagnostics, compilation);
-#else
-            return AnalyzerDriver3.GetEffectiveDiagnostics(diagnostics, compilation);
-#endif
         }
 
         /// <summary>
@@ -226,11 +218,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static bool IsDiagnosticAnalyzerSuppressed(this IDiagnosticAnalyzer analyzer, CompilationOptions options, bool continueOnError = true)
         {
-#if ANALYZER_DRIVER_3
             return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options);
-#else
-            return AnalyzerDriver3.IsDiagnosticAnalyzerSuppressed(analyzer, options);
-#endif
         }
 
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
