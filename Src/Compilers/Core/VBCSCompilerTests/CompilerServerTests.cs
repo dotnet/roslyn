@@ -778,7 +778,9 @@ End Module", i));
             Assert.Equal(string.Format("VB Hello number {0}\r\n", i), runningResult.Output);
         }
 
-        [Fact(), WorkItem(761326, "DevDiv")]
+
+        [WorkItem(997372)]
+        [Fact(Skip = "997372"), WorkItem(761326, "DevDiv")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MultipleSimultaneousCompiles()
         {
