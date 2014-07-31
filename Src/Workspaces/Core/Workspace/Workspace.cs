@@ -450,6 +450,22 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when a project's name is changed in the host environment.
+        /// </summary>
+        protected internal void OnProjectNameChanged(ProjectId projectId, string name, string filePath)
+        {
+            using (this.serializationLock.DisposableWait())
+            {
+                CheckProjectIsInCurrentSolution(projectId);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectName(projectId, name).WithProjectFilePath(projectId, filePath));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
+
+        /// <summary>
         /// Call this method when a project's compilation options are changed in the host environment.
         /// </summary>
         protected internal void OnCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)

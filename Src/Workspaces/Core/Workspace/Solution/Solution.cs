@@ -747,6 +747,36 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the name.
+        /// </summary>
+        public Solution WithProjectName(ProjectId projectId, string name)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException("projectId");
+            }
+
+            CheckContainsProject(projectId);
+
+            return this.ForkProject(this.GetProjectState(projectId).UpdateName(name));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the project file path.
+        /// </summary>
+        public Solution WithProjectFilePath(ProjectId projectId, string filePath)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException("projectId");
+            }
+
+            CheckContainsProject(projectId);
+
+            return this.ForkProject(this.GetProjectState(projectId).UpdateFilePath(filePath));
+        }
+
+        /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified compilation options.
         /// </summary>

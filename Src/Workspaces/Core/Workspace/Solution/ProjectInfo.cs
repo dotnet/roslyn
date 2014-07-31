@@ -279,6 +279,16 @@ namespace Microsoft.CodeAnalysis
             return this.With(version: version);
         }
 
+        public ProjectInfo WithName(string name)
+        {
+            return this.With(name: name);
+        }
+
+        public ProjectInfo WithFilePath(string filePath)
+        {
+            return this.With(filePath: filePath);
+        }
+
         public ProjectInfo WithAssemblyName(string assemblyName)
         {
             return this.With(assemblyName: assemblyName);

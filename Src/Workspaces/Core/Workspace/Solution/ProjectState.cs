@@ -385,6 +385,26 @@ namespace Microsoft.CodeAnalysis
                 latestDocumentTopLevelChangeVersion ?? this.lazyLatestDocumentTopLevelChangeVersion);
         }
 
+        public ProjectState UpdateName(string name)
+        {
+            if (name == this.Name)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithName(name).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState UpdateFilePath(string filePath)
+        {
+            if (filePath == this.FilePath)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithFilePath(filePath).WithVersion(this.Version.GetNewerVersion()));
+        }
+
         public ProjectState UpdateAssemblyName(string assemblyName)
         {
             if (assemblyName == this.AssemblyName)
