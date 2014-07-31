@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected virtual bool IsOnCodeBlockSupported(SymbolKind symbolKind, MethodKind methodKind, bool returnsVoid)
         {
-            return true;
+            return symbolKind != SymbolKind.Event;
         }
 
         public void VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(bool allowUnexpectedCalls = false)

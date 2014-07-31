@@ -1578,29 +1578,17 @@ namespace Microsoft.CodeAnalysis
                     metadataDiagnostics = DiagnosticBag.GetInstance();
                     try
                     {
-                        // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
-                        // If the underlying stream isn't readable and seekable, we need to use a temp stream.
                         string deterministicString = this.Feature("deterministic");
                         bool deterministic =  deterministicString != null && deterministicString != "false";
-                        var writeToTempStream = deterministic && !(outputStream.CanRead && outputStream.CanSeek);
-                        var streamToWrite = writeToTempStream ? new MemoryStream() : outputStream;
-
                         Cci.PeWriter.WritePeToStream(
                             new EmitContext(moduleBeingBuilt, null, metadataDiagnostics),
                             this.MessageProvider,
-                            streamToWrite,
+                            outputStream,
                             pdbWriter,
                             metadataOnly,
                             foldIdenticalMethodBodies,
                             deterministic,
                             cancellationToken);
-
-                        if (writeToTempStream)
-                        {
-                            streamToWrite.Position = 0;
-                            streamToWrite.CopyTo(outputStream);
-                            streamToWrite.Dispose();
-                        }
                     }
                     catch (Cci.PdbWritingException ex)
                     {
