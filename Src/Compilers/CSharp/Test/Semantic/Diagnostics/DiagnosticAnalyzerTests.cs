@@ -342,7 +342,7 @@ public class C : NotFound
             {
                 get
                 {
-                    return ImmutableArray.Create(SyntaxKind.Attribute, SyntaxKind.ClassDeclaration, SyntaxKind.UsingStatement);
+                    return ImmutableArray.Create(SyntaxKind.Attribute, SyntaxKind.ClassDeclaration, SyntaxKind.UsingDirective);
                 }
             }
 
@@ -360,8 +360,8 @@ public class C : NotFound
                         addDiagnostic(diag2);
                         break;
 
-                    case SyntaxKind.UsingStatement:
-                        var diag3 = CodeAnalysis.Diagnostic.Create(descriptor, node.GetLocation(), "UsingStatement");
+                    case SyntaxKind.UsingDirective:
+                        var diag3 = CodeAnalysis.Diagnostic.Create(descriptor, node.GetLocation(), "UsingDirective");
                         addDiagnostic(diag3);
                         break;
                 }
@@ -375,7 +375,7 @@ public class C : NotFound
         }
 
         [WorkItem(914236, "DevDiv")]
-        [Fact(Skip = "914236")]
+        [Fact]
         public void DiagnosticAnalyzerSyntaxNodeAndSymbolAnalysis()
         {
             string source = @"
@@ -391,9 +391,10 @@ public class C { }";
                     // Symbol diagnostics
                     Diagnostic("XX0001", "C").WithWarningAsError(true),
                     // Syntax diagnostics
-                    Diagnostic("XX0001", "using System;").WithWarningAsError(true),
-                    Diagnostic("XX0001", "[Obsolete]").WithWarningAsError(true),
-                    Diagnostic("XX0001", "C").WithWarningAsError(true));
+                    Diagnostic("XX0001", "using System;").WithWarningAsError(true), // using directive
+                    Diagnostic("XX0001", "Obsolete").WithWarningAsError(true), // attribute syntax
+                    Diagnostic("XX0001", @"[Obsolete]
+public class C { }").WithWarningAsError(true)); // class declaration
 
         }
 
