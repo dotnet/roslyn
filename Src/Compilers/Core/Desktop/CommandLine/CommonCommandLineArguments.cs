@@ -163,12 +163,12 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<CommandLineSourceFile> SourceFiles { get; internal set; }
 
         /// <summary>
-        /// Fule path of a log of file paths accessed by the compiler, or null if file logging should be suppressed.
+        /// Full path of a log of file paths accessed by the compiler, or null if file logging should be suppressed.
         /// </summary>
         /// <remarks>
         /// Two log files will be created: 
         /// One with path <see cref="TouchedFilesPath"/> and extension ".read" logging the files read,
-        /// and second with path <see cref="TouchedFilesPath"/> and extension ".write" logging the files written to  during compilation.
+        /// and second with path <see cref="TouchedFilesPath"/> and extension ".write" logging the files written to during compilation.
         /// </remarks>
         public string TouchedFilesPath { get; internal set; }
 
