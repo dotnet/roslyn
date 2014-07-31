@@ -424,6 +424,16 @@ Public MustInherit Class BasicTestBaseBase
                                          errorCodeType:=GetType(ERRID))
     End Function
 
+    Friend Shared Function AnalyzerDiagnostic(code As String, squiggledText As XCData, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
+        'Additional Overload taking XCData which needs to call NormalizeDiagnosticString to ensure that differences in end of line characters are normalized
+        Return New DiagnosticDescription(code:=code,
+                                         squiggledText:=NormalizeDiagnosticString(squiggledText.Value),
+                                         arguments:=arguments,
+                                         startLocation:=startLocation,
+                                         syntaxNodePredicate:=DirectCast(syntaxNodePredicate, Func(Of SyntaxNode, Boolean)),
+                                         argumentOrderDoesNotMatter:=argumentOrderDoesNotMatter,
+                                         errorCodeType:=GetType(ERRID))
+    End Function
     Friend Shared Function Diagnostic(code As ERRID, squiggledText As XCData, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
         'Additional Overload taking XCData which needs to call NormalizeDiagnosticString to ensure that differences in end of line characters are normalized
         Return New DiagnosticDescription(code:=CType(code, Integer),

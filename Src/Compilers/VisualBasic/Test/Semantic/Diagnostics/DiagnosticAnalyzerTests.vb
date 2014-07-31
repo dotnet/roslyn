@@ -389,5 +389,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Assert.True(PartiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
         End Sub
 
+        Class ModuleStatementAnalyzer
+            Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
+
+            Public Shared desc1 As New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+                Get
+                    Return ImmutableArray.Create(desc1)
+                End Get
+            End Property
+
+            Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
+                Get
+                    Return ImmutableArray.Create(SyntaxKind.ModuleStatement)
+                End Get
+            End Property
+
+            Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
+                Dim moduleStatement = DirectCast(node, ModuleStatementSyntax)
+                addDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, node.GetLocation))
+            End Sub
+        End Class
+
+        <Fact>
+        Sub TestModuleStatementSyntaxAnalyzer()
+            Dim analyzer = New ModuleStatementAnalyzer()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Public Module ThisModule
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({analyzer},
+                                           AnalyzerDiagnostic("XX001", <![CDATA[Public Module ThisModule]]>))
+        End Sub
     End Class
 End Namespace
