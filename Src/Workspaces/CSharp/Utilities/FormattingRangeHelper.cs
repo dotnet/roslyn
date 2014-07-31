@@ -121,9 +121,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 (parent is DelegateDeclarationSyntax) ||
                 (parent is FieldDeclarationSyntax) ||
                 (parent is EventFieldDeclarationSyntax) ||
-                (parent is AccessorDeclarationSyntax) ||
                 (parent is MethodDeclarationSyntax))
             {
+                return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
+            }
+
+            if (parent is AccessorDeclarationSyntax)
+            {
+                // if both accessors are on the same line, format the accessor list
+                // { get; set; }
+                var propertyDeclaration = GetEnclosingMember(endToken) as PropertyDeclarationSyntax;
+                if (propertyDeclaration != null &&
+                    AreTwoTokensOnSameLine(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken))
+                {
+                    return ValueTuple.Create(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
+                }
+
+                // otherwise, just format the accessor
                 return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
             }
 
