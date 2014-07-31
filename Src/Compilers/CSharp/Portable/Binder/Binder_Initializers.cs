@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     Binder scriptClassBinder = binderFactory.GetBinder(initializerNode);
-                    Debug.Assert(scriptClassBinder.IsScriptClass);
+                    Debug.Assert(((ImplicitNamedTypeSymbol)scriptClassBinder.ContainingMemberOrLambda).IsScriptClass);
 
                     if (generateDebugInfo && firstDebugImports == null)
                     {

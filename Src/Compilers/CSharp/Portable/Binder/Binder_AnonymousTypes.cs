@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.NamedType:
                     //  allow usage of anonymous types in script classes
-                    return this.IsScriptClass;
+                    return ((NamedTypeSymbol)member).IsScriptClass;
             }
 
             return false;

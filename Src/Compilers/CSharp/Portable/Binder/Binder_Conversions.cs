@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (WasImplicitReceiver(receiverOpt))
             {
-                if (InFieldInitializer && !IsScriptClass || InConstructorInitializer || InAttributeArgument)
+                if (InFieldInitializer && !ContainingType.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                 {
                     CSharpSyntaxNode errorNode = node;
                     if (node.Parent != null && node.Parent.Kind == SyntaxKind.InvocationExpression)
@@ -480,8 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If we could access the member thru implicit "this" the receiver would be a BoundThisReference.
                 // If it is null it means that the instance member is inaccessible.
-                SymbolKind kind;
-                if (receiverOpt == null || !this.IsInstanceMemberContext(out kind))
+                if (receiverOpt == null || ContainingMember().IsStatic)
                 {
                     Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, memberSymbol);
                     return true;

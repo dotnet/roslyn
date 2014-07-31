@@ -110,26 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool IsInstanceMemberContext(out SymbolKind kind)
-        {
-            kind = this.container.Kind;
-            return !this.container.IsStatic;
-        }
-
-        internal override bool IsScriptClass
-        {
-            get
-            {
-                var type = this.container as NamedTypeSymbol;
-                return ((object)type != null) && type.IsScriptClass;
-            }
-        }
-
-        internal override NamedTypeSymbol ThisType
-        {
-            get { return this.container as NamedTypeSymbol; }
-        }
-
         internal override bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
         {
             var type = container as NamedTypeSymbol;

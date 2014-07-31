@@ -119,7 +119,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)CurrentClass != null)
             {
                 Debug.Assert((object)TopLevelMethod == null || TopLevelMethod.ContainingType == CurrentClass);
-                Debug.Assert((object)CurrentMethod == null || CurrentMethod.ContainingType == CurrentClass);
+
+                // In EE scenarios, lambdas are considered to be contained by the user-defined methods,
+                // rather than the EE-defined methods for which we are generating bound nodes.  This is
+                // because the containing symbols are used to determine the type of the "this" parameter,
+                // which we need to the user-defined types.
+                Debug.Assert((object)CurrentMethod == null || 
+                    CurrentMethod.MethodKind == MethodKind.AnonymousFunction || 
+                    CurrentMethod.ContainingType == CurrentClass);
             }
         }
 

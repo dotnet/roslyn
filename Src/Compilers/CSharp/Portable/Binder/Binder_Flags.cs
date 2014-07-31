@@ -31,17 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get { return this.containingMemberOrLambda; }
             }
-
-            internal override bool IsInstanceMemberContext(out SymbolKind kind)
-            {
-                kind = this.containingMemberOrLambda.Kind;
-                // Skip lambdas.
-                if ((kind == SymbolKind.Method) && ((MethodSymbol)this.containingMemberOrLambda).MethodKind == MethodKind.LambdaMethod)
-                {
-                    return base.IsInstanceMemberContext(out kind);
-                }
-                return !this.containingMemberOrLambda.IsStatic;
-            }
         }
 
         /// <summary>

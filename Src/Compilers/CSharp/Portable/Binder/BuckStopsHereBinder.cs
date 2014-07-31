@@ -123,21 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override NamedTypeSymbol ThisType
-        {
-            get { return null; }
-        }
-
-        internal override bool IsScriptClass
-        {
-            get { return false; }
-        }
-
-        internal override bool IsInstanceMemberContext(out SymbolKind kind)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
         internal override Binder GetBinder(CSharpSyntaxNode node)
         {
             return null;

@@ -88,12 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool IsInstanceMemberContext(out SymbolKind kind)
-        {
-            kind = SymbolKind.Method;
-            return !this.methodSymbol.IsStatic;
-        }
-
         internal void MakeIterator()
         {
             if (this.iteratorInfo == null)
