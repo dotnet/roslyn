@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -143,7 +144,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ' MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
             Dim nameBinding = context.SemanticModel.GetSymbolInfo(node.Left, cancellationToken)
             Dim symbol = TryCast(nameBinding.Symbol, INamespaceOrTypeSymbol)
-            If symbol Is Nothing Then
+            Dim couldBeMergedNamepsace = CouldBeMergedNamespace(nameBinding)
+            If symbol Is Nothing AndAlso Not couldBeMergedNamepsace Then
                 Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
             End If
 
@@ -151,8 +153,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
             End If
 
-            Dim symbols = context.SemanticModel _
+            Dim symbols As IEnumerable(Of ISymbol)
+            If couldBeMergedNamepsace Then
+                symbols = nameBinding.CandidateSymbols.OfType(Of INamespaceSymbol)() _
+                    .SelectMany(Function(n) context.SemanticModel.LookupNamespacesAndTypes(node.SpanStart, n))
+            Else
+                symbols = context.SemanticModel _
                 .LookupNamespacesAndTypes(position:=node.SpanStart, container:=symbol)
+            End If
 
             Dim implementsStatement = TryCast(node.Parent, ImplementsStatementSyntax)
             If implementsStatement IsNot Nothing Then
@@ -206,7 +214,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 container = TryCast(leftHandBinding.Symbol.GetSymbolType(), INamespaceOrTypeSymbol)
             End If
 
+            Dim couldBeMergedNamespace = False
+
             If leftHandBinding.Symbol IsNot Nothing Then
+
                 Dim firstSymbol = leftHandBinding.Symbol
 
                 Select Case firstSymbol.Kind
@@ -239,10 +250,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     excludeShared = False ' need to allow shared members for enums
                 End If
 
-            ElseIf container IsNot Nothing Then
-                ' In this case, we don't have any options to set because both instance and shared members
-                ' can be called on instances in VB.
             Else
+                couldBeMergedNamespace = VisualBasicRecommendationService.CouldBeMergedNamespace(leftHandBinding)
+            End If
+
+            If container Is Nothing AndAlso Not couldBeMergedNamespace Then
                 Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
             End If
 
@@ -250,13 +262,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Debug.Assert(Not excludeInstance OrElse Not useBaseReferenceAccessibility)
 
             Dim position = node.SpanStart
-            Dim symbols = If(
-                useBaseReferenceAccessibility,
-                context.SemanticModel.LookupBaseMembers(position),
-                If(
-                    excludeInstance,
-                    context.SemanticModel.LookupStaticMembers(position, container),
-                    context.SemanticModel.LookupSymbols(position, container, includeReducedExtensionMethods:=True))).AsEnumerable()
+            Dim symbols As IEnumerable(Of ISymbol)
+            If couldBeMergedNamespace Then
+                symbols = leftHandBinding.CandidateSymbols.OfType(Of INamespaceSymbol) _
+                                                            .SelectMany(Function(n) LookupSymbolsInContainer(n, context.SemanticModel, position, excludeInstance))
+            Else
+                symbols = If(
+                    useBaseReferenceAccessibility,
+                    context.SemanticModel.LookupBaseMembers(position),
+                    LookupSymbolsInContainer(container, context.SemanticModel, position, excludeInstance)).AsEnumerable()
+            End If
 
             If excludeShared Then
                 symbols = symbols.Where(Function(s) Not s.IsShared)
@@ -287,6 +302,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             symbols = symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(node, s))
 
             Return symbols
+        End Function
+
+        Private Shared Function CouldBeMergedNamespace(leftHandBinding As SymbolInfo) As Boolean
+            Return leftHandBinding.CandidateSymbols.Any() AndAlso leftHandBinding.CandidateSymbols.All(Function(s) s.IsNamespace())
+        End Function
+
+        Private Function LookupSymbolsInContainer(container As INamespaceOrTypeSymbol, semanticModel As SemanticModel, position As Integer, excludeInstance As Boolean) As ImmutableArray(Of ISymbol)
+            Return If(
+                    excludeInstance,
+                    semanticModel.LookupStaticMembers(position, container),
+                    semanticModel.LookupSymbols(position, container, includeReducedExtensionMethods:=True))
         End Function
 
         ''' <summary>
