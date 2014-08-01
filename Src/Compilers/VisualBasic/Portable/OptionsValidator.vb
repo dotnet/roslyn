@@ -74,12 +74,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: consider calling Syntax.ParseName and analyze the result (reject () or 
             ' type characters instead of reimplementing a lot of logic in IsValidRootNamespaceComponent.
 
-            For Each nsName In name.Split("."c)
-                If Not IsValidRootNamespaceComponent(nsName, allowEscaping:=True) Then
+            ' PERF: Avoid allocations from String.Split
+            Dim start As Integer = 0
+            Do
+                Dim index = name.IndexOf("."c, start)
+                If Not IsValidRootNamespaceComponent(name, start, If(index < 0, name.Length, index), allowEscaping:=True) Then
                     ' ERRID.ERR_BadNamespaceName1
                     Return False
                 End If
-            Next
+                If index < 0 Then Exit Do
+                start = index + 1
+            Loop
 
             Return True
         End Function
@@ -88,36 +93,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Check if a string is a valid component of the root namespace. We use the usual
         ''' VB identifier rules, but don't check for keywords (this is the same as previous versions).
         ''' </summary>
-        Private Function IsValidRootNamespaceComponent(name As String, allowEscaping As Boolean) As Boolean
+        Private Function IsValidRootNamespaceComponent(name As String, start As Integer, [end] As Integer, allowEscaping As Boolean) As Boolean
             Debug.Assert(name IsNot Nothing)
 
-            Dim nameLength = name.Length
             ' Empty string is not valid.
-            If nameLength = 0 Then
+            If start = [end] Then
                 Return False
             End If
 
-            Dim firstIdentifierCharacterIndex As Integer = 0
-            Dim lastIdentifierCharacterIndex As Integer = nameLength - 1
+            Dim lastIdentifierCharacterIndex As Integer = [end] - 1
 
-            If SyntaxFacts.ReturnFullWidthOrSelf(name(0)) = SyntaxFacts.FULLWIDTH_LBR AndAlso allowEscaping Then
+            If allowEscaping AndAlso SyntaxFacts.ReturnFullWidthOrSelf(name(start)) = SyntaxFacts.FULLWIDTH_LBR Then
                 If SyntaxFacts.ReturnFullWidthOrSelf(name(lastIdentifierCharacterIndex)) <> SyntaxFacts.FULLWIDTH_RBR Then
                     Return False
                 End If
 
-                Return IsValidRootNamespaceComponent(name.Substring(1, nameLength - 2), allowEscaping:=False)
+                Return IsValidRootNamespaceComponent(name, start + 1, lastIdentifierCharacterIndex, allowEscaping:=False)
             End If
 
-            If Not SyntaxFacts.IsIdentifierStartCharacter(name(firstIdentifierCharacterIndex)) Then
+            If Not SyntaxFacts.IsIdentifierStartCharacter(name(start)) Then
                 Return False
             End If
 
             ' an identifier starting with an underscore must at least consist of two characters
-            If SyntaxFacts.ReturnFullWidthOrSelf(name(firstIdentifierCharacterIndex)) = SyntaxFacts.FULLWIDTH_LC AndAlso nameLength = 1 Then
+            If ([end] - start) = 1 AndAlso SyntaxFacts.ReturnFullWidthOrSelf(name(start)) = SyntaxFacts.FULLWIDTH_LC Then
                 Return False
             End If
 
-            For i = firstIdentifierCharacterIndex + 1 To lastIdentifierCharacterIndex
+            For i = start + 1 To lastIdentifierCharacterIndex
                 If Not SyntaxFacts.IsIdentifierPartCharacter(name(i)) Then
                     Return False
                 End If
