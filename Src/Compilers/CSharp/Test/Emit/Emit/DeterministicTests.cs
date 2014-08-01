@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Xunit;
@@ -97,6 +98,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             var result6 = GetBytesEmitted(source, platform: Platform.X64, debug: DebugInformationKind.None, deterministic: false);
             Assert.NotEqual(result5, result6, comparer);
             Assert.NotEqual(result3, result5, comparer);
+        }
+
+        [Fact]
+        public void TestWriteOnlyStream()
+        {
+            var tree = CSharpSyntaxTree.ParseText("class Program { static void Main() { } }");
+            var compilation = CSharpCompilation.Create("Program",
+                                                       new[] { tree },
+                                                       new[] { new MetadataFileReference(typeof(object).Assembly.Location) },
+                                                       new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithFeatures((new[] { "deterministic" }).AsImmutable()));
+            var output = new WriteOnlyStream();
+            compilation.Emit(output);
+        }
+
+        class WriteOnlyStream : Stream
+        {
+            int length = 0;
+            public override bool CanRead { get { return false; } }
+            public override bool CanSeek { get { return false; } }
+            public override bool CanWrite { get { return true; } }
+            public override long Length { get { return length; } }
+            public override long Position
+            {
+                get { return length; }
+                set { throw new NotSupportedException(); }
+            }
+            public override void Flush() { }
+            public override int Read(byte[] buffer, int offset, int count) { throw new NotSupportedException(); }
+            public override long Seek(long offset, SeekOrigin origin) { throw new NotSupportedException(); }
+            public override void SetLength(long value) { throw new NotSupportedException(); }
+            public override void Write(byte[] buffer, int offset, int count) { length += count; }
         }
     }
 }
