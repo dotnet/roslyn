@@ -41,6 +41,7 @@ namespace Roslyn.Test.MetadataUtilities
         public MetadataVisualizer(MetadataReader reader, TextWriter writer)
             : this(writer, new[] { reader })
         {
+            this.reader = reader;
         }
 
         public MetadataVisualizer(IReadOnlyList<MetadataReader> readers, TextWriter writer)
@@ -241,9 +242,16 @@ namespace Roslyn.Test.MetadataUtilities
 
         private TEntity Get<TEntity>(Handle handle, Func<MetadataReader, Handle, TEntity> getter)
         {
-            int generation;
-            var generationHandle = aggregator.GetGenerationHandle(handle, out generation);
-            return getter(readers[generation], generationHandle);
+            if (aggregator != null)
+            {
+                int generation;
+                var generationHandle = aggregator.GetGenerationHandle(handle, out generation);
+                return getter(readers[generation], generationHandle);
+            }
+            else
+            {
+                return getter(this.reader, handle);
+            }
         }
 
         private string Literal(StringHandle handle)
