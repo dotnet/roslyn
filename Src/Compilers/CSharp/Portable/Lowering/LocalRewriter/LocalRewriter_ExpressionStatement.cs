@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DynamicInvocation:
                     // TODO (tomat): circumvents logic in VisitExpression...
                     return VisitDynamicInvocation((BoundDynamicInvocation)expression, resultDiscarded: true);
+
+                case BoundKind.ConditionalAccess:
+                    return VisitConditionalAccess((BoundConditionalAccess)expression, used: false);
             }
             return VisitExpression(expression);
         }

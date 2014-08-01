@@ -41,6 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     builder.EmitOpCode(ILOpCode.Dup);
                     break;
 
+                case BoundKind.ConditionalReceiver:
+                    // do nothing receiver ref must be already pushed
+                    break;
+
                 case BoundKind.Parameter:
                     EmitParameterAddress((BoundParameter)expression);
                     break;
@@ -398,7 +402,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     EmitExpression(receiver, used: true);
-                    EmitBox(receiver.Type, receiver.Syntax);
+                    // conditional receivers are already boxed if needed when pushed
+                    if (receiver.Kind != BoundKind.ConditionalReceiver)
+                    {
+                        EmitBox(receiver.Type, receiver.Syntax);
+                    }
                     return null;
                 }
             }

@@ -3867,6 +3867,9 @@
   <data name="ERR_UnexpectedBoundGenericName" xml:space="preserve">
     <value>Type arguments are not allowed in the nameof operator.</value>
   </data>
+  <data name="ERR_NullPropagatingOpInExpressionTree" xml:space="preserve">
+    <value>An expression tree lambda may not contain a null propagating operator.</value>
+  </data>
   <data name="IDS_FeatureNameof" xml:space="preserve">
     <value>nameof operator</value>
   </data>

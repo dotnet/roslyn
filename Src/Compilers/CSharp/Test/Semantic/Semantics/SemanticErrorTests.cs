@@ -22014,27 +22014,46 @@ class Program
         }
 
         [Fact]
-        [WorkItem(976765, "DevDiv")]
-        public void ConditionalMemberAccessUnconstrained()
+        [WorkItem(991490, "DevDiv")]
+        public void ConditionalMemberAccessExprLambda()
         {
             var text = @"
+using System;
+using System.Linq.Expressions;
+
 class Program
 {
     static void M<T>(T x)
     {
-        var s = x?.ToString();
-    }
- 
+        Expression<Func<string>> s = () => x?.ToString();
+        Expression<Func<char?>> c = () => x.ToString()?[0];
+        Expression<Func<int?>> c1 = () => x.ToString()?.Length;
+
+        Expression<Func<int?>> c2 = () => x?.ToString()?.Length;
+}
+
     static void Main()
     {
-        M("""");
+        M((string)null);
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text, compOptions: TestOptions.UnsafeExe).VerifyDiagnostics(
-    // (6,18): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //         var s = x?.ToString();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(6, 18)
+            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, compOptions: TestOptions.UnsafeExe).VerifyDiagnostics(
+    // (9,44): error CS8072: An expression tree lambda may not contain a null propagating operator.
+    //         Expression<Func<string>> s = () => x?.ToString();
+    Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x?.ToString()").WithLocation(9, 44),
+    // (10,43): error CS8072: An expression tree lambda may not contain a null propagating operator.
+    //         Expression<Func<char?>> c = () => x.ToString()?[0];
+    Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x.ToString()?[0]").WithLocation(10, 43),
+    // (11,43): error CS8072: An expression tree lambda may not contain a null propagating operator.
+    //         Expression<Func<int?>> c1 = () => x.ToString()?.Length;
+    Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x.ToString()?.Length").WithLocation(11, 43),
+    // (13,43): error CS8072: An expression tree lambda may not contain a null propagating operator.
+    //         Expression<Func<int?>> c2 = () => x?.ToString()?.Length;
+    Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x?.ToString()?.Length").WithLocation(13, 43),
+    // (13,43): error CS8072: An expression tree lambda may not contain a null propagating operator.
+    //         Expression<Func<int?>> c2 = () => x?.ToString()?.Length;
+    Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x?.ToString()").WithLocation(13, 43)
                );
         }
 

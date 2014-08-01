@@ -6335,6 +6335,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a null propagating operator..
+        /// </summary>
+        internal static string ERR_NullPropagatingOpInExpressionTree {
+            get {
+                return ResourceManager.GetString("ERR_NullPropagatingOpInExpressionTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; has no base class and cannot call a base constructor.
         /// </summary>
         internal static string ERR_ObjectCallingBaseConstructor {

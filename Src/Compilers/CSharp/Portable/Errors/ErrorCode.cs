@@ -1297,6 +1297,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // a specific nameof error
         ERR_UnexpectedBoundGenericName = 8071,
 
+        ERR_NullPropagatingOpInExpressionTree = 8072,
+
         // Values in the range 10000-10099 are used for "Code Analysis" issues previously reported by FXCop
         WRN_CA2000_DisposeObjectsBeforeLosingScope1 = 10000,
         WRN_CA2000_DisposeObjectsBeforeLosingScope2 = 10001,

@@ -603,9 +603,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return factory.ArrayAccess(boundTempArray, boundTempIndices);
         }
 
-        private static bool NeedsTemp(BoundExpression expression, bool localsMayBeAssigned = true)
+        /// <summary>
+        /// Values local to current frame do not need temps when accessed multiple times
+        /// as long as there is no code that may write to locals in between accesses.
+        /// Example:
+        ///        l += foo(ref l);
+        /// 
+        /// even though l is a local, we must access it via a temp since "foo(ref l)" may change it
+        /// on between accesses. 
+        /// </summary>
+        internal static bool NeedsTemp(BoundExpression expression, bool localsMayBeAssigned = true)
         {
-            //TODO: we don't need a temp if expression is a local or a parameter AND it's not written to on the RHS
             switch (expression.Kind)
             {
                 case BoundKind.ThisReference:
@@ -616,9 +624,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // don't allocate a temp for simple integral primitive types:
                     return (object)expression.Type != null && !expression.Type.SpecialType.IsClrInteger();
 
-                case BoundKind.Local:
                 case BoundKind.Parameter:
-                    return localsMayBeAssigned;
+                    return localsMayBeAssigned || ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
+
+                case BoundKind.Local:
+                    return localsMayBeAssigned || ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;
 
                 default:
                     return true;

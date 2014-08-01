@@ -963,23 +963,22 @@ public class C
             var comp = CompileAndVerify(source, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
-  // Code size       38 (0x26)
+  // Code size       37 (0x25)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  brtrue.s   IL_0008
-  IL_0004:  pop
-  IL_0005:  ldnull
-  IL_0006:  br.s       IL_0017
-  IL_0008:  callvirt   ""string object.ToString()""
-  IL_000d:  callvirt   ""string object.ToString()""
-  IL_0012:  callvirt   ""string object.ToString()""
-  IL_0017:  dup
-  IL_0018:  brtrue.s   IL_0020
-  IL_001a:  pop
-  IL_001b:  ldstr      ""NULL""
-  IL_0020:  call       ""void System.Console.Write(string)""
-  IL_0025:  ret
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldnull
+  IL_0004:  br.s       IL_0016
+  IL_0006:  ldarg.0
+  IL_0007:  callvirt   ""string object.ToString()""
+  IL_000c:  callvirt   ""string object.ToString()""
+  IL_0011:  callvirt   ""string object.ToString()""
+  IL_0016:  dup
+  IL_0017:  brtrue.s   IL_001f
+  IL_0019:  pop
+  IL_001a:  ldstr      ""NULL""
+  IL_001f:  call       ""void System.Console.Write(string)""
+  IL_0024:  ret
 }
 ");
         }
@@ -1013,23 +1012,22 @@ public static class C
             var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
-  // Code size       38 (0x26)
+  // Code size       37 (0x25)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  brtrue.s   IL_0008
-  IL_0004:  pop
-  IL_0005:  ldnull
-  IL_0006:  br.s       IL_0017
-  IL_0008:  call       ""string C.ToStr(object)""
-  IL_000d:  call       ""string C.ToStr(object)""
-  IL_0012:  call       ""string C.ToStr(object)""
-  IL_0017:  dup
-  IL_0018:  brtrue.s   IL_0020
-  IL_001a:  pop
-  IL_001b:  ldstr      ""NULL""
-  IL_0020:  call       ""void System.Console.Write(string)""
-  IL_0025:  ret
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldnull
+  IL_0004:  br.s       IL_0016
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""string C.ToStr(object)""
+  IL_000c:  call       ""string C.ToStr(object)""
+  IL_0011:  call       ""string C.ToStr(object)""
+  IL_0016:  dup
+  IL_0017:  brtrue.s   IL_001f
+  IL_0019:  pop
+  IL_001a:  ldstr      ""NULL""
+  IL_001f:  call       ""void System.Console.Write(string)""
+  IL_0024:  ret
 }
 ");
         }
@@ -1674,29 +1672,27 @@ class Program
 System.Exception");
             comp.VerifyIL("Program.M<T>", @"
 {
-  // Code size       57 (0x39)
+  // Code size       47 (0x2f)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  box        ""T""
+  IL_0001:  box        ""T""
+  IL_0006:  dup
   IL_0007:  brtrue.s   IL_000d
   IL_0009:  pop
   IL_000a:  ldnull
-  IL_000b:  br.s       IL_0017
-  IL_000d:  box        ""T""
-  IL_0012:  callvirt   ""string object.ToString()""
-  IL_0017:  call       ""void System.Console.WriteLine(object)""
-  IL_001c:  ldarg.0
+  IL_000b:  br.s       IL_0012
+  IL_000d:  callvirt   ""string object.ToString()""
+  IL_0012:  call       ""void System.Console.WriteLine(object)""
+  IL_0017:  ldarg.0
+  IL_0018:  box        ""T""
   IL_001d:  dup
-  IL_001e:  box        ""T""
-  IL_0023:  brtrue.s   IL_0029
-  IL_0025:  pop
-  IL_0026:  ldnull
-  IL_0027:  br.s       IL_0033
-  IL_0029:  box        ""T""
-  IL_002e:  callvirt   ""System.Type System.Exception.GetType()""
-  IL_0033:  call       ""void System.Console.WriteLine(object)""
-  IL_0038:  ret
+  IL_001e:  brtrue.s   IL_0024
+  IL_0020:  pop
+  IL_0021:  ldnull
+  IL_0022:  br.s       IL_0029
+  IL_0024:  callvirt   ""System.Type System.Exception.GetType()""
+  IL_0029:  call       ""void System.Console.WriteLine(object)""
+  IL_002e:  ret
 }
 ");
 
@@ -1748,29 +1744,23 @@ print1
 print2");
             comp.VerifyIL("Program.M(Program.C1)", @"
 {
-  // Code size       38 (0x26)
-  .maxstack  2
+  // Code size       30 (0x1e)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  brtrue.s   IL_0007
-  IL_0004:  pop
-  IL_0005:  br.s       IL_000c
-  IL_0007:  callvirt   ""void Program.C1.Print0()""
+  IL_0001:  brfalse.s  IL_0009
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""void Program.C1.Print0()""
+  IL_0009:  ldarg.0
+  IL_000a:  brfalse.s  IL_0013
   IL_000c:  ldarg.0
-  IL_000d:  dup
-  IL_000e:  brtrue.s   IL_0013
-  IL_0010:  pop
-  IL_0011:  br.s       IL_0019
-  IL_0013:  callvirt   ""int Program.C1.Print1()""
-  IL_0018:  pop
-  IL_0019:  ldarg.0
-  IL_001a:  dup
-  IL_001b:  brtrue.s   IL_001f
-  IL_001d:  pop
-  IL_001e:  ret
-  IL_001f:  callvirt   ""object Program.C1.Print2()""
-  IL_0024:  pop
-  IL_0025:  ret
+  IL_000d:  callvirt   ""int Program.C1.Print1()""
+  IL_0012:  pop
+  IL_0013:  ldarg.0
+  IL_0014:  brfalse.s  IL_001d
+  IL_0016:  ldarg.0
+  IL_0017:  callvirt   ""object Program.C1.Print2()""
+  IL_001c:  pop
+  IL_001d:  ret
 }
 ");
         }
@@ -1981,6 +1971,1030 @@ class Program
             var comp = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
 print1
 print2");
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessUnConstrained()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    class C1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    struct S1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1 c = new C1();
+        Test(ref c, ref c);
+
+        S1 s = new S1();
+        Test(ref s, ref s);
+    }
+
+    static void Test<T>(ref T x, ref T y) where T : IDisposable
+    {
+        x?.Dispose();
+        y?.Dispose();
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"False
+True
+False
+True");
+            comp.VerifyIL("Program.Test<T>(ref T, ref T)", @"
+{
+  // Code size       94 (0x5e)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0024
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.0
+  IL_001a:  box        ""T""
+  IL_001f:  brtrue.s   IL_0024
+  IL_0021:  pop
+  IL_0022:  br.s       IL_002f
+  IL_0024:  constrained. ""T""
+  IL_002a:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_002f:  ldarg.1
+  IL_0030:  ldloca.s   V_0
+  IL_0032:  initobj    ""T""
+  IL_0038:  ldloc.0
+  IL_0039:  box        ""T""
+  IL_003e:  brtrue.s   IL_0052
+  IL_0040:  ldobj      ""T""
+  IL_0045:  stloc.0
+  IL_0046:  ldloca.s   V_0
+  IL_0048:  ldloc.0
+  IL_0049:  box        ""T""
+  IL_004e:  brtrue.s   IL_0052
+  IL_0050:  pop
+  IL_0051:  ret
+  IL_0052:  constrained. ""T""
+  IL_0058:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_005d:  ret
+}");
+
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessUnConstrained1()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    class C1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    struct S1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var c = new C1[] {new C1()};
+        Test(c, c);
+
+        var s = new S1[] {new S1()};
+        Test(s, s);
+    }
+
+    static void Test<T>(T[] x, T[] y) where T : IDisposable
+    {
+        x[0]?.Dispose();
+        y[0]?.Dispose();
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"False
+True
+False
+True");
+            comp.VerifyIL("Program.Test<T>(T[], T[])", @"
+{
+  // Code size      110 (0x6e)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  initobj    ""T""
+  IL_0011:  ldloc.0
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_002c
+  IL_0019:  ldobj      ""T""
+  IL_001e:  stloc.0
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldloc.0
+  IL_0022:  box        ""T""
+  IL_0027:  brtrue.s   IL_002c
+  IL_0029:  pop
+  IL_002a:  br.s       IL_0037
+  IL_002c:  constrained. ""T""
+  IL_0032:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0037:  ldarg.1
+  IL_0038:  ldc.i4.0
+  IL_0039:  readonly.
+  IL_003b:  ldelema    ""T""
+  IL_0040:  ldloca.s   V_0
+  IL_0042:  initobj    ""T""
+  IL_0048:  ldloc.0
+  IL_0049:  box        ""T""
+  IL_004e:  brtrue.s   IL_0062
+  IL_0050:  ldobj      ""T""
+  IL_0055:  stloc.0
+  IL_0056:  ldloca.s   V_0
+  IL_0058:  ldloc.0
+  IL_0059:  box        ""T""
+  IL_005e:  brtrue.s   IL_0062
+  IL_0060:  pop
+  IL_0061:  ret
+  IL_0062:  constrained. ""T""
+  IL_0068:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_006d:  ret
+}
+");
+
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessConstrained1()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    class C1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    struct S1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var c = new C1[] {new C1()};
+        Test(c, c);
+    }
+
+    static void Test<T>(T[] x, T[] y) where T : class, IDisposable
+    {
+        x[0]?.Dispose();
+        y[0]?.Dispose();
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"False
+True
+");
+            comp.VerifyIL("Program.Test<T>(T[], T[])", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem     ""T""
+  IL_0007:  box        ""T""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0012
+  IL_000f:  pop
+  IL_0010:  br.s       IL_0017
+  IL_0012:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0017:  ldarg.1
+  IL_0018:  ldc.i4.0
+  IL_0019:  ldelem     ""T""
+  IL_001e:  box        ""T""
+  IL_0023:  dup
+  IL_0024:  brtrue.s   IL_0028
+  IL_0026:  pop
+  IL_0027:  ret
+  IL_0028:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_002d:  ret
+}
+");
+
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessUnConstrainedVal()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    class C1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    struct S1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1 c = new C1();
+        Test(c);
+
+        S1 s = new S1();
+        Test(s);
+    }
+
+    static void Test<T>(T x) where T : IDisposable
+    {
+        x?.Dispose();
+        x?.Dispose();
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"False
+True
+False
+True");
+            comp.VerifyIL("Program.Test<T>(T)", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_0015
+  IL_0008:  ldarga.s   V_0
+  IL_000a:  constrained. ""T""
+  IL_0010:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0015:  ldarg.0
+  IL_0016:  box        ""T""
+  IL_001b:  brfalse.s  IL_002a
+  IL_001d:  ldarga.s   V_0
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_002a:  ret
+}
+");
+
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessUnConstrainedVal001()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    class C1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    struct S1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1 c = new C1();
+        Test(() => c);
+
+        S1 s = new S1();
+        Test(() => s);
+    }
+
+    static void Test<T>(Func<T> x) where T : IDisposable
+    {
+        x()?.Dispose();
+        x()?.Dispose();
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"False
+True
+False
+False");
+            comp.VerifyIL("Program.Test<T>(System.Func<T>)", @"
+{
+  // Code size      110 (0x6e)
+  .maxstack  2
+  .locals init (T V_0,
+                T V_1,
+                T V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""T System.Func<T>.Invoke()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    ""T""
+  IL_0011:  ldloc.1
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_002c
+  IL_0019:  ldobj      ""T""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        ""T""
+  IL_0027:  brtrue.s   IL_002c
+  IL_0029:  pop
+  IL_002a:  br.s       IL_0037
+  IL_002c:  constrained. ""T""
+  IL_0032:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0037:  ldarg.0
+  IL_0038:  callvirt   ""T System.Func<T>.Invoke()""
+  IL_003d:  stloc.1
+  IL_003e:  ldloca.s   V_1
+  IL_0040:  ldloca.s   V_2
+  IL_0042:  initobj    ""T""
+  IL_0048:  ldloc.2
+  IL_0049:  box        ""T""
+  IL_004e:  brtrue.s   IL_0062
+  IL_0050:  ldobj      ""T""
+  IL_0055:  stloc.2
+  IL_0056:  ldloca.s   V_2
+  IL_0058:  ldloc.2
+  IL_0059:  box        ""T""
+  IL_005e:  brtrue.s   IL_0062
+  IL_0060:  pop
+  IL_0061:  ret
+  IL_0062:  constrained. ""T""
+  IL_0068:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_006d:  ret
+}
+");
+
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessConstrainedVal001()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    class C1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    struct S1 : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1 c = new C1();
+        Test(() => c);
+    }
+
+    static void Test<T>(Func<T> x) where T : class, IDisposable
+    {
+        x()?.Dispose();
+        x()?.Dispose();
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"False
+True");
+            comp.VerifyIL("Program.Test<T>(System.Func<T>)", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""T System.Func<T>.Invoke()""
+  IL_0006:  box        ""T""
+  IL_000b:  dup
+  IL_000c:  brtrue.s   IL_0011
+  IL_000e:  pop
+  IL_000f:  br.s       IL_0016
+  IL_0011:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0016:  ldarg.0
+  IL_0017:  callvirt   ""T System.Func<T>.Invoke()""
+  IL_001c:  box        ""T""
+  IL_0021:  dup
+  IL_0022:  brtrue.s   IL_0026
+  IL_0024:  pop
+  IL_0025:  ret
+  IL_0026:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_002b:  ret
+}
+");
+
+        }
+
+
+        [Fact]
+        public void ConditionalMemberAccessUnConstrainedDyn()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    interface IDisposable1
+    {
+        void Dispose(int i);
+    }
+
+    class C1 : IDisposable1
+    {
+        private bool disposed;
+
+        public void Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    struct S1 : IDisposable1
+    {
+        private bool disposed;
+
+        public void Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1 c = new C1();
+        Test(ref c, ref c);
+
+        S1 s = new S1();
+        Test(ref s, ref s);
+    }
+
+    static void Test<T>(ref T x, ref T y) where T : IDisposable1
+    {
+        dynamic d = 1;
+        x?.Dispose(d);
+        y?.Dispose(d);
+    }
+}
+";
+            var comp = CompileAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }, expectedOutput: @"False
+True
+False
+False");
+
+            }
+
+        [Fact]
+        public void ConditionalMemberAccessUnConstrainedDynVal()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    interface IDisposable1
+    {
+        void Dispose(int i);
+    }
+
+    class C1 : IDisposable1
+    {
+        private bool disposed;
+
+        public void Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    struct S1 : IDisposable1
+    {
+        private bool disposed;
+
+        public void Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1 c = new C1();
+        Test(c, c);
+
+        S1 s = new S1();
+        Test(s, s);
+    }
+
+    static void Test<T>(T x, T y) where T : IDisposable1
+    {
+        dynamic d = 1;
+        x?.Dispose(d);
+        y?.Dispose(d);
+    }
+}
+";
+            var comp = CompileAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }, expectedOutput: @"False
+True
+False
+False");
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessUnConstrainedAsync()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    interface IDisposable1
+    {
+        void Dispose(int i);
+    }
+
+    class C1 : IDisposable1
+    {
+        private bool disposed;
+
+        public void Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    struct S1 : IDisposable1
+    {
+        private bool disposed;
+
+        public void Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1[] c = new C1[] { new C1() };
+        Test(c, c).Wait();
+
+        S1[] s = new S1[] { new S1() };
+        Test(s, s).Wait();
+    }
+
+    static async Task<int> Val()
+    {
+        await Task.Yield();
+        return 0;
+    }
+
+    static async Task<int> Test<T>(T[] x, T[] y) where T : IDisposable1
+    {
+        x[0]?.Dispose(await Val());
+        y[0]?.Dispose(await Val());
+        return 1;
+    }
+}";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.Exe);
+            var comp = CompileAndVerify(c, expectedOutput: @"False
+True
+False
+True");
+
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessUnConstrainedAsyncVal()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    interface IDisposable1
+    {
+        int Dispose(int i);
+    }
+
+    class C1 : IDisposable1
+    {
+        private bool disposed;
+
+        public int Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+            return 1;
+        }
+    }
+
+    struct S1 : IDisposable1
+    {
+        private bool disposed;
+
+        public int Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+            return 1;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1 c = new C1();
+        Test(c, c).Wait();
+
+        S1 s = new S1();
+        Test(s, s).Wait();
+    }
+
+    static async Task<int> Val()
+    {
+        await Task.Yield();
+        return 0;
+    }
+
+    static async Task<int> Test<T>(T x, T y) where T : IDisposable1
+    {
+        x?.Dispose(await Val());
+        y?.Dispose(await Val());
+        return 1;
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.Exe);
+            var comp = CompileAndVerify(c, expectedOutput: @"False
+True
+False
+False");
+
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessUnConstrainedAsyncNested()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    interface IDisposable1
+    {
+        IDisposable1 Dispose(int i);
+    }
+
+    class C1 : IDisposable1
+    {
+        private bool disposed;
+
+        public IDisposable1 Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed ^= true;
+            return this;
+        }
+    }
+
+    struct S1 : IDisposable1
+    {
+        private bool disposed;
+
+        public IDisposable1 Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed ^= true;
+            return this;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1[] c = new C1[] { new C1() };
+        Test(c, c).Wait();
+
+        System.Console.WriteLine();
+
+        S1[] s = new S1[] { new S1() };
+        Test(s, s).Wait();
+    }
+
+    static async Task<int> Val()
+    {
+        await Task.Yield();
+        return 0;
+    }
+
+    static async Task<int> Test<T>(T[] x, T[] y) where T : IDisposable1
+    {
+        x[0]?.Dispose(await Val())?.Dispose(await Val())?.Dispose(await Val())?.Dispose(await Val());
+        y[0]?.Dispose(await Val())?.Dispose(await Val())?.Dispose(await Val())?.Dispose(await Val());
+        return 1;
+    }
+}";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.Exe);
+            var comp = CompileAndVerify(c, expectedOutput: @"False
+True
+False
+True
+False
+True
+False
+True
+
+False
+True
+False
+True
+True
+False
+True
+False");
+
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessUnConstrainedAsyncNestedArr()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    interface IDisposable1
+    {
+        IDisposable1[] Dispose(int i);
+    }
+
+    class C1 : IDisposable1
+    {
+        private bool disposed;
+
+        public IDisposable1[] Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed ^= true;
+            return new IDisposable1[] { this };
+        }
+    }
+
+    struct S1 : IDisposable1
+    {
+        private bool disposed;
+
+        public IDisposable1[] Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed ^= true;
+            return new IDisposable1[]{this};
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1[] c = new C1[] { new C1() };
+        Test(c, c).Wait();
+
+        System.Console.WriteLine();
+
+        S1[] s = new S1[] { new S1() };
+        Test(s, s).Wait();
+    }
+
+    static async Task<int> Val()
+    {
+        await Task.Yield();
+        return 0;
+    }
+
+    static async Task<int> Test<T>(T[] x, T[] y) where T : IDisposable1
+    {
+        x[0]?.Dispose(await Val())[0]?.Dispose(await Val())[0]?.Dispose(await Val())[0]?.Dispose(await Val());
+        y[0]?.Dispose(await Val())[0]?.Dispose(await Val())[0]?.Dispose(await Val())[0]?.Dispose(await Val());
+        return 1;
+    }
+}";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.Exe);
+            var comp = CompileAndVerify(c, expectedOutput: @"False
+True
+False
+True
+False
+True
+False
+True
+
+False
+True
+False
+True
+True
+False
+True
+False");
+
+        }
+
+        [Fact]
+        public void ConditionalMemberAccessUnConstrainedAsyncSuperNested()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    interface IDisposable1
+    {
+        Task<int> Dispose(int i);
+    }
+
+    class C1 : IDisposable1
+    {
+        private bool disposed;
+
+        public Task<int> Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed ^= true;
+            return Task.FromResult(i);
+        }
+    }
+
+    struct S1 : IDisposable1
+    {
+        private bool disposed;
+
+        public Task<int> Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed ^= true;
+            return Task.FromResult(i);
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1[] c = new C1[] { new C1() };
+        Test(c, c).Wait();
+
+        System.Console.WriteLine();
+
+        S1[] s = new S1[] { new S1() };
+        Test(s, s).Wait();
+    }
+
+    static async Task<int> Val()
+    {
+        await Task.Yield();
+        return 0;
+    }
+
+    static async Task<int> Test<T>(T[] x, T[] y) where T : IDisposable1
+    {
+        x[0]?.Dispose(await x[0]?.Dispose(await x[0]?.Dispose(await x[0]?.Dispose(await Val()))));
+        y[0]?.Dispose(await y[0]?.Dispose(await y[0]?.Dispose(await y[0]?.Dispose(await Val()))));
+        return 1;
+    }
+}";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.Exe);
+            var comp = CompileAndVerify(c, expectedOutput: @"False
+True
+False
+True
+False
+True
+False
+True
+
+False
+True
+False
+True
+False
+True
+False
+True");
+
         }
 
     }

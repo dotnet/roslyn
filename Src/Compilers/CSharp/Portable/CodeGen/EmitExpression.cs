@@ -37,7 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (expression.Kind)
             {
                 case BoundKind.AssignmentOperator:
-                    EmitAssignmentExpression((BoundAssignmentOperator)expression, used);
+                    var assignment = (BoundAssignmentOperator)expression;
+                    EmitAssignmentExpression(assignment, used);
+                    if (used && assignment.RefKind != RefKind.None)
+                    {
+                        EmitLoadIndirect(assignment.Type, assignment.Syntax);
+                    }
                     break;
 
                 case BoundKind.Call:
@@ -235,41 +240,117 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            EmitExpression(receiver, used: true);
+            var receiverType = receiver.Type;
+            Debug.Assert(!receiverType.IsValueType, "conditional receiver cannot be a struct");
 
             var receiverConstant = receiver.ConstantValue;
             if (receiverConstant != null)
             {
                 // const but not default
+                EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
                 EmitExpression(expression.AccessExpression, used);
                 return;
             }
 
-            builder.EmitOpCode(ILOpCode.Dup);
+            // labels
+            object whenNotNullLabel = new object();
+            object doneLabel = new object();
+            LocalDefinition temp = null;
 
-            if (!receiver.Type.IsVerifierReference())
+            // we need a copy if we deal with nonlocal value (to capture the value)
+            // or if we have a ref-constrained T (to do box just once)
+            var nullCheckOnCopy = LocalRewriter.NeedsTemp(receiver, localsMayBeAssigned: false) ||
+                                   (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ;
+
+            if (nullCheckOnCopy)
             {
-                EmitBox(receiver.Type, receiver.Syntax);
+                EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
+                if (!receiverType.IsReferenceType)
+                {
+                    // unconstrained case needs to handle case where T is actually a struct.
+                    // such values are never nulls
+                    // we will emit a check for such case, but the check is realy a JIT-time 
+                    // constant since JIT will know if T is a struct or not.
+
+                    // if ((object)default(T) != null) 
+                    // {
+                    //     goto whenNotNull
+                    // }
+                    // else
+                    // {
+                    //     temp = receiverRef
+                    //     receiverRef = ref temp
+                    // }
+                    EmitDefaultValue(receiverType, true, receiver.Syntax);
+                    EmitBox(receiverType, receiver.Syntax);
+                    builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
+                    EmitLoadIndirect(receiverType, receiver.Syntax);
+
+                    temp = AllocateTemp(receiverType, receiver.Syntax);
+                    builder.EmitLocalStore(temp);
+                    builder.EmitLocalAddress(temp);
+                    builder.EmitLocalLoad(temp);
+                    EmitBox(receiver.Type, receiver.Syntax);
+
+                    // here we have loaded a ref to a temp and its boxed value { &T, O }
+                }
+                else
+                {
+                    builder.EmitOpCode(ILOpCode.Dup);
+                    // here we have loaded two copies of a reference   { O, O }
+                }
+            }
+            else
+            {
+                EmitExpression(receiver, true);
+                if (!receiverType.IsReferenceType)
+                {
+                    EmitBox(receiverType, receiver.Syntax);
+                }
+                // here we have loaded just { O }
+                // we have the most trivial case where we can just reload O when needed
             }
 
-            object whenNotNull = new object();
-            object done = new object();
+            builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
 
-            builder.EmitBranch(ILOpCode.Brtrue, whenNotNull);
-
-            builder.EmitOpCode(ILOpCode.Pop);
-            EmitDefaultValue(expression.Type, used, expression.Syntax);
-            builder.EmitBranch(ILOpCode.Br, done);
-
-            if(!used)
+            if (nullCheckOnCopy)
             {
-                // when unused, notNull branch just pops the reciever off the stack
-                // but in whenNotNull branch we still have it
+                builder.EmitOpCode(ILOpCode.Pop);
+            }
+
+            EmitDefaultValue(expression.Type, used, expression.Syntax);
+            builder.EmitBranch(ILOpCode.Br, doneLabel);
+
+            if (nullCheckOnCopy)
+            {
+                // notNull branch pops copy of receiver off the stack when nullCheckOnCopy
+                // however on the isNull branch we still have the stack as it was and need 
+                // to adjust stack depth correspondingly.
                 builder.AdjustStack(+1);
             }
-            builder.MarkLabel(whenNotNull);
+
+            if (used)
+            {
+                // notNull branch pushes default on the stack when used
+                // however on the isNull branch we still have the stack as it was and need 
+                // to adjust stack depth correspondingly.
+                builder.AdjustStack(-1);
+            }
+
+            builder.MarkLabel(whenNotNullLabel);
+
+            if (!nullCheckOnCopy)
+            {
+                EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
+            }
+
             EmitExpression(expression.AccessExpression, used);
-            builder.MarkLabel(done);
+            builder.MarkLabel(doneLabel);
+
+            if (temp != null)
+            {
+                FreeTemp(temp);
+            }
         }
 
         private void EmitConditionalReceiver(BoundConditionalReceiver expression, bool used)
@@ -1450,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                if (!used && 
+                if (!used &&
                     expression.Constructor.OriginalDefinition == module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor))
                 {
                     // creating nullable has no sideeffects, so we will just evaluate the arg
@@ -2227,7 +2308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitDefaultValue(TypeSymbol type, bool used, CSharpSyntaxNode syntaxNode)
         {
-            if(used)
+            if (used)
             {
                 var constantValue = type.GetDefaultValue();
                 if (constantValue != null)

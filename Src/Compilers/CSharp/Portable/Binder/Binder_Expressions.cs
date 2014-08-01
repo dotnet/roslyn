@@ -7694,13 +7694,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(receiverSyntax, receiver);
             }
 
-            // receiver cannot have unconstrained generic type
-            if (!receiverType.IsReferenceType && !receiverType.IsValueType)
-            {
-                Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiverType);
-                return BadExpression(receiverSyntax, receiver);
-            }
-
             // No member accesses on void
             if (receiverType.SpecialType == SpecialType.System_Void)
             {

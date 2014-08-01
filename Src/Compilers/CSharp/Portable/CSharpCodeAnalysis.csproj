@@ -402,6 +402,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_BreakStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Call.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_CompoundAssignmentOperator.cs" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_ConditionalAccess.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ConditionalOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ContinueStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Conversion.cs" />
