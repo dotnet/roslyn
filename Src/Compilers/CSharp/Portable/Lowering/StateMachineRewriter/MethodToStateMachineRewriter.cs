@@ -254,9 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<SynthesizedFieldSymbolBase> frees;
                 if (freeTempsMap.TryGetValue(local, out frees))
                 {
-                    // TODO: consider tightening this assert:
-                    // Debug.Assert(local.SynthesizedLocalKind.IsLongLived() && local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass ||
-                    //              local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpilledTemp);
+                    Debug.Assert(local.SynthesizedLocalKind.IsLongLived() && local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
 
                     Debug.Assert(local.SynthesizedLocalKind != SynthesizedLocalKind.None &&
                                  local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
@@ -321,9 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private SynthesizedFieldSymbolBase MakeHoistedTemp(LocalSymbol local, TypeSymbol type)
         {
-            // TODO: consider tightening this assert:
-            // Debug.Assert(local.SynthesizedLocalKind.IsLongLived() && local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass ||
-            //              local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpilledTemp);
+            Debug.Assert(local.SynthesizedLocalKind.IsLongLived() && local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
 
             Debug.Assert(local.SynthesizedLocalKind != SynthesizedLocalKind.None &&
                          local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
@@ -381,7 +377,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
             bool needsSacrificialEvaluation = false;
             var replacement = HoistExpression(local, right, true, sideEffects, ref needsSacrificialEvaluation);
+
+            Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpill);
             proxies.Add(local, new CapturedToExpressionSymbolReplacement(replacement));
+
             if (needsSacrificialEvaluation)
             {
                 var type = TypeMap.SubstituteType(local.Type);
@@ -515,17 +514,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitAssignmentOperator(node);
             }
 
-            // user-declared variables are preassigned their proxies, and value temps
+            // User-declared variables are preassigned their proxies, and by-value synthesized variables
             // are assigned proxies at the beginning of their scope by the enclosing construct.
-            // Here we handle ref temps.  Ref temps are the target of a ref assignment operator before
+            // Here we handle ref temps. By-ref synthesized variables are the target of a ref assignment operator before
             // being used in any other way.
-            Debug.Assert(
-                local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpilledTemp ||
-                local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
 
+            Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpill);
             Debug.Assert(node.RefKind != RefKind.None);
 
-            // we have an assignment to a variable that has not yet been assigned a proxy.
+            // We have an assignment to a variable that has not yet been assigned a proxy.
             // So we assign the proxy before translating the assignment.
             return HoistRefInitialization(local, node);
         }

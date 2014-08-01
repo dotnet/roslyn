@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
             var typeKind = compilationState.Compilation.Options.EnableEditAndContinue ? TypeKind.Class : TypeKind.Struct;
 
-            var bodyWithAwaitLifted = AwaitLiftingRewriter.Rewrite(body, method, compilationState, diagnostics);
+            var bodyWithAwaitLifted = AwaitExpressionSpiller.Rewrite(body, method, compilationState, diagnostics);
 
             stateMachineType = new AsyncStateMachine(method, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);

@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SynthesizedFieldSymbolBase field;
 
+        public CapturedToFrameSymbolReplacement(SynthesizedFieldSymbolBase field)
+        {
+            this.field = field;
+        }
+
         internal override SynthesizedFieldSymbolBase HoistedField
         {
             get { return field; }
@@ -34,11 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var frame = makeFrame(this.field.ContainingType);
             var field = this.field.AsMember((NamedTypeSymbol)frame.Type);
             return new BoundFieldAccess(node, frame, field, default(ConstantValue));
-        }
-
-        public CapturedToFrameSymbolReplacement(SynthesizedFieldSymbolBase field)
-        {
-            this.field = field;
         }
     }
 

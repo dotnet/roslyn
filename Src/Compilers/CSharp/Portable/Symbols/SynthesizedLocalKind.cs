@@ -26,13 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal enum SynthesizedLocalKind : short
     {
         /// <summary>
-        /// Local that stores an expression value which needs to be spilled.
-        /// This local should either be hoisted or its lifespan ends before 
-        /// the end of the containing await expression.
-        /// </summary>
-        AwaitSpilledTemp = -4,
-
-        /// <summary>
         /// Temp variable created by the optimizer.
         /// </summary>
         OptimizerTemp = -3,
@@ -118,7 +111,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Very special corner case involving filters, await and lambdas.
         /// </summary>
-        ExceptionFilterAwaitHoistedExceptionLocal = 529
+        ExceptionFilterAwaitHoistedExceptionLocal = 529,
+
+        /// <summary>
+        /// Local that stores an expression value which needs to be spilled.
+        /// This local should either be hoisted or its lifespan ends before 
+        /// the end of the containing await expression.
+        /// </summary>
+        AwaitSpill = 530,
     }
 
     internal static class SynthesizedLocalKindExtensions

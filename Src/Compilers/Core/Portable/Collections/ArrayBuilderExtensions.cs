@@ -33,21 +33,81 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        public static ImmutableArray<U> SelectAsArray<T, U>(this ArrayBuilder<T> builder, Func<T, U> map)
+        /// <summary>
+        /// Maps an array builder to immutable array.
+        /// </summary>
+        /// <typeparam name="TItem"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="items">The array to map</param>
+        /// <param name="map">The mapping delegate</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array</returns>
+        public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this ArrayBuilder<TItem> items, Func<TItem, TResult> map)
         {
-            int n = builder.Count;
-            if (n == 0)
+            switch (items.Count)
             {
-                return ImmutableArray<U>.Empty;
+                case 0:
+                    return ImmutableArray<TResult>.Empty;
+
+                case 1:
+                    return ImmutableArray.Create(map(items[0]));
+
+                case 2:
+                    return ImmutableArray.Create(map(items[0]), map(items[1]));
+
+                case 3:
+                    return ImmutableArray.Create(map(items[0]), map(items[1]), map(items[2]));
+
+                case 4:
+                    return ImmutableArray.Create(map(items[0]), map(items[1]), map(items[2]), map(items[3]));
+
+                default:
+                    var builder = ArrayBuilder<TResult>.GetInstance(items.Count);
+                    foreach (var item in items)
+                    {
+                        builder.Add(map(item));
+                    }
+
+                    return builder.ToImmutableAndFree();
             }
-            else
+        }
+
+        /// <summary>
+        /// Maps an array builder to immutable array.
+        /// </summary>
+        /// <typeparam name="TItem"></typeparam>
+        /// <typeparam name="TArg"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="items">The sequence to map</param>
+        /// <param name="map">The mapping delegate</param>
+        /// <param name="arg">The extra input used by mapping delegate</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectAsArray<TItem, TArg, TResult>(this ArrayBuilder<TItem> items, Func<TItem, TArg, TResult> map, TArg arg)
+        {
+            switch (items.Count)
             {
-                var result = new U[n];
-                for (int i = 0; i < n; i++)
-                {
-                    result[i] = map(builder[i]);
-                }
-                return result.AsImmutableOrNull();
+                case 0:
+                    return ImmutableArray<TResult>.Empty;
+
+                case 1:
+                    return ImmutableArray.Create(map(items[0], arg));
+
+                case 2:
+                    return ImmutableArray.Create(map(items[0], arg), map(items[1], arg));
+
+                case 3:
+                    return ImmutableArray.Create(map(items[0], arg), map(items[1], arg), map(items[2], arg));
+
+                case 4:
+                    return ImmutableArray.Create(map(items[0], arg), map(items[1], arg), map(items[2], arg), map(items[3], arg));
+
+                default:
+                    var builder = ArrayBuilder<TResult>.GetInstance(items.Count);
+                    foreach (var item in items)
+                    {
+                        builder.Add(map(item, arg));
+                    }
+
+                    return builder.ToImmutableAndFree();
             }
         }
 

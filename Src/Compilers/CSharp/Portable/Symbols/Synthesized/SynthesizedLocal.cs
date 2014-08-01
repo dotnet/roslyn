@@ -2,6 +2,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -11,29 +13,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed class SynthesizedLocal : LocalSymbol
     {
-        private readonly MethodSymbol containingMethod;
+        private readonly MethodSymbol containingMethodOpt;
         private readonly TypeSymbol type;
-        private readonly CSharpSyntaxNode syntax;
+        private readonly SynthesizedLocalKind kind;
+        private readonly CSharpSyntaxNode syntaxOpt;
         private readonly bool isPinned;
         private readonly RefKind refKind;
-        private readonly SynthesizedLocalKind kind;
 
+#if DEBUG
+        private readonly int createdAtLineNumber;
+        private readonly string createdAtFilePath;
+        
         internal SynthesizedLocal(
-            MethodSymbol containingMethod,
+            MethodSymbol containingMethodOpt,
             TypeSymbol type,
             SynthesizedLocalKind kind,
-            CSharpSyntaxNode syntax = null,
+            CSharpSyntaxNode syntaxOpt = null,
+            bool isPinned = false,
+            RefKind refKind = RefKind.None, 
+            [CallerLineNumber]int createdAtLineNumber = 0, 
+            [CallerFilePath]string createdAtFilePath = null)
+        {
+            Debug.Assert(type.SpecialType != SpecialType.System_Void);
+
+            this.containingMethodOpt = containingMethodOpt;
+            this.type = type;
+            this.kind = kind;
+            this.syntaxOpt = syntaxOpt;
+            this.isPinned = isPinned;
+            this.refKind = refKind;
+
+            this.createdAtLineNumber = createdAtLineNumber;
+            this.createdAtFilePath = createdAtFilePath;
+        }
+#else
+        internal SynthesizedLocal(
+            MethodSymbol containingMethodOpt,
+            TypeSymbol type,
+            SynthesizedLocalKind kind,
+            CSharpSyntaxNode syntaxOpt = null,
             bool isPinned = false,
             RefKind refKind = RefKind.None)
         {
-            this.containingMethod = containingMethod;
-            Debug.Assert(type.SpecialType != SpecialType.System_Void);
-
+            this.containingMethodOpt = containingMethodOpt;
             this.type = type;
-            this.syntax = syntax;
+            this.kind = kind;
+            this.syntaxOpt = syntaxOpt;
             this.isPinned = isPinned;
             this.refKind = refKind;
-            this.kind = kind;
+        }
+#endif
+
+        internal SynthesizedLocal WithSynthesizedLocalKind(SynthesizedLocalKind kind)
+        {
+            return new SynthesizedLocal(
+                this.containingMethodOpt,
+                this.type,
+                kind,
+                this.syntaxOpt,
+                this.isPinned, 
+                this.refKind);
         }
 
         internal override RefKind RefKind
@@ -58,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol
         {
-            get { return this.containingMethod; }
+            get { return this.containingMethodOpt; }
         }
 
         public override string Name
@@ -73,12 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Location> Locations
         {
-            get { return (this.syntax == null) ? ImmutableArray<Location>.Empty : ImmutableArray.Create(this.syntax.GetLocation()); }
+            get { return (this.syntaxOpt == null) ? ImmutableArray<Location>.Empty : ImmutableArray.Create(this.syntaxOpt.GetLocation()); }
         }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
-            get { return (this.syntax == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create(this.syntax.GetReference()); }
+            get { return (this.syntaxOpt == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create(this.syntaxOpt.GetReference()); }
         }
 
         public override bool IsImplicitlyDeclared
@@ -108,9 +147,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private new string GetDebuggerDisplay()
         {
-            return string.Format("{0} {1}",
-                this.kind == SynthesizedLocalKind.None ? "<temp>" : this.kind.ToString(), 
-                this.type.ToDisplayString(SymbolDisplayFormat.TestFormat));
+            var builder = new StringBuilder();
+            builder.Append((this.kind == SynthesizedLocalKind.None) ? "<temp>" : this.kind.ToString());
+            builder.Append(' ');
+            builder.Append(this.type.ToDisplayString(SymbolDisplayFormat.TestFormat));
+
+#if DEBUG
+            builder.Append(" @");
+            builder.Append(createdAtFilePath);
+            builder.Append('(');
+            builder.Append(createdAtLineNumber);
+            builder.Append(')');
+#endif
+
+            return builder.ToString();
         }
     }
 }

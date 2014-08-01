@@ -129,6 +129,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>If the items's length is 0, this will return an empty immutable array</returns>
         public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this ImmutableArray<TItem> items, Func<TItem, TResult> map)
         {
+            // Should be in immutable collections. See bug 913524.
+
             switch (items.Length)
             {
                 case 0:
@@ -136,6 +138,15 @@ namespace Microsoft.CodeAnalysis
 
                 case 1:
                     return ImmutableArray.Create(map(items[0]));
+
+                case 2:
+                    return ImmutableArray.Create(map(items[0]), map(items[1]));
+
+                case 3:
+                    return ImmutableArray.Create(map(items[0]), map(items[1]), map(items[2]));
+
+                case 4:
+                    return ImmutableArray.Create(map(items[0]), map(items[1]), map(items[2]), map(items[3]));
 
                 default:
                     var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
@@ -160,13 +171,24 @@ namespace Microsoft.CodeAnalysis
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
         public static ImmutableArray<TResult> SelectAsArray<TItem, TArg, TResult>(this ImmutableArray<TItem> items, Func<TItem, TArg, TResult> map, TArg arg)
         {
-            switch (items.Length)
+            // Should be in immutable collections. See bug 913524.
+          
+              switch (items.Length)
             {
                 case 0:
                     return ImmutableArray<TResult>.Empty;
 
                 case 1:
                     return ImmutableArray.Create(map(items[0], arg));
+
+                case 2:
+                    return ImmutableArray.Create(map(items[0], arg), map(items[1], arg));
+
+                case 3:
+                    return ImmutableArray.Create(map(items[0], arg), map(items[1], arg), map(items[2], arg));
+
+                case 4:
+                    return ImmutableArray.Create(map(items[0], arg), map(items[1], arg), map(items[2], arg), map(items[3], arg));
 
                 default:
                     var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
@@ -191,6 +213,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
         public static ImmutableArray<TResult> SelectAsArray<TItem, TArg, TResult>(this ImmutableArray<TItem> items, Func<TItem, int, TArg, TResult> map, TArg arg)
         {
+            // Should be in immutable collections. See bug 913524.
+            
             switch (items.Length)
             {
                 case 0:
@@ -198,6 +222,15 @@ namespace Microsoft.CodeAnalysis
 
                 case 1:
                     return ImmutableArray.Create(map(items[0], 0, arg));
+
+                case 2:
+                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg));
+
+                case 3:
+                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg));
+
+                case 4:
+                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg), map(items[3], 3, arg));
 
                 default:
                     var builder = ArrayBuilder<TResult>.GetInstance(items.Length);

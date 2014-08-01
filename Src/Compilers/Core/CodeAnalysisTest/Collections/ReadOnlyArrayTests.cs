@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -357,6 +358,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.True(a.SequenceEqual(a.SelectAsArray((item, index, arg) => item, 1)));
             Assert.True(c.SequenceEqual(a.SelectAsArray((item, index, arg) => arg, 2)));
             Assert.True(b.SequenceEqual(a.SelectAsArray((item, index, arg) => index, 3)));
+
+            AssertEx.Equal(new[] { 10 }, ImmutableArray.Create(1).SelectAsArray(i => 10 * i));
+            AssertEx.Equal(new[] { 10, 20 }, ImmutableArray.Create(1, 2).SelectAsArray(i => 10 * i));
+            AssertEx.Equal(new[] { 10, 20, 30 }, ImmutableArray.Create(1, 2, 3).SelectAsArray(i => 10 * i));
+            AssertEx.Equal(new[] { 10, 20, 30, 40 }, ImmutableArray.Create(1, 2, 3, 4).SelectAsArray(i => 10 * i));
+            AssertEx.Equal(new[] { 10, 20, 30, 40, 50 }, ImmutableArray.Create(1, 2, 3, 4, 5).SelectAsArray(i => 10 * i));
         }
 
         [Fact]

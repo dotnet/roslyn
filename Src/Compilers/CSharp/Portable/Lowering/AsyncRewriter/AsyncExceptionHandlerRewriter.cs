@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnValue = this.returnValue;
                     if (returnValue == null)
                     {
-                        this.returnValue = returnValue = new SynthesizedLocal(containingMethod, valueOpt.Type, SynthesizedLocalKind.LoweringTemp);
+                        this.returnValue = returnValue = new SynthesizedLocal(containingMethod, valueOpt.Type, SynthesizedLocalKind.AsyncMethodReturnValue);
                     }
                 }
 
