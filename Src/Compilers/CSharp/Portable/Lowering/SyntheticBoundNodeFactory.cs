@@ -1043,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var local = new BoundLocal(
                 syntax,
-                new SynthesizedLocal(containingMethod, type, kind, syntax: kind.IsLongLived() ? syntax : null, refKind: refKind),
+                new SynthesizedLocal(containingMethod, type, kind, syntax: (kind.IsLongLived() || kind == SynthesizedLocalKind.AwaitSpilledTemp) ? syntax : null, refKind: refKind),
                 null,
                 type);
 

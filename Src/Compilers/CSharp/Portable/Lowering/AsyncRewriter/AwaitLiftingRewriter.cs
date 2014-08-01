@@ -34,9 +34,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return (locals == null) ? ImmutableArray<LocalSymbol>.Empty : locals.ToImmutable();
                 }
             }
-            public void Add(LocalSymbol local)
+            public void Add(LocalSymbol local, DiagnosticBag diagnostics)
             {
                 if (locals == null) locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                if (diagnostics != null && local.Type.SpecialType == SpecialType.System_TypedReference)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0]);
+                }
                 locals.Add(local);
             }
 
@@ -78,16 +82,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (ss != null)
                 {
-                    AddRange(ss.Locals);
+                    AddRange(ss.Locals, null);
                     AddRange(ss.Statements);
                     ss.Free();
                 }
             }
 
-            internal void AddRange(ImmutableArray<LocalSymbol> locals)
+            internal void AddRange(ImmutableArray<LocalSymbol> locals, DiagnosticBag diagnostics)
             {
                 if (locals.IsDefaultOrEmpty) return;
-                foreach (var l in locals) this.Add(l);
+                foreach (var l in locals) this.Add(l, diagnostics);
             }
 
             internal void AddRange(ImmutableArray<BoundStatement> statements)
@@ -145,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator assignToTemp;
                 var replacement = F.StoreToTemp(awaitExpression, out assignToTemp, kind: SynthesizedLocalKind.AwaitSpilledTemp);
                 if (ss == null) ss = new BoundSpillSequence2();
-                ss.Add(replacement.LocalSymbol);
+                ss.Add(replacement.LocalSymbol, F.Diagnostics);
                 writeOnceTemps.Add(replacement.LocalSymbol);
                 F.Syntax = awaitExpression.Syntax;
                 ss.Add(F.ExpressionStatement(assignToTemp));
@@ -264,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.Sequence:
                         {
                             var ss = (BoundSequence)e;
-                            spill.AddRange(ss.Locals);
+                            spill.AddRange(ss.Locals, null);
                             spill.AddRange(ss.SideEffects, MakeExpressionStatement);
                             e = ss.Value;
                             continue;
@@ -313,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             { 
                                 BoundAssignmentOperator assignToTemp;
                                 var replacement = F.StoreToTemp(e, out assignToTemp, refKind: refKind, kind: SynthesizedLocalKind.AwaitSpilledTemp);
-                                spill.Add(replacement.LocalSymbol);
+                                spill.Add(replacement.LocalSymbol, F.Diagnostics);
                                 writeOnceTemps.Add(replacement.LocalSymbol);
                                 spill.Add(F.ExpressionStatement(assignToTemp));
                                 return replacement;
@@ -579,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var tmp = F.SynthesizedLocal(node.Type);
-                ss1.Add(tmp);
+                ss1.Add(tmp, F.Diagnostics);
                 ss1.Add(
                     F.If(condition,
                         UpdateStatement(ss2, F.Assignment(F.Local(tmp), consequence)),
@@ -708,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ss1 == null) ss1 = new BoundSpillSequence2(); // possible if sideEffects is empty
             ss1.AddRange(sideEffects, MakeExpressionStatement);
-            ss1.AddRange(node.Locals);
+            ss1.AddRange(node.Locals, F.Diagnostics);
             ss1.IncludeSequence(ss2);
             return ss1.Update(value);
         }

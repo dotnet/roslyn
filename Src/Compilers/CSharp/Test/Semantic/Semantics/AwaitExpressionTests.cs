@@ -126,5 +126,28 @@ class Driver
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await f").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(17, 13)
                 );
         }
+
+        [Fact]
+        [WorkItem(576316, "DevDiv")]
+        public void Bug576316()
+        {
+            var text =
+@"using System;
+using System.Threading.Tasks;
+ 
+class C
+{
+    static async Task Foo()
+    {
+        Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(text, compOptions: TestOptions.Dll);
+            comp.VerifyEmitDiagnostics(
+                // (8,27): error CS4007: 'await' cannot be used in an expression containing the type 'System.TypedReference'
+                //         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new TypedReference()").WithLocation(8, 27)
+                );
+        }
     }
 }

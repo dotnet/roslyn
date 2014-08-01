@@ -2195,6 +2195,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing the type &apos;System.TypedReference&apos;.
+        /// </summary>
+        internal static string ERR_ByRefTypeAndAwait {
+            get {
+                return ResourceManager.GetString("ERR_ByRefTypeAndAwait", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not directly call your base class Finalize method. It is called automatically from your destructor..
         /// </summary>
         internal static string ERR_CallingBaseFinalizeDeprecated {

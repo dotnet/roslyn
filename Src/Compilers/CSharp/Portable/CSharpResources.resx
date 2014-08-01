@@ -3024,6 +3024,9 @@
   <data name="ERR_VarargsAsync" xml:space="preserve">
     <value>__arglist is not allowed in the parameter list of async methods</value>
   </data>
+  <data name="ERR_ByRefTypeAndAwait" xml:space="preserve">
+    <value>'await' cannot be used in an expression containing the type 'System.TypedReference'</value>
+  </data>
   <data name="ERR_UnsafeAsyncArgType" xml:space="preserve">
     <value>Async methods cannot have unsafe parameters or return types</value>
   </data>
