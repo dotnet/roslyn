@@ -247,11 +247,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected SynthesizedImplementationMethod OpenMethodImplementation(
             MethodSymbol methodToImplement,
             string methodName = null,
-            bool debuggerHidden = false, 
+            bool debuggerHidden = false,
+            bool generateDebugInfo = true,
             bool hasMethodBodyDependency = false,
             MethodSymbol asyncKickoffMethod = null)
         {
-            var result = new SynthesizedStateMachineMethod(methodName, methodToImplement, F.CurrentClass, asyncKickoffMethod, null, debuggerHidden, hasMethodBodyDependency);
+            var result = new SynthesizedStateMachineMethod(methodName, methodToImplement, F.CurrentClass, asyncKickoffMethod, null, debuggerHidden, generateDebugInfo, hasMethodBodyDependency);
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentClass, result);
             F.CurrentMethod = result;
             return result;
@@ -270,6 +271,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             F.CurrentMethod = getter;
             return getter;
+        }
+
+        protected bool IsDebuggerHidden(MethodSymbol method)
+        {
+            var debuggerHiddenAttribute = this.compilationState.Compilation.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerHiddenAttribute);
+            foreach (var a in this.method.GetAttributes())
+            {
+                if (a.AttributeClass == debuggerHiddenAttribute) return true;
+            }
+
+            return false;
         }
     }
 }

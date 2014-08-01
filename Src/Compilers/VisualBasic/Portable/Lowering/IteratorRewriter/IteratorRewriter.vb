@@ -144,9 +144,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              Accessibility.Private,
                                                              False)
 
+            Dim debuggerHidden = IsDebuggerHidden(Me.Method)
+            Dim moveNextAttrs As DebugAttributes = DebugAttributes.CompilerGeneratedAttribute
+            If debuggerHidden Then moveNextAttrs = moveNextAttrs Or DebugAttributes.DebuggerHiddenAttribute
             Dim moveNextMethod = Me.StartMethodImplementation(SpecialMember.System_Collections_IEnumerator__MoveNext,
                                                              "MoveNext",
-                                                             DebugAttributes.CompilerGeneratedAttribute,
+                                                             moveNextAttrs,
                                                              Accessibility.Private,
                                                              True)
 

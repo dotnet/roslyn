@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var IAsyncStateMachine_SetStateMachine = F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine);
 
             // Add IAsyncStateMachine.MoveNext()
-            
-            var moveNextMethod = OpenMethodImplementation(IAsyncStateMachine_MoveNext, "MoveNext", asyncKickoffMethod: this.method, hasMethodBodyDependency: true);
+
+            var moveNextMethod = OpenMethodImplementation(IAsyncStateMachine_MoveNext, "MoveNext", asyncKickoffMethod: this.method, hasMethodBodyDependency: true, debuggerHidden: IsDebuggerHidden(this.method), generateDebugInfo: true);
             GenerateMoveNext(moveNextMethod);
 
             // Add IAsyncStateMachine.SetStateMachine()
             
-            OpenMethodImplementation(IAsyncStateMachine_SetStateMachine, "SetStateMachine", debuggerHidden: true, hasMethodBodyDependency: false);
+            OpenMethodImplementation(IAsyncStateMachine_SetStateMachine, "SetStateMachine", debuggerHidden: true, generateDebugInfo: false, hasMethodBodyDependency: false);
 
             // SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
             // If the state machine is a class there is no copy made and thus the initialization is not necessary. 

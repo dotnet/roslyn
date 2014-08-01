@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 asyncKickoffMethod: null,
                 associatedProperty: this,
                 debuggerHidden: debuggerHidden,
+                generateDebugInfo: !debuggerHidden,
                 hasMethodBodyDependency: hasMethodBodyDependency);
         }
 

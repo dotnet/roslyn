@@ -410,5 +410,69 @@ End Class
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
+        <Fact, WorkItem(667579, "DevDiv")>
+        Public Sub DebuggerHiddenIterator()
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports System.Collections.Generic
+Imports System.Diagnostics
+Module Module1
+
+    Sub Main()
+        For Each i In Foo
+            Console.Write(i)
+        Next
+    End Sub
+
+    &lt;DebuggerHidden&gt;
+    Iterator Function Foo() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+                    source,
+                    OptionsExe.WithOptimizations(False))
+
+            Dim actual = PDBTests.GetPdbXml(compilation, "Module1+VB$StateMachine_1_Foo.MoveNext")
+
+            Dim expected =
+<symbols>
+    <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
+    <methods>
+        <method containingType="Module1+VB$StateMachine_1_Foo" name="MoveNext" parameterNames="">
+            <sequencepoints total="6">
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x2c" start_row="12" start_column="5" end_row="13" end_column="55" file_ref="0"/>
+                <entry il_offset="0x2d" start_row="13" start_column="5" end_row="13" end_column="55" file_ref="0"/>
+                <entry il_offset="0x2e" start_row="14" start_column="9" end_row="14" end_column="16" file_ref="0"/>
+                <entry il_offset="0x49" start_row="15" start_column="9" end_row="15" end_column="16" file_ref="0"/>
+                <entry il_offset="0x64" start_row="16" start_column="5" end_row="16" end_column="17" file_ref="0"/>
+            </sequencepoints>
+            <locals>
+                <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x66" attributes="1"/>
+                <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x66" attributes="1"/>
+                <local name="MoveNext" il_index="2" il_start="0x2d" il_end="0x65" attributes="0"/>
+            </locals>
+            <scope startOffset="0x0" endOffset="0x66">
+                <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
+                <local name="VB$returnTemp" il_index="0" il_start="0x0" il_end="0x66" attributes="1"/>
+                <local name="VB$cachedState" il_index="1" il_start="0x0" il_end="0x66" attributes="1"/>
+                <scope startOffset="0x2d" endOffset="0x65">
+                    <local name="MoveNext" il_index="2" il_start="0x2d" il_end="0x65" attributes="0"/>
+                </scope>
+            </scope>
+        </method>
+    </methods>
+</symbols>
+            PDBTests.AssertXmlEqual(expected, actual)
+        End Sub
+
     End Class
 End Namespace

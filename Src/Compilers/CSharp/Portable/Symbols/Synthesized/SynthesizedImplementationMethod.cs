@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly MethodSymbol interfaceMethod;
         private readonly NamedTypeSymbol implementingType;
         private readonly bool debuggerHidden;
+        private readonly bool generateDebugInfo;
         private readonly PropertySymbol associatedProperty;
         private readonly MethodSymbol asyncKickoffMethod;
 
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol implementingType,
             string name = null,
             bool debuggerHidden = false,
+            bool generateDebugInfo = true,
             PropertySymbol associatedProperty = null,
             MethodSymbol asyncKickoffMethod = null)
         {
@@ -39,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.interfaceMethod = interfaceMethod;
             this.implementingType = implementingType;
             this.debuggerHidden = debuggerHidden;
+            this.generateDebugInfo = generateDebugInfo;
             this.associatedProperty = associatedProperty;
             this.explicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(interfaceMethod);
             this.asyncKickoffMethod = asyncKickoffMethod;
@@ -100,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool GenerateDebugInfo
         {
-            get { return !debuggerHidden; }
+            get { return generateDebugInfo; }
         }
 
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters

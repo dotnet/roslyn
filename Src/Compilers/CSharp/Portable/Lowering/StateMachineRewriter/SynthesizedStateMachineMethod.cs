@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol asyncKickoffMethod,
             PropertySymbol associatedProperty,
             bool debuggerHidden,
+            bool generateDebugInfo,
             bool hasMethodBodyDependency)
-            : base(interfaceMethod, implementingType,  name, debuggerHidden, associatedProperty, asyncKickoffMethod)
+            : base(interfaceMethod, implementingType,  name, debuggerHidden, generateDebugInfo, associatedProperty, asyncKickoffMethod)
         {
             this.hasMethodBodyDependency = hasMethodBodyDependency;
         }

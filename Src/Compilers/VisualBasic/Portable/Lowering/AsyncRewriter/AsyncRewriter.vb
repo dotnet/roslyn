@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        asyncKind As AsyncMethodKind,
                        compilationState As TypeCompilationState,
                        diagnostics As DiagnosticBag,
-                       generateDebugInfo As boolean)
+                       generateDebugInfo As Boolean)
 
             MyBase.New(body, method, compilationState, diagnostics, generateDebugInfo)
 
@@ -62,10 +62,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Shared Function CreateAsyncStateMachine(method As MethodSymbol,
-                                                       typeIndex As Integer,
+                                                                 typeIndex As Integer,
                                                        typeKind As TypeKind,
-                                                       valueTypeSymbol As NamedTypeSymbol,
-                                                       iAsyncStateMachine As NamedTypeSymbol) As NamedTypeSymbol
+                                                                 valueTypeSymbol As NamedTypeSymbol,
+                                                                 iAsyncStateMachine As NamedTypeSymbol) As NamedTypeSymbol
 
             Return New AsyncStateMachine(method, typeIndex, typeKind, valueTypeSymbol, iAsyncStateMachine)
         End Function
@@ -133,14 +133,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  method As MethodSymbol,
                                                  compilationState As TypeCompilationState,
                                                  diagnostics As DiagnosticBag,
-                                                 generateDebugInfo As boolean) As BoundBlock
+                                                 generateDebugInfo As Boolean) As BoundBlock
 
             If body.HasErrors Then
                 Return body
             End If
 
             Dim asyncMethodKind As AsyncMethodKind = GetAsyncMethodKind(method)
-            If asyncMethodKind = asyncMethodKind.None Then
+            If asyncMethodKind = AsyncMethodKind.None Then
                 Return body
             End If
 
@@ -156,10 +156,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub GenerateMethodImplementations()
             ' Add IAsyncStateMachine.MoveNext()
+            Dim debuggerHidden = IsDebuggerHidden(Me.Method)
+            Dim moveNextAttrs As DebugAttributes = DebugAttributes.CompilerGeneratedAttribute
+            If debuggerHidden Then moveNextAttrs = moveNextAttrs Or DebugAttributes.DebuggerHiddenAttribute
             GenerateMoveNext(Me.StartMethodImplementation(
                     WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext,
                     "MoveNext",
-                    DebugAttributes.CompilerGeneratedAttribute, Accessibility.Friend, True, asyncKickoffMethod:=Me.Method))
+                    moveNextAttrs, Accessibility.Friend, True, asyncKickoffMethod:=Me.Method))
 
             'Add IAsyncStateMachine.SetStateMachine()
             Me.StartMethodImplementation(

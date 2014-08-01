@@ -1012,5 +1012,53 @@ class C
 </symbols>";
             AssertXmlEqual(expected, actual);
         }
+
+        [Fact, WorkItem(667579, "DevDiv")]
+        public void DebuggerHiddenIterator()
+        {
+            var text = @"
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        foreach (var x in F()) ;
+    }
+
+    [DebuggerHidden]
+    static IEnumerable<int> F()
+    {
+        throw new Exception();
+        yield break;
+    }
+}";
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "C+<F>d__0.MoveNext");
+            string expected =
+@"<?xml version=""1.0"" encoding=""utf-16""?>
+<symbols>
+  <methods>
+    <method containingType=""C+&lt;F&gt;d__0"" name=""MoveNext"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""Main"" parameterNames=""args"" />
+      </customDebugInfo>
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x19"" start_row=""15"" start_column=""5"" end_row=""15"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1a"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""31"" file_ref=""0"" />
+      </sequencepoints>
+      <locals>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x20"" attributes=""1"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x20"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x20"" attributes=""1"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
     }
 }

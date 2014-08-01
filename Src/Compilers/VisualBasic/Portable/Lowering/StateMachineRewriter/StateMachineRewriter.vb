@@ -435,6 +435,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return body
         End Function
 
+        Protected Function IsDebuggerHidden(method As MethodSymbol) As Boolean
+            Dim debuggerHiddenAttribute = Me.CompilationState.Compilation.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerHiddenAttribute)
+            For Each a In Me.Method.GetAttributes()
+                If a.AttributeClass = debuggerHiddenAttribute Then Return True
+            Next
+
+            Return False
+        End Function
     End Class
 
 End Namespace
