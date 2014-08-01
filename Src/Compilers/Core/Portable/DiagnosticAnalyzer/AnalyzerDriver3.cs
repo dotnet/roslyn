@@ -367,8 +367,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             switch (symbol.Kind)
             {
                 case SymbolKind.Method:
-                case SymbolKind.Field:
+                case SymbolKind.Event:
                     return true;
+
+                case SymbolKind.Field:
+                    // Check if this is not a compiler generated backing field.
+                    return ((IFieldSymbol)symbol).AssociatedSymbol == null;
 
                 default:
                     return false;
@@ -701,22 +705,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (nodeAnalyzersByKind != null)
             {
-                // Eliminate syntax nodes for descendant member declarations within type declarations.
+                // Eliminate syntax nodes for descendant member declarations within declarations.
                 // There will be separate symbols declared for the members, hence we avoid duplicate syntax analysis by skipping these here.
                 HashSet<SyntaxNode> descendantDeclsToSkip = null;
-                if (!hasExecutableCode)
+                foreach (var declInNode in semanticModel.DeclarationsInNodeInternal(syntax))
                 {
-                    foreach (var declInNode in semanticModel.DeclarationsInNodeInternal(syntax))
+                    if (declInNode.Declaration != syntax)
                     {
-                        if (declInNode.Declaration != syntax)
+                        if (descendantDeclsToSkip == null)
                         {
-                            if (descendantDeclsToSkip == null)
-                            {
-                                descendantDeclsToSkip = new HashSet<SyntaxNode>();
-                            }
-
-                            descendantDeclsToSkip.Add(declInNode.Declaration);
+                            descendantDeclsToSkip = new HashSet<SyntaxNode>();
                         }
+
+                        descendantDeclsToSkip.Add(declInNode.Declaration);
                     }
                 }
 
