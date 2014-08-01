@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isConstantExpressionContext,
             bool isAttributeNameContext,
             bool isEnumTypeMemberAccessContext,
+            bool isNameOfContext,
             bool isInQuery,
             bool isInImportsDirective,
             bool isLabelContext,
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    isTypeContext, isNamespaceContext,
                    isPreProcessorDirectiveContext,
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
-                   isAttributeNameContext, isEnumTypeMemberAccessContext,
+                   isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
                    isInQuery, isInImportsDirective)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
@@ -207,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isConstantExpressionContext,
                 syntaxTree.IsAttributeNameContext(position, cancellationToken),
                 syntaxTree.IsEnumTypeMemberAccessContext(semanticModel, position, cancellationToken),
+                syntaxTree.IsNameOfContext(position, semanticModel, cancellationToken),
                 leftToken.GetAncestor<QueryExpressionSyntax>() != null,
                 IsLeftSideOfUsingAliasDirective(leftToken, cancellationToken),
                 syntaxTree.IsLabelContext(position, cancellationToken),

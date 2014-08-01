@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 }
             }
 
-            IEnumerable<ISymbol> symbols = context.LeftToken.Parent.IsInStaticContext()
+            IEnumerable<ISymbol> symbols = !context.IsNameOfContext && context.LeftToken.Parent.IsInStaticContext()
                 ? context.SemanticModel.LookupStaticMembers(context.LeftToken.SpanStart)
                 : context.SemanticModel.LookupSymbols(context.LeftToken.SpanStart);
 

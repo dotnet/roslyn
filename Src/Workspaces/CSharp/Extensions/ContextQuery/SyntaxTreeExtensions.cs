@@ -2074,6 +2074,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt, CancellationToken cancellationToken)
+        {
+            // cases:
+            //    nameof( |
+
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            ExpressionSyntax parentExpression = null;
+
+            // simple case
+            if (token.IsKind(SyntaxKind.OpenParenToken) &&
+                token.Parent.IsKind(SyntaxKind.NameOfExpression))
+            {
+                parentExpression = (ExpressionSyntax)token.Parent;
+            }
+
+            // if the nameof expression has a missing close paren, it is parsed as in invocation expression.
+            if (token.Parent.IsKind(SyntaxKind.ArgumentList) &&
+                token.Parent.IsParentKind(SyntaxKind.InvocationExpression))
+            {
+                var invocationExpression = (InvocationExpressionSyntax)token.Parent.Parent;
+                if (!invocationExpression.IsParentKind(SyntaxKind.ConditionalAccessExpression) &&
+                    !invocationExpression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) &&
+                    !invocationExpression.IsParentKind(SyntaxKind.PointerMemberAccessExpression) &&
+                    invocationExpression.Expression.IsKind(SyntaxKind.IdentifierName) &&
+                    ((IdentifierNameSyntax)invocationExpression.Expression).Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword))
+                {
+                    parentExpression = invocationExpression;
+                }
+            }
+
+            if (parentExpression != null)
+            {
+                if (semanticModelOpt == null)
+                {
+                    return true;
+                }
+
+                return semanticModelOpt.GetSymbolInfo(parentExpression).Symbol == null;
+            }
+
+            return false;
+        }
+
         public static bool IsIsOrAsContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
             // cases:

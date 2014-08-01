@@ -63,6 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isExpressionContext As Boolean,
             isAttributeNameContext As Boolean,
             isEnumTypeMemberAccessContext As Boolean,
+            isNameOfContext As Boolean,
             isInLambda As Boolean,
             isInQuery As Boolean,
             isInImportsDirective As Boolean,
@@ -84,6 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAnyExpressionContext:=isExpressionContext,
                 isAttributeNameContext:=isAttributeNameContext,
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
+                isNameOfContext:=isNameOfContext,
                 isInQuery:=isInQuery,
                 isInImportsDirective:=isInImportsDirective)
 
@@ -136,6 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isExpressionContext:=syntaxTree.IsExpressionContext(position, targetToken, cancellationToken, semanticModel),
                 isAttributeNameContext:=syntaxTree.IsAttributeNameContext(position, targetToken, cancellationToken),
                 isEnumTypeMemberAccessContext:=syntaxTree.IsEnumTypeMemberAccessContext(position, targetToken, semanticModel, cancellationToken),
+                isNameOfContext:=False,
                 isInLambda:=leftToken.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing,
                 isInQuery:=leftToken.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing,
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,

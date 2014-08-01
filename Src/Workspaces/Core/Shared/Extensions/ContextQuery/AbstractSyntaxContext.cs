@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isAnyExpressionContext,
             bool isAttributeNameContext,
             bool isEnumTypeMemberAccessContext,
+            bool isNameOfContext,
             bool isInQuery,
             bool isInImportsDirective)
         {
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsAnyExpressionContext = isAnyExpressionContext;
             this.IsAttributeNameContext = isAttributeNameContext;
             this.IsEnumTypeMemberAccessContext = isEnumTypeMemberAccessContext;
+            this.IsNameOfContext = isNameOfContext;
             this.IsInQuery = isInQuery;
             this.IsInImportsDirective = isInImportsDirective;
         }
@@ -65,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsAnyExpressionContext { get; private set; }
         public bool IsAttributeNameContext { get; private set; }
         public bool IsEnumTypeMemberAccessContext { get; private set; }
+        public bool IsNameOfContext { get; private set; }
 
         public bool IsInQuery { get; private set; }
         public bool IsInImportsDirective { get; private set; }
