@@ -1,9 +1,5 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ErrorCode
@@ -644,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DottedTypeNameNotFoundInNSFwd = 1069,
         ERR_SingleTypeNameNotFoundFwd = 1070,
         //ERR_NoSuchMemberOnNoPIAType = 1071,   //EE
-        WRN_StringOrNumericLiteralExpected = 1072,
+        WRN_IdentifierOrNumericLiteralExpected = 1072,
         // ERR_EOLExpected = 1099, // EE
         // ERR_NotSupportedinEE = 1100, // EE
         ERR_BadThisParam = 1100,
@@ -1267,7 +1263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PrimaryCtorParameterSameNameAsContainingType = 8039,
 
         INF_UnableToLoadSomeTypesInAnalyzer = 8040,
-        
+
         ERR_DuplicatePrimaryCtorBody = 8041,
         // available = 8042
         ERR_InstanceCtorCannotHaveDefaultThisInitializer = 8043,

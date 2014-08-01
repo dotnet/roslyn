@@ -3807,8 +3807,8 @@
   <data name="OperationCausedStackOverflow" xml:space="preserve">
     <value>Operation caused a stack overflow.</value>
   </data>
-  <data name="WRN_StringOrNumericLiteralExpected" xml:space="preserve">
-    <value>String or numeric literal expected</value>
+  <data name="WRN_IdentifierOrNumericLiteralExpected" xml:space="preserve">
+    <value>Expected identifier or numeric literal.</value>
   </data>
   <data name="ERR_SeveralPartialsDeclarePrimaryCtor" xml:space="preserve">
     <value>Only one part of a partial type can declare primary constructor parameters.</value>

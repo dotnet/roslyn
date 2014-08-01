@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -71,8 +67,9 @@ class C { }
 #if false
 #pragma
 #pragma warning
-#pragma warning disable foo
+#pragma warning disable ""something""
 #pragma warning disable 0
+#pragma warning disable -1
 #pragma checksum
 #pragma checksum ""file""
 #pragma checksum ""file"" ""guid""
@@ -80,8 +77,9 @@ class C { }
 #endif
 #pragma
 #pragma warning
-#pragma warning disable foo
-#pragma warning disable 0
+#pragma warning disable ""something2""
+#pragma warning disable 1
+#pragma warning disable -2
 #pragma checksum
 #pragma checksum ""file""
 #pragma checksum ""file"" ""guid""
@@ -92,8 +90,8 @@ class C { }
             ParserErrorMessageTests.ParseAndValidate(source,
                 Diagnostic(ErrorCode.WRN_IllegalPragma, ""),
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, ""),
-                Diagnostic(ErrorCode.WRN_StringOrNumericLiteralExpected, "foo"),
-                Diagnostic(ErrorCode.WRN_BadWarningNumber, "0").WithArguments("0"),
+                Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, "\"something2\""),
+                Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, "-"),
                 Diagnostic(ErrorCode.WRN_IllegalPPChecksum, ""),
                 Diagnostic(ErrorCode.WRN_IllegalPPChecksum, ""),
                 Diagnostic(ErrorCode.WRN_IllegalPPChecksum, @"""guid"""),

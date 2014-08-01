@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public SyntaxKind PragmaKind;
         public SyntaxKind WarningOrChecksumKind;
         public SyntaxKind DisableOrRestoreKind;
-        public int[] WarningList;
+        public string[] WarningList;
         public string[] FileGuidByte;
     }
 
@@ -258,24 +257,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     int idx = 0;
                     foreach (var warningNumber in expected.WarningList)
                     {
-                        var token = ((LiteralExpressionSyntax)pwd.ErrorCodes[idx++]).Token;
-
-                        if (warningNumber > 0)
+                        var actualWarningNumber = pwd.ErrorCodes[idx++];
+                        if (actualWarningNumber.Kind == SyntaxKind.NumericLiteralExpression)
                         {
-                            var tokenKind = token.CSharpKind();
-                            if (tokenKind == SyntaxKind.NumericLiteralToken)
-                            {
-                                Assert.Equal(warningNumber, token.Value);
-                                Assert.Equal(warningNumber, int.Parse(token.Text));
-                            }
-                            else if (tokenKind == SyntaxKind.StringLiteralToken)
-                            {
-                                Assert.Equal(MessageProvider.Instance.GetIdForErrorCode(warningNumber), token.Value);
-                            }
-                            else
-                            {
-                                Assert.True(false, "Warning ID must be a string or numeric literal");
-                            }
+                            var token = (actualWarningNumber as LiteralExpressionSyntax).Token;
+                            Assert.Equal(warningNumber, token.ValueText);
+                        }
+                        else if (actualWarningNumber.Kind == SyntaxKind.IdentifierName)
+                        {
+                            var token = (actualWarningNumber as IdentifierNameSyntax).Identifier;
+                            Assert.Equal(warningNumber, token.ValueText);
+                        }
+                        else
+                        {
+                            Assert.True(false, "Warning ID must be an identifier or numeric literal");
                         }
                     }
                 }
@@ -2604,7 +2599,7 @@ class A { }
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_WarningDirective, Text = "#warning: 'W1'" });
-            VerifyDirectivesSpecial(node, 
+            VerifyDirectivesSpecial(node,
                 new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "error" },
                 new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
                 new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsActive },
@@ -2666,7 +2661,7 @@ class A { }
 ";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
-            VerifyErrorCode(node, 
+            VerifyErrorCode(node,
                 (int)ErrorCode.ERR_IdentifierExpected,
                 (int)ErrorCode.ERR_IdentifierExpected,
                 (int)ErrorCode.ERR_IdentifierExpected,
@@ -2760,7 +2755,7 @@ class A { }
             var node = Parse(text);
             TestRoundTripping(node, text, disallowErrors: false);
             VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_WarningDirective, Text = "#warning: 'W4'" });
-            VerifyDirectivesSpecial(node, 
+            VerifyDirectivesSpecial(node,
                 new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
                 new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsNotActive },
                 new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
@@ -3302,7 +3297,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new int[] { 114 }
+                WarningList = new[] { "114" }
             });
         }
 
@@ -3310,7 +3305,7 @@ public class Test
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningDisableWithMultipleCodes()
         {
-            var text = @"#pragma warning disable 114, 162, 168";
+            var text = @"#pragma warning disable 114, CS0162, 168";
             var node = Parse(text);
             TestRoundTripping(node, text);
             VerifyDirectivePragma(node, new PragmaInfo
@@ -3318,7 +3313,7 @@ public class Test
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new int[] { 114, 162, 168 }
+                WarningList = new[] { "114", "CS0162", "168" }
             });
         }
 
@@ -3346,7 +3341,7 @@ static void Main() { }
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new int[] { 440 }
+                WarningList = new[] { "440" }
             });
 
             // verify that GetParseDiagnostics filters disabled warning
@@ -3357,22 +3352,21 @@ static void Main() { }
         [WorkItem(908125, "DevDiv/Personal")]
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestRegressNegPragmaWarningDisableWithBadCode()
+        public void TestNoWarningForUnrecognizedCode()
         {
             var text = @"#pragma warning disable 99999";
             var node = Parse(text);
-            TestRoundTripping(node, text, false);
-            VerifyErrorCode(node, (int)ErrorCode.WRN_BadWarningNumber); // CS1691
-            // Error ToDo
 
-            Assert.Contains("99999", node.Warnings()[0].GetMessage(CultureInfo.CurrentUICulture)); // bug 980125
-
+            // Previous versions of the compiler used to report a warning (CS1691)
+            // whenever an unrecognized warning code was supplied in a #pragma directive.
+            // We no longer generate a warning in such cases.
+            TestRoundTripping(node, text);
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new int[] { 99999 }
+                WarningList = new[] { "99999" }
             });
         }
 
@@ -3380,7 +3374,7 @@ static void Main() { }
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningRestore()
         {
-            var text = @"#pragma warning restore 114";
+            var text = @"#pragma warning restore CS0114";
             var node = Parse(text);
             TestRoundTripping(node, text);
             VerifyDirectivePragma(node, new PragmaInfo
@@ -3388,7 +3382,7 @@ static void Main() { }
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-                WarningList = new int[] { 114 }
+                WarningList = new[] { "CS0114" }
             });
         }
 
@@ -3396,7 +3390,7 @@ static void Main() { }
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningRestoreWithMultipleCodes()
         {
-            var text = @"#pragma warning restore 114, 162, 168 // Multiple codes";
+            var text = @"#pragma warning restore CS0114, 162, Something // Multiple codes";
             var node = Parse(text);
             TestRoundTripping(node, text);
             VerifyDirectivePragma(node, new PragmaInfo
@@ -3404,40 +3398,24 @@ static void Main() { }
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-                WarningList = new int[] { 114, 162, 168 }
+                WarningList = new[] { "CS0114", "162", "Something" }
             });
         }
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestPragmaWarningRestoreWithMixedStringAndNumericCodes()
+        public void TestStringLiteralsAreDisallowed()
         {
             var text = @"#pragma warning restore ""CS0114"", 162, ""CS0168"" // Mixed string & numeric codes";
             var node = Parse(text);
-            TestRoundTripping(node, text);
-            VerifyDirectivePragma(node, new PragmaInfo
-            {
-                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-                DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-                WarningList = new int[] { 114, 162, 168 }
-            });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
-        public void TestNegPragmaWarningRestoreWithBadCode()
-        {
-            var text = @"#pragma warning restore CS1030";
-            var node = Parse(text);
             TestRoundTripping(node, text, false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_StringOrNumericLiteralExpected, Status = NodeStatus.IsWarning }); // CS1072
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IdentifierOrNumericLiteralExpected, Status = NodeStatus.IsWarning }); // CS1072
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-                WarningList = new int[] { -1 } // special case - no value
+                WarningList = new[] { string.Empty }
             });
         }
 

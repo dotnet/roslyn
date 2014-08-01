@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -679,7 +678,7 @@ struct Conv
             // 2) To int? type (applicable in lifted form): public static implicit operator int (Conv C)
             //
             // Here we deliberately violate the specification and allow the conversion, for backwards compat.
-            
+
             var text = @"
 struct Conv
 {
@@ -887,7 +886,7 @@ public class Test
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (10,12): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //       case 1.2f:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10,12));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12));
         }
 
         [Fact, WorkItem(546812, "DevDiv")]
@@ -909,13 +908,11 @@ class Program
 } 
 ";
             var comp = CompileAndVerify(text, expectedOutput: "");
-            comp.VerifyDiagnostics(
-                // (9,25): warning CS1691: '6500' is not a valid warning number
-                // #pragma warning disable 6500
-                Diagnostic(ErrorCode.WRN_BadWarningNumber, "6500").WithArguments("6500"),
-                // (11,25): warning CS1691: '6500' is not a valid warning number
-                // #pragma warning restore 6500
-                Diagnostic(ErrorCode.WRN_BadWarningNumber, "6500").WithArguments("6500"));
+
+            // Previous versions of the compiler used to report a warning (CS1691)
+            // whenever an unrecognized warning code was supplied in a #pragma directive.
+            // We no longer generate a warning in such cases.
+            comp.VerifyDiagnostics();
         }
 
         #endregion
@@ -1476,7 +1473,7 @@ struct A
             // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
 
             // Roslyn behavior: 2nd switch expression: No ambiguity, binds to "implicit operator int?(A a)"
-            
+
             var text =
 @"using System;
  

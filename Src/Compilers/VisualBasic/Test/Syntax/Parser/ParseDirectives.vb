@@ -2252,7 +2252,6 @@ End Module]]>,
         Assert.Equal("Nothing", disableNode.ErrorCodes(3).ToString)
     End Sub
 
-    ',
     <Fact>
     Public Sub ParseWarningDirective_NoExpressions1()
         Dim tree = ParseAndVerify(<![CDATA[#disable warning -bc42024, (bc42025), Chr(42024)]]>,
@@ -3533,8 +3532,7 @@ End Module
                     Return CodeAnalysis.Diagnostic.Create(d, varDecl.AsClause.GetLocation)
                 End Function)
 
-        Dim analyzers = {analyzer}
-        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerOccuranceCount(analyzers, 0)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerOccuranceCount({analyzer}, 0)
     End Sub
 
     <Fact>
@@ -3561,8 +3559,7 @@ End Module
                     Return CodeAnalysis.Diagnostic.Create(d, varDecl.AsClause.GetLocation)
                 End Function)
 
-        Dim analyzers = {analyzer}
-        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerOccuranceCount(analyzers, 0)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerOccuranceCount({analyzer}, 0)
     End Sub
 #End Region
 

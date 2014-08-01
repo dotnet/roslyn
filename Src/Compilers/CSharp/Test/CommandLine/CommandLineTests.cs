@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     public class CommandLineTests : CSharpTestBase
     {
         private static readonly string CSharpCompilerExecutable = typeof(Microsoft.CodeAnalysis.CSharp.CommandLine.Csc).Assembly.Location;
-        
+
         private readonly string baseDirectory = TempRoot.Root;
 
         private class TestCommandLineParser : CSharpCommandLineParser
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         {
             Assert.Equal(ProcessorArchitecture.MSIL, AssemblyName.GetAssemblyName(CSharpCompilerExecutable).ProcessorArchitecture);
         }
-       
+
         [Fact]
         public void ResponseFiles1()
         {
@@ -153,28 +153,28 @@ a.cs
             Func<string, string> prependBasePath = fileName => Path.Combine(basePath, fileName);
 
             var parser = new TestCommandLineParser(responseFiles: new Dictionary<string, string>()
-            { 
+            {
                 { prependBasePath(@"a.rsp"), @"
 ""@subdir\b.rsp""
 /r:..\v4.0.30319\System.dll
 /r:.\System.Data.dll 
 a.cs @""..\c.rsp"" @\d.rsp
 /referencePath:..\foo;../bar;""a b""
-" 
+"
                 },
                 { Path.Combine(dirSubDir.Path, @"b.rsp"), @"
 b.cs
-" 
+"
                 },
                 { prependBasePath(@"..\c.rsp"), @"
 c.cs /referencePath:x
-" 
+"
                 },
                 {  Path.Combine(Path.GetPathRoot(basePath), @"d.rsp"), @"
 
 # comment
 d.cs
-" 
+"
                 }
             }, isInteractive: true);
 
@@ -196,11 +196,11 @@ d.cs
         {
             var parser = new TestCommandLineParser(
                 patterns: new Dictionary<string, string[]>()
-                { 
+                {
                     { @"C:\temp|*.cs", new[] { "a.cs", "b.cs", "c.cs" } }
                 },
                 recursivePatterns: new Dictionary<string, string[]>()
-                { 
+                {
                     // TODO (tomat): Fix PathUtilities.GetDirectoryName to strip trailing \ and then the key should be @"C:\temp\a|*.cs"
                     { @"C:\temp\a\|*.cs", new[] { @"a\x.cs", @"a\b\b.cs", @"a\c.cs" } },
                 });
@@ -223,7 +223,7 @@ d.cs
             CSharpCommandLineArguments args;
             var folder = Temp.CreateDirectory();
             CreateFile(folder, "a.cs");
- 
+
             args = CSharpCommandLineParser.Default.Parse(new[] { "/main:Test", "a.cs" }, folder.Path);
             args.Errors.Verify();
             Assert.Equal("Test", args.CompilationOptions.MainTypeName);
@@ -322,7 +322,7 @@ d.cs
         [Fact, WorkItem(546023, "DevDiv")]
         public void Win32ResourceArguments()
         {
-            string[] args = new string[] 
+            string[] args = new string[]
             {
                 @"/win32manifest:..\here\there\everywhere\nonexistent"
             };
@@ -836,7 +836,7 @@ d.cs
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/recurse-:", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/recurse-:"));
-        
+
             CleanupAllGeneratedFiles(file1.Path);
             CleanupAllGeneratedFiles(file2.Path);
             CleanupAllGeneratedFiles(file3.Path);
@@ -1202,7 +1202,7 @@ d.cs
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(DebugInformationKind.Full, parsedArgs.CompilationOptions.DebugInformationKind);
-            
+
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug+", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(DebugInformationKind.Full, parsedArgs.CompilationOptions.DebugInformationKind);
@@ -1270,7 +1270,7 @@ d.cs
             // No pdb
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/debug", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Null(parsedArgs.PdbPath); 
+            Assert.Null(parsedArgs.PdbPath);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/pdb", "/debug", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("/pdb"));
@@ -1324,19 +1324,19 @@ d.cs
             parsedArgs.Errors.Verify();
             // Temp: Path info changed
             // Assert.Equal(FileUtilities.ResolveRelativePath("MyPdb.pdb", "..\\", baseDirectory), parsedArgs.PdbPath);
-            
+
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/pdb:\\b", "/debug", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
                 Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"\\b"));
-            Assert.Null(parsedArgs.PdbPath); 
+            Assert.Null(parsedArgs.PdbPath);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/pdb:\\b\OkFileName.pdb", "/debug", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
                 Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"\\b\OkFileName.pdb"));
-            Assert.Null(parsedArgs.PdbPath); 
-            
+            Assert.Null(parsedArgs.PdbPath);
+
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/pdb:\\server\share\MyPdb.pdb", "/debug", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(@"\\server\share\MyPdb.pdb", parsedArgs.PdbPath);
@@ -1345,8 +1345,8 @@ d.cs
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/pdb:a.b\0b", "/debug", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a.b\0b"));
-            Assert.Null(parsedArgs.PdbPath); 
-            
+            Assert.Null(parsedArgs.PdbPath);
+
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/pdb:a\uD800b.pdb", "/debug", "a.cs" }, baseDirectory);
             //parsedArgs.Errors.Verify(
@@ -1358,7 +1358,7 @@ d.cs
             parsedArgs.Errors.Verify(
                 // error CS2021: File name 'a<>.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
                 Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a<>.pdb"));
-            Assert.Null(parsedArgs.PdbPath); 
+            Assert.Null(parsedArgs.PdbPath);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/pdb:.x", "/debug", "a.cs" }, baseDirectory);
             //parsedArgs.Errors.Verify(
@@ -1471,7 +1471,7 @@ d.cs
 
             Assert.Equal("foo.dll", parsedArgs.MetadataReferences[1].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly.WithAliases(new[] { "a" }), parsedArgs.MetadataReferences[1].Properties);
-            
+
             Assert.Equal("bar.dll", parsedArgs.MetadataReferences[2].Reference);
             Assert.Equal(MetadataReferenceProperties.Assembly.WithAliases(new[] { "b" }).WithEmbedInteropTypes(true), parsedArgs.MetadataReferences[2].Properties);
 
@@ -1488,7 +1488,7 @@ d.cs
             parsedArgs.Errors.Verify();
             Assert.Equal(1, parsedArgs.AnalyzerReferences.Length);
             Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
-            
+
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/analyzer:foo.dll", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(1, parsedArgs.AnalyzerReferences.Length);
@@ -1643,7 +1643,7 @@ class C
 class C
 {
 }
-";          
+";
             var dir = Temp.CreateDirectory();
 
             var file = dir.CreateFile("a.cs");
@@ -1922,7 +1922,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Equal("file", parsedArgs.CompilationName);
             Assert.Equal("file.exe", parsedArgs.CompilationOptions.ModuleName);
 
-             // invalid name:
+            // invalid name:
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/out:a.b\0b", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
@@ -2400,7 +2400,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/lib+"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/lib: ", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<path list>", "lib")); 
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<path list>", "lib"));
         }
 
         [Fact, WorkItem(546005, "DevDiv")]
@@ -2680,8 +2680,8 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption);
             Assert.Equal(4, parsedArgs.CompilationOptions.WarningLevel);
             AssertSpecificDiagnostics(
-                new[] { 1062, 1066, 1734, 1765, 1974 }, 
-                new[] { ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Warn, ReportDiagnostic.Warn }, 
+                new[] { 1062, 1066, 1734, 1765, 1974 },
+                new[] { ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Error, ReportDiagnostic.Warn, ReportDiagnostic.Warn },
                 parsedArgs);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { "/warnaserror+:1062,1066,1734", "/warnaserror-:1062,1974", "a.cs" }, baseDirectory);
@@ -3057,7 +3057,7 @@ class Test { static void Main() {} }").Path;
             Assert.Equal(1, exitCode);
             // Native gives CS0013 at emit stage
             Assert.Equal("error CS7041: Each linked resource and module must have a unique filename. Filename '" + Path.GetFileName(modfile) + "' is specified more than once in this assembly", outWriter.ToString().Trim());
-            
+
             CleanupAllGeneratedFiles(source1);
             CleanupAllGeneratedFiles(source2);
         }
@@ -3289,8 +3289,8 @@ public class CS1698_a {}
             parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/rp:a;b", "/referencePath:c" }, baseDir.Path);
             parsedArgs.Errors.Verify();
 
-            AssertEx.Equal(new[] 
-                { 
+            AssertEx.Equal(new[]
+                {
                     RuntimeEnvironment.GetRuntimeDirectory(),
                     subDirA.Path,
                     subDirB.Path,
@@ -3851,9 +3851,9 @@ Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
             }
 
             if (System.IO.File.Exists(expectedOutputName))
-                {
+            {
                 System.IO.File.Delete(expectedOutputName);
-                }
+            }
 
             CleanupAllGeneratedFiles(file1.Path);
             CleanupAllGeneratedFiles(file2.Path);
@@ -3878,7 +3878,7 @@ class C
             Assert.Equal(1, exitCode);
             Assert.Equal("error CS0006: Metadata file 'missing.dll' could not be found", outWriter.ToString().Trim());
 
-            CleanupAllGeneratedFiles(file.Path); 
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [WorkItem(545025, "DevDiv")]
@@ -3978,7 +3978,7 @@ public class C
             Assert.Equal(1, exitCode);
             Assert.Contains("error CS2012: Cannot open '" + dir.Path + "\\sub\\a.exe' for writing", outWriter.ToString());
 
-            CleanupAllGeneratedFiles(file.Path); 
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [WorkItem(545247, "DevDiv")]
@@ -4006,7 +4006,7 @@ public class C
             Assert.Contains("error CS2021: File name", message);
             Assert.Contains("sub", message);
 
-            CleanupAllGeneratedFiles(file.Path); 
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [WorkItem(545247, "DevDiv")]
@@ -4034,7 +4034,7 @@ public class C
             Assert.Contains("error CS2021: File name", message);
             Assert.Contains("sub", message);
 
-            CleanupAllGeneratedFiles(file.Path); 
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [WorkItem(545247, "DevDiv")]
@@ -4060,7 +4060,7 @@ public class C
             Assert.Equal(1, exitCode);
             Assert.Contains(@"error CS2021: File name 'aaa:\a.exe' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long", outWriter.ToString());
 
-            CleanupAllGeneratedFiles(file.Path); 
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [WorkItem(545247, "DevDiv")]
@@ -4086,7 +4086,7 @@ public class C
             Assert.Equal(1, exitCode);
             Assert.Contains("error CS2005: Missing file specification for '/out:' option", outWriter.ToString());
 
-            CleanupAllGeneratedFiles(file.Path); 
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [Fact]
@@ -4161,13 +4161,13 @@ public class C
             comp = CSharpCompilation.Create("a.dll", options: options);
             comp.GetDiagnostics().Verify();
 
-            CleanupAllGeneratedFiles(file.Path); 
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [Fact]
         public void SpecifyProperCodePage()
         {
-            byte[] source = { 
+            byte[] source = {
                                 0x63, // c
                                 0x6c, // l
                                 0x61, // a
@@ -4197,7 +4197,7 @@ a.cs(1,7): error CS1022: Type or namespace definition, or end-of-file expected
 a.cs(1,10): error CS1022: Type or namespace definition, or end-of-file expected".Trim(),
                 Regex.Replace(output, "^.*a.cs", "a.cs", RegexOptions.Multiline).Trim());
 
-            CleanupAllGeneratedFiles(file.Path); 
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [Fact]
@@ -4620,7 +4620,7 @@ public class C
             exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file\r\n", outWriter.ToString());
-        
+
             CleanupAllGeneratedFiles(source);
             CleanupAllGeneratedFiles(rsp);
         }
@@ -4938,7 +4938,7 @@ class C {} ");
             }
 
             CleanupAllGeneratedFiles(src.Path);
-            CleanupAllGeneratedFiles(xml.Path); 
+            CleanupAllGeneratedFiles(xml.Path);
         }
 
         [Fact, WorkItem(768605, "DevDiv")]
@@ -5008,7 +5008,7 @@ class C {}
             }
 
             CleanupAllGeneratedFiles(src.Path);
-            CleanupAllGeneratedFiles(xml.Path); 
+            CleanupAllGeneratedFiles(xml.Path);
         }
 
         [Fact]
@@ -5193,13 +5193,13 @@ static void Main() {
             exitCode = new MockCSharpCompiler(null, baseDir, new[] { "/nologo", "/nowarn:1634", source.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
-            
+
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, baseDir, new[] { "/nologo", Path.Combine(baseDir, "nonexistent.cs"), source.ToString() }).Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal("error CS2001: Source file '" + Path.Combine(baseDir, "nonexistent.cs") + "' could not be found.", outWriter.ToString().Trim());
 
-            CleanupAllGeneratedFiles(source);            
+            CleanupAllGeneratedFiles(source);
         }
 
         [Fact, WorkItem(546058, "DevDiv")]
@@ -5636,8 +5636,8 @@ class Program
 
             System.IO.File.Delete(xmlPath);
             System.IO.File.Delete(sourcePath);
-            CleanupAllGeneratedFiles(sourcePath);                
-       }
+            CleanupAllGeneratedFiles(sourcePath);
+        }
 
         private string MakeTrivialExe()
         {
@@ -5665,12 +5665,6 @@ class Program
             };
         }
 
-        /// <summary>
-        /// This test verifies that all the error codes in the native C# compiler (csc.exe) which are warnings, are also preserved as warnings in Roslyn, even if they are unused in Roslyn.
-        /// This behavior is required to ensure that warning CS1691 is suppressed in both the following cases:
-        /// (a) "/nowarn:warningCode" switch is passed to the command line compiler.
-        /// (b) "#pragma warning disable warningCode" is present in the source file being compiled.
-        /// </summary>
         [Fact, WorkItem(546452, "DevDiv")]
         public void CS1691WRN_BadWarningNumber_AllErrorCodes()
         {
@@ -5680,7 +5674,15 @@ class Program
                 int startErrorCode = (int)i * jump;
                 int endErrorCode = startErrorCode + jump;
                 string source = ComputeSourceText(startErrorCode, endErrorCode);
-                TestCS1691(source, startErrorCode, endErrorCode);
+
+                // Previous versions of the compiler used to report a warning (CS1691)
+                // whenever an unrecognized warning code was supplied in a #pragma directive
+                // (or via /nowarn /warnaserror flags on the command line).
+                // Going forward, we won't generate any warning in such cases. This will make
+                // maintainance of backwards compatibility easier (we no longer need to worry
+                // about breaking existing projects / command lines if we deprecate / remove
+                // an old warning code).
+                Test(source, startErrorCode, endErrorCode);
             }
         }
 
@@ -5705,7 +5707,7 @@ public class C
 }";
         }
 
-        private void TestCS1691(string source, int startErrorCode, int endErrorCode)
+        private void Test(string source, int startErrorCode, int endErrorCode)
         {
             string sourcePath = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(source).Path;
 
@@ -5716,18 +5718,7 @@ public class C
 
             for (int errorCode = startErrorCode; errorCode < endErrorCode; errorCode++)
             {
-                if (errorCode != (int)ErrorCode.WRN_BadWarningNumber)
-                {
-                    // csc.exe should generate CS1691 if errorCode is a warning.
-                    string warningText = "CS1691: '" + errorCode + "' is not a valid warning number";
-                    bool isCscWarning = !cscOutput.Contains(warningText);
-                    if (isCscWarning)
-                    {
-                        // Ensure that this error code is also preserved as a warning in Roslyn.
-                        bool isRoslynWarning = ErrorFacts.GetWarningLevel((ErrorCode)errorCode) > 0;
-                        Assert.True(isRoslynWarning, "Failed at error code: " + errorCode);
-                    }
-                }
+                Assert.True(cscOutput == string.Empty, "Failed at error code: " + errorCode);
             }
 
             CleanupAllGeneratedFiles(sourcePath);
@@ -5754,7 +5745,7 @@ public class C { }
                 Console.WriteLine(writer.ToString());
                 Assert.Equal(0, exitCode);
             }
-            
+
             var bytes = File.ReadAllBytes(xmlPath);
             var actual = new string(Encoding.UTF8.GetChars(bytes));
             var expected = @"
@@ -5849,17 +5840,17 @@ public class C { }
 
             commandLineArgs = new[] { tempFile.Path, @"tmpDi\r*a?.cs" };
             var parseDiags = new[] {
-                            // error CS2021: File name 'tmpDi\r*a?.cs' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                            Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"tmpDi\r*a?.cs"),
-                            // error CS2001: Source file 'tmpDi\r*a?.cs' could not be found.
-                            Diagnostic(ErrorCode.ERR_FileNotFound).WithArguments(@"tmpDi\r*a?.cs")};
+                // error CS2021: File name 'tmpDi\r*a?.cs' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"tmpDi\r*a?.cs"),
+                // error CS2001: Source file 'tmpDi\r*a?.cs' could not be found.
+                Diagnostic(ErrorCode.ERR_FileNotFound).WithArguments(@"tmpDi\r*a?.cs")};
             TestCS2002(commandLineArgs, tempParentDir.Path, 1, (string[])null, parseDiags);
 
             char currentDrive = Directory.GetCurrentDirectory()[0];
             commandLineArgs = new[] { tempFile.Path, currentDrive + @":a.cs" };
             parseDiags = new[] {
-                            // error CS2021: File name 'e:a.cs' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                            Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(currentDrive + @":a.cs")};
+                // error CS2021: File name 'e:a.cs' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(currentDrive + @":a.cs")};
             TestCS2002(commandLineArgs, tempParentDir.Path, 1, (string[])null, parseDiags);
 
             commandLineArgs = new[] { tempFile.Path, @":a.cs" };
@@ -5951,7 +5942,7 @@ using System*
             var comp = new MockCSharpCompiler(null, baseDirectory, new string[] { });
             var text = comp.DiagnosticFormatter.Format(syntaxTree.GetDiagnostics().First());
             //Pull off the last segment of the current directory.
-            var expectedPath = Path.GetDirectoryName(baseDirectory);    
+            var expectedPath = Path.GetDirectoryName(baseDirectory);
             //the end of the diagnostic's "file" portion should be signaled with the '(' of the line/col info.
             Assert.Equal('(', text[expectedPath.Length]);
 
@@ -6062,7 +6053,7 @@ using System.Diagnostics; // Unused.
             Assert.Equal(0, parsedArgs.Errors.Length);
             Assert.Equal("-_+@%#*^", parsedArgs.CompilationOptions.RuntimeMetadataVersion);
 
-            var comp = CreateCompilation(string.Empty, 
+            var comp = CreateCompilation(string.Empty,
                 compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, runtimeMetadataVersion: "v4.0.30319"));
             Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray()).Module.MetadataVersion, "v4.0.30319");
 
@@ -6164,7 +6155,7 @@ using System.Diagnostics; // Unused.
 
         [Fact]
         public void ParseFeatures()
-        { 
+        {
             var args = CSharpCommandLineParser.Default.Parse(new[] { "/features:Test", "a.vb" }, baseDirectory);
             args.Errors.Verify();
             Assert.Equal("Test", args.CompilationOptions.Features.Single());
@@ -6228,7 +6219,7 @@ using System.Diagnostics; // Unused.
             Assert.Equal(Path.Combine(baseDir.Path, "web1.config"), args.AdditionalStreams[0].Path);
             Assert.Equal(Path.Combine(baseDir.Path, "web2.config"), args.AdditionalStreams[1].Path);
             Assert.Equal(Path.Combine(baseDir.Path, "web3.config"), args.AdditionalStreams[2].Path);
-            
+
             args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config;app.manifest", "a.cs" }, baseDirectory);
             args.Errors.Verify();
             Assert.Equal(2, args.AdditionalStreams.Length);

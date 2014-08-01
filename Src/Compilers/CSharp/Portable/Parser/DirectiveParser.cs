@@ -1,12 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
-using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -381,47 +376,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         SyntaxToken id;
                         ExpressionSyntax idExpression;
 
-                        if (this.CurrentToken.Kind == SyntaxKind.NumericLiteralToken || this.CurrentToken.Kind == SyntaxKind.StringLiteralToken)
+                        if (this.CurrentToken.Kind == SyntaxKind.NumericLiteralToken)
                         {
+                            // Previous versions of the compiler used to report a warning (CS1691)
+                            // whenever an unrecognized warning code was supplied in a #pragma directive
+                            // (or via /nowarn /warnaserror flags on the command line).
+                            // Going forward, we won't generate any warning in such cases. This will make
+                            // maintainance of backwards compatibility easier (we no longer need to worry
+                            // about breaking existing projects / command lines if we deprecate / remove
+                            // an old warning code).
                             id = this.EatToken();
-                            if (isActive)
-                            {
-                                if (id.Kind == SyntaxKind.NumericLiteralToken)
-                                {
-                                    int compilerWarningNumber = (int)id.Value;
-                                    if (ErrorFacts.GetSeverity((ErrorCode)compilerWarningNumber) != DiagnosticSeverity.Warning)
-                                    {
-                                        id = this.AddError(id, ErrorCode.WRN_BadWarningNumber, compilerWarningNumber);
-                                    }
-                                }
-                                else
-                                {
-                                    string value = (string)id.Value;
-                                    var messageProvider = MessageProvider.Instance;
-                                    if (string.IsNullOrWhiteSpace(value))
-                                    {
-                                        id = this.AddError(id, ErrorCode.WRN_BadWarningNumber, value);
-                                    }
-                                    else if (value.StartsWith(messageProvider.CodePrefix))
-                                    {
-                                        // For diagnostic IDs of the form "CS[0-9]*", verify the error code is that of a warning
-                                        int compilerWarningNumber;
-                                        if (int.TryParse(value.Substring(messageProvider.CodePrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out compilerWarningNumber) &&
-                                            (messageProvider.GetIdForErrorCode(compilerWarningNumber) != value ||
-                                            ErrorFacts.GetSeverity((ErrorCode)compilerWarningNumber) != DiagnosticSeverity.Warning))
-                                        {
-                                            id = this.AddError(id, ErrorCode.WRN_BadWarningNumber, value);
-                                        }
-                                    }
-                                }
-                            }
-
-                            var expressionKind = id.Kind == SyntaxKind.NumericLiteralToken ? SyntaxKind.NumericLiteralExpression : SyntaxKind.StringLiteralExpression;
-                            idExpression = SyntaxFactory.LiteralExpression(expressionKind, id);
+                            idExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, id);
+                        }
+                        else if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                        {
+                            // Lexing / parsing of identifiers inside #pragma warning directives is identical
+                            // to that inside #define directives except that very long identifiers inside #define
+                            // are truncated to 128 characters to maintain backwards compatibility with previous
+                            // versions of the compiler. (See TruncateIdentifier() below.)
+                            // Since support for identifiers inside #pragma warning directivess is new, 
+                            // we don't have any backwards compatibility constraints. So we can preserve the
+                            // identifier exactly as it appears in source.
+                            id = this.EatToken();
+                            idExpression = SyntaxFactory.IdentifierName(id);
                         }
                         else
                         {
-                            id = this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.WRN_StringOrNumericLiteralExpected, reportError: isActive);
+                            id = this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.WRN_IdentifierOrNumericLiteralExpected, reportError: isActive);
                             idExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, id);
                         }
 

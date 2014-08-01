@@ -10430,6 +10430,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected identifier or numeric literal..
+        /// </summary>
+        internal static string WRN_IdentifierOrNumericLiteralExpected {
+            get {
+                return ResourceManager.GetString("WRN_IdentifierOrNumericLiteralExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid #pragma checksum syntax; should be #pragma checksum &quot;filename&quot; &quot;{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}&quot; &quot;XXXX...&quot;.
         /// </summary>
         internal static string WRN_IllegalPPChecksum {
@@ -10858,15 +10867,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_SequentialOnPartialClass {
             get {
                 return ResourceManager.GetString("WRN_SequentialOnPartialClass", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to String or numeric literal expected.
-        /// </summary>
-        internal static string WRN_StringOrNumericLiteralExpected {
-            get {
-                return ResourceManager.GetString("WRN_StringOrNumericLiteralExpected", resourceCulture);
             }
         }
         

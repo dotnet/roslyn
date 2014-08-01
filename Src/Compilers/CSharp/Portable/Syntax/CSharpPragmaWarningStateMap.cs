@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal class CSharpPragmaWarningStateMap : AbstractWarningStateMap
     {
-        public CSharpPragmaWarningStateMap(SyntaxTree syntaxTree) : 
+        public CSharpPragmaWarningStateMap(SyntaxTree syntaxTree) :
             base(syntaxTree)
         {
         }
@@ -75,16 +75,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     // Compute warning numbers from the current directive's codes
                     for (int x = 0; x < currentDirective.ErrorCodes.Count; x++)
                     {
-                        if (currentDirective.ErrorCodes[x].IsMissing || currentDirective.ErrorCodes[x].ContainsDiagnostics)
+                        var currentErrorCode = currentDirective.ErrorCodes[x];
+                        if (currentErrorCode.IsMissing || currentErrorCode.ContainsDiagnostics)
                             continue;
 
-                        var token = ((LiteralExpressionSyntax)currentDirective.ErrorCodes[x]).Token;
-                        string errorId = token.CSharpKind() == SyntaxKind.NumericLiteralToken ?
-                            MessageProvider.Instance.GetIdForErrorCode((int)token.Value) :
-                            (string)token.Value;
+                        var errorId = string.Empty;
+                        if (currentErrorCode.Kind == SyntaxKind.NumericLiteralExpression)
+                        {
+                            var token = (currentErrorCode as LiteralExpressionSyntax).Token;
+                            errorId = MessageProvider.Instance.GetIdForErrorCode((int)token.Value);
+                        }
+                        else if (currentErrorCode.Kind == SyntaxKind.IdentifierName)
+                        {
+                            errorId = (currentErrorCode as IdentifierNameSyntax).Identifier.ValueText;
+                        }
 
-                        // Update the state of this error code with the current directive state
-                        accumulatedSpecificWarningState = accumulatedSpecificWarningState.SetItem(errorId, directiveState);
+                        if (!string.IsNullOrWhiteSpace(errorId))
+                        {
+                            // Update the state of this error code with the current directive state
+                            accumulatedSpecificWarningState = accumulatedSpecificWarningState.SetItem(errorId, directiveState);
+                        }
                     }
                 }
 

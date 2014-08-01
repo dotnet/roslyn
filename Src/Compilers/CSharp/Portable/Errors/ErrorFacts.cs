@@ -2,8 +2,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
 using System.Globalization;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
                 case ErrorCode.WRN_FilterIsConstant:
-                case ErrorCode.WRN_StringOrNumericLiteralExpected:
+                case ErrorCode.WRN_IdentifierOrNumericLiteralExpected:
                 case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                     return 1;
                 default:
