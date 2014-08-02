@@ -1353,17 +1353,24 @@ namespace Microsoft.CodeAnalysis
         /// are errors.
         /// </summary>
         /// <param name="peStream">Stream to which the PE image with metadata will be written.</param>
-        /// <param name="xmlDocStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
+        /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
         /// <param name="outputName">Name of the compilation: file name and extension.  Null to use the existing output name.
         /// CAUTION: If this is set to a (non-null) value other than the existing compilation output name, then internals-visible-to
         /// and assembly references may not work as expected.  In particular, things that were visible at bind time, based on the 
         /// name of the compilation, may not be visible at runtime and vice-versa.
         /// </param>
+        /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
+        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
+        /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
+        /// <param name="emitOptions">Options controlling the emitted metadata.</param>
         /// <param name="cancellationToken">To cancel the emit process.</param>
         public EmitResult EmitMetadataOnly(
             Stream peStream,
             string outputName = null,
-            Stream xmlDocStream = null,
+            Stream xmlDocumentationStream = null,
+            Stream win32Resources = null,
+            IEnumerable<ResourceDescription> manifestResources = null,
+            MetadataOnlyEmitOptions emitOptions = default(MetadataOnlyEmitOptions),
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (peStream == null)
@@ -1376,9 +1383,9 @@ namespace Microsoft.CodeAnalysis
                 outputName,
                 pdbFilePath: null,
                 pdbStream: null,
-                xmlDocumentationStream: xmlDocStream,
-                win32Resources: null,
-                manifestResources: null,
+                xmlDocumentationStream: xmlDocumentationStream,
+                win32Resources: win32Resources,
+                manifestResources: manifestResources,
                 metadataOnly: true,
                 testData: null,
                 cancellationToken: cancellationToken);
@@ -1578,17 +1585,29 @@ namespace Microsoft.CodeAnalysis
                     metadataDiagnostics = DiagnosticBag.GetInstance();
                     try
                     {
+                        // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
+                        // If the underlying stream isn't readable and seekable, we need to use a temp stream.
                         string deterministicString = this.Feature("deterministic");
                         bool deterministic =  deterministicString != null && deterministicString != "false";
+                        var writeToTempStream = deterministic && !(outputStream.CanRead && outputStream.CanSeek);
+                        var streamToWrite = writeToTempStream ? new MemoryStream() : outputStream;
+
                         Cci.PeWriter.WritePeToStream(
                             new EmitContext(moduleBeingBuilt, null, metadataDiagnostics),
                             this.MessageProvider,
-                            outputStream,
+                            streamToWrite,
                             pdbWriter,
                             metadataOnly,
                             foldIdenticalMethodBodies,
                             deterministic,
                             cancellationToken);
+
+                        if (writeToTempStream)
+                        {
+                            streamToWrite.Position = 0;
+                            streamToWrite.CopyTo(outputStream);
+                            streamToWrite.Dispose();
+                        }
                     }
                     catch (Cci.PdbWritingException ex)
                     {

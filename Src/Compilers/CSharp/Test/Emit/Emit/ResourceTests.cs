@@ -434,296 +434,322 @@ class C
         [Fact]
         void AddResourceToModule()
         {
-            var sourceTree = SyntaxFactory.ParseSyntaxTree("");
-
-            // Do not name the compilation, a unique guid is used as a name by default. It prevents conflicts with other assemblies loaded via Assembly.ReflectionOnlyLoad.
-            var c1 = CSharpCompilation.Create(
-                Guid.NewGuid().ToString(),
-                new[] { sourceTree },
-                new[] { MscorlibRef },
-                TestOptions.NetModule);
-
-            var resourceFileName = "RoslynResourceFile.foo";
-            var output = new MemoryStream();
-
-            const string r1Name = "some.dotted.NAME";
-            const string r2Name = "another.DoTtEd.NAME";
-
-            var arrayOfEmbeddedData = new byte[] { 1, 2, 3, 4, 5 };
-            var resourceFileData = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-
-            var result = c1.Emit(output, manifestResources:
-                new ResourceDescription[]
-                {
-                    new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true),
-                    new ResourceDescription(r2Name, resourceFileName, () => new MemoryStream(resourceFileData), false)
-                });
-
-            Assert.False(result.Success);
-            Assert.NotEmpty(result.Diagnostics.Where(x => x.Code == (int)ErrorCode.ERR_CantRefResource));
-
-            result = c1.Emit(output, manifestResources:
-                new ResourceDescription[]
-                {
-                    new ResourceDescription(r2Name, resourceFileName, () => new MemoryStream(resourceFileData), false),
-                    new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true)
-                });
-
-            Assert.False(result.Success);
-            Assert.NotEmpty(result.Diagnostics.Where(x => x.Code == (int)ErrorCode.ERR_CantRefResource));
-
-            result = c1.Emit(output, manifestResources:
-                new ResourceDescription[]
-                {
-                    new ResourceDescription(r2Name, resourceFileName, () => new MemoryStream(resourceFileData), false)
-                });
-
-            Assert.False(result.Success);
-            Assert.NotEmpty(result.Diagnostics.Where(x => x.Code == (int)ErrorCode.ERR_CantRefResource));
-
-            var c_mod1 = CSharpCompilation.Create(
-                Guid.NewGuid().ToString(),
-                new[] { sourceTree },
-                new[] { MscorlibRef },
-                TestOptions.NetModule);
-
-            var output_mod1 = new MemoryStream();
-            result = c_mod1.Emit(output_mod1, manifestResources:
-                new ResourceDescription[]
-                {
-                    new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true)
-                });
-
-            Assert.True(result.Success);
-            var mod1 = ModuleMetadata.CreateFromImage(output_mod1.ToImmutable());
-            var ref_mod1 = new MetadataImageReference(mod1);
-            Assert.Equal(ManifestResourceAttributes.Public, mod1.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
-
-            { 
-                var c2 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1 }, TestOptions.Dll);
-                var output2 = new MemoryStream();
-                var result2 = c2.Emit(output2);
-
-                Assert.True(result2.Success);
-                var assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output2.ToArray());
-
-                assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
-                {
-                    if (e.Name.Equals(c_mod1.SourceModule.Name))
-                    {
-                        return assembly.LoadModule(e.Name, output_mod1.ToArray());
-                    }
-
-                    return null;
-                };
-
-                string[] resourceNames = assembly.GetManifestResourceNames();
-                Assert.Equal(1, resourceNames.Length);
-
-                var rInfo = assembly.GetManifestResourceInfo(r1Name);
-                Assert.Equal(System.Reflection.ResourceLocation.Embedded, rInfo.ResourceLocation);
-                Assert.Equal(c_mod1.SourceModule.Name, rInfo.FileName);
-
-                var rData = assembly.GetManifestResourceStream(r1Name);
-                var rBytes = new byte[rData.Length];
-                rData.Read(rBytes, 0, (int)rData.Length);
-                Assert.Equal(arrayOfEmbeddedData, rBytes);
-            }
-
-            var c_mod2 = CSharpCompilation.Create(
-                Guid.NewGuid().ToString(),
-                new[] { sourceTree },
-                new[] { MscorlibRef },
-                TestOptions.NetModule);
-
-            var output_mod2 = new MemoryStream();
-            result = c_mod2.Emit(output_mod2, manifestResources:
-                new ResourceDescription[]
-                {
-                    new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true),
-                    new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), true)
-                });
-
-            Assert.True(result.Success);
-            var ref_mod2 = new MetadataImageReference(ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()));
-
+            for (int metadataOnlyIfNonzero = 0; metadataOnlyIfNonzero < 2; metadataOnlyIfNonzero++)
             {
-                var c3 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod2 }, TestOptions.Dll);
-                var output3 = new MemoryStream();
-                var result3 = c3.Emit(output3);
+                var metadataOnly = metadataOnlyIfNonzero != 0;
+                Func<Compilation, Stream, ResourceDescription[], CodeAnalysis.Emit.EmitResult> emit;
+                if (metadataOnly)
+                    emit = (c, s, r) => c.EmitMetadataOnly(s, manifestResources: r);
+                else
+                    emit = (c, s, r) => c.Emit(s, manifestResources: r);
 
-                Assert.True(result3.Success);
-                var assembly = Assembly.ReflectionOnlyLoad(output3.ToArray());
+                var sourceTree = SyntaxFactory.ParseSyntaxTree("");
 
-                assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
-                {
-                    if (e.Name.Equals(c_mod2.SourceModule.Name))
-                    {
-                        return assembly.LoadModule(e.Name, output_mod2.ToArray());
-                    }
+                // Do not name the compilation, a unique guid is used as a name by default. It prevents conflicts with other assemblies loaded via Assembly.ReflectionOnlyLoad.
+                var c1 = CSharpCompilation.Create(
+                    Guid.NewGuid().ToString(),
+                    new[] { sourceTree },
+                    new[] { MscorlibRef },
+                    TestOptions.NetModule);
 
-                    return null;
-                };
+                var resourceFileName = "RoslynResourceFile.foo";
+                var output = new MemoryStream();
 
-                string[] resourceNames = assembly.GetManifestResourceNames();
-                Assert.Equal(2, resourceNames.Length);
+                const string r1Name = "some.dotted.NAME";
+                const string r2Name = "another.DoTtEd.NAME";
 
-                var rInfo = assembly.GetManifestResourceInfo(r1Name);
-                Assert.Equal(ResourceLocation.Embedded, rInfo.ResourceLocation);
-                Assert.Equal(c_mod2.SourceModule.Name, rInfo.FileName);
+                var arrayOfEmbeddedData = new byte[] { 1, 2, 3, 4, 5 };
+                var resourceFileData = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
-                var rData = assembly.GetManifestResourceStream(r1Name);
-                var rBytes = new byte[rData.Length];
-                rData.Read(rBytes, 0, (int)rData.Length);
-                Assert.Equal(arrayOfEmbeddedData, rBytes);
-
-                rInfo = assembly.GetManifestResourceInfo(r2Name);
-                Assert.Equal(ResourceLocation.Embedded, rInfo.ResourceLocation);
-                Assert.Equal(c_mod2.SourceModule.Name, rInfo.FileName);
-
-                rData = assembly.GetManifestResourceStream(r2Name);
-                rBytes = new byte[rData.Length];
-                rData.Read(rBytes, 0, (int)rData.Length);
-                Assert.Equal(resourceFileData, rBytes);
-            }
-
-            var c_mod3 = CSharpCompilation.Create(
-                Guid.NewGuid().ToString(),
-                new[] { sourceTree },
-                new[] { MscorlibRef },
-                TestOptions.NetModule);
-
-            var output_mod3 = new MemoryStream();
-            result = c_mod3.Emit(output_mod3, manifestResources:
-                new ResourceDescription[]
-                {
-                    new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), false)
-                });
-
-            Assert.True(result.Success);
-            var mod3 = ModuleMetadata.CreateFromImage(output_mod3.ToImmutable());
-            var ref_mod3 = new MetadataImageReference(mod3);
-            Assert.Equal(ManifestResourceAttributes.Private, mod3.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
-
-            {
-                var c4 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod3 }, TestOptions.Dll);
-                var output4 = new MemoryStream();
-                var result4 = c4.Emit(output4, manifestResources:
+                var result = emit(c1, output,
                     new ResourceDescription[]
-                {
-                    new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), false)
-                });
-
-                Assert.True(result4.Success);
-                var assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output4.ToArray());
-
-                assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
-                {
-                    if (e.Name.Equals(c_mod3.SourceModule.Name))
                     {
-                        return assembly.LoadModule(e.Name, output_mod3.ToArray());
-                    }
+                        new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true),
+                        new ResourceDescription(r2Name, resourceFileName, () => new MemoryStream(resourceFileData), false)
+                    });
 
-                    return null;
-                };
+                Assert.False(result.Success);
+                Assert.NotEmpty(result.Diagnostics.Where(x => x.Code == (int)ErrorCode.ERR_CantRefResource));
 
-                string[] resourceNames = assembly.GetManifestResourceNames();
-                Assert.Equal(2, resourceNames.Length);
-
-                var rInfo = assembly.GetManifestResourceInfo(r1Name);
-                Assert.Equal(ResourceLocation.Embedded | ResourceLocation.ContainedInManifestFile, rInfo.ResourceLocation);
-
-                var rData = assembly.GetManifestResourceStream(r1Name);
-                var rBytes = new byte[rData.Length];
-                rData.Read(rBytes, 0, (int)rData.Length);
-                Assert.Equal(arrayOfEmbeddedData, rBytes);
-
-                rInfo = assembly.GetManifestResourceInfo(r2Name);
-                Assert.Equal(ResourceLocation.Embedded, rInfo.ResourceLocation);
-                Assert.Equal(c_mod3.SourceModule.Name, rInfo.FileName);
-
-                rData = assembly.GetManifestResourceStream(r2Name);
-                rBytes = new byte[rData.Length];
-                rData.Read(rBytes, 0, (int)rData.Length);
-                Assert.Equal(resourceFileData, rBytes);
-            }
-
-            {
-                var c5 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod3 }, TestOptions.Dll);
-                var output5 = new MemoryStream();
-                var result5 = c5.Emit(output5);
-
-                Assert.True(result5.Success);
-                var assembly = Assembly.ReflectionOnlyLoad(output5.ToArray());
-
-                assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
-                {
-                    if (e.Name.Equals(c_mod1.SourceModule.Name))
-                    {
-                        return assembly.LoadModule(e.Name, output_mod1.ToArray());
-                    }
-                    else if (e.Name.Equals(c_mod3.SourceModule.Name))
-                    {
-                        return assembly.LoadModule(e.Name, output_mod3.ToArray());
-                    }
-
-                    return null;
-                };
-
-                string[] resourceNames = assembly.GetManifestResourceNames();
-                Assert.Equal(2, resourceNames.Length);
-
-                var rInfo = assembly.GetManifestResourceInfo(r1Name);
-                Assert.Equal(ResourceLocation.Embedded, rInfo.ResourceLocation);
-                Assert.Equal(c_mod1.SourceModule.Name, rInfo.FileName);
-
-                var rData = assembly.GetManifestResourceStream(r1Name);
-                var rBytes = new byte[rData.Length];
-                rData.Read(rBytes, 0, (int)rData.Length);
-                Assert.Equal(arrayOfEmbeddedData, rBytes);
-
-                rInfo = assembly.GetManifestResourceInfo(r2Name);
-                Assert.Equal(ResourceLocation.Embedded, rInfo.ResourceLocation);
-                Assert.Equal(c_mod3.SourceModule.Name, rInfo.FileName);
-
-                rData = assembly.GetManifestResourceStream(r2Name);
-                rBytes = new byte[rData.Length];
-                rData.Read(rBytes, 0, (int)rData.Length);
-                Assert.Equal(resourceFileData, rBytes);
-            }
-
-            {
-                var c6 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.Dll);
-                var output6 = new MemoryStream();
-                var result6 = c6.Emit(output6);
-
-                Assert.False(result6.Success);
-                result6.Diagnostics.Verify(
-                    // error CS1508: Resource identifier 'some.dotted.NAME' has already been used in this assembly
-                    Diagnostic(ErrorCode.ERR_ResourceNotUnique).WithArguments("some.dotted.NAME"));
-
-                result6 = c6.Emit(output6, manifestResources:
+                result = emit(c1, output,
                     new ResourceDescription[]
-                {
-                    new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), false)
-                });
+                    {
+                        new ResourceDescription(r2Name, resourceFileName, () => new MemoryStream(resourceFileData), false),
+                        new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true)
+                    });
 
-                Assert.False(result6.Success);
-                result6.Diagnostics.Verify(
-                    // error CS1508: Resource identifier 'some.dotted.NAME' has already been used in this assembly
-                    Diagnostic(ErrorCode.ERR_ResourceNotUnique).WithArguments("some.dotted.NAME"),
-                    // error CS1508: Resource identifier 'another.DoTtEd.NAME' has already been used in this assembly
-                    Diagnostic(ErrorCode.ERR_ResourceNotUnique).WithArguments("another.DoTtEd.NAME"));
+                Assert.False(result.Success);
+                Assert.NotEmpty(result.Diagnostics.Where(x => x.Code == (int)ErrorCode.ERR_CantRefResource));
 
-                c6 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.NetModule);
-
-                result6 = c6.Emit(output6, manifestResources:
+                result = emit(c1, output,
                     new ResourceDescription[]
-                {
-                    new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), false)
-                });
+                    {
+                        new ResourceDescription(r2Name, resourceFileName, () => new MemoryStream(resourceFileData), false)
+                    });
 
-                Assert.True(result6.Success);
+                Assert.False(result.Success);
+                Assert.NotEmpty(result.Diagnostics.Where(x => x.Code == (int)ErrorCode.ERR_CantRefResource));
+
+                var c_mod1 = CSharpCompilation.Create(
+                    Guid.NewGuid().ToString(),
+                    new[] { sourceTree },
+                    new[] { MscorlibRef },
+                    TestOptions.NetModule);
+
+                var output_mod1 = new MemoryStream();
+                result = emit(c_mod1, output_mod1,
+                    new ResourceDescription[]
+                    {
+                        new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true)
+                    });
+
+                Assert.True(result.Success);
+                var mod1 = ModuleMetadata.CreateFromImage(output_mod1.ToImmutable());
+                var ref_mod1 = new MetadataImageReference(mod1);
+                Assert.Equal(ManifestResourceAttributes.Public, mod1.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
+
+                {
+                    var c2 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1 }, TestOptions.Dll);
+                    var output2 = new MemoryStream();
+                    var result2 = c2.Emit(output2);
+
+                    Assert.True(result2.Success);
+                    var assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output2.ToArray());
+
+                    assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
+                    {
+                        if (e.Name.Equals(c_mod1.SourceModule.Name))
+                        {
+                            return assembly.LoadModule(e.Name, output_mod1.ToArray());
+                        }
+
+                        return null;
+                    };
+
+                    string[] resourceNames = assembly.GetManifestResourceNames();
+                    Assert.Equal(1, resourceNames.Length);
+
+                    var rInfo = assembly.GetManifestResourceInfo(r1Name);
+                    Assert.Equal(System.Reflection.ResourceLocation.Embedded, rInfo.ResourceLocation);
+                    Assert.Equal(c_mod1.SourceModule.Name, rInfo.FileName);
+
+                    var rData = assembly.GetManifestResourceStream(r1Name);
+                    var rBytes = new byte[rData.Length];
+                    rData.Read(rBytes, 0, (int)rData.Length);
+                    Assert.Equal(arrayOfEmbeddedData, rBytes);
+                }
+
+                var c_mod2 = CSharpCompilation.Create(
+                    Guid.NewGuid().ToString(),
+                    new[] { sourceTree },
+                    new[] { MscorlibRef },
+                    TestOptions.NetModule);
+
+                var output_mod2 = new MemoryStream();
+                result = emit(c_mod2, output_mod2,
+                    new ResourceDescription[]
+                    {
+                        new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true),
+                        new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), true)
+                    });
+
+                Assert.True(result.Success);
+                var ref_mod2 = new MetadataImageReference(ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()));
+
+                {
+                    var c3 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod2 }, TestOptions.Dll);
+                    var output3 = new MemoryStream();
+                    var result3 = c3.Emit(output3);
+
+                    Assert.True(result3.Success);
+                    var assembly = Assembly.ReflectionOnlyLoad(output3.ToArray());
+
+                    assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
+                    {
+                        if (e.Name.Equals(c_mod2.SourceModule.Name))
+                        {
+                            return assembly.LoadModule(e.Name, output_mod2.ToArray());
+                        }
+
+                        return null;
+                    };
+
+                    string[] resourceNames = assembly.GetManifestResourceNames();
+                    Assert.Equal(2, resourceNames.Length);
+
+                    var rInfo = assembly.GetManifestResourceInfo(r1Name);
+                    Assert.Equal(ResourceLocation.Embedded, rInfo.ResourceLocation);
+                    Assert.Equal(c_mod2.SourceModule.Name, rInfo.FileName);
+
+                    var rData = assembly.GetManifestResourceStream(r1Name);
+                    var rBytes = new byte[rData.Length];
+                    rData.Read(rBytes, 0, (int)rData.Length);
+                    Assert.Equal(arrayOfEmbeddedData, rBytes);
+
+                    rInfo = assembly.GetManifestResourceInfo(r2Name);
+                    Assert.Equal(ResourceLocation.Embedded, rInfo.ResourceLocation);
+                    Assert.Equal(c_mod2.SourceModule.Name, rInfo.FileName);
+
+                    rData = assembly.GetManifestResourceStream(r2Name);
+                    rBytes = new byte[rData.Length];
+                    rData.Read(rBytes, 0, (int)rData.Length);
+                    Assert.Equal(resourceFileData, rBytes);
+                }
+
+                var c_mod3 = CSharpCompilation.Create(
+                    Guid.NewGuid().ToString(),
+                    new[] { sourceTree },
+                    new[] { MscorlibRef },
+                    TestOptions.NetModule);
+
+                var output_mod3 = new MemoryStream();
+                result = emit(c_mod3, output_mod3,
+                    new ResourceDescription[]
+                    {
+                        new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), false)
+                    });
+
+                Assert.True(result.Success);
+                var mod3 = ModuleMetadata.CreateFromImage(output_mod3.ToImmutable());
+                var ref_mod3 = new MetadataImageReference(mod3);
+                Assert.Equal(ManifestResourceAttributes.Private, mod3.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
+
+                {
+                    var c4 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod3 }, TestOptions.Dll);
+                    var output4 = new MemoryStream();
+                    var result4 = c4.Emit(output4, manifestResources:
+                        new ResourceDescription[]
+                        {
+                            new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), false)
+                        });
+
+                    Assert.True(result4.Success);
+                    var assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output4.ToArray());
+
+                    assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
+                    {
+                        if (e.Name.Equals(c_mod3.SourceModule.Name))
+                        {
+                            return assembly.LoadModule(e.Name, output_mod3.ToArray());
+                        }
+
+                        return null;
+                    };
+
+                    string[] resourceNames = assembly.GetManifestResourceNames();
+                    Assert.Equal(2, resourceNames.Length);
+
+                    var rInfo = assembly.GetManifestResourceInfo(r1Name);
+                    Assert.Equal(ResourceLocation.Embedded | ResourceLocation.ContainedInManifestFile, rInfo.ResourceLocation);
+
+                    var rData = assembly.GetManifestResourceStream(r1Name);
+                    var rBytes = new byte[rData.Length];
+                    rData.Read(rBytes, 0, (int)rData.Length);
+                    Assert.Equal(arrayOfEmbeddedData, rBytes);
+
+                    rInfo = assembly.GetManifestResourceInfo(r2Name);
+                    Assert.Equal(ResourceLocation.Embedded, rInfo.ResourceLocation);
+                    Assert.Equal(c_mod3.SourceModule.Name, rInfo.FileName);
+
+                    rData = assembly.GetManifestResourceStream(r2Name);
+                    rBytes = new byte[rData.Length];
+                    rData.Read(rBytes, 0, (int)rData.Length);
+                    Assert.Equal(resourceFileData, rBytes);
+                }
+
+                {
+                    var c5 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod3 }, TestOptions.Dll);
+                    var output5 = new MemoryStream();
+                    var result5 = emit(c5, output5, null);
+
+                    Assert.True(result5.Success);
+                    var assembly = Assembly.ReflectionOnlyLoad(output5.ToArray());
+
+                    assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
+                    {
+                        if (e.Name.Equals(c_mod1.SourceModule.Name))
+                        {
+                            return assembly.LoadModule(e.Name, output_mod1.ToArray());
+                        }
+                        else if (e.Name.Equals(c_mod3.SourceModule.Name))
+                        {
+                            return assembly.LoadModule(e.Name, output_mod3.ToArray());
+                        }
+
+                        return null;
+                    };
+
+                    string[] resourceNames = assembly.GetManifestResourceNames();
+                    Assert.Equal(2, resourceNames.Length);
+
+                    var rInfo = assembly.GetManifestResourceInfo(r1Name);
+                    Assert.Equal(ResourceLocation.Embedded, rInfo.ResourceLocation);
+                    Assert.Equal(c_mod1.SourceModule.Name, rInfo.FileName);
+
+                    var rData = assembly.GetManifestResourceStream(r1Name);
+                    var rBytes = new byte[rData.Length];
+                    rData.Read(rBytes, 0, (int)rData.Length);
+                    Assert.Equal(arrayOfEmbeddedData, rBytes);
+
+                    rInfo = assembly.GetManifestResourceInfo(r2Name);
+                    Assert.Equal(ResourceLocation.Embedded, rInfo.ResourceLocation);
+                    Assert.Equal(c_mod3.SourceModule.Name, rInfo.FileName);
+
+                    rData = assembly.GetManifestResourceStream(r2Name);
+                    rBytes = new byte[rData.Length];
+                    rData.Read(rBytes, 0, (int)rData.Length);
+                    Assert.Equal(resourceFileData, rBytes);
+                }
+
+                {
+                    var c6 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.Dll);
+                    var output6 = new MemoryStream();
+                    var result6 = emit(c6, output6, null);
+
+                    if (metadataOnly)
+                    {
+                        Assert.True(result6.Success);
+                    }
+                    else
+                    {
+                        Assert.False(result6.Success);
+                        result6.Diagnostics.Verify(
+                            // error CS1508: Resource identifier 'some.dotted.NAME' has already been used in this assembly
+                            Diagnostic(ErrorCode.ERR_ResourceNotUnique).WithArguments("some.dotted.NAME")
+                            );
+                    }
+
+                    result6 = emit(c6, output6,
+                        new ResourceDescription[]
+                        {
+                            new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), false)
+                        });
+
+                    if (metadataOnly)
+                    {
+                        Assert.True(result6.Success);
+                    }
+                    else
+                    {
+                        Assert.False(result6.Success);
+                        result6.Diagnostics.Verify(
+                            // error CS1508: Resource identifier 'some.dotted.NAME' has already been used in this assembly
+                            Diagnostic(ErrorCode.ERR_ResourceNotUnique).WithArguments("some.dotted.NAME"),
+                            // error CS1508: Resource identifier 'another.DoTtEd.NAME' has already been used in this assembly
+                            Diagnostic(ErrorCode.ERR_ResourceNotUnique).WithArguments("another.DoTtEd.NAME")
+                            );
+                    }
+
+                    c6 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.NetModule);
+
+                    result6 = emit(c6, output6,
+                        new ResourceDescription[]
+                        {
+                            new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), false)
+                        });
+
+                    Assert.True(result6.Success);
+                }
             }
         }
 

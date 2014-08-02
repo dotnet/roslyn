@@ -123,6 +123,7 @@
     <Compile Include="Compilation\DebugInformationKind.cs" />
     <Compile Include="Compilation\EmitResult.cs" />
     <Compile Include="Compilation\Extensions.cs" />
+    <Compile Include="Compilation\MetadataOnlyEmitOptions.cs" />
     <Compile Include="Compilation\ParseOptions.cs" />
     <Compile Include="Compilation\Platform.cs" />
     <Compile Include="Compilation\PreprocessingSymbolInfo.cs" />
