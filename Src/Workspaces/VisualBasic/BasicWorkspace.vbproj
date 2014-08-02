@@ -7,13 +7,13 @@
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <OutDir>..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Workspaces</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <OutDir>..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Collections.Immutable">
@@ -202,7 +202,6 @@
     <Compile Include="LanguageServices\VisualBasicSyntaxTreeFactoryService.PositionalSyntaxReference.vb" />
     <Compile Include="LanguageServices\VisualBasicSyntaxTreeFactoryService.RecoverableSyntaxTree.vb" />
     <Compile Include="LanguageServices\VisualBasicSyntaxTreeFactoryService.vb" />
-    <Compile Include="LanguageServices\VisualBasicSyntaxVersionService.vb" />
     <Compile Include="LanguageServices\VisualBasicTypeInferenceService.TypeInferrer.vb" />
     <Compile Include="LanguageServices\VisualBasicTypeInferenceService.vb" />
     <Compile Include="LinkedFiles\BasicLinkedFileMergeConflictCommentAdditionService.vb" />

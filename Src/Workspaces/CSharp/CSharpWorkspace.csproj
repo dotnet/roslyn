@@ -7,6 +7,7 @@
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <OutDir>..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{21B239D0-D144-430F-A394-C066D58EE267}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -15,7 +16,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <OutDir>..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Collections.Immutable">
@@ -205,7 +205,6 @@
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.NullSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.PositionalSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.RecoverableSyntaxTree.cs" />
-    <Compile Include="LanguageServices\CSharpSyntaxVersionService.cs" />
     <Compile Include="LanguageServices\CSharpTypeInferenceService.cs" />
     <Compile Include="LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs" />
     <Compile Include="LinkedFiles\CSharpLinkedFileMergeConflictCommentAdditionService.cs" />

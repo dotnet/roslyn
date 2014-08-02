@@ -514,7 +514,6 @@
     <Compile Include="Workspace\Host\Mef\ILanguageMetadata.cs" />
     <Compile Include="Workspace\Host\ILanguageService.cs" />
     <Compile Include="Workspace\Host\Mef\ILanguageServiceFactory.cs" />
-    <Compile Include="LanguageServices\ISyntaxVersionLanguageService.cs" />
     <Compile Include="Workspace\Host\Mef\LanguageMetadata.cs" />
     <Compile Include="Workspace\Host\Mef\LanguageServiceMetadata.cs" />
     <Compile Include="Workspace\Host\Mef\OrderableLanguageMetadata.cs" />
