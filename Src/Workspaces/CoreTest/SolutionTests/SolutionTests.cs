@@ -652,23 +652,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text1, observedText2.ToString());
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact(Skip = "Bug 789466"), Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestTextCacheDelayedEvicted()
-        {
-            var pid = ProjectId.CreateNewId();
-            var did = DocumentId.CreateNewId(pid);
-
-            var text = "public class C {}";
-            var sol = GetDelayedEvictionSolution()
-                        .AddProject(pid, "foo", "foo.dll", LanguageNames.CSharp)
-                        .AddDocument(did, "foo.cs", text);
-
-            // observe the text and then wait for the references to be GC'd
-            var observed = GetObservedText(sol, did, text);
-            StopObservingAndWaitForReferenceToGo(observed, delay: 500);
-        }
-
         private Solution CreateNotKeptAliveSolution()
         {
             var workspace = new CustomWorkspace(TestHost.Services, "NotKeptAlive");
@@ -685,7 +668,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new CustomWorkspace(TestHost.Services, "DelayedEviction").CurrentSolution;
         }
 
-        private void StopObservingAndWaitForReferenceToGo(ObjectReference observed, int delay = 0)
+        private void StopObservingAndWaitForReferenceToGo(ObjectReference observed)
         {
             // stop observing it and let GC reclaim it
             observed.Strong = null;
@@ -701,13 +684,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             const int TimerPrecision = 30;
             var actualTimePassed = DateTime.UtcNow - start + TimeSpan.FromMilliseconds(TimerPrecision);
-
-            if (delay > 0)
-            {
-                Assert.True(
-                    actualTimePassed > TimeSpan.FromMilliseconds(delay),
-                    string.Format("Expected delay was at least {0} ms, actual delay was {1}", delay, actualTimePassed));
-            }
 
             Assert.True(observed.Weak.Target == null,
                 string.Format("Target object ({0}) was not collected after {1} ms", observed.Weak.Target, actualTimePassed));
