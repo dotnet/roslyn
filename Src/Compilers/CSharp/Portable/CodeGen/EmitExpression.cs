@@ -241,14 +241,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var receiverType = receiver.Type;
+            LocalDefinition receiverTemp = null;
             Debug.Assert(!receiverType.IsValueType, "conditional receiver cannot be a struct");
 
             var receiverConstant = receiver.ConstantValue;
             if (receiverConstant != null)
             {
                 // const but not default
-                EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
+                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
                 EmitExpression(expression.AccessExpression, used);
+                if (receiverTemp != null)
+                {
+                    FreeTemp(receiverTemp);
+                }
                 return;
             }
 
@@ -341,7 +346,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (!nullCheckOnCopy)
             {
-                EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
+                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
+                Debug.Assert(receiverTemp == null);
             }
 
             EmitExpression(expression.AccessExpression, used);
@@ -350,6 +356,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (temp != null)
             {
                 FreeTemp(temp);
+            }
+
+            if (receiverTemp != null)
+            {
+                FreeTemp(receiverTemp);
             }
         }
 
@@ -370,7 +381,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // push address of variable
             // mkrefany [Type] -- takes address off stack, puts TypedReference on stack
 
-            EmitAddress(expression.Operand, AddressKind.Writeable);
+            var temp = EmitAddress(expression.Operand, AddressKind.Writeable);
+            Debug.Assert(temp == null, "makeref should not create temps");
+
             builder.EmitOpCode(ILOpCode.Mkrefany);
             EmitSymbolToken(expression.Operand.Type, expression.Operand.Syntax);
             EmitPopIfUnused(used);
@@ -1701,7 +1714,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void InPlaceInit(BoundExpression target, bool used)
         {
-            EmitAddress(target, AddressKind.Writeable);
+            var temp = EmitAddress(target, AddressKind.Writeable);
+            Debug.Assert(temp == null, "inplace init target should not create temps");
+
             builder.EmitOpCode(ILOpCode.Initobj);    //  intitobj  <MyStruct>
             EmitSymbolToken(target.Type, target.Syntax);
 
@@ -1714,7 +1729,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void InPlaceCtorCall(BoundExpression target, BoundObjectCreationExpression objCreation, bool used)
         {
-            EmitAddress(target, AddressKind.Writeable);
+            var temp = EmitAddress(target, AddressKind.Writeable);
+            Debug.Assert(temp == null, "inplace ctor target should not create temps");
 
             var constructor = objCreation.Constructor;
             EmitArguments(objCreation.Arguments, constructor.Parameters);
@@ -1943,12 +1959,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                // LEAKING A TEMP IS OK HERE
-                // Once a reference is assigned to a byref local, there is no easy way to figure when 
-                // reference is no longer in use.
-                // Therefore if we had to create a temp while producing a reference, we do not know when 
-                // the temp slot can be reused so we must leak it.
+                // LEAKING A TEMP IS OK HERE 
+                // generally taking a ref for the purpose of ref assignmnt should not be done on homeless values
+                // however, there are very rare cases when we need to get a ref off a copy in synthetic code and we have to leak those.
+                // fortunately these are very shortlived temps that should not cause value sharing.
                 var temp = EmitAddress(assignmentOperator.Right, AddressKind.Writeable);
+#if DEBUG
+                Debug.Assert(temp == null || ((SynthesizedLocal)assignmentOperator.Left.ExpressionSymbol).SynthesizedLocalKind == SynthesizedLocalKind.LoweringTemp);
+#endif
             }
         }
 

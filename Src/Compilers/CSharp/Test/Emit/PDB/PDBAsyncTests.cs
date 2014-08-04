@@ -775,7 +775,7 @@ class C
             
             v.VerifyIL("C.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      279 (0x117)
+  // Code size      275 (0x113)
   .maxstack  3
   .locals init (int V_0, //CS$524$0000
                 int V_1, //CS$523$0001
@@ -785,8 +785,7 @@ class C
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_5,
                 int V_6,
                 C.<G>d__1 V_7,
-                object V_8,
-                System.Exception V_9)
+                System.Exception V_8)
  ~IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<G>d__1.<>1__state""
   IL_0006:  stloc.0
@@ -847,7 +846,7 @@ class C
     IL_0068:  ldloca.s   V_7
     IL_006a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<G>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<G>d__1)""
     IL_006f:  nop
-    IL_0070:  leave      IL_0116
+    IL_0070:  leave      IL_0112
     IL_0075:  ldarg.0
     IL_0076:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__$awaiter0""
     IL_007b:  stloc.s    V_5
@@ -871,57 +870,57 @@ class C
    -IL_00aa:  nop
    ~IL_00ab:  ldarg.0
     IL_00ac:  ldfld      ""object C.<G>d__1.<>7__wrap1""
-    IL_00b1:  stloc.s    V_8
-    IL_00b3:  ldloc.s    V_8
-    IL_00b5:  brfalse.s  IL_00d4
-    IL_00b7:  ldloc.s    V_8
-    IL_00b9:  isinst     ""System.Exception""
-    IL_00be:  stloc.s    V_9
-    IL_00c0:  ldloc.s    V_9
-    IL_00c2:  brtrue.s   IL_00c7
-    IL_00c4:  ldloc.s    V_8
-    IL_00c6:  throw
-    IL_00c7:  ldloc.s    V_9
-    IL_00c9:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
-    IL_00ce:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-    IL_00d3:  nop
-    IL_00d4:  ldarg.0
-    IL_00d5:  ldfld      ""int C.<G>d__1.<>7__wrap2""
-    IL_00da:  pop
-    IL_00db:  ldarg.0
-    IL_00dc:  ldnull
-    IL_00dd:  stfld      ""object C.<G>d__1.<>7__wrap1""
-   -IL_00e2:  ldloc.2
-    IL_00e3:  stloc.1
-    IL_00e4:  leave.s    IL_0101
+    IL_00b1:  stloc.3
+    IL_00b2:  ldloc.3
+    IL_00b3:  brfalse.s  IL_00d0
+    IL_00b5:  ldloc.3
+    IL_00b6:  isinst     ""System.Exception""
+    IL_00bb:  stloc.s    V_8
+    IL_00bd:  ldloc.s    V_8
+    IL_00bf:  brtrue.s   IL_00c3
+    IL_00c1:  ldloc.3
+    IL_00c2:  throw
+    IL_00c3:  ldloc.s    V_8
+    IL_00c5:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00ca:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00cf:  nop
+    IL_00d0:  ldarg.0
+    IL_00d1:  ldfld      ""int C.<G>d__1.<>7__wrap2""
+    IL_00d6:  pop
+    IL_00d7:  ldarg.0
+    IL_00d8:  ldnull
+    IL_00d9:  stfld      ""object C.<G>d__1.<>7__wrap1""
+   -IL_00de:  ldloc.2
+    IL_00df:  stloc.1
+    IL_00e0:  leave.s    IL_00fd
   }
   catch System.Exception
   {
-   ~IL_00e6:  stloc.s    V_9
-    IL_00e8:  nop
-    IL_00e9:  ldarg.0
-    IL_00ea:  ldc.i4.s   -2
-    IL_00ec:  stfld      ""int C.<G>d__1.<>1__state""
-    IL_00f1:  ldarg.0
-    IL_00f2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
-    IL_00f7:  ldloc.s    V_9
-    IL_00f9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00fe:  nop
-    IL_00ff:  leave.s    IL_0116
+   ~IL_00e2:  stloc.s    V_8
+    IL_00e4:  nop
+    IL_00e5:  ldarg.0
+    IL_00e6:  ldc.i4.s   -2
+    IL_00e8:  stfld      ""int C.<G>d__1.<>1__state""
+    IL_00ed:  ldarg.0
+    IL_00ee:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
+    IL_00f3:  ldloc.s    V_8
+    IL_00f5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00fa:  nop
+    IL_00fb:  leave.s    IL_0112
   }
- -IL_0101:  ldarg.0
-  IL_0102:  ldc.i4.s   -2
-  IL_0104:  stfld      ""int C.<G>d__1.<>1__state""
- ~IL_0109:  ldarg.0
-  IL_010a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
-  IL_010f:  ldloc.1
-  IL_0110:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_0115:  nop
-  IL_0116:  ret
+ -IL_00fd:  ldarg.0
+  IL_00fe:  ldc.i4.s   -2
+  IL_0100:  stfld      ""int C.<G>d__1.<>1__state""
+ ~IL_0105:  ldarg.0
+  IL_0106:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
+  IL_010b:  ldloc.1
+  IL_010c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_0111:  nop
+  IL_0112:  ret
 }", sequencePoints: "C+<G>d__1.MoveNext");
 
             string actual = GetPdbXml(comp, "C+<G>d__1.MoveNext");
-            string expected = @"
+            string expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
 <symbols>
   <methods>
     <method containingType=""C+&lt;G&gt;d__1"" name=""MoveNext"" parameterNames="""">
@@ -944,24 +943,24 @@ class C
         <entry il_offset=""0x37"" start_row=""16"" start_column=""13"" end_row=""16"" end_column=""27"" file_ref=""0"" />
         <entry il_offset=""0xaa"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0xab"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xe2"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""18"" file_ref=""0"" />
-        <entry il_offset=""0xe6"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x101"" start_row=""20"" start_column=""5"" end_row=""20"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x109"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xde"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""18"" file_ref=""0"" />
+        <entry il_offset=""0xe2"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xfd"" start_row=""20"" start_column=""5"" end_row=""20"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x105"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x117"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x117"" attributes=""1"" />
-        <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xe6"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x113"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x113"" attributes=""1"" />
+        <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xe2"" attributes=""0"" />
         <local name=""CS$530$0002"" il_index=""4"" il_start=""0x37"" il_end=""0xaa"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x117"">
+      <scope startOffset=""0x0"" endOffset=""0x113"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x117"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x117"" attributes=""1"" />
-        <scope startOffset=""0x16"" endOffset=""0xe6"">
-          <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xe6"" attributes=""0"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x113"" attributes=""1"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x113"" attributes=""1"" />
+        <scope startOffset=""0x16"" endOffset=""0xe2"">
+          <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xe2"" attributes=""0"" />
           <scope startOffset=""0x37"" endOffset=""0xaa"">
             <local name=""CS$530$0002"" il_index=""4"" il_start=""0x37"" il_end=""0xaa"" attributes=""1"" />
           </scope>

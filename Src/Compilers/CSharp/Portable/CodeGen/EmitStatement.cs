@@ -854,9 +854,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var temp = AllocateTemp(exceptionSource.Type, exceptionSource.Syntax);
                         builder.EmitLocalStore(temp);
 
-                        EmitReceiverRef(left.ReceiverOpt);
+                        var receiverTemp = EmitReceiverRef(left.ReceiverOpt);
+                        Debug.Assert(receiverTemp == null);
 
                         builder.EmitLocalLoad(temp);
+                        FreeTemp(temp);
+
                         EmitFieldStore(left);
                         break;
 
