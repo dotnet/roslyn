@@ -250,7 +250,6 @@
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />
-    <InternalsVisibleTo Include="Roslyn.Services.Internal.VSFork" />
     <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.InteractiveServices" />
@@ -271,13 +270,9 @@
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.Perf" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Dev12.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.PerfTestSetup" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
-    <InternalsVisibleToTest Include="RoslynConsoleRun" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
-    <!-- Eventually a bunch of these unit tests should move into Roslyn.Services.Implementation.UnitTests
-         and this should be removed. -->
     <InternalsVisibleToTest Include="RoslynTaoActions" />
   </ItemGroup>
   <ItemGroup>
