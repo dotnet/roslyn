@@ -780,7 +780,7 @@ End Module", i));
 
 
         [WorkItem(997372)]
-        [Fact(Skip = "997372"), WorkItem(761326, "DevDiv")]
+        [Fact, WorkItem(761326, "DevDiv")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MultipleSimultaneousCompiles()
         {
