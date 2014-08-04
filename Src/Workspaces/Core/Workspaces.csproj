@@ -90,7 +90,7 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\MultiDictionary.cs">
       <Link>InternalUtilities\MultiDictionary.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PathKind.cs">
+    <Compile Include="..\..\Compilers\Core\Desktop\PathKind.cs">
       <Link>InternalUtilities\PathKind.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">

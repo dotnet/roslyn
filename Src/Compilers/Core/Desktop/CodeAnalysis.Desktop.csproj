@@ -93,6 +93,7 @@
     <Compile Include="MetadataFileReferenceProvider.cs" />
     <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="ModuleMetadata.FromFile.cs" />
+    <Compile Include="PathKind.cs" />
     <Compile Include="PathUtilities.cs" />
     <Compile Include="SerializableCompilationOptions.cs" />
     <Compile Include="SerializableParseOptions.cs" />
