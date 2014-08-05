@@ -10763,6 +10763,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The result of the expression is always &apos;{0}&apos; since a value of type &apos;{1}&apos; is never equal to &apos;null&apos; of type &apos;{2}&apos;.
+        /// </summary>
+        internal static string WRN_NubExprIsConstBool2 {
+            get {
+                return ResourceManager.GetString("WRN_NubExprIsConstBool2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Obsolete member &apos;{0}&apos; overrides non-obsolete member &apos;{1}&apos;.
         /// </summary>
         internal static string WRN_ObsoleteOverridingNonObsolete {

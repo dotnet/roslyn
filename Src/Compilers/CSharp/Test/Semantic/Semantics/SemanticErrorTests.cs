@@ -19122,102 +19122,102 @@ tf
 ftftftft";
             var comp = this.CompileAndVerify(source: text, expectedOutput: expected);
             comp.VerifyDiagnostics(
-                // (17,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                // (19,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         W(i == null);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i == null").WithArguments("false", "int", "int?"),
-                // (18,11): warning CS0472: The result of the expression is always 'true' since a value of type 'int' is never equal to 'null' of type 'int?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i == null").WithArguments("false", "int", "int?").WithLocation(19, 11),
+                // (20,11): warning CS0472: The result of the expression is always 'true' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         W(i != null);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i != null").WithArguments("true", "int", "int?"),
-                // (21,11): warning CS0472: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i != null").WithArguments("true", "int", "int?").WithLocation(20, 11),
+                // (23,11): warning CS8073: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(g == null);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "g == null").WithArguments("false", "System.Guid", "System.Guid?"),
-                // (22,11): warning CS0472: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "g == null").WithArguments("false", "System.Guid", "System.Guid?").WithLocation(23, 11),
+                // (24,11): warning CS8073: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(g != null);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "g != null").WithArguments("true", "System.Guid", "System.Guid?"),
-                // (26,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "g != null").WithArguments("true", "System.Guid", "System.Guid?").WithLocation(24, 11),
+                // (28,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
                 //         W(i == default(short?));            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i == default(short?)").WithArguments("false", "int", "short?"),
-                // (27,11): warning CS0472: The result of the expression is always 'true' since a value of type 'int' is never equal to 'null' of type 'short?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i == default(short?)").WithArguments("false", "int", "short?").WithLocation(28, 11),
+                // (29,11): warning CS0472: The result of the expression is always 'true' since a value of type 'int' is never equal to 'null' of type 'short?'
                 //         W(i != default(short?));            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i != default(short?)").WithArguments("true", "int", "short?"),
-                // (30,11): warning CS0472: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i != default(short?)").WithArguments("true", "int", "short?").WithLocation(29, 11),
+                // (32,11): warning CS8073: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(g == default(Guid?));             // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "g == default(Guid?)").WithArguments("false", "System.Guid", "System.Guid?"),
-                // (31,11): warning CS0472: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "g == default(Guid?)").WithArguments("false", "System.Guid", "System.Guid?").WithLocation(32, 11),
+                // (33,11): warning CS8073: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(g != default(Guid?));             // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "g != default(Guid?)").WithArguments("true", "System.Guid", "System.Guid?"),
-                // (35,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'sbyte?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "g != default(Guid?)").WithArguments("true", "System.Guid", "System.Guid?").WithLocation(33, 11),
+                // (37,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'sbyte?'
                 //         W(i == new sbyte?());            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i == new sbyte?()").WithArguments("false", "int", "sbyte?"),
-                // (36,11): warning CS0472: The result of the expression is always 'true' since a value of type 'int' is never equal to 'null' of type 'sbyte?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i == new sbyte?()").WithArguments("false", "int", "sbyte?").WithLocation(37, 11),
+                // (38,11): warning CS0472: The result of the expression is always 'true' since a value of type 'int' is never equal to 'null' of type 'sbyte?'
                 //         W(i != new sbyte?());            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i != new sbyte?()").WithArguments("true", "int", "sbyte?"),
-                // (39,11): warning CS0472: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i != new sbyte?()").WithArguments("true", "int", "sbyte?").WithLocation(38, 11),
+                // (41,11): warning CS8073: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(g == new Guid?());             // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "g == new Guid?()").WithArguments("false", "System.Guid", "System.Guid?"),
-                // (40,11): warning CS0472: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "g == new Guid?()").WithArguments("false", "System.Guid", "System.Guid?").WithLocation(41, 11),
+                // (42,11): warning CS8073: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(g != new Guid?());             // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "g != new Guid?()").WithArguments("true", "System.Guid", "System.Guid?"),
-                // (47,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "g != new Guid?()").WithArguments("true", "System.Guid", "System.Guid?").WithLocation(42, 11),
+                // (49,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         W(null == i);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "null == i").WithArguments("false", "int", "int?"),
-                // (48,11): warning CS0472: The result of the expression is always 'true' since a value of type 'int' is never equal to 'null' of type 'int?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "null == i").WithArguments("false", "int", "int?").WithLocation(49, 11),
+                // (50,11): warning CS0472: The result of the expression is always 'true' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         W(null != i);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "null != i").WithArguments("true", "int", "int?"),
-                // (51,11): warning CS0472: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "null != i").WithArguments("true", "int", "int?").WithLocation(50, 11),
+                // (53,11): warning CS8073: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(null == g);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "null == g").WithArguments("false", "System.Guid", "System.Guid?"),
-                // (52,11): warning CS0472: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null == g").WithArguments("false", "System.Guid", "System.Guid?").WithLocation(53, 11),
+                // (54,11): warning CS8073: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(null != g);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "null != g").WithArguments("true", "System.Guid", "System.Guid?"),
-                // (56,11): warning CS0472: The result of the expression is always 'false' since a value of type 'long' is never equal to 'null' of type 'long?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "null != g").WithArguments("true", "System.Guid", "System.Guid?").WithLocation(54, 11),
+                // (58,11): warning CS0472: The result of the expression is always 'false' since a value of type 'long' is never equal to 'null' of type 'long?'
                 //         W(default(long?) == i);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(long?) == i").WithArguments("false", "long", "long?"),
-                // (57,11): warning CS0472: The result of the expression is always 'true' since a value of type 'long' is never equal to 'null' of type 'long?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(long?) == i").WithArguments("false", "long", "long?").WithLocation(58, 11),
+                // (59,11): warning CS0472: The result of the expression is always 'true' since a value of type 'long' is never equal to 'null' of type 'long?'
                 //         W(default(long?) != i);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(long?) != i").WithArguments("true", "long", "long?"),
-                // (60,11): warning CS0472: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(long?) != i").WithArguments("true", "long", "long?").WithLocation(59, 11),
+                // (62,11): warning CS8073: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(default(Guid?) == g);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(Guid?) == g").WithArguments("false", "System.Guid", "System.Guid?"),
-                // (61,11): warning CS0472: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default(Guid?) == g").WithArguments("false", "System.Guid", "System.Guid?").WithLocation(62, 11),
+                // (63,11): warning CS8073: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(default(Guid?) != g);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(Guid?) != g").WithArguments("true", "System.Guid", "System.Guid?"),
-                // (65,11): warning CS0472: The result of the expression is always 'false' since a value of type 'double' is never equal to 'null' of type 'double?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default(Guid?) != g").WithArguments("true", "System.Guid", "System.Guid?").WithLocation(63, 11),
+                // (67,11): warning CS0472: The result of the expression is always 'false' since a value of type 'double' is never equal to 'null' of type 'double?'
                 //         W(new double?() == i);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new double?() == i").WithArguments("false", "double", "double?"),
-                // (66,11): warning CS0472: The result of the expression is always 'true' since a value of type 'double' is never equal to 'null' of type 'double?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new double?() == i").WithArguments("false", "double", "double?").WithLocation(67, 11),
+                // (68,11): warning CS0472: The result of the expression is always 'true' since a value of type 'double' is never equal to 'null' of type 'double?'
                 //         W(new double?() != i);            // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new double?() != i").WithArguments("true", "double", "double?"),
-                // (69,11): warning CS0472: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new double?() != i").WithArguments("true", "double", "double?").WithLocation(68, 11),
+                // (71,11): warning CS8073: The result of the expression is always 'false' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(new Guid?() == g);              // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new Guid?() == g").WithArguments("false", "System.Guid", "System.Guid?"),
-                // (70,11): warning CS0472: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "new Guid?() == g").WithArguments("false", "System.Guid", "System.Guid?").WithLocation(71, 11),
+                // (72,11): warning CS8073: The result of the expression is always 'true' since a value of type 'System.Guid' is never equal to 'null' of type 'System.Guid?'
                 //         W(new Guid?() != g);              // CS0472
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new Guid?() != g").WithArguments("true", "System.Guid", "System.Guid?"),
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "new Guid?() != g").WithArguments("true", "System.Guid", "System.Guid?").WithLocation(72, 11),
                 // (84,11): warning CS0472: The result of the expression is always 'false' since a value of type 'MyClass.E' is never equal to 'null' of type 'MyClass.E?'
                 //         W((E?)1 == null);
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)1 == null").WithArguments("false", "MyClass.E", "MyClass.E?"),
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)1 == null").WithArguments("false", "MyClass.E", "MyClass.E?").WithLocation(84, 11),
                 // (85,11): warning CS0472: The result of the expression is always 'true' since a value of type 'MyClass.E' is never equal to 'null' of type 'MyClass.E?'
                 //         W(null != (E?)1);
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "null != (E?)1").WithArguments("true", "MyClass.E", "MyClass.E?"),
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "null != (E?)1").WithArguments("true", "MyClass.E", "MyClass.E?").WithLocation(85, 11),
                 // (87,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         W((int?)1 == null);
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(int?)1 == null").WithArguments("false", "int", "int?"),
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(int?)1 == null").WithArguments("false", "int", "int?").WithLocation(87, 11),
                 // (88,11): warning CS0472: The result of the expression is always 'true' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         W(null != (int?)1);
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "null != (int?)1").WithArguments("true", "int", "int?"),
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "null != (int?)1").WithArguments("true", "int", "int?").WithLocation(88, 11),
                 // (92,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         W(0 == (int?)null);
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "0 == (int?)null").WithArguments("false", "int", "int?"),
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "0 == (int?)null").WithArguments("false", "int", "int?").WithLocation(92, 11),
                 // (93,11): warning CS0472: The result of the expression is always 'true' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         W((int?)null != 0);
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(int?)null != 0").WithArguments("true", "int", "int?"),
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(int?)null != 0").WithArguments("true", "int", "int?").WithLocation(93, 11),
                 // (95,11): warning CS0472: The result of the expression is always 'false' since a value of type 'MyClass.E' is never equal to 'null' of type 'MyClass.E?'
                 //         W(0 == (E?)null);
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "0 == (E?)null").WithArguments("false", "MyClass.E", "MyClass.E?"),
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "0 == (E?)null").WithArguments("false", "MyClass.E", "MyClass.E?").WithLocation(95, 11),
                 // (96,11): warning CS0472: The result of the expression is always 'true' since a value of type 'MyClass.E' is never equal to 'null' of type 'MyClass.E?'
                 //         W((E?)null != 0);
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)null != 0").WithArguments("true", "MyClass.E", "MyClass.E?")
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)null != 0").WithArguments("true", "MyClass.E", "MyClass.E?").WithLocation(96, 11)
                     );
 
         }

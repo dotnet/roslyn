@@ -702,6 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     string always = node.OperatorKind.Operator() == BinaryOperatorKind.NotEqual ? "true" : "false";
 
+                    // we use a separate warning code for cases newly detected in later versions of the compiler
                     if (node.Right.IsLiteralNull() && node.Left.NullableAlwaysHasValue())
                     {
                         Error(ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), node.Left.Type);
@@ -752,11 +753,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())
                     {
-                        Error(ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Right));
+                        Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Right));
                     }
                     else if (node.Left.NullableNeverHasValue() && node.Right.NullableAlwaysHasValue())
                     {
-                        Error(ErrorCode.WRN_NubExprIsConstBool, node, always, node.Right.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Left));
+                        Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Right.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Left));
                     }
                     break;
                 case BinaryOperatorKind.Or:

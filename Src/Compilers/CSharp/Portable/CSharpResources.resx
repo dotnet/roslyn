@@ -1266,6 +1266,9 @@
   <data name="WRN_NubExprIsConstBool" xml:space="preserve">
     <value>The result of the expression is always '{0}' since a value of type '{1}' is never equal to 'null' of type '{2}'</value>
   </data>
+  <data name="WRN_NubExprIsConstBool2" xml:space="preserve">
+    <value>The result of the expression is always '{0}' since a value of type '{1}' is never equal to 'null' of type '{2}'</value>
+  </data>
   <data name="WRN_ExplicitImplCollision" xml:space="preserve">
     <value>Explicit interface implementation '{0}' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.</value>
   </data>

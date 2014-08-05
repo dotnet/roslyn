@@ -1094,24 +1094,25 @@ class Program
 
             var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics(
-// (21,16): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
-//         return new int?(N1()) == new short?();
-Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new int?(N1()) == new short?()").WithArguments("false", "int", "short?"),
-// (25,16): warning CS0472: The result of the expression is always 'true' since a value of type 'double' is never equal to 'null' of type 'double?'
-//         return default(double?) != new short?(N2());
-Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(double?) != new short?(N2())").WithArguments("true", "double", "double?"),
-// (29,16): warning CS0464: Comparing with null of type 'int?' always produces 'false'
-//         return ((int?)null) < new decimal?(N3());
-Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((int?)null) < new decimal?(N3())").WithArguments("int?"),
-// (33,16): warning CS0472: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'S?'
-//         return new S?() == new S?(N4());
-Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new S?() == new S?(N4())").WithArguments("false", "S", "S?"),
-// (37,16): warning CS0472: The result of the expression is always 'true' since a value of type 'S' is never equal to 'null' of type 'S?'
-//         return default(S?) != new S?(N4());
-Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(S?) != new S?(N4())").WithArguments("true", "S", "S?"),
-// (41,16): warning CS0464: Comparing with null of type 'S?' always produces 'false'
-//         return ((S?)null) < new S?(N4());
-Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < new S?(N4())").WithArguments("S?"));
+                // (21,16): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
+                //         return new int?(N1()) == new short?();
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new int?(N1()) == new short?()").WithArguments("false", "int", "short?").WithLocation(21, 16),
+                // (25,16): warning CS0472: The result of the expression is always 'true' since a value of type 'double' is never equal to 'null' of type 'double?'
+                //         return default(double?) != new short?(N2());
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(double?) != new short?(N2())").WithArguments("true", "double", "double?").WithLocation(25, 16),
+                // (29,16): warning CS0464: Comparing with null of type 'int?' always produces 'false'
+                //         return ((int?)null) < new decimal?(N3());
+                Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((int?)null) < new decimal?(N3())").WithArguments("int?").WithLocation(29, 16),
+                // (33,16): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'S?'
+                //         return new S?() == new S?(N4());
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "new S?() == new S?(N4())").WithArguments("false", "S", "S?").WithLocation(33, 16),
+                // (37,16): warning CS8073: The result of the expression is always 'true' since a value of type 'S' is never equal to 'null' of type 'S?'
+                //         return default(S?) != new S?(N4());
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default(S?) != new S?(N4())").WithArguments("true", "S", "S?").WithLocation(37, 16),
+                // (41,16): warning CS0464: Comparing with null of type 'S?' always produces 'false'
+                //         return ((S?)null) < new S?(N4());
+                Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < new S?(N4())").WithArguments("S?").WithLocation(41, 16)
+                );
             comp.VerifyIL("Program.M1", expectedIL1);
             comp.VerifyIL("Program.M2", expectedIL2);
             comp.VerifyIL("Program.M3", expectedIL3);

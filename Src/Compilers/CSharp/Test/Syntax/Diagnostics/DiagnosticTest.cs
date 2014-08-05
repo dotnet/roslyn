@@ -191,29 +191,16 @@ class X
                             Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_UnimplementedCommandLineSwitch:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_RefCultureMismatch:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_ConflictingMachineAssembly:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
+                        case ErrorCode.WRN_NubExprIsConstBool2:
                         case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
-                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_NoRuntimeMetadataVersion:
                             Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
                             break;
