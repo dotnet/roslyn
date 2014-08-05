@@ -543,6 +543,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.Map; }
         }
 
+        internal sealed override ParameterSymbol ThisParameter
+        {
+            get
+            {
+                // Required in EE scenarios.
+                return (object)originalDefinition.ThisParameter == null 
+                    ? null 
+                    : new ThisParameterSymbol(this);
+            }
+        }
+
         private ImmutableArray<ParameterSymbol> SubstituteParameters()
         {
             var unsubstitutedParameters = originalDefinition.Parameters;

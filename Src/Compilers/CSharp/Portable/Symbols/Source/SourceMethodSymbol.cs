@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return thisParam;
                 }
 
-                    Interlocked.CompareExchange(ref lazyThisParameter, new ThisParameterSymbol(this), null);
+                Interlocked.CompareExchange(ref lazyThisParameter, new ThisParameterSymbol(this), null);
                 return lazyThisParameter;
             }
         }
