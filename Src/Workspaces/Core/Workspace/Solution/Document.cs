@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                using (Logger.LogBlock(FunctionId.Document_GetTextChanges, this.Name, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Workspace_Document_GetTextChanges, this.Name, cancellationToken))
                 {
                     if (oldDocument == this)
                     {

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Host
                         throw new InvalidOperationException();
                     }
 
-                    using (Logger.LogBlock(FunctionId.Host_TemporaryStorageServiceFactory_ReadText, cancellationToken))
+                    using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadText, cancellationToken))
                     {
                         using (var stream = memoryMappedInfo.CreateReadableStream())
                         {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Host
                         throw new InvalidOperationException();
                     }
 
-                    using (Logger.LogBlock(FunctionId.Host_TemporaryStorageServiceFactory_WriteText, cancellationToken))
+                    using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))
                     {
                         var size = Encoding.Unicode.GetMaxByteCount(text.Length);
                         memoryMappedInfo = service.memoryMappedFileManager.CreateViewInfo(size);
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Host
                         throw new InvalidOperationException();
                     }
 
-                    using (Logger.LogBlock(FunctionId.Host_TemporaryStorageServiceFactory_ReadStream, cancellationToken))
+                    using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadStream, cancellationToken))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Host
                         throw new ArgumentOutOfRangeException();
                     }
 
-                    using (Logger.LogBlock(FunctionId.Host_TemporaryStorageServiceFactory_WriteStream, cancellationToken))
+                    using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
                     {
                         var size = stream.Length;
                         memoryMappedInfo = service.memoryMappedFileManager.CreateViewInfo(size);

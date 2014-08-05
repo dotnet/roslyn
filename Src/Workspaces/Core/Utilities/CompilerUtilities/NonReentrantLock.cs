@@ -117,7 +117,7 @@ namespace Roslyn.Utilities
                         // If cancelled, we throw. Trying to wait could lead to deadlock.
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        using (Logger.LogBlock(FunctionId.Utilities_NonReentrantLock_BlockingWait, cancellationToken))
+                        using (Logger.LogBlock(FunctionId.Misc_NonReentrantLock_BlockingWait, cancellationToken))
                         {
                             // Another thread holds the lock. Wait until we get awoken either
                             // by some code calling "Release" or by cancellation.

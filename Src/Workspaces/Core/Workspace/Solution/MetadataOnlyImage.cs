@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (Logger.LogBlock(FunctionId.SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
             {
                 // TODO: make it to use SerializableBytes.WritableStream rather than MemoryStream so that
                 //       we don't allocate anything for skeleton assembly.

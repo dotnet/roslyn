@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         {
             Contract.ThrowIfNull(this.storage);
 
-            using (Logger.LogBlock(FunctionId.Recoverable_RecoverTextAsync, this.storedFilePath, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverTextAsync, this.storedFilePath, cancellationToken))
             {
                 var text = await this.storage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
                 return TextAndVersion.Create(text, this.storedVersion, this.storedFilePath);
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override TextAndVersion Recover(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Recoverable_RecoverText, this.storedFilePath, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverText, this.storedFilePath, cancellationToken))
             {
                 var text = this.storage.ReadText(cancellationToken);
                 return TextAndVersion.Create(text, this.storedVersion, this.storedFilePath);
