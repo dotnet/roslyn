@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class MyTemplateTests
         Inherits BasicTestBase
 
-        Private Function GetMyTemplateTree(compilation As VisualBasicCompilation) As SyntaxTree
+        Friend Shared Function GetMyTemplateTree(compilation As VisualBasicCompilation) As SyntaxTree
             Dim MyTemplate As SyntaxTree = Nothing
 
             For Each tree In compilation.AllSyntaxTrees

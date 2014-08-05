@@ -6,6 +6,7 @@ Imports System.Runtime.Serialization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -428,6 +429,54 @@ End Module
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({analyzer},
                                            AnalyzerDiagnostic("XX001", <![CDATA[Public Module ThisModule]]>))
+        End Sub
+
+        Class MockSymbolAnalyzer
+            Implements ISymbolAnalyzer
+
+            Public Shared desc1 As New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+                Get
+                    Return ImmutableArray.Create(desc1)
+                End Get
+            End Property
+
+            Public ReadOnly Property SymbolKindsOfInterest As ImmutableArray(Of SymbolKind) Implements ISymbolAnalyzer.SymbolKindsOfInterest
+                Get
+                    Return ImmutableArray.Create(SymbolKind.NamedType)
+                End Get
+            End Property
+
+            Public Sub AnalyzeSymbol(symbol As ISymbol, compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ISymbolAnalyzer.AnalyzeSymbol
+                Dim sourceLoc = symbol.Locations.First(Function(l) l.IsInSource)
+                addDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, sourceLoc))
+            End Sub
+        End Class
+
+        <WorkItem(998724)>
+        <Fact>
+        Sub TestSymbolAnalyzerNotInvokedForMyTemplateSymbols()
+            Dim analyzer = New MockSymbolAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Public Class C
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                references:={SystemCoreRef, MsvbRef},
+                options:=DefaultCompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+
+            Dim MyTemplate = MyTemplateTests.GetMyTemplateTree(compilation)
+            Assert.NotNull(MyTemplate)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer},
+                                           AnalyzerDiagnostic("XX001", <![CDATA[C]]>))
         End Sub
     End Class
 End Namespace

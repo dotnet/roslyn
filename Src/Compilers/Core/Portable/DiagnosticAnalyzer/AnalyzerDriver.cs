@@ -305,7 +305,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbol = symbolEvent.Symbol;
             Action<Diagnostic> addDiagnosticForSymbol = GetDiagnosticSinkWithSuppression(symbol);
             var tasks = ArrayBuilder<Task>.GetInstance();
-            if ((int)symbol.Kind < declarationAnalyzersByKind.Length)
+
+            // Invoke symbol analyzers only for source symbols.
+            var declaringSyntaxRefs = symbol.DeclaringSyntaxReferences;
+            if ((int)symbol.Kind < declarationAnalyzersByKind.Length && declaringSyntaxRefs.Any(s => s.SyntaxTree != null))
             {
                 foreach (var da in declarationAnalyzersByKind[(int)symbol.Kind])
                 {
@@ -322,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            foreach (var decl in symbol.DeclaringSyntaxReferences)
+            foreach (var decl in declaringSyntaxRefs)
             {
                 tasks.Add(AnalyzeDeclaringReference(symbolEvent, decl, addDiagnostic, cancellationToken));
             }
