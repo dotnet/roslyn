@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// answer whether it is enabled or not for the specific feature and function id
         /// </summary>
-        bool IsEnabled(FeatureId featureId, FunctionId functionId);
+        bool IsEnabled(FunctionId functionId);
 
         /// <summary>
         /// answer whether it is in verbose mode or not
@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// log a specific event with context message
         /// </summary>
-        void Log(FeatureId featureId, FunctionId functionId, string message);
+        void Log(FunctionId functionId, string message);
 
         /// <summary>
         /// log a start and end pair with context message
         /// </summary>
-        IDisposable LogBlock(FeatureId featureId, FunctionId functionId, string message, int uniquePairId, CancellationToken cancellationToken);
+        IDisposable LogBlock(FunctionId functionId, string message, int uniquePairId, CancellationToken cancellationToken);
     }
 }

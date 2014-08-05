@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
             PreservationMode mode,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.DocumentState, FunctionId.DocumentState_FullyParseSyntaxTree, cancellationToken))
+            using (Logger.LogBlock(FunctionId.DocumentState_FullyParseSyntaxTree, cancellationToken))
             {
                 var textAndVersion = await newTextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var text = textAndVersion.Text;
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis
             ValueSource<TextAndVersion> newTextSource,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.DocumentState, FunctionId.DocumentState_IncrementallyParseSyntaxTree, cancellationToken))
+            using (Logger.LogBlock(FunctionId.DocumentState_IncrementallyParseSyntaxTree, cancellationToken))
             {
                 var newTextAndVersion = await newTextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var newText = newTextAndVersion.Text;

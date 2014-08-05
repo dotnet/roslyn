@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>>> CreateDocumentMapAsync(
             ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>> projectMap)
         {
-            using (Logger.LogBlock(FeatureId.FindReference, FunctionId.FindReference_CreateDocumentMapAsync, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, this.cancellationToken))
             {
                 Func<Document, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>> createQueue = d => new ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>();
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>>> CreateProjectMapAsync(
             ConcurrentSet<ISymbol> symbols)
         {
-            using (Logger.LogBlock(FeatureId.FindReference, FunctionId.FindReference_CreateProjectMapAsync, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_CreateProjectMapAsync, this.cancellationToken))
             {
                 Func<Project, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>> createQueue = p => new ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>();
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private async Task<ConcurrentSet<ISymbol>> DetermineAllSymbolsAsync(ISymbol symbol)
         {
-            using (Logger.LogBlock(FeatureId.FindReference, FunctionId.FindReference_DetermineAllSymbolsAsync, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_DetermineAllSymbolsAsync, this.cancellationToken))
             {
                 var result = new ConcurrentSet<ISymbol>(SymbolEquivalenceComparer.Instance);
                 await DetermineAllSymbolsCoreAsync(symbol, result).ConfigureAwait(false);

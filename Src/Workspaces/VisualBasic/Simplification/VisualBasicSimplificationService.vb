@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         End Function
 
         Public Overrides Function Expand(node As SyntaxNode, semanticModel As SemanticModel, aliasReplacementAnnotation As SyntaxAnnotation, expandInsideNode As Func(Of SyntaxNode, Boolean), expandParameter As Boolean, cancellationToken As CancellationToken) As SyntaxNode
-            Using Logger.LogBlock(FeatureId.Simplifier, FunctionId.Simplifier_ExpandNode, cancellationToken)
+            Using Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken)
                 If TypeOf node Is ExpressionSyntax OrElse
                     TypeOf node Is StatementSyntax OrElse
                     TypeOf node Is AttributeSyntax OrElse
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         End Function
 
         Public Overrides Function Expand(token As SyntaxToken, semanticModel As SemanticModel, expandInsideNode As Func(Of SyntaxNode, Boolean), cancellationToken As CancellationToken) As SyntaxToken
-            Using Logger.LogBlock(FeatureId.Simplifier, FunctionId.Simplifier_ExpandToken, cancellationToken)
+            Using Logger.LogBlock(FunctionId.Simplifier_ExpandToken, cancellationToken)
                 Dim vbSemanticModel = DirectCast(semanticModel, SemanticModel)
                 Dim rewriter = New Expander(vbSemanticModel, expandInsideNode, cancellationToken)
                 Return TryEscapeIdentifierToken(rewriter.VisitToken(token), vbSemanticModel)

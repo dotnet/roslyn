@@ -37,17 +37,17 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
 
         private SyntaxNode CaseCorrect(SemanticModel semanticModel, SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.CaseCorrection, FunctionId.CaseCorrection_AbstractCaseCorrectionService_CaseCorrect, cancellationToken))
+            using (Logger.LogBlock(FunctionId.CaseCorrection_AbstractCaseCorrectionService_CaseCorrect, cancellationToken))
             {
                 var normalizedSpanCollection = new NormalizedTextSpanCollection(spans);
                 var replacements = new ConcurrentDictionary<SyntaxToken, SyntaxToken>();
 
-                using (Logger.LogBlock(FeatureId.CaseCorrection, FunctionId.CaseCorrection_AbstractCaseCorrectionService_CaseCorrect_AddReplacements, cancellationToken))
+                using (Logger.LogBlock(FunctionId.CaseCorrection_AbstractCaseCorrectionService_CaseCorrect_AddReplacements, cancellationToken))
                 {
                     AddReplacements(semanticModel, root, normalizedSpanCollection, workspace, replacements, cancellationToken);
                 }
 
-                using (Logger.LogBlock(FeatureId.CaseCorrection, FunctionId.CaseCorrection_AbstractCaseCorrectionService_CaseCorrect_ReplaceTokens, cancellationToken))
+                using (Logger.LogBlock(FunctionId.CaseCorrection_AbstractCaseCorrectionService_CaseCorrect_ReplaceTokens, cancellationToken))
                 {
                     return root.ReplaceTokens(replacements.Keys, (oldToken, _) => replacements[oldToken]);
                 }

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             foreach (var item in snapshot)
             {
-                Logger.Log(FeatureId.Cache, FunctionId.Cache_ItemRank, logMessage, item);
+                Logger.Log(FunctionId.Cache_ItemRank, logMessage, item);
             }
 #endif
         }

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private IList<TextChange> CreateTextChanges(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_AggregateCreateTextChanges, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Formatting_AggregateCreateTextChanges, cancellationToken))
             {
                 // quick check
                 var changes = CreateTextChangesWorker(cancellationToken);
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private SyntaxNode CreateFormattedRoot(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_AggregateCreateFormattedRoot, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Formatting_AggregateCreateFormattedRoot, cancellationToken))
             {
                 // create a map
                 var map = new Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>();

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // we are formatting part of document, try to find initial context that formatting will be based on such as
                 // initial indentation and etc.
-                using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_ContextInitialization, CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.Formatting_ContextInitialization, CancellationToken.None))
                 {
                     // first try to set initial indentation information
                     var initialIndentationOperations = this.GetInitialIndentBlockOperations(startToken, endToken);

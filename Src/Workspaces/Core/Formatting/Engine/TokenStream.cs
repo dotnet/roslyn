@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public TokenStream(TreeData treeData, OptionSet optionSet, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
         {
-            using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_TokenStreamConstruction, CancellationToken.None))
+            using (Logger.LogBlock(FunctionId.Formatting_TokenStreamConstruction, CancellationToken.None))
             {
                 // initialize basic info
                 this.factory = factory;

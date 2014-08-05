@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FeatureId.FindReference, FunctionId.FindReference_Start, cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_Start, cancellationToken))
             {
                 var finders = ReferenceFinders.DefaultReferenceFinders;
                 progress = progress ?? FindReferencesProgress.Instance;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.FindReference, FunctionId.FindReference_Rename, cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_Rename, cancellationToken))
             {
                 IImmutableSet<Document> documents = null;
                 var engine = new FindReferencesSearchEngine(

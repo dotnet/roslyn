@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     internal sealed class EtwLogger : ILogger
     {
         public static readonly EtwLogger Instance = new EtwLogger();
-        private readonly Func<FeatureId, FunctionId, bool> loggingChecker;
+        private readonly Func<FunctionId, bool> loggingChecker;
 
         // Due to ETW specifics, RoslynEventSource.Instance needs to be initialized during EtwLogger construction 
         // so that we can enable the listeners synchronously before any events are logged.
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         private readonly ObjectPool<RoslynEtwLogBlock> etwBlocksPool;
 
         public EtwLogger()
-            : this((Func<FeatureId, FunctionId, bool>)null)
+            : this((Func<FunctionId, bool>)null)
         {
         }
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
         }
 
-        public EtwLogger(Func<FeatureId, FunctionId, bool> loggingChecker)
+        public EtwLogger(Func<FunctionId, bool> loggingChecker)
         {
             this.loggingChecker = loggingChecker;
 
@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             etwBlocksPool = new ObjectPool<RoslynEtwLogBlock>(() => new RoslynEtwLogBlock(etwBlocksPool), poolSize);
         }
 
-        public bool IsEnabled(FeatureId featureId, FunctionId functionId)
+        public bool IsEnabled(FunctionId functionId)
         {
-            return source.IsEnabled() && (this.loggingChecker == null || this.loggingChecker(featureId, functionId));
+            return source.IsEnabled() && (this.loggingChecker == null || this.loggingChecker(functionId));
         }
 
         public bool IsVerbose()
@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return source.IsEnabled(EventLevel.Verbose, (EventKeywords)(-1));
         }
 
-        public void Log(FeatureId featureId, FunctionId functionId, string message)
+        public void Log(FunctionId functionId, string message)
         {
-            source.Log(message, featureId, functionId);
+            source.Log(message, functionId);
         }
 
-        public IDisposable LogBlock(FeatureId featureId, FunctionId functionId, string message, int blockId, CancellationToken cancellationToken)
+        public IDisposable LogBlock(FunctionId functionId, string message, int blockId, CancellationToken cancellationToken)
         {
             var block = etwBlocksPool.Allocate();
             block.Construct(functionId, message, blockId, cancellationToken);

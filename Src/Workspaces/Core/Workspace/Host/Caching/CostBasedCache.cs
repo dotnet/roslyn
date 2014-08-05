@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Host
             this.cacheId = CacheId.NextCacheId();
 
             // log all variables used to create the cache. this should be called only once. should be okay to allocate the string.
-            Logger.Log(FeatureId.Cache, FunctionId.Cache_Created, string.Join(",", cacheId, typeof(T), minCount, minCost, maxCost, coolingRate, fixedIncAmount, dataCollectionTimeSpan.TotalMilliseconds));
+            Logger.Log(FunctionId.Cache_Created, string.Join(",", cacheId, typeof(T), minCount, minCost, maxCost, coolingRate, fixedIncAmount, dataCollectionTimeSpan.TotalMilliseconds));
 
             this.minCount = minCount;
             this.minCost = minCost;
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             CreateEvictionTaskIfNecessary();
 
-            Logger.Log(FeatureId.Cache, FunctionId.Cache_AddOrAccess, logAddOrAccessed, existingEntry.ItemId, item, existed);
+            Logger.Log(FunctionId.Cache_AddOrAccess, logAddOrAccessed, existingEntry.ItemId, item, existed);
         }
 
         private CacheEntry UpdateCacheEntry(T key, CacheEntry existingEntry)
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         entry.EvictAction.Invoke(snapshotItem.Item);
 
-                        Logger.Log(FeatureId.Cache, FunctionId.Cache_Evict, logEvictedOrRemoved, snapshotItem.Entry.ItemId, snapshotItem.Entry.AccessCount);
+                        Logger.Log(FunctionId.Cache_Evict, logEvictedOrRemoved, snapshotItem.Entry.ItemId, snapshotItem.Entry.AccessCount);
                     }
                 }
             }
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     trackingValue.EvictAction.Invoke(item);
 
-                    Logger.Log(FeatureId.Cache, FunctionId.Cache_EvictAll, logEvictedOrRemoved, trackingValue.ItemId, trackingValue.AccessCount);
+                    Logger.Log(FunctionId.Cache_EvictAll, logEvictedOrRemoved, trackingValue.ItemId, trackingValue.AccessCount);
                 }
             }
         }

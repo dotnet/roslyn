@@ -524,8 +524,6 @@
     <Compile Include="Log\EmptyLogBlock.cs" />
     <Compile Include="Log\EmptyLogger.cs" />
     <Compile Include="Log\EtwLogger.cs" />
-    <Compile Include="Log\FeatureId.cs" />
-    <Compile Include="Log\FeatureIdOptions.cs" />
     <Compile Include="Log\FunctionId.cs" />
     <Compile Include="Log\FunctionIdOptions.cs" />
     <Compile Include="Log\ILogger.cs" />

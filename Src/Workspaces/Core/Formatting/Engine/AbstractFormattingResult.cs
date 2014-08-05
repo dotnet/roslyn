@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private IList<TextChange> CreateTextChanges(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_CreateTextChanges, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Formatting_CreateTextChanges, cancellationToken))
             {
                 var data = this.TokenStream.GetTriviaDataWithTokenPair(cancellationToken);
                 var result = this.TaskExecutor
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private SyntaxNode CreateFormattedRoot(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_CreateFormattedRoot, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Formatting_CreateFormattedRoot, cancellationToken))
             {
                 var changes = GetChanges(cancellationToken);
 

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public static async Task<RenameLocationSet> FindAsync(ISymbol symbol, Solution solution, OptionSet optionSet, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbol);
-            using (Logger.LogBlock(FeatureId.Rename, FunctionId.Rename_AllRenameLocations, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
             {
                 symbol = await ReferenceProcessing.FindDefinitionSymbolAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
                 var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public async Task<RenameLocationSet> FindWithUpdatedOptionsAsync(OptionSet optionSet, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(this.optionSet, "FindWithUpdatedOptionsAsync can only be called on a result of FindAsync");
-            using (Logger.LogBlock(FeatureId.Rename, FunctionId.Rename_AllRenameLocations, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
             {
                 var overloadsResult = this.overloadsResult ?? (optionSet.GetOption(RenameOptions.RenameOverloads)
                     ? await GetOverloadsAsync(this.symbol, this.solution, cancellationToken).ConfigureAwait(false)

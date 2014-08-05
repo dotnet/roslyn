@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
         public async Task<Document> CleanupAsync(Document document, IEnumerable<TextSpan> spans, IEnumerable<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.CodeCleanup, FunctionId.CodeCleanup_CleanupAsync, cancellationToken))
+            using (Logger.LogBlock(FunctionId.CodeCleanup_CleanupAsync, cancellationToken))
             {
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
         public SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, IEnumerable<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.CodeCleanup, FunctionId.CodeCleanup_Cleanup, cancellationToken))
+            using (Logger.LogBlock(FunctionId.CodeCleanup_Cleanup, cancellationToken))
             {
                 // If there is no span to format...
                 if (!spans.Any())
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             IEnumerable<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.CodeCleanup, FunctionId.CodeCleanup_IterateAllCodeCleanupProviders, cancellationToken))
+            using (Logger.LogBlock(FunctionId.CodeCleanup_IterateAllCodeCleanupProviders, cancellationToken))
             {
                 var currentDocument = annotatedDocument;
                 Document previousDocument = null;
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                         currentDocument = originalDocument;
                     }
 
-                    using (Logger.LogBlock(FeatureId.CodeCleanup, FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
+                    using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
                     {
                         currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, cancellationToken).ConfigureAwait(false);
                     }
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             IEnumerable<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.CodeCleanup, FunctionId.CodeCleanup_IterateAllCodeCleanupProviders, cancellationToken))
+            using (Logger.LogBlock(FunctionId.CodeCleanup_IterateAllCodeCleanupProviders, cancellationToken))
             {
                 var currentRoot = annotatedRoot;
                 SyntaxNode previousRoot = null;
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                         currentRoot = originalRoot;
                     }
 
-                    using (Logger.LogBlock(FeatureId.CodeCleanup, FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
+                    using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
                     {
                         currentRoot = codeCleaner.Cleanup(currentRoot, spans, workspace, cancellationToken);
                     }

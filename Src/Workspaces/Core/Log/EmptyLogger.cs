@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         public static readonly EmptyLogger Instance = new EmptyLogger();
 
-        public bool IsEnabled(FeatureId featureId, FunctionId functionId)
+        public bool IsEnabled(FunctionId functionId)
         {
             return false;
         }
@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return false;
         }
 
-        public void Log(FeatureId featureId, FunctionId functionId, string message)
+        public void Log(FunctionId functionId, string message)
         {
         }
 
-        public IDisposable LogBlock(FeatureId featureId, FunctionId functionId, string message, int uniquePairId, CancellationToken cancellationToken)
+        public IDisposable LogBlock(FunctionId functionId, string message, int uniquePairId, CancellationToken cancellationToken)
         {
             return EmptyLogBlock.Instance;
         }

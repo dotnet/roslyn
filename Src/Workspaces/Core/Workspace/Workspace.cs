@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public virtual bool TryApplyChanges(Solution newSolution)
         {
-            using (Logger.LogBlock(FeatureId.Workspace, FunctionId.Workspace_ApplyChanges, "ApplyChanges", CancellationToken.None))
+            using (Logger.LogBlock(FunctionId.Workspace_ApplyChanges, CancellationToken.None))
             {
                 Solution oldSolution;
 

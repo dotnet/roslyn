@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task ProcessAsync(
             ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>> documentMap)
         {
-            using (Logger.LogBlock(FeatureId.FindReference, FunctionId.FindReference_ProcessAsync, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessAsync, this.cancellationToken))
             {
                 // quick exit
                 if (documentMap.Count == 0)

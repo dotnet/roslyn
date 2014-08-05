@@ -4,10 +4,8 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -49,9 +47,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         //     1 string and up to 2 integer parameters
         // There's also a params object[] overload that is much slower and should be avoided
         [Event(1)]
-        public void Log(string message, FeatureId featureId, FunctionId functionId)
+        public void Log(string message, FunctionId functionId)
         {
-            WriteEvent(1, message ?? string.Empty, (int)featureId, (int)functionId);
+            WriteEvent(1, message ?? string.Empty, (int)functionId);
         }
 
         [Event(2)]

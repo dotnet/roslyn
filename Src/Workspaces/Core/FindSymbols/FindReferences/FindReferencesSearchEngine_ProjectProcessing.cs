@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>> map,
             ProgressWrapper wrapper)
         {
-            using (Logger.LogBlock(FeatureId.FindReference, FunctionId.FindReference_ProcessProjectAsync, project.Name, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, this.cancellationToken))
             {
                 // make sure we hold onto compilation while we search documents belong to this project
                 var compilation = await project.GetCompilationAsync(this.cancellationToken).ConfigureAwait(false);

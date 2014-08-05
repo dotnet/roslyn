@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public AbstractFormattingResult Format(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_Format, FormatSummary, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Formatting_Format, FormatSummary, cancellationToken))
             {
                 // setup environment
                 var nodeOperations = CreateNodeOperationTasks(cancellationToken);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // iterating tree is very expensive. do it once and cache it to list
             var nodeIteratorTask = this.TaskExecutor.StartNew(() =>
             {
-                using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_IterateNodes, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Formatting_IterateNodes, cancellationToken))
                 {
                     const int magicLengthToNodesRatio = 5;
                     var result = new List<SyntaxNode>(Math.Max(this.SpanToFormat.Length / magicLengthToNodesRatio, 4));
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // iterate through each operation using index to not create any unnecessary object
             var indentBlockOperationTask = this.TaskExecutor.ContinueWith(nodeIteratorTask, task =>
             {
-                using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_CollectIndentBlock, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Formatting_CollectIndentBlock, cancellationToken))
                 {
                     return AddOperations<IndentBlockOperation>(task.Result, (l, n) => this.formattingRules.AddIndentBlockOperations(l, n), cancellationToken);
                 }
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             var suppressOperationTask = this.TaskExecutor.ContinueWith(nodeIteratorTask, task =>
             {
-                using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_CollectSuppressOperation, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Formatting_CollectSuppressOperation, cancellationToken))
                 {
                     return AddOperations<SuppressOperation>(task.Result, (l, n) => this.formattingRules.AddSuppressOperations(l, n), cancellationToken);
                 }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             var alignmentOperationTask = this.TaskExecutor.ContinueWith(nodeIteratorTask, task =>
             {
-                using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_CollectAlignOperation, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Formatting_CollectAlignOperation, cancellationToken))
                 {
                     var operations = AddOperations<AlignTokensOperation>(task.Result, (l, n) => this.formattingRules.AddAlignTokensOperations(l, n), cancellationToken);
 
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             var anchorIndentationOperationsTask = this.TaskExecutor.ContinueWith(nodeIteratorTask, task =>
             {
-                using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_CollectAnchorOperation, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Formatting_CollectAnchorOperation, cancellationToken))
                 {
                     return AddOperations<AnchorIndentationOperation>(task.Result, (l, n) => this.formattingRules.AddAnchorIndentationOperations(l, n), cancellationToken);
                 }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             return this.TaskExecutor.StartNew(() =>
             {
-                using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_CollectTokenOperation, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Formatting_CollectTokenOperation, cancellationToken))
                 {
                     // pre-allocate list once. this is cheaper than re-adjusting list as items are added.
                     var list = new TokenPairWithOperations[tokenStream.TokenCount - 1];
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             FormattingContext context, TokenStream tokenStream, NodeOperations nodeOperationsCollector, OperationApplier applier, CancellationToken cancellationToken)
         {
             // apply alignment operation
-            using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_CollectAlignOperation, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Formatting_CollectAlignOperation, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             OperationApplier applier,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_ApplyAnchorOperation, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Formatting_ApplyAnchorOperation, cancellationToken))
             {
                 var tokenPairsToApplyAnchorOperations = this.TaskExecutor.Filter(
                                                             tokenOperations,
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             OperationApplier applier,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_ApplySpaceAndLine, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Formatting_ApplySpaceAndLine, cancellationToken))
             {
                 // go through each token pairs and apply operations. operations don't need to be applied in order
                 var partitioner = new Partitioner(context, tokenStream, tokenOperations);
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             CancellationToken cancellationToken)
         {
             // add scope operation (run each kind sequentially)
-            using (Logger.LogBlock(FeatureId.Formatting, FunctionId.Formatting_BuildContext, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Formatting_BuildContext, cancellationToken))
             {
                 var indentationScopeTask = this.TaskExecutor.ContinueWith(nodeOperations.IndentBlockOperationTask, task => context.AddIndentBlockOperations(task.Result, cancellationToken), cancellationToken);
                 var suppressWrappingScopeTask = this.TaskExecutor.ContinueWith(nodeOperations.SuppressOperationTask, task => context.AddSuppressOperations(task.Result, cancellationToken), cancellationToken);

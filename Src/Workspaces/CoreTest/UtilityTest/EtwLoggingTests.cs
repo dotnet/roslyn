@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static IDisposable LogBlock()
         {
-            return EtwLogger.Instance.LogBlock((FeatureId)(-1), FunctionId.TestEvent_NotUsed, "", 0, CancellationToken.None);
+            return EtwLogger.Instance.LogBlock(FunctionId.TestEvent_NotUsed, "", 0, CancellationToken.None);
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         public async Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet optionSet = null, IEnumerable<AbstractReducer> reducers = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FeatureId.Simplifier, FunctionId.Simplifier_ReduceAsync, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Simplifier_ReduceAsync, cancellationToken))
             {
                 // we have no span
                 if (!spans.Any())

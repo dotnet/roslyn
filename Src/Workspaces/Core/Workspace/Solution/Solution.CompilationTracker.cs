@@ -374,8 +374,8 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using (Logger.LogBlock(FeatureId.CompilationTracker, FunctionId.CompilationTracker_BuildCompilationAsync,
-                                  logBuildCompilationAsync, this.ProjectState, cancellationToken))
+                    using (Logger.LogBlock(FunctionId.CompilationTracker_BuildCompilationAsync,
+                                           logBuildCompilationAsync, this.ProjectState, cancellationToken))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using (Logger.LogBlock(FeatureId.SkeletonAssembly, FunctionId.SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
+                    using (Logger.LogBlock(FunctionId.SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
                     {
                         var projectId = this.ProjectState.Id;
                         var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);

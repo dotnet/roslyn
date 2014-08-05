@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IReferenceFinder finder,
             ProgressWrapper wrapper)
         {
-            using (Logger.LogBlock(FeatureId.FindReference, FunctionId.FindReference_ProcessDocumentAsync, logDocument, document, symbol, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, logDocument, document, symbol, this.cancellationToken))
             {
                 try
                 {

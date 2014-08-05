@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.Simplifier, FunctionId.Simplifier_ExpandNode, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken))
             {
                 if (node is AttributeSyntax ||
                     node is ConstructorInitializerSyntax ||
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         public override SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Func<SyntaxNode, bool> expandInsideNode, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FeatureId.Simplifier, FunctionId.Simplifier_ExpandToken, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Simplifier_ExpandToken, cancellationToken))
             {
                 var csharpSemanticModel = (SemanticModel)semanticModel;
                 var rewriter = new Expander(csharpSemanticModel, expandInsideNode, false, cancellationToken);
