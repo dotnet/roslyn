@@ -547,7 +547,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // Required in EE scenarios.
+                // Required in EE scenarios.  Specifically, the EE binds in the context of a 
+                // substituted method, whereas the core compiler always binds within the
+                // context of an original definition.  
+                // There should never be any reason to call this in normal compilation
+                // scenarios, but the behavior should be sensible if it does occur.
                 return (object)originalDefinition.ThisParameter == null 
                     ? null 
                     : new ThisParameterSymbol(this);
