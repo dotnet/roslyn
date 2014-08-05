@@ -440,14 +440,15 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         var documentId = oldIdAndTree.Key;
 
                         // check whether the tree has been updated
-                        var currentTree = map[documentId];
-                        if (currentTree != oldIdAndTree.Value)
+                        SyntaxTree currentTree;
+                        if (!map.TryGetValue(documentId, out currentTree) ||
+                            currentTree != oldIdAndTree.Value)
                         {
                             continue;
                         }
 
                         // this has been removed
-                        map = map.Remove(oldIdAndTree.Key);
+                        map = map.Remove(documentId);
                     }
 
                     return map;
