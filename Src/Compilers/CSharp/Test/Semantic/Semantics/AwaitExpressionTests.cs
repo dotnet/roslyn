@@ -113,7 +113,7 @@ class Driver
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(text, compOptions: TestOptions.Dll);
+            var comp = CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (16,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         dynamic f = (await GetVal((Func<Task<int>>)(async () => 1)))();
@@ -142,7 +142,7 @@ class C
         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(text, compOptions: TestOptions.Dll);
+            var comp = CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (8,27): error CS4007: 'await' cannot be used in an expression containing the type 'System.TypedReference'
                 //         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));

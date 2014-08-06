@@ -469,7 +469,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
-                options:=DefaultCompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+                options:=OptionsDll)
 
             Dim MyTemplate = MyTemplateTests.GetMyTemplateTree(compilation)
             Assert.NotNull(MyTemplate)

@@ -172,7 +172,7 @@ line: 77
 line: 78
 line: 79
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected, emitOptions: EmitOptions.RefEmitBug_646048);
         }
 
@@ -206,7 +206,7 @@ line: -1
 line: -1
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -250,7 +250,7 @@ line: 25
 line: 26
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -341,7 +341,7 @@ message: something happened
 line: 21
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -376,7 +376,7 @@ class Test
 line: -1
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -407,7 +407,7 @@ class Test
 line: 17
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -496,7 +496,7 @@ line: 47
 line: 55
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -527,7 +527,7 @@ class Test
 line: 17
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -620,7 +620,7 @@ line:
 ";
 
             MetadataReference libReference = CompileIL(iLSource);
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { libReference }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { libReference }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -715,7 +715,7 @@ line: 16
 line: 18
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -760,7 +760,7 @@ class Test
     public static void Log23([CallerMemberName, CallerLineNumber] int x = 1) { Console.WriteLine(""line: "" + x); }
     public static void Log24([CallerLineNumber, CallerMemberName] int x = 1) { Console.WriteLine(""line: "" + x); }
 }";
-            CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Dll.WithWarningLevel(0)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll.WithWarningLevel(0)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(7, 48).WithArguments("string", "int"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(7, 64).WithArguments("string", "int"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(8, 48).WithArguments("string", "int"),
@@ -826,7 +826,7 @@ C:\file.cs
             var compilation = CreateCompilationWithMscorlib45(
                 new[] { Parse(source, @"C:\file.cs")}, 
                 new[] { SystemRef }, 
-                TestOptions.Exe);
+                TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expected);
         }
@@ -865,7 +865,7 @@ class Test
 line: 15
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -922,7 +922,7 @@ partial class D
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
 
             compilation.VerifyEmitDiagnostics(
                 // (12,23): warning CS4026: The CallerMemberNameAttribute applied to parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
@@ -958,7 +958,7 @@ partial class D
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "Main");
         }
@@ -1000,7 +1000,7 @@ class Test
 name: LambdaCaller
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1039,7 +1039,7 @@ class Test
 name: op_Increment
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1087,7 +1087,7 @@ name: IsTrue
 name: IsTrue
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
     
@@ -1125,7 +1125,7 @@ class Test
 name: MyMethod
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1165,7 +1165,7 @@ name: Compare
             var compilation = CreateCompilationWithMscorlib45(
                 source, 
                 new[] { SystemRef }, 
-                TestOptions.Exe);
+                TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expected);
         }
@@ -1223,7 +1223,7 @@ name: Add
 name: HasThing
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1265,7 +1265,7 @@ name: ThingHappened
 name: ThingHappened
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1317,7 +1317,7 @@ name: .ctor
 name: Finalize
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1391,7 +1391,7 @@ name: Item
 name: Item
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1432,7 +1432,7 @@ partial class A
                     SyntaxFactory.ParseSyntaxTree(source4, path: @"       "),
                 },
                 new[] { SystemRef },
-                TestOptions.Exe.WithSourceReferenceResolver(SourceFileResolver.Default));
+                TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default));
 
             CompileAndVerify(compilation, expectedOutput: @"
 1: 'C:\filename'
@@ -1492,7 +1492,7 @@ partial class A { static void Main5() { Log(); } }
                     SyntaxFactory.ParseSyntaxTree(source5, path: @"C:\x.cs"),
                 },
                 new[] { SystemRef },
-                TestOptions.Exe.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\A\B")));
+                TestOptions.ReleaseExe.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\A\B")));
 
             CompileAndVerify(compilation, expectedOutput: @"
 1: 'C:\filename'
@@ -1552,7 +1552,7 @@ member: MyMethod
 member: 
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1596,7 +1596,7 @@ namespace MyNamespace
 member: MyMethod
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1621,7 +1621,7 @@ class Test
 
             var expected = @"";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, compOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild: false));
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1667,7 +1667,7 @@ class Driver {
             var expected = @"";
 
             MetadataReference libReference = CompileIL(iLSource);
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { libReference }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { libReference }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1703,7 +1703,7 @@ class Driver
 
             var expected = @"Bar";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1822,7 +1822,7 @@ name: C:\file.cs
             var compilation = CreateCompilationWithMscorlib45(
                 new[] { Parse(source, @"C:\file.cs") }, 
                 new[] { libReference },
-                TestOptions.Exe);
+                TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expected);
         }
@@ -1854,7 +1854,7 @@ class Driver
 
             var expected = @"13";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1905,7 +1905,7 @@ a.LineNumber, a.MemberName ?? ""<null>"");
 CallerInfoAttributed: (, 22, Property1)
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1975,7 +1975,7 @@ Item
 MyMethod
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 		
@@ -2008,7 +2008,7 @@ class Program
 13
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -2093,7 +2093,7 @@ class Test
 19
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -2212,7 +2212,7 @@ class Test
 61
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 		
@@ -2361,7 +2361,7 @@ query path : C:\filename
             var compilation = CreateCompilationWithMscorlib45(
                 new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename") }, 
                 new[] { SystemCoreRef }, 
-                TestOptions.Exe);
+                TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expected);
         }
@@ -2411,7 +2411,7 @@ C:\filename
 
             var compilation = CreateCompilationWithMscorlib45(
                 new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename") }, 
-                compOptions: TestOptions.Exe);
+                options: TestOptions.ReleaseExe);
             
             compilation.VerifyDiagnostics(
                 // C:\filename(7,21): warning CS7072: The CallerMemberNameAttribute applied to parameter 's' will have no effect. It is overridden by the CallerFilePathAttribute.
@@ -2569,7 +2569,7 @@ class Test
 }";
 
             string expected = @"PASS";
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -2605,7 +2605,7 @@ public class Foo
 
             string expected = @"F1
 F2";
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -2641,7 +2641,7 @@ public class Foo
 
             string expected = @"F1
 F2";
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -2680,7 +2680,7 @@ public class Foo : I1
 ";
 
             string expected = @"F2";
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 

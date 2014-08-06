@@ -37,7 +37,7 @@ class Program
         S t = s;
     }
 }";
-            CompileAndVerify(text, options: TestOptions.UnsafeExe, expectedOutput: "12")
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12")
                 .VerifyIL("Program.Main",
 @"{
   // Code size       58 (0x3a)
@@ -100,7 +100,7 @@ class Program
         }
     }
 }";
-            CompileAndVerify(text, options: TestOptions.UnsafeExe, expectedOutput: "12")
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12")
                 .VerifyIL("Program.Main",
 @"{
   // Code size       48 (0x30)
@@ -163,11 +163,13 @@ class Program
         S t = s;
     }
 }";
-            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeDll).Compilation;
+            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll).Compilation;
+
             var comp2 = CompileAndVerify(s2,
-                options: TestOptions.UnsafeExe,
+                options: TestOptions.UnsafeReleaseExe,
                 additionalRefs: new MetadataReference[] { new MetadataImageReference(comp1.EmitToStream()) },
                 expectedOutput: "12").Compilation;
+
             var f = (FieldSymbol)comp2.GlobalNamespace.GetTypeMembers("S")[0].GetMembers("x")[0];
             Assert.Equal("x", f.Name);
             Assert.True(f.IsFixed);
@@ -199,7 +201,7 @@ class Program
         }
     }
 }";
-            CompileAndVerify(text, options: TestOptions.UnsafeExe, expectedOutput: "12")
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12")
                 .VerifyIL("Program.Main",
 @"{
   // Code size       36 (0x24)
@@ -233,7 +235,7 @@ unsafe class C
     fixed int G[1];
 }
 ";
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (5,15): error CS1642: Fixed size buffer fields may only be members of structs
                 //     fixed int G[1];
                 Diagnostic(ErrorCode.ERR_FixedNotInStruct, "G"),
@@ -257,7 +259,7 @@ unsafe struct S
 }
 ";
             // CONSIDER: Dev11 reports CS1666 (ERR_FixedBufferNotFixed), but that's no more helpful.
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,17): error CS0120: An object reference is required for the non-static field, method, or property 'S.G'
                 //     fixed int F[G];
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("S.G"));
@@ -276,7 +278,7 @@ unsafe struct S
             // CONSIDER: Dev11 also reports CS0110 (ERR_CircConstValue), but Roslyn doesn't regard this as a cycle:
             // F has no initializer, so it has no constant value, so the constant value of F is "null" - not "the 
             // constant value of F" (i.e. cyclic).
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,17): error CS0120: An object reference is required for the non-static field, method, or property 'S.F'
                 //     fixed int F[F];
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S.F"));
@@ -291,11 +293,10 @@ unsafe struct S
 {
     fixed int F[3, 4];
 }";
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,16): error CS7092: A fixed buffer may only have one dimension.
                 //     fixed int F[3, 4];
-                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3, 4]")
-                );
+                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3, 4]"));
         }
 
     }

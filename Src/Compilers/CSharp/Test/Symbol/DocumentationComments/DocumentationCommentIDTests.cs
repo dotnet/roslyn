@@ -263,7 +263,7 @@ class C
     unsafe int* f;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             var field = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("f");
             var symbol = field.Type;
             Assert.Equal(SymbolKind.PointerType, symbol.Kind);

@@ -73,9 +73,9 @@ class C
 {
   // Code size        7 (0x7)
   .maxstack  8
-  IL_0000:  ldc.i4.2  
-  IL_0001:  call       0x0A000005
-  IL_0006:  ret       
+  IL_0000:  ldc.i4.2
+  IL_0001:  call       0x0A000006
+  IL_0006:  ret
 }";
             // If the references are mismatched then the symbol matcher won't be able to find Task<T>
             // and will recompile the method body of F (even though the method hasn't changed).
@@ -102,7 +102,7 @@ using System;
 class C 
 { 
     public static int F(object a) { return 1; }
-    public static void Main() { Console.WriteLine(F(null)); }
+    public static void Main() { F(null); }
 }
 ";
 
@@ -115,7 +115,7 @@ class C
     public static int F(System.Diagnostics.Process a) { return 2; }
     public static int F(object a) { return 1; }
 
-    public static void Main() { Console.WriteLine(F(null)); }
+    public static void Main() { F(null); }
 }
 ";
             var md1 = AssemblyMetadata.CreateFromImageStream(CreateCompilation(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
@@ -143,12 +143,12 @@ class C
             // F(object).
             var expectedIL = @"
 {
-  // Code size       12 (0xc)
+  // Code size        8 (0x8)
   .maxstack  8
-  IL_0000:  ldnull    
+  IL_0000:  ldnull
   IL_0001:  call       0x06000002
-  IL_0006:  call       0x0A000005
-  IL_000b:  ret       
+  IL_0006:  pop
+  IL_0007:  ret
 }";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL);
         }

@@ -26,7 +26,7 @@ class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll, "C.M");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "C.M");
             string expected = @"
 <symbols>
   <methods>
@@ -79,7 +79,7 @@ class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -152,7 +152,7 @@ class C
             // all of the changes look reasonable.  The main thing for this test is that 
             // Dev10 creates fields for the locals in the iterator class.  Roslyn doesn't
             // do that - the <constant> in the <scope> is sufficient.
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -162,10 +162,10 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x22"" endOffset=""0x67"" />
+          <bucket startOffset=""0x22"" endOffset=""0x6b"" />
         </iteratorLocals>
       </customDebugInfo>
-      <sequencepoints total=""11"">
+      <sequencepoints total=""12"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x21"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x22"" start_row=""9"" start_column=""14"" end_row=""9"" end_column=""23"" file_ref=""0"" />
@@ -176,18 +176,25 @@ class C
         <entry il_offset=""0x4c"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0x4d"" start_row=""9"" start_column=""33"" end_row=""9"" end_column=""36"" file_ref=""0"" />
         <entry il_offset=""0x5d"" start_row=""9"" start_column=""25"" end_row=""9"" end_column=""31"" file_ref=""0"" />
-        <entry il_offset=""0x67"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x68"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x6b"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6f"" attributes=""1"" />
         <constant name=""x"" value=""1"" type=""Int32"" />
         <constant name=""y"" value=""2"" type=""Int32"" />
+        <local name=""CS$4$0001"" il_index=""3"" il_start=""0x5d"" il_end=""0x6b"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x6b"">
+      <scope startOffset=""0x0"" endOffset=""0x6f"">
         <namespace name=""System.Collections.Generic"" />
-        <scope startOffset=""0x21"" endOffset=""0x6b"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6f"" attributes=""1"" />
+        <scope startOffset=""0x21"" endOffset=""0x6f"">
           <constant name=""x"" value=""1"" type=""Int32"" />
           <scope startOffset=""0x2b"" endOffset=""0x4d"">
             <constant name=""y"" value=""2"" type=""Int32"" />
+          </scope>
+          <scope startOffset=""0x5d"" endOffset=""0x6b"">
+            <local name=""CS$4$0001"" il_index=""3"" il_start=""0x5d"" il_end=""0x6b"" attributes=""1"" />
           </scope>
         </scope>
       </scope>
@@ -244,7 +251,7 @@ class C
 
             using (new CultureContext("en-US"))
             {
-                string actual = GetPdbXml(text, TestOptions.Dll, "C.M");
+                string actual = GetPdbXml(text, TestOptions.DebugDll, "C.M");
                 AssertXmlEqual(expected, actual);
             }
         }
@@ -297,7 +304,7 @@ this is a string constant that is too long to fit into the PDB"";
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll, "C.M");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "C.M");
             string expected = @"
 <symbols>
   <methods>
@@ -355,7 +362,7 @@ class C
 
             using (new CultureContext("en-US"))
             {
-                string actual = GetPdbXml(text, TestOptions.Dll, "C.M");
+                string actual = GetPdbXml(text, TestOptions.DebugDll, "C.M");
                 AssertXmlEqual(expected, actual);
             }
         }

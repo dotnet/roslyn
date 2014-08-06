@@ -336,7 +336,7 @@ unsafe interface I
     void M6(A<A<int>.B2>.B1[] o);
     void M7(A<A<int>.B1[]>.B1 o);
 }";
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<int>')
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "A<int>*").WithArguments("A<int>").WithLocation(8, 15),
                 // (9,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<string>.B1')
@@ -996,7 +996,7 @@ class C
     fixed int F[C<C<T>>.G];
     const int G = 1;
 }";
-            CreateCompilationWithMscorlib(source, compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
                 // (4,15): error CS1642: Fixed size buffer fields may only be members of structs
                 Diagnostic(ErrorCode.ERR_FixedNotInStruct, "F").WithLocation(4, 15),
                 // (4,19): error CS0310: 'C<T>' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
@@ -5478,7 +5478,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(545410, "DevDiv")]
@@ -5502,7 +5502,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (4,23): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
                 //     public virtual T? Foo<T>()
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Foo").WithArguments("System.Nullable<T>", "T", "T"),
@@ -6612,7 +6612,7 @@ class P
             var compilation2 = CreateCompilationWithMscorlib(
                 source2,
                 references: new MetadataReference[] { new MetadataImageReference(compilation1.EmitToArray()) },
-                compOptions: TestOptions.Exe);
+                options: TestOptions.ReleaseExe);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, emitOptions: EmitOptions.RefEmitBug, expectedOutput:
 @"C0

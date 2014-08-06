@@ -671,7 +671,7 @@ class Test
 {
     unsafe async static Task M1(int* i) { }
 }";
-            CreateCompilationWithMscorlib45(source, null, TestOptions.Dll.WithAllowUnsafe(true)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,38): error CS4005: Async methods cannot have unsafe parameters or return types
                 //     unsafe async static Task M1(int* i)
                 Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i"),
@@ -690,7 +690,7 @@ class Test
 {
     unsafe async static Task M1(ref int* i) { }
 }";
-            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,42): error CS1988: Async methods cannot have ref or out parameters
                 //     unsafe async static Task M1(ref int* i)
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i"),
@@ -1107,7 +1107,7 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,9): error CS4004: Cannot await in an unsafe context
                 //         await Task.Factory.StartNew(() => { });  // not OK
                 Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Factory.StartNew(() => { })"),
@@ -1146,26 +1146,25 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
-    // (8,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
-    //         await Task.Factory.StartNew(() => { });
-    Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(8, 9),
-    // (12,13): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
-    //             await Task.Factory.StartNew(() => { });
-    Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(12, 13),
-    // (12,13): error CS4004: Cannot await in an unsafe context
-    //             await Task.Factory.StartNew(() => { });
-    Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Factory.StartNew(() => { })").WithLocation(12, 13),
-    // (20,13): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
-    //             await Task.Factory.StartNew(() => { });
-    Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(20, 13),
-    // (24,13): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
-    //             await Task.Factory.StartNew(() => { });
-    Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(24, 13),
-    // (6,17): error CS0161: 'Test.M2()': not all code paths return a value
-    //     static Task M2()
-    Diagnostic(ErrorCode.ERR_ReturnExpected, "M2").WithArguments("Test.M2()").WithLocation(6, 17)
-);
+            CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
+                //         await Task.Factory.StartNew(() => { });
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(8, 9),
+                // (12,13): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
+                //             await Task.Factory.StartNew(() => { });
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(12, 13),
+                // (12,13): error CS4004: Cannot await in an unsafe context
+                //             await Task.Factory.StartNew(() => { });
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Factory.StartNew(() => { })").WithLocation(12, 13),
+                // (20,13): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
+                //             await Task.Factory.StartNew(() => { });
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(20, 13),
+                // (24,13): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
+                //             await Task.Factory.StartNew(() => { });
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(24, 13),
+                // (6,17): error CS0161: 'Test.M2()': not all code paths return a value
+                //     static Task M2()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M2").WithArguments("Test.M2()").WithLocation(6, 17));
         }
 
         [Fact]
@@ -1221,7 +1220,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (4,23): error CS4009: 'A.Main()': an entry point cannot be marked with the 'async' modifier
                 //     async static void Main()
                 Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main()"));
@@ -1240,7 +1239,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (4,23): warning CS0402: 'A.Main<T>()': an entry point cannot be generic or in a generic type
                 //     async static void Main<T>()
                 Diagnostic(ErrorCode.WRN_MainCantBeGeneric, "Main").WithArguments("A.Main<T>()"),
@@ -1261,7 +1260,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (4,23): warning CS0028: 'A.Main(bool)' has the wrong signature to be an entry point
                 //     async static void Main(bool truth)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(bool)"),
@@ -1282,7 +1281,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (4,23): warning CS0028: 'A.Main<T>(bool)' has the wrong signature to be an entry point
                 //     async static void Main<T>(bool truth)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main<T>(bool)"),
@@ -1474,11 +1473,12 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(
+            var c = CreateCompilationWithMscorlib45(
                 source,
                 new MetadataReference[] { SystemRef, LinqAssemblyRef },
-                TestOptions.UnsafeDll).VerifyDiagnostics(
-
+                TestOptions.UnsafeReleaseDll);
+                
+            c.VerifyDiagnostics(
                 // (22,41): error CS4004: Cannot await in an unsafe context
                 //                              join l3 in await F1() on l2 equals l3
                 Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await F1()"),
@@ -1517,7 +1517,7 @@ class Test
             CreateCompilationWithMscorlib45(
                 source,
                 new MetadataReference[] { SystemRef, LinqAssemblyRef },
-                TestOptions.UnsafeDll).VerifyDiagnostics(
+                TestOptions.ReleaseDll).VerifyDiagnostics(
 
                 // (22,41): error CS1995: The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause
                 //                              join l3 in await F1() on l2 equals l3
@@ -3222,7 +3222,7 @@ public class MyClass
         fixed (TypedReference tr) { }
     }
 }";
-            CreateCompilationWithMscorlib45(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,31): error CS0209: The type of a local declared in a fixed statement must be a pointer type
                 //         fixed (TypedReference tr) { }
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "tr"),
@@ -3446,7 +3446,7 @@ class Test
     {
     }
 }";
-            CreateCompilationWithMscorlib45(source, compOptions: TestOptions.Exe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (4,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async public static void Main()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main"),

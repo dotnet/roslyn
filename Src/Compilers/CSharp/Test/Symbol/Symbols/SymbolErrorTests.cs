@@ -91,15 +91,15 @@ class Test
 }";
 
             var name1 = GetUniqueName();
-            var module1 = CreateCompilationWithMscorlib(text1, compOptions: TestOptions.NetModule, assemblyName: name1);
+            var module1 = CreateCompilationWithMscorlib(text1, options: TestOptions.ReleaseModule, assemblyName: name1);
 
             var module2 = CreateCompilationWithMscorlib(text2,
-                compOptions: TestOptions.NetModule,
+                options: TestOptions.ReleaseModule,
                 references: new[] { new MetadataImageReference(ModuleMetadata.CreateFromImage(module1.EmitToArray(metadataOnly: true))) });
 
             // use ref2 only
             var comp = CreateCompilationWithMscorlib(text,
-                compOptions: TestOptions.Dll.WithSpecificDiagnosticOptions(new Dictionary<string, ReportDiagnostic>() { { MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_UnreferencedField), ReportDiagnostic.Suppress } }),
+                options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new Dictionary<string, ReportDiagnostic>() { { MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_UnreferencedField), ReportDiagnostic.Suppress } }),
                 references: new[] { new MetadataImageReference(ModuleMetadata.CreateFromImage(module2.EmitToArray(metadataOnly: true))) });
 
             comp.VerifyDiagnostics(
@@ -2523,7 +2523,7 @@ public class MyClass
 }
 ";
             // NOTE: only first in scope is reported.
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (11,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         S* s2 = &s;    // CS0214
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S*"),
@@ -2532,8 +2532,7 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&s"),
                 // (12,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         s2->a = 3;      // CS0214
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s2")
-                );
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s2"));
         }
 
         [Fact]
@@ -2554,14 +2553,13 @@ class Program
     }
 }";
             // NOTE: only first in scope is reported.
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (11,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         s.x[1] = s.x[2];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x"),
                 // (11,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         s.x[1] = s.x[2];
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x")
-                );
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x"));
         }
 
         [Fact]
@@ -2572,11 +2570,10 @@ class Program
     public fixed int buf[10];
 }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public fixed int buf[10];
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "buf[10]")
-            );
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "buf[10]"));
         }
 
         [Fact]
@@ -2814,8 +2811,11 @@ public class A
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalUnsafe, Line = 3, Column = 31 });
+            var c = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithAllowUnsafe(false));
+            c.VerifyDiagnostics(
+                // (3,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe public static void Main()   // CS0227
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Main").WithLocation(3, 31));
         }
 
         [Fact]
@@ -5079,7 +5079,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5140,7 +5140,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -5200,7 +5200,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5261,7 +5261,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -5321,7 +5321,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5344,7 +5344,7 @@ namespace NS
                 {
                     new MetadataImageReference(mod1),
                     new CSharpCompilationReference(lib)
-                }, compOptions: TestOptions.Exe);
+                }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
@@ -5357,7 +5357,7 @@ namespace NS
                 {
                     new MetadataImageReference(mod1),
                     new MetadataImageReference(lib.EmitToArray())
-                }, compOptions: TestOptions.Exe);
+                }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
@@ -5380,7 +5380,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5403,7 +5403,7 @@ namespace NS
                 {
                     new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
-                }, compOptions: TestOptions.Exe);
+                }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,43): warning CS0436: The type 'NS.Util.A' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util.A' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod02.netmodule'.
@@ -5416,7 +5416,7 @@ namespace NS
                 {
                     new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
-                }, compOptions: TestOptions.Exe);
+                }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,43): warning CS0436: The type 'NS.Util.A' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util.A' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod02.netmodule'.
@@ -5439,7 +5439,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5462,7 +5462,7 @@ namespace NS
                 {
                     new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
-                }, compOptions: TestOptions.Exe);
+                }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0435: The namespace 'NS.Util' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'ErrTestMod02.netmodule'.
@@ -5475,7 +5475,7 @@ namespace NS
                 {
                     new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
-                }, compOptions: TestOptions.Exe);
+                }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0435: The namespace 'NS.Util' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'ErrTestMod02.netmodule'.
@@ -5498,7 +5498,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5521,7 +5521,7 @@ namespace NS
                 {
                     new MetadataImageReference(mod1),
                     new CSharpCompilationReference(lib)
-                }, compOptions: TestOptions.Exe);
+                }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
@@ -5534,7 +5534,7 @@ namespace NS
                 {
                     new MetadataImageReference(mod1),
                     new MetadataImageReference(lib.EmitToArray())
-                }, compOptions: TestOptions.Exe);
+                }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
@@ -5694,7 +5694,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -5754,7 +5754,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -5816,7 +5816,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -5876,7 +5876,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -5938,7 +5938,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6001,7 +6001,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6064,7 +6064,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6135,7 +6135,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6198,7 +6198,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6267,7 +6267,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", compOptions: TestOptions.Dll);
+            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6338,7 +6338,7 @@ namespace NS
 }
 ";
 
-            var mod3Ref = CreateCompilationWithMscorlib(mod3Source, compOptions: TestOptions.NetModule, assemblyName: "ErrTestMod03").EmitToImageReference();
+            var mod3Ref = CreateCompilationWithMscorlib(mod3Source, options: TestOptions.ReleaseModule, assemblyName: "ErrTestMod03").EmitToImageReference();
 
             var text = @"using System;
 
@@ -6423,7 +6423,7 @@ namespace NS
     }
 }";
 
-            var mod3Ref = CreateCompilationWithMscorlib(mod3Source, compOptions: TestOptions.NetModule, assemblyName: "ErrTestMod03").EmitToImageReference();
+            var mod3Ref = CreateCompilationWithMscorlib(mod3Source, options: TestOptions.ReleaseModule, assemblyName: "ErrTestMod03").EmitToImageReference();
 
             var text = @"using System;
 
@@ -6494,7 +6494,7 @@ public static int AT = (new { field = 1 }).field;
 }
 ";
 
-            var ModuleA01Ref = CreateCompilationWithMscorlib(ModuleA01, compOptions: TestOptions.NetModule, assemblyName: "ModuleA01").EmitToImageReference();
+            var ModuleA01Ref = CreateCompilationWithMscorlib(ModuleA01, options: TestOptions.ReleaseModule, assemblyName: "ModuleA01").EmitToImageReference();
 
             var ModuleB01 = @"
 class B01{
@@ -6502,7 +6502,7 @@ public static int AT = (new { field = 2 }).field;
 }
 ";
 
-            var ModuleB01Ref = CreateCompilationWithMscorlib(ModuleB01, compOptions: TestOptions.NetModule, assemblyName: "ModuleB01").EmitToImageReference();
+            var ModuleB01Ref = CreateCompilationWithMscorlib(ModuleB01, options: TestOptions.ReleaseModule, assemblyName: "ModuleB01").EmitToImageReference();
 
             var text = @"
    class Test {
@@ -6519,7 +6519,7 @@ public static int AT = (new { field = 2 }).field;
                 {
                     ModuleA01Ref,
                     ModuleB01Ref
-                }, TestOptions.Exe);
+                }, TestOptions.ReleaseExe);
 
             Assert.Equal(1, comp.Assembly.Modules[1].GlobalNamespace.GetTypeMembers("<ModuleA01>f__AnonymousType0", 1).Length);
             Assert.Equal(1, comp.Assembly.Modules[2].GlobalNamespace.GetTypeMembers("<ModuleB01>f__AnonymousType0", 1).Length);
@@ -6573,7 +6573,7 @@ interface ITest20
                 new List<MetadataReference>()
                 {
                     moduleRef
-                }, TestOptions.Dll);
+                }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
     // error CS8004: Type 'ITest20<T>' exported from module 'ITest20Mod.netmodule' conflicts with type declared in primary module of this assembly.
@@ -6656,14 +6656,14 @@ namespace ns1
 }
 ";
 
-            var moduleRef2 = CreateCompilationWithMscorlib(mod2Source, compOptions: TestOptions.NetModule, assemblyName: "mod_1_2").EmitToImageReference();
+            var moduleRef2 = CreateCompilationWithMscorlib(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "mod_1_2").EmitToImageReference();
 
             var compilation = CreateCompilationWithMscorlib("",
                 new List<MetadataReference>()
                 {
                     moduleRef1,
                     moduleRef2
-                }, TestOptions.Dll);
+                }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
     // error CS8005: Type 'c2' exported from module 'mod_1_2.netmodule' conflicts with type 'c2<T>' exported from module 'mod_1_1.netmodule'.
@@ -6692,14 +6692,14 @@ public class CF3<T>
 {}
 ";
 
-            var forwardedTypes1 = CreateCompilationWithMscorlib(forwardedTypesSource, compOptions: TestOptions.Dll, assemblyName: "ForwardedTypes1");
+            var forwardedTypes1 = CreateCompilationWithMscorlib(forwardedTypesSource, options: TestOptions.ReleaseDll, assemblyName: "ForwardedTypes1");
             var forwardedTypes1Ref = new CSharpCompilationReference(forwardedTypes1);
 
-            var forwardedTypes2 = CreateCompilationWithMscorlib(forwardedTypesSource, compOptions: TestOptions.Dll, assemblyName: "ForwardedTypes2");
+            var forwardedTypes2 = CreateCompilationWithMscorlib(forwardedTypesSource, options: TestOptions.ReleaseDll, assemblyName: "ForwardedTypes2");
             var forwardedTypes2Ref = new CSharpCompilationReference(forwardedTypes2);
 
             var forwardedTypesModRef = CreateCompilationWithMscorlib(forwardedTypesSource,
-                                                                compOptions: TestOptions.NetModule,
+                                                                options: TestOptions.ReleaseModule,
                                                                 assemblyName: "forwardedTypesMod").
                                        EmitToImageReference();
 
@@ -6710,25 +6710,25 @@ public class CF3<T>
 ";
 
             var module1_FT1_Ref = CreateCompilationWithMscorlib(modSource,
-                                                                compOptions: TestOptions.NetModule,
+                                                                options: TestOptions.ReleaseModule,
                                                                 assemblyName: "module1_FT1",
                                                                 references: new MetadataReference[] { forwardedTypes1Ref }).
                                   EmitToImageReference();
 
             var module2_FT1_Ref = CreateCompilationWithMscorlib(modSource,
-                                                                compOptions: TestOptions.NetModule,
+                                                                options: TestOptions.ReleaseModule,
                                                                 assemblyName: "module2_FT1",
                                                                 references: new MetadataReference[] { forwardedTypes1Ref }).
                                   EmitToImageReference();
 
             var module3_FT2_Ref = CreateCompilationWithMscorlib(modSource,
-                                                                compOptions: TestOptions.NetModule,
+                                                                options: TestOptions.ReleaseModule,
                                                                 assemblyName: "module3_FT2",
                                                                 references: new MetadataReference[] { forwardedTypes2Ref }).
                                   EmitToImageReference();
 
             var module4_Ref = CreateCompilationWithMscorlib("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<int>))]",
-                                                                compOptions: TestOptions.NetModule,
+                                                                options: TestOptions.ReleaseModule,
                                                                 assemblyName: "module4_FT1",
                                                                 references: new MetadataReference[] { forwardedTypes1Ref }).
                                   EmitToImageReference();
@@ -6738,7 +6738,7 @@ public class CF3<T>
                 {
                     module1_FT1_Ref,
                     forwardedTypes1Ref
-                }, TestOptions.Dll);
+                }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
     // error CS8006: Forwarded type 'ns.CF2' conflicts with type declared in primary module of this assembly.
@@ -6752,7 +6752,7 @@ public class CF3<T>
                 {
                     module1_FT1_Ref,
                     forwardedTypes1Ref
-                }, TestOptions.Dll);
+                }, TestOptions.ReleaseDll);
 
             // Exported types in .Net modules cause PEVerify to fail.
             CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug, verify: false).VerifyDiagnostics();
@@ -6762,7 +6762,7 @@ public class CF3<T>
                 {
                     module4_Ref,
                     forwardedTypes1Ref
-                }, TestOptions.Dll);
+                }, TestOptions.ReleaseDll);
 
             CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug, verify: false).VerifyDiagnostics();
 
@@ -6772,7 +6772,7 @@ public class CF3<T>
                     module1_FT1_Ref,
                     forwardedTypes2Ref,
                     new CSharpCompilationReference(forwardedTypes1, aliases: ImmutableArray.Create("FT1"))
-                }, TestOptions.Dll);
+                }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
     // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -6792,7 +6792,7 @@ extern alias FT1;
                 {
                     forwardedTypesModRef,
                     new CSharpCompilationReference(forwardedTypes1, ImmutableArray.Create("FT1"))
-                }, TestOptions.Dll);
+                }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
     // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
@@ -6807,7 +6807,7 @@ extern alias FT1;
                     forwardedTypesModRef,
                     module1_FT1_Ref,
                     forwardedTypes1Ref
-                }, TestOptions.Dll);
+                }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
     // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
@@ -6822,7 +6822,7 @@ extern alias FT1;
                     module1_FT1_Ref,
                     forwardedTypesModRef,
                     forwardedTypes1Ref
-                }, TestOptions.Dll);
+                }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
     // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
@@ -6837,7 +6837,7 @@ extern alias FT1;
                     module1_FT1_Ref,
                     module2_FT1_Ref,
                     forwardedTypes1Ref
-                }, TestOptions.Dll);
+                }, TestOptions.ReleaseDll);
 
             CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug, verify: false).VerifyDiagnostics();
 
@@ -6848,7 +6848,7 @@ extern alias FT1;
                     module3_FT2_Ref,
                     forwardedTypes1Ref,
                     forwardedTypes2Ref
-                }, TestOptions.Dll);
+                }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
     // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -8685,11 +8685,10 @@ struct S
 {
     public static fixed int x[10];
 }";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,29): error CS0106: The modifier 'static' is not valid for this item
                 //     public static fixed int x[10];
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("static")
-                );
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("static"));
         }
 
         [WorkItem(895401, "DevDiv")]
@@ -8701,11 +8700,10 @@ struct S
 {
     public volatile fixed int x[10];
 }";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,29): error CS0106: The modifier 'volatile' is not valid for this item
                 //     public static fixed int x[10];
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("volatile")
-                );
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("volatile"));
         }
 
         [WorkItem(895401, "DevDiv")]
@@ -10488,7 +10486,7 @@ public class C
     static void Bar() { }   // CS0601
 }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (6,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"),
                 // (9,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
@@ -11119,7 +11117,7 @@ public class A4 : Attribute
         }
     }
 }";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeExe).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
                 // (70,32): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.get_OffsetToStringData'
                 //             fixed (char* ptr = str)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "str").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "get_OffsetToStringData"));
@@ -13417,7 +13415,7 @@ namespace N
     unsafe partial void M2() { }
     partial void M2();
 }";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,18): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
                 Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "M1").WithLocation(4, 18),
                 // (5,25): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
@@ -13738,9 +13736,8 @@ references: new[] { reference });
 {
     public unsafe static char* Test(this char* charP) { return charP; } // CS1103
 } 
-", compOptions: TestOptions.UnsafeDll)
-                .VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_BadTypeforThis, "char*").WithArguments("char*").WithLocation(3, 42));
+", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "char*").WithArguments("char*").WithLocation(3, 42));
         }
 
         [Fact]
@@ -14220,7 +14217,7 @@ class AAttribute : Attribute { }
     public fixed int ab[10];   // CS0214
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll);
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll);
             // (3,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     public fixed string ab[10];   // CS0214
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ab[10]");
@@ -14234,7 +14231,7 @@ class AAttribute : Attribute { }
 {
     fixed int a[10];   // CS1642
 }";
-            var comp = CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll);
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (3,15): error CS1642: Fixed size buffer fields may only be members of structs
                 //     fixed int a[10];   // CS1642
@@ -14249,12 +14246,11 @@ class AAttribute : Attribute { }
 {
     fixed string ab[10];   // CS1663
 }";
-            var comp = CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll);
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (3,11): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
                 //     fixed string ab[10];   // CS1663
-                Diagnostic(ErrorCode.ERR_IllegalFixedType, "string")
-                );
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "string"));
         }
 
         [WorkItem(545353, "DevDiv")]
@@ -14266,11 +14262,10 @@ class AAttribute : Attribute { }
 {
     unsafe private fixed long test_1[1073741825];
 }";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,38): error CS1664: Fixed size buffer of length '1073741825' and type 'long' is too big
                 //     unsafe private fixed long test_1[1073741825];
-                Diagnostic(ErrorCode.ERR_FixedOverflow, "1073741825").WithArguments("1073741825", "long")
-                );
+                Diagnostic(ErrorCode.ERR_FixedOverflow, "1073741825").WithArguments("1073741825", "long"));
         }
 
         [WorkItem(545353, "DevDiv")]
@@ -14282,11 +14277,10 @@ class AAttribute : Attribute { }
     public unsafe fixed int A[0];   // CS1665
 }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,31): error CS1665: Fixed size buffers must have a length greater than zero
                 //     public unsafe fixed int A[0];   // CS1665
-                Diagnostic(ErrorCode.ERR_InvalidFixedArraySize, "0")
-                );
+                Diagnostic(ErrorCode.ERR_InvalidFixedArraySize, "0"));
         }
 
         [WorkItem(546922, "DevDiv")]
@@ -14298,9 +14292,8 @@ class AAttribute : Attribute { }
     public unsafe fixed int A[-1];   // CS1665
 }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_InvalidFixedArraySize, "-1")
-                );
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_InvalidFixedArraySize, "-1"));
         }
 
         [Fact()]
@@ -14311,11 +14304,10 @@ class AAttribute : Attribute { }
     public unsafe fixed int A[];   // CS0443
 }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
-    // (3,31): error CS0443: Syntax error; value expected
-    //     public unsafe fixed int A[];   // CS0443
-    Diagnostic(ErrorCode.ERR_ValueExpected, "]")
-                );
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,31): error CS0443: Syntax error; value expected
+                //     public unsafe fixed int A[];   // CS0443
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]"));
         }
 
         [Fact]
@@ -14327,7 +14319,7 @@ class AAttribute : Attribute { }
     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
 }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,33): error CS1002: ; expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "["),
@@ -14342,8 +14334,7 @@ class AAttribute : Attribute { }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
                 // (3,30): error CS7092: A fixed buffer may only have one dimension.
                 //     public unsafe fixed int A[2,2];   // CS1003,CS1001
-                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[2,2]")
-                );
+                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[2,2]"));
         }
 
         [Fact]
@@ -14358,11 +14349,10 @@ class AAttribute : Attribute { }
         public fixed bool _bufferOuter[10]; // error CS1642: Fixed size buffer fields may only be members of structs
  }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (5,31): error CS1642: Fixed size buffer fields may only be members of structs
                 //             public fixed bool _bufferInner[10]; //Valid
-                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "_bufferInner")
-                );
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "_bufferInner"));
         }
 
         [Fact]
@@ -14377,11 +14367,10 @@ class AAttribute : Attribute { }
         public fixed bool _bufferOuter[10]; // error CS1642: Fixed size buffer fields may only be members of structs
  }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (5,31): error CS1642: Fixed size buffer fields may only be members of structs
                 //             public fixed bool _bufferOuter[10]; //Valid
-                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "_bufferOuter")
-                );
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "_bufferOuter"));
         }
 
         [Fact]
@@ -14393,11 +14382,10 @@ class AAttribute : Attribute { }
         public fixed bool _Type3[var1]; // error CS0133: The expression being assigned to '<Type>' must be constant
     }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,34): error CS0133: The expression being assigned to 's._Type3' must be constant
                 //         public fixed bool _Type3[var1]; // error CS0133: The expression being assigned to '<Type>' must be constant
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, "var1").WithArguments("s._Type3")
-                );
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "var1").WithArguments("s._Type3"));
         }
 
         [Fact]
@@ -14408,11 +14396,10 @@ class AAttribute : Attribute { }
         public fixed t _Type1[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
     }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,22): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
                 //         public fixed t _Type1[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
-                Diagnostic(ErrorCode.ERR_IllegalFixedType, "t")
-                );
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "t"));
         }
 
         [Fact]
@@ -14426,20 +14413,19 @@ class AAttribute : Attribute { }
         public fixed int _Type4[System.Convert.ToInt32(@""1"")]; // error CS0133
     }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
-    // (3,33): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
-    //         public fixed int _Type1[1.2]; // error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2").WithArguments("double", "int"),
-    // (4,33): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-    //         public fixed int _Type2[true]; // error CS00029
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, "true").WithArguments("bool", "int"),
-    // (5,33): error CS0029: Cannot implicitly convert type 'string' to 'int'
-    //         public fixed int _Type3["true"]; // error CS00029
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""true""").WithArguments("string", "int"),
-    // (6,33): error CS0133: The expression being assigned to 's._Type4' must be constant
-    //         public fixed int _Type4[System.Convert.ToInt32(@"1")]; // error CS0133
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"System.Convert.ToInt32(@""1"")").WithArguments("s._Type4")
-                );
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,33): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         public fixed int _Type1[1.2]; // error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2").WithArguments("double", "int"),
+                // (4,33): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         public fixed int _Type2[true]; // error CS00029
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true").WithArguments("bool", "int"),
+                // (5,33): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         public fixed int _Type3["true"]; // error CS00029
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""true""").WithArguments("string", "int"),
+                // (6,33): error CS0133: The expression being assigned to 's._Type4' must be constant
+                //         public fixed int _Type4[System.Convert.ToInt32(@"1")]; // error CS0133
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"System.Convert.ToInt32(@""1"")").WithArguments("s._Type4"));
         }
 
         [Fact]
@@ -14461,34 +14447,33 @@ class AAttribute : Attribute { }
         public bool ABC = true;
     }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
-    // (3,22): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
-    //         public fixed foo _bufferFoo[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
-    Diagnostic(ErrorCode.ERR_IllegalFixedType, "foo"),
-    // (4,22): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
-    //         public fixed bar _bufferBar[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
-    Diagnostic(ErrorCode.ERR_IllegalFixedType, "bar"),
-    // (9,20): warning CS0649: Field 'foo.ABC' is never assigned to, and will always have its default value 0
-    //         public int ABC;
-    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ABC").WithArguments("foo.ABC", "0")
-                );
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,22): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //         public fixed foo _bufferFoo[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "foo"),
+                // (4,22): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //         public fixed bar _bufferBar[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "bar"),
+                // (9,20): warning CS0649: Field 'foo.ABC' is never assigned to, and will always have its default value 0
+                //         public int ABC;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ABC").WithArguments("foo.ABC", "0"));
         }
 
 
         [Fact]
         public void C1666ERR_InvalidFixedBufferInUnfixedContext()
         {
-            var text = @"unsafe struct s
+            var text = @"
+unsafe struct s
+{
+    private fixed ushort _e_res[4]; 
+    void Error_UsingFixedBuffersWiththis()
     {
-        private fixed ushort _e_res[4]; 
-        void Error_UsingFixedBuffersWiththis()
-        {
-            ushort c = this._e_res;
-        }
-        
+        ushort c = this._e_res;
     }
+}
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,24): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //             ushort c = this._e_res;
                 Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "this._e_res"));
@@ -14509,29 +14494,28 @@ class AAttribute : Attribute { }
      }
 }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
-    // (8,15): error CS1003: Syntax error, '(' expected
-    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
-    Diagnostic(ErrorCode.ERR_SyntaxError, "bool").WithArguments("(", "bool"),
-    // (8,27): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
-    Diagnostic(ErrorCode.ERR_CStyleArray, "[2]"),
-    // (8,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2"),
-    // (8,30): error CS1026: ) expected
-    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";"),
-    // (8,30): warning CS0642: Possible mistaken empty statement
-    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
-    Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
-    // (8,20): error CS0209: The type of a local declared in a fixed statement must be a pointer type
-    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
-    Diagnostic(ErrorCode.ERR_BadFixedInitType, "_buffer[2]"),
-    // (8,20): error CS0210: You must provide an initializer in a fixed or using statement declaration
-    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
-    Diagnostic(ErrorCode.ERR_FixedMustInit, "_buffer[2]")
-                );
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,15): error CS1003: Syntax error, '(' expected
+                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+                Diagnostic(ErrorCode.ERR_SyntaxError, "bool").WithArguments("(", "bool"),
+                // (8,27): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[2]"),
+                // (8,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2"),
+                // (8,30): error CS1026: ) expected
+                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";"),
+                // (8,30): warning CS0642: Possible mistaken empty statement
+                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
+                // (8,20): error CS0209: The type of a local declared in a fixed statement must be a pointer type
+                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+                Diagnostic(ErrorCode.ERR_BadFixedInitType, "_buffer[2]"),
+                // (8,20): error CS0210: You must provide an initializer in a fixed or using statement declaration
+                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "_buffer[2]"));
         }
 
 
@@ -14703,7 +14687,7 @@ public class TestUnsafe
     }
 }
 ";
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,6): error CS1716: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute. Use the 'fixed' field modifier instead.
                 //     [FixedBuffer(typeof(int), 4)]  // CS1716
                 Diagnostic(ErrorCode.ERR_DoNotUseFixedBufferAttr, "FixedBuffer").WithLocation(6, 6));
@@ -17511,7 +17495,7 @@ public class C
         [Fact]
         public void CS3013WRN_CLS_ModuleMissingCLS()
         {
-            var netModule = CreateCompilation("", compOptions: TestOptions.NetModule, assemblyName: "lib").EmitToImageReference(Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion));
+            var netModule = CreateCompilation("", options: TestOptions.ReleaseModule, assemblyName: "lib").EmitToImageReference(Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion));
             CreateCompilationWithMscorlib("[assembly: System.CLSCompliant(true)]", new[] { netModule }).VerifyDiagnostics(
                 // lib.netmodule: warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
                 Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS));
@@ -18803,12 +18787,12 @@ class G<T> where T : C
             var comp1 = CreateCompilationWithMscorlib(@"
 public class MyAttribute1 : System.Attribute
 {}
-", compOptions: TestOptions.Dll, assemblyName: "Bug783920_CS");
+", options: TestOptions.ReleaseDll, assemblyName: "Bug783920_CS");
 
             var comp2 = CreateCompilationWithMscorlib(@"
 public class MyAttribute2 : MyAttribute1
 {}
-", new[] { new CSharpCompilationReference(comp1) }, compOptions: TestOptions.Dll);
+", new[] { new CSharpCompilationReference(comp1) }, options: TestOptions.ReleaseDll);
 
             var expected = new[] {
                 // (2,2): error CS0012: The type 'MyAttribute1' is defined in an assembly that is not referenced. You must add a reference to assembly 'Bug783920_CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -18822,11 +18806,11 @@ public class Test
 {}
 ";
 
-            var comp3 = CreateCompilationWithMscorlib(source3, new[] { new CSharpCompilationReference(comp2) }, compOptions: TestOptions.Dll);
+            var comp3 = CreateCompilationWithMscorlib(source3, new[] { new CSharpCompilationReference(comp2) }, options: TestOptions.ReleaseDll);
 
             comp3.GetDiagnostics().Verify(expected);
 
-            var comp4 = CreateCompilationWithMscorlib(source3, new[] { comp2.EmitToImageReference() }, compOptions: TestOptions.Dll);
+            var comp4 = CreateCompilationWithMscorlib(source3, new[] { comp2.EmitToImageReference() }, options: TestOptions.ReleaseDll);
 
             comp4.GetDiagnostics().Verify(expected);
         }

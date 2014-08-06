@@ -394,7 +394,7 @@ class C : B
         System.Console.WriteLine(c.Z);
         System.Console.WriteLine(c.Y);
     }
-}", compOptions: TestOptions.ExeAlwaysImportInternals);
+}", options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"2
 4

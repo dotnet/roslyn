@@ -233,10 +233,9 @@ unsafe public struct S
 }
 ";
             var tree = Parse(source, "file.cs");
-            var options = OptionsDll.WithAllowUnsafe(true);
 
-            var libRef = CreateCompilationWithMscorlib(tree, assemblyName: "Metadata", compOptions: options).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib(tree, new[] { libRef }, assemblyName: "Source", compOptions: options);
+            var libRef = CreateCompilationWithMscorlib(tree, assemblyName: "Metadata", options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+            var comp = CreateCompilationWithMscorlib(tree, new[] { libRef }, assemblyName: "Source", options: TestOptions.UnsafeReleaseDll);
 
             var sourceAssembly = comp.SourceAssembly;
             var referencedAssembly = (AssemblySymbol)comp.GetAssemblyOrModuleSymbol(libRef);

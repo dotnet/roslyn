@@ -2469,7 +2469,7 @@ class C
         d();
     }
 }";
-            CompileAndVerify(source, options: TestOptions.UnsafeExe, expectedOutput: "F");
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F");
         }
 
         [Fact]
@@ -4315,7 +4315,7 @@ class D
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Dll);
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
                 Signature("C+<>c__DisplayClass0`1", "CS$<>9__CachedAnonymousMethodDelegate2", 
@@ -4327,38 +4327,37 @@ class D
   // Code size       70 (0x46)
   .maxstack  4
   .locals init (C.<>c__DisplayClass0<T> V_0, //CS$<>8__locals0
-           T V_1, //last
-           System.Func<T, bool> V_2)
+                System.Func<T, bool> V_1)
   IL_0000:  newobj     ""C.<>c__DisplayClass0<T>..ctor()""
-  IL_0005:  stloc.0   
-  IL_0006:  ldloc.0   
-  IL_0007:  ldarg.1   
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.1
   IL_0008:  stfld      ""int C.<>c__DisplayClass0<T>.p""
-  IL_000d:  ldarg.0   
+  IL_000d:  ldarg.0
   IL_000e:  brfalse.s  IL_0045
-  IL_0010:  ldarg.0   
-  IL_0011:  ldloc.0   
+  IL_0010:  ldarg.0
+  IL_0011:  ldloc.0
   IL_0012:  ldfld      ""System.Func<T, bool> C.<>c__DisplayClass0<T>.CS$<>9__CachedAnonymousMethodDelegate2""
-  IL_0017:  dup       
+  IL_0017:  dup
   IL_0018:  brtrue.s   IL_0030
-  IL_001a:  pop       
-  IL_001b:  ldloc.0   
-  IL_001c:  ldloc.0   
+  IL_001a:  pop
+  IL_001b:  ldloc.0
+  IL_001c:  dup
   IL_001d:  ldftn      ""bool C.<>c__DisplayClass0<T>.<M>b__1(T)""
   IL_0023:  newobj     ""System.Func<T, bool>..ctor(object, System.IntPtr)""
-  IL_0028:  dup       
-  IL_0029:  stloc.2   
+  IL_0028:  dup
+  IL_0029:  stloc.1
   IL_002a:  stfld      ""System.Func<T, bool> C.<>c__DisplayClass0<T>.CS$<>9__CachedAnonymousMethodDelegate2""
-  IL_002f:  ldloc.2   
+  IL_002f:  ldloc.1
   IL_0030:  call       ""T System.Linq.Enumerable.LastOrDefault<T>(System.Collections.Generic.IEnumerable<T>, System.Func<T, bool>)""
-  IL_0035:  stloc.1   
-  IL_0036:  ldarg.0   
+  IL_0035:  pop
+  IL_0036:  ldarg.0
   IL_0037:  call       ""int System.Linq.Enumerable.Count<T>(System.Collections.Generic.IEnumerable<T>)""
-  IL_003c:  ldc.i4.1  
+  IL_003c:  ldc.i4.1
   IL_003d:  ble.s      IL_0045
-  IL_003f:  ldarg.0   
+  IL_003f:  ldarg.0
   IL_0040:  callvirt   ""void System.Collections.Generic.List<T>.Reverse()""
-  IL_0045:  ret       
+  IL_0045:  ret
 }
 ");
         }
@@ -4408,7 +4407,7 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"
@@ -4537,7 +4536,7 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"

@@ -64,7 +64,7 @@ struct S
                 emitOptions: EmitOptions.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
-                options: TestOptions.DllAlwaysImportInternals);
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         [Fact]

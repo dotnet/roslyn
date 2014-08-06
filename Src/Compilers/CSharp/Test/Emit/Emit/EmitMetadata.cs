@@ -83,7 +83,7 @@ public class N : D.K<M>
                 System.Xml.Linq.XElement dumpXML = DumpTypeInfo(module);
 
                 Assert.Equal(baseLine.ToString(), dumpXML.ToString());
-            }, options: TestOptions.DllAlwaysImportInternals);
+            }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         [Fact]
@@ -438,7 +438,7 @@ abstract public class A
     public abstract void M5<T, S>(T p17, S p18);
 }";
 
-            CompileAndVerify(source, emitOptions: EmitOptions.CCI, symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, emitOptions: EmitOptions.CCI, symbolValidator: module =>
             {
                 var classA = module.GlobalNamespace.GetTypeMembers("A").Single();
 
@@ -466,63 +466,32 @@ abstract public class A
                 var parameter1Type = parameter1.Type;
 
                 Assert.Equal(RefKind.Ref, parameter1.RefKind);
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_Array), parameter1Type);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_Boolean),
-                    m2.Parameters.Single().Type);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_Char),
-                    m3.Parameters.Single().Type);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Array), parameter1Type);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Boolean), m2.Parameters.Single().Type);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Char), m3.Parameters.Single().Type);
 
                 var method4ParamTypes = m4.Parameters.Select(p => p.Type).ToArray();
 
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_Void),
-                    m4.ReturnType);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_SByte),
-                    method4ParamTypes[0]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_Single),
-                    method4ParamTypes[1]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_Double),
-                    method4ParamTypes[2]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_Int16),
-                    method4ParamTypes[3]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_Int32),
-                    method4ParamTypes[4]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_Int64),
-                    method4ParamTypes[5]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_IntPtr),
-                    method4ParamTypes[6]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_String),
-                    method4ParamTypes[7]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_Byte),
-                    method4ParamTypes[8]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_UInt16),
-                    method4ParamTypes[9]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_UInt32),
-                    method4ParamTypes[10]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_UInt64),
-                    method4ParamTypes[11]);
-
-                Assert.Same(((PEModuleSymbol)module).GetCorLibType(SpecialType.System_UIntPtr),
-                    method4ParamTypes[12]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Void), m4.ReturnType);
+                Assert.Same(module.GetCorLibType(SpecialType.System_SByte), method4ParamTypes[0]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Single), method4ParamTypes[1]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Double), method4ParamTypes[2]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Int16), method4ParamTypes[3]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Int32), method4ParamTypes[4]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Int64), method4ParamTypes[5]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_IntPtr), method4ParamTypes[6]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_String), method4ParamTypes[7]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Byte), method4ParamTypes[8]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_UInt16), method4ParamTypes[9]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_UInt32), method4ParamTypes[10]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_UInt64), method4ParamTypes[11]);
+                Assert.Same(module.GetCorLibType(SpecialType.System_UIntPtr), method4ParamTypes[12]);
 
                 Assert.True(m5.IsGenericMethod);
                 Assert.Same(m5.TypeParameters[0], m5.Parameters[0].Type);
                 Assert.Same(m5.TypeParameters[1], m5.Parameters[1].Type);
 
-                Assert.Equal(4, ((PEModuleSymbol)module).Module.GetMetadataReader().TypeReferences.Count);
+                Assert.Equal(6, ((PEModuleSymbol)module).Module.GetMetadataReader().TypeReferences.Count);
             });
         }
 
@@ -574,10 +543,10 @@ static class C
                 var peModuleSymbol = module as PEModuleSymbol;
                 if (peModuleSymbol != null)
                 {
-                    Assert.Equal(3, peModuleSymbol.Module.GetMetadataReader().TypeReferences.Count);
+                    Assert.Equal(5, peModuleSymbol.Module.GetMetadataReader().TypeReferences.Count);
                 }
             };
-            CompileAndVerify(source, emitOptions: EmitOptions.CCI, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, emitOptions: EmitOptions.CCI, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -627,7 +596,7 @@ public class A
                 Assert.Equal("System.Runtime.CompilerServices.IsVolatile", mod.Modifier.ToTestDisplayString());
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.DllAlwaysImportInternals);
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         [Fact]
@@ -721,7 +690,7 @@ public class A
                 CheckConstantField(type, "S", Accessibility.Public, SpecialType.System_String, "string");
             };
 
-            CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.DllAlwaysImportInternals);
+            CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         private void CheckConstantField(NamedTypeSymbol type, string name, Accessibility declaredAccessibility, SpecialType fieldType, object value)
@@ -789,7 +758,7 @@ class Properties
                 CheckPrivateMembers(module.GlobalNamespace.GetTypeMembers("Properties").Single(), isFromSource, false);
             };
 
-            CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.DllAlwaysImportInternals);
+            CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         private void CheckPrivateMembers(NamedTypeSymbol type, bool isFromSource, bool importPrivates)
@@ -936,7 +905,7 @@ class C : I
                 }
             };
 
-            CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.DllAlwaysImportInternals);
+            CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         [Fact]
@@ -959,7 +928,7 @@ class C
         Console.Write(C.S);
     }
 }", parseOptions: TestOptions.ExperimentalParseOptions,
-    compOptions: TestOptions.ExeAlwaysImportInternals);
+    options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
             Action<ModuleSymbol> validator = module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -1026,7 +995,7 @@ struct S
         Console.Write(S.T);
     }
 }", parseOptions: TestOptions.ExperimentalParseOptions,
-    compOptions: TestOptions.ExeAlwaysImportInternals);
+    options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -1300,7 +1269,7 @@ class C : B<string>
                 Assert.Equal(p.GetMethod.AssociatedSymbol, p);
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.DllAlwaysImportInternals);
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         private static void VerifyAutoProperty(PropertySymbol property, bool isFromSource)
@@ -1550,7 +1519,7 @@ class TC3<T8>
 
 ";
 
-            var verifier = CompileAndVerify(source, options: TestOptions.Exe.WithOptimizations(false), emitPdb: true, expectedOutput:
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithOptimizations(false), emitPdb: true, expectedOutput:
 @"TC1
 TC2`1[System.Byte]
 TC3`1+TC4[System.Byte]

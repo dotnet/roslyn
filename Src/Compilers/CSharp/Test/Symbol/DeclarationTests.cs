@@ -261,7 +261,7 @@ namespace NA
             var comp = CSharpCompilation.Create(
                 "Test.dll",
                 new[] { SyntaxFactory.ParseSyntaxTree(code) },
-                options: TestOptions.Dll);
+                options: TestOptions.ReleaseDll);
 
             Assert.Equal(SymbolKind.NamedType, comp.GlobalNamespace.GetMembers()[0].Kind);
         }

@@ -2282,7 +2282,7 @@ class Test
 
             // verify that hash method is internal:
             var reference = compVerifier.Compilation.EmitToImageReference();
-            var comp = CSharpCompilation.Create("Name", references: new[] { reference }, options: OptionsDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var comp = CSharpCompilation.Create("Name", references: new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var pid = ((NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Where(s => s.Name.StartsWith("<PrivateImplementationDetails>")).Single());
             var member = pid.GetMembers(PrivateImplementationDetails.SynthesizedStringHashFunctionName).Single();

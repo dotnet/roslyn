@@ -31,7 +31,7 @@ public struct EventDescriptor
             Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol module) =>
             {
                 var assembly = module.ContainingAssembly;
-                var type = (Microsoft.Cci.ITypeDefinition)module.GlobalNamespace.GetMember("EventDescriptor");
+                var type = (Cci.ITypeDefinition)module.GlobalNamespace.GetMember("EventDescriptor");
 
                 if (isFromSource)
                 {
@@ -39,7 +39,7 @@ public struct EventDescriptor
                     var compilation = sourceAssembly.DeclaringCompilation;
 
                     Assert.True(type.HasDeclarativeSecurity);
-                    IEnumerable<Microsoft.Cci.SecurityAttribute> typeSecurityAttributes = type.SecurityAttributes;
+                    IEnumerable<Cci.SecurityAttribute> typeSecurityAttributes = type.SecurityAttributes;
 
                     // Get System.Security.Permissions.HostProtection
                     var emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "HostProtectionAttribute");
@@ -630,7 +630,7 @@ namespace System
     }
 }
 ";
-            var comp = CreateCompilation(source, null, OptionsDll.WithRuntimeMetadataVersion("v4.0.31019"));
+            var comp = CreateCompilation(source, null, TestOptions.ReleaseDll.WithRuntimeMetadataVersion("v4.0.31019"));
             CompileAndVerify(comp, verify: false, emitOptions: EmitOptions.RefEmitBug).VerifyDiagnostics();
         }
 
@@ -660,7 +660,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, assemblyName: "Test");
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, assemblyName: "Test");
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
@@ -712,7 +712,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
@@ -751,7 +751,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
@@ -803,7 +803,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
@@ -854,7 +854,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
@@ -913,7 +913,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
@@ -978,7 +978,7 @@ namespace N2
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
@@ -1039,7 +1039,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
@@ -1101,7 +1101,8 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+
             compilation.VerifyDiagnostics(
                 // (4,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestOptional' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration = true)]
@@ -1201,7 +1202,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
@@ -1287,19 +1288,19 @@ namespace N
                 var assembly = module.ContainingAssembly;
                 var ns = module.GlobalNamespace.GetMember<NamespaceSymbol>("N");
                 var namedType = ns.GetMember<NamedTypeSymbol>("C");
-                var type = (Microsoft.Cci.ITypeDefinition)namedType;
-                var method = (Microsoft.Cci.IMethodDefinition)namedType.GetMember("Foo");
+                var type = (Cci.ITypeDefinition)namedType;
+                var method = (Cci.IMethodDefinition)namedType.GetMember("Foo");
 
                 if (isFromSource)
                 {
                     var sourceAssembly = (SourceAssemblySymbol)assembly;
-                    IEnumerable<Microsoft.Cci.SecurityAttribute> assemblySecurityAttributes = sourceAssembly.GetSecurityAttributes();
+                    IEnumerable<Cci.SecurityAttribute> assemblySecurityAttributes = sourceAssembly.GetSecurityAttributes();
 
                     var compilation = sourceAssembly.DeclaringCompilation;
 
                     // Verify assembly security attribute for unsafe dll
                     Assert.Equal(1, assemblySecurityAttributes.Count());
-                    Microsoft.Cci.SecurityAttribute securityAttribute = assemblySecurityAttributes.Single();
+                    Cci.SecurityAttribute securityAttribute = assemblySecurityAttributes.Single();
                     AttributeTests_Synthesized.VerifySkipVerificationSecurityAttribute(securityAttribute, compilation);
 
                     // Get System.Security.Permissions.PrincipalPermissionAttribute
@@ -1309,7 +1310,7 @@ namespace N
 
                     // Verify type security attributes: different security action
                     Assert.True(type.HasDeclarativeSecurity);
-                    IEnumerable<Microsoft.Cci.SecurityAttribute> typeSecurityAttributes = type.SecurityAttributes;
+                    IEnumerable<Cci.SecurityAttribute> typeSecurityAttributes = type.SecurityAttributes;
                     Assert.Equal(2, typeSecurityAttributes.Count());
 
                     // Verify [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
@@ -1334,7 +1335,7 @@ namespace N
 
                     // Verify method security attributes: same security action
                     Assert.True(method.HasDeclarativeSecurity);
-                    IEnumerable<Microsoft.Cci.SecurityAttribute> methodSecurityAttributes = method.SecurityAttributes;
+                    IEnumerable<Cci.SecurityAttribute> methodSecurityAttributes = method.SecurityAttributes;
                     Assert.Equal(2, methodSecurityAttributes.Count());
 
                     // Verify [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
@@ -1359,7 +1360,7 @@ namespace N
                 }
             };
 
-            CompileAndVerify(source, options: TestOptions.UnsafeDll, emitOptions: EmitOptions.RefEmitBug, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, emitOptions: EmitOptions.RefEmitBug, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
         }
 
         [WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")]
@@ -1396,7 +1397,7 @@ public class MyClass
                 GetUniqueName(),
                 new[] { syntaxTree },
                 new[] { MscorlibRef },
-                TestOptions.Dll.WithXmlReferenceResolver(resolver));
+                TestOptions.ReleaseDll.WithXmlReferenceResolver(resolver));
 
             compilation.VerifyDiagnostics(
                 // (4,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
@@ -1480,7 +1481,7 @@ public class MyClass
                     GetUniqueName(),
                     new[] { syntaxTree },
                     new[] { MscorlibRef },
-                    TestOptions.Dll.WithXmlReferenceResolver(new XmlFileResolver(tempDir.Path)));
+                    TestOptions.ReleaseDll.WithXmlReferenceResolver(new XmlFileResolver(tempDir.Path)));
 
                 comp.VerifyDiagnostics(
                     // (4,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'

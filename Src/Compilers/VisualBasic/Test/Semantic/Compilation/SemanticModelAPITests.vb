@@ -410,7 +410,7 @@ Class C
 
     &lt;Serializable&gt; Private i As Integer
 End Class    </file>
-</compilation>, options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True))
+</compilation>, options:=OptionsExe.WithEmbedVbCoreRuntime(True))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -1054,7 +1054,7 @@ Class C
 
     &lt;Serializable&gt; Private i As Integer
 End Class    </file>
-</compilation>, options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True))
+</compilation>, options:=OptionsExe.WithEmbedVbCoreRuntime(True))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim parentModel = compilation.GetSemanticModel(tree)

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
             var compilation = CreateCompilationWithMscorlib45(
                 text, 
-                compOptions: OptionsDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata),
+                options: TestOptions.ReleaseWinMD,
                 sourceFileName:"source.cs").VerifyDiagnostics();
 
             string actual = GetTokenToLocationMap(compilation, true);
@@ -94,7 +94,7 @@ namespace X
 
             var compilation = CreateCompilationWithMscorlib45(
                 text,
-                compOptions: OptionsDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata),
+                options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics();
 
             string actual = GetTokenToLocationMap(compilation, true);
@@ -141,7 +141,7 @@ namespace X
 
             var compilation = CreateCompilationWithMscorlib45(
                 text,
-                compOptions: OptionsDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata),
+                options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics();
 
             string actual = GetTokenToLocationMap(compilation, true);
@@ -220,7 +220,7 @@ namespace X
 
             var compilation = CreateCompilationWithMscorlib45(
                 text,
-                compOptions: OptionsDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata),
+                options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics(
                     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("X.TestCase.E"),
                     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E2").WithArguments("X.TestCase.E2"));
@@ -256,7 +256,7 @@ namespace X
 
             var compilation = CreateCompilationWithMscorlib45(
                 text,
-                compOptions: OptionsDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata),
+                options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics();
 
             string actual = GetTokenToLocationMap(compilation, true);

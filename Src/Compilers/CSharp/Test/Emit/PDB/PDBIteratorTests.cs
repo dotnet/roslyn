@@ -24,7 +24,7 @@ class Program
 }
 ";
             // NOTE: as in dev10, the custom debug info for Foo is lost.
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -39,7 +39,12 @@ class Program
         <entry il_offset=""0x19"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1a"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""21"" file_ref=""0"" />
       </sequencepoints>
-      <locals />
+      <locals>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""1"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x1e"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""1"" />
+      </scope>
     </method>
   </methods>
 </symbols>";
@@ -64,7 +69,7 @@ class Program
 
             // NOTE: as in dev10, the presence of Bar has prevented Foo's debug info from being dropped.
             // NOTE: as in dev10, Foo has no using info (and is, thus, never forwarded to).
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -96,7 +101,12 @@ class Program
         <entry il_offset=""0x19"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1a"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""21"" file_ref=""0"" />
       </sequencepoints>
-      <locals />
+      <locals>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""1"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x1e"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""1"" />
+      </scope>
     </method>
   </methods>
 </symbols>";
@@ -119,7 +129,7 @@ class Program
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -153,7 +163,12 @@ class Program
         <entry il_offset=""0x34"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x3b"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
-      <locals />
+      <locals>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x3f"" attributes=""1"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x3f"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x3f"" attributes=""1"" />
+      </scope>
     </method>
   </methods>
 </symbols>";
@@ -180,7 +195,7 @@ class Program
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -211,7 +226,12 @@ class Program
         <entry il_offset=""0xd0"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0xd1"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""21"" file_ref=""0"" />
       </sequencepoints>
-      <locals />
+      <locals>
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xd8"" attributes=""1"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0xd8"">
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xd8"" attributes=""1"" />
+      </scope>
     </method>
   </methods>
 </symbols>";
@@ -404,56 +424,44 @@ class C
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""11"">
-        <entry il_offset=""0x0"" start_row=""20"" start_column=""5"" end_row=""20"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""21"" start_column=""9"" end_row=""21"" end_column=""16"" file_ref=""0"" />
-        <entry il_offset=""0x2"" start_row=""21"" start_column=""27"" end_row=""21"" end_column=""38"" file_ref=""0"" />
-        <entry il_offset=""0x12"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x14"" start_row=""21"" start_column=""18"" end_row=""21"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x1b"" start_row=""22"" start_column=""9"" end_row=""22"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1c"" start_row=""23"" start_column=""13"" end_row=""23"" end_column=""41"" file_ref=""0"" />
-        <entry il_offset=""0x23"" start_row=""24"" start_column=""9"" end_row=""24"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x24"" start_row=""21"" start_column=""24"" end_row=""21"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0x2e"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x39"" start_row=""25"" start_column=""5"" end_row=""25"" end_column=""6"" file_ref=""0"" />
+      <sequencepoints total=""7"">
+        <entry il_offset=""0x0"" start_row=""21"" start_column=""27"" end_row=""21"" end_column=""38"" file_ref=""0"" />
+        <entry il_offset=""0x10"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x12"" start_row=""21"" start_column=""18"" end_row=""21"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x18"" start_row=""23"" start_column=""13"" end_row=""23"" end_column=""41"" file_ref=""0"" />
+        <entry il_offset=""0x1d"" start_row=""21"" start_column=""24"" end_row=""21"" end_column=""26"" file_ref=""0"" />
+        <entry il_offset=""0x27"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x31"" start_row=""25"" start_column=""5"" end_row=""25"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
-      <locals>
-        <local name=""i"" il_index=""1"" il_start=""0x14"" il_end=""0x24"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x3a"">
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x32"">
         <namespace name=""System.Collections.Generic"" />
-        <scope startOffset=""0x14"" endOffset=""0x24"">
-          <local name=""i"" il_index=""1"" il_start=""0x14"" il_end=""0x24"" attributes=""0"" />
-        </scope>
       </scope>
     </method>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
-      <sequencepoints total=""11"">
+      <sequencepoints total=""8"">
         <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x32"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x33"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x4e"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x55"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x71"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x78"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x79"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x94"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x9b"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x9c"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x26"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""25"" file_ref=""0"" />
+        <entry il_offset=""0x3f"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x46"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""25"" file_ref=""0"" />
+        <entry il_offset=""0x60"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x67"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""29"" file_ref=""0"" />
+        <entry il_offset=""0x80"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x87"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""21"" file_ref=""0"" />
       </sequencepoints>
       <locals>
         <constant name=""d1"" value=""0.1"" type=""Decimal"" />
         <constant name=""dx"" value=""1.23"" type=""Decimal"" />
         <constant name=""d2"" value=""0.2"" type=""Decimal"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0xa0"">
-        <scope startOffset=""0x32"" endOffset=""0xa0"">
+      <scope startOffset=""0x0"" endOffset=""0x89"">
+        <scope startOffset=""0x26"" endOffset=""0x89"">
           <constant name=""d1"" value=""0.1"" type=""Decimal"" />
           <constant name=""dx"" value=""1.23"" type=""Decimal"" />
-          <scope startOffset=""0x78"" endOffset=""0x9c"">
+          <scope startOffset=""0x67"" endOffset=""0x87"">
             <constant name=""d2"" value=""0.2"" type=""Decimal"" />
           </scope>
         </scope>
@@ -464,7 +472,7 @@ class C
 
             using (new CultureContext("en-US"))
             {
-                string actual = GetPdbXml(text, TestOptions.Exe);
+                string actual = GetPdbXml(text, TestOptions.ReleaseExe);
                 AssertXmlEqual(expected, actual);
             }
         }
@@ -783,7 +791,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__2.MoveNext");
 
             // One iterator local entry for the lambda local.
@@ -851,7 +859,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__2.MoveNext");
 
             // No iterator local entries.
@@ -916,7 +924,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, compOptions: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__3.MoveNext");
 
             // CHANGE: Dev12 emits a <dynamiclocal> entry for "d", but gives it slot "-1", preventing it from matching
@@ -972,7 +980,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__2.MoveNext");
 
             // One dynamic local entry for "d".

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -868,7 +869,7 @@ public class Program
             var compilation = GetCompilationForEmit(
                 new[] { source },
                 new MetadataReference[] { },
-                DefaultCompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
+                TestOptions.ReleaseDll
             );
 
             compilation.VerifyDiagnostics(diagnostics);
@@ -912,7 +913,7 @@ public class Program
             return GetCompilationForEmit(
                 new[] { source },
                 new MetadataReference[] { },
-                DefaultCompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
+                TestOptions.ReleaseDll
             );
         }
 

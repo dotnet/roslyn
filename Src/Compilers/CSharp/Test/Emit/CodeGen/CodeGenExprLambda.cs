@@ -1421,10 +1421,9 @@ class Program
         Expression<Func<int>> efi2 = () => sizeof(S);
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(
-                source,
-                compOptions: Microsoft.CodeAnalysis.CSharp.Test.Utilities.TestOptions.UnsafeDll)
-            .VerifyDiagnostics(
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+
+            c.VerifyDiagnostics(
                 // (9,43): error CS1944: An expression tree may not contain an unsafe pointer operation
                 //         Expression<Func<int>> efi = () => *p;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "*p"),
@@ -2183,14 +2182,12 @@ class Program
         }
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(
-                source,
-                compOptions: Microsoft.CodeAnalysis.CSharp.Test.Utilities.TestOptions.UnsafeDll)
-            .VerifyDiagnostics(
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+
+            c.VerifyDiagnostics(
                 // (10,46): error CS1944: An expression tree may not contain an unsafe pointer operation
                 //             Expression<D1> testExpr = (x) => x + 1;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "x")
-            );
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "x"));
         }
 
 
@@ -2215,7 +2212,7 @@ unsafe public class Test
 }";
             string expectedOutput = @"x => G(x)";
 
-            CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: Microsoft.CodeAnalysis.CSharp.Test.Utilities.TestOptions.UnsafeExe, expectedOutput: TrimExpectedOutput(expectedOutput));
+            CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
         [WorkItem(544246, "DevDiv")]
@@ -2808,12 +2805,13 @@ unsafe class Test
     }
 }";
 
-            CompileAndVerify(text,
+            var c = CompileAndVerify(text,
                 additionalRefs: new[] { SystemCoreRef },
-                options: Microsoft.CodeAnalysis.CSharp.Test.Utilities.TestOptions.UnsafeExe,
+                options: TestOptions.UnsafeReleaseDll,
                 emitOptions: EmitOptions.RefEmitBug,
-                verify: false)
-            .VerifyDiagnostics();
+                verify: false);
+
+            c.VerifyDiagnostics();
         }
 
         [WorkItem(544398, "DevDiv")]

@@ -1507,7 +1507,7 @@ static class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, compOptions: TestOptions.Exe.WithOptimizations(false));
+            var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe.WithOptimizations(false));
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
   // Code size       49 (0x31)

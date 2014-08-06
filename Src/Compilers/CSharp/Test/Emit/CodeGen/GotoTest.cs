@@ -502,7 +502,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.OptimizedDll);
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             c.VerifyIL("C.Main", @"
 {

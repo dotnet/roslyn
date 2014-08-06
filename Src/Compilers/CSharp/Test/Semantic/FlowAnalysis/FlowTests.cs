@@ -1430,7 +1430,7 @@ class C
     }
 " + suffix;
 
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (62,18): error CS0165: Use of unassigned local variable 'a'
                 //             prgs[a].arr[0] = 5; // Error: a
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a")
@@ -1455,7 +1455,7 @@ class C
     }
 " + suffix;
 
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(529603, "DevDiv")]

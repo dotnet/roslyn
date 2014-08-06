@@ -12435,7 +12435,7 @@ End Module
 
 ]]>
     </file>
-</compilation>, options:=Me.DefaultCompilationOptions.WithOptimizations(False),
+</compilation>, options:=OptionsExe.WithOptimizations(False),
                 expectedOutput:="i=2 -> x.bool = True i=21474836472 -> x.bool = True").
             VerifyIL("Module1.Main",
             <![CDATA[

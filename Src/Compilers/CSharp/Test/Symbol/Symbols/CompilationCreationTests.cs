@@ -2678,7 +2678,7 @@ System.Diagnostics.Process.GetCurrentProcess();
                 var compilation = CSharpCompilation.Create("foo",
                     syntaxTrees: trees,
                     references: new[] { MscorlibRef },
-                    options: TestOptions.Dll.WithMetadataReferenceResolver(new Resolver(data, core, system)).WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+                    options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new Resolver(data, core, system)).WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
                 var boundRefs = compilation.Assembly.BoundReferences();
 
@@ -2717,7 +2717,7 @@ System.Diagnostics.Process.GetCurrentProcess();
                 var compilation = CSharpCompilation.Create("foo",
                     syntaxTrees: trees,
                     references: new[] { mscorlibRef },
-                    options: TestOptions.Dll
+                    options: TestOptions.ReleaseDll
                         .WithMetadataReferenceResolver(new Resolver(data, core, system))
                         .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
@@ -2781,7 +2781,7 @@ class C : Metadata.ICSPropImpl { }";
                     {
                         Parse(source, options: TestOptions.Script)
                     },
-                    options: TestOptions.Dll.WithMetadataReferenceResolver(resolver).WithMetadataReferenceProvider(provider));
+                    options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver).WithMetadataReferenceProvider(provider));
 
                 compilation.VerifyDiagnostics();
             }
@@ -2807,7 +2807,7 @@ class C : Metadata.ICSPropImpl { }";
                     "foo",
                     trees,
                     new[] { MscorlibRef },
-                    TestOptions.Dll
+                    TestOptions.ReleaseDll
                         .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
                         .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
@@ -2821,7 +2821,7 @@ class C : Metadata.ICSPropImpl { }";
             var compilation = CSharpCompilation.Create("foo",
                 new[] { SyntaxFactory.ParseSyntaxTree(@"#r ""bar""", TestOptions.Script, "a.csx", Encoding.UTF8) },
                 new[] { MscorlibRef },
-                TestOptions.Dll.WithMetadataReferenceResolver(null));
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(null));
 
             compilation.VerifyDiagnostics(
                 // a.csx(1,1): error CS7099: Metadata references not supported.
@@ -2848,7 +2848,7 @@ class C : Metadata.ICSPropImpl { }";
                 var compilation = CSharpCompilation.Create("foo",
                     syntaxTrees: trees,
                     references: new[] { MscorlibRef },
-                    options: TestOptions.Dll
+                    options: TestOptions.ReleaseDll
                         .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
                         .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
@@ -2878,7 +2878,7 @@ class C : Metadata.ICSPropImpl { }";
                     "foo",
                     trees,
                     new[] { MscorlibRef },
-                    TestOptions.Dll
+                    TestOptions.ReleaseDll
                         .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
                         .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
@@ -2905,7 +2905,7 @@ class C
 
             var compilation = CSharpCompilation.Create(
                 "foo",
-                options: TestOptions.Dll.WithUsings(ImmutableArray.Create("System.Console", "System")),
+                options: TestOptions.ReleaseDll.WithUsings(ImmutableArray.Create("System.Console", "System")),
                 syntaxTrees: trees,
                 references: new[] { MscorlibRef });
 
@@ -2929,7 +2929,7 @@ Console.WriteLine(2);
 
             var compilation = CSharpCompilation.Create(
                 "foo",
-                options: TestOptions.Dll.WithUsings("System.Console!", "Blah"),
+                options: TestOptions.ReleaseDll.WithUsings("System.Console!", "Blah"),
                 syntaxTrees: trees,
                 references: new[] { MscorlibRef });
 
@@ -3060,7 +3060,7 @@ Console.WriteLine(2);
             var source1 = "public class C1 { }";
             var source2 = "public class C2 { }";
 
-            var lib1 = CreateCompilationWithMscorlib(source1, assemblyName: "Lib1", compOptions: TestOptions.NetModule);
+            var lib1 = CreateCompilationWithMscorlib(source1, assemblyName: "Lib1", options: TestOptions.ReleaseModule);
             var ref1 = lib1.EmitToImageReference(); // NOTE: can't use a compilation reference for a module.
 
             var lib2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "Lib2");

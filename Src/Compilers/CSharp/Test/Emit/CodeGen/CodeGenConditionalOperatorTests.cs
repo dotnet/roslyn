@@ -38,7 +38,7 @@ class C : I
     }
 }";
             var verify = CompileAndVerify(src,
-                options: TestOptions.UnoptimizedExe,
+                options: TestOptions.DebugExe,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
 {
@@ -136,7 +136,7 @@ class C : I
     }
 }";
             var verify = CompileAndVerify(src,
-                options: TestOptions.UnoptimizedExe,
+                options: TestOptions.DebugExe,
                 expectedOutput: "A");
             verify.VerifyIL("C.Tester", @"
 {
@@ -261,7 +261,7 @@ class C : I
     }
 }";
             var verify = CompileAndVerify(src,
-                options: TestOptions.UnoptimizedExe,
+                options: TestOptions.DebugExe,
                 expectedOutput: "B");
             verify.VerifyIL("C.Tester", @"
 {
@@ -389,7 +389,7 @@ class C : I
     }
 }";
             var verify = CompileAndVerify(src,
-                options: TestOptions.UnoptimizedExe,
+                options: TestOptions.DebugExe,
                 expectedOutput: "D");
             verify.VerifyIL("C.Tester", @"
 {
@@ -537,7 +537,7 @@ public class C : I
     }
 }";
             var verify = CompileAndVerify(src,
-                options: TestOptions.UnoptimizedExe,
+                options: TestOptions.DebugExe,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
 {
@@ -619,7 +619,7 @@ public class C : I
     }
 }";
             var verify = CompileAndVerify(src,
-                options: TestOptions.UnoptimizedExe,
+                options: TestOptions.DebugExe,
                 expectedOutput: "B");
             verify.VerifyIL("C.Tester", @"
 {
@@ -707,7 +707,7 @@ public class C : I
     }
 }";
             var verify = CompileAndVerify(src,
-                options: TestOptions.UnoptimizedExe,
+                options: TestOptions.DebugExe,
                 expectedOutput: "A");
             verify.VerifyIL("C.Tester", @"
 {
@@ -811,7 +811,7 @@ public class C : I
     }
 }";
             var verify = CompileAndVerify(src,
-                options: TestOptions.UnoptimizedExe,
+                options: TestOptions.DebugExe,
                 expectedOutput: "D");
             verify.VerifyIL("C.Tester", @"
 {
@@ -2160,7 +2160,7 @@ public class C : I
     }
 }";
             var verify = CompileAndVerify(src,
-                options: TestOptions.UnoptimizedExe,
+                options: TestOptions.DebugExe,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester",@"
 {

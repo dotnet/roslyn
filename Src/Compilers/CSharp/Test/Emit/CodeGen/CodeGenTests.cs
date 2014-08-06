@@ -52,7 +52,7 @@ class Program
         Console.WriteLine((((DoubleAndStruct)args[0]).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.Dll.WithOptimizations(false));
+            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -137,7 +137,7 @@ class Program
         Console.WriteLine(((((OuterStruct)args[0]).z).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.Dll.WithOptimizations(false));
+            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -205,7 +205,7 @@ class Program
         Console.WriteLine(((((OuterStruct)args[0]).z).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.Dll.WithOptimizations(false));
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithOptimizations(false));
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -264,7 +264,7 @@ class Program
         Console.WriteLine(((OuterStruct.z).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.Dll.WithOptimizations(false));
+            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -297,7 +297,7 @@ class P
 }
 public class C { }
 ";
-            var result = CompileAndVerify(source, options: TestOptions.Dll.WithOptimizations(true));
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             result.VerifyIL("P.M<T>(T)",
 @"
@@ -345,7 +345,7 @@ public class C
 		return success;
 	}
 }";
-            var result = CompileAndVerify(source, options: TestOptions.Dll.WithOptimizations(true));
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             result.VerifyIL("C.M",
 @"
@@ -398,7 +398,7 @@ public class C
     }
 }
 ";
-            var result = CompileAndVerify(source, options: TestOptions.Dll.WithOptimizations(true));
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             result.VerifyIL("C.M",
 @"
@@ -438,13 +438,13 @@ class C
     }
 }";
             var tree = Parse(source);
-            var compilation = CreateCompilation(new List<SyntaxTree> { tree }, new[] { MscorlibRefSilverlight }, TestOptions.Exe, "Test");
+            var compilation = CreateCompilation(new List<SyntaxTree> { tree }, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, "Test");
             CompileAndVerify(compilation, emitOptions: EmitOptions.CCI, expectedOutput: "k");
         }
 
         [WorkItem(546853, "DevDiv")]
         [Fact]
-        void TestBug16981()
+        public void TestBug16981()
         {
             var il = @"
 .class public auto ansi beforefieldinit B
@@ -495,14 +495,13 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseDll);
             var result = CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug);
 
-            result.VerifyIL("C.A",
-@"{
+            result.VerifyIL("C.A", @"
+{
   // Code size       27 (0x1b)
   .maxstack  1
-  .locals init (bool V_0) //x
   IL_0000:  newobj     ""B..ctor()""
   IL_0005:  callvirt   ""bool B.M1.get""
   IL_000a:  brfalse.s  IL_0018
@@ -510,7 +509,7 @@ class C
   IL_0011:  call       ""bool B.M2.get""
   IL_0016:  br.s       IL_0019
   IL_0018:  ldc.i4.0
-  IL_0019:  stloc.0
+  IL_0019:  pop
   IL_001a:  ret
 }
 ");
@@ -570,7 +569,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, compOptions: TestOptions.Dll.WithOptimizations(false));
+            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseDll.WithOptimizations(false));
             var result = CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug);
 
             result.VerifyIL("C.A",
@@ -814,7 +813,7 @@ class Clazz
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
             var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ", emitOptions: EmitOptions.RefEmitBug);
 
             result.VerifyIL("Clazz.Main", @"
@@ -7224,7 +7223,7 @@ class A
 }
 
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.Exe.WithOptimizations(false), emitPdb: true);
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithOptimizations(false), emitPdb: true);
 
             compilation.VerifyIL("A.Main",
 @"{
@@ -9667,7 +9666,7 @@ class Test
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             // Both Dev10 and Roslyn currently generate unverifiable code for this case...
             // Dev10 reports warning CS0626: Method, operator, or accessor 'Test.Foo()' is marked external
@@ -9676,6 +9675,7 @@ class Test
             comp.VerifyDiagnostics(
                 // (4,17): warning CS0626: Method, operator, or accessor 'Test.Foo()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Foo").WithArguments("Test.Foo()"));
+
             Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(source));
         }
 
@@ -9969,7 +9969,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 00000000000000000000000000000000
 00000000000000000000000000010000
@@ -10081,7 +10081,7 @@ class Foo
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 00000001000000000000000000000000
 0000000a000000000000000000010000
@@ -10161,7 +10161,7 @@ class Foo
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 00000001000000000000000080000000
 0000000a000000000000000080010000
@@ -10235,7 +10235,7 @@ class Foo
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 ffffffffffffffffffffffff00000000
 ffffffffffffffffffffffff00000000
@@ -12194,7 +12194,7 @@ class Module1
     {   
 	     return y;
     }
-}", options: TestOptions.Exe.WithOptimizations(true),
+}", options: TestOptions.ReleaseExe.WithOptimizations(true),
 expectedOutput: "-100");
         }
 
@@ -12215,7 +12215,7 @@ expectedOutput: "-100");
         return () => { }; // generate lambda
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithConcurrentBuild(false));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithConcurrentBuild(false));
             var options = compilation.Options;
             var diagnostics = DiagnosticBag.GetInstance();
 
@@ -12343,8 +12343,8 @@ class C
 }
 ";
 
-            var compOpt = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithOptimizations(true));
-            var compNoOpt = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithOptimizations(false));
+            var compOpt = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compNoOpt = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
 
             // (2) is not met.
             CompileAndVerify(compOpt, emitPdb: false).VerifyIL("C.Main", @"
@@ -12409,7 +12409,7 @@ class C
 }
 ";
             // Nop after Debugger.Break(), even though it isn't at the end of a statement.
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithOptimizations(false));
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithOptimizations(false));
             var v = CompileAndVerify(comp, emitPdb: true);
             
             v.VerifyIL("C.Main", @"
@@ -13638,7 +13638,7 @@ using System;
     }
 ";
 
-            CompileAndVerify(source, options: TestOptions.UnsafeExe, expectedOutput: @""
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: @""
 ).VerifyIL("Program.TestArrElement(bool[])",
 @"
 {

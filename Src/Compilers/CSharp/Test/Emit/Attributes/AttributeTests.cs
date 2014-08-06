@@ -416,9 +416,9 @@ public class A
 }
 ";
             var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib.AsImmutableOrNull()) };
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -962,9 +962,9 @@ namespace AttributeTest
 ";
 
             var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -1037,9 +1037,9 @@ namespace AttributeTest
 ";
 
             var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -1079,9 +1079,9 @@ namespace AttributeTest
 }
 ";
             var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -1129,7 +1129,7 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             var globalNs = compilation.GlobalNamespace;
             var cDoc = globalNs.GetTypeMember("CDoc");
@@ -1177,7 +1177,7 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             var globalNs = compilation.GlobalNamespace;
             var cDoc = globalNs.GetTypeMember("CDoc");
@@ -1229,7 +1229,7 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             var globalNs = compilation.GlobalNamespace;
             var cDoc = globalNs.GetTypeMember("CDoc");
@@ -1281,7 +1281,7 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             var globalNs = compilation.GlobalNamespace;
             var cDoc = globalNs.GetTypeMember("CDoc");
@@ -1313,9 +1313,9 @@ namespace AttributeTest
 }
 ";
             var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
 
             Action<ModuleSymbol> sourceAttributeValidator = (ModuleSymbol m) =>
             {
@@ -1451,9 +1451,9 @@ namespace AttributeTest
 }
 ";
             var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
 
             Action<ModuleSymbol> sourceAttributeValidator = (ModuleSymbol m) =>
             {
@@ -1543,9 +1543,9 @@ namespace AttributeTest
 }
 ";
             var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -1650,9 +1650,9 @@ namespace AttributeTest
 }
 ";
             var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2001,7 +2001,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2044,7 +2044,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2088,7 +2088,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2133,7 +2133,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2177,7 +2177,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2379,7 +2379,7 @@ class B
         typeof(C<>).GetGenericArguments()[0].GetCustomAttributes(false);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2573,7 +2573,7 @@ public class A : Attribute
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2679,7 +2679,7 @@ partial class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(new[] { source1, source2 }, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2748,7 +2748,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(new[] { source1, source2 }, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2784,7 +2784,7 @@ class C
     public static void Main() {}
 }";
 
-            var compilation = CreateCompilationWithMscorlib(new[] { source1, source2 }, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2859,7 +2859,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2917,7 +2917,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2979,7 +2979,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -3503,7 +3503,7 @@ class A
 {
   public const dynamic dyn = null;
 }
-", compOptions: TestOptions.Dll);
+", options: TestOptions.ReleaseDll);
 
             // Note that the dev11 compiler produces errors that XDoesNotExist *and* XDoesNotExistAttribute could not be found.
             // It does not go on to produce the other errors.
@@ -3560,7 +3560,7 @@ class XAttribute : Attribute
 class A
 {
 }
-", compOptions: TestOptions.Dll);
+", options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(    // (21,4): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
                 // [X(NotFound = null)]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound"),
@@ -3608,9 +3608,9 @@ static class AttributeMod
     }
 }";
             var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (4,2): error CS0579: Duplicate 'BaseAttribute' attribute
@@ -5046,9 +5046,9 @@ class A : System.Attribute { }
 partial class C<T>  { }
 partial class C<[A][A] T> { }
 ";
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (4,2): error CS0579: Duplicate 'A' attribute
@@ -5164,9 +5164,9 @@ partial class C
     static partial void Foo() { }
 }
 ";
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // error CS0579: Duplicate 'A' attribute
@@ -5207,9 +5207,9 @@ partial class C
 
 }
 ";
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
             compilation.VerifyDiagnostics(
                 // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Foo6<T>()'
                 //     static partial void Foo6<[A][A] T>() { }
@@ -5265,9 +5265,9 @@ partial class C
     static partial void Foo6([A][A] int y) { }
 }
 ";
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Foo6(int)'
@@ -5363,9 +5363,9 @@ partial class C
     static partial void Foo<T,[A] S>();
     static partial void Foo<[A]>() { }
 }";
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (7,32): error CS1001: Identifier expected
@@ -5468,9 +5468,9 @@ public class Test
 		return 1;
 	}
 }";
-            CSharpCompilationOptions opt = TestOptions.Dll;
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, compOptions: opt);
+            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (3,16): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
@@ -7179,7 +7179,7 @@ public class TestAttribute : Attribute
 class Target<T>
 {}";
 
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Target");

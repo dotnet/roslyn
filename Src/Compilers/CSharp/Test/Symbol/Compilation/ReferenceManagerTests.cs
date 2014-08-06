@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ReferenceManagerTests : CSharpTestBase
     {
-        private static readonly CSharpCompilationOptions SignedDll = TestOptions.Dll.
+        private static readonly CSharpCompilationOptions SignedDll = TestOptions.ReleaseDll.
             WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
             WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
 
@@ -97,7 +97,7 @@ public class C {}
             var libV1 = CreateCompilationWithMscorlib(
                 sourceLibV1,
                 assemblyName: "Lib",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceLibV2 = @"
 [assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
@@ -107,7 +107,7 @@ public class C {}
             var libV2 = CreateCompilationWithMscorlib(
                 sourceLibV2,
                 assemblyName: "Lib",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceLibV3 = @"
 [assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")]
@@ -117,7 +117,7 @@ public class C {}
             var libV3 = CreateCompilationWithMscorlib(
                 sourceLibV3,
                 assemblyName: "Lib",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceRefLibV2 = @"
 using System.Collections.Generic;
@@ -131,7 +131,7 @@ public class R { public C Field; }
                sourceRefLibV2,
                assemblyName: "RefLibV2",
                references: new[] { new CSharpCompilationReference(libV2) },
-               compOptions: SignedDll);
+               options: SignedDll);
 
             string sourceMain = @"
 public class M
@@ -201,7 +201,7 @@ public interface I {}
             var libV1 = CreateCompilationWithMscorlib(
                 sourceLibV1,
                 assemblyName: "Lib",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceLibV2 = @"
 [assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
@@ -213,7 +213,7 @@ public interface I {}
             var libV2 = CreateCompilationWithMscorlib(
                 sourceLibV2,
                 assemblyName: "Lib",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceRefLibV1 = @"
 using System.Collections.Generic;
@@ -263,7 +263,7 @@ public class GenericClass<T>
                sourceRefLibV1,
                assemblyName: "RefLibV1",
                references: new[] { new CSharpCompilationReference(libV1) },
-               compOptions: SignedDll);
+               options: SignedDll);
 
             string sourceX = @"
 [assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
@@ -276,7 +276,7 @@ public class Q : S2 {}
                sourceX,
                assemblyName: "X",
                references: new[] { new CSharpCompilationReference(refLibV1), new CSharpCompilationReference(libV1) },
-               compOptions: SignedDll);
+               options: SignedDll);
 
             string sourceMain = @"
 public class M
@@ -382,7 +382,7 @@ public class A {}
             var a1 = CreateCompilationWithMscorlib(
                 sourceA1,
                 assemblyName: "A",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceA2 = @"
 [assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
@@ -392,7 +392,7 @@ public class A {}
             var a2 = CreateCompilationWithMscorlib(
                 sourceA2,
                 assemblyName: "A",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceB1 = @"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
@@ -402,7 +402,7 @@ public class B {}
             var b1 = CreateCompilationWithMscorlib(
                 sourceB1,
                 assemblyName: "B",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceB2 = @"
 [assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
@@ -412,7 +412,7 @@ public class B {}
             var b2 = CreateCompilationWithMscorlib(
                 sourceB2,
                 assemblyName: "B",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceRefA1B2 = @"
 using System.Collections.Generic;
@@ -430,7 +430,7 @@ public class R
                sourceRefA1B2,
                assemblyName: "RefA1B2",
                references: new[] { new CSharpCompilationReference(a1), new CSharpCompilationReference(b2) },
-               compOptions: SignedDll);
+               options: SignedDll);
 
             string sourceMain = @"
 public class M
@@ -497,7 +497,7 @@ public class CGAttribute : System.Attribute { }
                 sourceLibV1,
                 assemblyName: "Lib",
                 references: new[] { MinCorlibRef }, 
-                compOptions: SignedDll);
+                options: SignedDll);
 
             libV1.VerifyDiagnostics();
 
@@ -521,7 +521,7 @@ public class CGAttribute : System.Attribute { }
                 sourceLibV2,
                 assemblyName: "Lib",
                 references: new[] { MinCorlibRef },
-                compOptions: SignedDll);
+                options: SignedDll);
            
             libV2.VerifyDiagnostics();
 
@@ -537,7 +537,7 @@ namespace System.Runtime.CompilerServices
                sourceRefLibV1,
                assemblyName: "RefLibV1",
                references: new MetadataReference[] { MinCorlibRef, new CSharpCompilationReference(libV1) },
-               compOptions: SignedDll);
+               options: SignedDll);
 
             refLibV1.VerifyDiagnostics();
 
@@ -571,7 +571,7 @@ public interface I {}
             var libV1 = CreateCompilationWithMscorlib(
                 sourceLibV1,
                 assemblyName: "Lib",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceLibV2 = @"
 using System.Reflection;
@@ -582,7 +582,7 @@ public interface I {}
             var libV2 = CreateCompilationWithMscorlib(
                 sourceLibV2,
                 assemblyName: "Lib",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceRefLibV1 = @"
 using System.Reflection;
@@ -596,7 +596,7 @@ public class C : I
                sourceRefLibV1,
                assemblyName: "RefLibV1",
                references: new[] { new CSharpCompilationReference(libV1) },
-               compOptions: SignedDll);
+               options: SignedDll);
 
             string sourceMain = @"
 public class M 
@@ -636,7 +636,7 @@ public class A {}
             var libV1 = CreateCompilationWithMscorlib(
                 sourceLibV1,
                 assemblyName: "Lib",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceLibV2 = @"
 [assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
@@ -646,7 +646,7 @@ public class A {}
             var libV2 = CreateCompilationWithMscorlib(
                 sourceLibV2,
                 assemblyName: "Lib",
-                compOptions: SignedDll);
+                options: SignedDll);
 
             string sourceRefLibV1 = @"
 using System.Runtime.InteropServices;
@@ -668,7 +668,7 @@ public interface IB
                sourceRefLibV1,
                assemblyName: "RefLibV1",
                references: new[] { new CSharpCompilationReference(libV1) },
-               compOptions: TestOptions.Dll);
+               options: TestOptions.ReleaseDll);
 
             string sourceMain = @"
 public class Test
@@ -686,7 +686,7 @@ public class Test
                sourceMain,
                assemblyName: "Main",
                references: new MetadataReference[] { new MetadataImageReference(refLibV1.EmitToArray()), new CSharpCompilationReference(libV2) },
-               compOptions: TestOptions.Exe);
+               options: TestOptions.ReleaseExe);
 
             // TODO (tomat): we should display paths rather than names "RefLibV1" and "Lib"
 
@@ -844,7 +844,7 @@ public class E : bar::C { }
                         t3 = Parse("#r \"Foo\"", options: TestOptions.Script),
                     },
                     references: new MetadataReference[] { MscorlibRef, r1, r2 },
-                    options: TestOptions.Dll.
+                    options: TestOptions.ReleaseDll.
                         WithMetadataReferenceResolver(new MappingReferenceResolver(assemblyNames: new Dictionary<string, string> { { "Foo", p3 } })).
                         WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default)
                 );
@@ -907,7 +907,7 @@ public class E : bar::C { }
                 var m1 = new MetadataFileReference(p1, MetadataImageKind.Module);
                 var m2 = new MetadataFileReference(p2, MetadataImageKind.Module);
 
-                var compilation = CSharpCompilation.Create("foo", options: TestOptions.Dll,
+                var compilation = CSharpCompilation.Create("foo", options: TestOptions.ReleaseDll,
                     references: new MetadataReference[] { m1, m2 });
 
                 // We don't deduplicate references based on file path on the compilation level.
@@ -956,8 +956,8 @@ public class E : bar::C { }
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
 public interface I {}";
 
-            var lib1 = CreateCompilationWithMscorlib(sourceLib, compOptions: SignedDll, assemblyName: "Lib");
-            var lib2 = CreateCompilationWithMscorlib(sourceLib, compOptions: SignedDll, assemblyName: "Lib");
+            var lib1 = CreateCompilationWithMscorlib(sourceLib, options: SignedDll, assemblyName: "Lib");
+            var lib2 = CreateCompilationWithMscorlib(sourceLib, options: SignedDll, assemblyName: "Lib");
 
             var ref1 = lib1.ToMetadataReference(embedInteropTypes: true);
             var ref2 = lib2.ToMetadataReference(embedInteropTypes: false);
@@ -1004,7 +1004,7 @@ public interface I {}";
                     "DupSignedRefs",
                     new[] { SyntaxFactory.ParseSyntaxTree(text) },
                     new[] { new MetadataFileReference(p1), new MetadataFileReference(p2) },
-                    TestOptions.Dll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
+                    TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
                 comp.VerifyDiagnostics(
                     // error CS1703: Multiple assemblies with equivalent identity have been imported: '...\v4.0.30319\System.dll' and '...\v2.0.50727\System.dll'. Remove one of the duplicate references.
@@ -1022,7 +1022,7 @@ using System;
 public class A { }";
 
 
-                var c1 = CreateCompilationWithMscorlib(libSource, compOptions: TestOptions.Dll, assemblyName: "CS1704");
+                var c1 = CreateCompilationWithMscorlib(libSource, options: TestOptions.ReleaseDll, assemblyName: "CS1704");
 
                 var dir1 = Temp.CreateDirectory();
                 var exe1 = dir1.CreateFile("CS1704.dll");
@@ -1287,7 +1287,7 @@ public class A
                         Parse("#r \"1\"", options: TestOptions.Script),
                         Parse("#r \"2.dll\"", options: TestOptions.Script),
                     },
-                    options: TestOptions.Dll
+                    options: TestOptions.ReleaseDll
                         .WithMetadataReferenceResolver(resolver)
                         .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
@@ -1344,7 +1344,7 @@ public class A
         {
             using (MetadataCache.LockAndClean())
             {
-                var options = TestOptions.Dll.
+                var options = TestOptions.ReleaseDll.
                     WithMetadataReferenceResolver(new ErroneousReferenceResolver()).
                     WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default);
 
@@ -1368,7 +1368,7 @@ public class A
 
                 var c1 = CSharpCompilation.Create("c",
                     syntaxTrees: new[] { Parse(@"#r ""c:\throw.dll""", options: TestOptions.Script) },
-                    options: TestOptions.Dll.
+                    options: TestOptions.ReleaseDll.
                         WithMetadataReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\throw.dll", @"c:\throw.dll" } })).
                         WithMetadataReferenceProvider(provider));
 
@@ -1377,7 +1377,7 @@ public class A
                 var c2 = CSharpCompilation.Create("c",
                     references: new[] { MscorlibRef },
                     syntaxTrees: new[] { Parse(@"#r ""c:\null.dll""", options: TestOptions.Script) },
-                    options: TestOptions.Dll.
+                    options: TestOptions.ReleaseDll.
                         WithMetadataReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\null.dll", @"c:\null.dll" } })).
                         WithMetadataReferenceProvider(provider));
 
@@ -1470,7 +1470,7 @@ public class B : A
 
 
             var withCircularReference1 = CreateCompilationWithMscorlib(@"public class B : A { }", new[] { refA2 }, assemblyName: "B");
-            var withCircularReference2 = withCircularReference1.WithOptions(TestOptions.UnsafeDll);
+            var withCircularReference2 = withCircularReference1.WithOptions(TestOptions.ReleaseDll);
             Assert.NotSame(withCircularReference1, withCircularReference2);
 
             // until we try to reuse bound references we share the manager:
@@ -1728,7 +1728,7 @@ public class B
 	public A A;
 }";
 
-            var b = CreateCompilationWithMscorlib(srcB, references: new[] { aRef }, compOptions: TestOptions.NetModule.WithModuleName("mod.netmodule"), assemblyName: "B");
+            var b = CreateCompilationWithMscorlib(srcB, references: new[] { aRef }, options: TestOptions.ReleaseModule.WithModuleName("mod.netmodule"), assemblyName: "B");
             b.VerifyDiagnostics();
         }
 
@@ -1789,7 +1789,7 @@ class D
 
             var assemblyMetadata = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib("public class TypeDependedOnByModule { }", assemblyName: "lib1").EmitToArray());
             var assemblyRef = new MetadataImageReference(assemblyMetadata);
-            var moduleRef = CreateCompilationWithMscorlib("public class TypeFromModule : TypeDependedOnByModule { }", new[] {assemblyRef}, compOptions: TestOptions.NetModule, assemblyName: "lib2").EmitToImageReference();
+            var moduleRef = CreateCompilationWithMscorlib("public class TypeFromModule : TypeDependedOnByModule { }", new[] {assemblyRef}, options: TestOptions.ReleaseModule, assemblyName: "lib2").EmitToImageReference();
 
             var comp1 = CreateCompilationWithMscorlib(text1, new MetadataReference[] 
             {
@@ -1840,7 +1840,7 @@ namespace A
 ";
 
             // Note: we just need *a* module reference for the repro - we're not depending on its contents, name, etc.
-            var moduleRef = CreateCompilationWithMscorlib("public class C { }", compOptions: TestOptions.NetModule, assemblyName: "lib").EmitToImageReference();
+            var moduleRef = CreateCompilationWithMscorlib("public class C { }", options: TestOptions.ReleaseModule, assemblyName: "lib").EmitToImageReference();
 
             var comp1 = CreateCompilationWithMscorlib(text1, new MetadataReference[] 
             {
@@ -1862,13 +1862,13 @@ namespace A
         [Fact]
         public void CachingAndVisibility()
         {
-            var cPublic = CreateCompilationWithMscorlib("class C { }", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.Public));
-            var cInternal = CreateCompilationWithMscorlib("class D { }", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.Internal));
-            var cAll = CreateCompilationWithMscorlib("class E { }", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var cPublic = CreateCompilationWithMscorlib("class C { }", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Public));
+            var cInternal = CreateCompilationWithMscorlib("class D { }", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var cAll = CreateCompilationWithMscorlib("class E { }", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var cPublic2 = CreateCompilationWithMscorlib("class C { }", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.Public));
-            var cInternal2 = CreateCompilationWithMscorlib("class D { }", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.Internal));
-            var cAll2 = CreateCompilationWithMscorlib("class E { }", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var cPublic2 = CreateCompilationWithMscorlib("class C { }", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Public));
+            var cInternal2 = CreateCompilationWithMscorlib("class D { }", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var cAll2 = CreateCompilationWithMscorlib("class E { }", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             Assert.NotSame(cPublic.Assembly.CorLibrary, cInternal.Assembly.CorLibrary);
             Assert.NotSame(cAll.Assembly.CorLibrary, cInternal.Assembly.CorLibrary);
@@ -1890,21 +1890,21 @@ internal class C
 ";
             string mainSource = @"
 ";
-            var module = CreateCompilationWithMscorlib(moduleSource, compOptions: TestOptions.NetModule);
+            var module = CreateCompilationWithMscorlib(moduleSource, options: TestOptions.ReleaseModule);
             var moduleRef = module.EmitToImageReference();
 
             // All
-            var mainAll = CreateCompilationWithMscorlib(mainSource, new[] { moduleRef }, compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var mainAll = CreateCompilationWithMscorlib(mainSource, new[] { moduleRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var mAll = mainAll.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers("m");
             Assert.Equal(1, mAll.Length);
 
             // Internal
-            var mainInternal = CreateCompilationWithMscorlib(mainSource, new[] { moduleRef }, compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var mainInternal = CreateCompilationWithMscorlib(mainSource, new[] { moduleRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
             var mInternal = mainInternal.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers("m");
             Assert.Equal(0, mInternal.Length);
 
             // Public
-            var mainPublic = CreateCompilationWithMscorlib(mainSource, new[] { moduleRef }, compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.Public));
+            var mainPublic = CreateCompilationWithMscorlib(mainSource, new[] { moduleRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Public));
             var mPublic = mainPublic.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers("m");
             Assert.Equal(0, mPublic.Length);
         }
@@ -1932,7 +1932,7 @@ internal class C
            
             // w/o facades:
 
-            var main = CreateCompilation(mainSource, mainRefs, compOptions: TestOptions.Dll.WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+            var main = CreateCompilation(mainSource, mainRefs, options: TestOptions.ReleaseDll.WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
             main.VerifyDiagnostics(
                 // (1,18): error CS0012: The type 'System.Object' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("System.Object", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"));
@@ -1947,7 +1947,7 @@ internal class C
             var facades = dir.CreateDirectory("Facades");
             var systemRuntimeFacade = facades.CreateFile("System.Runtime.dll").WriteAllBytes(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime);
 
-            main = CreateCompilation(mainSource, mainRefs, compOptions: TestOptions.Dll.WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
+            main = CreateCompilation(mainSource, mainRefs, options: TestOptions.ReleaseDll.WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
             main.VerifyDiagnostics();
 
             var expectedReferences = new string[] 
@@ -1976,8 +1976,8 @@ internal class C
 public class B {{ }}
 ";
 
-            var libBv1 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "1"), assemblyName: "B", compOptions: SignedDll);
-            var libBv2 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "2"), assemblyName: "B", compOptions: SignedDll);
+            var libBv1 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "1"), assemblyName: "B", options: SignedDll);
+            var libBv2 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "2"), assemblyName: "B", options: SignedDll);
 
             var libASource = @"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
@@ -1992,7 +1992,7 @@ public class A
                 libASource,
                 new[] { new CSharpCompilationReference(libBv1) }, 
                 assemblyName: "A", 
-                compOptions: SignedDll);
+                options: SignedDll);
 
             var source = @"
 public class Source
@@ -2021,8 +2021,8 @@ public class Source
 public class B {{ }}
 ";
 
-            var libBv1 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "1"), assemblyName: "B", compOptions: SignedDll);
-            var libBv2 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "2"), assemblyName: "B", compOptions: SignedDll);
+            var libBv1 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "1"), assemblyName: "B", options: SignedDll);
+            var libBv2 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "2"), assemblyName: "B", options: SignedDll);
 
             var libASource = @"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
@@ -2037,7 +2037,7 @@ public class A
                 libASource, 
                 new[] { new CSharpCompilationReference(libBv1) }, 
                 assemblyName: "A", 
-                compOptions: SignedDll);
+                options: SignedDll);
 
             var source = @"
 public class Source
@@ -2066,8 +2066,8 @@ public class Source
 public class B {{ }}
 ";
 
-            var libBv1 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "1"), assemblyName: "B", compOptions: SignedDll);
-            var libBv2 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "2"), assemblyName: "B", compOptions: SignedDll);
+            var libBv1 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "1"), assemblyName: "B", options: SignedDll);
+            var libBv2 = CreateCompilationWithMscorlib(string.Format(libBTemplate, "2"), assemblyName: "B", options: SignedDll);
 
             var libASource = @"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
@@ -2078,7 +2078,7 @@ public class A
 }
 ";
 
-            var libAv1 = CreateCompilationWithMscorlib(libASource, new[] { new CSharpCompilationReference(libBv1) }, assemblyName: "A", compOptions: SignedDll);
+            var libAv1 = CreateCompilationWithMscorlib(libASource, new[] { new CSharpCompilationReference(libBv1) }, assemblyName: "A", options: SignedDll);
 
             var source = @"
 public class Source
@@ -2126,8 +2126,8 @@ public static class Extensions
 }}
 ";
 
-            var libBv1 = CreateCompilationWithMscorlibAndSystemCore(string.Format(libBTemplate, "1"), assemblyName: "B", compOptions: SignedDll);
-            var libBv2 = CreateCompilationWithMscorlibAndSystemCore(string.Format(libBTemplate, "2"), assemblyName: "B", compOptions: SignedDll);
+            var libBv1 = CreateCompilationWithMscorlibAndSystemCore(string.Format(libBTemplate, "1"), assemblyName: "B", options: SignedDll);
+            var libBv2 = CreateCompilationWithMscorlibAndSystemCore(string.Format(libBTemplate, "2"), assemblyName: "B", options: SignedDll);
 
             libBv1.EmitToImageReference();
             libBv2.EmitToImageReference();
@@ -2150,7 +2150,7 @@ public class AItem
 }
 ";
 
-            var libAv1 = CreateCompilationWithMscorlib(libASource, new[] { new CSharpCompilationReference(libBv1) }, assemblyName: "A", compOptions: SignedDll);
+            var libAv1 = CreateCompilationWithMscorlib(libASource, new[] { new CSharpCompilationReference(libBv1) }, assemblyName: "A", options: SignedDll);
 
             libAv1.EmitToImageReference();
 

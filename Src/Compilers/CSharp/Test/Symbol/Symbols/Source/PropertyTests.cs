@@ -637,7 +637,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileWithCustomPropertiesAssembly(source, TestOptions.DllAlwaysImportInternals);
+            var compilation = CompileWithCustomPropertiesAssembly(source, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
             var type = (PENamedTypeSymbol)compilation.GlobalNamespace.GetMembers("FamilyAssembly").Single();
 
             VerifyAccessibility(
@@ -1671,7 +1671,7 @@ class Program
             var compilation = CreateCompilationWithMscorlib(
                 source,
                 new[] {TestReferences.SymbolsTests.Properties },
-                TestOptions.Exe);
+                TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -2347,7 +2347,7 @@ End Class";
 
         private CSharpCompilation CompileWithCustomPropertiesAssembly(string source, CSharpCompilationOptions options = null)
         {
-            return CreateCompilationWithMscorlib(source, new[] { PropertiesDll }, options ?? TestOptions.Dll);
+            return CreateCompilationWithMscorlib(source, new[] { PropertiesDll }, options ?? TestOptions.ReleaseDll);
         }
 
         private static MetadataReference PropertiesDll = TestReferences.SymbolsTests.Properties;
@@ -2547,7 +2547,7 @@ public interface IA
                     emitOptions: EmitOptions.RefEmitBug,
                     sourceSymbolValidator: validator,
                     symbolValidator: validator,
-                    options: winmd ? TestOptions.WinMDObj : TestOptions.Dll);
+                    options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);
                 verifier.VerifyDiagnostics();
             };
 
@@ -2589,13 +2589,13 @@ public interface IA
         public void set_A(int value) {}
     }
 }";
-            var comp = CreateCompilationWithMscorlib(libSrc, compOptions: TestOptions.Dll);
+            var comp = CreateCompilationWithMscorlib(libSrc, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
     // (7,18): error CS0082: Type 'Test.C' already reserves a member called 'set_A' with the same parameter types
     //             get; set;
     Diagnostic(ErrorCode.ERR_MemberReserved, "set").WithArguments("set_A", "Test.C"));
 
-            comp = CreateCompilationWithMscorlib(libSrc, compOptions: TestOptions.WinMDObj);
+            comp = CreateCompilationWithMscorlib(libSrc, options: TestOptions.ReleaseWinMD);
             comp.VerifyDiagnostics(
     // (7,18): error CS0082: Type 'Test.C' already reserves a member called 'put_A' with the same parameter types
     //             get; set;

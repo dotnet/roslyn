@@ -863,7 +863,7 @@ unsafe class C<T>
 }
 ";
             // Dev11 reports "error CS0034: Operator '-' is ambiguous on operands ... and ..." for all ptr - ptr
-            CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1306,7 +1306,7 @@ class C
             // from it the nodes that describe the operators. We then compare the description of
             // the operators given to the comment that follows the use of the operator.
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
             var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
@@ -2858,7 +2858,7 @@ unsafe struct A
         var z = x - y; // Dev11 generates CS0019...should compile
     }
 }
-", compOptions: TestOptions.UnsafeDll).VerifyDiagnostics();
+", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             // add better verification once this is implemented
         }
 
@@ -3165,7 +3165,7 @@ public class X
         Console.Write(obj == null);
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Exe);
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "True");;
 
             source = @"
@@ -3385,11 +3385,11 @@ class Program
         public void TestAsOperatorWithTypeParameter()
         {
             // SPEC:    Furthermore, at least one of the following must be true, or otherwise a compile-time error occurs:
-            // SPEC:    โ€ข	An identity (ยง6.1.1), implicit nullable (ยง6.1.4), implicit reference (ยง6.1.6), boxing (ยง6.1.7), 
-            // SPEC:        explicit nullable (ยง6.2.3), explicit reference (ยง6.2.4), or unboxing (ยง6.2.5) conversion exists
+            // SPEC:    - An identity (ง6.1.1), implicit nullable (ง6.1.4), implicit reference (ง6.1.6), boxing (ง6.1.7), 
+            // SPEC:        explicit nullable (ง6.2.3), explicit reference (ง6.2.4), or unboxing (ง6.2.5) conversion exists
             // SPEC:        from E to T.
-            // SPEC:    โ€ข	The type of E or T is an open type.
-            // SPEC:    โ€ข	E is the null literal.
+            // SPEC:    - The type of E or T is an open type.
+            // SPEC:    - E is the null literal.
 
             // SPEC VIOLATION:  The specification unintentionally allows the case where requirement 2 above:
             // SPEC VIOLATION:  "The type of E or T is an open type" is true, but type of E is void type, i.e. T is an open type.
@@ -3649,11 +3649,11 @@ class Outer<T>
         public void TestAsOperator_SpecErrorCase()
         {
             // SPEC:    Furthermore, at least one of the following must be true, or otherwise a compile-time error occurs:
-            // SPEC:    โ€ข	An identity (ยง6.1.1), implicit nullable (ยง6.1.4), implicit reference (ยง6.1.6), boxing (ยง6.1.7), 
-            // SPEC:        explicit nullable (ยง6.2.3), explicit reference (ยง6.2.4), or unboxing (ยง6.2.5) conversion exists
+            // SPEC:    - An identity (ง6.1.1), implicit nullable (ง6.1.4), implicit reference (ง6.1.6), boxing (ง6.1.7), 
+            // SPEC:        explicit nullable (ง6.2.3), explicit reference (ง6.2.4), or unboxing (ง6.2.5) conversion exists
             // SPEC:        from E to T.
-            // SPEC:    โ€ข	The type of E or T is an open type.
-            // SPEC:    โ€ข	E is the null literal.
+            // SPEC:    - The type of E or T is an open type.
+            // SPEC:    - E is the null literal.
 
             // SPEC VIOLATION:  The specification contains an error in the list of legal conversions above.
             // SPEC VIOLATION:  If we have "class C<T, U> where T : U where U : class" then there is
@@ -4881,7 +4881,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.Exe);
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"A
 A");
         }
@@ -4918,7 +4918,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.Exe);
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(comp, 
                 "Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'");
         }
@@ -5108,7 +5108,7 @@ public class RubyTime
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOverflowChecks(true));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -5324,7 +5324,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions:TestOptions.Dll.WithOverflowChecks(false));
+            var compilation = CreateCompilationWithMscorlib(source, options:TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -5341,7 +5341,7 @@ class Module1
                 Assert.False(symbol1.IsCheckedBuiltin);
             }
 
-            compilation = compilation.WithOptions(TestOptions.Dll.WithOverflowChecks(true));
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(true));
             semanticModel = compilation.GetSemanticModel(tree);
 
             var symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
@@ -5475,7 +5475,7 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOverflowChecks(true));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -5632,7 +5632,7 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOverflowChecks(true));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6169,7 +6169,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6204,7 +6204,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOverflowChecks(false));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6221,7 +6221,7 @@ class Module1
                 Assert.False(symbol1.IsCheckedBuiltin);
             }
 
-            compilation = compilation.WithOptions(TestOptions.Dll.WithOverflowChecks(true));
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(true));
             semanticModel = compilation.GetSemanticModel(tree);
 
             var symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
@@ -6250,7 +6250,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOverflowChecks(false));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6269,7 +6269,7 @@ class Module1
                 Assert.Null(symbol1.ContainingType);
             }
 
-            compilation = compilation.WithOptions(TestOptions.Dll.WithOverflowChecks(true));
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(true));
             semanticModel = compilation.GetSemanticModel(tree);
 
             var symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
@@ -6315,7 +6315,7 @@ struct TestStr
 {}
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
                 // (17,20): error CS0019: Operator '==' cannot be applied to operands of type 'TestStr?' and 'TestStr?'
@@ -6380,7 +6380,7 @@ struct TestStr
         return i += 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees[0];

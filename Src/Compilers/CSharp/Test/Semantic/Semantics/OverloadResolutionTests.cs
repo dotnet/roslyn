@@ -1970,7 +1970,7 @@ unsafe class Test
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.UnsafeExe, expectedOutput: @"2
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2
 True
 3
 3
@@ -3783,7 +3783,7 @@ class Test
 30
 31
 32";
-            var compilation = CreateCompilationWithCustomILSource(source2, source1, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithCustomILSource(source2, source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -6290,7 +6290,7 @@ class D<T>
 ";
             // Dev11 reports error CS0411: The type arguments for method 'C.Bar<T>(D<T>.E*[])' cannot be inferred from the usage. Try
             // specifying the type arguments explicitly.
-            CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(598032, "DevDiv")]
@@ -6961,7 +6961,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 2
 2
@@ -6995,7 +6995,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 2
 2
@@ -7024,7 +7024,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"2
 1");

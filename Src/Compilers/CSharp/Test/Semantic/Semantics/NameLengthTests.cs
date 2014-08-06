@@ -397,7 +397,7 @@ class C
 ";
 
             var source = string.Format(sourceTemplate, LongLocalName);
-            var comp = CreateCompilationWithMscorlib(source, compOptions: OptionsDll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (7,13): warning CS8029: Local name 'LongLocalName + 1' is too long for PDB.  Consider shortening or compiling without /debug.
@@ -421,7 +421,7 @@ class C
 ";
 
             var source = string.Format(sourceTemplate, LongLocalName);
-            var comp = CreateCompilationWithMscorlib(source, compOptions: OptionsDll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (7,19): warning CS8029: Local name 'LongSymbolName + 1' is too long for PDB.  Consider shortening or compiling without /debug.
@@ -546,7 +546,7 @@ unsafe struct S
             int padding = GeneratedNames.MakeFixedFieldImplementationName("A").Length - 1;
             string longName = LongSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
-            var comp = CreateCompilationWithMscorlib(source, compOptions: OptionsDll.WithAllowUnsafe(true));
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
             // CONSIDER: Location would light up if synthesized methods had them.
             comp.VerifyEmitDiagnostics(

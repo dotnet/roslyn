@@ -1611,7 +1611,7 @@ namespace ExpressionTest
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 (c1, c2) => (Convert(c1) + c2)
 (c1, c2) => (Convert(c1) + c2)
@@ -1925,7 +1925,7 @@ public class Test
             // NOTE: It's pretty wacky that some of these implicit UDCs can only be applied via explicit (cast) conversions,
             // but that's the native behavior.  We need to replicate it for back-compat, but most of the strangeness will
             // not be spec'd.
-            CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (46,17): error CS1660: Cannot convert lambda expression to type 'Q' because it is not a delegate type
                 //             q = () => 1; //CS1660
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "Q"),

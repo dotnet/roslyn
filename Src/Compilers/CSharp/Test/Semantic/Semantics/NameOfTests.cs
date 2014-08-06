@@ -234,8 +234,8 @@ class Test<T>
 }
 ";
 
-            var option = TestOptions.Exe.WithWarningLevel(0);
-            CreateCompilationWithMscorlib(source, compOptions: option).VerifyDiagnostics(
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            CreateCompilationWithMscorlib(source, options: option).VerifyDiagnostics(
                     // (11,20): error CS1547: Keyword 'void' cannot be used in this context
                     //         s = nameof(void);
                     Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(11, 20),
@@ -428,8 +428,8 @@ class NameofLocal
     }
 ";
             MetadataReference[] references = new[] { SystemCoreRef, CSharpRef };
-            var option = TestOptions.Exe.WithWarningLevel(0);
-            CreateCompilationWithMscorlib45(source, references, compOptions: option).VerifyDiagnostics(
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            CreateCompilationWithMscorlib45(source, references, options: option).VerifyDiagnostics(
                     // (81,27): error CS0149: Method name expected
                     //         Console.WriteLine(nameof(Class.var));
                     Diagnostic(ErrorCode.ERR_MethodNameExpected, "nameof").WithLocation(81, 27),

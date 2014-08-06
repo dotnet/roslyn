@@ -249,7 +249,7 @@ public class Test
             // Scenario to test Conditional directive stack creation during SyntaxTree.Create, see Devdiv Bug #13846 for details.
             CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(testSource);
             var syntaxTree = SyntaxFactory.SyntaxTree(root);
-            var compilation = CreateCompilationWithMscorlib(syntaxTree, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(syntaxTree, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, emitOptions: EmitOptions.CCI, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
         }
 
@@ -460,7 +460,7 @@ Z.PreservedCalls_MultipleConditional_Method";
             // Scenario to test Conditional directive stack creation during SyntaxTree.Create, see Devdiv Bug #13846 for details.
             CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(testSource);
             var syntaxTree = SyntaxFactory.SyntaxTree(root);
-            var compilation = CreateCompilationWithMscorlib(syntaxTree, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(syntaxTree, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, emitOptions: EmitOptions.CCI, expectedOutput: CommonExpectedOutput_ConditionalMethodsTest);
         }
 

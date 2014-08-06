@@ -84,8 +84,6 @@ End Class
     </file>
 </compilation>
 
-            Dim options = DefaultCompilationOptions.WithOutputKind(OutputKind.ConsoleApplication)
-
             Dim allReferences As MetadataReference() = {
                             TestReferences.NetFx.v2_0_50727.mscorlib,
                             SystemRef,

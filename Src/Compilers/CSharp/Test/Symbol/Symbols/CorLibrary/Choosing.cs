@@ -31,7 +31,7 @@ namespace System
     {
     }
 }
-",compOptions: TestOptions.Dll);
+",options: TestOptions.ReleaseDll);
 
             var obj = corLib.GetSpecialType(SpecialType.System_Object);
 
@@ -42,7 +42,7 @@ namespace System
 public class Test
 {
 }
-", new[] { new CSharpCompilationReference(corLib)}, compOptions: TestOptions.Dll);
+", new[] { new CSharpCompilationReference(corLib)}, options: TestOptions.ReleaseDll);
 
             Assert.Same(obj, consumer.GetSpecialType(SpecialType.System_Object));
         }
@@ -57,13 +57,13 @@ namespace System
     {
     }
 }
-", compOptions: TestOptions.Dll);
+", options: TestOptions.ReleaseDll);
 
             var consumer = CreateCompilation(@"
 public class Test
 {
 }
-", new[] { new CSharpCompilationReference(corLib) }, compOptions: TestOptions.Dll);
+", new[] { new CSharpCompilationReference(corLib) }, options: TestOptions.ReleaseDll);
 
             Assert.True(consumer.GetSpecialType(SpecialType.System_Object).IsErrorType());
         }

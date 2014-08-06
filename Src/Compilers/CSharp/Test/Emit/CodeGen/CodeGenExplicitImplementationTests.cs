@@ -121,7 +121,7 @@ class Test
             var comp = CreateCompilationWithMscorlib(
                 text2,
                 references: new[] { comp1.EmitToImageReference() },
-                compOptions: TestOptions.Exe,
+                options: TestOptions.ReleaseExe,
                 assemblyName: "OHI_ExplicitImplProp3");
 
             CompileAndVerify(comp, expectedOutput: @"
@@ -207,7 +207,7 @@ class Test
                 text1, 
                 references: new[] { TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01 }, 
                 assemblyName: "OHI_ExpImpImpl001",
-                compOptions: TestOptions.Dll);
+                options: TestOptions.ReleaseDll);
 
             var comp = CreateCompilationWithMscorlib(
                 text2, 
@@ -217,7 +217,7 @@ class Test
                     new CSharpCompilationReference(comp1)
                 }, 
                 assemblyName: "OHI_ExpImpImpl002",
-                compOptions: TestOptions.Exe);
+                options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"CSS11Imp CSS1Exp CSS11Exp CSF1Imp CSF1Exp CSF11Exp");
         }
@@ -250,7 +250,7 @@ class Test
                 text,
                 references: new[] { asm01, asm02 },
                 assemblyName: "OHI_ExpImpVBImpl001",
-                compOptions: TestOptions.Exe);
+                options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"VBS1_V VBS1_V VBS11_OL VBF1_V VBF1_V VBF11");
         }
@@ -366,13 +366,13 @@ class Test
                 text1, 
                 references: new[] { asm01 }, 
                 assemblyName: "OHI_ExpImpPropImpl001",
-                compOptions: TestOptions.Dll);
+                options: TestOptions.ReleaseDll);
 
             var comp = CreateCompilationWithMscorlib(
                 text2,
                 references: new MetadataReference[] { asm01, new CSharpCompilationReference(comp1) },
                 assemblyName: "OHI_ExpImpPropImpl002",
-                compOptions: TestOptions.Exe);
+                options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"WriteReadOnly NormProp 123456");
         }

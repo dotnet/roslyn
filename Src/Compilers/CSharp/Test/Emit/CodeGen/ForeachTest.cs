@@ -57,7 +57,7 @@ public class Test
             foreach (var x in new int*[] { y }) { }
         }
     }
-}", options: TestOptions.UnsafeExe).VerifyIL("Test.Main", @"
+}", options: TestOptions.UnsafeReleaseDll).VerifyIL("Test.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  4
@@ -786,7 +786,7 @@ public class Test
 b
 c
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, compOptions: TestOptions.Exe);
+            var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe);
             
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }

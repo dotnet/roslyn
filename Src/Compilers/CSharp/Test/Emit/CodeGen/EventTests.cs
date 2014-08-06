@@ -609,7 +609,7 @@ class D : C
 ";
 
             var ilAssemblyReference = TestReferences.SymbolsTests.Events;
-            var compilation = CreateCompilationWithMscorlib(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 VirtualEventWithRaise Raise
 D Raise

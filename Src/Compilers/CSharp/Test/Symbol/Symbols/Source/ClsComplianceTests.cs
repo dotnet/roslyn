@@ -389,7 +389,7 @@ public class Generic<T>
 {
 }
 ";
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (6,14): warning CS3009: 'A': base type 'Bad' is not CLS-compliant
                 // public class A : Bad
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "A").WithArguments("A", "Bad"),
@@ -446,7 +446,7 @@ public class Generic<T> { }
             var lib2 = CreateCompilationWithMscorlib(libSource2, assemblyName: "lib2").EmitToImageReference();
             var lib3 = CreateCompilationWithMscorlib(libSource3, assemblyName: "lib3").EmitToImageReference();
 
-            CreateCompilationWithMscorlib(source, new[] { lib1, lib2, lib3 }, TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, new[] { lib1, lib2, lib3 }, TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (6,14): warning CS3009: 'A1': base type 'Bad1' is not CLS-compliant
                 // public class A1 : Bad1 { }
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "A1").WithArguments("A1", "Bad1"),
@@ -490,7 +490,7 @@ public interface Bad { }
 
 public interface Generic<T> { }
 ";
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (6,18): warning CS3027: 'A' is not CLS-compliant because base interface 'Bad' is not CLS-compliant
                 // public interface A : Bad { }
                 Diagnostic(ErrorCode.WRN_CLS_BadInterface, "A").WithArguments("A", "Bad"),
@@ -538,7 +538,7 @@ public interface Bad { }
 public interface Generic<T> { }
 ";
             // Implemented interfaces are not required to be compliant - only inherited ones.
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -870,7 +870,7 @@ public class Generic<T> { }
 public interface Bad { }
 ";
 
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,16): warning CS3002: Return type of 'C1.M1()' is not CLS-compliant
                 //     public Bad M1() { throw null; }
                 Diagnostic(ErrorCode.WRN_CLS_BadReturnType, "M1").WithArguments("C1.M1()"),
@@ -917,7 +917,7 @@ public unsafe class C2
 public interface Bad { }
 ";
 
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,25): warning CS3002: Return type of 'C1.D' is not CLS-compliant
                 //     public delegate Bad D();
                 Diagnostic(ErrorCode.WRN_CLS_BadReturnType, "D").WithArguments("C1.D"));
@@ -960,7 +960,7 @@ public class Generic<T> { }
 public interface Bad { }
 ";
 
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,23): warning CS3001: Argument type 'Bad' is not CLS-compliant
                 //     public void M1(Bad b) { }
                 Diagnostic(ErrorCode.WRN_CLS_BadArgType, "b").WithArguments("Bad"),
@@ -2054,9 +2054,9 @@ public class C
         [Fact]
         public void WRN_CLS_ModuleMissingCLS()
         {
-            var trueModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", compOptions: TestOptions.NetModule, assemblyName: "true").EmitToImageReference();
-            var falseModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", compOptions: TestOptions.NetModule, assemblyName: "false").EmitToImageReference();
-            var noneModuleRef = CreateCompilationWithMscorlib("", compOptions: TestOptions.NetModule, assemblyName: "none").EmitToImageReference();
+            var trueModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
+            var falseModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
+            var noneModuleRef = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseModule, assemblyName: "none").EmitToImageReference();
 
             // Assembly is marked compliant.
             CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef }).VerifyDiagnostics();
@@ -2089,9 +2089,9 @@ public class C
         [Fact]
         public void WRN_CLS_ModuleMissingCLS_AssemblyLevelOnly()
         {
-            var trueModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", compOptions: TestOptions.NetModule, assemblyName: "true").EmitToImageReference();
-            var falseModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", compOptions: TestOptions.NetModule, assemblyName: "false").EmitToImageReference();
-            var noneModuleRef = CreateCompilationWithMscorlib("", compOptions: TestOptions.NetModule, assemblyName: "none").EmitToImageReference();
+            var trueModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
+            var falseModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
+            var noneModuleRef = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseModule, assemblyName: "none").EmitToImageReference();
 
             // Assembly is marked compliant.
             CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef }).VerifyDiagnostics();
@@ -2122,8 +2122,8 @@ public class C
         [Fact]
         public void MultipleDisagreeingModules()
         {
-            var trueModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", compOptions: TestOptions.NetModule, assemblyName: "true").EmitToImageReference();
-            var falseModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", compOptions: TestOptions.NetModule, assemblyName: "false").EmitToImageReference();
+            var trueModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
+            var falseModuleRef = CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
 
             CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
@@ -2623,7 +2623,7 @@ public unsafe class C
 ";
 
             // NOTE: don't cascade to WRN_CLS_OverloadUnnamed.
-            CreateCompilationWithMscorlibAndSystemCore(source, compOptions: OptionsDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,26): warning CS3001: Argument type 'int*[]' is not CLS-compliant
                 //     public void M(int*[] t) {}
                 Diagnostic(ErrorCode.WRN_CLS_BadArgType, "t").WithArguments("int*[]"));
@@ -2985,7 +2985,7 @@ public sealed class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, WinRtRefs, compOptions: TestOptions.WinMDObj);
+            var comp = CreateCompilationWithMscorlib(source, WinRtRefs, options: TestOptions.ReleaseWinMD);
 
             // CONSIDER: The CLS spec requires that event accessors have a certain shape and WinRT event
             // accessors do not.  However, dev11 does not report a diagnostic.

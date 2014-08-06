@@ -200,7 +200,7 @@ class Driver
   </methods>
 </symbols>";
 
-            var compilation = CreateCompilationWithMscorlib45(text, compOptions: TestOptions.DebugDll).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
             string actual = GetPdbXml(compilation);
             AssertXmlEqual(expected, actual);
         }
@@ -380,7 +380,7 @@ namespace ConsoleApplication1
   </methods>
 </symbols>";
 
-            var compilation = CreateCompilationWithMscorlib45(text, compOptions: TestOptions.DebugDll).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
             string actual = GetPdbXml(compilation);
             AssertXmlEqual(expected, actual);
         }
@@ -441,7 +441,7 @@ class TestCase
 
             var compilation = CreateCompilationWithMscorlib45(
                     text,
-                    compOptions: TestOptions.DebugDll,
+                    options: TestOptions.DebugDll,
                     references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef })
                 .VerifyDiagnostics();
 
@@ -474,7 +474,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__1.MoveNext");
 
             // One iterator local entry for the lambda local.
@@ -555,7 +555,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, compOptions: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__1.MoveNext");
 
             // No iterator local entries.
@@ -631,7 +631,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__1.MoveNext");
 
             // CHANGE: Dev12 emits a <dynamiclocal> entry for "d", but gives it slot "-1", preventing it from matching
@@ -696,7 +696,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, compOptions: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             string actual = GetPdbXml(comp, "C+<M>d__1.MoveNext");
 
             // One dynamic local entry for "d".
@@ -769,7 +769,7 @@ class C
         return x;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, compOptions: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
 
             var v = CompileAndVerify(comp, emitPdb: true);
             

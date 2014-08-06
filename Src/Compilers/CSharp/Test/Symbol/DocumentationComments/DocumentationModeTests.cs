@@ -378,7 +378,7 @@ partial class Partial {{ }}
 
             var comp = CreateCompilationWithMscorlib(
                 trees, 
-                compOptions: TestOptions.Dll.WithXmlReferenceResolver(XmlFileResolver.Default),
+                options: TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
                 assemblyName: "Test");
 
             comp.VerifyDiagnostics(makeExpectedDiagnostics(includeElement));

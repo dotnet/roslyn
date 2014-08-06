@@ -242,7 +242,7 @@ public partial class B : I
             EventLibRef = CreateCompilation(
                 eventLibSrc,
                 references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929 },
-                compOptions:
+                options:
                     new CSharpCompilationOptions(
                         OutputKind.WindowsRuntimeMetadata,
                         allowUnsafe: true),
@@ -317,7 +317,7 @@ class C
                     MscorlibRef_v4_0_30316_17626,
                     EventLibRef,
                 },
-                compOptions:
+                options:
                     new CSharpCompilationOptions(
                         OutputKind.NetModule,
                         allowUnsafe: true)).EmitToImageReference(
@@ -2554,34 +2554,35 @@ public partial class A : I
         public void WinMdEventTestLocalGeneration()
         {
             var text = @"
-                            using Windows.UI.Xaml;
-                            using Windows.ApplicationModel;
+using Windows.UI.Xaml;
+using Windows.ApplicationModel;
                             
-                            public class abcdef{
-                                private void OnSuspending(object sender, SuspendingEventArgs e)
-                                {  
-                                }
+public class abcdef{
+    private void OnSuspending(object sender, SuspendingEventArgs e)
+    {  
+    }
 
-                                private Application getApplication(){return null;}
+    private Application getApplication(){return null;}
 
-                                public void foo(){
-                                    getApplication().Suspending += OnSuspending;
-                                    getApplication().Suspending -= OnSuspending;
-                                }
+    public void foo(){
+        getApplication().Suspending += OnSuspending;
+        getApplication().Suspending -= OnSuspending;
+    }
 
-                                public static void Main(){
-                                        var a = new abcdef();
-                                        a.foo();
-                                }
-                            } ";
+    public static void Main(){
+            var a = new abcdef();
+            a.foo();
+    }
+}";
 
             CSharpCompilation comp = CreateWinRtCompilation(text);
             var cv = CompileAndVerifyOnWin8Only(comp, emitOptions: EmitOptions.RefEmitBug);
 
-            var ExpectedIl =
-@"
-  {
-  // Code size       88 (0x58)
+            CSharpCompilation a = CreateWinRtCompilation(text);
+
+            cv.VerifyIL("abcdef.foo()", @"
+{
+  // Code size       86 (0x56)
   .maxstack  4
   .locals init (Windows.UI.Xaml.Application V_0)
   IL_0000:  ldarg.0
@@ -2601,21 +2602,15 @@ public partial class A : I
   IL_002d:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler<Windows.UI.Xaml.SuspendingEventHandler>(System.Func<Windows.UI.Xaml.SuspendingEventHandler, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, Windows.UI.Xaml.SuspendingEventHandler)""
   IL_0032:  ldarg.0
   IL_0033:  call       ""Windows.UI.Xaml.Application abcdef.getApplication()""
-  IL_0038:  stloc.0
-  IL_0039:  ldloc.0
-  IL_003a:  dup
-  IL_003b:  ldvirtftn  ""void Windows.UI.Xaml.Application.Suspending.remove""
-  IL_0041:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
-  IL_0046:  ldarg.0
-  IL_0047:  ldftn      ""void abcdef.OnSuspending(object, Windows.ApplicationModel.SuspendingEventArgs)""
-  IL_004d:  newobj     ""Windows.UI.Xaml.SuspendingEventHandler..ctor(object, System.IntPtr)""
-  IL_0052:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler<Windows.UI.Xaml.SuspendingEventHandler>(System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, Windows.UI.Xaml.SuspendingEventHandler)""
-  IL_0057:  ret
-}
-";
-            CSharpCompilation a = CreateWinRtCompilation(text);
-
-            cv.VerifyIL("abcdef.foo()", ExpectedIl);
+  IL_0038:  dup
+  IL_0039:  ldvirtftn  ""void Windows.UI.Xaml.Application.Suspending.remove""
+  IL_003f:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_0044:  ldarg.0
+  IL_0045:  ldftn      ""void abcdef.OnSuspending(object, Windows.ApplicationModel.SuspendingEventArgs)""
+  IL_004b:  newobj     ""Windows.UI.Xaml.SuspendingEventHandler..ctor(object, System.IntPtr)""
+  IL_0050:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler<Windows.UI.Xaml.SuspendingEventHandler>(System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, Windows.UI.Xaml.SuspendingEventHandler)""
+  IL_0055:  ret
+}");
         }
 
         /// <summary>
@@ -3204,7 +3199,7 @@ class C
 ";
 
             // NB: not referencing WinRtRefs
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.WinMDObj);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyDiagnostics(
                 // Add accessor signature:
                 // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
@@ -3261,7 +3256,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.WinMDObj).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.ReleaseWinMD).VerifyDiagnostics(
                 // (9,17): error CS7084: A Windows Runtime event may not be passed as an out or ref parameter.
                 //         Ref(ref Instance);
                 Diagnostic(ErrorCode.ERR_WinRtEventPassedByRef, "Instance").WithArguments("C.Instance"),
@@ -3310,7 +3305,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.WinMDObj).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseWinMD).VerifyEmitDiagnostics(
                 // (4,32): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.AddEventHandler'
                 //     public event System.Action E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "AddEventHandler"),

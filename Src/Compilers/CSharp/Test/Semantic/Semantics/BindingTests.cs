@@ -1705,7 +1705,7 @@ partial class C
     partial void F(int j) { }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module => 
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module => 
             {
                 var method = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<MethodSymbol>("F");
                 Assert.Equal("i", method.Parameters[0].Name);
@@ -1727,7 +1727,7 @@ partial class C
     partial void F(int i);
 }
 ";
-            CompileAndVerify(source, options: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var method = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<MethodSymbol>("F");
                 Assert.Equal("i", method.Parameters[0].Name);
@@ -1787,7 +1787,7 @@ partial class C
         fixed (int* ptr = arg) object o = null;
     }
 }";
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,32): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         fixed (int* ptr = arg) object o = null;
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = null;"),

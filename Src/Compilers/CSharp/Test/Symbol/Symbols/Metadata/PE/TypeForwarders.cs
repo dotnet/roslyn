@@ -1311,11 +1311,11 @@ namespace NS
         /// <param name="forwardedTypeFullNames">Forwarded type names should be in metadata format (Namespace.Outer`Arity+Inner`Arity).</param>
         private void CheckForwarderEmit(string source1, string source2, params string[] forwardedTypeFullNames)
         {
-            var comp1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.Dll, assemblyName: "Asm1");
+            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: "Asm1");
             var verifier1 = CompileAndVerify(comp1, emitOptions: EmitOptions.RefEmitBug);
             var ref1 = new MetadataImageReference(verifier1.EmittedAssemblyData);
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, compOptions: TestOptions.Dll, assemblyName: "Asm2");
+            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
 
             Action<ModuleSymbol> metadataValidator = module =>
             {
@@ -1371,22 +1371,22 @@ namespace NS
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
             string moduleA = @"public class Foo{ public static string A = ""Original""; }";
-            var bitsA = CreateCompilationWithMscorlib(moduleA, compOptions: TestOptions.Dll, assemblyName: "asm2").EmitToArray();
+            var bitsA = CreateCompilationWithMscorlib(moduleA, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
             var refA = new MetadataImageReference(bitsA);
 
             string moduleB = @"using System; class Program2222 { static void Main(string[] args) { Console.WriteLine(Foo.A); } }";
-            var bitsB = CreateCompilationWithMscorlib(moduleB, new[] { refA }, TestOptions.Exe, assemblyName: "test").EmitToArray();
+            var bitsB = CreateCompilationWithMscorlib(moduleB, new[] { refA }, TestOptions.ReleaseExe, assemblyName: "test").EmitToArray();
 
             string module0 = @"public class Foo{ public static string A = ""Substituted""; }";
-            var bits0 = CreateCompilationWithMscorlib(module0, compOptions: TestOptions.NetModule, assemblyName: "asm0").EmitToArray();
+            var bits0 = CreateCompilationWithMscorlib(module0, options: TestOptions.ReleaseModule, assemblyName: "asm0").EmitToArray();
             var ref0 = new MetadataImageReference(ModuleMetadata.CreateFromImage(bits0));
 
             string module1 = "using System;";
-            var bits1 = CreateCompilationWithMscorlib(module1, new[] { ref0 }, compOptions: TestOptions.Dll, assemblyName: "asm1").EmitToArray();
+            var bits1 = CreateCompilationWithMscorlib(module1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1").EmitToArray();
             var ref1 = new MetadataImageReference(AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(bits1), ModuleMetadata.CreateFromImage(bits0)));
 
             string module2 = @"using System; [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Foo))]";
-            var bits2 = CreateCompilationWithMscorlib(module2, new[] { ref1 }, compOptions: TestOptions.Dll, assemblyName: "asm2").EmitToArray();
+            var bits2 = CreateCompilationWithMscorlib(module2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
 
             // runtime check:
 
@@ -1444,14 +1444,14 @@ using System;
 public class CF1
 {}";
 
-            var forwardedTypesCompilation = CreateCompilationWithMscorlib(forwardedTypes, compOptions: TestOptions.Dll, assemblyName: "ForwarderTargetAssembly");
+            var forwardedTypesCompilation = CreateCompilationWithMscorlib(forwardedTypes, options: TestOptions.ReleaseDll, assemblyName: "ForwarderTargetAssembly");
 
             string mod =
                 @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF1))]
                 ";
 
-            var modCompilation = CreateCompilationWithMscorlib(mod, references: new[] { new CSharpCompilationReference(forwardedTypesCompilation) }, compOptions: TestOptions.NetModule);
+            var modCompilation = CreateCompilationWithMscorlib(mod, references: new[] { new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
             var modRef1 = modCompilation.EmitToImageReference();
 
             string app =
@@ -1459,7 +1459,7 @@ public class CF1
                 public class Test { }
                 ";
 
-            var appCompilation = CreateCompilationWithMscorlib(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, compOptions: TestOptions.Dll);
+            var appCompilation = CreateCompilationWithMscorlib(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
 
             var module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
             var metadata = module.Module;
@@ -1519,7 +1519,7 @@ public class CF1
 
             var modRef2 = new MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes));
 
-            appCompilation = CreateCompilationWithMscorlib(app, references: new MetadataReference [] { modRef2, new CSharpCompilationReference(forwardedTypesCompilation) }, compOptions: TestOptions.Dll);
+            appCompilation = CreateCompilationWithMscorlib(app, references: new MetadataReference [] { modRef2, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
 
             module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
             metadata = module.Module;
@@ -1542,7 +1542,7 @@ public class CF1
                 }).VerifyDiagnostics();
 
 
-            appCompilation = CreateCompilationWithMscorlib(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, compOptions: TestOptions.NetModule);
+            appCompilation = CreateCompilationWithMscorlib(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
             var appModule = ModuleMetadata.CreateFromImage(appCompilation.EmitToArray()).Module;
 
             peReader = appModule.GetMetadataReader();
@@ -1551,7 +1551,7 @@ public class CF1
             token = appModule.GetTypeRef(appModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            appCompilation = CreateCompilationWithMscorlib(app, references: new[] { modRef1 }, compOptions: TestOptions.Dll);
+            appCompilation = CreateCompilationWithMscorlib(app, references: new[] { modRef1 }, options: TestOptions.ReleaseDll);
 
             appCompilation.GetDeclarationDiagnostics().Verify(
                 // error CS0012: The type 'CF1' is defined in an assembly that is not referenced. You must add a reference to assembly 'Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -1563,18 +1563,18 @@ public class CF1
         private void CheckForwarderEmit2(string source0, string source1, string source2, params string[] forwardedTypeFullNames)
         {
             var folder = Temp.CreateDirectory();
-            var comp0 = CreateCompilationWithMscorlib(source0, compOptions: TestOptions.NetModule, assemblyName: "asm0");
+            var comp0 = CreateCompilationWithMscorlib(source0, options: TestOptions.ReleaseModule, assemblyName: "asm0");
             var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, emitOptions: EmitOptions.RefEmitBug, verify: false).EmittedAssemblyData);
             var ref0 = new MetadataImageReference(asm0);
 
-            var comp1 = CreateCompilationWithMscorlib(source1, new[] { ref0 }, compOptions: TestOptions.Dll, assemblyName: "asm1");
+            var comp1 = CreateCompilationWithMscorlib(source1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1");
             var asm1 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp1, emitOptions: EmitOptions.RefEmitBug).EmittedAssemblyData);
 
             var assembly1 = AssemblyMetadata.Create(asm1, asm0);
 
             var ref1 = new MetadataImageReference(assembly1);
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, compOptions: TestOptions.Dll, assemblyName: "asm2");
+            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2");
 
             Action<ModuleSymbol> metadataValidator = module =>
             {
@@ -1662,13 +1662,13 @@ public class CF1
 public class Forwarded<T>
 {
 }
-", compOptions: TestOptions.Dll, assemblyName: "A");
+", options: TestOptions.ReleaseDll, assemblyName: "A");
 
             var cB = CreateCompilationWithMscorlib(@"
 public class B : Forwarded<int>
 {
 }
-", new[] { new CSharpCompilationReference(cA_v1) }, compOptions: TestOptions.Dll, assemblyName: "B");
+", new[] { new CSharpCompilationReference(cA_v1) }, options: TestOptions.ReleaseDll, assemblyName: "B");
 
             var cB_ImageRef = cB.EmitToImageReference();
 
@@ -1676,29 +1676,29 @@ public class B : Forwarded<int>
 public class Forwarded<T>
 {
 }
-", compOptions: TestOptions.Dll, assemblyName: "C");
+", options: TestOptions.ReleaseDll, assemblyName: "C");
 
             var cC_v1_ImageRef = cC_v1.EmitToImageReference();
 
             var cA_v2 = CreateCompilationWithMscorlib(@"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Forwarded<byte>))]
-", new[] { new CSharpCompilationReference(cC_v1) }, compOptions: TestOptions.Dll, assemblyName: "A");
+", new[] { new CSharpCompilationReference(cC_v1) }, options: TestOptions.ReleaseDll, assemblyName: "A");
 
             var cA_v2_ImageRef = cA_v2.EmitToImageReference();
 
             var cD = CreateCompilationWithMscorlib(@"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Forwarded<byte>))]
-", new[] { new CSharpCompilationReference(cC_v1) }, compOptions: TestOptions.NetModule, assemblyName: "D");
+", new[] { new CSharpCompilationReference(cC_v1) }, options: TestOptions.ReleaseModule, assemblyName: "D");
 
             var cD_ImageRef = cD.EmitToImageReference();
 
-            var cA_v3 = CreateCompilationWithMscorlib(@"", new[] { cD_ImageRef, new CSharpCompilationReference(cC_v1) }, compOptions: TestOptions.Dll, assemblyName: "A");
+            var cA_v3 = CreateCompilationWithMscorlib(@"", new[] { cD_ImageRef, new CSharpCompilationReference(cC_v1) }, options: TestOptions.ReleaseDll, assemblyName: "A");
 
             var cC_v2 = CreateCompilationWithMscorlib(@"
 public class Forwarded<T>
 {
 }
-", compOptions: TestOptions.Dll, assemblyName: "C");
+", options: TestOptions.ReleaseDll, assemblyName: "C");
 
             var ref1 = new MetadataReference[]
             {
@@ -1726,7 +1726,7 @@ public class Forwarded<T>
                 {
                     foreach (var r3 in ref3)
                     {
-                        var context = CreateCompilationWithMscorlib("", new[] { r1, r2, r3 }, compOptions: TestOptions.Dll);
+                        var context = CreateCompilationWithMscorlib("", new[] { r1, r2, r3 }, options: TestOptions.ReleaseDll);
 
                         var forwarded = context.GetTypeByMetadataName("Forwarded`1");
                         var resolved = context.GetTypeByMetadataName("B").BaseType.OriginalDefinition;

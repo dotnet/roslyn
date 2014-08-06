@@ -2579,7 +2579,7 @@ class Test
 ";
             string expectedOutput = @"1
 0";
-            var compilation = CreateCompilationWithCustomILSource(source, il, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -2700,7 +2700,7 @@ End Class";
     }
 }";
 
-            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.Exe);
+            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.
         }
 
@@ -2759,7 +2759,7 @@ End Class";
     }
 }";
 
-            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.Exe);
+            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
             compilation2.VerifyEmitDiagnostics(); // Used to assert.
 
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.

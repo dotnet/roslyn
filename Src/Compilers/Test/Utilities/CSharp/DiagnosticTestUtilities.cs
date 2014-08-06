@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal protected static CSharpCompilation VerifyErrorsAndGetCompilation(IEnumerable<SyntaxTree> synTrees, IEnumerable<MetadataReference> refs = null, params ErrorDescription[] expectedErrorDesp)
         {
-            var comp = CSharpCompilation.Create(assemblyName: "DiagnosticsTest", options: TestOptions.Dll, syntaxTrees: synTrees, references: refs);
+            var comp = CSharpCompilation.Create(assemblyName: "DiagnosticsTest", options: TestOptions.ReleaseDll, syntaxTrees: synTrees, references: refs);
             var actualErrors = comp.GetDiagnostics();
 
             VerifyErrorCodes(actualErrors, expectedErrorDesp);

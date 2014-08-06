@@ -206,8 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void WithModuleName()
         {
             // ModuleName
-            Assert.Equal(null, TestOptions.Dll.WithModuleName(null).ModuleName);
-            TestOptions.Dll.WithModuleName("").VerifyErrors(
+            Assert.Equal(null, TestOptions.ReleaseDll.WithModuleName(null).ModuleName);
+            TestOptions.ReleaseDll.WithModuleName("").VerifyErrors(
     // error CS7087: Name cannot be empty.
     // Parameter name: ModuleName
     Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(
@@ -215,35 +215,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 Parameter name: ModuleName"
                 ));
 
-            TestOptions.Dll.WithModuleName("a\0a").VerifyErrors(
+            TestOptions.ReleaseDll.WithModuleName("a\0a").VerifyErrors(
     // error CS7087: Name contains invalid characters.
     // Parameter name: ModuleName
     Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(@"Name contains invalid characters.
 Parameter name: ModuleName")
                 );
 
-            TestOptions.Dll.WithModuleName("a\uD800b").VerifyErrors(
+            TestOptions.ReleaseDll.WithModuleName("a\uD800b").VerifyErrors(
     // error CS7087: Name contains invalid characters.
     // Parameter name: ModuleName
     Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(@"Name contains invalid characters.
 Parameter name: ModuleName")
                 );
 
-            TestOptions.Dll.WithModuleName("a\\b").VerifyErrors(
+            TestOptions.ReleaseDll.WithModuleName("a\\b").VerifyErrors(
     // error CS7087: Name contains invalid characters.
     // Parameter name: ModuleName
     Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(@"Name contains invalid characters.
 Parameter name: ModuleName")
                 );
 
-            TestOptions.Dll.WithModuleName("a/b").VerifyErrors(
+            TestOptions.ReleaseDll.WithModuleName("a/b").VerifyErrors(
     // error CS7087: Name contains invalid characters.
     // Parameter name: ModuleName
     Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(@"Name contains invalid characters.
 Parameter name: ModuleName")
                 );
 
-            TestOptions.Dll.WithModuleName("a:b").VerifyErrors(
+            TestOptions.ReleaseDll.WithModuleName("a:b").VerifyErrors(
     // error CS7087: Name contains invalid characters.
     // Parameter name: ModuleName
     Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(@"Name contains invalid characters.

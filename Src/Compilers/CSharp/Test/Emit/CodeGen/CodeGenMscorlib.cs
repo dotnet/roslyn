@@ -145,29 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
         public class DefaultMemberAttribute : Attribute { }
     }
-
-//    namespace Runtime.Remoting.Channels
-//    {
-//        internal struct Perf_Contexts {
-//            internal int cRemoteCalls;
-//            internal int cChannels;
-//            private void SuppressUnused() { cRemoteCalls = cChannels; cChannels = cRemoteCalls; }
-//        }
-//
-//        public sealed class ChannelServices
-//        {
-//            static unsafe Perf_Contexts* GetPrivateContextsPerfCounters() { return null; }
-//            private static int I1 = 12;
-//            unsafe private static Perf_Contexts *perf_Contexts = GetPrivateContextsPerfCounters(); 
-//            private static int I2 = 13;
-//            private static int SuppressUnused(int x) { return I1 + I2; }
-//        }
-//    }
 }";
-            CreateCompilation(
-                text,
-                compOptions: TestOptions.UnsafeDll)
-            .VerifyDiagnostics();
+            var c = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+
+            c.VerifyDiagnostics();
         }
 
         [WorkItem(544918, "DevDiv")]
@@ -214,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 }";
             CreateCompilation(
                 text,
-                compOptions: TestOptions.UnsafeDll)
+                options: TestOptions.ReleaseDll)
             .VerifyDiagnostics();
         }
 
@@ -429,7 +410,7 @@ class C
 }";
             CreateCompilation(
                 text,
-                compOptions: TestOptions.UnsafeDll)
+                options: TestOptions.ReleaseDll)
             .VerifyDiagnostics();
         }
 
@@ -494,7 +475,7 @@ class C
 }";
         var comp = CreateCompilation(
                 text,
-                compOptions: TestOptions.UnsafeDll)
+                options: TestOptions.ReleaseDll)
             .VerifyDiagnostics();
 
 
@@ -632,7 +613,7 @@ namespace System
 ";
             var comp = CreateCompilation(
                     text,
-                    compOptions: TestOptions.UnsafeDll)
+                    options: TestOptions.ReleaseDll)
                 .VerifyDiagnostics();
 
 
@@ -755,10 +736,7 @@ namespace System
         }
     }
 }";
-            var comp = CreateCompilation(
-                    text,
-                    compOptions: TestOptions.UnsafeDll)
-                .VerifyDiagnostics();
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             //IMPORTANT: we shoud NOT load fields of clr-confusing structs off the field value.
             //           the field should be loaded off the reference like in 

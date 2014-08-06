@@ -531,7 +531,7 @@ public class B : A
     ~B() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll);
 
             // NOTE: has warnings, but not errors.
             compilation.VerifyDiagnostics(

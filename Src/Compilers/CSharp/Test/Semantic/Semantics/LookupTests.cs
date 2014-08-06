@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal List<ISymbol> GetLookupSymbols(string testSrc, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, bool isScript = false, IEnumerable<string> globalUsings = null)
         {
             var tree = Parse(testSrc, options: isScript ? TestOptions.Script : TestOptions.Regular);
-            var compOptions = TestOptions.Dll.WithUsings(globalUsings);
-            var compilation = CreateCompilationWithMscorlib(tree, compOptions: compOptions);
+            var compOptions = TestOptions.ReleaseDll.WithUsings(globalUsings);
+            var compilation = CreateCompilationWithMscorlib(tree, options: compOptions);
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
             return model.LookupSymbols(position, container, name).Where(s => !arity.HasValue || arity == ((Symbol)s).GetMemberArity()).ToList();

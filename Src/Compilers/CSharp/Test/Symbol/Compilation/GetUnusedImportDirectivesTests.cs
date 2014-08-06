@@ -220,7 +220,7 @@ using System.Reflection;
 
             var ivtCompilation = CreateCompilationWithMscorlib(
                 assemblyName: "IVT",
-                compOptions: TestOptions.Dll.WithStrongNameProvider(new DesktopStrongNameProvider()),
+                options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()),
                 references: new[] {SystemCoreRef},
                 trees: new[] 
                 {
@@ -242,7 +242,7 @@ namespace NamespaceContainingInternalsOnly
 
             var libCompilation = CreateCompilationWithMscorlib(
                 assemblyName: "Lib",
-                compOptions: TestOptions.Dll.WithStrongNameProvider(new DesktopStrongNameProvider()),
+                options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()),
                 references: new[] { ivtCompilation.ToMetadataReference() },
                 trees: new[]
                 {
@@ -352,7 +352,7 @@ public class C { }
             var source = @"
 using System;
 ";
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error));
             comp.VerifyEmitDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 refs.AddRange(mrefs);
             }
 
-            var tc1 = CSharpCompilation.Create(assemblyName: "Dummy", options: options ?? TestOptions.Dll, syntaxTrees: new SyntaxTree[0], references: refs);
+            var tc1 = CSharpCompilation.Create(assemblyName: "Dummy", options: options ?? TestOptions.ReleaseDll, syntaxTrees: new SyntaxTree[0], references: refs);
 
            return (from @ref in refs select tc1.GetReferencedAssemblySymbol(@ref)).ToArray();
         }

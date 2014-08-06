@@ -61,7 +61,7 @@ class TestClass
         return testParameter;
     }
 }";
-                var compilation1 = CSharpCompilation.Create("C1", new[] { Parse(source) },new[] { OldMsCorLib }, TestOptions.Dll);
+                var compilation1 = CSharpCompilation.Create("C1", new[] { Parse(source) },new[] { OldMsCorLib }, TestOptions.ReleaseDll);
                 c1 = new CSharpCompilationReference(compilation1);
 
                 var c1Assembly = compilation1.Assembly;

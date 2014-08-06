@@ -1305,7 +1305,7 @@ class M
             
             var reference = CompileIL(il, appendDefaultHeader: true);
 
-            var verifier = CompileAndVerify(csharp, new[] { reference }, options: TestOptions.Exe, expectedOutput: @"
+            var verifier = CompileAndVerify(csharp, new[] { reference }, options: TestOptions.ReleaseExe, expectedOutput: @"
 ***** Start mod opt tests ****
   *** Generic Non-ref
 C# EG.F(T): CG::F(T)

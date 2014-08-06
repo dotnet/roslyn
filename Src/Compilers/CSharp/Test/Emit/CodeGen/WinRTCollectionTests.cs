@@ -7386,21 +7386,17 @@ namespace Test
     }
 }";
             var verifier = CompileAndVerify(source,
-                options: TestOptions.WinMDObj,
+                options: TestOptions.ReleaseWinMD,
                 emitOptions: EmitOptions.RefEmitBug,
                 additionalRefs: WinRtRefs);
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.C.GetEnumerator()",
 @"{
-  // Code size        6 (0x6)
+  // Code size        2 (0x2)
   .maxstack  1
-  .locals init (System.Collections.Generic.IEnumerator<int> V_0)
   IL_0000:  ldnull
-  IL_0001:  stloc.0
-  IL_0002:  br.s       IL_0004
-  IL_0004:  ldloc.0
-  IL_0005:  ret
+  IL_0001:  ret
 }");
 
             var compRef = verifier.Compilation.ToMetadataReference();

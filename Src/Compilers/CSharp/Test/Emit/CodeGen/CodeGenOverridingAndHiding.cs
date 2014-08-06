@@ -2427,13 +2427,13 @@ public class Test
 
             var referencedCompilation =
                 CreateCompilationWithMscorlib(source,
-                    compOptions: TestOptions.Dll,
+                    options: TestOptions.ReleaseDll,
                     assemblyName: "OHI_CodeGen_TestHideWithInaccessibleVirtualMember1");
 
             var outerCompilation =
                 CreateCompilationWithMscorlib(source2,
                     new[] {new CSharpCompilationReference(referencedCompilation) },
-                    compOptions: TestOptions.Exe,
+                    options: TestOptions.ReleaseExe,
                     assemblyName: "OHI_CodeGen_TestHideWithInaccessibleVirtualMember2");
 
             outerCompilation.VerifyDiagnostics(); // No errors
@@ -2689,11 +2689,11 @@ class Test
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
             var comp1 = CreateCompilationWithMscorlib(text1, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload001",
-                            compOptions: TestOptions.Dll);
+                            options: TestOptions.ReleaseDll);
             refs.Add(new CSharpCompilationReference(comp1));
 
             var comp = CreateCompilationWithMscorlib(text2, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload002",
-                        compOptions: TestOptions.Exe);
+                        options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"CSS1_OV CSS1_OV VBS11_OL CSS1_OV CSF1_New VBF1_V VBF11 VBF1_V");
         }
@@ -2782,11 +2782,11 @@ class Test
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
             var comp1 = CreateCompilationWithMscorlib(text1, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp001",
-                            compOptions: TestOptions.Dll);
+                            options: TestOptions.ReleaseDll);
             refs.Add(new CSharpCompilationReference(comp1));
 
             var comp = CreateCompilationWithMscorlib(text2, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp002",
-                        compOptions: TestOptions.Exe);
+                        options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"VBDefault VBDefault VBWriteReadOnly VBWriteReadOnly 100200900900");
         }
@@ -2849,7 +2849,7 @@ class Test
             var comp2 = CreateCompilationWithMscorlib(
                 text2, 
                 references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1) }, 
-                compOptions: TestOptions.Exe,
+                options: TestOptions.ReleaseExe,
                 assemblyName: "OHI_DeriveBaseInMetadataProp002");
 
             CompileAndVerify(comp2, expectedOutput: @"TwoThreeOneZero");
@@ -3020,19 +3020,19 @@ class Test
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
             var comp1 = CreateCompilationWithMscorlib(text1, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata001",
-                            compOptions: TestOptions.Dll);
+                            options: TestOptions.ReleaseDll);
             // better output with error info if any
             comp1.VerifyDiagnostics(); // No Errors
 
             refs.Add(new CSharpCompilationReference(comp1));
 
             var comp2 = CreateCompilationWithMscorlib(text2, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata002",
-                            compOptions: TestOptions.Dll);
+                            options: TestOptions.ReleaseDll);
             Assert.Equal(0, comp2.GetDiagnostics().Count());
             refs.Add(new CSharpCompilationReference(comp2));
 
             var comp = CreateCompilationWithMscorlib(text3, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata003",
-                            compOptions: TestOptions.Exe);
+                            options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(); // No Errors
 
             CompileAndVerify(comp, expectedOutput:
@@ -3081,7 +3081,7 @@ partial class Test
             var comp = CreateCompilationWithMscorlib(
                 new string[] { text1, text2 }, 
                 references: new[] { asm01, asm02 }, 
-                compOptions: TestOptions.Exe,
+                options: TestOptions.ReleaseExe,
                 assemblyName: "OHI_BridgeMethodFomrBaseVB007");
 
             var verifier = CompileAndVerify(
@@ -3243,7 +3243,7 @@ class Test
             var comp = CreateCompilationWithMscorlib(
                 text3,
                 references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
-                compOptions: TestOptions.Exe,
+                options: TestOptions.ReleaseExe,
                 assemblyName: "OHI_OverloadGetSetMethodWithProp003");
 
             comp.VerifyDiagnostics();
@@ -3347,7 +3347,7 @@ class Test
             var comp = CreateCompilationWithMscorlib(
                 text,
                 references: new MetadataReference[] { asmfile, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
-                compOptions: TestOptions.Exe,
+                options: TestOptions.ReleaseExe,
                 assemblyName: "OHI_ClassOverrideNewVBNested003");
 
             CompileAndVerify(comp, expectedOutput:
@@ -4010,7 +4010,7 @@ public abstract class C2 : C1
         Console.WriteLine(""C2"");
     }
 }",
-                compilationOptions: TestOptions.Dll,
+                compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
             var cs1Verifier = CompileAndVerify(cs1Compilation, emitOptions: EmitOptions.RefEmitBug);
             cs1Verifier.VerifyDiagnostics();
@@ -4052,7 +4052,7 @@ public class Program
         //y.foo();
     }
 }",
-                compilationOptions: TestOptions.Exe,
+                compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation, vb2Compilation });
             var cs2Verifier = CompileAndVerify(cs2Compilation,
                 emitOptions: EmitOptions.RefEmitBug,
@@ -4080,7 +4080,7 @@ public abstract class C2 : C1
         Console.WriteLine(""C2"");
     }
 }",
-                compilationOptions: TestOptions.Dll,
+                compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
             var cs1Verifier = CompileAndVerify(cs1Compilation, emitOptions:EmitOptions.RefEmitBug);
             cs1Verifier.VerifyDiagnostics();
@@ -4125,7 +4125,7 @@ public class Program
         y.foo();
     }
 }",
-                compilationOptions: TestOptions.Exe,
+                compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation, vb2Compilation });
             var cs2Verifier = CompileAndVerify(cs2Compilation,
                 emitOptions:EmitOptions.RefEmitBug, expectedOutput: @"C4
@@ -4168,23 +4168,23 @@ Derived.M(y:2)");
         public void MissingAssemblyReference01()
         {
             var A = CreateCSharpCompilation("A", @"public class A {}",
-                compilationOptions: TestOptions.Dll);
+                compilationOptions: TestOptions.ReleaseDll);
             CompileAndVerify(A).VerifyDiagnostics();
 
             var B = CreateCSharpCompilation("B", @"public interface B { void M(A a); }",
-                compilationOptions: TestOptions.Dll,
+                compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { A });
             CompileAndVerify(B).VerifyDiagnostics();
 
             var C = CreateCSharpCompilation("C", @"public class C { public void M(int a) { } }",
-                compilationOptions: TestOptions.Dll,
+                compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { A });
             CompileAndVerify(B).VerifyDiagnostics();
 
             // This doesn't necessarily have to generate specifically this diagnostic - it could
             // very well signal a missing assembly - but it must not report NO diagnostics.
             var D = CreateCSharpCompilation("D", @"public class D : C, B { }",
-                compilationOptions: TestOptions.Dll,
+                compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { B, C }).VerifyDiagnostics(
                 // (1,14): error CS0535: 'D' does not implement interface member 'B.M(A)'
                 // public class D : C, B { }
@@ -4231,7 +4231,7 @@ public abstract class C2 : C1
     {
     }
 }",
-                compilationOptions: TestOptions.Dll,
+                compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
             var cs1Verifier = CompileAndVerify(cs1Compilation);
             cs1Verifier.VerifyDiagnostics();
@@ -4266,7 +4266,7 @@ public class C6 : C2
     {
     }
 }",
-                compilationOptions: TestOptions.Dll,
+                compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation, vb2Compilation });
 
             cs2Compilation.VerifyDiagnostics(

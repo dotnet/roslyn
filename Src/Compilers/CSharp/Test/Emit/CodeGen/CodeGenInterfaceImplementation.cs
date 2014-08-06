@@ -364,7 +364,7 @@ class Test
             var comp3 = CreateCompilationWithMscorlib(
                 text3,
                 references: new MetadataReference[] { asmRef, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
-                compOptions: TestOptions.Exe,
+                options: TestOptions.ReleaseExe,
                 assemblyName: "OHI_ExpImpImplVBNested003");
 
             // TODO(tomat): seems like RefEmit test infrastructure issue
@@ -2634,7 +2634,7 @@ public class D : B, I
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il, compOptions: TestOptions.Dll.WithOptimizations(false));
+            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
 
             var verifier = CompileAndVerify(comp, emitOptions: EmitOptions.RefEmitBug, expectedSignatures: new[]
             {
@@ -2729,7 +2729,7 @@ public class D : B<char>, I<char>
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il, compOptions: TestOptions.Dll.WithOptimizations(false));
+            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
 
             var global = comp.GlobalNamespace;
             var derivedType = global.GetMember<NamedTypeSymbol>("D");

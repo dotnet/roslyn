@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             SynchronizationContext.SetSynchronizationContext(null);
 
-            compOptions = compOptions ?? TestOptions.OptimizedExe;
+            compOptions = compOptions ?? TestOptions.ReleaseExe;
 
             IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
-            return CreateCompilationWithMscorlib45(source, compOptions: compOptions, references: references);
+            return CreateCompilationWithMscorlib45(source, options: compOptions, references: references);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions compOptions = null, bool emitPdb = false)
@@ -57,7 +57,7 @@ class Test
 
             CompilationOptions options;
 
-            options = TestOptions.OptimizedExe;
+            options = TestOptions.ReleaseExe;
             Assert.False(options.EnableEditAndContinue);
 
             CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
@@ -66,7 +66,8 @@ class Test
                 Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
             }, expectedOutput: "123");
 
-            options = TestOptions.UnoptimizedExe;
+
+            options = TestOptions.DebuggableReleaseExe;
             Assert.False(options.EnableEditAndContinue);
 
             CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
@@ -75,25 +76,8 @@ class Test
                 Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
             }, expectedOutput: "123");
 
-            options = TestOptions.OptimizedExe.WithDebugInformationKind(DebugInformationKind.Full);
-            Assert.False(options.EnableEditAndContinue);
 
-            CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
-            {
-                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__1");
-                Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
-            }, expectedOutput: "123");
-
-            options = TestOptions.UnoptimizedExe.WithDebugInformationKind(DebugInformationKind.PdbOnly);
-            Assert.False(options.EnableEditAndContinue);
-
-            CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
-            {
-                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__1");
-                Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
-            }, expectedOutput: "123");
-
-            options = TestOptions.UnoptimizedExe.WithDebugInformationKind(DebugInformationKind.Full);
+            options = TestOptions.DebugExe;
             Assert.True(options.EnableEditAndContinue);
 
             CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
@@ -4320,7 +4304,7 @@ class Test
     }
 }";
             var reference = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef_v4_0_30319_17929 }).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, compOptions: TestOptions.DllAlwaysImportInternals);
+            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
             var testClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             var stateMachineClass = (NamedTypeSymbol)testClass.GetMembers().Single(s => s.Name.StartsWith("<Run>"));
             IEnumerable<IGrouping<TypeSymbol, FieldSymbol>> spillFieldsByType = stateMachineClass.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.Name.StartsWith("<>7__wrap")).Cast<FieldSymbol>().GroupBy(x => x.Type);
@@ -7728,7 +7712,7 @@ class C
     }
 ";
 
-            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, OptionsDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(

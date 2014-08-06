@@ -836,7 +836,7 @@ public class A
 {
     internal protected int PropIntProProSet { get { return 5; } protected set { } }
 }",
-                compilationOptions: TestOptions.Dll);
+                compilationOptions: TestOptions.ReleaseDll);
             var assembly1Verifier = CompileAndVerify(assembly1Compilation);
             assembly1Verifier.VerifyDiagnostics();
 
@@ -850,7 +850,7 @@ public class A
         InstancePropertyContainer.PropIntProProSet = 12;
     }
 }",
-                compilationOptions: TestOptions.Dll,
+                compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { assembly1Compilation });
 
             assembly2Compilation.VerifyDiagnostics(

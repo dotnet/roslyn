@@ -1377,7 +1377,7 @@ class C : I
     }
 }";
             var verify = CompileAndVerify(src, 
-                options: TestOptions.UnoptimizedExe, expectedOutput: "C");
+                options: TestOptions.DebugExe, expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
 {
   // Code size       82 (0x52)

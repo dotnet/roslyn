@@ -98,13 +98,13 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         [Fact]
         public void TestCompileDynamicAttributes()
         {
-            CompileAndVerify(DynamicTestSource, options: TestOptions.UnsafeDll, additionalRefs: new[] { SystemCoreRef });
+            CompileAndVerify(DynamicTestSource, options: TestOptions.UnsafeReleaseDll, additionalRefs: new[] { SystemCoreRef });
         }
 
         [Fact]
         public void TestDynamicAttributesAreSynthesized()
         {
-            var comp = CreateCompilationWithMscorlibAndSystemCore(DynamicTestSource, compOptions: TestOptions.UnsafeDll);
+            var comp = CreateCompilationWithMscorlibAndSystemCore(DynamicTestSource, options: TestOptions.UnsafeReleaseDll);
             DynamicAttributeValidator.ValidateDynamicAttributes(comp);
         }
 
@@ -577,7 +577,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         [Fact]
         public void CS1980ERR_DynamicAttributeMissing()
         {
-            var comp = CreateCompilationWithMscorlib(DynamicTestSource, compOptions: TestOptions.UnsafeDll);
+            var comp = CreateCompilationWithMscorlib(DynamicTestSource, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (14,32): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // public class Outer2<T> : Base1<dynamic>
@@ -1155,7 +1155,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var iterator = c.GetMember<NamedTypeSymbol>("<Foo>d__0");

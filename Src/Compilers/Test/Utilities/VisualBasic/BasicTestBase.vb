@@ -12,18 +12,6 @@ Imports Xunit
 Public MustInherit Class BasicTestBase
     Inherits BasicTestBaseBase
 
-    Protected Shadows ReadOnly Property DefaultCompilationOptions As VisualBasicCompilationOptions
-        Get
-            Return DirectCast(MyBase.DefaultCompilationOptions, VisualBasicCompilationOptions)
-        End Get
-    End Property
-
-    Protected Shadows ReadOnly Property OptionsDll As VisualBasicCompilationOptions
-        Get
-            Return DirectCast(MyBase.OptionsDll, VisualBasicCompilationOptions)
-        End Get
-    End Property
-
     Protected Overloads Function GetCompilationForEmit(
         source As IEnumerable(Of String),
         additionalRefs() As MetadataReference,
@@ -198,7 +186,7 @@ Public MustInherit Class BasicTestBase
     ) As CompilationVerifier
 
         If options Is Nothing Then
-            options = DefaultCompilationOptions.WithOutputKind(If(expectedOutput IsNot Nothing, OutputKind.ConsoleApplication, OutputKind.DynamicallyLinkedLibrary))
+            options = OptionsDll.WithOutputKind(If(expectedOutput IsNot Nothing, OutputKind.ConsoleApplication, OutputKind.DynamicallyLinkedLibrary))
         End If
 
         If emitPdb Then
@@ -462,7 +450,7 @@ Public MustInherit Class BasicTestBaseBase
     End Function
 
     Friend Overrides Function ReferencesToModuleSymbols(references As IEnumerable(Of MetadataReference), Optional importOptions As MetadataImportOptions = MetadataImportOptions.Public) As IEnumerable(Of IModuleSymbol)
-        Dim options = DirectCast(OptionsDll, VisualBasicCompilationOptions).WithMetadataImportOptions(importOptions)
+        Dim options = DirectCast(CompilationOptionsReleaseDll, VisualBasicCompilationOptions).WithMetadataImportOptions(importOptions)
         Dim tc1 = VisualBasicCompilation.Create("Dummy", references:=references, options:=options)
         Return references.Select(
             Function(r)
@@ -475,13 +463,7 @@ Public MustInherit Class BasicTestBaseBase
             End Function)
     End Function
 
-    Protected Overrides ReadOnly Property DefaultCompilationOptions As CompilationOptions
-        Get
-            Return New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimize:=True)
-        End Get
-    End Property
-
-    Protected Overrides ReadOnly Property OptionsDll As CompilationOptions
+    Protected Overrides ReadOnly Property CompilationOptionsReleaseDll As CompilationOptions
         Get
             Return New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize:=True)
         End Get

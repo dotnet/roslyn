@@ -34,29 +34,28 @@ class Program
         int i9 = new int();         // 0219
     }
 }";
-CreateCompilationWithMscorlib(program).VerifyDiagnostics(
-// (7,13): warning CS0219: The variable 'i1' is assigned but its value is never used
-//         int i1 = 123;               // 0219
-Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1"),
-// (9,14): warning CS0219: The variable 'i3' is assigned but its value is never used
-//         int? i3 = 123;              // 0219
-Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i3").WithArguments("i3"),
-// (10,14): warning CS0219: The variable 'i4' is assigned but its value is never used
-//         int? i4 = null;             // 0219
-Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i4").WithArguments("i4"),
-// (12,13): warning CS0219: The variable 'i6' is assigned but its value is never used
-//         int i6 = default(int);      // 0219
-Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i6").WithArguments("i6"),
-// (13,14): warning CS0219: The variable 'i7' is assigned but its value is never used
-//         int? i7 = default(int?);    // 0219
-Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i7").WithArguments("i7"),
-// (14,14): warning CS0219: The variable 'i8' is assigned but its value is never used
-//         int? i8 = new int?();       // 0219
-Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i8").WithArguments("i8"),
-// (15,13): warning CS0219: The variable 'i9' is assigned but its value is never used
-//         int i9 = new int();         // 0219
-Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i9").WithArguments("i9")
-                );
+            CreateCompilationWithMscorlib(program).VerifyDiagnostics(
+                // (7,13): warning CS0219: The variable 'i1' is assigned but its value is never used
+                //         int i1 = 123;               // 0219
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1"),
+                // (9,14): warning CS0219: The variable 'i3' is assigned but its value is never used
+                //         int? i3 = 123;              // 0219
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i3").WithArguments("i3"),
+                // (10,14): warning CS0219: The variable 'i4' is assigned but its value is never used
+                //         int? i4 = null;             // 0219
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i4").WithArguments("i4"),
+                // (12,13): warning CS0219: The variable 'i6' is assigned but its value is never used
+                //         int i6 = default(int);      // 0219
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i6").WithArguments("i6"),
+                // (13,14): warning CS0219: The variable 'i7' is assigned but its value is never used
+                //         int? i7 = default(int?);    // 0219
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i7").WithArguments("i7"),
+                // (14,14): warning CS0219: The variable 'i8' is assigned but its value is never used
+                //         int? i8 = new int?();       // 0219
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i8").WithArguments("i8"),
+                // (15,13): warning CS0219: The variable 'i9' is assigned but its value is never used
+                //         int i9 = new int();         // 0219
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i9").WithArguments("i9"));
         }
 
         [Fact]
@@ -151,7 +150,7 @@ class Program
             var comp = CreateCompilationWithMscorlib(program);
             int[] count = new int[4];
             foreach (var e in this.FlowDiagnostics(comp))
-                count[(int)e.Severity] ++;
+                count[(int)e.Severity]++;
 
             Assert.Equal(0, count[(int)DiagnosticSeverity.Error]);
             Assert.Equal(1, count[(int)DiagnosticSeverity.Warning]);
@@ -179,7 +178,7 @@ class Program
             var comp = CreateCompilationWithMscorlib(program);
             int[] count = new int[4];
             foreach (var e in this.FlowDiagnostics(comp))
-                count[(int)e.Severity] ++;
+                count[(int)e.Severity]++;
 
             Assert.Equal(0, count[(int)DiagnosticSeverity.Error]);
             Assert.Equal(2, count[(int)DiagnosticSeverity.Warning]);
@@ -348,7 +347,7 @@ class Program
 
             int[] count = new int[4];
             foreach (var e in this.FlowDiagnostics(comp))
-                count[(int)e.Severity] ++;
+                count[(int)e.Severity]++;
 
             Assert.Equal(0, count[(int)DiagnosticSeverity.Error]);
             Assert.Equal(1, count[(int)DiagnosticSeverity.Warning]);
@@ -381,7 +380,7 @@ class Program
             Dictionary<int, int> warnings = new Dictionary<int, int>();
             foreach (var e in this.FlowDiagnostics(comp))
             {
-                count[(int)e.Severity] ++;
+                count[(int)e.Severity]++;
                 if (!warnings.ContainsKey(e.Code)) warnings[e.Code] = 0;
                 warnings[e.Code] += 1;
             }
@@ -589,7 +588,7 @@ class Program
             Assert.NotEmpty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
-        
+
         [Fact, WorkItem(528052, "DevDiv")]
         public void InnerVariablesAreNotDefinitelyAssignedInBeginningOfLambdaBody()
         {
@@ -1483,7 +1482,7 @@ public struct A
 }
 ";
             var c = CreateCompilationWithMscorlib(program, new[] { TestReferences.SymbolsTests.CycledStructs });
-            
+
             c.VerifyDiagnostics(
                 // (6,12): warning CS0219: The variable 's1' is assigned but its value is never used
                 //         S1 s1 = new S1();
@@ -1740,9 +1739,7 @@ public class C
         }
     }
 }";
-            CSharpCompilation comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "");
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
         }
 
         [WorkItem(611904, "DevDiv")]

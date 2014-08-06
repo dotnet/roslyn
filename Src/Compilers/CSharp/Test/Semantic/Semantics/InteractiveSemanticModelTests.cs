@@ -27,7 +27,7 @@ namespace Foo.Bar
 }
 ",
                 parseOptions: TestOptions.Script,
-                compOptions: TestOptions.Exe.WithScriptClassName("Foo.Bar.Script")
+                options: TestOptions.ReleaseExe.WithScriptClassName("Foo.Bar.Script")
             );
 
             var tree = compilation.SyntaxTrees[0];

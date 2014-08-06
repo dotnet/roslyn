@@ -664,7 +664,7 @@ namespace ErrorTest
 
     public class C10<T> where T : I1<I2>
     {}
-}", compOptions: TestOptions.Dll, assemblyName: "MissingTypeInTypeArgumentsOfImplementedInterface1");
+}", options: TestOptions.ReleaseDll, assemblyName: "MissingTypeInTypeArgumentsOfImplementedInterface1");
 
             var lib1Ref = new CSharpCompilationReference(lib1);
 
@@ -674,7 +674,7 @@ namespace ErrorTest
     public interface I3 : I2
     {}
 
-}", new[] { lib1Ref }, TestOptions.Dll, assemblyName: "MissingTypeInTypeArgumentsOfImplementedInterface2");
+}", new[] { lib1Ref }, TestOptions.ReleaseDll, assemblyName: "MissingTypeInTypeArgumentsOfImplementedInterface2");
 
             var lib2Ref = new CSharpCompilationReference(lib2);
 
@@ -689,7 +689,7 @@ namespace ErrorTest
 
     public class C8<T> where T : I6<I3>
     {}
-}", new[] { lib1Ref, lib2Ref }, TestOptions.Dll, assemblyName: "MissingTypeInTypeArgumentsOfImplementedInterface3");
+}", new[] { lib1Ref, lib2Ref }, TestOptions.ReleaseDll, assemblyName: "MissingTypeInTypeArgumentsOfImplementedInterface3");
 
             var lib3Ref = new CSharpCompilationReference(lib3);
 
@@ -759,7 +759,7 @@ namespace ErrorTest
     }
 }";
 
-            var lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.Dll);
+            var lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             DiagnosticDescription[] expectedErrors =
             {
@@ -830,11 +830,11 @@ namespace ErrorTest
 
             lib4.VerifyDiagnostics(expectedErrors);
 
-            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.Dll);
+            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             CompileAndVerify(lib4).VerifyDiagnostics();
 
-            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.Dll);
+            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.ReleaseDll);
 
             lib4.VerifyDiagnostics(expectedErrors);
         }
@@ -853,7 +853,7 @@ namespace ErrorTest
     public class C9<T> where T : I1
     { }
 }
-", compOptions: TestOptions.Dll, assemblyName: "MissingImplementedInterface1");
+", options: TestOptions.ReleaseDll, assemblyName: "MissingImplementedInterface1");
 
             var lib1Ref = new CSharpCompilationReference(lib1);
 
@@ -875,7 +875,7 @@ namespace ErrorTest
         }
     }
 }
-", new[] { lib1Ref }, TestOptions.Dll, assemblyName: "MissingImplementedInterface2");
+", new[] { lib1Ref }, TestOptions.ReleaseDll, assemblyName: "MissingImplementedInterface2");
 
             var lib2Ref = new CSharpCompilationReference(lib2);
 
@@ -901,7 +901,7 @@ namespace ErrorTest
         : C12
     { }
 }
-", new[] { lib1Ref, lib2Ref }, TestOptions.Dll, assemblyName: "MissingImplementedInterface3");
+", new[] { lib1Ref, lib2Ref }, TestOptions.ReleaseDll, assemblyName: "MissingImplementedInterface3");
 
             var lib3Ref = new CSharpCompilationReference(lib3);
 
@@ -979,7 +979,7 @@ namespace ErrorTest
 }
 ";
 
-            var lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.Dll);
+            var lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             lib4.VerifyDiagnostics(
                 // (48,18): error CS0012: The type 'ErrorTest.I2' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -1062,7 +1062,7 @@ namespace ErrorTest
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M1").WithArguments("T", "M1")
                 );
 
-            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.Dll);
+            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             lib4.VerifyDiagnostics(
                 // (35,16): error CS0122: 'ErrorTest.C4.M1()' is inaccessible due to its protection level
@@ -1073,7 +1073,7 @@ namespace ErrorTest
                 Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("ErrorTest.C4.M1()")
                 );
 
-            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.Dll);
+            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.ReleaseDll);
 
             lib4.VerifyDiagnostics(
                 // (12,18): error CS0012: The type 'ErrorTest.I2' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingImplementedInterface2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -1138,7 +1138,7 @@ namespace ErrorTest
 
     public class C6<T> where T : C1
     {}
-}", compOptions: TestOptions.Dll, assemblyName: "MissingBaseClass1");
+}", options: TestOptions.ReleaseDll, assemblyName: "MissingBaseClass1");
 
             var lib1Ref = new CSharpCompilationReference(lib1);
 
@@ -1147,7 +1147,7 @@ namespace ErrorTest
 {
     public class C2 : C1
     {}
-}", new[] { lib1Ref }, TestOptions.Dll, assemblyName: "MissingBaseClass2");
+}", new[] { lib1Ref }, TestOptions.ReleaseDll, assemblyName: "MissingBaseClass2");
 
             var lib2Ref = new CSharpCompilationReference(lib2);
 
@@ -1156,7 +1156,7 @@ namespace ErrorTest
 {
     public class C4 : C2
     {}
-}", new[] { lib1Ref, lib2Ref }, TestOptions.Dll, assemblyName: "MissingBaseClass3");
+}", new[] { lib1Ref, lib2Ref }, TestOptions.ReleaseDll, assemblyName: "MissingBaseClass3");
 
             var lib3Ref = new CSharpCompilationReference(lib3);
 
@@ -1201,7 +1201,7 @@ namespace ErrorTest
     }
 }";
 
-            var lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.Dll);
+            var lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             DiagnosticDescription[] expectedErrors =
             {
@@ -1248,11 +1248,11 @@ namespace ErrorTest
 
             lib4.VerifyDiagnostics(expectedErrors);
 
-            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.Dll);
+            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1Ref, lib2Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             CompileAndVerify(lib4).VerifyDiagnostics();
 
-            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.Dll);
+            lib4 = CreateCompilationWithMscorlib(lib4Def, new[] { lib1.EmitToImageReference(), lib3.EmitToImageReference() }, TestOptions.ReleaseDll);
 
             lib4.VerifyDiagnostics(expectedErrors);
         }

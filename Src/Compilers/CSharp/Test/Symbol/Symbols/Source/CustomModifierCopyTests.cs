@@ -730,7 +730,7 @@ class Test
 }
 ";
             var comp = CreateCompilationWithCustomILSource(source, il,
-                compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All),
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 references: new[] { CSharpRef, SystemCoreRef });
 
             CompileAndVerify(comp, emitOptions: EmitOptions.RefEmitBug, expectedOutput: "Bug813305.M",

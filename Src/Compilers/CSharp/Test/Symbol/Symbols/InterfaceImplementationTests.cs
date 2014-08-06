@@ -965,13 +965,13 @@ public class Derived : Base, Interface
 ";
             var comp1 = CreateCompilationWithMscorlib(text1,
                 assemblyName: "OtherAssembly",
-                compOptions: TestOptions.Dll);
+                options: TestOptions.ReleaseDll);
             Assert.False(comp1.GetDiagnostics().Any(), string.Join("\n", comp1.GetDiagnostics()));
 
             var comp2 = CreateCompilationWithMscorlib(text2,
                 references: new MetadataReference[] { new CSharpCompilationReference(comp1) },
                 assemblyName: "SourceAssembly",
-                compOptions: TestOptions.Dll);
+                options: TestOptions.ReleaseDll);
             Assert.False(comp2.GetDiagnostics().Any(), string.Join("\n", comp2.GetDiagnostics()));
 
             var global = comp2.GlobalNamespace;
@@ -1888,11 +1888,11 @@ class D : B, I
 {
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.Dll, assemblyName: "asm1");
+            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: "asm1");
             comp1.VerifyDiagnostics();
             var ref1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, compOptions: TestOptions.Dll, assemblyName: "asm2");
+            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2");
             comp2.VerifyDiagnostics();
 
             var derivedType = comp2.GlobalNamespace.GetMember<SourceNamedTypeSymbol>("D");
@@ -2213,7 +2213,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il, compOptions: TestOptions.Exe);
+            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"
 Explicit implementation
 Explicit implementation

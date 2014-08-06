@@ -1094,7 +1094,7 @@ public sealed class A
             var lib1 = CreateCompilation(
                 new[] { Parse(srcLib1) }, 
                 new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v3_5_30729.SystemCore },
-                TestOptions.Dll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
+                TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
             string srcLib2 = @"
 class Program
@@ -1108,7 +1108,7 @@ class Program
             var lib2 = CreateCompilation(
                 new[] { Parse(srcLib2) },
                 new[] { MscorlibRef, new CSharpCompilationReference(lib1) },
-                TestOptions.Dll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
+                TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
             
             lib2.VerifyDiagnostics(
                 // (6,13): error CS0012: The type 'System.Func<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
@@ -1556,6 +1556,7 @@ namespace System.Security
                 // (21,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //         public enum SecurityAction
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "SecurityAction").WithArguments("System.Int32"));
+
             CompileUnsafeAttributesAndCheckDiagnostics(text, true,
                 // error CS0656: Missing compiler required member 'System.Security.Permissions.SecurityPermissionAttribute..ctor'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Security.Permissions.SecurityPermissionAttribute", ".ctor"),
@@ -2176,7 +2177,7 @@ namespace System
         /// </summary>
         private static void CompileUnsafeAttributesAndCheckDiagnostics(string corLibText, bool moduleOnly, params DiagnosticDescription[] expectedDiagnostics)
         {
-            CSharpCompilationOptions options = TestOptions.UnsafeDll;
+            CSharpCompilationOptions options = TestOptions.UnsafeReleaseDll;
             if (moduleOnly)
             {
                 options = options.WithOutputKind(OutputKind.NetModule);
@@ -2184,7 +2185,7 @@ namespace System
 
             var compilation = CreateCompilation(
                 new[] { Parse(corLibText) },
-                compOptions: options);
+                options: options);
             compilation.VerifyDiagnostics(expectedDiagnostics);
         }
 

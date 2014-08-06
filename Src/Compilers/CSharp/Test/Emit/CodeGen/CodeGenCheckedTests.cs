@@ -383,7 +383,7 @@ unsafe struct C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDll.WithOptimizations(true));
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll);
 
             // NOTE: unsigned addition
             verifier.VerifyIL("C.Add_Int1", @"
@@ -1872,7 +1872,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.Dll.WithOverflowChecks(true).WithOptimizations(true)).VerifyIL("C.ULong_UInt", @"
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true)).VerifyIL("C.ULong_UInt", @"
 {
   // Code size        3 (0x3)
   .maxstack  1
@@ -1881,7 +1881,7 @@ class C
   IL_0002:  ret
 }
 ");
-            CompileAndVerify(source, options: TestOptions.Dll.WithOverflowChecks(false).WithOptimizations(true)).VerifyIL("C.ULong_UInt", @"
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false)).VerifyIL("C.ULong_UInt", @"
 {
   // Code size        3 (0x3)
   .maxstack  1
@@ -1904,7 +1904,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.Dll.WithOverflowChecks(true).WithOptimizations(true)).VerifyIL("C.ULong_UInt", @"
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true)).VerifyIL("C.ULong_UInt", @"
 {
   // Code size        3 (0x3)
   .maxstack  1
@@ -1932,7 +1932,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.Dll.WithOverflowChecks(true).WithOptimizations(true)).VerifyIL("C.ULong_UInt", @"
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true)).VerifyIL("C.ULong_UInt", @"
 {
   // Code size        9 (0x9)
   .maxstack  3

@@ -722,7 +722,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.OptimizedDll);
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             c.VerifyIL("C.Main", @"
 {
@@ -903,7 +903,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.OptimizedDll);
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
             c.VerifyIL("C.Main", @"
 {
   // Code size       24 (0x18)
@@ -957,7 +957,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.OptimizedDll);
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
             
             c.VerifyIL("C.Main", @"
 {
@@ -1261,7 +1261,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.OptimizedDll);
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "System"));
             c.VerifyIL("C.Main", @"
@@ -1927,7 +1927,7 @@ class Program
   IL_0011:  stloc.0
   IL_0012:  br.s       IL_0003
 }";
-            CompileAndVerify(text, options: TestOptions.Exe.WithOptimizations(false).WithDebugInformationKind(DebugInformationKind.Full), emitPdb: true).
+            CompileAndVerify(text, options: TestOptions.DebugExe, emitPdb: true).
                 VerifyIL("Program.Main", expectedIL);
         }
 

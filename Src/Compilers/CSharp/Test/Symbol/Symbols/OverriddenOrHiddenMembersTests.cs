@@ -1176,7 +1176,7 @@ public class CSClass : Metadata.VBClass02
                 text1,
                 references: new[] { TestReferences.MetadataTests.InterfaceAndClass.VBClasses02 }, 
                 assemblyName: "OHI_OverrideSealNotVisibleMember001",
-                compOptions: TestOptions.Dll);
+                options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Sub01").WithArguments("CSClass.Sub01(Metadata.B, Metadata.A)", "Metadata.VBClass02.Sub01(Metadata.B, Metadata.A)").WithLocation(7, 26), // CS0239
@@ -1217,7 +1217,7 @@ class CSHide : VBIMeth02Impl, IMeth02, IMeth03
                     TestReferences.MetadataTests.InterfaceAndClass.VBClasses01
                 },
                 assemblyName: "OHI_AccessUnqualifiedNestedType001",
-                compOptions: TestOptions.Dll);
+                options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (5,19): error CS0246: The type or namespace name 'INested' could not be found (are you missing a using directive or an assembly reference?)
@@ -1245,7 +1245,7 @@ abstract class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateCompilationWithMscorlib(text1, references: refs, compOptions: TestOptions.Dll).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(543263, "DevDiv")]
@@ -1259,7 +1259,7 @@ class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateCompilationWithMscorlib(text1, references: refs, compOptions: TestOptions.Dll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (2,7): error CS0534: 'Derived' does not implement inherited abstract member 'AccessorModifierMismatch.NoneAbstract.set'
                 // class Derived : AccessorModifierMismatch
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.NoneAbstract.set"),
@@ -1307,7 +1307,7 @@ class Derived : AccessorModifierMismatch // CS0534 (didn't implement AbstractAbs
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateCompilationWithMscorlib(text1, references: refs, compOptions: TestOptions.Dll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (4,25): error CS0506: 'Derived.NoneNone': cannot override inherited member 'AccessorModifierMismatch.NoneNone' because it is not marked virtual, abstract, or override
                 //     public override int NoneNone { get { return 0; } } // CS0506 (not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "NoneNone").WithArguments("Derived.NoneNone", "AccessorModifierMismatch.NoneNone"),
@@ -1406,7 +1406,7 @@ class Derived : AccessorModifierMismatch // CS0534 (didn't implement AbstractAbs
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateCompilationWithMscorlib(text1, references: refs, compOptions: TestOptions.Dll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (4,25): error CS0506: 'Derived.NoneNone': cannot override inherited member 'AccessorModifierMismatch.NoneNone' because it is not marked virtual, abstract, or override
                 //     public override int NoneNone { set { } } // CS0506 (not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "NoneNone").WithArguments("Derived.NoneNone", "AccessorModifierMismatch.NoneNone"),
@@ -1541,7 +1541,7 @@ abstract class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new[] { TestReferences.SymbolsTests.Events };
-            CreateCompilationWithMscorlib(text1, references: refs, compOptions: TestOptions.Dll).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(543263, "DevDiv")]
@@ -1555,7 +1555,7 @@ class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Events };
-            CreateCompilationWithMscorlib(text1, references: refs, compOptions: TestOptions.Dll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (2,7): error CS0534: 'Derived' does not implement inherited abstract member 'AccessorModifierMismatch.NoneAbstract.remove'
                 // class Derived : AccessorModifierMismatch
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.NoneAbstract.remove"),
@@ -1605,7 +1605,7 @@ class Derived : AccessorModifierMismatch
 ";
             // ACASEY: these are not exactly the errors that Dev10 produces, but they seem sensible.
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Events };
-            CreateCompilationWithMscorlib(text1, references: refs, compOptions: TestOptions.Dll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (4,41): error CS0506: 'Derived.NoneNone': cannot override inherited member 'AccessorModifierMismatch.NoneNone' because it is not marked virtual, abstract, or override
                 //     public override event System.Action NoneNone { add { } remove { } } // CS0506 (not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "NoneNone").WithArguments("Derived.NoneNone", "AccessorModifierMismatch.NoneNone"),
@@ -2818,7 +2818,7 @@ class Test
 ";
             var ref1 = CompileIL(il);
 
-            var comp = CreateCompilationWithMscorlib(csharp, new[] { ref1 }, compOptions: TestOptions.Exe);
+            var comp = CreateCompilationWithMscorlib(csharp, new[] { ref1 }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, emitOptions: EmitOptions.RefEmitBug, expectedOutput: @"
 SubSubT[System.Int32].vMeth(System.Int32)
 Base[System.Int32].vMeth(System.Int32)

@@ -1275,7 +1275,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug, additionalRefs: new[] { MscorlibRef, SystemRef }, options: TestOptions.Exe, expectedOutput: "");
+            CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug, additionalRefs: new[] { MscorlibRef, SystemRef }, options: TestOptions.ReleaseExe, expectedOutput: "");
         }
 
         [Fact, WorkItem(546624, "DevDiv")]
@@ -3136,17 +3136,16 @@ public class MainClass
 }";
             Action<ModuleSymbol> sourceValidator = (ModuleSymbol m) =>
             {
-                System.Reflection.MethodImplAttributes expectedMethodImplAttributes = System.Reflection.MethodImplAttributes.Managed |
-                    System.Reflection.MethodImplAttributes.Runtime | System.Reflection.MethodImplAttributes.InternalCall;
+                MethodImplAttributes expectedMethodImplAttributes = MethodImplAttributes.Managed | MethodImplAttributes.Runtime | MethodImplAttributes.InternalCall;
                 var typeA = m.GlobalNamespace.GetTypeMember("A");
                 Assert.True(typeA.IsComImport);
                 Assert.Equal(2, typeA.GetAttributes().Length);
 
                 var ctorA = typeA.InstanceConstructors.First();
                 Assert.Equal(expectedMethodImplAttributes, ctorA.ImplementationAttributes);
-                Assert.True(((Microsoft.Cci.IMethodDefinition)ctorA).IsExternal);
+                Assert.True(((Cci.IMethodDefinition)ctorA).IsExternal);
 
-                var methodFoo = (Microsoft.Cci.IMethodDefinition)typeA.GetMember("Foo");
+                var methodFoo = (Cci.IMethodDefinition)typeA.GetMember("Foo");
                 Assert.True(methodFoo.IsExternal);
             };
 
@@ -3172,7 +3171,7 @@ public class MainClass
             // Dev10 Runtime Exception:
             // Unhandled Exception: System.TypeLoadException: Could not load type 'A' from assembly 'XXX' because the method 'Foo' has no implementation (no RVA).
 
-            Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(source, emitOptions: EmitOptions.CCI, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator));
+            Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(source, options: TestOptions.ReleaseDll, emitOptions: EmitOptions.CCI, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator));
         }
 
         [Fact, WorkItem(544507, "DevDiv")]
@@ -4460,7 +4459,7 @@ namespace System
     }
 }";
             var syntaxTree = Parse(source, filename: "test.cs");
-            var compilation = CreateCompilationWithMscorlib(syntaxTree, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(syntaxTree, options: TestOptions.ReleaseDll);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -4588,15 +4587,15 @@ public class Child2: Child
 ";
             #endregion
 
-            var opt = TestOptions.Dll;
-            var comp1 = CreateCompilationWithMscorlib(text1, compOptions: opt);
+            var opt = TestOptions.ReleaseDll;
+            var comp1 = CreateCompilationWithMscorlib(text1, options: opt);
             var compref1 = new CSharpCompilationReference(comp1);
-            var comp2 = CreateCompilationWithMscorlib(text2, references: new MetadataReference[] { compref1 }, compOptions: opt, assemblyName: "Child");
-            var comp3 = CreateCompilationWithMscorlib(text3, references: new MetadataReference[] { compref1, new CSharpCompilationReference(comp2) }, compOptions: opt, assemblyName: "Child2");
+            var comp2 = CreateCompilationWithMscorlib(text2, references: new MetadataReference[] { compref1 }, options: opt, assemblyName: "Child");
+            var comp3 = CreateCompilationWithMscorlib(text3, references: new MetadataReference[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
             // OK
             comp3.VerifyDiagnostics();
 
-            comp3 = CreateCompilationWithMscorlib(text3, references: new MetadataReference[] { compref1, new CSharpCompilationReference(comp2) }, compOptions: opt, assemblyName: "Child2");
+            comp3 = CreateCompilationWithMscorlib(text3, references: new MetadataReference[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
             comp3.VerifyDiagnostics();
         }
 
@@ -5750,7 +5749,7 @@ public class Base
     public SomeType SomeProp { get; set; }
 }
 ";
-            CreateCompilationWithMscorlib(source, null, TestOptions.Dll.WithConcurrentBuild(false)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, null, TestOptions.ReleaseDll.WithConcurrentBuild(false)).VerifyDiagnostics(
                 // (23,15): warning CS0612: 'SomeType' is obsolete
                 //     [Obsolete(SomeType.Message)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "SomeType").WithArguments("SomeType"));
@@ -7347,7 +7346,7 @@ public class Class4
 {
 }
 ";
-            var compilation1 = CreateCompilation(source1, WinRtRefs, TestOptions.Dll);
+            var compilation1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
 
             compilation1.VerifyDiagnostics();
 
@@ -7394,7 +7393,7 @@ class Class6
     }
 }
 ";
-            var compilation2 = CreateCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.Dll);
+            var compilation2 = CreateCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
 
             var expected = new[] {
                 // (25,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
@@ -7419,7 +7418,7 @@ class Class6
 
             compilation2.VerifyDiagnostics(expected);
 
-            compilation2 = CreateCompilation(source2, WinRtRefs.Concat(new[] { compilation1.EmitToImageReference() }), TestOptions.Dll);
+            compilation2 = CreateCompilation(source2, WinRtRefs.Concat(new[] { compilation1.EmitToImageReference() }), TestOptions.ReleaseDll);
             compilation2.VerifyDiagnostics(expected);
         }
 
@@ -7509,7 +7508,7 @@ public sealed class ConcreteFoo5 : IFoo1
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, WinRtRefs, TestOptions.Dll);
+            var compilation1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
 
             var expected = new[] {
                 // (12,9): warning CS0618: 'IFoo1.Foo()' is obsolete: 'IFoo1.Foo has been deprecated'
@@ -7546,7 +7545,7 @@ public interface IExceptionalInterface
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, WinRtRefs, TestOptions.Dll);
+            var compilation1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
 
             //compilation1.VerifyDiagnostics();
 
@@ -7562,7 +7561,7 @@ class Test
         }
     }
 ";
-            var compilation2 = CreateCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.Dll);
+            var compilation2 = CreateCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
 
             var expected = new[] {
                 // (8,9): error CS0619: 'IExceptionalInterface.ExceptionalProp.set' is obsolete: 'Changed my mind; don't put this prop.'
@@ -7622,7 +7621,7 @@ public class C
 ";
 
             var ilReference = CompileIL(ilsource);
-            var cscomp = CreateCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.Exe);
+            var cscomp = CreateCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.ReleaseExe);
 
             var expected = new[] {
                 // (12,29): error CS0648: 'Scenario1' is a type not supported by the language
@@ -7730,7 +7729,7 @@ public class C
 ";
 
             var ilReference = CompileIL(ilsource);
-            var cscomp = CreateCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.Exe);
+            var cscomp = CreateCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.ReleaseExe);
 
             var expected = new[] {
                 // (9,11): error CS0570: 'RequiredAttr.ReqAttrUsage.sc1_field' is not supported by the language

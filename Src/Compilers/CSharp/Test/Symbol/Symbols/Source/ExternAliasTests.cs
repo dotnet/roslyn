@@ -31,7 +31,7 @@ namespace NS
     }
 }
 ";
-                    var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo1", compOptions: TestOptions.Dll);
+                    var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo1", options: TestOptions.ReleaseDll);
                     foo1 = new MetadataImageReference(comp.EmitToArray(), aliases: ImmutableArray.Create("Bar"));
                 }
 
@@ -56,7 +56,7 @@ namespace NS
     }
 }
 ";
-                    var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo2", compOptions: TestOptions.Dll);
+                    var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo2", options: TestOptions.ReleaseDll);
                     foo2 = new MetadataImageReference(comp.EmitToArray(), aliases: ImmutableArray.Create("Bar"));
                 }
 
@@ -94,7 +94,7 @@ class Maine
 extern alias Bar;
 Bar::NS.Foo d = new Bar::NS.Foo();
 ";
-            var comp = CreateCompilationWithMscorlib(src, compOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib(src, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
             comp = comp.AddReferences(Foo1, Foo2);
             comp.VerifyDiagnostics();
         }
@@ -211,7 +211,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src, assemblyName: "Baz.dll", compOptions: TestOptions.Dll);
+            var comp = CreateCompilationWithMscorlib(src, assemblyName: "Baz.dll", options: TestOptions.ReleaseDll);
             var outputBytes = comp.EmitToArray();
             var foo1 = new MetadataImageReference(outputBytes);
             var foo1Alias = new MetadataImageReference(outputBytes, aliases: ImmutableArray.Create("Baz"));
@@ -226,7 +226,7 @@ namespace NS
     }
 }
 ";
-            comp = CreateCompilationWithMscorlib(src, assemblyName: "Bar.dll", compOptions: TestOptions.Dll);
+            comp = CreateCompilationWithMscorlib(src, assemblyName: "Bar.dll", options: TestOptions.ReleaseDll);
             comp = comp.AddReferences(foo1);
             var foo2 = new MetadataImageReference(comp.EmitToArray());
 
@@ -313,7 +313,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src, compOptions: TestOptions.Dll);
+            var comp = CreateCompilationWithMscorlib(src, options: TestOptions.ReleaseDll);
             var foo1Alias = new MetadataImageReference(comp.EmitToArray(), aliases: ImmutableArray.Create("global"));
 
             src =

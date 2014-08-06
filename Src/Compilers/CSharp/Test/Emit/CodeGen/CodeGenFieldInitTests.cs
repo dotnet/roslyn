@@ -430,7 +430,7 @@ class C
     public string str3 = (string)(null);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C..ctor", @"
 {
   // Code size       18 (0x12)
@@ -457,7 +457,7 @@ class C
     public char f4 = '\0';
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C..ctor", @"
 {
   // Code size        7 (0x7)
@@ -478,7 +478,7 @@ class C<T>
     public T f1 = default(T);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C<T>..ctor", @"
 {
   // Code size        7 (0x7)
@@ -506,7 +506,7 @@ class C
 }
 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C..cctor", @"
 {
   // Code size       47 (0x2f)
@@ -560,7 +560,7 @@ class C
     }
 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C<T>..cctor", @"
 {
   // Code size        1 (0x1)
@@ -581,7 +581,7 @@ class C
 }
 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C..ctor", @"
 {
   // Code size        7 (0x7)
@@ -647,7 +647,7 @@ a.a = 1
                 expectedOutput.AppendLine(i.ToString());
             }
 
-            var compilation = CreateCompilationWithMscorlib(trees, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(trees, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expectedOutput.ToString());
         }

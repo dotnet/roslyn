@@ -293,12 +293,12 @@ class Test
             var c1 = CSharpCompilation.Create("C1", 
                 new[] { Parse(@"public struct S { }") },
                 new[] { oldMsCorLib },
-                TestOptions.Dll.WithOptimizations(true));
+                TestOptions.ReleaseDll);
 
             var c2 = CSharpCompilation.Create("C2", 
                 new[] { Parse(@"public class C { void M() { S s = new S(); System.Console.WriteLine(s);} }") },
                 new[] { MscorlibRef, new CSharpCompilationReference(c1) },
-                TestOptions.Dll.WithOptimizations(true));
+                TestOptions.ReleaseDll);
 
             var c1AsmRef = c2.GetReferencedAssemblySymbol(new CSharpCompilationReference(c1));
 

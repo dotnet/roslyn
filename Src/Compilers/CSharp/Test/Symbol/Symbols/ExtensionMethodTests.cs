@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 parameter = method.Parameters[0];
                 Assert.Equal(parameter.Type.TypeKind, TypeKind.TypeParameter);
             };
-            CompileAndVerify(source, validator: validator, options: TestOptions.DllAlwaysImportInternals);
+            CompileAndVerify(source, validator: validator, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         /// <summary>
@@ -2397,7 +2397,7 @@ B");
                 additionalRefs: new[] { SystemCoreRef },
                 sourceSymbolValidator: validator(true),
                 symbolValidator: validator(false),
-                options: TestOptions.DllAlwaysImportInternals);
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         /// <summary>
@@ -2441,7 +2441,7 @@ static class S
     internal static void M2<T>(this IEnumerable<T> t) { }
     internal static void M3<T, U>(this U u, IEnumerable<T> t) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }, compOptions: TestOptions.DllAlwaysImportInternals);
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
             Action<ModuleSymbol> validator = module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
@@ -3312,7 +3312,7 @@ internal static class Test
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { MscorlibRef_v20 }, TestOptions.Dll);
+            var compilation = CreateCompilation(source, new[] { MscorlibRef_v20 }, TestOptions.ReleaseDll);
             CompileAndVerify(compilation);
         }
 

@@ -29,7 +29,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
             
@@ -61,7 +61,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
 
@@ -93,7 +93,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -116,7 +116,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 

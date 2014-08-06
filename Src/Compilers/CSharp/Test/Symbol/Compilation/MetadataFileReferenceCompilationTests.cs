@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             CSharpCompilation comp = CSharpCompilation.Create(
                 assemblyName: "Compilation",
-                options: TestOptions.Dll,
+                options: TestOptions.ReleaseDll,
                 references: new[] { new MetadataFileReference(@"c:\file_that_does_not_exist.bbb") });
 
             comp.VerifyDiagnostics(
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             CSharpCompilation comp = CSharpCompilation.Create(
                 assemblyName: "Compilation",
-                options: TestOptions.Dll,
+                options: TestOptions.ReleaseDll,
                 references: new[] { new MetadataFileReference(@"c:\file_that_does_not_exist.bbb", MetadataImageKind.Module) });
 
             comp.VerifyDiagnostics(
@@ -120,7 +120,7 @@ class A { }
                     @"public class B { public static int Main() { return C.Main(); } }",
                     assemblyName: "b",
                     references: new[] { new MetadataImageReference(TestResources.SymbolsTests.General.C2) },
-                    compOptions: TestOptions.Dll);
+                    options: TestOptions.ReleaseDll);
 
                 using (MemoryStream output = new MemoryStream())
                 {
@@ -133,7 +133,7 @@ class A { }
                     @"class A { public static void Main() { B.Main(); } }",
                     assemblyName: "a",
                     references: new[] { new MetadataFileReference(file1.Path), new MetadataFileReference(file2.Path), new MetadataFileReference(file3.Path) },
-                    compOptions: TestOptions.Dll);
+                    options: TestOptions.ReleaseDll);
 
                 using (var stream = new MemoryStream())
                 {

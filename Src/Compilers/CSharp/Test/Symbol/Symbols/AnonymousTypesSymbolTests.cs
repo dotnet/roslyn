@@ -530,7 +530,7 @@ class Query
 ";
             for(int i = 0; i < 100; i++)
             {
-                var compilation = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Exe);
+                var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
 
                 var tasks = new Task[10];
                 for(int jj = 0; jj < tasks.Length; jj++)
@@ -1371,7 +1371,7 @@ class Class3
     }
 }
 ";
-            var compilation = GetCompilationForEmit(new string[] { source1, source2, source3 }, null, TestOptions.DllAlwaysImportInternals);
+            var compilation = GetCompilationForEmit(new string[] { source1, source2, source3 }, null, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             for (int i = 0; i < 10; i++)
             {

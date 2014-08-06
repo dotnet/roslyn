@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 TestReferences.NetFx.v4_0_21006.mscorlib,
                 TestReferences.SymbolsTests.Methods.ByRefReturn
             },
-            options: TestOptions.DllAlwaysImportInternals);
+            options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var module1 = assemblies[0].Modules[0];
             var module2 = assemblies[1].Modules[0];

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 GetUniqueName(),
                 new[] { Parse(source, filePath) },
                 new[] { MscorlibRef },
-                TestOptions.Dll.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray.Create<string>(), baseDirectory)));
+                TestOptions.DebugDll.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray.Create<string>(), baseDirectory)));
         }
 
         [Fact]
@@ -269,7 +269,7 @@ class C { void M() { } }
 
 ", @"C:\a\..\b.cs") },
                 new[] { MscorlibRef },
-                TestOptions.Dll.WithSourceReferenceResolver(null));
+                TestOptions.DebugDll.WithSourceReferenceResolver(null));
 
             string actual = PDBTests.GetPdbXml(comp, "C.M");
 

@@ -1920,13 +1920,13 @@ public class Test
 
             var complib = CreateCompilationWithMscorlib(
                 source,
-                compOptions: TestOptions.Dll,
+                options: TestOptions.ReleaseDll,
                 assemblyName: "TestDLL");
 
             var comp = CreateCompilationWithMscorlib(
                 source2, 
                 references: new MetadataReference[] { complib.EmitToImageReference() },
-                compOptions: TestOptions.Exe,
+                options: TestOptions.ReleaseExe,
                 assemblyName: "TestEXE");
 
             comp.VerifyDiagnostics(

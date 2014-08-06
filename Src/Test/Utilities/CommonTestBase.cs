@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             MetadataReference[] additionalRefs,
             CompilationOptions options);
 
-        protected abstract CompilationOptions DefaultCompilationOptions { get; }
-        protected abstract CompilationOptions OptionsDll { get; }
+        protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
 
         internal delegate CompilationVerifier Emitter(
             CommonTestBase test,
@@ -132,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (options == null)
             {
-                options = DefaultCompilationOptions.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
+                options = CompilationOptionsReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
             }
 
             if (emitPdb)
@@ -378,7 +377,7 @@ Example app.config:
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, EmitOptions, byte[]> getExpectedBlob, bool isField = true, EmitOptions emitOptions = EmitOptions.All)
         {
-            return CompileAndVerify(source, emitOptions: emitOptions, options: OptionsDll, assemblyValidator: (assembly, options) => MarshalAsMetadataValidator(assembly, getExpectedBlob, options, isField));
+            return CompileAndVerify(source, emitOptions: emitOptions, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly, options) => MarshalAsMetadataValidator(assembly, getExpectedBlob, options, isField));
         }
 
         static internal void RunValidators(CompilationVerifier verifier, EmitOptions emitOptions, Action<PEAssembly, EmitOptions> assemblyValidator, Action<IModuleSymbol, EmitOptions> symbolValidator)

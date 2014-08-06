@@ -25,7 +25,7 @@ class C
     event System.Action E;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.WinMDObj);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyDiagnostics(
                 // For the backing field and accessors:
 
@@ -60,7 +60,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.WinMDObj);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyEmitDiagnostics(
                 // For the backing field and accessors:
 
@@ -102,7 +102,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.WinMDObj);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyEmitDiagnostics(
                 // For the backing field and accessors:
 
@@ -144,7 +144,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.WinMDObj);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyEmitDiagnostics(
                 // For the backing field and accessors:
 
@@ -175,35 +175,30 @@ class C
     event System.Action E;
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.WinMDObj, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
 
             verifier.VerifyIL("C.E.add", @"
 {
-  // Code size       22 (0x16)
+  // Code size       18 (0x12)
   .maxstack  2
-  .locals init (System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action> C.E""
   IL_0006:  call       ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action> System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>.GetOrCreateEventRegistrationTokenTable(ref System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>)""
   IL_000b:  ldarg.1
   IL_000c:  callvirt   ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>.AddEventHandler(System.Action)""
-  IL_0011:  stloc.0
-  IL_0012:  br.s       IL_0014
-  IL_0014:  ldloc.0
-  IL_0015:  ret
+  IL_0011:  ret
 }");
 
             verifier.VerifyIL("C.E.remove", @"
 {
-  // Code size       20 (0x14)
+  // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action> C.E""
   IL_0006:  call       ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action> System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>.GetOrCreateEventRegistrationTokenTable(ref System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>)""
   IL_000b:  ldarg.1
   IL_000c:  callvirt   ""void System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>.RemoveEventHandler(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)""
-  IL_0011:  br.s       IL_0013
-  IL_0013:  ret
+  IL_0011:  ret
 }");
         }
 
@@ -216,33 +211,28 @@ class C
     static event System.Action<int> E;
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.WinMDObj, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
 
             verifier.VerifyIL("C.E.add", @"
 {
-  // Code size       21 (0x15)
+  // Code size       17 (0x11)
   .maxstack  2
-  .locals init (System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken V_0)
   IL_0000:  ldsflda    ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action<int>> C.E""
   IL_0005:  call       ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action<int>> System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action<int>>.GetOrCreateEventRegistrationTokenTable(ref System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action<int>>)""
   IL_000a:  ldarg.0
   IL_000b:  callvirt   ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action<int>>.AddEventHandler(System.Action<int>)""
-  IL_0010:  stloc.0
-  IL_0011:  br.s       IL_0013
-  IL_0013:  ldloc.0
-  IL_0014:  ret
+  IL_0010:  ret
 }");
 
             verifier.VerifyIL("C.E.remove", @"
 {
-  // Code size       19 (0x13)
+  // Code size       17 (0x11)
   .maxstack  2
   IL_0000:  ldsflda    ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action<int>> C.E""
   IL_0005:  call       ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action<int>> System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action<int>>.GetOrCreateEventRegistrationTokenTable(ref System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action<int>>)""
   IL_000a:  ldarg.0
   IL_000b:  callvirt   ""void System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action<int>>.RemoveEventHandler(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)""
-  IL_0010:  br.s       IL_0012
-  IL_0012:  ret
+  IL_0010:  ret
 }");
         }
 
@@ -285,7 +275,7 @@ class D
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.WinMDObj, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
 
             verifier.VerifyIL("D.InstanceAdd", @"
 {
@@ -310,22 +300,18 @@ class D
 
             verifier.VerifyIL("D.InstanceRemove", @"
 {
-  // Code size       37 (0x25)
+  // Code size       35 (0x23)
   .maxstack  3
-  .locals init (C V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C D.c""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldftn      ""void C.Instance.remove""
-  IL_000e:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
-  IL_0013:  ldnull
-  IL_0014:  ldftn      ""void D.Action()""
-  IL_001a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_001f:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler<System.Action>(System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
-  IL_0024:  ret
+  IL_0006:  ldftn      ""void C.Instance.remove""
+  IL_000c:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_0011:  ldnull
+  IL_0012:  ldftn      ""void D.Action()""
+  IL_0018:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001d:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler<System.Action>(System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
+  IL_0022:  ret
 }");
-
             verifier.VerifyIL("D.StaticAdd", @"
 {
   // Code size       42 (0x2a)
@@ -382,7 +368,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.WinMDObj, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
 
             verifier.VerifyIL("C.InstanceAssign", @"
 {
@@ -471,7 +457,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.WinMDObj, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
 
             verifier.VerifyIL("C.InstanceInvoke", @"
 {
@@ -523,31 +509,23 @@ class C
 
             verifier.VerifyIL("C.InstanceReturn", @"
 {
-  // Code size       21 (0x15)
+  // Code size       17 (0x11)
   .maxstack  1
-  .locals init (System.Action V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action> C.Instance""
   IL_0006:  call       ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action> System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>.GetOrCreateEventRegistrationTokenTable(ref System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>)""
   IL_000b:  callvirt   ""System.Action System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>.InvocationList.get""
-  IL_0010:  stloc.0
-  IL_0011:  br.s       IL_0013
-  IL_0013:  ldloc.0
-  IL_0014:  ret
+  IL_0010:  ret
 }");
 
             verifier.VerifyIL("C.StaticReturn", @"
 {
-  // Code size       20 (0x14)
+  // Code size       16 (0x10)
   .maxstack  1
-  .locals init (System.Action V_0)
   IL_0000:  ldsflda    ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action> C.Static""
   IL_0005:  call       ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action> System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>.GetOrCreateEventRegistrationTokenTable(ref System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>)""
   IL_000a:  callvirt   ""System.Action System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>.InvocationList.get""
-  IL_000f:  stloc.0
-  IL_0010:  br.s       IL_0012
-  IL_0012:  ldloc.0
-  IL_0013:  ret
+  IL_000f:  ret
 }");
         }
 
@@ -639,12 +617,12 @@ namespace EventDeserialization
 }
 ";
 
-            var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.WinMDObj, "Lib");
+            var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, "Lib");
 
             var serializationRef = new MetadataImageReference(
                 ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_Serialization.AsImmutableOrNull(),
                 display: "System.Runtime.Serialization.dll");
-            var comp2 = CreateCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef}), TestOptions.Exe);
+            var comp2 = CreateCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef}), TestOptions.ReleaseExe);
             CompileAndVerify(comp2, emitOptions: EmitOptions.RefEmitBug, expectedOutput: @"A
 False
 null

@@ -13,27 +13,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static readonly CSharpParseOptions ExperimentalParseOptions = 
             new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.Experimental);
-        
-        public static readonly CSharpCompilationOptions Dll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-        public static readonly CSharpCompilationOptions Exe = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
-        public static readonly CSharpCompilationOptions WinExe = new CSharpCompilationOptions(OutputKind.WindowsApplication);
-        public static readonly CSharpCompilationOptions NetModule = new CSharpCompilationOptions(OutputKind.NetModule);
-        public static readonly CSharpCompilationOptions WinMDObj = new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata);
-        public static readonly CSharpCompilationOptions WinRtExe = new CSharpCompilationOptions(OutputKind.WindowsRuntimeApplication);
 
-        public static readonly CSharpCompilationOptions UnsafeDll = Dll.WithAllowUnsafe(true).WithOptimizations(true);
-        public static readonly CSharpCompilationOptions UnsafeExe = Exe.WithAllowUnsafe(true).WithOptimizations(true);
+        public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize: true, debugInformationKind: DebugInformationKind.PdbOnly);
+        public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: true, debugInformationKind: DebugInformationKind.PdbOnly);
 
-        public static readonly CSharpCompilationOptions DllAlwaysImportInternals = Dll.WithMetadataImportOptions(MetadataImportOptions.Internal);
-        public static readonly CSharpCompilationOptions ExeAlwaysImportInternals = Exe.WithMetadataImportOptions(MetadataImportOptions.Internal);
+        public static readonly CSharpCompilationOptions DebuggableReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize: true, debugInformationKind: DebugInformationKind.Full);
+        public static readonly CSharpCompilationOptions DebuggableReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: true, debugInformationKind: DebugInformationKind.Full);
 
-        public static readonly CSharpCompilationOptions OptimizedDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize: true);
-        public static readonly CSharpCompilationOptions OptimizedExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: true);
+        public static readonly CSharpCompilationOptions DebugDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize: false, debugInformationKind: DebugInformationKind.Full);
+        public static readonly CSharpCompilationOptions DebugExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false, debugInformationKind: DebugInformationKind.Full);
 
+        public static readonly CSharpCompilationOptions ReleaseWinMD = new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata, optimize: true, debugInformationKind: DebugInformationKind.PdbOnly);
+        public static readonly CSharpCompilationOptions ReleaseModule = new CSharpCompilationOptions(OutputKind.NetModule, optimize: true, debugInformationKind: DebugInformationKind.PdbOnly);
+
+        public static readonly CSharpCompilationOptions UnsafeReleaseDll = ReleaseDll.WithAllowUnsafe(true);
+        public static readonly CSharpCompilationOptions UnsafeReleaseExe = ReleaseExe.WithAllowUnsafe(true);
+
+        public static readonly CSharpCompilationOptions UnsafeDebugDll = DebugDll.WithAllowUnsafe(true);
+        public static readonly CSharpCompilationOptions UnsafeDebugExe = DebugExe.WithAllowUnsafe(true);
+
+        // TODO: remove
         public static readonly CSharpCompilationOptions UnoptimizedDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize: false);
         public static readonly CSharpCompilationOptions UnoptimizedExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false);
-
-        public static readonly CSharpCompilationOptions DebugDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true, optimize: false, debugInformationKind: DebugInformationKind.Full);
-        public static readonly CSharpCompilationOptions DebugExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, allowUnsafe: true, optimize: false, debugInformationKind: DebugInformationKind.Full);
     }
 }

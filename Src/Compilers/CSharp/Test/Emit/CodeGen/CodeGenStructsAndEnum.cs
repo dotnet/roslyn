@@ -521,7 +521,7 @@ struct Struct
   IL_0009:  ret
 }
 ";
-            CompileAndVerify(text, options: TestOptions.Exe.WithOptimizations(false), emitPdb: true).VerifyIL("Struct.Main()", expectedIL);
+            CompileAndVerify(text, options: TestOptions.DebugExe, emitPdb: true).VerifyIL("Struct.Main()", expectedIL);
         }
 
         [WorkItem(541845, "DevDiv")]

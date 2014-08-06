@@ -786,7 +786,7 @@ public class CSIPropImpl : VBIPropImpl, IProp
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
             var comp = CreateCompilationWithMscorlib(text1, references: refs, assemblyName: "OHI_ExpImpPropGetSetMismatch001",
-                            compOptions: TestOptions.Dll);
+                            options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (21,18): error CS0551: Explicit interface implementation 'CSIPropImpl.IProp.ReadOnlyProp' is missing accessor 'IProp.ReadOnlyProp.get'

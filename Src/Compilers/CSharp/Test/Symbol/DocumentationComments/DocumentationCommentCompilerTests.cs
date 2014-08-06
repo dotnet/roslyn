@@ -2382,7 +2382,7 @@ class C { }
 ";
             var tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
             var resolver = new XmlFileResolver(rootDir.Path);
-            var comp = CSharpCompilation.Create("Test", new[] { tree }, new [] { MscorlibRef }, TestOptions.Dll.WithXmlReferenceResolver(resolver));
+            var comp = CSharpCompilation.Create("Test", new[] { tree }, new [] { MscorlibRef }, TestOptions.ReleaseDll.WithXmlReferenceResolver(resolver));
             var actual = GetDocumentationCommentText(comp);
 
             var expected = (@"
@@ -4286,7 +4286,7 @@ public class C { }
 ";
             var tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
             var warnDict = new Dictionary<string, ReportDiagnostic> { { MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingXMLComment), ReportDiagnostic.Suppress } };
-            var comp = CreateCompilationWithMscorlib(tree, compOptions: TestOptions.Dll.WithSpecificDiagnosticOptions(warnDict), assemblyName: "Test");
+            var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(warnDict), assemblyName: "Test");
             comp.VerifyDiagnostics(); //NOTE: no WRN_MissingXMLComment
 
             var actual = GetDocumentationCommentText(comp,
@@ -5484,7 +5484,7 @@ public class C { }
 /// <summary>Text</summary>
 public class C { }
 ";
-            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source, compOptions: TestOptions.NetModule);
+            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source, options: TestOptions.ReleaseModule);
             var actual = GetDocumentationCommentText(comp);
             var expected = @"
 <?xml version=""1.0""?>
@@ -5641,8 +5641,8 @@ public class C {} // CS1587
 ";
 
             var tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
-            var compOptions = TestOptions.Dll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateCompilationWithMscorlib(tree, compOptions: compOptions).VerifyDiagnostics(
+            var compOptions = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+            CreateCompilationWithMscorlib(tree, options: compOptions).VerifyDiagnostics(
                 // (2,14): error CS1591: Warning as Error: Missing XML comment for publicly visible type or member 'C'
                 // public class C {} // CS1587
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithWarningAsError(true));
@@ -5880,7 +5880,7 @@ class C { }
 
             var comp = CreateCompilationWithMscorlib(
                 Parse(source, options: TestOptions.RegularWithDocumentationComments, filename: sourcePath), 
-                compOptions: TestOptions.Dll.WithSourceReferenceResolver(SourceFileResolver.Default).WithXmlReferenceResolver(XmlFileResolver.Default), 
+                options: TestOptions.ReleaseDll.WithSourceReferenceResolver(SourceFileResolver.Default).WithXmlReferenceResolver(XmlFileResolver.Default), 
                 assemblyName: "Test");
 
             var actual = GetDocumentationCommentText(comp);

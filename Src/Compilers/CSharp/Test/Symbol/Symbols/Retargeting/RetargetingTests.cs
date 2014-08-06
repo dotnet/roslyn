@@ -694,12 +694,12 @@ public class C<T> where T : int
 class C1<T>
 {
 }";
-            var comp1 = CreateCompilation(source, new [] {MscorlibRef_v20}, TestOptions.Dll);
+            var comp1 = CreateCompilation(source, new [] {MscorlibRef_v20}, TestOptions.ReleaseDll);
             comp1.VerifyDiagnostics();
 
             NamedTypeSymbol c1 = comp1.Assembly.GlobalNamespace.GetTypeMembers("C1").Single();
 
-            var comp2 = CreateCompilation("", new [] {MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(comp1)}, TestOptions.Dll);
+            var comp2 = CreateCompilation("", new [] {MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(comp1)}, TestOptions.ReleaseDll);
 
             NamedTypeSymbol c1r = comp2.GlobalNamespace.GetTypeMembers("C1").Single();
 

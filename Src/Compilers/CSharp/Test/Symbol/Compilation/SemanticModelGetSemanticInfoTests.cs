@@ -14759,7 +14759,7 @@ namespace Test
         void Add(int x);
     }
 }
-", compOptions: TestOptions.Dll);
+", options: TestOptions.ReleaseDll);
 
             pia.VerifyDiagnostics();
 

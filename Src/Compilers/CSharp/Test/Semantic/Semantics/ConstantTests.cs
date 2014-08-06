@@ -14,8 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-
-    public partial class SyntaxBinderTests : CompilingTestBase
+    public class ConstantTests : CompilingTestBase
     {
         [Fact]
         public void TestConstantFolding()
@@ -1442,7 +1441,7 @@ class C
         return string.Join("""", decimal.GetBits(d).Select(word => string.Format(""{0:x8}"", word)));
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"00000000000000000000000000010000
 00000000000000000000000080010000

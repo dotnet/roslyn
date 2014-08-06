@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             return CreateCompilationWithMscorlib(
                 "public class C { }",
                 assemblyName: assemblyName,
-                compOptions: TestOptions.Dll);
+                options: TestOptions.DebugDll);
         }
 
         #endregion
@@ -46,7 +46,7 @@ namespace X
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -128,7 +128,7 @@ namespace X
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -210,7 +210,7 @@ namespace X
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -292,7 +292,7 @@ namespace X
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -380,7 +380,7 @@ namespace X
 ";
             var compilation = CreateCompilationWithMscorlib(text,
                 assemblyName: GetUniqueName(),
-                compOptions: TestOptions.Dll,
+                options: TestOptions.DebugDll,
                 references: new [] 
                 { 
                     new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")) , 
@@ -489,7 +489,7 @@ namespace N
 ";
             var compilation = CreateCompilationWithMscorlib(text,
                 assemblyName: "Test",
-                compOptions: TestOptions.Dll,
+                options: TestOptions.DebugDll,
                 references: new[] { new CSharpCompilationReference(libComp, ImmutableArray.Create("P")) });
             compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
@@ -562,7 +562,7 @@ namespace X
 ";
             var compilation = CreateCompilationWithMscorlib(text,
                 assemblyName: GetUniqueName(),
-                compOptions: TestOptions.Dll,
+                options: TestOptions.DebugDll,
                 references: new[] 
                 { 
                     new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")) , 
@@ -698,7 +698,7 @@ namespace X
 namespace N { public class D { } }
 namespace M { public class E { } }
 ";
-            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.Dll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             var source2 = @"
 extern alias A;
@@ -721,7 +721,7 @@ public class C
 }";
 
             var compilation2 = CreateCompilationWithMscorlib(source2,
-                compOptions: TestOptions.Dll,
+                options: TestOptions.DebugDll,
                 references: new[]
                 {
                     new CSharpCompilationReference(compilation1, ImmutableArray.Create("A", "B"))
@@ -769,7 +769,7 @@ public class C
             var source1 = @"
 namespace N { public class D { } }
 ";
-            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.Dll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             var source2 = @"
 extern alias A;
@@ -786,7 +786,7 @@ public class C
 }";
 
             var compilation2 = CreateCompilationWithMscorlib(source2,
-                compOptions: TestOptions.Dll,
+                options: TestOptions.DebugDll,
                 references: new[]
                 {
                     new CSharpCompilationReference(compilation1, ImmutableArray.Create("global", "B", "A", "A", "global"))
@@ -869,7 +869,7 @@ namespace X
             var compilation = CreateCompilationWithMscorlib(
                 text1,
                 assemblyName: GetUniqueName(),
-                compOptions: TestOptions.Dll,
+                options: TestOptions.DebugDll,
                 references: new[] 
                 { 
                     new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")), 
@@ -1049,7 +1049,7 @@ namespace X
             var compilation = CreateCompilationWithMscorlib(
                 new string[] { text1, text2 },
                 assemblyName: GetUniqueName(),
-                compOptions: TestOptions.Dll,
+                options: TestOptions.DebugDll,
                 references: new[] 
                 { 
                     new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")), 
@@ -1218,7 +1218,7 @@ namespace X
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -1268,7 +1268,7 @@ class C
     });
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -1338,7 +1338,7 @@ class C
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -1443,7 +1443,7 @@ class Derived : Base
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -1503,7 +1503,7 @@ class C : I1, I2
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -1633,7 +1633,7 @@ public class Test
   </methods>
 </symbols>";
 
-            AssertXmlEqual(expectedXml, GetPdbXml(source, TestOptions.Exe, "Test.Main", references: new[] { libRef }));
+            AssertXmlEqual(expectedXml, GetPdbXml(source, TestOptions.DebugExe, "Test.Main", references: new[] { libRef }));
         }
 
         [Fact]
@@ -1796,7 +1796,7 @@ public class Test : IDisposable
 
     public void Dispose() { }
 
-}", TestOptions.Exe, methodName: "Test.Main");
+}", TestOptions.ReleaseExe, methodName: "Test.Main");
         }
 
         [Fact]
@@ -1817,7 +1817,7 @@ public class Test : IDisposable
 
     public void Dispose() { }
 
-}", TestOptions.Exe, methodName: "Test.Main");
+}", TestOptions.ReleaseExe, methodName: "Test.Main");
         }
 
         [WorkItem(546754, "DevDiv")]
@@ -1836,7 +1836,7 @@ public class Y<T>
 }
 ";
             string compName = GetUniqueName();
-            var comp = CreateCompilationWithMscorlib(source1, assemblyName: compName, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib(source1, assemblyName: compName, options: TestOptions.DebugDll);
 
             var source2 = @"
 using t1 = Y<W[]>;
@@ -1853,7 +1853,7 @@ public class C1
     }
 }
 ";
-            string actual = GetPdbXml(source2, TestOptions.Exe.WithDebugInformationKind(DebugInformationKind.Full), references: new[] { comp.ToMetadataReference() });
+            string actual = GetPdbXml(source2, TestOptions.DebugExe, references: new[] { comp.ToMetadataReference() });
             string expected = string.Format(@"
 <symbols>
   <entryPoint declaringType=""C1"" methodName=""Main"" parameterNames="""" />
@@ -1906,7 +1906,7 @@ namespace foo
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe.WithDebugInformationKind(DebugInformationKind.Full).WithOptimizations(false));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.DebugExe);
 
             var exebits = new MemoryStream();
             var pdbbits = new MemoryStream();

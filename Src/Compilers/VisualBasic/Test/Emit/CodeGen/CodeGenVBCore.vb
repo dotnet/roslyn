@@ -29,19 +29,19 @@ End Class
             ' With InternalXmlHelper.
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:=NoVbRuntimeReferences.Concat(XmlReferences),
-                options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True).WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+                options:=OptionsDll.WithEmbedVbCoreRuntime(True))
             compilation.AssertNoErrors()
 
             ' With VBCore.
             compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:=NoVbRuntimeReferences,
-                options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True).WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+                options:=OptionsDll.WithEmbedVbCoreRuntime(True))
             compilation.AssertNoErrors()
 
             ' No embedded code.
             compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:=NoVbRuntimeReferences,
-                options:=DefaultCompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+                options:=OptionsDll)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
 <Microsoft.VisualBasic.Embedded()>
@@ -66,7 +66,7 @@ End Class
             ' No embedded code.
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:=NoVbRuntimeReferences.Concat({MsvbRef, SystemXmlRef, SystemXmlLinqRef}),
-                options:=DefaultCompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+                options:=OptionsDll)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
 <Microsoft.VisualBasic.Embedded()>
@@ -91,7 +91,7 @@ End Class
             ' No embedded code.
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:=NoVbRuntimeReferences.Concat({MsvbRef, SystemXmlRef, SystemXmlLinqRef}),
-                options:=DefaultCompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+                options:=OptionsDll)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
     Public x As Microsoft.VisualBasic.Embedded
@@ -268,7 +268,7 @@ End Class
     ]]></file>
 </compilation>,
                 references:=NoVbRuntimeReferences.Concat(XmlReferences),
-                options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True).WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+                options:=OptionsDll.WithEmbedVbCoreRuntime(True))
             compilation.AssertNoErrors()
             Dim globalNamespace = compilation.SourceModule.GlobalNamespace
             Assert.Equal(globalNamespace.Locations.Length, 4)
@@ -2559,7 +2559,7 @@ End Class
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                                    source, DefaultCompilationOptions.WithEmbedVbCoreRuntime(True).WithOptimizations(False))
+                                    source, OptionsExe.WithEmbedVbCoreRuntime(True).WithOptimizations(False))
             Dim actual = PDB.PDBTests.GetPdbXml(compilation)
 
             Dim expected =
@@ -2608,7 +2608,7 @@ End Namespace
     </file>
 </compilation>,
             references:={SystemRef, SystemCoreRef},
-            options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True).WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+            options:=OptionsDll.WithEmbedVbCoreRuntime(True))
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors>
@@ -2634,7 +2634,7 @@ End Namespace
     </file>
 </compilation>,
             references:={SystemRef, SystemCoreRef},
-            options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True).WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+            options:=OptionsDll.WithEmbedVbCoreRuntime(True))
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors>
@@ -2660,7 +2660,7 @@ End Namespace
     </file>
 </compilation>,
             references:={SystemRef, SystemCoreRef},
-            options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True).WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+            options:=OptionsDll.WithEmbedVbCoreRuntime(True))
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors>
@@ -2686,7 +2686,7 @@ End Namespace
     </file>
 </compilation>,
             references:={SystemRef, SystemCoreRef},
-            options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True).WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+            options:=OptionsDll.WithEmbedVbCoreRuntime(True))
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors>
@@ -2718,7 +2718,7 @@ End Namespace
     </file>
 </compilation>,
             references:={SystemRef, SystemCoreRef},
-            options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True).WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+            options:=OptionsDll.WithEmbedVbCoreRuntime(True))
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors>
@@ -2763,7 +2763,7 @@ End Namespace
     </file>
 </compilation>,
             references:={SystemRef, SystemCoreRef},
-            options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True).WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+            options:=OptionsDll.WithEmbedVbCoreRuntime(True))
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors>
@@ -2779,7 +2779,7 @@ Namespace Global.Microsoft.VisualBasic.Strings
             ' is triggered by the Embedded Attribute.  This occurs on the command line compilers
             ' when the reference to system.xml.linq is added
 
-            Dim compilationOptions = DefaultCompilationOptions.WithOutputKind(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse({"System", "Microsoft.VisualBasic"}))
+            Dim compilationOptions = OptionsExe.WithGlobalImports(GlobalImport.Parse({"System", "Microsoft.VisualBasic"}))
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
@@ -2854,7 +2854,7 @@ BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'V
     </file>
 </compilation>,
             references:={SystemRef, SystemCoreRef},
-            options:=DefaultCompilationOptions.WithEmbedVbCoreRuntime(True).WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+            options:=OptionsDll.WithEmbedVbCoreRuntime(True))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
 

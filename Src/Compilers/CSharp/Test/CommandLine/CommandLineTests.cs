@@ -4092,7 +4092,7 @@ public class C
         [Fact]
         public void EmittedSubsystemVersion()
         {
-            var compilation = CSharpCompilation.Create("a.dll", options: TestOptions.Dll.WithSubsystemVersion(SubsystemVersion.Create(5, 1)));
+            var compilation = CSharpCompilation.Create("a.dll", options: TestOptions.ReleaseDll.WithSubsystemVersion(SubsystemVersion.Create(5, 1)));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(5, peHeaders.PEHeader.MajorSubsystemVersion);
             Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion);
@@ -4114,7 +4114,7 @@ public class C
             var file = dir.CreateFile(fileName);
             file.WriteAllText(source);
 
-            var compilation = CSharpCompilation.Create("a.dll", options: TestOptions.Dll);
+            var compilation = CSharpCompilation.Create("a.dll", options: TestOptions.ReleaseDll);
 
             var options = compilation.Options;
 
@@ -6054,11 +6054,11 @@ using System.Diagnostics; // Unused.
             Assert.Equal("-_+@%#*^", parsedArgs.CompilationOptions.RuntimeMetadataVersion);
 
             var comp = CreateCompilation(string.Empty,
-                compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, runtimeMetadataVersion: "v4.0.30319"));
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, runtimeMetadataVersion: "v4.0.30319"));
             Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray()).Module.MetadataVersion, "v4.0.30319");
 
             comp = CreateCompilation(string.Empty,
-                compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, runtimeMetadataVersion: "_+@%#*^"));
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, runtimeMetadataVersion: "_+@%#*^"));
             Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray()).Module.MetadataVersion, "_+@%#*^");
         }
 

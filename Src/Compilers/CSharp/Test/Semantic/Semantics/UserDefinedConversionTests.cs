@@ -1146,14 +1146,14 @@ unsafe class P
             string source5 = "}}";
 
             // All of the cases above should pass semantic analysis:
-            var comp = CreateCompilationWithMscorlib(source1 + source2 + source3 + source4 + source5, compOptions: TestOptions.UnsafeDll);
+            var comp = CreateCompilationWithMscorlib(source1 + source2 + source3 + source4 + source5, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
 
             // However, we have not yet implemented lowering and code generation for decimal,
             // lifted operators, nullable conversions and unsafe code so only generate code for
             // the straightforward intptr/number conversions:
 
-            var verifier = CompileAndVerify(source: source1 + source3 + source5, options: TestOptions.UnsafeExe, expectedOutput: "");
+            var verifier = CompileAndVerify(source: source1 + source3 + source5, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
 
         }
 

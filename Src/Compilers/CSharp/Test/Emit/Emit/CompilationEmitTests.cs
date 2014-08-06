@@ -69,10 +69,10 @@ public class X
     }
 }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithMainTypeName("abc.X"));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("abc.X"));
             compilation.VerifyDiagnostics();
             
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithMainTypeName("\"abc.X\""));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("\"abc.X\""));
             compilation.VerifyDiagnostics(// error CS1555: Could not find '"abc.X"' specified for Main method
                                           Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("\"abc.X\""));
 
@@ -90,10 +90,10 @@ public class X
     }
 }
 }";
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithMainTypeName("решения.X"));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("решения.X"));
             compilation.VerifyDiagnostics();
 
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithMainTypeName("\"решения.X\""));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("\"решения.X\""));
             compilation.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("\"решения.X\""));
 
         }
@@ -264,7 +264,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
             var libComp = CreateCompilationWithMscorlib(
                 text: libText,
                 references: new MetadataReference[] { ilAssemblyReference },
-                compOptions: TestOptions.Dll,
+                options: TestOptions.ReleaseDll,
                 assemblyName: libAssemblyName);
 
             Assert.False(libComp.GetDiagnostics().Any());
@@ -1051,27 +1051,27 @@ class C
 }";
             PEHeaders peHeaders;
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.AnyCpu));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.AnyCpu));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags);
 
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.X86));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(CorFlags.ILOnly | CorFlags.Requires32Bit, peHeaders.CorHeader.Flags);
 
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.X64));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags);
             Assert.True(peHeaders.Requires64Bits());
             Assert.True(peHeaders.RequiresAmdInstructionSet());
 
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.AnyCpu32BitPreferred));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.AnyCpu32BitPreferred));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.False(peHeaders.Requires64Bits());
             Assert.False(peHeaders.RequiresAmdInstructionSet());
             Assert.Equal(CorFlags.ILOnly | CorFlags.Requires32Bit | CorFlags.Prefers32Bit, peHeaders.CorHeader.Flags);
 
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.Arm));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.Arm));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.False(peHeaders.Requires64Bits());
             Assert.False(peHeaders.RequiresAmdInstructionSet());
@@ -1089,7 +1089,7 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source,
-                compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X86));
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X86));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -1123,7 +1123,7 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source,
-                compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64));
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -1173,7 +1173,7 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source,
-                compOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm));
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -1213,7 +1213,7 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source,
-                compOptions: TestOptions.Exe.WithPlatform(Platform.AnyCpu));
+                options: TestOptions.ReleaseExe.WithPlatform(Platform.AnyCpu));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -1254,7 +1254,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.X64));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
             //interesting COFF bits
@@ -1286,7 +1286,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithHighEntropyVirtualAddressSpace(true));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithHighEntropyVirtualAddressSpace(true));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
             //interesting COFF bits
@@ -1304,7 +1304,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.WinRtExe);
+            var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(OutputKind.WindowsRuntimeApplication));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
             //interesting COFF bits
@@ -1322,46 +1322,46 @@ class C
     }
 }";
             // last four hex digits get zero'ed
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithBaseAddress(0x0000000010111111));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithBaseAddress(0x0000000010111111));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(0x10110000ul, peHeaders.PEHeader.ImageBase);
 
             // test rounding up of values
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithBaseAddress(0x8000));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithBaseAddress(0x8000));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(0x10000ul, peHeaders.PEHeader.ImageBase);
 
             // values less than 0x8000 get default baseaddress
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithBaseAddress(0x7fff));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithBaseAddress(0x7fff));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(0x00400000u, peHeaders.PEHeader.ImageBase);
 
             // default for 32bit
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.X86));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(0x00400000u, peHeaders.PEHeader.ImageBase);
 
             // max for 32bit
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.X86).WithBaseAddress(0xffff7fff));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86).WithBaseAddress(0xffff7fff));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(0xffff0000ul, peHeaders.PEHeader.ImageBase);
 
             // max+1 for 32bit
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.X86).WithBaseAddress(0xffff8000));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86).WithBaseAddress(0xffff8000));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(0x00400000u, peHeaders.PEHeader.ImageBase);
 
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.X64));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(0x0000000140000000u, peHeaders.PEHeader.ImageBase);
 
             // max for 64bit
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.X64).WithBaseAddress(0xffffffffffff7fff));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64).WithBaseAddress(0xffffffffffff7fff));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(0xffffffffffff0000ul, peHeaders.PEHeader.ImageBase);
 
             // max+1 for 64bit
-            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithPlatform(Platform.X64).WithBaseAddress(0xffffffffffff8000));
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64).WithBaseAddress(0xffffffffffff8000));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(0x0000000140000000u, peHeaders.PEHeader.ImageBase);
         }
@@ -1376,7 +1376,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithFileAlignment(1024));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithFileAlignment(1024));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(1024, peHeaders.PEHeader.FileAlignment);
         }
@@ -1580,7 +1580,7 @@ public class Test
             var extension = ".dll";
             var nameWithExtension = name + extension;
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", compOptions: TestOptions.Dll, assemblyName: name);
+            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1611,7 +1611,7 @@ public class Test
             var extension = ".netmodule";
             var outputName = "b";
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", compOptions: TestOptions.NetModule.WithModuleName(name + extension), assemblyName: null);
+            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseModule.WithModuleName(name + extension), assemblyName: null);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1641,7 +1641,7 @@ public class Test
             var extension = ".dll";
             var nameOverride = "b";
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", compOptions: TestOptions.Dll, assemblyName: name);
+            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1672,7 +1672,7 @@ public class Test
             var extension = ".dll";
             var nameOverride = "b";
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", compOptions: TestOptions.Dll, assemblyName: name);
+            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1703,7 +1703,7 @@ public class Test
             var extension = ".dll";
             var nameOverride = "b";
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", compOptions: TestOptions.Dll, assemblyName: name);
+            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1734,7 +1734,7 @@ public class Test
             var extension = ".dll";
             var nameOverride = "b";
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", compOptions: TestOptions.Dll, assemblyName: name);
+            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1772,7 +1772,7 @@ public sealed class ContentType
 	}
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.NetModule, assemblyName: "ContentType");
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseModule, assemblyName: "ContentType");
             compilation.VerifyDiagnostics();
 
             using (ModuleMetadata block = ModuleMetadata.CreateFromImageStream(compilation.EmitToStream()))
@@ -1792,7 +1792,7 @@ public sealed class ContentType
         [Fact]
         public void IllegalNameOverride()
         {
-            var compilation = CreateCompilationWithMscorlib("class A { }", compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
 
             Assert.Throws<ArgumentException>(() => compilation.Emit(new MemoryStream(), outputName: " "));
@@ -1810,7 +1810,7 @@ class C
     }
 }";
             // Setting the CompilationOption.AllowUnsafe causes an entry to be inserted into the DeclSecurity table
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
@@ -1844,7 +1844,7 @@ class C
     }
 }";
             // Setting the CompilationOption.AllowUnsafe causes an entry to be inserted into the DeclSecurity table
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll.WithOutputKind(OutputKind.NetModule));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation); //no assembly => no decl security row
         }
@@ -1868,7 +1868,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
                 // (5,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestMinimum' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -1913,7 +1913,7 @@ class C
     }
 }";
             // The attributes have the SecurityAction, so they should be merged into a single permission set.
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
                 // (5,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestMinimum' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, RemotingConfiguration = true)]
@@ -1972,7 +1972,7 @@ class C
     }
 }";
             // The attributes have different SecurityActions, so they should not be merged into a single permission set.
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
                 // (5,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestOptional' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration = true)]
@@ -2036,7 +2036,7 @@ class C
     }
 }";
             // The attributes have the SecurityAction, so they should be merged into a single permission set.
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeExe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics(
                 // (5,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestMinimum' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, RemotingConfiguration = true)]
@@ -2091,7 +2091,7 @@ class C
     }
 }";
             // The attributes have different SecurityActions, so they should not be merged into a single permission set.
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeExe);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics(
                 // (5,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestOptional' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration = true)]
@@ -2151,7 +2151,7 @@ public class Test
         Console.WriteLine(typeof(J<int>).BaseType.Equals(typeof(C<Foo<int>>)) ? 0 : 1);
     }
 }";
-            var c1 = CreateCompilationWithMscorlib(p1, compOptions: TestOptions.Dll, assemblyName: Guid.NewGuid().ToString());
+            var c1 = CreateCompilationWithMscorlib(p1, options: TestOptions.ReleaseDll, assemblyName: Guid.NewGuid().ToString());
             CompileAndVerify(p2, new[] { new MetadataImageReference(c1.EmitToStream()) }, expectedOutput: "0");
         }
 
@@ -2161,9 +2161,9 @@ public class Test
         {
             string source1 = @"public class A {}";
             string source2 = @"public class B: A {}";
-            var comp = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.NetModule);
+            var comp = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule);
             var metadataRef = new MetadataImageReference(ModuleMetadata.CreateFromImageStream(comp.EmitToStream()));
-            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.NetModule, emitOptions: EmitOptions.RefEmitBug, verify: false);
+            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, emitOptions: EmitOptions.RefEmitBug, verify: false);
         }
 
         [Fact]
@@ -2202,7 +2202,7 @@ class Program
 ";
             var opt = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: true);
 
-            var comp = CreateCompilationWithMscorlib(text, compOptions: opt).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlib(text, options: opt).VerifyDiagnostics(
                 // (7,18): warning CS0665: Assignment in conditional expression is always constant; did you mean to use == instead of = ?
                 //         int s = (b = false) ? 5 : 100; 		// Warning
                 Diagnostic(ErrorCode.WRN_IncorrectBooleanAssg, "b = false"),
@@ -2218,7 +2218,7 @@ class Program
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, compOptions: TestOptions.Dll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics();
             var compRef = new CSharpCompilationReference(refCompilation);
@@ -2232,31 +2232,31 @@ public interface IUsePlatform
 ";
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                compOptions: TestOptions.NetModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.NetModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics(
     // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -2265,7 +2265,7 @@ public interface IUsePlatform
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics(
     // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -2274,7 +2274,7 @@ public interface IUsePlatform
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                compOptions: TestOptions.NetModule.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics(
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -2283,7 +2283,7 @@ public interface IUsePlatform
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.NetModule.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics(
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -2304,7 +2304,7 @@ public interface IUsePlatform
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, compOptions: TestOptions.NetModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch" );
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch" );
 
             refCompilation.VerifyEmitDiagnostics();
             var imageRef = refCompilation.EmitToImageReference();
@@ -2317,7 +2317,7 @@ public interface IUsePlatform
 ";
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics(
     // error CS8010: Agnostic assembly cannot have a processor specific module 'PlatformMismatch.netmodule'.
@@ -2326,7 +2326,7 @@ public interface IUsePlatform
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics(
     // error CS8011: Assembly and module 'PlatformMismatch.netmodule' cannot target different processors.
@@ -2335,7 +2335,7 @@ public interface IUsePlatform
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] {imageRef},
-                compOptions: TestOptions.NetModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"));
 
             // no CS8010 when building a module and adding a module that has a conflict.
             useCompilation.VerifyEmitDiagnostics();
@@ -2348,7 +2348,7 @@ public interface IUsePlatform
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, compOptions: TestOptions.Dll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics();
             var compRef = new CSharpCompilationReference(refCompilation);
@@ -2363,7 +2363,7 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics(
     // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -2372,7 +2372,7 @@ public interface IUsePlatform
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics(
     // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -2381,7 +2381,7 @@ public interface IUsePlatform
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                compOptions: TestOptions.NetModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics(
     // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -2390,7 +2390,7 @@ public interface IUsePlatform
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.NetModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics(
     // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -2405,7 +2405,7 @@ public interface IUsePlatform
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, compOptions: TestOptions.NetModule.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.X86).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics();
             var imageRef = refCompilation.EmitToImageReference();
@@ -2419,7 +2419,7 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics(
     // error CS8011: Assembly and module 'PlatformMismatch.netmodule' cannot target different processors.
@@ -2434,7 +2434,7 @@ public interface IUsePlatform
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, compOptions: TestOptions.Dll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics();
             var compRef = new CSharpCompilationReference(refCompilation);
@@ -2449,25 +2449,25 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                compOptions: TestOptions.NetModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.NetModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
         }
@@ -2479,7 +2479,7 @@ public interface IUsePlatform
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, compOptions: TestOptions.NetModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics();
             var imageRef = refCompilation.EmitToImageReference();
@@ -2493,7 +2493,7 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
         }
@@ -2505,7 +2505,7 @@ public interface IUsePlatform
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, compOptions: TestOptions.Dll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics();
             var compRef = new CSharpCompilationReference(refCompilation);
@@ -2520,25 +2520,25 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { compRef },
-                compOptions: TestOptions.NetModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
 
             useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.NetModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
         }
@@ -2550,7 +2550,7 @@ public interface IUsePlatform
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, compOptions: TestOptions.NetModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics();
             var imageRef = refCompilation.EmitToImageReference();
@@ -2564,7 +2564,7 @@ public interface IUsePlatform
 
             var useCompilation = CreateCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                compOptions: TestOptions.Dll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
+                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium).WithRuntimeMetadataVersion("v4.0.31019"));
 
             useCompilation.VerifyEmitDiagnostics();
         }
@@ -2593,7 +2593,7 @@ class Viewable
     bool P2 { get { return true; } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, null, OptionsDll.WithOptimizations(true));
+            var compilation = CreateCompilationWithMscorlib(source, null, TestOptions.ReleaseDll);
             var peReader = ModuleMetadata.CreateFromImageStream(compilation.EmitToStream()).Module.GetMetadataReader();
 
             int P1RVA = 0;
@@ -2648,23 +2648,23 @@ class Viewable
         public void BrokenPDBStream()
         {
             string source = @"class Foo {}";
-            var compilation = CreateCompilationWithMscorlib(source, null, OptionsDll.WithDebugInformationKind(DebugInformationKind.Full));
+            var compilation = CreateCompilationWithMscorlib(source, null, TestOptions.DebugDll);
 
             var output = new MemoryStream();
             var pdb = new BrokenStream();
             pdb.BreakHow = 2;
             var result = compilation.Emit(output, GetUniqueName(), GetUniqueName(), pdb);
             result.Diagnostics.Verify(
-                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Exception from HRESULT: 0x806D0004")
-                );
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Exception from HRESULT: 0x806D0004")
+            );
 
             Func<EmitResult> f = () => compilation.Emit(output, GetUniqueName(), GetUniqueName(), pdb);
             pdb.Dispose();
             result = f();
 
             result.Diagnostics.Verify(
-                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Exception from HRESULT: 0x806D0004")
-                );
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Exception from HRESULT: 0x806D0004")
+            );
         }
     }
 }

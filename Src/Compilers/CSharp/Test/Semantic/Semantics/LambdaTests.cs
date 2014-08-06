@@ -340,7 +340,7 @@ public delegate void Y(List<string> addin);
             var comp1 = CreateCompilationWithMscorlib(
                 Parse(text1),
                 new[] { TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true) },
-                compOptions: TestOptions.Dll);
+                options: TestOptions.ReleaseDll);
 
             var text2 = @"
 public class Program
@@ -359,7 +359,7 @@ public class Program
                         new CSharpCompilationReference(comp1),
                         TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true)
                     },
-                compOptions: TestOptions.Exe);
+                options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp2, expectedOutput: "Y").Diagnostics.Verify();
 
@@ -370,7 +370,7 @@ public class Program
                         comp1.EmitToImageReference(),
                         TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true)
                     },
-                compOptions: TestOptions.Exe);
+                options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp3, expectedOutput: "Y").Diagnostics.Verify();
         }

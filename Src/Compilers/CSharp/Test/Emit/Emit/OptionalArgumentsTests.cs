@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         System.Console.WriteLine(""{0}: {1}"", o.GetType(), o);
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource, compOptions: TestOptions.UnoptimizedExe);
+            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"System.Reflection.Missing: System.Reflection.Missing
@@ -136,7 +136,7 @@ public class C
 }
 public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
 ";
-            var comp1 = CreateCompilationWithMscorlib(source1, references: new[] { SystemRef }, compOptions: TestOptions.UnoptimizedDll);
+            var comp1 = CreateCompilationWithMscorlib(source1, references: new[] { SystemRef }, options: TestOptions.DebugDll);
             comp1.VerifyDiagnostics();
             CompileAndVerify(comp1, sourceSymbolValidator: module =>
                 {
@@ -168,7 +168,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
             var comp2a = CreateCompilationWithMscorlib(
                 source2,
                 references: new[] { SystemRef, new CSharpCompilationReference(comp1) },
-                compOptions: TestOptions.UnoptimizedExe);
+                options: TestOptions.DebugExe);
             comp2a.VerifyDiagnostics();
             CompileAndVerify(comp2a, emitOptions: EmitOptions.CCI, expectedOutput:
 @"1
@@ -177,7 +177,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
             var comp2b = CreateCompilationWithMscorlib(
                 source2,
                 references: new[] { SystemRef, new MetadataImageReference(comp1.EmitToStream()) },
-                compOptions: TestOptions.UnoptimizedExe);
+                options: TestOptions.DebugExe);
             comp2b.VerifyDiagnostics();
             CompileAndVerify(comp2b, emitOptions: EmitOptions.CCI, expectedOutput:
 @"1

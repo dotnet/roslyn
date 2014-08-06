@@ -8,10 +8,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -28,19 +26,18 @@ public class Cls
         System.Console.WriteLine(int i = 3);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe);
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
 
             compilation.VerifyDiagnostics(
-    // (6,34): error CS1525: Invalid expression term 'int'
-    //         System.Console.WriteLine(int i = 3);
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 34),
-    // (6,38): error CS1003: Syntax error, ',' expected
-    //         System.Console.WriteLine(int i = 3);
-    Diagnostic(ErrorCode.ERR_SyntaxError, "i").WithArguments(",", "").WithLocation(6, 38),
-    // (6,38): error CS0103: The name 'i' does not exist in the current context
-    //         System.Console.WriteLine(int i = 3);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 38)
-               );
+                // (6,34): error CS1525: Invalid expression term 'int'
+                //         System.Console.WriteLine(int i = 3);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 34),
+                // (6,38): error CS1003: Syntax error, ',' expected
+                //         System.Console.WriteLine(int i = 3);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "i").WithArguments(",", "").WithLocation(6, 38),
+                // (6,38): error CS0103: The name 'i' does not exist in the current context
+                //         System.Console.WriteLine(int i = 3);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 38));
         }
 
         [Fact]
@@ -60,7 +57,7 @@ public class Cls
         System.Console.WriteLine(x);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"123
 123").VerifyDiagnostics();
@@ -1359,7 +1356,7 @@ public class Cls
         System.Console.WriteLine(m);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
 
@@ -1403,7 +1400,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"123
 123").VerifyDiagnostics();
@@ -1424,7 +1421,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"123
 123").VerifyDiagnostics();
@@ -1454,7 +1451,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
 
@@ -1530,7 +1527,7 @@ class TestAttribute : System.Attribute
     public int Z { get; set; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
 
@@ -1595,7 +1592,7 @@ public class Cls
     }
 
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
 
@@ -1638,7 +1635,7 @@ public class Cls
         System.Console.WriteLine(typeof(T));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"123
 123
@@ -1662,7 +1659,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -1693,7 +1690,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -1735,7 +1732,7 @@ public class Cls
             System.Console.WriteLine(j + (int k = 5 + ii) + k);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -1878,7 +1875,7 @@ public class Cls
             System.Console.WriteLine((int f1 = 0)+(int f1 = 1));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -2015,7 +2012,7 @@ public class Cls
         return val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"10
 20
@@ -2052,7 +2049,7 @@ public class Cls
         return val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"10
 20
@@ -2085,7 +2082,7 @@ public class Cls
         return val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"100
 200").VerifyDiagnostics();
@@ -2117,7 +2114,7 @@ public class Cls
         return val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"10
 20
@@ -2150,7 +2147,7 @@ public class Cls
         return val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"1000
 2000").VerifyDiagnostics();
@@ -2184,7 +2181,7 @@ public class Cls
         lambda();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -2222,7 +2219,7 @@ public class Cls
             System.Console.WriteLine(j + (int k = 10) + k);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -2313,7 +2310,7 @@ public class Cls
             System.Console.WriteLine((int e1 = 1) + (int e1 = 1));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -2390,7 +2387,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"2
 -10").VerifyDiagnostics();
@@ -2471,7 +2468,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -2549,7 +2546,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"2
 13").VerifyDiagnostics();
@@ -2639,7 +2636,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -2707,7 +2704,7 @@ public class Cls
         lambda();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"2
 13").VerifyDiagnostics();
@@ -2745,7 +2742,7 @@ public class Cls
 
     static void Dummy(object p1, object p2){}
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"0
 2
@@ -2831,7 +2828,7 @@ public class Cls
             System.Console.WriteLine((int e1 = 3) + (int e1 = 3));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -2917,7 +2914,7 @@ public class Cls
 
     static void Dummy(object p1, object p2){}
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"0
 2
@@ -2952,7 +2949,7 @@ public class Cls
             System.Console.WriteLine(j + (int k = 5 + i) + k + i++);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"1
 3
@@ -3022,7 +3019,7 @@ public class Cls
             System.Console.WriteLine((int d1 = 1) + (int d1 = 1));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -3098,7 +3095,7 @@ public class Cls
         return val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"10
 20
@@ -3133,7 +3130,7 @@ public class Cls
         return val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"10
 20
@@ -3166,7 +3163,7 @@ public class Cls
         return val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"100
 200").VerifyDiagnostics();
@@ -3202,7 +3199,7 @@ public class Cls
         return val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"3
 6
@@ -3293,7 +3290,7 @@ public class Cls
 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -3376,7 +3373,7 @@ public class Cls
         return val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"100
 200
@@ -3415,7 +3412,7 @@ public class Cls
             System.Console.WriteLine(j + (int k = 1000));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"2
 3
@@ -3567,7 +3564,7 @@ public class Cls
             System.Console.WriteLine((int c2 = 1) + (int c2 = 1));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -3704,7 +3701,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
@@ -3728,7 +3725,7 @@ public class Cls
         System.Console.WriteLine(x);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"123
 123").VerifyDiagnostics();
@@ -3759,7 +3756,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -3831,7 +3828,7 @@ public class Cls
         x = 31;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"123
 System.Int32
@@ -3868,7 +3865,7 @@ public class Cls
         x = 1234;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -3897,7 +3894,7 @@ public class Cls
         int x = (var y) = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -3926,7 +3923,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -3959,7 +3956,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -3994,7 +3991,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4026,7 +4023,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4059,7 +4056,7 @@ public class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4101,7 +4098,7 @@ public struct C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4179,7 +4176,7 @@ public class MyAttribute : Attribute
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4240,7 +4237,7 @@ public class MyAttribute : Attribute
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4301,7 +4298,7 @@ public class MyAttribute : Attribute
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4345,7 +4342,7 @@ public class Cls
         target.Test(out var y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4368,7 +4365,7 @@ public class Cls
         target.Test(ref var y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4394,7 +4391,7 @@ public class Cls
         target.Test(var y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4426,7 +4423,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4458,7 +4455,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4493,7 +4490,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4525,7 +4522,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4558,7 +4555,7 @@ public class Cls
     static void Test(string x)
     {}
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4592,7 +4589,7 @@ public class Cls
         x = null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4617,7 +4614,7 @@ public class Cls
         var x = new Action(out var y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4645,7 +4642,7 @@ public class Cls
         var x = new Action(Main, out var y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4685,7 +4682,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4708,7 +4705,7 @@ public class Cls
         target[var y] = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4734,7 +4731,7 @@ public class Cls
         target[var y] = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4760,7 +4757,7 @@ public class Cls
         target[out var y] = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4786,7 +4783,7 @@ public class Cls
         target[out var y] = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -4813,17 +4810,16 @@ public class Cls
         target[var y, 3] = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,20): error CS0818: Implicitly-typed variables must be initialized
-    //         target[var y, 3] = 0;
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 20),
-    // (6,16): error CS0165: Use of unassigned local variable 'y'
-    //         target[var y, 3] = 0;
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 16)
-                );
+                // (6,20): error CS0818: Implicitly-typed variables must be initialized
+                //         target[var y, 3] = 0;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 20),
+                // (6,16): error CS0165: Use of unassigned local variable 'y'
+                //         target[var y, 3] = 0;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 16));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -4839,17 +4835,16 @@ public class Cls
         target[var y] = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,20): error CS0818: Implicitly-typed variables must be initialized
-    //         target[var y] = 0;
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 20),
-    // (6,16): error CS0165: Use of unassigned local variable 'y'
-    //         target[var y] = 0;
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 16)
-                );
+                // (6,20): error CS0818: Implicitly-typed variables must be initialized
+                //         target[var y] = 0;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 20),
+                // (6,16): error CS0165: Use of unassigned local variable 'y'
+                //         target[var y] = 0;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 16));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -4865,20 +4860,19 @@ public class Cls
         target[out var y] = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,20): error CS1615: Argument 1 should not be passed with the 'out' keyword
-    //         target[out var y] = 0;
-    Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("1", "out").WithLocation(6, 20),
-    // (6,24): error CS0818: Implicitly-typed variables must be initialized
-    //         target[out var y] = 0;
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 24),
-    // (6,20): error CS0165: Use of unassigned local variable 'y'
-    //         target[out var y] = 0;
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 20)
-                );
+                // (6,20): error CS1615: Argument 1 should not be passed with the 'out' keyword
+                //         target[out var y] = 0;
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("1", "out").WithLocation(6, 20),
+                // (6,24): error CS0818: Implicitly-typed variables must be initialized
+                //         target[out var y] = 0;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 24),
+                // (6,20): error CS0165: Use of unassigned local variable 'y'
+                //         target[out var y] = 0;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 20));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -4894,17 +4888,16 @@ public class Cls
         target[out var y, 1] = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,20): error CS1615: Argument 1 should not be passed with the 'out' keyword
-    //         target[out var y, 1] = 0;
-    Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("1", "out").WithLocation(6, 20),
-    // (6,20): error CS0165: Use of unassigned local variable 'y'
-    //         target[out var y, 1] = 0;
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 20)
-                );
+                // (6,20): error CS1615: Argument 1 should not be passed with the 'out' keyword
+                //         target[out var y, 1] = 0;
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("1", "out").WithLocation(6, 20),
+                // (6,20): error CS0165: Use of unassigned local variable 'y'
+                //         target[out var y, 1] = 0;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 20));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -4920,17 +4913,16 @@ public class Cls
         target[4, var y] = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,23): error CS0818: Implicitly-typed variables must be initialized
-    //         target[4, var y] = 0;
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 23),
-    // (6,19): error CS0165: Use of unassigned local variable 'y'
-    //         target[4, var y] = 0;
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 19)
-                );
+                // (6,23): error CS0818: Implicitly-typed variables must be initialized
+                //         target[4, var y] = 0;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 23),
+                // (6,19): error CS0165: Use of unassigned local variable 'y'
+                //         target[4, var y] = 0;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 19));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -4946,17 +4938,16 @@ public class Cls
         target[5, out var y] = 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,23): error CS1615: Argument 2 should not be passed with the 'out' keyword
-    //         target[5, out var y] = 0;
-    Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("2", "out").WithLocation(6, 23),
-    // (6,23): error CS0165: Use of unassigned local variable 'y'
-    //         target[5, out var y] = 0;
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 23)
-                );
+                // (6,23): error CS1615: Argument 2 should not be passed with the 'out' keyword
+                //         target[5, out var y] = 0;
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var y").WithArguments("2", "out").WithLocation(6, 23),
+                // (6,23): error CS0165: Use of unassigned local variable 'y'
+                //         target[5, out var y] = 0;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 23));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -4972,14 +4963,13 @@ public class Cls
         var x = target[out var y];
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,32): error CS0818: Implicitly-typed variables must be initialized
-    //         var x = target[out var y];
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 32)
-                );
+                // (6,32): error CS0818: Implicitly-typed variables must be initialized
+                //         var x = target[out var y];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 32));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -4995,17 +4985,16 @@ public class Cls
         var x = target[var y];
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,28): error CS0818: Implicitly-typed variables must be initialized
-    //         var x = target[var y];
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 28),
-    // (6,24): error CS0165: Use of unassigned local variable 'y'
-    //         var x = target[var y];
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 24)
-                );
+                // (6,28): error CS0818: Implicitly-typed variables must be initialized
+                //         var x = target[var y];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer, "y").WithLocation(6, 28),
+                // (6,24): error CS0165: Use of unassigned local variable 'y'
+                //         var x = target[var y];
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "var y").WithArguments("y").WithLocation(6, 24));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -5031,14 +5020,13 @@ public class Cls
         x = 456;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Cls.Test(out int)' and 'Cls.Test(out uint)'
-    //         Test(out var y);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Cls.Test(out int)", "Cls.Test(out uint)").WithLocation(6, 9)
-                );
+                // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Cls.Test(out int)' and 'Cls.Test(out uint)'
+                //         Test(out var y);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Cls.Test(out int)", "Cls.Test(out uint)").WithLocation(6, 9));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -5059,7 +5047,7 @@ public class Cls
         x = default(T);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5093,7 +5081,7 @@ public class Cls
         System.Console.WriteLine(typeof(T));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"System.Int32").VerifyDiagnostics();
 
@@ -5125,7 +5113,7 @@ public class Cls
 class A{}
 class B{}
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5153,7 +5141,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5184,7 +5172,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5219,7 +5207,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"124
 123").VerifyDiagnostics();
@@ -5250,7 +5238,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5276,7 +5264,7 @@ public class Cls
         var u3 = (var w) + w;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5322,7 +5310,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5353,7 +5341,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5384,7 +5372,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5415,7 +5403,7 @@ public class Cls
         x = 123;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5430,7 +5418,7 @@ public class Cls
             TestSemanticModelAPI(compilation, diagnostics);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void CatchFilter_01()
         {
             var text = @"
@@ -5508,20 +5496,20 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            CompileAndVerify(compilation, expectedOutput: @"1
+            var c = CompileAndVerify(compilation, expectedOutput: @"1
 3
 System.NullReferenceException
 7
 System.NullReferenceException
 9
 11
-13").VerifyDiagnostics(
-    // (51,46): warning CS0168: The variable 'e' is declared but never used
-    //         catch (System.NullReferenceException e) if ((int j = 9) == 9)
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(51, 46)
-                );
+13");
+            c.VerifyDiagnostics(
+                // (51,46): warning CS0168: The variable 'e' is declared but never used
+                //         catch (System.NullReferenceException e) if ((int j = 9) == 9)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(51, 46));
 
             TestSemanticModelAPI(compilation);
         }
@@ -5613,7 +5601,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5718,7 +5706,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5829,7 +5817,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5894,7 +5882,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5941,7 +5929,7 @@ public class Cls
         System.Console.WriteLine(n6);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -5990,7 +5978,7 @@ public class Cls
         System.Console.WriteLine(n7);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6050,7 +6038,7 @@ class Test
             TestSemanticModelAPI(compilation, diagnostics);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void BugCodePlex_18_01()
         {
             var text = @"
@@ -6061,7 +6049,7 @@ public class Cls
         var x = (int[] y = { }) = new [] { 1 };
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Cls.Main",
 @"{
@@ -6098,17 +6086,16 @@ public class Cls
         var x = int[] y = { } = null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,31): error CS1002: ; expected
-    //         var x = int[] y = { } = null;
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(6, 31),
-    // (6,31): error CS1525: Invalid expression term '='
-    //         var x = int[] y = { } = null;
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 31)
-                );
+                // (6,31): error CS1002: ; expected
+                //         var x = int[] y = { } = null;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(6, 31),
+                // (6,31): error CS1525: Invalid expression term '='
+                //         var x = int[] y = { } = null;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 31));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -6124,7 +6111,7 @@ public class Cls
         var x = var y = var z = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Cls.Main",
 @"{
@@ -6156,7 +6143,7 @@ public class Cls
         var x = (object) int[] y = { };
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6194,7 +6181,7 @@ public class Cls
         var x = int[] y = { } ? 1 : 2;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6229,7 +6216,7 @@ public class Cls
         var x = int[] y = { } ?? new int[] { 1 };
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6255,7 +6242,7 @@ public class Cls
         var x = int y++;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6284,7 +6271,7 @@ public class Cls
         var x = ++ int y;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6319,7 +6306,7 @@ public class Cls
         var x = await int y = 2;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6348,7 +6335,7 @@ public class Cls
         var x = 3 + int y = 2;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6378,7 +6365,7 @@ public class Cls
         var x = y ?? int[] z = { 1 };
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6427,7 +6414,7 @@ class C
                    };
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation).VerifyDiagnostics();
 
@@ -6449,7 +6436,7 @@ class C
         Func<int, bool> b = key => new Dictionary<int, int>().TryGetValue(key, out int value);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation).VerifyDiagnostics();
 
@@ -6476,7 +6463,7 @@ class C
         Console.WriteLine(w); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6511,7 +6498,7 @@ class C
         Console.WriteLine(z); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6542,7 +6529,7 @@ class C
         System.Console.WriteLine(y); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
 
@@ -6569,7 +6556,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"{ x1 = 41, x2 = False }
 { x1 = 42, x2 = True }
@@ -6595,7 +6582,7 @@ class C
         System.Console.WriteLine(y); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6626,7 +6613,7 @@ class C
         System.Console.WriteLine(y); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
 
@@ -6653,7 +6640,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"{ x1 = 41, x2 = False }
 { x1 = 42, x2 = True }
@@ -6679,7 +6666,7 @@ class C
         System.Console.WriteLine(y); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6714,7 +6701,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"{ x1 = 41, x2 = False }
 { x1 = 42, x2 = True }
@@ -6740,7 +6727,7 @@ class C
         System.Console.WriteLine(y); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6773,7 +6760,7 @@ class C
         System.Console.WriteLine(y); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
 
@@ -6800,7 +6787,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"{ x1 = 42, x2 = 42 }").VerifyDiagnostics();
 
@@ -6824,7 +6811,7 @@ class C
         System.Console.WriteLine(y); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6862,7 +6849,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"{ x1 = 42, x2 = 42 }").VerifyDiagnostics();
 
@@ -6886,7 +6873,7 @@ class C
         System.Console.WriteLine(y); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6924,7 +6911,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
 
@@ -6949,7 +6936,7 @@ class C
 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -6984,7 +6971,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"xx
 41
@@ -7011,7 +6998,7 @@ class C
 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -7045,7 +7032,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"{ r = True, y = 42 }").VerifyDiagnostics();
 
@@ -7068,7 +7055,7 @@ class C
         System.Console.WriteLine(y); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -7104,7 +7091,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"42
    42
@@ -7132,7 +7119,7 @@ class C
         System.Console.WriteLine(z); 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -7180,7 +7167,7 @@ class Derived : Base
         //System.Console.WriteLine(""Derived: {0}"", x);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"Base: 123").VerifyDiagnostics();
 
@@ -7214,7 +7201,7 @@ class Derived : Base
         System.Console.WriteLine(""Derived: {0}"", x);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"Derived: 123").VerifyDiagnostics();
             TestSemanticModelAPI(compilation);
@@ -7249,7 +7236,7 @@ class Derived : Base
         System.Console.WriteLine(""Derived: {0}"", x + y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"Base: 123
 Derived: 247").VerifyDiagnostics();
@@ -7280,7 +7267,7 @@ class Base
 class Derived() : Base(int x = 123, x + 1) 
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"Base: 123, 124").VerifyDiagnostics();
 
@@ -7310,7 +7297,7 @@ class Base
 class Derived() : Base(out var x, x) 
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -7349,7 +7336,7 @@ class Derived
         System.Console.WriteLine(""Derived: {0}"", x);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"Derived: 123").VerifyDiagnostics();
             TestSemanticModelAPI(compilation);
@@ -7391,7 +7378,7 @@ class Derived : Base
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -7429,7 +7416,7 @@ class Derived
         System.Console.WriteLine(""Derived: {0}"", x);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -7508,7 +7495,7 @@ struct S : IDisposable
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -7621,7 +7608,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", ++(var y = 2), y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "3 3").VerifyDiagnostics();
         }
@@ -7637,7 +7624,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 2)++, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "2 3").VerifyDiagnostics();
         }
@@ -7653,7 +7640,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", --(var y = 2), y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "1 1").VerifyDiagnostics();
 
@@ -7671,7 +7658,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 2)--, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "2 1").VerifyDiagnostics();
 
@@ -7689,7 +7676,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 2) += 1, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "3 3").VerifyDiagnostics();
 
@@ -7707,7 +7694,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 2) -= 1, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "1 1").VerifyDiagnostics();
 
@@ -7725,7 +7712,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 2) *= 2, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
 
@@ -7743,7 +7730,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 8) /= 2, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
 
@@ -7761,7 +7748,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 8) %= 3, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "2 2").VerifyDiagnostics();
 
@@ -7779,7 +7766,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 7) &= 3, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "3 3").VerifyDiagnostics();
 
@@ -7797,7 +7784,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 2) |= 1, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "3 3").VerifyDiagnostics();
 
@@ -7815,7 +7802,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 7) ^= 3, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
 
@@ -7833,7 +7820,7 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 2) <<= 1, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
 
@@ -7851,14 +7838,14 @@ public class Cls
         System.Console.WriteLine(""{0} {1}"", (var y = 2) >>= 1, y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "1 1").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void InitializationScope_01()
         {
             var text = @"
@@ -7878,14 +7865,14 @@ class Test
     public int z = x;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void InitializationScope_02()
         {
             var text = @"
@@ -7917,14 +7904,14 @@ partial class Test
     public Test(int v){}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101 10 12 11 100 102 101").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void InitializationScope_03()
         {
             var text = @"
@@ -7956,14 +7943,14 @@ partial class Test
     public Test(int v){}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101 10 12 11 100 102 101").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void InitializationScope_04()
         {
             var text = @"
@@ -7995,14 +7982,14 @@ partial class Test
     public Test(int v){}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101 10 12 11 100 102 101").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void InitializationScope_05()
         {
             var text = @"
@@ -8021,14 +8008,14 @@ class Test
     public static int z = x;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void InitializationScope_06()
         {
             var text = @"
@@ -8056,14 +8043,14 @@ partial class Test
     public static int z2 = x;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void InitializationScope_07()
         {
             var text = @"
@@ -8089,14 +8076,14 @@ partial class Test
     public static int z1 = x;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void InitializationScope_08()
         {
             var text = @"
@@ -8124,14 +8111,14 @@ partial class Test
     static Test(){}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void InitializationScope_09()
         {
             var text = @"
@@ -8155,14 +8142,14 @@ partial class Test
     public static int z2 = y;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1000910")]
         public void InitializationScope_10()
         {
             var text = @"
@@ -8185,7 +8172,7 @@ partial class Test
     public static int z2 = x;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
 
@@ -8255,7 +8242,7 @@ partial class Test6(int p = x)
     public int x1 = (int x = 10);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8312,7 +8299,7 @@ partial class Test1
     public int x2 = (int y = 10);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8354,7 +8341,7 @@ partial class Test1() : Base(x, y)
     public int x1 = (int x = 10);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8401,7 +8388,7 @@ partial class Test1
     public int x3 = (int z = 10);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8439,7 +8426,7 @@ partial class Test1() : Base(int x = 10)
     public int x1 = x;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8467,7 +8454,7 @@ partial class Test1(int x)
     public int x1 = (int x = 1);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8495,7 +8482,7 @@ partial class Test1(int x)
     public static int x1 = (int x = 1);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             compilation.VerifyDiagnostics(
                 );
@@ -8519,7 +8506,7 @@ partial class Test1(int x)
     const int x1 = (int x = 1);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8547,7 +8534,7 @@ partial class Test1(int x)
     const decimal x1 = (int x = 1);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8581,7 +8568,7 @@ partial class Test1(int x) : Base(int x = 10)
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8618,7 +8605,7 @@ partial class Test1
     const decimal x8 = (decimal h = 1) + h + (decimal h = 2);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8708,7 +8695,7 @@ partial class Test1
     const decimal x81 = (decimal)h1;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8789,7 +8776,7 @@ partial class Test1
     const decimal x81 = (decimal)h1;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8870,7 +8857,7 @@ partial class Test1
     const decimal x81 = (decimal)h1;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -8951,7 +8938,7 @@ partial class Test1
     const decimal x81 = (decimal)h1;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9032,7 +9019,7 @@ partial class Test1
     const decimal x81 = (decimal)h1;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9113,7 +9100,7 @@ partial class Test1
     const decimal x81 = (decimal)h1;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9194,7 +9181,7 @@ partial class Test1
     const decimal x81 = (decimal)h1;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9323,7 +9310,7 @@ partial class Test1
     const decimal x81 = (decimal)h1;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9505,7 +9492,7 @@ class Test1 : Base
     {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9561,7 +9548,7 @@ class Test1() : Base(
     const decimal x8 = (decimal h = 1);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9629,7 +9616,7 @@ class Test1 : Base
     {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9709,7 +9696,7 @@ class Test1() : Base(
     const decimal x8 = (decimal h = 1);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9788,7 +9775,7 @@ class Test1
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9843,7 +9830,7 @@ class Test1
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9907,7 +9894,7 @@ class Test1() : Base(
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9943,7 +9930,7 @@ class Test1 : Base
     {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -9982,7 +9969,7 @@ class Test1 : Base
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10022,7 +10009,7 @@ class Test() : Base((int x = 10)++, ()=>x, x++)
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11").VerifyDiagnostics();
 
@@ -10059,7 +10046,7 @@ class Test(int x1, System.Func<int> x2, int x3) : Base(x1, x2, x3)
     {}
 }
 "; 
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "100 102 101").VerifyDiagnostics();
 
@@ -10090,7 +10077,7 @@ class Test(int x1, System.Func<int> x2)
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "201 202").VerifyDiagnostics();
 
@@ -10122,7 +10109,7 @@ class Test(int x1)
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "300 301").VerifyDiagnostics();
 
@@ -10157,7 +10144,7 @@ partial class Test1
     static int f4 = y2;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10200,7 +10187,7 @@ partial class Test1(int y1, int y2) : Base(y1, y2)
     static int f2 = y2;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10235,7 +10222,7 @@ class Program
         var x = new Derived();
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"10").VerifyDiagnostics();
 
@@ -10264,7 +10251,7 @@ class Program
         var x = new Derived();
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"11").VerifyDiagnostics();
 
@@ -10297,7 +10284,7 @@ class Program
         var x = new Derived(9);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"9
 10
@@ -10325,7 +10312,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10361,7 +10348,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10395,7 +10382,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10426,7 +10413,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10464,7 +10451,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10499,7 +10486,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10544,7 +10531,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10609,7 +10596,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10686,7 +10673,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10745,7 +10732,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10814,7 +10801,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10875,7 +10862,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -10930,7 +10917,7 @@ public class Cls
 
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"1
 13
@@ -11018,7 +11005,7 @@ public class Cls
             System.Console.WriteLine((int e1 = 1) + (int e1 = 1));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -11097,7 +11084,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
@@ -11125,7 +11112,7 @@ public class C
 
     int P { get { return (int x = 10) + x / 2; } }
 }";
-            var comp = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
             comp.VerifyDiagnostics();
             TestSemanticModelAPI(comp);
         }
@@ -11153,7 +11140,7 @@ public class Cls
         return 543;
     } 
 }";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: @"15
 643").VerifyDiagnostics();
@@ -11175,13 +11162,12 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             compilation.VerifyEmitDiagnostics(
-    // (8,42): error CS8046: An expression tree may not contain a Declaration Expression.
-    //         Expression<Func<int>> e = () => (int x = 1) * x;
-    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDeclarationExpression, "int x = 1").WithLocation(8, 42)
-                );
+                // (8,42): error CS8046: An expression tree may not contain a Declaration Expression.
+                //         Expression<Func<int>> e = () => (int x = 1) * x;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDeclarationExpression, "int x = 1").WithLocation(8, 42));
 
             TestSemanticModelAPI(compilation);
         }
@@ -11198,13 +11184,12 @@ struct S
     S(Expression<Action> e) { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             compilation.VerifyEmitDiagnostics(
-    // (6,28): error CS8046: An expression tree may not contain a Declaration Expression.
-    //     S(int a) : this(() => (S s).GetType()) { }
-    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDeclarationExpression, "S s").WithLocation(6, 28)
-                );
+                // (6,28): error CS8046: An expression tree may not contain a Declaration Expression.
+                //     S(int a) : this(() => (S s).GetType()) { }
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDeclarationExpression, "S s").WithLocation(6, 28));
 
             TestSemanticModelAPI(compilation);
         }
@@ -11221,14 +11206,13 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,24): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
-    //         fixed(int* p = &(int x = 1)) { }
-    Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&(int x = 1)").WithLocation(6, 24)
-                );
+                // (6,24): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed(int* p = &(int x = 1)) { }
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&(int x = 1)").WithLocation(6, 24));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -11246,14 +11230,13 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,18): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
-    //         int* p = &(int x = 1);
-    Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&(int x = 1)").WithArguments("x").WithLocation(6, 18)
-                );
+                // (6,18): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //         int* p = &(int x = 1);
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&(int x = 1)").WithArguments("x").WithLocation(6, 18));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
@@ -11272,17 +11255,40 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (6,13): warning CS1718: Comparison made to same variable; did you mean to compare something else?
-    //         if ((int x =1) == x){}
-    Diagnostic(ErrorCode.WRN_ComparisonToSelf, "(int x =1) == x").WithLocation(6, 13),
-    // (8,9): warning CS1717: Assignment made to same variable; did you mean to assign something else?
-    //         (int y =1) = y;
-    Diagnostic(ErrorCode.WRN_AssignmentToSelf, "(int y =1) = y").WithLocation(8, 9)
-                );
+                // (6,13): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+                //         if ((int x =1) == x){}
+                Diagnostic(ErrorCode.WRN_ComparisonToSelf, "(int x =1) == x").WithLocation(6, 13),
+                // (8,9): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (int y =1) = y;
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "(int y =1) = y").WithLocation(8, 9));
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact, WorkItem(915614, "DevDiv"), WorkItem(21, "CodePlex")]
+        public void Bug915614()
+        {
+            var text = @"
+using System.Collections.Generic;
+class C
+{
+    static void Main()
+    {
+        var x = List<int> y;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+                // (7,17): error CS0165: Use of unassigned local variable 'y'
+                //         var x = List<int> y;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "List<int> y").WithArguments("y").WithLocation(7, 17));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }

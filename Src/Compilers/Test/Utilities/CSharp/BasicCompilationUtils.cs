@@ -41,12 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private sealed class BasicTestBase : CommonTestBase
         {
-            protected override CompilationOptions DefaultCompilationOptions
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            protected override CompilationOptions OptionsDll
+            protected override CompilationOptions CompilationOptionsReleaseDll
             {
                 get { throw new NotImplementedException(); }
             }

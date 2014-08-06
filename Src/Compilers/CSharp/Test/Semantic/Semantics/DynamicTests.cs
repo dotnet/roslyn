@@ -3,7 +3,6 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
@@ -28,7 +27,7 @@ public unsafe class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,20): error CS0029: Cannot implicitly convert type 'dynamic' to 'void*'
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("dynamic", "void*"),
                 // (8,19): error CS0030: Cannot convert type 'dynamic' to 'int*'
@@ -586,7 +585,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "&d").WithArguments("dynamic"),
                 // (10,15): error CS0193: The * or -> operator must be applied to a pointer
@@ -798,7 +797,7 @@ class C
     static void Main() {}
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeExe);
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (11,13): error CS0019: Operator '%' cannot be applied to operands of type 'method group' and 'dynamic'
                 //             M % d1,
@@ -1143,7 +1142,7 @@ public unsafe class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (11,17): error CS0172: Type of conditional expression cannot be determined because 'dynamic[]' and 'object[]' implicitly convert to one another
                 Diagnostic(ErrorCode.ERR_AmbigQM, "s1 ? d1 : s2").WithArguments("dynamic[]", "object[]"),
                 // (12,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'method group'
@@ -1179,7 +1178,7 @@ class C
     static void Main() {}
 }";
 
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeExe);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (8,23): error CS0307: The property 'N' cannot be used with type arguments
                 //         object x = d1.N<int>; 
@@ -1481,7 +1480,7 @@ public class C<T>
 }
 ";
             // Dev11 reports error CS0411: The type arguments for method 'Program.Bar<T>(C<T>.E*[])' cannot be inferred from the usage.
-            CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1740,7 +1739,7 @@ unsafe public class C<X>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeDll);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
 
             var c = compilation.GlobalNamespace.GetMember<TypeSymbol>("C");
@@ -1924,7 +1923,7 @@ public class D<T>
     public enum E { A } 
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,18): error CS1503: Argument 1: cannot convert from 'int' to 'System.Action<D<object>.E*[]>'
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "System.Action<D<object>.E*[]>"));
         }
@@ -1954,7 +1953,7 @@ public unsafe class C
     }
 } 
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (14,9): error CS1656: Cannot assign to 'M' because it is a 'method group'
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "M").WithArguments("M", "method group"),
                 // (15,9): error CS0019: Operator '+=' cannot be applied to operands of type 'dynamic' and 'method group'
@@ -2340,7 +2339,7 @@ unsafe class X
     }
 } 
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (14,17): error CS0428: Cannot convert method group 'M' to non-delegate type 'dynamic'. Did you intend to invoke the method?
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "dynamic"),
                 // (15,17): error CS0029: Cannot implicitly convert type 'int*' to 'dynamic'
@@ -2378,7 +2377,7 @@ unsafe class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (15,17): error CS1976: Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgMemgrp, "M"),
                 // (16,17): error CS1978: Cannot use an expression of type 'int*' as an argument to a dynamically dispatched operation.

@@ -30,7 +30,7 @@ class Program
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll, "Program.Main");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "Program.Main");
 
             string expected = @"
 <symbols>
@@ -85,7 +85,7 @@ class C
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll, "C.Method");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "C.Method");
             string expected = @"
 <symbols>
   <methods>
@@ -175,7 +175,7 @@ class Program
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -260,7 +260,7 @@ class C
         return g(f)(null);
     };
 }";
-            string actual = GetPdbXml(source, TestOptions.Dll.WithOptimizations(false).WithDebugInformationKind(DebugInformationKind.Full));
+            string actual = GetPdbXml(source, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -372,7 +372,7 @@ class C
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll, "C.Method");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "C.Method");
             string expected = @"
 <symbols>
   <methods>
@@ -382,48 +382,58 @@ class C
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""21"">
+      <sequencepoints total=""23"">
         <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""23"" file_ref=""0"" />
         <entry il_offset=""0x3"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""15"" file_ref=""0"" />
-        <entry il_offset=""0x6"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""9"" start_column=""13"" end_row=""9"" end_column=""31"" file_ref=""0"" />
-        <entry il_offset=""0xd"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""41"" file_ref=""0"" />
-        <entry il_offset=""0x14"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x17"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x18"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""32"" file_ref=""0"" />
-        <entry il_offset=""0x1e"" start_row=""15"" start_column=""13"" end_row=""15"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x20"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x22"" start_row=""18"" start_column=""13"" end_row=""18"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x23"" start_row=""19"" start_column=""17"" end_row=""19"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0x26"" start_row=""19"" start_column=""28"" end_row=""19"" end_column=""33"" file_ref=""0"" />
-        <entry il_offset=""0x29"" start_row=""20"" start_column=""17"" end_row=""20"" end_column=""45"" file_ref=""0"" />
-        <entry il_offset=""0x31"" start_row=""21"" start_column=""17"" end_row=""21"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x37"" start_row=""22"" start_column=""13"" end_row=""22"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x38"" start_row=""17"" start_column=""13"" end_row=""17"" end_column=""28"" file_ref=""0"" />
-        <entry il_offset=""0x3d"" start_row=""24"" start_column=""13"" end_row=""24"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x41"" start_row=""25"" start_column=""9"" end_row=""25"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x42"" start_row=""26"" start_column=""5"" end_row=""26"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x5"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x8"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x9"" start_row=""9"" start_column=""13"" end_row=""9"" end_column=""31"" file_ref=""0"" />
+        <entry il_offset=""0xf"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""41"" file_ref=""0"" />
+        <entry il_offset=""0x16"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x19"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x1a"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""32"" file_ref=""0"" />
+        <entry il_offset=""0x20"" start_row=""15"" start_column=""13"" end_row=""15"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x23"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x25"" start_row=""18"" start_column=""13"" end_row=""18"" end_column=""14"" file_ref=""0"" />
+        <entry il_offset=""0x26"" start_row=""19"" start_column=""17"" end_row=""19"" end_column=""26"" file_ref=""0"" />
+        <entry il_offset=""0x2a"" start_row=""19"" start_column=""28"" end_row=""19"" end_column=""33"" file_ref=""0"" />
+        <entry il_offset=""0x2d"" start_row=""20"" start_column=""17"" end_row=""20"" end_column=""45"" file_ref=""0"" />
+        <entry il_offset=""0x35"" start_row=""21"" start_column=""17"" end_row=""21"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x3c"" start_row=""22"" start_column=""13"" end_row=""22"" end_column=""14"" file_ref=""0"" />
+        <entry il_offset=""0x3d"" start_row=""17"" start_column=""13"" end_row=""17"" end_column=""28"" file_ref=""0"" />
+        <entry il_offset=""0x45"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x49"" start_row=""24"" start_column=""13"" end_row=""24"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x4f"" start_row=""25"" start_column=""9"" end_row=""25"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x50"" start_row=""26"" start_column=""5"" end_row=""26"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""b"" il_index=""0"" il_start=""0x0"" il_end=""0x43"" attributes=""0"" />
-        <local name=""s"" il_index=""1"" il_start=""0x6"" il_end=""0x15"" attributes=""0"" />
-        <local name=""s"" il_index=""2"" il_start=""0x17"" il_end=""0x42"" attributes=""0"" />
-        <local name=""i"" il_index=""3"" il_start=""0x17"" il_end=""0x42"" attributes=""0"" />
-        <local name=""j"" il_index=""4"" il_start=""0x22"" il_end=""0x38"" attributes=""0"" />
-        <local name=""k"" il_index=""5"" il_start=""0x22"" il_end=""0x38"" attributes=""0"" />
+        <local name=""b"" il_index=""0"" il_start=""0x0"" il_end=""0x51"" attributes=""0"" />
+        <local name=""CS$4$0000"" il_index=""1"" il_start=""0x3"" il_end=""0x8"" attributes=""1"" />
+        <local name=""s"" il_index=""2"" il_start=""0x8"" il_end=""0x17"" attributes=""0"" />
+        <local name=""s"" il_index=""3"" il_start=""0x19"" il_end=""0x50"" attributes=""0"" />
+        <local name=""i"" il_index=""4"" il_start=""0x19"" il_end=""0x50"" attributes=""0"" />
+        <local name=""j"" il_index=""5"" il_start=""0x25"" il_end=""0x3d"" attributes=""0"" />
+        <local name=""k"" il_index=""6"" il_start=""0x25"" il_end=""0x3d"" attributes=""0"" />
+        <local name=""CS$4$0001"" il_index=""7"" il_start=""0x3d"" il_end=""0x49"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x43"">
-        <local name=""b"" il_index=""0"" il_start=""0x0"" il_end=""0x43"" attributes=""0"" />
-        <scope startOffset=""0x6"" endOffset=""0x15"">
-          <local name=""s"" il_index=""1"" il_start=""0x6"" il_end=""0x15"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x51"">
+        <local name=""b"" il_index=""0"" il_start=""0x0"" il_end=""0x51"" attributes=""0"" />
+        <scope startOffset=""0x3"" endOffset=""0x8"">
+          <local name=""CS$4$0000"" il_index=""1"" il_start=""0x3"" il_end=""0x8"" attributes=""1"" />
         </scope>
-        <scope startOffset=""0x17"" endOffset=""0x42"">
-          <local name=""s"" il_index=""2"" il_start=""0x17"" il_end=""0x42"" attributes=""0"" />
-          <local name=""i"" il_index=""3"" il_start=""0x17"" il_end=""0x42"" attributes=""0"" />
-          <scope startOffset=""0x22"" endOffset=""0x38"">
-            <local name=""j"" il_index=""4"" il_start=""0x22"" il_end=""0x38"" attributes=""0"" />
-            <local name=""k"" il_index=""5"" il_start=""0x22"" il_end=""0x38"" attributes=""0"" />
+        <scope startOffset=""0x8"" endOffset=""0x17"">
+          <local name=""s"" il_index=""2"" il_start=""0x8"" il_end=""0x17"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0x19"" endOffset=""0x50"">
+          <local name=""s"" il_index=""3"" il_start=""0x19"" il_end=""0x50"" attributes=""0"" />
+          <local name=""i"" il_index=""4"" il_start=""0x19"" il_end=""0x50"" attributes=""0"" />
+          <scope startOffset=""0x25"" endOffset=""0x3d"">
+            <local name=""j"" il_index=""5"" il_start=""0x25"" il_end=""0x3d"" attributes=""0"" />
+            <local name=""k"" il_index=""6"" il_start=""0x25"" il_end=""0x3d"" attributes=""0"" />
+          </scope>
+          <scope startOffset=""0x3d"" endOffset=""0x49"">
+            <local name=""CS$4$0001"" il_index=""7"" il_start=""0x3d"" il_end=""0x49"" attributes=""1"" />
           </scope>
         </scope>
       </scope>
@@ -480,7 +490,7 @@ public class SeqPointForWhile
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Exe);
+            string actual = GetPdbXml(text, TestOptions.ReleaseExe);
 
             // Offset 0x01 should be:
             //  <entry il_offset=""0x1"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
@@ -498,56 +508,41 @@ public class SeqPointForWhile
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""55"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0x13"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0"" />
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""55"" file_ref=""0"" />
+        <entry il_offset=""0x5"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""24"" file_ref=""0"" />
+        <entry il_offset=""0xf"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
-      <locals>
-        <local name=""obj"" il_index=""0"" il_start=""0x0"" il_end=""0x14"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x14"">
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x10"">
         <namespace name=""System"" />
-        <local name=""obj"" il_index=""0"" il_start=""0x0"" il_end=""0x14"" attributes=""0"" />
       </scope>
     </method>
     <method containingType=""SeqPointForWhile"" name=""While"" parameterNames=""p"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""SeqPointForWhile"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
-      <sequencepoints total=""20"">
-        <entry il_offset=""0x0"" start_row=""13"" start_column=""5"" end_row=""13"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x3"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x4"" start_row=""16"" start_column=""13"" end_row=""16"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0x9"" start_row=""18"" start_column=""13"" end_row=""18"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0xe"" start_row=""19"" start_column=""13"" end_row=""19"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0xf"" start_row=""20"" start_column=""17"" end_row=""20"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0x11"" start_row=""22"" start_column=""18"" end_row=""22"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x16"" start_row=""23"" start_column=""13"" end_row=""23"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x17"" start_row=""24"" start_column=""17"" end_row=""24"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x19"" start_row=""25"" start_column=""17"" end_row=""25"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x20"" start_row=""26"" start_column=""13"" end_row=""26"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x23"" start_row=""28"" start_column=""13"" end_row=""28"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x24"" start_row=""29"" start_column=""17"" end_row=""29"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x26"" start_row=""30"" start_column=""17"" end_row=""30"" end_column=""38"" file_ref=""0"" />
-        <entry il_offset=""0x2d"" start_row=""31"" start_column=""17"" end_row=""31"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x2f"" start_row=""33"" start_column=""9"" end_row=""33"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x30"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""22"" file_ref=""0"" />
-        <entry il_offset=""0x34"" start_row=""34"" start_column=""9"" end_row=""34"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x3b"" start_row=""35"" start_column=""5"" end_row=""35"" end_column=""6"" file_ref=""0"" />
+      <sequencepoints total=""13"">
+        <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x2"" start_row=""16"" start_column=""13"" end_row=""16"" end_column=""30"" file_ref=""0"" />
+        <entry il_offset=""0x7"" start_row=""18"" start_column=""13"" end_row=""18"" end_column=""25"" file_ref=""0"" />
+        <entry il_offset=""0xc"" start_row=""22"" start_column=""18"" end_row=""22"" end_column=""29"" file_ref=""0"" />
+        <entry il_offset=""0x11"" start_row=""24"" start_column=""17"" end_row=""24"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x13"" start_row=""25"" start_column=""17"" end_row=""25"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x1a"" start_row=""26"" start_column=""13"" end_row=""26"" end_column=""14"" file_ref=""0"" />
+        <entry il_offset=""0x1c"" start_row=""29"" start_column=""17"" end_row=""29"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x1d"" start_row=""30"" start_column=""17"" end_row=""30"" end_column=""38"" file_ref=""0"" />
+        <entry il_offset=""0x22"" start_row=""31"" start_column=""17"" end_row=""31"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x24"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""22"" file_ref=""0"" />
+        <entry il_offset=""0x28"" start_row=""34"" start_column=""9"" end_row=""34"" end_column=""20"" file_ref=""0"" />
+        <entry il_offset=""0x2f"" start_row=""35"" start_column=""5"" end_row=""35"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""x"" il_index=""0"" il_start=""0x16"" il_end=""0x21"" attributes=""0"" />
-        <local name=""x"" il_index=""1"" il_start=""0x23"" il_end=""0x2f"" attributes=""0"" />
+        <local name=""x"" il_index=""0"" il_start=""0x11"" il_end=""0x1a"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x3c"">
-        <scope startOffset=""0x16"" endOffset=""0x21"">
-          <local name=""x"" il_index=""0"" il_start=""0x16"" il_end=""0x21"" attributes=""0"" />
-        </scope>
-        <scope startOffset=""0x23"" endOffset=""0x2f"">
-          <local name=""x"" il_index=""1"" il_start=""0x23"" il_end=""0x2f"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x30"">
+        <scope startOffset=""0x11"" endOffset=""0x1a"">
+          <local name=""x"" il_index=""0"" il_start=""0x11"" il_end=""0x1a"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -727,7 +722,7 @@ public class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Exe);
+            string actual = GetPdbXml(text, TestOptions.ReleaseExe);
 
             // Sequence points:
             // 1) Open brace at start of method
@@ -752,27 +747,16 @@ public class C
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""11"">
-        <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""16"" file_ref=""0"" />
-        <entry il_offset=""0x2"" start_row=""6"" start_column=""27"" end_row=""6"" end_column=""34"" file_ref=""0"" />
-        <entry il_offset=""0xa"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xc"" start_row=""6"" start_column=""18"" end_row=""6"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x14"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x15"" start_row=""8"" start_column=""13"" end_row=""8"" end_column=""41"" file_ref=""0"" />
-        <entry il_offset=""0x1c"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1d"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x21"" start_row=""6"" start_column=""24"" end_row=""6"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0x2a"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
+      <sequencepoints total=""7"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""27"" end_row=""6"" end_column=""34"" file_ref=""0"" />
+        <entry il_offset=""0x8"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xa"" start_row=""6"" start_column=""18"" end_row=""6"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x11"" start_row=""8"" start_column=""13"" end_row=""8"" end_column=""41"" file_ref=""0"" />
+        <entry il_offset=""0x16"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x1a"" start_row=""6"" start_column=""24"" end_row=""6"" end_column=""26"" file_ref=""0"" />
+        <entry il_offset=""0x23"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
-      <locals>
-        <local name=""c"" il_index=""2"" il_start=""0xc"" il_end=""0x1d"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x2b"">
-        <scope startOffset=""0xc"" endOffset=""0x1d"">
-          <local name=""c"" il_index=""2"" il_start=""0xc"" il_end=""0x1d"" attributes=""0"" />
-        </scope>
-      </scope>
+      <locals />
     </method>
   </methods>
 </symbols>";
@@ -1190,7 +1174,7 @@ class Program
 }
 ";
             // we just want this to compile without crashing/asserting
-            string actual = GetPdbXml(source, TestOptions.Exe.WithOptimizations(true));
+            string actual = GetPdbXml(source, TestOptions.ReleaseExe.WithOptimizations(true));
         }
 
         #endregion
@@ -1349,7 +1333,7 @@ public class SeqPointForWhile
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
 
             // Dev10 vs. Roslyn
             // 
@@ -1445,7 +1429,7 @@ class D
     public D() : [|base()|]
     {
     }
-}", TestOptions.Dll);
+}", TestOptions.DebugDll);
 
             TestSequencePoints(
 @"using System;
@@ -1455,7 +1439,7 @@ class D
     static D()
     [|{|]
     }
-}", TestOptions.Dll);
+}", TestOptions.DebugDll);
 
             TestSequencePoints(
 @"using System;
@@ -1466,7 +1450,7 @@ class D
     public D() : [|base()|]
     {
     }
-}", TestOptions.Dll);
+}", TestOptions.DebugDll);
 
             TestSequencePoints(
 @"using System;
@@ -1478,7 +1462,7 @@ class D
         : [|base()|]
     {
     }
-}", TestOptions.Dll);
+}", TestOptions.DebugDll);
 
             TestSequencePoints(
 @"using System;
@@ -1491,7 +1475,7 @@ class D
     [|public D()|]
     {
     }
-}", TestOptions.Dll);
+}", TestOptions.DebugDll);
         }
 
         #endregion
@@ -1520,7 +1504,7 @@ public class Derived : Base
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -1581,7 +1565,7 @@ class C
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -2015,7 +1999,7 @@ public partial class C
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
             //So it's probably a good idea to have a new name for each assembly.
-            var compilation = CreateCompilationWithMscorlib(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs"), Parse(text3, "a.cs") }, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs"), Parse(text3, "a.cs") }, options: TestOptions.DebugDll);
 
             string actual = GetPdbXml(compilation, "C..ctor");
 
@@ -2075,7 +2059,7 @@ class C
     int x = ((System.Func<int, int>)(z => z))(1);
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -2113,7 +2097,7 @@ class C
     int x = 1, y = 2;
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -2150,7 +2134,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithDebugInformationKind(DebugInformationKind.Full));
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             string actual = GetPdbXml(comp);
 
             string expected = @"
@@ -2206,7 +2190,7 @@ public class C
 public class C
 {
     int P { [|get;|] set; }
-}", TestOptions.Dll);
+}", TestOptions.DebugDll);
 
             TestSequencePoints(
 @"using System;
@@ -2214,7 +2198,7 @@ public class C
 public class C
 {
     int P { get; [|set;|] }
-}", TestOptions.Dll);
+}", TestOptions.DebugDll);
 
             TestSequencePoints(
 @"using System;
@@ -2222,7 +2206,7 @@ public class C
 public class C
 {
     int P { get [|{|] return 0; } }
-}", TestOptions.Dll);
+}", TestOptions.DebugDll);
 
             TestSequencePoints(
 @"using System;
@@ -2230,7 +2214,7 @@ public class C
 public class C
 {
     int P { get; } = [|int.Parse(""42"")|];
-}", TestOptions.Dll, TestOptions.ExperimentalParseOptions);
+}", TestOptions.DebugDll, TestOptions.ExperimentalParseOptions);
         }
 
         #endregion
@@ -2248,7 +2232,7 @@ public class C
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll, "C.Main");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "C.Main");
             string expected = @"
 <symbols>
   <methods>
@@ -2282,7 +2266,7 @@ public class C
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll, "C.Main");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "C.Main");
             string expected = @"
 <symbols>
   <methods>
@@ -2364,7 +2348,7 @@ public class SeqPointAfterReturn
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
 
             // Expected are current actual output plus Two extra expected SeqPt:
             //  <entry il_offset=""0x73"" start_row=""25"" start_column=""5"" end_row=""25"" end_column=""6"" file_ref=""0"" />
@@ -2380,76 +2364,106 @@ public class SeqPointAfterReturn
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""16"">
+      <sequencepoints total=""20"">
         <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""21"" file_ref=""0"" />
         <entry il_offset=""0x3"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""25"" file_ref=""0"" />
         <entry il_offset=""0xb"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x1c"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x1e"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0x26"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""28"" file_ref=""0"" />
-        <entry il_offset=""0x37"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x3b"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""40"" file_ref=""0"" />
-        <entry il_offset=""0x43"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x50"" start_row=""18"" start_column=""13"" end_row=""18"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x54"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""33"" file_ref=""0"" />
-        <entry il_offset=""0x5c"" start_row=""21"" start_column=""9"" end_row=""21"" end_column=""28"" file_ref=""0"" />
-        <entry il_offset=""0x69"" start_row=""22"" start_column=""13"" end_row=""22"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x6d"" start_row=""24"" start_column=""9"" end_row=""24"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x71"" start_row=""25"" start_column=""5"" end_row=""25"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x1e"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x20"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""24"" file_ref=""0"" />
+        <entry il_offset=""0x28"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""28"" file_ref=""0"" />
+        <entry il_offset=""0x38"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x3b"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x3f"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""40"" file_ref=""0"" />
+        <entry il_offset=""0x47"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x54"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x58"" start_row=""18"" start_column=""13"" end_row=""18"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x5c"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""33"" file_ref=""0"" />
+        <entry il_offset=""0x64"" start_row=""21"" start_column=""9"" end_row=""21"" end_column=""28"" file_ref=""0"" />
+        <entry il_offset=""0x71"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x75"" start_row=""22"" start_column=""13"" end_row=""22"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x79"" start_row=""24"" start_column=""9"" end_row=""24"" end_column=""20"" file_ref=""0"" />
+        <entry il_offset=""0x7e"" start_row=""25"" start_column=""5"" end_row=""25"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""ret"" il_index=""0"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
-        <local name=""rets"" il_index=""1"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
+        <local name=""ret"" il_index=""0"" il_start=""0x0"" il_end=""0x81"" attributes=""0"" />
+        <local name=""rets"" il_index=""1"" il_start=""0x0"" il_end=""0x81"" attributes=""0"" />
+        <local name=""CS$4$0000"" il_index=""2"" il_start=""0xb"" il_end=""0x1e"" attributes=""1"" />
+        <local name=""CS$4$0001"" il_index=""3"" il_start=""0x28"" il_end=""0x3b"" attributes=""1"" />
+        <local name=""CS$4$0002"" il_index=""4"" il_start=""0x47"" il_end=""0x58"" attributes=""1"" />
+        <local name=""CS$4$0003"" il_index=""5"" il_start=""0x64"" il_end=""0x75"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x73"">
+      <scope startOffset=""0x0"" endOffset=""0x81"">
         <namespace name=""System"" />
-        <local name=""ret"" il_index=""0"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
-        <local name=""rets"" il_index=""1"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
+        <local name=""ret"" il_index=""0"" il_start=""0x0"" il_end=""0x81"" attributes=""0"" />
+        <local name=""rets"" il_index=""1"" il_start=""0x0"" il_end=""0x81"" attributes=""0"" />
+        <scope startOffset=""0xb"" endOffset=""0x1e"">
+          <local name=""CS$4$0000"" il_index=""2"" il_start=""0xb"" il_end=""0x1e"" attributes=""1"" />
+        </scope>
+        <scope startOffset=""0x28"" endOffset=""0x3b"">
+          <local name=""CS$4$0001"" il_index=""3"" il_start=""0x28"" il_end=""0x3b"" attributes=""1"" />
+        </scope>
+        <scope startOffset=""0x47"" endOffset=""0x58"">
+          <local name=""CS$4$0002"" il_index=""4"" il_start=""0x47"" il_end=""0x58"" attributes=""1"" />
+        </scope>
+        <scope startOffset=""0x64"" endOffset=""0x75"">
+          <local name=""CS$4$0003"" il_index=""5"" il_start=""0x64"" il_end=""0x75"" attributes=""1"" />
+        </scope>
       </scope>
     </method>
     <method containingType=""SeqPointAfterReturn"" name=""ReturnVoid"" parameterNames=""p"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""SeqPointAfterReturn"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
-      <sequencepoints total=""10"">
+      <sequencepoints total=""11"">
         <entry il_offset=""0x0"" start_row=""29"" start_column=""5"" end_row=""29"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1"" start_row=""30"" start_column=""9"" end_row=""30"" end_column=""30"" file_ref=""0"" />
         <entry il_offset=""0x5"" start_row=""31"" start_column=""9"" end_row=""31"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""32"" start_column=""9"" end_row=""32"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x9"" start_row=""33"" start_column=""13"" end_row=""33"" end_column=""28"" file_ref=""0"" />
-        <entry il_offset=""0x13"" start_row=""34"" start_column=""9"" end_row=""34"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x16"" start_row=""36"" start_column=""9"" end_row=""36"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x17"" start_row=""37"" start_column=""13"" end_row=""37"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x21"" start_row=""38"" start_column=""9"" end_row=""38"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x22"" start_row=""39"" start_column=""5"" end_row=""39"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0xa"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xd"" start_row=""32"" start_column=""9"" end_row=""32"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0xe"" start_row=""33"" start_column=""13"" end_row=""33"" end_column=""28"" file_ref=""0"" />
+        <entry il_offset=""0x18"" start_row=""34"" start_column=""9"" end_row=""34"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x1b"" start_row=""36"" start_column=""9"" end_row=""36"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x1c"" start_row=""37"" start_column=""13"" end_row=""37"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x26"" start_row=""38"" start_column=""9"" end_row=""38"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x27"" start_row=""39"" start_column=""5"" end_row=""39"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
+        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x28"" attributes=""0"" />
+        <local name=""CS$4$0000"" il_index=""1"" il_start=""0x5"" il_end=""0xd"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x23"">
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x28"">
+        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x28"" attributes=""0"" />
+        <scope startOffset=""0x5"" endOffset=""0xd"">
+          <local name=""CS$4$0000"" il_index=""1"" il_start=""0x5"" il_end=""0xd"" attributes=""1"" />
+        </scope>
       </scope>
     </method>
     <method containingType=""SeqPointAfterReturn"" name=""ReturnValue"" parameterNames=""p"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""SeqPointAfterReturn"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
-      <sequencepoints total=""8"">
+      <sequencepoints total=""9"">
         <entry il_offset=""0x0"" start_row=""42"" start_column=""5"" end_row=""42"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1"" start_row=""43"" start_column=""9"" end_row=""43"" end_column=""30"" file_ref=""0"" />
         <entry il_offset=""0x5"" start_row=""44"" start_column=""9"" end_row=""44"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""45"" start_column=""9"" end_row=""45"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x9"" start_row=""46"" start_column=""13"" end_row=""46"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x11"" start_row=""49"" start_column=""9"" end_row=""49"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x12"" start_row=""50"" start_column=""13"" end_row=""50"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0x1a"" start_row=""52"" start_column=""5"" end_row=""52"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0xa"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xd"" start_row=""45"" start_column=""9"" end_row=""45"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0xe"" start_row=""46"" start_column=""13"" end_row=""46"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x16"" start_row=""49"" start_column=""9"" end_row=""49"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x17"" start_row=""50"" start_column=""13"" end_row=""50"" end_column=""26"" file_ref=""0"" />
+        <entry il_offset=""0x1f"" start_row=""52"" start_column=""5"" end_row=""52"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
+        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
+        <local name=""CS$4$0000"" il_index=""1"" il_start=""0x5"" il_end=""0xd"" attributes=""1"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x1c"">
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x21"">
+        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
+        <scope startOffset=""0x5"" endOffset=""0xd"">
+          <local name=""CS$4$0000"" il_index=""1"" il_start=""0x5"" il_end=""0xd"" attributes=""1"" />
+        </scope>
       </scope>
     </method>
   </methods>
@@ -2497,7 +2511,7 @@ class Test
             // the exception object is assigned to the variable. We don't place that sequence point.
             // Also the scope of he exception variable is different.
 
-            string actual = GetPdbXml(text, TestOptions.Dll, "Test.Main");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "Test.Main");
             string expected = @"
 <symbols>
   <methods>
@@ -2560,7 +2574,7 @@ class Test
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll, "Test.Main");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "Test.Main");
             string expected = @"
 <symbols>
   <methods>
@@ -2622,7 +2636,7 @@ class Test
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll, "Test.Main");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "Test.Main");
             string expected = @"
 <symbols>
   <methods>
@@ -2773,7 +2787,7 @@ class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll, "C.Main");
+            string actual = GetPdbXml(text, TestOptions.DebugDll, "C.Main");
             string expected = @"
 <symbols>
   <methods>
@@ -2906,7 +2920,7 @@ class Program
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -2946,7 +2960,7 @@ class Program
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.Dll);
+            string actual = GetPdbXml(text, TestOptions.DebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -2999,7 +3013,7 @@ unsafe class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.UnsafeExe.WithOptimizations(false));
+            string actual = GetPdbXml(text, TestOptions.UnsafeDebugExe);
             string expected = @"
 <symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" parameterNames="""" />
@@ -3056,7 +3070,7 @@ unsafe class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
+            string actual = GetPdbXml(text, TestOptions.UnsafeDebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -3115,7 +3129,7 @@ unsafe class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.UnsafeExe.WithOptimizations(false));
+            string actual = GetPdbXml(text, TestOptions.UnsafeDebugExe);
             string expected = @"
 <symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" parameterNames="""" />
@@ -3189,7 +3203,7 @@ unsafe class C
 }
 ";
             // NOTE: stop on each declarator.
-            string actual = GetPdbXml(text, TestOptions.UnsafeExe.WithOptimizations(false));
+            string actual = GetPdbXml(text, TestOptions.UnsafeDebugExe);
             string expected = @"
 <symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" parameterNames="""" />
@@ -3252,7 +3266,7 @@ unsafe class C
 }
 ";
             // NOTE: stop on each declarator.
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
+            string actual = GetPdbXml(text, TestOptions.UnsafeDebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -3321,7 +3335,7 @@ unsafe class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.UnsafeExe.WithOptimizations(false));
+            string actual = GetPdbXml(text, TestOptions.UnsafeDebugExe);
             string expected = @"
 <symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" parameterNames="""" />
@@ -3401,7 +3415,7 @@ unsafe class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
+            string actual = GetPdbXml(text, TestOptions.UnsafeDebugDll);
             string expected = @"
 <symbols>
   <methods>
@@ -3479,7 +3493,7 @@ unsafe class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.UnsafeExe.WithOptimizations(false));
+            string actual = GetPdbXml(text, TestOptions.UnsafeDebugExe);
             string expected = @"
 <symbols>
   <files>
@@ -3528,7 +3542,7 @@ unsafe class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.UnsafeExe.WithOptimizations(false));
+            string actual = GetPdbXml(text, TestOptions.UnsafeDebugExe);
             string expected = @"
 <symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" parameterNames="""" />
@@ -3584,7 +3598,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text1, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(text1, options: TestOptions.DebugDll);
 
             string actual = GetPdbXml(compilation, "C.Foo");
 
@@ -3610,39 +3624,57 @@ public class C
         <entry il_offset=""0x29"" start_row=""7"" start_column=""24"" end_row=""7"" end_column=""26"" file_ref=""0"" />
         <entry il_offset=""0x2f"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x30"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x44"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x46"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x4a"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x4b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x52"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x53"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x45"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x47"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x4d"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x4e"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x56"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x57"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x5d"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""16"" file_ref=""0"" />
-        <entry il_offset=""0x5e"" start_row=""19"" start_column=""27"" end_row=""19"" end_column=""51"" file_ref=""0"" />
-        <entry il_offset=""0x72"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x74"" start_row=""19"" start_column=""18"" end_row=""19"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x79"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x7a"" start_row=""21"" start_column=""13"" end_row=""21"" end_column=""34"" file_ref=""0"" />
-        <entry il_offset=""0x82"" start_row=""22"" start_column=""9"" end_row=""22"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x83"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x87"" start_row=""19"" start_column=""24"" end_row=""19"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0x8d"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x5d"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x64"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""16"" file_ref=""0"" />
+        <entry il_offset=""0x65"" start_row=""19"" start_column=""27"" end_row=""19"" end_column=""51"" file_ref=""0"" />
+        <entry il_offset=""0x7b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x7d"" start_row=""19"" start_column=""18"" end_row=""19"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x84"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x85"" start_row=""21"" start_column=""13"" end_row=""21"" end_column=""34"" file_ref=""0"" />
+        <entry il_offset=""0x8d"" start_row=""22"" start_column=""9"" end_row=""22"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x8e"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x94"" start_row=""19"" start_column=""24"" end_row=""19"" end_column=""26"" file_ref=""0"" />
+        <entry il_offset=""0x9c"" start_row=""23"" start_column=""5"" end_row=""23"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
+        <local name=""CS$6$0000"" il_index=""0"" il_start=""0x2"" il_end=""0x2f"" attributes=""1"" />
+        <local name=""CS$7$0001"" il_index=""1"" il_start=""0x2"" il_end=""0x2f"" attributes=""1"" />
         <local name=""x"" il_index=""2"" il_start=""0x18"" il_end=""0x25"" attributes=""0"" />
-        <local name=""x"" il_index=""3"" il_start=""0x46"" il_end=""0x53"" attributes=""0"" />
-        <local name=""x"" il_index=""4"" il_start=""0x74"" il_end=""0x83"" attributes=""0"" />
+        <local name=""CS$6$0002"" il_index=""3"" il_start=""0x30"" il_end=""0x64"" attributes=""1"" />
+        <local name=""CS$7$0003"" il_index=""4"" il_start=""0x30"" il_end=""0x64"" attributes=""1"" />
+        <local name=""x"" il_index=""5"" il_start=""0x47"" il_end=""0x57"" attributes=""0"" />
+        <local name=""CS$6$0004"" il_index=""6"" il_start=""0x65"" il_end=""0x9c"" attributes=""1"" />
+        <local name=""CS$7$0005"" il_index=""7"" il_start=""0x65"" il_end=""0x9c"" attributes=""1"" />
+        <local name=""x"" il_index=""8"" il_start=""0x7d"" il_end=""0x8e"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x8e"">
+      <scope startOffset=""0x0"" endOffset=""0x9d"">
         <namespace name=""System"" />
-        <scope startOffset=""0x18"" endOffset=""0x25"">
-          <local name=""x"" il_index=""2"" il_start=""0x18"" il_end=""0x25"" attributes=""0"" />
+        <scope startOffset=""0x2"" endOffset=""0x2f"">
+          <local name=""CS$6$0000"" il_index=""0"" il_start=""0x2"" il_end=""0x2f"" attributes=""1"" />
+          <local name=""CS$7$0001"" il_index=""1"" il_start=""0x2"" il_end=""0x2f"" attributes=""1"" />
+          <scope startOffset=""0x18"" endOffset=""0x25"">
+            <local name=""x"" il_index=""2"" il_start=""0x18"" il_end=""0x25"" attributes=""0"" />
+          </scope>
         </scope>
-        <scope startOffset=""0x46"" endOffset=""0x53"">
-          <local name=""x"" il_index=""3"" il_start=""0x46"" il_end=""0x53"" attributes=""0"" />
+        <scope startOffset=""0x30"" endOffset=""0x64"">
+          <local name=""CS$6$0002"" il_index=""3"" il_start=""0x30"" il_end=""0x64"" attributes=""1"" />
+          <local name=""CS$7$0003"" il_index=""4"" il_start=""0x30"" il_end=""0x64"" attributes=""1"" />
+          <scope startOffset=""0x47"" endOffset=""0x57"">
+            <local name=""x"" il_index=""5"" il_start=""0x47"" il_end=""0x57"" attributes=""0"" />
+          </scope>
         </scope>
-        <scope startOffset=""0x74"" endOffset=""0x83"">
-          <local name=""x"" il_index=""4"" il_start=""0x74"" il_end=""0x83"" attributes=""0"" />
+        <scope startOffset=""0x65"" endOffset=""0x9c"">
+          <local name=""CS$6$0004"" il_index=""6"" il_start=""0x65"" il_end=""0x9c"" attributes=""1"" />
+          <local name=""CS$7$0005"" il_index=""7"" il_start=""0x65"" il_end=""0x9c"" attributes=""1"" />
+          <scope startOffset=""0x7d"" endOffset=""0x8e"">
+            <local name=""x"" il_index=""8"" il_start=""0x7d"" il_end=""0x8e"" attributes=""0"" />
+          </scope>
         </scope>
       </scope>
     </method>
@@ -3671,7 +3703,7 @@ public class T
     }
 }";
 
-            string actual = GetPdbXml(text, TestOptions.Exe.WithDebugInformationKind(DebugInformationKind.Full));
+            string actual = GetPdbXml(text, TestOptions.DebugExe);
 
             // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
             //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
@@ -3721,7 +3753,7 @@ public class T
     }
 }";
 
-            string actual = GetPdbXml(text, TestOptions.Exe.WithDebugInformationKind(DebugInformationKind.Full));
+            string actual = GetPdbXml(text, TestOptions.DebugExe);
 
             // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
             //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
@@ -3771,7 +3803,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe.WithDebugInformationKind(DebugInformationKind.Full).WithOptimizations(false));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.DebugExe.WithOptimizations(false));
 
             var exebits = new MemoryStream();
             var pdbbits = new MemoryStream();
@@ -4039,7 +4071,7 @@ public class C
 
             var compilation = CreateCompilationWithMscorlib(
                 new[] { Parse(text1, @"C:\Folder1\Folder2\Test1.cs") },
-                compOptions: TestOptions.Dll.WithSourceReferenceResolver(SourceFileResolver.Default));
+                options: TestOptions.DebugDll.WithSourceReferenceResolver(SourceFileResolver.Default));
 
             string actual = GetPdbXml(compilation);
 
@@ -4075,7 +4107,7 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(source0, compOptions: TestOptions.UnoptimizedDll);
+            var compilation = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())

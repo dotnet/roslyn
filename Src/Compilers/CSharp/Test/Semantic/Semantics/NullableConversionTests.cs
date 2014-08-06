@@ -646,7 +646,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithWarningLevel(0));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithWarningLevel(0));
 
             // Roslyn and native compiler both produce ABAABAABAABABBBBBBBBABACCCCDADACCCCBBDDDDDDDD 
             // for straight conversions. 

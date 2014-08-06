@@ -37,7 +37,7 @@ public class A
 ";
             var c = CreateCompilationWithMscorlib(source, 
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
-                compOptions: TestOptions.UnsafeExe);
+                options: TestOptions.UnsafeReleaseExe);
 
             CompileAndVerify(c, expectedOutput: 
 @"F1
@@ -594,7 +594,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il, compOptions: TestOptions.Exe);
+            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var method = type.GetMember<MethodSymbol>("Incr");
@@ -650,7 +650,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il, compOptions: TestOptions.Exe);
+            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
 
             var baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var baseMethod = baseType.GetMember<MethodSymbol>("M");

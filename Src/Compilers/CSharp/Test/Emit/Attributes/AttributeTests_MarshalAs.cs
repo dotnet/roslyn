@@ -1364,26 +1364,22 @@ class C
 ";
             var comp1 = CreateCompilationWithMscorlib(text1, assemblyName: "OptionalMarshalAsLibrary");
             var comp2 = CreateCompilationWithMscorlib(text2,
-                compOptions: TestOptions.Exe,
+                options: TestOptions.ReleaseExe,
                 references: new[] { comp1.EmitToImageReference() },  // it has to be real assembly, Comp2comp reference OK
                 assemblyName: "APP");
 
             CompileAndVerify(comp2, emitOptions: EmitOptions.RefEmitBug, expectedOutput: @"0").VerifyIL("C.Main", @"
 {
-  // Code size       19 (0x13)
+  // Code size       17 (0x11)
   .maxstack  2
-  .locals init (P2<object> V_0) //p2
   IL_0000:  newobj     ""P2<object>..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
-  IL_0007:  ldnull
-  IL_0008:  callvirt   ""int P2<object>.Foo(object)""
-  IL_000d:  call       ""void System.Console.WriteLine(int)""
-  IL_0012:  ret
+  IL_0005:  ldnull
+  IL_0006:  callvirt   ""int P2<object>.Foo(object)""
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  ret
 }
 ");
         }
-
 
         #endregion
     }

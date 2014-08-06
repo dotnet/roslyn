@@ -33,14 +33,13 @@ class Program
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-// (6,33): error CS1736: Default parameter value for 'da' must be a compile-time constant
-//     static void M(DateTime da = new DateTime(2012, 6, 22),
-Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new DateTime(2012, 6, 22)").WithArguments("da"),
+                // (6,33): error CS1736: Default parameter value for 'da' must be a compile-time constant
+                //     static void M(DateTime da = new DateTime(2012, 6, 22),
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new DateTime(2012, 6, 22)").WithArguments("da"),
 
-// (7,31): error CS1736: Default parameter value for 'd' must be a compile-time constant
-//                   decimal d = new decimal(5),
-Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(5)").WithArguments("d")
-                 );
+                // (7,31): error CS1736: Default parameter value for 'd' must be a compile-time constant
+                //                   decimal d = new decimal(5),
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(5)").WithArguments("d"));
         }
 
 
@@ -748,7 +747,9 @@ unsafe class C
             // default(IntPtr) as "load zero, convert to type", rather than making a stack slot and calling
             // init on it.
 
-            const string il = @"{
+            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll);
+
+            c.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
   .maxstack  4
   IL_0000:  ldc.i4.0
@@ -760,10 +761,7 @@ unsafe class C
   IL_0006:  ldc.i4.0
   IL_0007:  call       ""void C.M(int*, System.IntPtr, System.UIntPtr, int)""
   IL_000c:  ret
-}";
-
-            CompileAndVerify(source, options: TestOptions.UnsafeExe)
-                .VerifyIL("C.Main", il);
+}");
         }
 
         [WorkItem(528783, "DevDiv")]
@@ -1477,7 +1475,7 @@ True";
             vbCompilation.VerifyDiagnostics();
 
             var csharpCompilation = CreateCSharpCompilation("CS", csharp, 
-                compilationOptions: TestOptions.Exe,
+                compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new[] { vbCompilation });
 
             var verifier = CompileAndVerify(csharpCompilation , expectedOutput: expected);
@@ -1583,10 +1581,10 @@ public class D
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib(library, compOptions: TestOptions.Dll, assemblyName: "Library");
+            var libComp = CreateCompilationWithMscorlib(library, options: TestOptions.ReleaseDll, assemblyName: "Library");
             libComp.VerifyDiagnostics();
 
-            var exeComp = CreateCompilationWithMscorlib(main, new[] { new CSharpCompilationReference(libComp) }, compOptions: TestOptions.Exe, assemblyName: "Main");
+            var exeComp = CreateCompilationWithMscorlib(main, new[] { new CSharpCompilationReference(libComp) }, options: TestOptions.ReleaseExe, assemblyName: "Main");
 
             var verifier = CompileAndVerify(exeComp , expectedOutput: @"DatesMatch
 12345678901234567890
@@ -1599,41 +1597,38 @@ one
 0");
 
             verifier.VerifyIL("D.Main", @"{
-  // Code size       99 (0x63)
-  .maxstack  8
-  .locals init (C V_0, //c
-  int? V_1,
-  S? V_2)
+  // Code size       97 (0x61)
+  .maxstack  9
+  .locals init (int? V_0,
+                S? V_1)
   IL_0000:  call       ""System.Threading.Thread System.Threading.Thread.CurrentThread.get""
   IL_0005:  call       ""System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get""
   IL_000a:  callvirt   ""void System.Threading.Thread.CurrentCulture.set""
   IL_000f:  newobj     ""C..ctor()""
-  IL_0014:  stloc.0
-  IL_0015:  ldloc.0
-  IL_0016:  ldc.i4     0x186a0
-  IL_001b:  conv.i8
-  IL_001c:  newobj     ""System.DateTime..ctor(long)""
-  IL_0021:  ldc.i8     0xab54a98ceb1f0ad2
-  IL_002a:  newobj     ""decimal..ctor(ulong)""
-  IL_002f:  ldc.i4.0
-  IL_0030:  newobj     ""int?..ctor(int)""
-  IL_0035:  ldloca.s   V_1
-  IL_0037:  initobj    ""int?""
-  IL_003d:  ldloc.1
-  IL_003e:  ldc.i4.s   10
-  IL_0040:  ldc.i4.0
-  IL_0041:  ldloca.s   V_2
-  IL_0043:  initobj    ""S?""
-  IL_0049:  ldloc.2
-  IL_004a:  callvirt   ""void C.Foo(System.DateTime, decimal, int?, int?, short, int, S?)""
-  IL_004f:  ldloc.0
-  IL_0050:  ldc.i4.0
-  IL_0051:  newobj     ""E?..ctor(E)""
-  IL_0056:  ldc.i4.0
-  IL_0057:  conv.i8
-  IL_0058:  newobj     ""long?..ctor(long)""
-  IL_005d:  callvirt   ""void C.Baz(E?, long?)""
-  IL_0062:  ret
+  IL_0014:  dup
+  IL_0015:  ldc.i4     0x186a0
+  IL_001a:  conv.i8
+  IL_001b:  newobj     ""System.DateTime..ctor(long)""
+  IL_0020:  ldc.i8     0xab54a98ceb1f0ad2
+  IL_0029:  newobj     ""decimal..ctor(ulong)""
+  IL_002e:  ldc.i4.0
+  IL_002f:  newobj     ""int?..ctor(int)""
+  IL_0034:  ldloca.s   V_0
+  IL_0036:  initobj    ""int?""
+  IL_003c:  ldloc.0
+  IL_003d:  ldc.i4.s   10
+  IL_003f:  ldc.i4.0
+  IL_0040:  ldloca.s   V_1
+  IL_0042:  initobj    ""S?""
+  IL_0048:  ldloc.1
+  IL_0049:  callvirt   ""void C.Foo(System.DateTime, decimal, int?, int?, short, int, S?)""
+  IL_004e:  ldc.i4.0
+  IL_004f:  newobj     ""E?..ctor(E)""
+  IL_0054:  ldc.i4.0
+  IL_0055:  conv.i8
+  IL_0056:  newobj     ""long?..ctor(long)""
+  IL_005b:  callvirt   ""void C.Baz(E?, long?)""
+  IL_0060:  ret
 }");
         }
 

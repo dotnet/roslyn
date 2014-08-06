@@ -447,7 +447,7 @@ class Program
         var y = new Derived();
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -2112,7 +2112,7 @@ class Derived(int p0)
         var d = new Derived(156);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput:"156");
         }
@@ -2137,7 +2137,7 @@ class Derived(int p0)
         System.Console.WriteLine(""{0} {1}"", d.x0(), d.x1);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: "157 156");
         }
@@ -2161,7 +2161,7 @@ class Derived(int p0)
         System.Console.WriteLine(""{0} {1}"", d.x0(), d.x1);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: "157 156");
         }
@@ -2180,7 +2180,7 @@ class Derived(int p0)
         System.Console.WriteLine(d.f1());
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: "156");
         }
@@ -2200,7 +2200,7 @@ class Derived(int p0)
         System.Console.WriteLine(""{0} {1}"", d.f1(), d.f2);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: "157 156");
         }
@@ -2224,7 +2224,7 @@ class Derived(int p0) : Base(p0++)
         System.Console.WriteLine(""{0} {1}"", d.f1(), d.x0);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: "157 156");
         }
@@ -2244,7 +2244,7 @@ class Derived(int p0)
         System.Console.WriteLine(""{0} {1} {2}"", d.f1(), d.e1(), d.f1());
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: "156 157 158");
         }
@@ -2268,7 +2268,7 @@ class Derived(int p0) : Base(()=>p0++)
         System.Console.WriteLine(""{0} {1} {2}"", d.f1(), d.x0(), d.f1());
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: "156 157 158");
         }
@@ -2422,7 +2422,7 @@ class Program
         System.Console.WriteLine(d.W);
     }
 }
-", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             System.Action<ModuleSymbol> validator = delegate (ModuleSymbol m)
             {
@@ -2505,7 +2505,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
     // (16,20): error CS0103: The name 'v' does not exist in the current context
@@ -2563,7 +2563,7 @@ class Program
         System.Console.WriteLine(d.W);
     }
 }
-", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             System.Action<ModuleSymbol> validator = delegate (ModuleSymbol m)
             {
@@ -2619,7 +2619,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
     // (6,16): error CS0103: The name 'v' does not exist in the current context
@@ -2664,7 +2664,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyEmitDiagnostics(
     // (8,24): error CS0103: The name 'v' does not exist in the current context
@@ -2742,7 +2742,7 @@ public class TypeAttribute : System.Attribute
 class Derived(int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             Assert.Equal("TypeAttribute", comp.GetTypeByMetadataName("Derived").GetAttributes().Single().ToString());
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").GetAttributes().Length);
@@ -2770,7 +2770,7 @@ public class TypeAttribute : System.Attribute
 class Derived(int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             Assert.Equal("TypeAttribute", comp.GetTypeByMetadataName("Derived").GetAttributes().Single().ToString());
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").GetAttributes().Length);
@@ -2798,7 +2798,7 @@ public class TypeAttribute : System.Attribute
 struct Derived(int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             Assert.Equal("TypeAttribute", comp.GetTypeByMetadataName("Derived").GetAttributes().Single().ToString());
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMembers(".ctor").
@@ -2827,7 +2827,7 @@ public class TypeAttribute : System.Attribute
 struct Derived(int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             Assert.Equal("TypeAttribute", comp.GetTypeByMetadataName("Derived").GetAttributes().Single().ToString());
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMembers(".ctor").
@@ -2856,7 +2856,7 @@ public class TypeAttribute : System.Attribute
 class Derived(int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetAttributes().Length);
             Assert.Equal("TypeAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").GetAttributes().Single().ToString());
@@ -2881,7 +2881,7 @@ public class TypeAttribute : System.Attribute
 struct Derived(int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetAttributes().Length);
             Assert.Equal("TypeAttribute", comp.GetTypeByMetadataName("Derived").GetMembers(".ctor").
@@ -2907,7 +2907,7 @@ public class CtorAttribute : System.Attribute
 class Derived(int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetAttributes().Length);
             Assert.Equal("CtorAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").GetAttributes().Single().ToString());
@@ -2935,7 +2935,7 @@ public class CtorAttribute : System.Attribute
 struct Derived(int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetAttributes().Length);
             Assert.Equal("CtorAttribute", comp.GetTypeByMetadataName("Derived").GetMembers(".ctor").
@@ -2969,7 +2969,7 @@ public class TypeAttribute : System.Attribute
 class Derived(int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             Assert.Equal("TypeAttribute", comp.GetTypeByMetadataName("Derived").GetAttributes().Single().ToString());
             Assert.Equal("CtorAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").GetAttributes().Single().ToString());
@@ -3002,7 +3002,7 @@ public class TypeAttribute : System.Attribute
 struct Derived(int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             Assert.Equal("TypeAttribute", comp.GetTypeByMetadataName("Derived").GetAttributes().Single().ToString());
             Assert.Equal("CtorAttribute", comp.GetTypeByMetadataName("Derived").GetMembers(".ctor").
@@ -3030,7 +3030,7 @@ public class ParameterAttribute : System.Attribute
 class Derived([ParameterAttribute] int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
             Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
@@ -3058,7 +3058,7 @@ public class ParameterAttribute : System.Attribute
 class Derived([param: ParameterAttribute] int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
             Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
@@ -3085,7 +3085,7 @@ public class ParameterAttribute : System.Attribute
 class Derived([field: ParameterAttribute] int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
             Assert.Equal(0, parameter.GetAttributes().Length);
@@ -3110,7 +3110,7 @@ public class FieldAttribute : System.Attribute
 class Derived([field: FieldAttribute] int v)
 {
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
             Assert.Equal(0, parameter.GetAttributes().Length);
@@ -3146,7 +3146,7 @@ class Derived([field: FieldAttribute] int v)
 {
     public int V { get { return v; } }
 }
-", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
             Assert.Equal(0, parameter.GetAttributes().Length);
@@ -3266,7 +3266,7 @@ class Program
         System.Console.WriteLine((new Derived()).X);
     }
 }
-", compOptions: TestOptions.Exe);
+", options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (2,14): error CS8058: Feature 'primary constructor' is only available in 'experimental' language version.
@@ -3295,7 +3295,7 @@ class Program
         System.Console.WriteLine((new Derived()).X);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
     // (6,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
@@ -3336,7 +3336,7 @@ class Program
         System.Console.WriteLine((new Derived()).X);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: "5").VerifyDiagnostics();
         }
@@ -3361,7 +3361,7 @@ class Program
         System.Console.WriteLine((new Derived(6)).X);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: "6").VerifyDiagnostics();
         }
@@ -3386,7 +3386,7 @@ class Program
         System.Console.WriteLine((new Derived(6)).X);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: "6").VerifyDiagnostics();
         }
@@ -3411,7 +3411,7 @@ class Program
         System.Console.WriteLine((new Derived()).X);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
     // (6,6): error CS1597: Semicolon after method or accessor block is not valid
@@ -3446,7 +3446,7 @@ class Program
         System.Console.WriteLine((new Derived()).X);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
     // (9,5): error CS8040: Primary constructor already has a body.
@@ -3493,7 +3493,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
     // (10,22): error CS8036: Only one part of a partial type can declare primary constructor parameters.
@@ -3531,7 +3531,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
     // (9,5): error CS8040: Primary constructor already has a body.
@@ -3572,7 +3572,7 @@ class Program
         var x = new Derived(5, 6);
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"6
 5").VerifyDiagnostics();
@@ -3604,7 +3604,7 @@ class Program
         var x = new Derived();
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"7
 5").VerifyDiagnostics();
@@ -3644,7 +3644,7 @@ class Program
         var x = new Derived();
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"7
 6
@@ -3682,7 +3682,7 @@ class Program
     {
     }
 }
-", compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
     // (16,22): error CS8036: Only one part of a partial type can declare primary constructor parameters.
@@ -3719,7 +3719,7 @@ namespace CSharpVNext
     class Magazine(string title) : Book(title), IDisposable
     {}
 }
-", compOptions: TestOptions.Dll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+", options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
     // (11,49): error CS0535: 'CSharpVNext.Magazine' does not implement interface member 'System.IDisposable.Dispose()'

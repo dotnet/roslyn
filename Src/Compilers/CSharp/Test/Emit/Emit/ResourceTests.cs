@@ -33,7 +33,7 @@ public class Maine
     }
 }
 ";
-            var c1 = CreateCompilationWithMscorlib(source, assemblyName: "Win32VerNoAttrs", compOptions: TestOptions.Exe);
+            var c1 = CreateCompilationWithMscorlib(source, assemblyName: "Win32VerNoAttrs", options: TestOptions.ReleaseExe);
             var exe = Temp.CreateFile();
 
             using (FileStream output = exe.Open())
@@ -123,7 +123,7 @@ class C
 {
 }
 ";
-            var c1 = CreateCompilationWithMscorlib(source, assemblyName: "Win32WithCoff", compOptions: TestOptions.Dll);
+            var c1 = CreateCompilationWithMscorlib(source, assemblyName: "Win32WithCoff", options: TestOptions.ReleaseDll);
             var exe = Temp.CreateFile();
 
             using (FileStream output = exe.Open())
@@ -281,7 +281,7 @@ class C
         [Fact]
         public void CS7041_DuplicateMainfestResourceFileName()
         {
-            var c1 = CSharpCompilation.Create("foo", references: new[] { MscorlibRef }, options: TestOptions.Dll);
+            var c1 = CSharpCompilation.Create("foo", references: new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
@@ -450,7 +450,7 @@ class C
                     Guid.NewGuid().ToString(),
                     new[] { sourceTree },
                     new[] { MscorlibRef },
-                    TestOptions.NetModule);
+                    TestOptions.ReleaseModule);
 
                 var resourceFileName = "RoslynResourceFile.foo";
                 var output = new MemoryStream();
@@ -494,7 +494,7 @@ class C
                     Guid.NewGuid().ToString(),
                     new[] { sourceTree },
                     new[] { MscorlibRef },
-                    TestOptions.NetModule);
+                    TestOptions.ReleaseModule);
 
                 var output_mod1 = new MemoryStream();
                 result = emit(c_mod1, output_mod1,
@@ -509,7 +509,7 @@ class C
                 Assert.Equal(ManifestResourceAttributes.Public, mod1.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
 
                 {
-                    var c2 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1 }, TestOptions.Dll);
+                    var c2 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1 }, TestOptions.ReleaseDll);
                     var output2 = new MemoryStream();
                     var result2 = c2.Emit(output2);
 
@@ -543,7 +543,7 @@ class C
                     Guid.NewGuid().ToString(),
                     new[] { sourceTree },
                     new[] { MscorlibRef },
-                    TestOptions.NetModule);
+                    TestOptions.ReleaseModule);
 
                 var output_mod2 = new MemoryStream();
                 result = emit(c_mod2, output_mod2,
@@ -557,7 +557,7 @@ class C
                 var ref_mod2 = new MetadataImageReference(ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()));
 
                 {
-                    var c3 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod2 }, TestOptions.Dll);
+                    var c3 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod2 }, TestOptions.ReleaseDll);
                     var output3 = new MemoryStream();
                     var result3 = c3.Emit(output3);
 
@@ -600,7 +600,7 @@ class C
                     Guid.NewGuid().ToString(),
                     new[] { sourceTree },
                     new[] { MscorlibRef },
-                    TestOptions.NetModule);
+                    TestOptions.ReleaseModule);
 
                 var output_mod3 = new MemoryStream();
                 result = emit(c_mod3, output_mod3,
@@ -615,7 +615,7 @@ class C
                 Assert.Equal(ManifestResourceAttributes.Private, mod3.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
 
                 {
-                    var c4 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod3 }, TestOptions.Dll);
+                    var c4 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod3 }, TestOptions.ReleaseDll);
                     var output4 = new MemoryStream();
                     var result4 = c4.Emit(output4, manifestResources:
                         new ResourceDescription[]
@@ -658,7 +658,7 @@ class C
                 }
 
                 {
-                    var c5 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod3 }, TestOptions.Dll);
+                    var c5 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod3 }, TestOptions.ReleaseDll);
                     var output5 = new MemoryStream();
                     var result5 = emit(c5, output5, null);
 
@@ -702,7 +702,7 @@ class C
                 }
 
                 {
-                    var c6 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.Dll);
+                    var c6 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.ReleaseDll);
                     var output6 = new MemoryStream();
                     var result6 = emit(c6, output6, null);
 
@@ -740,7 +740,7 @@ class C
                             );
                     }
 
-                    c6 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.NetModule);
+                    c6 = CreateCompilationWithMscorlib(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.ReleaseModule);
 
                     result6 = emit(c6, output6,
                         new ResourceDescription[]
@@ -828,7 +828,7 @@ public class Maine
     }
 }
 ";
-            var c1 = CreateCompilationWithMscorlib(source, assemblyName: "Win32VerAttrs", compOptions: TestOptions.Exe);
+            var c1 = CreateCompilationWithMscorlib(source, assemblyName: "Win32VerAttrs", options: TestOptions.ReleaseExe);
             var exeFile = Temp.CreateFile();
 
             using (FileStream output = exeFile.Open())

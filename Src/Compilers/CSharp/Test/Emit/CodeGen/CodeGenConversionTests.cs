@@ -278,7 +278,7 @@ null
             var verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
 
             // When the method with the attribute is from metadata.
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { new MetadataImageReference(verifier1.EmittedAssemblyData) }, TestOptions.Exe);
+            var comp2 = CreateCompilationWithMscorlib(source2, new[] { new MetadataImageReference(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
@@ -376,7 +376,7 @@ null
             var verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
 
             // When the method with the attribute is from metadata.
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { new MetadataImageReference(verifier1.EmittedAssemblyData) }, TestOptions.Exe);
+            var comp2 = CreateCompilationWithMscorlib(source2, new[] { new MetadataImageReference(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 

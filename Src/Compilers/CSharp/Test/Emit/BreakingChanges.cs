@@ -732,7 +732,7 @@ unsafe class C
 ";
             // Dev10: the null literal is treated as though it is converted to void*, making the subtraction illegal (ExpressionBinder::GetPtrBinOpSigs).
             // Roslyn: the null literal is converted to int*, making the subtraction legal.
-            CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1308,20 +1308,20 @@ public class Program
         {
             var cs1Compilation = CreateCSharpCompilation("CS1",
 @"public class CS1 {}",
-                compilationOptions: TestOptions.Dll);
+                compilationOptions: TestOptions.ReleaseDll);
             var cs1Verifier = CompileAndVerify(cs1Compilation);
             cs1Verifier.VerifyDiagnostics();
 
             var cs2Compilation = CreateCSharpCompilation("CS2",
 @"public class CS2<T> {}",
-                compilationOptions: TestOptions.Dll,
+                compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new Compilation[] { cs1Compilation });
             var cs2Verifier = CompileAndVerify(cs2Compilation);
             cs2Verifier.VerifyDiagnostics();
 
             var cs3Compilation = CreateCSharpCompilation("CS3",
 @"public class CS3 : CS2<CS1> {}",
-                compilationOptions: TestOptions.Dll,
+                compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new Compilation[] { cs1Compilation, cs2Compilation });
             var cs3Verifier = CompileAndVerify(cs3Compilation, emitOptions: EmitOptions.RefEmitBug);
             cs3Verifier.VerifyDiagnostics();
@@ -1334,7 +1334,7 @@ public class Program
         System.Console.WriteLine(typeof(CS3));
     }
 }",
-                compilationOptions: TestOptions.Exe,
+                compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new Compilation[] { cs2Compilation, cs3Compilation });
             cs4Compilation.VerifyDiagnostics();
         }
@@ -1502,7 +1502,7 @@ class Test
 ";
 
                 // As in dev11.
-                var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.Exe);
+                var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.ReleaseExe);
                 CompileAndVerify(comp, expectedOutput: "03");
             }
 
@@ -1527,7 +1527,7 @@ class Test
 
                 // As in dev11.
                 // NOTE: The spec will likely be updated to make this illegal.
-                var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.Exe);
+                var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.ReleaseExe);
                 CompileAndVerify(comp, expectedOutput: "3");
             }
 
@@ -1551,7 +1551,7 @@ class Test
 ";
 
                 // BREAK: dev11 compiles and prints "0"
-                var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.Exe);
+                var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.ReleaseExe);
                 comp.VerifyDiagnostics(
                     // (15,33): error CS1918: Members of property 'Wrapper<T>.Item' of type 'T' cannot be assigned with an object initializer because it is of a value type
                     //         return new Wrapper<T> { Item = { 1, 2, 3} };
