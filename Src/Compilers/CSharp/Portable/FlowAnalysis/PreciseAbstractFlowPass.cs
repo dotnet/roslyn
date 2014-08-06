@@ -2306,6 +2306,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
+            var arguments = node.Arguments;
+            if (!arguments.IsDefaultOrEmpty)
+            {
+                foreach( var argument in arguments)
+                {
+                    VisitRvalue(argument);
+                }
+            }
+
             return null;
         }
 

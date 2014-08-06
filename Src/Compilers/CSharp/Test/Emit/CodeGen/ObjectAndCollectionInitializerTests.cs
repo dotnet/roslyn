@@ -893,6 +893,196 @@ public class Test
 }");
         }
 
+        [Fact]
+        public void DictionaryInitializerTest001()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = new Dictionary<string, int>() {[""aaa""] = 3};
+        System.Console.WriteLine(x[""aaa""]);
+    }
+}
+";
+            string expectedOutput = @"3";
+
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("Program.Main", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  4
+  IL_0000:  newobj     ""System.Collections.Generic.Dictionary<string, int>..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldstr      ""aaa""
+  IL_000b:  ldc.i4.3
+  IL_000c:  callvirt   ""void System.Collections.Generic.Dictionary<string, int>.this[string].set""
+  IL_0011:  ldstr      ""aaa""
+  IL_0016:  callvirt   ""int System.Collections.Generic.Dictionary<string, int>.this[string].get""
+  IL_001b:  call       ""void System.Console.WriteLine(int)""
+  IL_0020:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DictionaryInitializerTest002()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var l = new cls1() { [""aaa""] = { 1, 2 }, [""bbb""] = { 42 } };
+        System.Console.Write(l[""bbb""][0]);
+        System.Console.Write(l[""aaa""][1]);
+    }
+
+    class cls1
+    {
+        private Dictionary<string, List<int>> dict = new Dictionary<string, List<int>>();
+
+        public dynamic this[string value]
+        {
+            get
+            {
+                List<int> member;
+                if (dict.TryGetValue(value, out member))
+                {
+                    return member;
+                }
+
+                return dict[value] = new List<int>();
+            }
+        }
+    }
+}
+";
+            string expectedOutput = @"422";
+
+            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void DictionaryInitializerTest003()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var l = new Cls1()
+        {
+            [""aaa""] =
+            {
+                [""x""] = 1,
+                [""y""] = 2
+            },
+            [""bbb""] =
+            {
+                [""z""] = 42
+            }
+        };
+
+        System.Console.Write(l[""bbb""][""z""]);
+        System.Console.Write(l[""aaa""][""y""]);
+    }
+
+    class Cls1
+    {
+        private Dictionary<string, Dictionary<string, int>> dict = 
+            new Dictionary<string, Dictionary<string, int>>();
+
+        public Dictionary<string, int> this[string arg]
+        {
+            get
+            {
+                Dictionary<string, int> member;
+                if (dict.TryGetValue(arg, out member))
+                {
+                    return member;
+                }
+
+                return dict[arg] = new Dictionary<string, int>();
+            }
+        }
+    }
+}
+";
+            string expectedOutput = @"422";
+
+            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void DictionaryInitializerTest004()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var l = new Cls1()
+        {
+            [""aaa""] =
+            {
+                [""x""] = 1,
+                [""y""] = 2
+            },
+            [""bbb""] =
+            {
+                [""z""] = 42
+            }
+        };
+
+        System.Console.Write(l[""bbb""][""z""]);
+        System.Console.Write(l[""aaa""][""y""]);
+    }
+
+    class Cls1
+    {
+        private Dictionary<string, Dictionary<string, int>> dict = 
+            new Dictionary<string, Dictionary<string, int>>();
+
+        public dynamic this[string arg]
+        {
+            get
+            {
+                Dictionary<string, int> member;
+                if (dict.TryGetValue(arg, out member))
+                {
+                    return member;
+                }
+
+                return dict[arg] = new Dictionary<string, int>();
+            }
+        }
+    }
+}
+";
+            string expectedOutput = @"422";
+
+            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+        }
+
         #endregion
 
         #region "Collection Initializer Tests"

@@ -439,6 +439,20 @@
       <summary>Creates an ElementBindingExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="ImplicitElementAccessSyntax" Base="ExpressionSyntax">
+    <Kind Name="ImplicitElementAccess"/>
+    <Field Name="ArgumentList" Type="BracketedArgumentListSyntax">
+      <PropertyComment>
+        <summary>BracketedArgumentListSyntax node representing the list of arguments of the implicit element access expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for implicit element access expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ImplicitElementAccessSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="BinaryExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="AddExpression"/>
     <Kind Name="SubtractExpression"/>

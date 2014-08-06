@@ -9411,7 +9411,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsInitializerMember()
         {
-            return this.IsComplexElementInitializer() || this.IsNamedAssignment() || this.IsPossibleExpression();
+            return this.IsComplexElementInitializer() || 
+                this.IsNamedAssignment() ||
+                this.IsDictionaryInitializer() ||
+                this.IsPossibleExpression();
         }
 
         private bool IsComplexElementInitializer()
@@ -9422,6 +9425,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool IsNamedAssignment()
         {
             return IsTrueIdentifier() && this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
+        }
+
+        private bool IsDictionaryInitializer()
+        {
+            return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
         private ExpressionSyntax ParseArrayOrObjectCreationExpression()
@@ -9594,6 +9602,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return this.ParseComplexElementInitializer();
             }
+            else if (IsDictionaryInitializer())
+            {
+                isObjectInitializer = true;
+                var initializer = this.ParseDictionaryInitializer();
+                initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureDictionaryInitializer);
+                return initializer;
+            }
             else if (this.IsNamedAssignment())
             {
                 isObjectInitializer = true;
@@ -9629,6 +9644,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return syntaxFactory.BinaryExpression(SyntaxKind.SimpleAssignmentExpression, identifier, equal, expression);
+        }
+
+        private ExpressionSyntax ParseDictionaryInitializer()
+        {
+            var arguments = this.ParseBracketedArgumentList();
+            var equal = this.EatToken(SyntaxKind.EqualsToken);
+            ExpressionSyntax expression;
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+            {
+                expression = this.ParseObjectOrCollectionInitializer();
+            }
+            else
+            {
+                expression = this.ParseExpression();
+            }
+
+            var elementAccess = syntaxFactory.ImplicitElementAccess(arguments);
+            return syntaxFactory.BinaryExpression(SyntaxKind.SimpleAssignmentExpression, elementAccess, equal, expression);
         }
 
         private InitializerExpressionSyntax ParseComplexElementInitializer()

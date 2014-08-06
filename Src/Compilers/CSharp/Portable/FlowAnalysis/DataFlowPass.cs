@@ -1872,12 +1872,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
-            if ((object)sourceAssembly != null && node.MemberSymbol.Kind == SymbolKind.Field)
+            var result = base.VisitObjectInitializerMember(node);
+
+            if ((object)sourceAssembly != null && node.MemberSymbol != null && node.MemberSymbol.Kind == SymbolKind.Field)
             {
                 sourceAssembly.NoteFieldAccess((FieldSymbol)node.MemberSymbol.OriginalDefinition, read: false, write: true);
             }
 
-            return null;
+            return result;
         }
 
         public override BoundNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)

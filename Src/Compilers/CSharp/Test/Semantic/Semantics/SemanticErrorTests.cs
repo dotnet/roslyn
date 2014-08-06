@@ -22062,6 +22062,121 @@ class Program
         }
 
         [Fact]
+        [WorkItem(915609, "DevDiv")]
+        public void DictionaryInitializerInExprLambda()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+using System.Collections.Generic;
+
+class Program
+{
+    static void M<T>(T x)
+    {
+        Expression<Func<Dictionary<int, int>>> s = () => new Dictionary<int, int> () {[1] = 2};
+}
+
+    static void Main()
+    {
+        M((string)null);
+    }
+}
+";
+            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+    // (10,87): error CS8073: An expression tree lambda may not contain a dictionary initializer.
+    //         Expression<Func<Dictionary<int, int>>> s = () => new Dictionary<int, int> () {[1] = 2};
+    Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[1]").WithLocation(10, 87)
+               );
+        }
+
+        [Fact]
+        [WorkItem(915609, "DevDiv")]
+        public void DictionaryInitializerInExprLambda1()
+        {
+            var text = @"
+using System;
+using System.Collections;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        Expression<Func<C>> e = () => new C { H = { [""Key""] = ""Value"" } };
+        Console.WriteLine(e);
+        var c = e.Compile().Invoke();
+        Console.WriteLine(c.H[""Key""]);
+    }
+    readonly Hashtable H = new Hashtable();
+}
+
+";
+            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+    // (9,53): error CS8073: An expression tree lambda may not contain a dictionary initializer.
+    //         Expression<Func<C>> e = () => new C { H = { ["Key"] = "Value" } };
+    Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, @"[""Key""]").WithLocation(9, 53)
+               );
+        }
+
+        [Fact]
+        public void DictionaryInitializerInCS5()
+        {
+            var text = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var s = new Dictionary<int, int> () {[1] = 2};
+    }
+}
+";
+            CreateCompilationWithMscorlib45(text, 
+                new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef },
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
+    // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5.  Please use language version 6 or greater.
+    //         var s = new Dictionary<int, int> () {[1] = 2};
+    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "[1] = 2").WithArguments("dictionary initializer", "6").WithLocation(8, 46)
+               );
+        }
+
+        [Fact]
+        public void DictionaryInitializerDataFlow()
+        {
+            var text = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        int i;
+        var s = new Dictionary<int, int> () {[i] = 2};
+
+        i = 1;
+        System.Console.WriteLine(i);
+    }
+
+    static void Foo()
+    {
+        int i;
+        var s = new Dictionary<int, int> () {[i = 1] = 2};
+
+        System.Console.WriteLine(i);
+    }
+}
+";
+            CreateCompilationWithMscorlib45(text,
+                new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef },
+                parseOptions: TestOptions.Regular).VerifyDiagnostics(
+    // (9,47): error CS0165: Use of unassigned local variable 'i'
+    //         var s = new Dictionary<int, int> () {[i] = 2};
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(9, 47)
+               );
+        }
+
+        [Fact]
         public void ConditionalMemberAccessNotStatement()
         {
             var text = @"

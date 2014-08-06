@@ -297,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ConditionalExpression,
         InvocationExpression,
         ElementAccessExpression,
+        ImplicitElementAccess,
         ArgumentList,
         BracketedArgumentList,
         Argument,

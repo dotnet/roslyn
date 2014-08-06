@@ -271,6 +271,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitConditionalAccess(node);
         }
 
+        public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
+        {
+            if (inExpressionLambda && ! node.Arguments.IsDefaultOrEmpty)
+            {
+                Error(ErrorCode.ERR_DictionaryInitializerInExpressionTree, node);
+            }
+
+            return base.VisitObjectInitializerMember(node);
+        }
+
         public override BoundNode VisitCall(BoundCall node)
         {
             VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.Expanded, node);

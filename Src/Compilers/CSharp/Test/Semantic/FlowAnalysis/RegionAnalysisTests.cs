@@ -2302,6 +2302,43 @@ class C {
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
+        [Fact]
+        public void TestDictionaryInitializer()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+class C {
+
+    static void Foo()
+    {
+        int i, j;
+/*<bind>*/
+        var s = new Dictionary<int, int>() {[i = j = 1] = 2 };
+/*</bind>*/
+
+        System.Console.WriteLine(i + j);
+    }
+}
+");
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
+            Assert.Equal(true, controlFlowAnalysisResults.StartPointIsReachable);
+            Assert.Equal(true, controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("i, j, s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("i, j", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("i, j", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("i, j, s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
+            Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured));
+        }
+
+
+
         [WorkItem(542435, "DevDiv")]
         [Fact]
         public void NullArgsToAnalyzeControlFlowStatements()

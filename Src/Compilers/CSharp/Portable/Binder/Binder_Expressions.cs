@@ -4377,54 +4377,57 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindObjectInitializerMemberAssignment(
-            ExpressionSyntax memberInitializer,
-            TypeSymbol initializerType,
-            Binder objectInitializerMemberBinder,
-            DiagnosticBag diagnostics,
-            BoundImplicitReceiver implicitReceiver)
+                   ExpressionSyntax memberInitializer,
+                   TypeSymbol initializerType,
+                   Binder objectInitializerMemberBinder,
+                   DiagnosticBag diagnostics,
+                   BoundImplicitReceiver implicitReceiver)
         {
             // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (spec 7.17.1) to the field or property.
 
             if (memberInitializer.Kind == SyntaxKind.SimpleAssignmentExpression)
             {
-                var namedAssignment = (BinaryExpressionSyntax)memberInitializer;
+                var initializer = (BinaryExpressionSyntax)memberInitializer;
 
-                if (namedAssignment.Left.Kind == SyntaxKind.IdentifierName)
+                // Bind member initializer identifier, i.e. left part of assignment
+                BoundExpression boundLeft = null;
+                var leftSyntax = initializer.Left;
+
+                if (initializerType.IsDynamic() && leftSyntax.Kind == SyntaxKind.IdentifierName)
                 {
-                    // Bind member initializer identifier, i.e. left part of assignment
-
-                    BoundExpression boundLeft;
-                    if (initializerType.IsDynamic())
                     {
                         // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
-                        var memberName = ((IdentifierNameSyntax)namedAssignment.Left).Identifier.Text;
-                        boundLeft = new BoundDynamicObjectInitializerMember(namedAssignment, memberName, initializerType, hasErrors: false);
+                        var memberName = ((IdentifierNameSyntax)leftSyntax).Identifier.Text;
+                        boundLeft = new BoundDynamicObjectInitializerMember(initializer, memberName, initializerType, hasErrors: false);
                     }
-                    else
-                    {
-                        // We use a location specific binder for binding object initializer field/property access to generate object initializer specific diagnostics:
-                        //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
-                        //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
-                        //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
-                        // See comments in BindObjectInitializerExpression for more details.
+                }
+                else
+                {
+                    // We use a location specific binder for binding object initializer field/property access to generate object initializer specific diagnostics:
+                    //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
+                    //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
+                    //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
+                    // See comments in BindObjectInitializerExpression for more details.
 
-                        Debug.Assert(objectInitializerMemberBinder != null);
-                        Debug.Assert(objectInitializerMemberBinder.Flags.Includes(BinderFlags.ObjectInitializerMember));
+                    Debug.Assert(objectInitializerMemberBinder != null);
+                    Debug.Assert(objectInitializerMemberBinder.Flags.Includes(BinderFlags.ObjectInitializerMember));
 
-                        boundLeft = objectInitializerMemberBinder.BindObjectInitializerMember(namedAssignment, implicitReceiver, diagnostics);
-                    }
+                    boundLeft = objectInitializerMemberBinder.BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
+                }
 
+                if (boundLeft != null)
+                {
                     Debug.Assert((object)boundLeft.Type != null);
 
                     // Bind member initializer value, i.e. right part of assignment
                     BoundExpression boundRight = BindInitializerExpressionOrValue(
-                        syntax: namedAssignment.Right,
+                        syntax: initializer.Right,
                         type: boundLeft.Type,
                         typeSyntax: boundLeft.Syntax,
                         diagnostics: diagnostics);
 
                     // Bind member initializer assignment expression
-                    return BindAssignment(namedAssignment, boundLeft, boundRight, diagnostics);
+                    return BindAssignment(initializer, boundLeft, boundRight, diagnostics);
                 }
             }
 
@@ -4439,35 +4442,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundImplicitReceiver implicitReceiver,
             DiagnosticBag diagnostics)
         {
-            var memberNameSyntax = (IdentifierNameSyntax)namedAssignment.Left;
+            BoundExpression boundMember;
+            LookupResultKind resultKind;
+            bool hasErrors;
 
-            // SPEC:    Each member initializer must name an accessible field or property of the object being initialized, followed by an equals sign and
-            // SPEC:    an expression or an object initializer or collection initializer.
-            // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (7.17.1) to the field or property.
-
-            // SPEC VIOLATION:  Native compiler also allows initialization of fieldlike events in object initializers, so we allow it as well.
-
-            BoundExpression boundMember = BindInstanceMemberAccess(
-                node: memberNameSyntax,
-                right: memberNameSyntax,
-                boundLeft: implicitReceiver,
-                rightName: memberNameSyntax.Identifier.ValueText,
-                rightArity: 0,
-                typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
-                typeArguments: default(ImmutableArray<TypeSymbol>),
-                invoked: false,
-                diagnostics: diagnostics);
-
-            LookupResultKind resultKind = boundMember.ResultKind;
-            bool hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
-
-            if (boundMember.Kind == BoundKind.PropertyGroup)
+            if (namedAssignment.Left.Kind == SyntaxKind.IdentifierName)
             {
-                boundMember = BindIndexedPropertyAccess((BoundPropertyGroup)boundMember, mustHaveAllOptionalParameters: true, diagnostics: diagnostics);
-                if (boundMember.HasAnyErrors)
+                var memberName = (IdentifierNameSyntax)namedAssignment.Left;
+
+                // SPEC:    Each member initializer must name an accessible field or property of the object being initialized, followed by an equals sign and
+                // SPEC:    an expression or an object initializer or collection initializer.
+                // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (7.17.1) to the field or property.
+
+                // SPEC VIOLATION:  Native compiler also allows initialization of fieldlike events in object initializers, so we allow it as well.
+
+                boundMember = BindInstanceMemberAccess(
+                    node: memberName,
+                    right: memberName,
+                    boundLeft: implicitReceiver,
+                    rightName: memberName.Identifier.ValueText,
+                    rightArity: 0,
+                    typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
+                    typeArguments: default(ImmutableArray<TypeSymbol>),
+                    invoked: false,
+                    diagnostics: diagnostics);
+
+                resultKind = boundMember.ResultKind;
+                hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
+
+                if (boundMember.Kind == BoundKind.PropertyGroup)
                 {
-                    hasErrors = true;
+                    boundMember = BindIndexedPropertyAccess((BoundPropertyGroup)boundMember, mustHaveAllOptionalParameters: true, diagnostics: diagnostics);
+                    if (boundMember.HasAnyErrors)
+                    {
+                        hasErrors = true;
+                    }
                 }
+            }
+            else if (namedAssignment.Left.Kind == SyntaxKind.ImplicitElementAccess)
+            {
+                var implicitIndexing = (ImplicitElementAccessSyntax)namedAssignment.Left;
+                boundMember = BindElementAccess(implicitIndexing, implicitReceiver, implicitIndexing.ArgumentList, diagnostics);
+
+                resultKind = boundMember.ResultKind;
+                hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
+            }
+            else
+            {
+                return null;
             }
 
             // SPEC:    A member initializer that specifies an object initializer after the equals sign is a nested object initializer,
@@ -4499,7 +4521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!hasErrors)
                             {
                                 // TODO: distinct error code for collection initializers?  (Dev11 doesn't have one.)
-                                Error(diagnostics, ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, memberNameSyntax, fieldSymbol, fieldSymbol.Type);
+                                Error(diagnostics, ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, namedAssignment.Left, fieldSymbol, fieldSymbol.Type);
                                 hasErrors = true;
                             }
 
@@ -4515,14 +4537,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var propertySymbol = (boundMemberKind == BoundKind.PropertyAccess) ?
                             ((BoundPropertyAccess)boundMember).PropertySymbol :
                             ((BoundIndexerAccess)boundMember).Indexer;
-                        Debug.Assert(!propertySymbol.IsIndexer());
 
                         if (isRhsNestedInitializer && propertySymbol.Type.IsValueType)
                         {
                             if (!hasErrors)
                             {
                                 // TODO: distinct error code for collection initializers?  (Dev11 doesn't have one.)
-                                Error(diagnostics, ErrorCode.ERR_ValueTypePropertyInObjectInitializer, memberNameSyntax, propertySymbol, propertySymbol.Type);
+                                Error(diagnostics, ErrorCode.ERR_ValueTypePropertyInObjectInitializer, namedAssignment.Left, propertySymbol, propertySymbol.Type);
                                 hasErrors = true;
                             }
 
@@ -4538,11 +4559,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.DynamicIndexerAccess:
+                    break;
+
                 case BoundKind.EventAccess:
                     break;
 
                 default:
-                    return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, memberNameSyntax, diagnostics, valueKind, hasErrors);
+                    return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, namedAssignment.Left, diagnostics, valueKind, hasErrors);
             }
 
             if (!hasErrors)
@@ -4559,23 +4583,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundObjectInitializerMember(memberNameSyntax, boundMember.ExpressionSymbol, resultKind, boundMember.Type, hasErrors);
+            ImmutableArray<BoundExpression> arguments;
+            if (boundMember.Kind == BoundKind.IndexerAccess)
+            {
+                arguments = ((BoundIndexerAccess)boundMember).Arguments;
+            }
+            else if (boundMember.Kind == BoundKind.DynamicIndexerAccess)
+            {
+                arguments = ((BoundDynamicIndexerAccess)boundMember).Arguments;
+            }
+            else
+            {
+                arguments = ImmutableArray<BoundExpression>.Empty;
+            }
+
+            return new BoundObjectInitializerMember(namedAssignment.Left, boundMember.ExpressionSymbol, arguments, resultKind, boundMember.Type, hasErrors);
         }
+
 
         private BoundExpression BadObjectInitializerMemberAccess(
             BoundExpression boundMember,
             BoundImplicitReceiver implicitReceiver,
-            IdentifierNameSyntax memberNameSyntax,
+            ExpressionSyntax memberNameSyntax,
             DiagnosticBag diagnostics,
             BindValueKind valueKind,
             bool suppressErrors)
         {
             if (!suppressErrors)
             {
+                string member;
+                var identName = memberNameSyntax as IdentifierNameSyntax;
+                if (identName != null)
+                {
+                    member = identName.Identifier.ValueText;
+                }
+                else
+                {
+                    member = memberNameSyntax.ToString();
+                }
+
                 switch (boundMember.ResultKind)
                 {
                     case LookupResultKind.Empty:
-                        Error(diagnostics, ErrorCode.ERR_NoSuchMember, memberNameSyntax, implicitReceiver.Type, memberNameSyntax.Identifier.ValueText);
+                        Error(diagnostics, ErrorCode.ERR_NoSuchMember, memberNameSyntax, implicitReceiver.Type, member);
                         break;
 
                     case LookupResultKind.Inaccessible:
@@ -4584,7 +4634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        Error(diagnostics, ErrorCode.ERR_MemberCannotBeInitialized, memberNameSyntax, memberNameSyntax.Identifier.ValueText);
+                        Error(diagnostics, ErrorCode.ERR_MemberCannotBeInitialized, memberNameSyntax, member);
                         break;
                 }
             }
@@ -4607,13 +4657,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(memberInitializerSyntax.Kind == SyntaxKind.SimpleAssignmentExpression);
                 var namedAssignment = (BinaryExpressionSyntax)memberInitializerSyntax;
 
-                Debug.Assert(namedAssignment.Left.Kind == SyntaxKind.IdentifierName);
-                var memberNameSyntax = (IdentifierNameSyntax)namedAssignment.Left;
-                var memberName = memberNameSyntax.Identifier.ValueText;
-
-                if (!memberNameMap.Add(memberName))
+                var memberNameSyntax = namedAssignment.Left as IdentifierNameSyntax;
+                if (memberNameSyntax != null)
                 {
-                    Error(diagnostics, ErrorCode.ERR_MemberAlreadyInitialized, memberNameSyntax, memberName);
+                    var memberName = memberNameSyntax.Identifier.ValueText;
+
+                    if (!memberNameMap.Add(memberName))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_MemberAlreadyInitialized, memberNameSyntax, memberName);
+                    }
                 }
             }
         }
