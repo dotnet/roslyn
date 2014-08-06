@@ -2530,13 +2530,13 @@ class C : List<int>
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d"),
                 // (27,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e2 = () => new C { D = { X = { Y = 1 }, Z = 1 } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "X = { Y = 1 }"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "X"),
                 // (27,60): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e2 = () => new C { D = { X = { Y = 1 }, Z = 1 } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Y = 1"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Y"),
                 // (27,69): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e2 = () => new C { D = { X = { Y = 1 }, Z = 1 } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Z = 1"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Z"),
                 // (28,50): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d }"),

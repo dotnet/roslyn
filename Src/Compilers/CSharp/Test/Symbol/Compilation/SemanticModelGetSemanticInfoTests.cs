@@ -15340,5 +15340,40 @@ class C(C c)
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
             Assert.Null(semanticInfo.Symbol);
         }
+
+        [Fact, WorkItem(982479, "DevDiv")]
+        public void Bug982479()
+        {
+            const string sourceCode = @"
+class C
+{
+    static void Main()
+    {
+        new C { Dynamic = { /*<bind>*/Name/*</bind>*/ = 1 } };
+    }
+ 
+    public dynamic Dynamic;
+}
+ 
+class Name
+{
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+            Assert.Equal("dynamic", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.DynamicType, semanticInfo.Type.TypeKind);
+            Assert.Equal("dynamic", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.DynamicType, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
     }
 }
