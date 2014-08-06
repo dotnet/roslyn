@@ -38,7 +38,7 @@ End Module]]></file>
 
             CompileAndVerify(source,
                  additionalRefs:={SystemCoreRef},
-                 options:=Options.OptionsExe.WithOverflowChecks(True),
+                 options:=TestOptions.ReleaseExe.WithOverflowChecks(True),
                  expectedOutput:=<![CDATA[
 Lambda(
   body {
@@ -733,13 +733,13 @@ Lambda(
 
             CompileAndVerify(source,
                           additionalRefs:={SystemCoreRef},
-                          options:=Options.OptionsExe.WithOverflowChecks(True),
+                          options:=TestOptions.ReleaseExe.WithOverflowChecks(True),
                           expectedOutput:=expected
             )
 
             CompileAndVerify(source,
                         additionalRefs:={SystemCoreRef},
-                        options:=Options.OptionsExe.WithOverflowChecks(False),
+                        options:=TestOptions.ReleaseExe.WithOverflowChecks(False),
                         expectedOutput:=expected
             )
 
@@ -1202,7 +1202,7 @@ Lambda(
 
             CompileAndVerify(source,
                              additionalRefs:={SystemCoreRef},
-                             options:=Options.OptionsExe.WithOverflowChecks(checked),
+                             options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics()
         End Sub
@@ -1224,7 +1224,7 @@ Lambda(
 
             CompileAndVerify(source,
                              additionalRefs:={SystemCoreRef},
-                             options:=Options.OptionsExe.WithOverflowChecks(checked),
+                             options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics()
         End Sub
@@ -1449,7 +1449,7 @@ Lambda(
 
             CompileAndVerify(source,
                              additionalRefs:={SystemCoreRef},
-                             options:=Options.OptionsExe.WithOverflowChecks(checked),
+                             options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics(Diagnostic(ERRID.WRN_ObsoleteIdentityDirectCastForValueType, "x"),
                                 Diagnostic(ERRID.WRN_ObsoleteIdentityDirectCastForValueType, "x"))
@@ -1810,7 +1810,7 @@ End Structure
                         <%= QueryTesting %>
                     </compilation>,
                     references:=If(addXmlReferences, DefaultReferences.Concat(XmlReferences), DefaultReferences),
-                    options:=Options.OptionsDll.WithOverflowChecks(checked).WithOptimizations(optimize))
+                    options:=TestOptions.ReleaseDll.WithOverflowChecks(checked).WithOptimizations(optimize))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, diagnostics)
         End Sub
@@ -1829,7 +1829,7 @@ End Structure
                     <%= ExprTesting %>
                     <%= QueryTesting %>
                 </compilation>,
-                options:=Options.OptionsExe.WithOverflowChecks(checked).WithOptimizations(optimize),
+                options:=TestOptions.ReleaseExe.WithOverflowChecks(checked).WithOptimizations(optimize),
                 expectedOutput:=If(result IsNot Nothing, result.Trim, Nothing),
                 additionalRefs:=If(addXmlReferences, XmlReferences, {}),
                 useLatestFramework:=latestReferences)
@@ -1920,7 +1920,7 @@ End Module
 
             CompileAndVerify(source,
                              additionalRefs:={SystemCoreRef},
-                             options:=Options.OptionsExe.WithOverflowChecks(checked),
+                             options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics(If(diagnostics, {}))
         End Sub
@@ -7793,7 +7793,7 @@ End Module
 
             CompileAndVerify(source,
                  additionalRefs:={SystemCoreRef},
-                 options:=Options.OptionsExe,
+                 options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => (value(M+_Closure$__1`1[M+X]).$VB$Local_x == null)
 () => (value(M+_Closure$__1`1[M+X]).$VB$Local_x != null)
@@ -7852,7 +7852,7 @@ End Module
 
             CompileAndVerify(source,
                  additionalRefs:={SystemCoreRef},
-                 options:=Options.OptionsExe,
+                 options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => (value(M+_Closure$__1`1[M+X]).$VB$Local_x == null)
 () => (value(M+_Closure$__1`1[M+X]).$VB$Local_x != null)
@@ -7893,7 +7893,7 @@ End Module
 
             CompileAndVerify(source,
                  additionalRefs:={SystemCoreRef},
-                 options:=Options.OptionsExe,
+                 options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => Concat(value(M+_Closure$__1).$VB$Local_str, null)
 () => Concat(null, value(M+_Closure$__1).$VB$Local_str)

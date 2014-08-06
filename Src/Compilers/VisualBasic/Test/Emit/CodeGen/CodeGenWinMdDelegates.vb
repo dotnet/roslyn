@@ -47,7 +47,7 @@ End Namespace]]>
                         libSrc,
                         sourceSymbolValidator:=validator,
                         symbolValidator:=validator,
-                        options:=If(winmd, OptionsWinMDObj, OptionsDll))
+                        options:=If(winmd, TestOptions.ReleaseWinMD, TestOptions.ReleaseDll))
                     verifier.VerifyDiagnostics()
                 End Sub
 
@@ -103,7 +103,7 @@ End Class]]>
                 src,
                 sourceSymbolValidator:=srcValidator,
                 symbolValidator:=mdValidator,
-                options:=OptionsWinMDObj)
+                options:=TestOptions.ReleaseWinMD)
         End Sub
 
         <Fact()>
@@ -173,7 +173,7 @@ End Namespace
             Dim winRtDelegateLibrary = CompilationUtils.CreateCompilationWithReferences(
                 winRtDelegateLibrarySrc,
                 references:=coreRefs45,
-                options:=OptionsWinMDObj).EmitToImageReference()
+                options:=TestOptions.ReleaseWinMD).EmitToImageReference()
 
             Dim fileElement = winRtDelegateLibrarySrc.<file>.Single()
             fileElement.ReplaceAttributes(New XAttribute("name", "NonWinRTDelegateLibrary.vb"))
@@ -182,7 +182,7 @@ End Namespace
             Dim nonWinRtDelegateLibrary = CompilationUtils.CreateCompilationWithReferences(
                 winRtDelegateLibrarySrc,
                 references:=coreRefs45,
-                options:=OptionsDll).EmitToImageReference()
+                options:=TestOptions.ReleaseDll).EmitToImageReference()
 
             Dim allDelegates =
                 <compilation>

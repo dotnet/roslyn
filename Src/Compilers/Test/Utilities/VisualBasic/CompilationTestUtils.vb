@@ -161,7 +161,7 @@ Friend Module CompilationUtils
                                                     Optional options As VisualBasicCompilationOptions = Nothing,
                                                     Optional assemblyName As String = Nothing) As VisualBasicCompilation
         If options Is Nothing Then
-            options = OptionsDll
+            options = TestOptions.ReleaseDll
 
             ' Using single-threaded build if debugger attached, to simplify debugging.
             If Debugger.IsAttached Then

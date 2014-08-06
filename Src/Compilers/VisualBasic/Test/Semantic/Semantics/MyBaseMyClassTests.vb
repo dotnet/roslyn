@@ -3843,7 +3843,7 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileWithCustomILSource(source, ilSource.Value, OptionsExe, emitOptions:=EmitOptions.RefEmitBug,
+            CompileWithCustomILSource(source, ilSource.Value, TestOptions.ReleaseExe, emitOptions:=EmitOptions.RefEmitBug,
                                       expectedOutput:="B2::F-B1::F").
             VerifyIL("OuterClass(Of V).B2.$VB$ClosureStub_F_MyBase",
             <![CDATA[
@@ -3920,7 +3920,7 @@ End Module
             Dim position = compilationDef.<file>.Value.IndexOf("'POSITION")
 
             Dim verifier = CompileAndVerify(compilationDef,
-                             options:=OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
+                             options:=TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
                              additionalRefs:={SystemCoreRef})
 
 

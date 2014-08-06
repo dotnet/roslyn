@@ -3007,7 +3007,7 @@ End Module
 
 
     </file>
-    </compilation>, options:=OptionsExe)
+    </compilation>, options:=TestOptions.ReleaseExe)
 
             Dim globalNS = compilation.GlobalNamespace
             Dim class_cls2 = DirectCast(globalNS.GetMembers("cls3").Single(), NamedTypeSymbol)
@@ -3833,7 +3833,7 @@ End Module
         <WorkItem(541269, "DevDiv")>
         <Fact()>
         Public Sub GetDiagnosticsAddressOfOperatorWithoutMscorlibRef()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
 <compilation name="Compilation">
@@ -3963,7 +3963,7 @@ BC31143: Method 'Friend Sub TestSub(x As Integer)' does not have a signature com
         <WorkItem(541271, "DevDiv")>
         <Fact()>
         Public Sub GetDiagnsoticsSubInsideAnInterfaceWithoutMscorlibRef()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
 <compilation name="Compilation">
@@ -3990,7 +3990,7 @@ BC30002: Type 'System.Void' is not defined.
         <WorkItem(541304, "DevDiv")>
         <Fact()>
         Public Sub GetDiagnsoticsDoLoopWithConditionAtBottomAndTopPart()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Compilation">
@@ -4024,7 +4024,7 @@ BC30201: Expression expected.
 
         <Fact()>
         Public Sub GetDiagnsoticsDoLoopWithConditionAtBottomAndTopPart2()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Compilation">
@@ -4091,7 +4091,7 @@ Namespace N1
     End Class
 End Namespace
     </file>
-</compilation>, options:=OptionsDll.WithRootNamespace("Foo.Bar"))
+</compilation>, options:=TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar"))
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim semanticModelA = compilation.GetSemanticModel(treeA)
@@ -5231,7 +5231,7 @@ End Namespace End Class
        apInitScenario("7. generic T_Method B ----------------------------
 
 }]]></file>
-    </compilation>, {SystemCoreRef, SystemRef, SystemDataRef}, OptionsDll.WithOptionExplicit(False).WithOptionInfer(True))
+    </compilation>, {SystemCoreRef, SystemRef, SystemDataRef}, TestOptions.ReleaseDll.WithOptionExplicit(False).WithOptionInfer(True))
 
             compilation.GetDiagnostics()
 
@@ -5445,7 +5445,7 @@ Namespace Test
     End Interface
 End Namespace
     ]]></file>
-</compilation>, OptionsDll)
+</compilation>, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(pia, <expected></expected>)
 

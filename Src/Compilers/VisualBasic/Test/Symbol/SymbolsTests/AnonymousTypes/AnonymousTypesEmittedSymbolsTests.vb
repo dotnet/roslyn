@@ -624,7 +624,7 @@ End Module
         </file>
     </compilation>
 
-            Dim testModule = CreateCompilationWithMscorlibAndVBRuntime(moduleDef, OptionsNetModule)
+            Dim testModule = CreateCompilationWithMscorlibAndVBRuntime(moduleDef, TestOptions.ReleaseModule)
 
             Dim compilationDef =
     <compilation>
@@ -634,7 +634,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(moduleDef, {testModule.EmitToImageReference()}, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(moduleDef, {testModule.EmitToImageReference()}, TestOptions.ReleaseDll)
 
             Assert.Equal(1, compilation.Assembly.Modules(1).GlobalNamespace.GetTypeMembers("VB$AnonymousDelegate_0<TestModule>", 2).Length)
             Assert.Equal(1, compilation.Assembly.Modules(1).GlobalNamespace.GetTypeMembers("VB$AnonymousType_0<TestModule>", 1).Length)

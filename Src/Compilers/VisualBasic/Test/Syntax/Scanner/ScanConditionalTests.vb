@@ -15,7 +15,7 @@ Public Class ScanConditionalTests
 #hi
                   </text>.Value
 
-        Using s As New InternalSyntax.Scanner(SourceText.From(Str), OptionsRegular)
+        Using s As New InternalSyntax.Scanner(SourceText.From(Str), TestOptions.Regular)
             Dim res = s.SkipToNextConditionalLine
             Assert.Equal(0, res.Start)
             Assert.Equal(1, res.Length)
@@ -34,7 +34,7 @@ blah
 boo</text>.Value
 
 
-        Using s As New InternalSyntax.Scanner(SourceText.From(Str), OptionsRegular)
+        Using s As New InternalSyntax.Scanner(SourceText.From(Str), TestOptions.Regular)
 
             ' grab the whole text (why not)
             Dim disabled = s.GetDisabledTextAt(New TextSpan(0, Str.Length))
@@ -75,7 +75,7 @@ blah
 boo
 #hi</text>.Value
 
-        Using s As New InternalSyntax.Scanner(SourceText.From(Str), OptionsRegular)
+        Using s As New InternalSyntax.Scanner(SourceText.From(Str), TestOptions.Regular)
             Dim res = s.SkipToNextConditionalLine
             Assert.Equal(0, res.Start)
             Assert.Equal(11, res.Length)
@@ -115,7 +115,7 @@ _
 #here _
 _</text>.Value
 
-        Using s As New InternalSyntax.Scanner(SourceText.From(Str), OptionsRegular)
+        Using s As New InternalSyntax.Scanner(SourceText.From(Str), TestOptions.Regular)
             Dim res = s.SkipToNextConditionalLine
             Assert.Equal(0, res.Start)
             Assert.Equal(7, res.Length)

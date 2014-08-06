@@ -548,7 +548,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim baseLine As BaseLine() = {
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator +(x As A1, y As A1) As A1"),
@@ -1145,7 +1145,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim baseLine As BaseLine() = {
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator +(x As A1, y As A1) As A1"),
@@ -1365,7 +1365,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
 
             Dim a1 = compilation.GetTypeByMetadataName("A1")
@@ -1909,7 +1909,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim baseLine As BaseLine() = {
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator +(x As A1, y As A1) As A1"),
@@ -2071,7 +2071,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim baseLine As BaseLine() = {
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator And(x As A1, y As A1) As A1"),
@@ -2188,7 +2188,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim a11 = compilation.GetTypeByMetadataName("A11")
 
@@ -2288,7 +2288,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim a11 = compilation.GetTypeByMetadataName("A11")
 
@@ -2386,7 +2386,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim a11 = compilation.GetTypeByMetadataName("A11")
 
@@ -2466,7 +2466,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim a11 = compilation.GetTypeByMetadataName("A11")
 
@@ -2545,7 +2545,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim a11 = compilation.GetTypeByMetadataName("A11")
 
@@ -2624,7 +2624,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim a11 = compilation.GetTypeByMetadataName("A11")
 
@@ -2688,7 +2688,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim a11 = compilation.GetTypeByMetadataName("A11")
 
@@ -2777,7 +2777,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim a14 = compilation.GetTypeByMetadataName("A14")
 
@@ -2798,7 +2798,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             Dim nullable = compilation.GetSpecialType(SpecialType.System_Nullable_T)
             Dim op_Implicit = DirectCast(nullable.GetMembers("op_Implicit").Single, MethodSymbol)

@@ -80,7 +80,7 @@ End Class
                         </file>
                     </compilation>,
                     references:=DefaultReferences,
-                    options:=Options.OptionsDll)
+                    options:=TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>

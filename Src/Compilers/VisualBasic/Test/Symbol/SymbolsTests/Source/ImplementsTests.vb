@@ -3298,7 +3298,7 @@ D.Explicit
 
             Dim verifyComp3 As Action(Of MetadataReference, MetadataReference) =
                 Sub(ref1, ref2)
-                    Dim comp3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {ref1, ref2}, Options.OptionsExe)
+                    Dim comp3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {ref1, ref2}, TestOptions.ReleaseExe)
                     CompileAndVerify(comp3, expectedOutput:=expectedOutput)
 
                     Dim globalNamespace = comp3.GlobalNamespace
@@ -3616,7 +3616,7 @@ End Module
                </compilation>
 
             Dim ilRef = CompileIL(il.Value)
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {ilRef}, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {ilRef}, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 Explicit implementation
 Explicit implementation
@@ -3694,7 +3694,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -3778,7 +3778,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -3873,7 +3873,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -3931,7 +3931,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -4000,7 +4000,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -4069,7 +4069,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -4154,7 +4154,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -4219,7 +4219,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation,
             <![CDATA[

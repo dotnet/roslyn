@@ -4169,7 +4169,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+        Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompileAndVerify(compilation)
 
         CompilationUtils.AssertNoErrors(compilation)
@@ -4198,7 +4198,7 @@ End Module
 </compilation>
 
         'Should be No errors and a single line lambda is in use
-        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompilationUtils.AssertTheseDiagnostics(Compilation, <expected>
                                                              </expected>)
         CompileAndVerify(Compilation)
@@ -4228,7 +4228,7 @@ End Module
 </compilation>
 
         'Should be No errors and a single line lambda is in use
-        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompilationUtils.AssertTheseDiagnostics(Compilation, <expected>
                                                              </expected>)
         CompileAndVerify(Compilation)

@@ -1171,7 +1171,7 @@ End Interface
 </compilation>
 
 
-            Dim pia1 = CreateCompilationWithMscorlib(piaSource, options:=OptionsDll)
+            Dim pia1 = CreateCompilationWithMscorlib(piaSource, options:=TestOptions.ReleaseDll)
             CompileAndVerify(pia1)
 
             Dim moduleSource =
@@ -1185,7 +1185,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim module1 = CreateCompilationWithMscorlib(moduleSource, options:=OptionsNetModule,
+            Dim module1 = CreateCompilationWithMscorlib(moduleSource, options:=TestOptions.ReleaseModule,
                 references:={New VisualBasicCompilationReference(pia1, embedInteropTypes:=True)})
 
             Dim emptySource =
@@ -1194,7 +1194,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim multiModule = CreateCompilationWithMscorlib(emptySource, options:=OptionsDll,
+            Dim multiModule = CreateCompilationWithMscorlib(emptySource, options:=TestOptions.ReleaseDll,
                 references:={module1.EmitToImageReference()})
 
             CompileAndVerify(multiModule)
@@ -1210,7 +1210,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim consumer = CreateCompilationWithMscorlib(consumerSource, options:=OptionsDll,
+            Dim consumer = CreateCompilationWithMscorlib(consumerSource, options:=TestOptions.ReleaseDll,
                 references:={New VisualBasicCompilationReference(multiModule),
                              New VisualBasicCompilationReference(pia1)})
 
@@ -1240,7 +1240,7 @@ public delegate Sub Y(addin As List(Of string))
     ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(source1, options:=OptionsDll,
+            Dim comp1 = CreateCompilationWithMscorlib(source1, options:=TestOptions.ReleaseDll,
                 references:={TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)})
 
             Dim source2 =
@@ -1257,14 +1257,14 @@ End Module
             Dim comp2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2,
                 {comp1.EmitToImageReference(),
                 TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)},
-                OptionsExe)
+                TestOptions.ReleaseExe)
 
             CompileAndVerify(comp2, expectedOutput:="Y").Diagnostics.Verify()
 
             Dim comp3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2,
                 {New VisualBasicCompilationReference(comp1),
                 TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)},
-                OptionsExe)
+                TestOptions.ReleaseExe)
 
             CompileAndVerify(comp3, expectedOutput:="Y").Diagnostics.Verify()
         End Sub

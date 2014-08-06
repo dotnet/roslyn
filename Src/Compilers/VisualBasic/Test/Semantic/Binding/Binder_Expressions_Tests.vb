@@ -737,7 +737,7 @@ Module Module1
 
 End Module
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             compilation = compilation.AddReferences(TestReferences.SymbolsTests.Fields.ConstantFields)
 
@@ -876,7 +876,7 @@ End Class
     </file>
 </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 Nothing
@@ -995,7 +995,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 123
@@ -1017,7 +1017,7 @@ End Module
     </file>
 </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2271,7 +2271,7 @@ Namespace System.Runtime.CompilerServices
 
 End Namespace
         </file>
-    </compilation>, OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, <![CDATA[
 Action(Of IEnumerable)

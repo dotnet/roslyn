@@ -55,7 +55,7 @@ Module MetadataTestHelpers
             Throw TestExceptionUtilities.Unreachable
         Next
 
-        Dim options = If(importInternals, OptionsDllAlwaysImportInternals, OptionsDll)
+        Dim options = If(importInternals, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), TestOptions.ReleaseDll)
         Dim tc1 = VisualBasicCompilation.Create("Dummy", references:=refs, options:=options)
 
         Return (From ref In refs Select tc1.GetReferencedAssemblySymbol(ref)).ToArray()

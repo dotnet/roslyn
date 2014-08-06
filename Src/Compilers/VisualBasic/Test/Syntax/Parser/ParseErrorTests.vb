@@ -2884,7 +2884,7 @@ If True
 End If
 </text>.Value
 
-        ParseAndVerify(source, Options.OptionsScript,
+        ParseAndVerify(source, TestOptions.Script,
             Diagnostic(ERRID.ERR_InvInsideBlock, "Class Foo").WithArguments("If"))
     End Sub
 
@@ -2897,7 +2897,7 @@ Do
 Loop
 </text>.Value
 
-        ParseAndVerify(source, Options.OptionsScript,
+        ParseAndVerify(source, TestOptions.Script,
             Diagnostic(ERRID.ERR_InvInsideBlock, "Function Foo").WithArguments("Do Loop"))
     End Sub
 
@@ -2910,7 +2910,7 @@ While True
 End While
 </text>.Value
 
-        ParseAndVerify(source, Options.OptionsScript,
+        ParseAndVerify(source, TestOptions.Script,
             Diagnostic(ERRID.ERR_InvInsideBlock, "Sub Foo").WithArguments("While"))
     End Sub
 

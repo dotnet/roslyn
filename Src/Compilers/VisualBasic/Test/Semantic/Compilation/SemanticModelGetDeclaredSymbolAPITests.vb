@@ -107,7 +107,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(xml, Options.OptionsDll.WithRootNamespace("Pavement"))
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(xml, TestOptions.ReleaseDll.WithRootNamespace("Pavement"))
             Dim tree = comp.SyntaxTrees(0)
             Dim model1 = comp.GetSemanticModel(tree)
 
@@ -568,7 +568,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromTypeDeclaration()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -749,7 +749,7 @@ BC30618: 'Namespace' statements can occur only at file or namespace level.
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromNamespaceDeclaration()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -899,7 +899,7 @@ BC30618: 'Namespace' statements can occur only at file or namespace level.
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromMethodDeclaration()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1032,7 +1032,7 @@ BC30618: 'Namespace' statements can occur only at file or namespace level.
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromPropertyDeclaration()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
     <file name="c.vb">
@@ -1085,7 +1085,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromOperatorDeclaration()
-            Dim options = OptionsDll.WithRootNamespace("NS")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("NS")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1164,7 +1164,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromParameter()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1373,7 +1373,7 @@ End Namespace
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolLambdaParam()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1591,7 +1591,7 @@ End Class
         <WorkItem(541238, "DevDiv")>
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromAliasDecl()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1766,7 +1766,7 @@ End Namespace
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromTypeParameter()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1880,7 +1880,7 @@ BC30001: Statement is not valid in a namespace.
 
         <Fact()>
         Public Sub TestGetDeclaredFromLabel()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1920,7 +1920,7 @@ End Module
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromVariableName()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -2448,7 +2448,7 @@ End Namespace
         <WorkItem(541244, "DevDiv")>
         <Fact()>
         Public Sub GetDeclaredSymbolDelegateStatementSyntax()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -2490,7 +2490,7 @@ End Namespace
         <WorkItem(541379, "DevDiv")>
         <Fact()>
         Public Sub GetDeclaredSymbolLambdaParamError()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">

@@ -187,7 +187,7 @@ End Module
     </file>
 </compilation>
             Dim ref = New MetadataImageReference(TestResources.SymbolsTests.General.DelegatesWithoutInvoke.AsImmutableOrNull())
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, Options.OptionsExe)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(c1,
 <errors>
 BC30657: 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has a return type that is not supported or parameter types that are not supported.
@@ -838,7 +838,7 @@ End Module
 
                 Dim ref = New MetadataImageReference(TestResources.SymbolsTests.General.DelegateByRefParamArray.AsImmutableOrNull())
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, OptionsExe)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
                 AssertTheseDiagnostics(c1,
 <expected>
 BC31143: Method 'Public Sub SubWithNoParams(foo As Integer)' does not have a signature compatible with delegate 'Delegate Sub DelegateByRefParamArray.DelegateSubWithParamAndParamArrayOfReferenceTypes(A_0 As Integer, ParamArray A_1 As DelegateByRefParamArray_Base())'.
@@ -1020,7 +1020,7 @@ End Module
     </file>
 </compilation>
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, options:=Options.OptionsExe)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe)
             CompilationUtils.AssertNoErrors(c)
             CompileAndVerify(c,
             <![CDATA[
@@ -1091,7 +1091,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+                Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
                 CompilationUtils.AssertTheseDiagnostics(c, <errors></errors>)
                 'NOTE: No error in Dev11
             Next
@@ -1155,7 +1155,7 @@ End Module
     </file>
     </compilation>
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(c,
 <errors>
 BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Sub Test111()' and delegate 'Delegate Sub System.Action(Of Long)(obj As Long)'.

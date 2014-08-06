@@ -410,7 +410,7 @@ Class C
 
     &lt;Serializable&gt; Private i As Integer
 End Class    </file>
-</compilation>, options:=OptionsExe.WithEmbedVbCoreRuntime(True))
+</compilation>, options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -1054,7 +1054,7 @@ Class C
 
     &lt;Serializable&gt; Private i As Integer
 End Class    </file>
-</compilation>, options:=OptionsExe.WithEmbedVbCoreRuntime(True))
+</compilation>, options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim parentModel = compilation.GetSemanticModel(tree)
@@ -3826,7 +3826,7 @@ End Class
                 End Sub
             End Module
                 ]]></file>
-</compilation>, Nothing, OptionsExe.WithOptionStrict(OptionStrict.Off))
+</compilation>, Nothing, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Off))
 
             Dim semanticModel = CompilationUtils.GetSemanticModel(compilation, "a.vb")
             Assert.Equal("Visual Basic", semanticModel.Language)
@@ -3846,7 +3846,7 @@ End Class
                 parse errrrrror
             End Class
                 ]]></file>
-</compilation>, Nothing, OptionsDll.WithOptionStrict(OptionStrict.On))
+</compilation>, Nothing, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
 
             Dim semanticModel = CompilationUtils.GetSemanticModel(compilation, "a.vb")
             Dim errs = semanticModel.GetDiagnostics()
@@ -3883,12 +3883,12 @@ BC30002: Type 'A' is not defined.
                             ~
 </expected>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, TestOptions.ReleaseDll)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
             Dim errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, OptionsDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -3908,7 +3908,7 @@ BC30002: Type 'A' is not defined.
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceNoNamespaceSpecified, Nothing, OptionsDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceNoNamespaceSpecified, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -3931,7 +3931,7 @@ BC30002: Type 'A' is not defined.
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceEscapedGlobal, Nothing, OptionsDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceEscapedGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -3955,7 +3955,7 @@ BC30002: Type 'A' is not defined.
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAsStartOfNamespace, Nothing, OptionsDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAsStartOfNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -3978,7 +3978,7 @@ BC30002: Type 'A' is not defined.
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithaNameStartingGlobal, Nothing, OptionsDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithaNameStartingGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4022,7 +4022,7 @@ BC30002: Type 'A' is not defined.
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS1, Nothing, OptionsDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS1, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
@@ -4054,7 +4054,7 @@ BC30002: Type 'A' is not defined.
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS2, Nothing, OptionsDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS2, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
@@ -4086,7 +4086,7 @@ BC30002: Type 'A' is not defined.
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalCombinedNamespace, Nothing, OptionsDll.WithRootNamespace("Foo"))
+            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalCombinedNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("Foo"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)

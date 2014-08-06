@@ -1659,7 +1659,7 @@ Module MyClass1
     End Sub
 End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("MyClass1.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("MyClass1.Main", <![CDATA[
 {
   // Code size       11 (0xb)
   .maxstack  2
@@ -1695,7 +1695,7 @@ Module MyClass1
     End Sub
 End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("MyClass1.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("MyClass1.Main", <![CDATA[
 {
   // Code size       15 (0xf)
   .maxstack  2
@@ -1734,7 +1734,7 @@ Module MyClass1
     End Sub
 End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("MyClass1.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("MyClass1.Main", <![CDATA[
 {
   // Code size       19 (0x13)
   .maxstack  2

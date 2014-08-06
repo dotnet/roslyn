@@ -95,7 +95,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithCustomILSource(source, il.Value, OptionsExe)
+            Dim comp = CreateCompilationWithCustomILSource(source, il.Value, TestOptions.ReleaseExe)
 
             Dim [type] = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
             Dim method = type.GetMember(Of MethodSymbol)("Incr")

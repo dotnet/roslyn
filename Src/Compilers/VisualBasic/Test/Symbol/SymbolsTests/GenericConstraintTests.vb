@@ -5505,7 +5505,7 @@ Class C1
     Inherits System.Console
 End Class
    ]]></file>
-</compilation>, OptionsDll)
+</compilation>, TestOptions.ReleaseDll)
             compilation.AssertTheseDiagnostics(
 <expected>
 BC32060: Type constraint cannot be a 'NotInheritable' class.

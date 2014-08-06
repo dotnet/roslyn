@@ -593,7 +593,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
                 {New MetadataImageReference(TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib.AsImmutableOrNull())},
-                OptionsDll)
+                TestOptions.ReleaseDll)
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
                                          Dim type = DirectCast(m.GlobalNamespace.GetMember("A"), NamedTypeSymbol)
@@ -710,7 +710,7 @@ End Namespace
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
                 {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
-                OptionsDll)
+                TestOptions.ReleaseDll)
 
             Dim attributeValidator =
                 Function(isFromSource As Boolean) _
@@ -792,7 +792,7 @@ End Namespace
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
                 {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
-                OptionsDll)
+                TestOptions.ReleaseDll)
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
                                          Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
@@ -845,7 +845,7 @@ End Namespace
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
                 {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
-                OptionsDll)
+                TestOptions.ReleaseDll)
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
                                          Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
@@ -882,7 +882,7 @@ End Namespace
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
                 {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
-                OptionsDll)
+                TestOptions.ReleaseDll)
 
             Dim sourceAttributeValidator = Sub(m As ModuleSymbol)
                                                Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
@@ -952,7 +952,7 @@ End Namespace
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
                 {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
-                OptionsDll)
+                TestOptions.ReleaseDll)
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
                                          Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
@@ -1008,7 +1008,7 @@ End Namespace
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
                 source,
                 {New MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull())},
-                OptionsDll)
+                TestOptions.ReleaseDll)
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
                                          Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
@@ -1869,7 +1869,7 @@ End Namespace
             Dim compilation1 = VisualBasicCompilation.Create("library.dll",
                                                              {VisualBasicSyntaxTree.ParseText(library.Value)},
                                                              {MscorlibRef},
-                                                             OptionsDll)
+                                                             TestOptions.ReleaseDll)
 
             Dim classLibrary = New MetadataImageReference(compilation1.EmitToArray())
 
@@ -1919,7 +1919,7 @@ End Namespace
             Dim compilation1 = VisualBasicCompilation.Create("library.dll",
                                                              {VisualBasicSyntaxTree.ParseText(library.Value)},
                                                              {MscorlibRef},
-                                                             OptionsDll)
+                                                             TestOptions.ReleaseDll)
 
             Dim classLibrary = New MetadataImageReference(compilation1.EmitToArray())
 
@@ -2990,7 +2990,7 @@ Public Delegate Function D(<C>a As Integer, <C>ByRef b As Integer) As <B> Intege
                 "library.dll",
                 {VisualBasicSyntaxTree.ParseText(sourceWithAAttribute.Value)},
                 {MsvbRef, MscorlibRef, SystemCoreRef},
-                OptionsDll)
+                TestOptions.ReleaseDll)
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {compWithAAttribute.ToMetadataReference()})
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_InaccessibleSymbol2, "A").WithArguments("AAttribute", "Friend"))
@@ -3189,7 +3189,7 @@ Class MyAttr
     End Sub
 End Class    
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(comp, <![CDATA[
 param index in System.String get_Item(Int32) has 1 attributes
@@ -3225,7 +3225,7 @@ Class MyAttr
 End Class    
 ]]>
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(comp, <expected>
 BC31504: 'MyAttr' cannot be used as an attribute because it does not inherit from 'System.Attribute'.
@@ -3267,7 +3267,7 @@ Sub Main()
 End Sub
 End Module
 ]]></file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(comp, <expected><![CDATA[
 BC30455: Argument not specified for parameter 't' of 'Public Sub New(t As Integer, [x As Integer = 1], [y As String = Nothing])'.
@@ -3365,7 +3365,7 @@ Module Module1
     End Function
 End Module
 ]]></file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(comp, expectedOutput:=
             <![CDATA[
@@ -3513,7 +3513,7 @@ Module Module1
     End Sub
 End Module
 ]]></file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(comp,
 <expected>
@@ -3715,7 +3715,7 @@ End Structure
                 "library.dll",
                 {VisualBasicSyntaxTree.ParseText(sourceWithAttribute.Value)},
                 {MsvbRef, MscorlibRef, SystemCoreRef},
-                OptionsDll)
+                TestOptions.ReleaseDll)
 
             Dim sourceLibRef = compWithAttribute.ToMetadataReference()
 
@@ -4161,7 +4161,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OptionsDll)
+            Dim comp = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
             Dim type = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Target")
 
             Dim typeInAttribute = DirectCast(type.GetAttributes()(0).ConstructorArguments(0).Value, NamedTypeSymbol)

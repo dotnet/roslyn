@@ -598,7 +598,7 @@ End Class
 
         <Fact>
         Public Sub ImportMembersAtProjectLevel()
-            Dim options = OptionsDll.WithGlobalImports(GlobalImport.Parse(
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse(
                     {"System.Collections.Generic",
                     "System.TimeZoneInfo",
                     "N1",
@@ -717,7 +717,7 @@ Imports DD=System.Console
 
         <Fact>
         Public Sub ImportAliasesAtProjectLevel()
-            Dim options = OptionsExe.WithGlobalImports(GlobalImport.Parse(
+            Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse(
                     {"System.Collections",
                      "IO=System.IO",
                      "TZI=System.TimeZoneInfo",
@@ -1042,7 +1042,7 @@ BC30561: 'Foo' is ambiguous, imported from the namespaces or types 'N.K, N2.L'.
 
         <Fact>
         Public Sub ProjectImportResolutionErrors()
-            Dim options = OptionsDll.WithGlobalImports(GlobalImport.Parse(
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse(
                     {"System.Collections",
                     "System.Collections.Generic",
                     "N",
@@ -1130,7 +1130,7 @@ BC32045: 'System.Collections.Generic.List(Of Object)' has no type parameters and
 
         <Fact>
         Public Sub ProjectAliasResolutionErrors()
-            Dim options = OptionsExe.WithGlobalImports(GlobalImport.Parse(
+            Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse(
                     {"System.Collections",
                     "ArrayList=System.Collections.Generic.List(Of Object)",
                     "HT=System.Collections.HashTable"}))
@@ -1165,7 +1165,7 @@ BC32045: 'System.Collections.Generic.List(Of Object)' has no type parameters and
 
         <Fact>
         Public Sub GlobalNamespace1()
-            Dim options = OptionsDll.WithRootNamespace("RootNS")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("RootNS")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1260,7 +1260,7 @@ End Namespace
 
         <Fact>
         Public Sub GlobalNamespace2()
-            Dim options = OptionsDll ' no global namespace
+            Dim options = TestOptions.ReleaseDll ' no global namespace
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">

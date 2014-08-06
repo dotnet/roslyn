@@ -1391,7 +1391,7 @@ Public Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="True").VerifyDiagnostics()
         End Sub

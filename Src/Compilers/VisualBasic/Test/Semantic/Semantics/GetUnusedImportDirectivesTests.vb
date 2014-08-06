@@ -93,7 +93,7 @@ Imports System.Reflection
 <Assembly: AssemblyKeyFile("]]><%= snkPath %><![CDATA[")>
 ]]>
     </file>
-</compilation>, additionalRefs:={SystemCoreRef}, options:=OptionsDll.WithStrongNameProvider(New DesktopStrongNameProvider()))
+</compilation>, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(New DesktopStrongNameProvider()))
 
             Dim libCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="Lib">
@@ -113,7 +113,7 @@ Imports System.Reflection
 <Assembly: AssemblyKeyFile("]]><%= snkPath %><![CDATA[")>
 ]]>
     </file>
-</compilation>, references:={ivtCompilation.ToMetadataReference()}, options:=OptionsDll.WithStrongNameProvider(New DesktopStrongNameProvider()))
+</compilation>, references:={ivtCompilation.ToMetadataReference()}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(New DesktopStrongNameProvider()))
 
             Dim tree = libCompilation.SyntaxTrees(0)
             Dim model = libCompilation.GetSemanticModel(tree)

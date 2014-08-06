@@ -119,7 +119,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
-                             options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
+                             options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
                              expectedOutput:=
             <![CDATA[
 Module1.Test1
@@ -230,7 +230,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
-                             options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
+                             options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
                              expectedOutput:=
             <![CDATA[
 Module2.Test1
@@ -340,7 +340,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
-                             options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
+                             options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
                              expectedOutput:=
             <![CDATA[
 Module3.Test1
@@ -449,7 +449,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
-                             options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
+                             options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
                              expectedOutput:=
             <![CDATA[
 Module4.Test1
@@ -557,7 +557,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
-                             options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
+                             options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
                              expectedOutput:=
             <![CDATA[
 Module5.Test1
@@ -664,7 +664,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
-                             options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
+                             options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
                              expectedOutput:=
             <![CDATA[
 Module6.Test1
@@ -770,7 +770,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
-                             options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
+                             options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
                              expectedOutput:=
             <![CDATA[
 Module7.Test1
@@ -875,7 +875,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
-                             options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
+                             options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})),
                              expectedOutput:=
             <![CDATA[
 Module8.Test1
@@ -979,7 +979,7 @@ End Namespace
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
-                                                                             OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
+                                                                             TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1369,7 +1369,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC36908: Late-bound extension methods are not supported.
@@ -1483,7 +1483,7 @@ End Namespace
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Off),
+            CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Off),
                              expectedOutput:=
             <![CDATA[
 C1.Test1
@@ -1500,7 +1500,7 @@ Module1.Test4
 Module1.Test6
 ]]>)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1612,7 +1612,7 @@ End Namespace
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.On),
+            CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On),
                              expectedOutput:=
             <![CDATA[
 C1.Test1
@@ -2614,7 +2614,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3051,7 +3051,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef2,
                                                                                                       {New MetadataImageReference(verifier.EmittedAssemblyData)},
-                                                                                                      OptionsExe)
+                                                                                                      TestOptions.ReleaseExe)
 
             CompilationUtils.AssertNoErrors(compilation)
 
@@ -3149,7 +3149,7 @@ End Module
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef2,
                                                                 {New VisualBasicCompilationReference(compilation1)},
-                                                                OptionsExe)
+                                                                TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected>

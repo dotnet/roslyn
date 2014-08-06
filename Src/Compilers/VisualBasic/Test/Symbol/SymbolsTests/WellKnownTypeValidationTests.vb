@@ -510,7 +510,7 @@ End Namespace
                 Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
             Next
 
-            comp = CreateCompilationWithReferences(<compilation/>, refs, OptionsDll.WithEmbedVbCoreRuntime(True))
+            comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             For wkt = WellKnownType.First To WellKnownType.Last
                 Select Case wkt
                     Case WellKnownType.Microsoft_CSharp_RuntimeHelpers_Session,
@@ -575,7 +575,7 @@ End Namespace
                 Assert.NotNull(symbol)
             Next
 
-            comp = CreateCompilationWithReferences(<compilation/>, refs, OptionsDll.WithEmbedVbCoreRuntime(True))
+            comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             For Each wkm As WellKnownMember In [Enum].GetValues(GetType(WellKnownMember))
                 Select Case wkm
                     Case WellKnownMember.Microsoft_CSharp_RuntimeHelpers_SessionHelpers__GetSubmission,

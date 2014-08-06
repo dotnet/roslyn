@@ -7528,7 +7528,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {SystemCoreRef}, OptionsExe)
+</compilation>, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -7754,7 +7754,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {SystemCoreRef}, OptionsExe)
+</compilation>, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of GenericNameSyntax)(compilation, "a.vb")
 

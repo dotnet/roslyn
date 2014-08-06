@@ -33,7 +33,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c1 = CreateCompilationWithMscorlib(source, options:=OptionsExe)
+            Dim c1 = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
             Dim exe = Temp.CreateFile()
             Using output As FileStream = exe.Open()
                 c1.Emit(output, win32Resources:=c1.CreateDefaultWin32Resources(True, False, Nothing, Nothing))
@@ -120,7 +120,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c1 = CreateCompilationWithMscorlib(source, options:=OptionsExe)
+            Dim c1 = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
             Dim exe = Temp.CreateFile()
             Using output As FileStream = exe.Open()
                 Dim memStream = New MemoryStream(TestResources.SymbolsTests.General.nativeCOFFResources)
@@ -182,7 +182,7 @@ End Class
 
         <Fact()>
         Public Sub FaultyResourceDataProvider()
-            Dim c1 = VisualBasicCompilation.Create("foo", references:={MscorlibRef}, options:=Options.OptionsDll)
+            Dim c1 = VisualBasicCompilation.Create("foo", references:={MscorlibRef}, options:=TestOptions.ReleaseDll)
             Dim result = c1.Emit(New MemoryStream(),
                                  manifestResources:={New ResourceDescription("r2", "file", Function()
                                                                                                Throw New Exception("bad stuff")
@@ -319,7 +319,7 @@ Module Module1
 End Module
 ]]>
     </file>
-</compilation>, options:=OptionsExe)
+</compilation>, options:=TestOptions.ReleaseExe)
 
             Dim exeFile = Temp.CreateFile()
             Using output As FileStream = exeFile.Open()
@@ -398,7 +398,7 @@ End Module
             Dim source =
 <compilation><file name="a.vb">
     </file></compilation>
-            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsNetModule)
+            Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseModule)
 
             Dim output As New IO.MemoryStream
             Dim dataProvider = Function() New IO.MemoryStream(New Byte() {})
@@ -435,7 +435,7 @@ End Module
             Assert.False(result.Success)
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_ResourceInModule))
 
-            Dim c_mod1 = CreateCompilationWithMscorlib(source, OptionsNetModule)
+            Dim c_mod1 = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule)
 
             Dim output_mod1 = New MemoryStream()
             result = c_mod1.Emit(output_mod1, manifestResources:=
@@ -449,7 +449,7 @@ End Module
             Assert.Equal(ManifestResourceAttributes.Public, mod1.Module.GetEmbeddedResourcesOrThrow()(0).Attributes)
 
             If True Then
-                Dim C2 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1}, OptionsDll)
+                Dim C2 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1}, TestOptions.ReleaseDll)
                 Dim output2 = New MemoryStream()
                 Dim result2 = C2.Emit(output2)
 
@@ -477,7 +477,7 @@ End Module
                 Assert.Equal(arrayOfEmbeddedData, rBytes)
             End If
 
-            Dim c_mod2 = CreateCompilationWithMscorlib(source, OptionsNetModule)
+            Dim c_mod2 = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule)
 
             Dim output_mod2 = New MemoryStream()
             result = c_mod2.Emit(output_mod2, manifestResources:=
@@ -490,7 +490,7 @@ End Module
             Dim ref_mod2 = New MetadataImageReference(ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()))
 
             If True Then
-                Dim C3 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod2}, OptionsDll)
+                Dim C3 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod2}, TestOptions.ReleaseDll)
                 Dim output3 = New MemoryStream()
                 Dim result3 = C3.Emit(output3)
 
@@ -527,7 +527,7 @@ End Module
                 Assert.Equal(resourceFileData, rBytes)
             End If
 
-            Dim c_mod3 = CreateCompilationWithMscorlib(source, OptionsNetModule)
+            Dim c_mod3 = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule)
 
             Dim output_mod3 = New MemoryStream()
             result = c_mod3.Emit(output_mod3, manifestResources:=
@@ -541,7 +541,7 @@ End Module
             Assert.Equal(ManifestResourceAttributes.Private, mod3.Module.GetEmbeddedResourcesOrThrow()(0).Attributes)
 
             If True Then
-                Dim C4 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod3}, OptionsDll)
+                Dim C4 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod3}, TestOptions.ReleaseDll)
                 Dim output4 = New MemoryStream()
                 Dim result4 = C4.Emit(output4, manifestResources:=
                                                        {
@@ -581,7 +581,7 @@ End Module
             End If
 
             If True Then
-                Dim c5 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1, ref_mod3}, OptionsDll)
+                Dim c5 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1, ref_mod3}, TestOptions.ReleaseDll)
                 Dim output5 = New MemoryStream()
                 Dim result5 = c5.Emit(output5)
 
@@ -620,7 +620,7 @@ End Module
             End If
 
             If True Then
-                Dim c6 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1, ref_mod2}, OptionsDll)
+                Dim c6 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1, ref_mod2}, TestOptions.ReleaseDll)
                 Dim output6 = New MemoryStream()
                 Dim result6 = c6.Emit(output6)
 
@@ -642,7 +642,7 @@ BC31502: Resource name 'another.DoTtEd.NAME' cannot be used more than once.
 BC31502: Resource name 'some.dotted.NAME' cannot be used more than once.
 </expected>)
 
-                c6 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1, ref_mod2}, OptionsNetModule)
+                c6 = CreateCompilationWithMscorlibAndReferences(source, {ref_mod1, ref_mod2}, TestOptions.ReleaseModule)
                 result6 = c6.Emit(output6, manifestResources:=
                 {
                     New ResourceDescription(r2Name, Function() New IO.MemoryStream(resourceFileData), False)
@@ -723,7 +723,7 @@ End Module
 
             Dim netModule1 = TestReferences.SymbolsTests.netModule.netModule1
 
-            c1 = VisualBasicCompilation.Create("foo", references:={MscorlibRef, netModule1}, options:=Options.OptionsDll)
+            c1 = VisualBasicCompilation.Create("foo", references:={MscorlibRef, netModule1}, options:=TestOptions.ReleaseDll)
 
             result = c1.Emit(output, manifestResources:=New ResourceDescription(0) _
                 {

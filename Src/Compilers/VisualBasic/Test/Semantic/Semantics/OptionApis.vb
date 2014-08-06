@@ -30,7 +30,7 @@ Option Explicit Off
 Option Compare Binary
     </file>
     <file name="empty.vb"></file>
-</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
+</compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
 
             Dim semanticModelAllOn = CompilationUtils.GetSemanticModel(compilation, "allon.vb")
             Assert.Equal(OptionStrict.On, semanticModelAllOn.OptionStrict)

@@ -266,7 +266,7 @@ End Namespace
 Namespace C
 End Namespace
     </file>
-</compilation>, options:=OptionsExe.WithRootNamespace("Foo.Bar"))
+</compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Foo.Bar"))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
 
@@ -321,7 +321,7 @@ End Namespace
 Class Type1
 End Class
     </file>
-</compilation>, options:=OptionsExe.WithRootNamespace("Foo.Bar"))
+</compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Foo.Bar"))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
             Dim members = globalNS.GetMembers()

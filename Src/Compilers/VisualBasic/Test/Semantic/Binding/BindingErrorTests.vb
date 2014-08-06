@@ -3301,7 +3301,7 @@ BC30112: 'X' is a namespace and cannot be used as an expression.
 
         <Fact()>
         Public Sub BC30114ERR_XmlPrefixNotExpression()
-            Dim options = OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p1=""..."">"}))
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p1=""..."">"}))
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -9046,7 +9046,7 @@ BC30569: 'New' cannot be used on a class that is declared 'MustInherit'.
                 End Sub
             End Module
     </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.On))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC30574: Option Strict On disallows late binding.
@@ -9092,7 +9092,7 @@ Public Module Program
     End Sub
 End Module
     </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.On))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30574: Option Strict On disallows late binding.
@@ -9132,7 +9132,7 @@ Module Program
 End Module
 
     </file>
-    </compilation>, OptionsExe.WithOptionStrict(OptionStrict.On))
+    </compilation>, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
@@ -9578,7 +9578,7 @@ BC30614: 'MustOverride' method 'Public MustOverride Function F1() As Integer' ca
                 End
         End Class
     </file>
-    </compilation>, options:=OptionsDll)
+    </compilation>, options:=TestOptions.ReleaseDll)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC30027: 'End Function' expected.
@@ -11425,7 +11425,7 @@ BC30978: Range variable 'foo' hides a variable in an enclosing block or a range 
                 End Sub
             End Module
         </file>
-    </compilation>, {SystemCoreRef}, options:=OptionsExe)
+    </compilation>, {SystemCoreRef}, options:=TestOptions.ReleaseExe)
 
             Dim expectedErrors1 = <errors>
 BC30978: Range variable 'x' hides a variable in an enclosing block or a range variable previously defined in the query expression.
@@ -12539,7 +12539,7 @@ BC31149: Duplicate XML attribute 'a'.
         ' attributes that match Imports since those have special handling.
         <Fact()>
         Public Sub BC31149ERR_DuplicateXmlAttribute_2()
-            Dim options = OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=""http://roslyn/p"">"}))
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=""http://roslyn/p"">"}))
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -12686,7 +12686,7 @@ BC31168: XML axis properties do not support late binding.
 
         <Fact()>
         Public Sub BC31172ERR_EmbeddedExpression()
-            Dim options = OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=<%= M1.F %>>"}))
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=<%= M1.F %>>"}))
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -12715,7 +12715,7 @@ BC30389: 'M1.F' is not accessible in this context because it is 'Private'.
 
         <Fact()>
         Public Sub BC31183ERR_ReservedXmlNamespace()
-            Dim options = OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns=""http://www.w3.org/XML/1998/namespace"">", "<xmlns:p1=""http://www.w3.org/2000/xmlns/"">"}))
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"<xmlns=""http://www.w3.org/XML/1998/namespace"">", "<xmlns:p1=""http://www.w3.org/2000/xmlns/"">"}))
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -12751,7 +12751,7 @@ BC31183: Prefix 'p3' cannot be bound to namespace name reserved for 'xml'.
 
         <Fact()>
         Public Sub BC31184ERR_IllegalDefaultNamespace()
-            Dim options = OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns="""">", "<xmlns:p="""">"}))
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"<xmlns="""">", "<xmlns:p="""">"}))
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -18279,7 +18279,7 @@ BC36913: Cannot infer a common type because more than one type is possible.
                 End Sub
             End Module
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC40052: Range specified for 'Case' statement is not valid. Make sure that the lower bound is less than or equal to the upper bound.
                         Case 1 To 0
@@ -18540,7 +18540,7 @@ End Module
                 Inherits C1
             End Class
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC41001: Class 'C2' should declare a 'Sub New' because the 'Public Sub New()' in its base class 'C1' is marked obsolete.
             Class C2
@@ -18564,7 +18564,7 @@ BC41001: Class 'C2' should declare a 'Sub New' because the 'Public Sub New()' in
                 Inherits C1
             End Class
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC41002: Class 'C2' should declare a 'Sub New' because the 'Public Sub New()' in its base class 'C1' is marked obsolete: 'hello'.
             Class C2
@@ -18590,7 +18590,7 @@ BC41002: Class 'C2' should declare a 'Sub New' because the 'Public Sub New()' in
                 End Sub
             End Class
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC41003: First statement of this 'Sub New' should be an explicit call to 'MyBase.New' or 'MyClass.New' because the 'Public Sub New()' in the base class 'C1' of 'C2' is marked obsolete.
                 Sub New()
@@ -18616,7 +18616,7 @@ BC41003: First statement of this 'Sub New' should be an explicit call to 'MyBase
                 End Sub
             End Class
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC41004: First statement of this 'Sub New' should be an explicit call to 'MyBase.New' or 'MyClass.New' because the 'Public Sub New()' in the base class 'C1' of 'C2' is marked obsolete: 'hello'
                 Sub New()
@@ -18638,7 +18638,7 @@ BC41004: First statement of this 'Sub New' should be an explicit call to 'MyBase
                 End Operator
             End Structure
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC41007: Attribute 'Conditional' is only valid on 'Sub' declarations.
                 Public Shared Operator +(ByVal v As S1, ByVal w As S1) As Object
@@ -18669,7 +18669,7 @@ BC41007: Attribute 'Conditional' is only valid on 'Sub' declarations.
                 End Event
             End Module
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC41998: Statement recursively calls the containing 'AddHandler' for event 't'.
                         AddHandler t, AddressOf test_d1
@@ -18700,7 +18700,7 @@ BC41998: Statement recursively calls the containing 'RaiseEvent' for event 't'.
                 End Module
             End Namespace
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC41999: Implicit conversion from 'Object' to 'System.Exception' in copying the value of 'ByRef' parameter 'x' back to the matching argument.
                         foo(o)
@@ -18723,7 +18723,7 @@ BC41999: Implicit conversion from 'Object' to 'System.Exception' in copying the 
                 End Sub
             End Module
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC42016: Implicit conversion from 'Double' to 'Integer'.
                     Dim c As Integer = a / b
@@ -18744,7 +18744,7 @@ BC42016: Implicit conversion from 'Double' to 'Integer'.
                 End Sub
             End Module
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC42018: Operands of type Object used for operator '='; use the 'Is' operator to test object identity.
                     o = o = 1
@@ -18765,7 +18765,7 @@ BC42018: Operands of type Object used for operator '='; use the 'Is' operator to
                 End Sub
             End Module
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC42019: Operands of type Object used for operator '+'; runtime errors could occur.
                     o = o + 1
@@ -18786,7 +18786,7 @@ BC42019: Operands of type Object used for operator '+'; runtime errors could occ
                 End function
             End Module
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC42021: Function without an 'As' clause; return type of Object assumed.
                 function Main()
@@ -19380,7 +19380,7 @@ BC42030: Variable 'e' is passed by reference before it has been assigned a value
                 End Sub
             End Module
         </file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors>
 BC42020: Variable declaration without an 'As' clause; type of Object assumed.
                     Dim Result
@@ -19940,7 +19940,7 @@ Public Module Async_Regress134668
     End Function ' 5
 End Module
         </file>
-    </compilation>, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, OptionsDll)
+    </compilation>, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors><![CDATA[
@@ -24012,7 +24012,7 @@ End Namespace
 
             Dim c = CompilationUtils.CreateCompilationWithReferences(source,
                                                                      references:={MscorlibRef, SystemRef, SystemCoreRef},
-                                                                     options:=OptionsDll.WithEmbedVbCoreRuntime(True)).VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeClashesWithVbCoreType4, "HideModuleNameAttribute").WithArguments("class", "HideModuleNameAttribute", "class", "HideModuleNameAttribute"),
+                                                                     options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True)).VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeClashesWithVbCoreType4, "HideModuleNameAttribute").WithArguments("class", "HideModuleNameAttribute", "class", "HideModuleNameAttribute"),
                                                                                                                                          Diagnostic(ERRID.ERR_UndefinedType1, "Attribute").WithArguments("Attribute"),
                                                                                                                                          Diagnostic(ERRID.ERR_OverrideNotNeeded3, "TypeId").WithArguments("property", "TypeId"))
 
@@ -24048,7 +24048,7 @@ Class Test
     End Sub
 End Class
                     ]]></file>
-                </compilation>, {SystemCoreRef}, OptionsExe.WithOptionStrict(OptionStrict.Custom))
+                </compilation>, {SystemCoreRef}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -24086,7 +24086,7 @@ Class Test
     End Sub
 End Class
                     ]]></file>
-                </compilation>, {SystemCoreRef}, OptionsExe.WithOptionStrict(OptionStrict.Custom))
+                </compilation>, {SystemCoreRef}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -24121,7 +24121,7 @@ Class Test
     End Sub
 End Class
                     ]]></file>
-                </compilation>, {SystemCoreRef}, OptionsExe.WithOptionStrict(OptionStrict.Custom))
+                </compilation>, {SystemCoreRef}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -24169,7 +24169,7 @@ Class C1
     End Sub
 End Class
                     ]]></file>
-                </compilation>, {SystemCoreRef}, OptionsExe.WithOptionStrict(OptionStrict.Custom))
+                </compilation>, {SystemCoreRef}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -24212,7 +24212,7 @@ Class C1
     End Sub
 End Class
                     ]]></file>
-                </compilation>, {SystemCoreRef}, OptionsExe.WithOptionStrict(OptionStrict.Custom))
+                </compilation>, {SystemCoreRef}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -24237,7 +24237,7 @@ Module M
     End Sub
 End Module
                     ]]></file>
-                </compilation>, OptionsDll)
+                </compilation>, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -24273,7 +24273,7 @@ Module M ' b.vb
     End Function
 End Module
                     ]]></file>
-                </compilation>, OptionsExe)
+                </compilation>, TestOptions.ReleaseExe)
             Dim allDiagnostics = comp.GetDiagnostics()
 
             AssertTheseDiagnostics(allDiagnostics,

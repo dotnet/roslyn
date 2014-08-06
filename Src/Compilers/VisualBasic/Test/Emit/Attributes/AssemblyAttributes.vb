@@ -340,7 +340,7 @@ public class neutral
 end class
 ]]>
     </file>
-</compilation>, OptionsDll)
+</compilation>, TestOptions.ReleaseDll)
 
         Dim neutralRef = New VisualBasicCompilationReference(neutral)
 
@@ -353,7 +353,7 @@ public class en_UK
 end class
 ]]>
     </file>
-</compilation>, OptionsDll)
+</compilation>, TestOptions.ReleaseDll)
 
         Dim en_UKRef = New VisualBasicCompilationReference(en_UK)
 
@@ -366,7 +366,7 @@ public class en_us
 end class
 ]]>
     </file>
-</compilation>, OptionsDll)
+</compilation>, TestOptions.ReleaseDll)
 
         Dim en_usRef = New VisualBasicCompilationReference(en_us)
 
@@ -383,14 +383,14 @@ public class en_US
 end class
 ]]>
     </file>
-</compilation>, {en_UKRef, neutralRef}, OptionsDll)
+</compilation>, {en_UKRef, neutralRef}, TestOptions.ReleaseDll)
 
         AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
 BC42371: Referenced assembly 'en_UK, Version=0.0.0.0, Culture=en-UK, PublicKeyToken=null' has different culture setting of 'en-UK'.
 </expected>)
 
-        compilation = compilation.WithOptions(OptionsNetModule)
+        compilation = compilation.WithOptions(TestOptions.ReleaseModule)
         AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
 </expected>)
@@ -399,7 +399,7 @@ BC42371: Referenced assembly 'en_UK, Version=0.0.0.0, Culture=en-UK, PublicKeyTo
 <compilation>
     <file name="a.vb">
     </file>
-</compilation>, {compilation.EmitToImageReference()}, OptionsDll)
+</compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
         AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
@@ -417,11 +417,11 @@ public class Test
 end class
 ]]>
     </file>
-</compilation>, {en_usRef}, OptionsDll)
+</compilation>, {en_usRef}, TestOptions.ReleaseDll)
 
         CompileAndVerify(compilation).VerifyDiagnostics()
 
-        compilation = compilation.WithOptions(OptionsNetModule)
+        compilation = compilation.WithOptions(TestOptions.ReleaseModule)
         AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
 </expected>)
@@ -430,7 +430,7 @@ end class
 <compilation>
     <file name="a.vb">
     </file>
-</compilation>, {compilation.EmitToImageReference()}, OptionsDll)
+</compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
         CompileAndVerify(compilation).VerifyDiagnostics()
 
@@ -445,11 +445,11 @@ public class en_US
 end class
 ]]>
     </file>
-</compilation>, {en_UKRef, neutralRef}, OptionsDll)
+</compilation>, {en_UKRef, neutralRef}, TestOptions.ReleaseDll)
 
         CompileAndVerify(compilation).VerifyDiagnostics()
 
-        compilation = compilation.WithOptions(OptionsNetModule)
+        compilation = compilation.WithOptions(TestOptions.ReleaseModule)
         AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
 </expected>)
@@ -458,7 +458,7 @@ end class
 <compilation>
     <file name="a.vb">
     </file>
-</compilation>, {compilation.EmitToImageReference()}, OptionsDll)
+</compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
         CompileAndVerify(compilation,
                          sourceSymbolValidator:=Sub(m As ModuleSymbol)
@@ -482,14 +482,14 @@ public class neutral
 end class
 ]]>
     </file>
-</compilation>, {en_UKRef}, OptionsDll)
+</compilation>, {en_UKRef}, TestOptions.ReleaseDll)
 
         AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
 BC42371: Referenced assembly 'en_UK, Version=0.0.0.0, Culture=en-UK, PublicKeyToken=null' has different culture setting of 'en-UK'.
 </expected>)
 
-        compilation = compilation.WithOptions(OptionsNetModule)
+        compilation = compilation.WithOptions(TestOptions.ReleaseModule)
         AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
 </expected>)
@@ -498,7 +498,7 @@ BC42371: Referenced assembly 'en_UK, Version=0.0.0.0, Culture=en-UK, PublicKeyTo
 <compilation>
     <file name="a.vb">
     </file>
-</compilation>, {compilation.EmitToImageReference()}, OptionsDll)
+</compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
         AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
@@ -618,7 +618,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=OptionsDll, references:={hash_module})
+</compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
         CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug,
             manifestResources:=hash_resources,
@@ -648,7 +648,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=OptionsDll, references:={hash_module})
+</compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
         CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug,
             manifestResources:=hash_resources,
@@ -678,7 +678,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=OptionsDll, references:={hash_module})
+</compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
         CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug,
             manifestResources:=hash_resources,
@@ -708,7 +708,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=OptionsDll, references:={hash_module})
+</compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
         CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug,
             manifestResources:=hash_resources,
@@ -738,7 +738,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=OptionsDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
+</compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
         CompileAndVerify(compilation, verify:=False, emitOptions:=EmitOptions.RefEmitBug,
             manifestResources:=hash_resources,
@@ -769,7 +769,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=OptionsDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
+</compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
         CompileAndVerify(compilation, verify:=False, emitOptions:=EmitOptions.RefEmitBug,
             manifestResources:=hash_resources,
@@ -803,7 +803,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=OptionsDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
+</compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
         CompileAndVerify(compilation, verify:=False, emitOptions:=EmitOptions.RefEmitBug,
             manifestResources:=hash_resources,
@@ -837,7 +837,7 @@ end class
 public class Test
 end class
     ]]></file>
-</compilation>, options:=OptionsNetModule)
+</compilation>, options:=TestOptions.ReleaseModule)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
 <compilation>
@@ -847,7 +847,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=OptionsDll, references:={hash_module_Comp.EmitToImageReference()})
+</compilation>, options:=TestOptions.ReleaseDll, references:={hash_module_Comp.EmitToImageReference()})
 
         CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug,
             validator:=Sub(peAssembly, _omitted)
@@ -868,7 +868,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=OptionsDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
         ' no error reported if we don't need to hash
         compilation.VerifyEmitDiagnostics()
@@ -883,7 +883,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=OptionsDll, references:={hash_module})
+</compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
         AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
@@ -898,7 +898,7 @@ BC37215: Cryptographic failure while creating hashes.
 class Program
 end class
     ]]></file>
-</compilation>, options:=OptionsDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
         AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream(), manifestResources:=hash_resources).Diagnostics,
 <expected>
@@ -1058,7 +1058,7 @@ End Class
                                                         Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                                         Optional nameSuffix As String = "") As ModuleMetadata
         Dim netmoduleSource As String = If(netModuleSourceHeader, DefaultNetModuleSourceHeader) & If(netModuleSourceBody, DefaultNetModuleSourceBody)
-        Dim netmoduleCompilation = CreateCompilationWithMscorlib({netmoduleSource}, references:=references, compOptions:=OptionsNetModule, assemblyName:="NetModuleWithAssemblyAttributes" & nameSuffix)
+        Dim netmoduleCompilation = CreateCompilationWithMscorlib({netmoduleSource}, references:=references, compOptions:=TestOptions.ReleaseModule, assemblyName:="NetModuleWithAssemblyAttributes" & nameSuffix)
         Dim diagnostics = netmoduleCompilation.GetDiagnostics()
         Dim bytes = netmoduleCompilation.EmitToArray()
         Return ModuleMetadata.CreateFromImage(bytes)
@@ -1155,7 +1155,7 @@ End Class
         token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
         Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
-        consoleappCompilation = CreateCompilationWithMscorlibAndReferences(consoleappSource, {New MetadataImageReference(netModuleWithAssemblyAttributes)}, OptionsNetModule)
+        consoleappCompilation = CreateCompilationWithMscorlibAndReferences(consoleappSource, {New MetadataImageReference(netModuleWithAssemblyAttributes)}, TestOptions.ReleaseModule)
         Assert.Equal(0, consoleappCompilation.Assembly.GetAttributes().Length)
 
         Dim modRef = DirectCast(consoleappCompilation.EmitToImageReference(), MetadataImageReference)
@@ -1326,7 +1326,7 @@ End Class
 ]]>.Value
 
         Dim netmodule1Ref = GetNetModuleWithAssemblyAttributesRef()
-        Dim comp = CreateCompilationWithMscorlib({source}, references:={netmodule1Ref}, compOptions:=OptionsDll)
+        Dim comp = CreateCompilationWithMscorlib({source}, references:={netmodule1Ref}, compOptions:=TestOptions.ReleaseDll)
         ' error BC36978: Attribute 'UserDefinedAssemblyAttrNoAllowMultipleAttribute' in 'NetModuleWithAssemblyAttributes.netmodule' cannot be applied multiple times.
         comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_InvalidMultipleAttributeUsageInNetModule2).WithArguments("UserDefinedAssemblyAttrNoAllowMultipleAttribute", "NetModuleWithAssemblyAttributes.netmodule"))
@@ -1336,14 +1336,14 @@ End Class
         Assert.Equal(5, attrs.Length)
 
         ' Build NetModule
-        comp = CreateCompilationWithMscorlib({source}, references:={netmodule1Ref}, compOptions:=OptionsNetModule)
+        comp = CreateCompilationWithMscorlib({source}, references:={netmodule1Ref}, compOptions:=TestOptions.ReleaseModule)
         comp.VerifyDiagnostics()
         Dim netmodule2Ref = comp.EmitToImageReference()
 
         attrs = comp.Assembly.GetAttributes()
         Assert.Equal(1, attrs.Length)
 
-        comp = CreateCompilationWithMscorlib({""}, references:={netmodule1Ref, netmodule2Ref}, compOptions:=OptionsDll)
+        comp = CreateCompilationWithMscorlib({""}, references:={netmodule1Ref, netmodule2Ref}, compOptions:=TestOptions.ReleaseDll)
         ' error BC36978: Attribute 'UserDefinedAssemblyAttrNoAllowMultipleAttribute' in 'NetModuleWithAssemblyAttributes.netmodule' cannot be applied multiple times.
         comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_InvalidMultipleAttributeUsageInNetModule2).WithArguments("UserDefinedAssemblyAttrNoAllowMultipleAttribute", "NetModuleWithAssemblyAttributes.netmodule"))
@@ -1425,10 +1425,10 @@ Imports System.Runtime.CompilerServices
 Imports System
 ]]>.Value
 
-        Dim defsRef As MetadataReference = CreateCompilationWithMscorlib({defaultHeaderString & DefaultNetModuleSourceBody}, references:=Nothing, compOptions:=OptionsDll).ToMetadataReference()
+        Dim defsRef As MetadataReference = CreateCompilationWithMscorlib({defaultHeaderString & DefaultNetModuleSourceBody}, references:=Nothing, compOptions:=TestOptions.ReleaseDll).ToMetadataReference()
         Dim netmodule1Ref As MetadataReference = GetNetModuleWithAssemblyAttributesRef(source2, "", references:={defsRef}, nameSuffix:="1")
 
-        Dim comp = CreateCompilationWithMscorlib({source1}, references:={defsRef, netmodule1Ref}, compOptions:=OptionsDll)
+        Dim comp = CreateCompilationWithMscorlib({source1}, references:={defsRef, netmodule1Ref}, compOptions:=TestOptions.ReleaseDll)
         ' duplicate ignored, no error because identical
         comp.VerifyDiagnostics()
 
@@ -1438,7 +1438,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrNoAllowMultipleAttribute")
 
         Dim netmodule2Ref As MetadataReference = GetNetModuleWithAssemblyAttributesRef(source1, "", references:={defsRef}, nameSuffix:="2")
-        comp = CreateCompilationWithMscorlib({""}, references:={defsRef, netmodule1Ref, netmodule2Ref}, compOptions:=OptionsDll)
+        comp = CreateCompilationWithMscorlib({""}, references:={defsRef, netmodule1Ref, netmodule2Ref}, compOptions:=TestOptions.ReleaseDll)
         ' duplicate ignored, no error because identical
         comp.VerifyDiagnostics()
 
@@ -1470,7 +1470,7 @@ Imports System
                     ]]>.Value
 
         Dim netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader & netmoduleAttributes, DefaultNetModuleSourceBody)
-        Dim comp = CreateCompilationWithMscorlib({""}, references:={netmoduleRef}, compOptions:=OptionsDll)
+        Dim comp = CreateCompilationWithMscorlib({""}, references:={netmoduleRef}, compOptions:=TestOptions.ReleaseDll)
         Dim diagnostics = comp.GetDiagnostics()
 
         TestDuplicateAssemblyAttributesNotEmitted(comp.Assembly,
@@ -1512,13 +1512,13 @@ Imports System
 Imports System
 ]]>.Value
 
-        Dim defsRef As MetadataReference = CreateCompilationWithMscorlib({defaultImportsString & DefaultNetModuleSourceBody}, references:=Nothing, compOptions:=OptionsDll).ToMetadataReference()
+        Dim defsRef As MetadataReference = CreateCompilationWithMscorlib({defaultImportsString & DefaultNetModuleSourceBody}, references:=Nothing, compOptions:=TestOptions.ReleaseDll).ToMetadataReference()
         Dim netmodule0Ref = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader, "", references:={defsRef})
         Dim netmodule1Ref = GetNetModuleWithAssemblyAttributesRef(netmodule1Attributes, "", references:={defsRef})
         Dim netmodule2Ref = GetNetModuleWithAssemblyAttributesRef(netmodule2Attributes, "", references:={defsRef})
         Dim netmodule3Ref = GetNetModuleWithAssemblyAttributesRef(netmodule3Attributes, "", references:={defsRef})
 
-        Dim comp = CreateCompilationWithMscorlib({""}, references:={defsRef, netmodule0Ref, netmodule1Ref, netmodule2Ref, netmodule3Ref}, compOptions:=OptionsDll)
+        Dim comp = CreateCompilationWithMscorlib({""}, references:={defsRef, netmodule0Ref, netmodule1Ref, netmodule2Ref, netmodule3Ref}, compOptions:=TestOptions.ReleaseDll)
         Dim diagnostics = comp.GetDiagnostics()
 
         TestDuplicateAssemblyAttributesNotEmitted(comp.Assembly,
@@ -1553,7 +1553,7 @@ Imports System
                     ]]>.Value
 
         Dim netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader & netmoduleAttributes, DefaultNetModuleSourceBody)
-        Dim comp = CreateCompilationWithMscorlib({sourceAttributes}, references:={netmoduleRef}, compOptions:=OptionsDll)
+        Dim comp = CreateCompilationWithMscorlib({sourceAttributes}, references:={netmoduleRef}, compOptions:=TestOptions.ReleaseDll)
         Dim diagnostics = comp.GetDiagnostics()
 
         TestDuplicateAssemblyAttributesNotEmitted(comp.Assembly,
@@ -1592,7 +1592,7 @@ Imports System
                     ]]>.Value
 
         Dim netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader & netmoduleAttributes, DefaultNetModuleSourceBody)
-        Dim comp = CreateCompilationWithMscorlib({sourceAttributes}, references:={netmoduleRef}, compOptions:=OptionsDll)
+        Dim comp = CreateCompilationWithMscorlib({sourceAttributes}, references:={netmoduleRef}, compOptions:=TestOptions.ReleaseDll)
         Dim diagnostics = comp.GetDiagnostics()
 
         TestDuplicateAssemblyAttributesNotEmitted(comp.Assembly,
@@ -1615,7 +1615,7 @@ Imports System.Runtime.CompilerServices
     </file>
 </compilation>
 
-        Dim [module] = CreateCompilationWithMscorlib(moduleSrc, options:=OptionsNetModule)
+        Dim [module] = CreateCompilationWithMscorlib(moduleSrc, options:=TestOptions.ReleaseModule)
 
         Dim assemblySrc =
 <compilation>
@@ -1773,12 +1773,12 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
     </file>
 </compilation>
 
-        Dim compMod1 = CreateCompilationWithMscorlib(mod1Source, OptionsNetModule)
-        Dim compMod2 = CreateCompilationWithMscorlib(mod2Source, OptionsNetModule)
+        Dim compMod1 = CreateCompilationWithMscorlib(mod1Source, TestOptions.ReleaseModule)
+        Dim compMod2 = CreateCompilationWithMscorlib(mod2Source, TestOptions.ReleaseModule)
 
         Dim appCompilation = CreateCompilationWithMscorlibAndReferences(source,
                                                                         {compMod1.EmitToImageReference(), compMod2.EmitToImageReference()},
-                                                                        OptionsDll)
+                                                                        TestOptions.ReleaseDll)
 
         Assert.Equal(3, appCompilation.Assembly.Modules.Length)
 
@@ -1824,12 +1824,12 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
     </file>
 </compilation>
 
-        Dim compMod1 = CreateCompilationWithMscorlib(mod1Source, OptionsNetModule)
-        Dim compMod2 = CreateCompilationWithMscorlib(mod2Source, OptionsNetModule)
+        Dim compMod1 = CreateCompilationWithMscorlib(mod1Source, TestOptions.ReleaseModule)
+        Dim compMod2 = CreateCompilationWithMscorlib(mod2Source, TestOptions.ReleaseModule)
 
         Dim appCompilation = CreateCompilationWithMscorlibAndReferences(source,
                                                                         {compMod1.EmitToImageReference(), compMod2.EmitToImageReference()},
-                                                                        OptionsDll)
+                                                                        TestOptions.ReleaseDll)
 
         Assert.Equal(3, appCompilation.Assembly.Modules.Length)
 
@@ -1873,12 +1873,12 @@ BC42370: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from module 
     </file>
 </compilation>
 
-        Dim compMod1 = CreateCompilationWithMscorlib(mod1Source, OptionsNetModule)
-        Dim compMod2 = CreateCompilationWithMscorlib(mod2Source, OptionsNetModule)
+        Dim compMod1 = CreateCompilationWithMscorlib(mod1Source, TestOptions.ReleaseModule)
+        Dim compMod2 = CreateCompilationWithMscorlib(mod2Source, TestOptions.ReleaseModule)
 
         Dim appCompilation = CreateCompilationWithMscorlibAndReferences(source,
                                                                         {compMod1.EmitToImageReference(), compMod2.EmitToImageReference()},
-                                                                        OptionsDll)
+                                                                        TestOptions.ReleaseDll)
 
         Assert.Equal(3, appCompilation.Assembly.Modules.Length)
 
@@ -1923,12 +1923,12 @@ BC42370: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from module 
     </file>
 </compilation>
 
-        Dim compMod1 = CreateCompilationWithMscorlib(mod1Source, OptionsNetModule)
-        Dim compMod2 = CreateCompilationWithMscorlib(mod2Source, OptionsNetModule)
+        Dim compMod1 = CreateCompilationWithMscorlib(mod1Source, TestOptions.ReleaseModule)
+        Dim compMod2 = CreateCompilationWithMscorlib(mod2Source, TestOptions.ReleaseModule)
 
         Dim appCompilation = CreateCompilationWithMscorlibAndReferences(source,
                                                                         {compMod1.EmitToImageReference(), compMod2.EmitToImageReference()},
-                                                                        OptionsDll)
+                                                                        TestOptions.ReleaseDll)
 
         Assert.Equal(3, appCompilation.Assembly.Modules.Length)
 

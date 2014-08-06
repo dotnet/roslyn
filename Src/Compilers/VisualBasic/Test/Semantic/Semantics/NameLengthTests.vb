@@ -444,7 +444,7 @@ End Class
 ]]>
 
             Dim source = Format(sourceTemplate, LongLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, compOptions:=OptionsDll.WithDebugInformationKind(DebugInformationKind.Full))
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, compOptions:=TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full))
             Dim _longSquiggle_ As New String("~"c, LongLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
@@ -467,7 +467,7 @@ End Class
 ]]>
 
             Dim source = Format(sourceTemplate, LongLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, compOptions:=OptionsDll.WithDebugInformationKind(DebugInformationKind.Full))
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, compOptions:=TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full))
             Dim _longSquiggle_ As New String("~"c, LongLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
@@ -546,14 +546,14 @@ BC37220: Name '<%= LongSymbolName %>3' exceeds the maximum length allowed in met
         End Function
 
         Private Function CreateCompilationWithMscorlib(source As String) As VisualBasicCompilation
-            Return CompilationUtils.CreateCompilationWithMscorlib({source}, {}, OptionsDll)
+            Return CompilationUtils.CreateCompilationWithMscorlib({source}, {}, TestOptions.ReleaseDll)
         End Function
 
         Private Function CreateCompilationWithMscorlib45(source As String) As VisualBasicCompilation
             Return VisualBasicCompilation.Create(GetUniqueName(),
                                                  {VisualBasicSyntaxTree.ParseText(source)},
                                                  {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929},
-                                                 OptionsDll)
+                                                 TestOptions.ReleaseDll)
         End Function
     End Class
 End Namespace

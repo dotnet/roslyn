@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 #Region "InferenceErrors"
         <Fact>
         Public Sub TestSelfInferenceCycleError()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -55,7 +55,7 @@ BC42104: Variable 'i' is used before it has been assigned a value. A null refere
 
         <Fact>
         Public Sub TestMultiVariableInferenceCycleError()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -86,7 +86,7 @@ BC32000: Local variable 'j' cannot be referred to before it is declared.
 
         <Fact>
         Public Sub TestArrayInferenceRankError()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -119,7 +119,7 @@ BC30333: Value of type 'Integer()' cannot be converted to 'Object(*,*)' because 
 
         <Fact>
         Public Sub TestArrayInferenceNonullableElementError()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -153,7 +153,7 @@ BC30333: Value of type 'Integer()' cannot be converted to 'Object()' because 'In
 
         <Fact>
         Public Sub TestNullableIdentifierWithArrayExpression()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -184,7 +184,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestArrayIdentifierWithScalarExpression()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -217,7 +217,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Object()'.
 
         <Fact>
         Public Sub TestNullableIdentifierWithScalarReferenceType()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -249,7 +249,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestInferOffPrimitiveTypes()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -286,7 +286,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestInferOnPrimitiveTypes()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -323,7 +323,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestDontInferStaticLocal()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -353,7 +353,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestInferNullableArrayOfInteger()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -384,7 +384,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestArrayInference()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -421,7 +421,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
         <WorkItem(542371, "DevDiv")>
         <Fact>
         Public Sub TestOptionInferWithOptionStrict()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -435,10 +435,10 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
             End Sub
         End Module
     </file>
-</compilation>, OptionsDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
+</compilation>, TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics()
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -453,7 +453,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
                     ~ 
 </errors>)
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Off))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Off))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -463,7 +463,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 
         <Fact>
         Public Sub TestErrorsForLocalsWithoutAsClause()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -478,7 +478,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
             End Sub
         End Module
     </file>
-</compilation>, OptionsDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
+</compilation>, TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics()
             Dim tree = CompilationUtils.GetTree(compilation, "TestInferredTypes.vb")
             Dim model = compilation.GetSemanticModel(tree)
@@ -486,34 +486,34 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Int32")
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Off))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics()
             model = compilation.GetSemanticModel(tree)
 
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Int32")
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_StrictDisallowImplicitObject, "a"),
                                           Diagnostic(ERRID.ERR_StrictDisallowImplicitObject, "b"))
             model = compilation.GetSemanticModel(tree)
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Object")
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Off))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics()
             model = compilation.GetSemanticModel(tree)
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Object")
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Custom))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Custom))
             compilation.VerifyDiagnostics()
             model = compilation.GetSemanticModel(tree)
 
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Int32")
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Custom))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Custom))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_ObjectAssumedVar1, "a").WithArguments("warning BC42346: Variable declaration without an 'As' clause; type of Object assumed."),
                 Diagnostic(ERRID.WRN_ObjectAssumedVar1, "b").WithArguments("warning BC42346: Variable declaration without an 'As' clause; type of Object assumed."))
@@ -527,7 +527,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
         <Fact()>
         Public Sub TestErrorsForLocalsWithoutAsClauseStaticLocals()
             'Static Locals do not type infer
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -542,7 +542,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
             End Sub
         End Module
     </file>
-</compilation>, OptionsDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
+</compilation>, TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_StrictDisallowImplicitObject, "b"))
 
             Dim tree = CompilationUtils.GetTree(compilation, "TestInferredTypes.vb")
@@ -551,27 +551,27 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Object")
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Off))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics()
             model = compilation.GetSemanticModel(tree)
 
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Object")
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_StrictDisallowImplicitObject, "a"),
                                           Diagnostic(ERRID.ERR_StrictDisallowImplicitObject, "b"))
             model = compilation.GetSemanticModel(tree)
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Object")
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Off))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics()
             model = compilation.GetSemanticModel(tree)
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Object")
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Custom))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Custom))
             compilation.VerifyDiagnostics(Diagnostic(ERRID.WRN_ObjectAssumedVar1, "b").WithArguments("warning BC42111: Static variable declared without an 'As' clause; type of Object assumed."))
 
             model = compilation.GetSemanticModel(tree)
@@ -579,7 +579,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Object")
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Custom))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Custom))
             compilation.VerifyDiagnostics(
                    Diagnostic(ERRID.WRN_ObjectAssumedVar1, "a").WithArguments("warning BC42346: Variable declaration without an 'As' clause; type of Object assumed."),
                    Diagnostic(ERRID.WRN_ObjectAssumedVar1, "b").WithArguments("warning BC42111: Static variable declared without an 'As' clause; type of Object assumed."))
@@ -593,7 +593,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
         <WorkItem(542402, "DevDiv")>
         <Fact>
         Public Sub TestCircularDeclarationReference()
-            Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

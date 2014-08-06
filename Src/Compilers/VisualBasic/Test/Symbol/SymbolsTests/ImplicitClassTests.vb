@@ -49,7 +49,7 @@ End Namespace
 Sub Foo
 End Sub
     </file>
-</compilation>, parseOptions:=OptionsScript)
+</compilation>, parseOptions:=TestOptions.Script)
 
             Dim scriptClass = DirectCast(c.Assembly.GlobalNamespace.GetMembers().Single(), NamedTypeSymbol)
 

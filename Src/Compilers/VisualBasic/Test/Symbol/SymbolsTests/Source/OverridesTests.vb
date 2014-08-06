@@ -1295,7 +1295,7 @@ Module Test
     End Sub
 End Module
     </file>
-    </compilation>, {csharpRef}, Options.OptionsExe)
+    </compilation>, {csharpRef}, TestOptions.ReleaseExe)
             CompileAndVerify(vbComp, emitOptions:=EmitOptions.CCI, expectedOutput:=<![CDATA[
 D1.P.set
 D1.P.get
@@ -1492,7 +1492,7 @@ Module Test
     End Sub
 End Module
     </file>
-    </compilation>, {csharpRef}, Options.OptionsExe)
+    </compilation>, {csharpRef}, TestOptions.ReleaseExe)
             CompileAndVerify(vbComp, emitOptions:=EmitOptions.CCI, expectedOutput:=<![CDATA[
 D1.P.set
 D1.P.get
@@ -2650,7 +2650,7 @@ Module CORError033mod
     End Sub
 End Module
      ]]></file>
- </compilation>, OptionsDll)
+ </compilation>, TestOptions.ReleaseDll)
 
             AssertTheseDeclarationDiagnostics(compilation,
 <expected>
@@ -2755,7 +2755,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that matches this signature cannot be overridden because the class 'Base' contains multiple members with this same name and signature: 
    'Public Overridable Function M1(x As Integer) As Integer'
@@ -2874,7 +2874,7 @@ End Class
             'Base::M1_1
             'Derived.M1
             'Base::M1_3
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=OptionsExe, expectedOutput:="Base::M1_1" & vbCrLf & "Derived.M1" & vbCrLf & "Base::M1_3")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="Base::M1_1" & vbCrLf & "Derived.M1" & vbCrLf & "Base::M1_3")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -2987,7 +2987,7 @@ End Class
             'Base::M1_1
             'Derived.M1
             'Base::M1_3
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=OptionsExe, expectedOutput:="Base::M1_1" & vbCrLf & "Derived.M1" & vbCrLf & "Base::M1_3")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="Base::M1_1" & vbCrLf & "Derived.M1" & vbCrLf & "Base::M1_3")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -3083,7 +3083,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that matches this signature cannot be overridden because the class 'Base' contains multiple members with this same name and signature: 
    'Public Overridable Function M1(x As Integer) As Integer'
@@ -3185,7 +3185,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that matches this signature cannot be overridden because the class 'Base' contains multiple members with this same name and signature: 
    'Public Overridable Function M1(x As Integer) As Integer'
@@ -3320,7 +3320,7 @@ End Class
             'Base::M1_1
             'Derived.M1
             'Base::M1_3
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=OptionsExe, expectedOutput:="Base::M1_1" & vbCrLf & "Derived.M1" & vbCrLf & "Base::M1_3")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="Base::M1_1" & vbCrLf & "Derived.M1" & vbCrLf & "Base::M1_3")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -3448,7 +3448,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Long' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -3562,7 +3562,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Long' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -3672,7 +3672,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Long' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -3781,7 +3781,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Long' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -3893,7 +3893,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that matches this signature cannot be overridden because the class 'Base' contains multiple members with this same name and signature: 
    'Public Overridable Function M1(x As Integer) As Integer'
@@ -4003,7 +4003,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Integer()' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -4111,7 +4111,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Integer()' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -4234,7 +4234,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=OptionsExe,
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=TestOptions.ReleaseExe,
                                                         expectedOutput:="Derived.M1" & vbCrLf & "Derived.M2" & vbCrLf & "Derived.M3" & vbCrLf &
                                                                         "Derived.M11" & vbCrLf & "Derived.M12" & vbCrLf & "Derived.M13" & vbCrLf &
                                                                         "Derived.M4")
@@ -4426,7 +4426,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=OptionsExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -4615,7 +4615,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=OptionsExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -4782,7 +4782,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30643: Property 'Base.P2(x As Integer())' is of an unsupported type.
     Public Overrides Property P2(x As Integer()) As Integer
@@ -4837,7 +4837,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim verifier = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=OptionsExe, expectedOutput:=
+            Dim verifier = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Base.P2_get" & vbCrLf &
@@ -5004,7 +5004,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30643: Property 'Base.P2(x As Integer())' is of an unsupported type.
     Public Overrides Property P2(x As Integer()) As Integer
@@ -5165,7 +5165,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30643: Property 'Base.P2(x As Integer())' is of an unsupported type.
     Public Overrides Property P2(x As Integer()) As Integer
@@ -5433,7 +5433,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30643: Property 'Base2.P2(x As Integer())' is of an unsupported type.
     Public Overrides Property P2(x As Integer()) As Integer
@@ -5695,7 +5695,7 @@ End Class
             'Base1.P1_set
             'Base1.P2_get
             'Base1.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=OptionsExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Base2.P1_get" & vbCrLf &
 "Base2.P1_set" & vbCrLf &
 "Base2.P2_get" & vbCrLf &
@@ -5970,7 +5970,7 @@ End Class
                 reference = New MetadataImageReference(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, OptionsExe)
+            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30643: Property 'Base1.P2(x As Integer())' is of an unsupported type.
     Public Overrides Property P2(x As Integer()) As Integer
@@ -6095,7 +6095,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=OptionsExe, expectedOutput:="")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
             compilation.VerifyDiagnostics()
 
             AssertOverridingProperty(compilation.Compilation)
@@ -6218,7 +6218,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=OptionsExe, expectedOutput:="")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
             compilation.VerifyDiagnostics()
 
             AssertOverridingProperty(compilation.Compilation)
@@ -6341,7 +6341,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=OptionsExe, expectedOutput:="")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
             compilation.VerifyDiagnostics()
 
             AssertOverridingProperty(compilation.Compilation)
@@ -6522,7 +6522,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=OptionsExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -6711,7 +6711,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=OptionsExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -6767,7 +6767,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(code, OptionsDll)
+            Dim comp = CreateCompilationWithMscorlib(code, TestOptions.ReleaseDll)
 
             CompileAndVerify(comp).VerifyDiagnostics()
         End Sub
@@ -6789,7 +6789,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(code1, OptionsDll)
+            Dim comp1 = CreateCompilationWithMscorlib(code1, TestOptions.ReleaseDll)
 
             CompileAndVerify(comp1).VerifyDiagnostics()
 
@@ -6809,7 +6809,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(code2, {New VisualBasicCompilationReference(comp1)}, OptionsDll)
+            Dim comp2 = CreateCompilationWithMscorlibAndReferences(code2, {New VisualBasicCompilationReference(comp1)}, TestOptions.ReleaseDll)
 
             Dim expected = <expected>
 BC31417: 'Friend Overrides Property Set r(Value As Object)' cannot override 'Friend Overridable Property Set r(Value As Object)' because it is not accessible in this context.
@@ -6819,7 +6819,7 @@ BC31417: 'Friend Overrides Property Set r(Value As Object)' cannot override 'Fri
 
             AssertTheseDeclarationDiagnostics(comp2, expected)
 
-            Dim comp3 = CreateCompilationWithMscorlibAndReferences(code2, {comp1.EmitToImageReference()}, OptionsDll)
+            Dim comp3 = CreateCompilationWithMscorlibAndReferences(code2, {comp1.EmitToImageReference()}, TestOptions.ReleaseDll)
             AssertTheseDeclarationDiagnostics(comp3, expected)
 
         End Sub

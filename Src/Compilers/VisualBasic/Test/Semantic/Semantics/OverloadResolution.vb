@@ -3064,7 +3064,7 @@ End Class
             Dim c1 = VisualBasicCompilation.Create("Test1",
                 syntaxTrees:={Parse(My.Resources.Resource.OverloadResolutionTestSource), optionStrictOffTree},
                 references:={TestReferences.NetFx.v4_0_21006.mscorlib},
-                options:=OptionsExe.WithOverflowChecks(False))
+                options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim optionStrictOffContext = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("OptionStrictOff").Single().GetMembers("Context").Single(), SourceMethodSymbol)
@@ -3976,7 +3976,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -4028,7 +4028,7 @@ End Class
     </file>
 </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 Function
@@ -4065,7 +4065,7 @@ End Module
     </file>
 </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOptionStrict(OptionStrict.On))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -4078,7 +4078,7 @@ BC30518: Overload resolution failed because no accessible 'Foo' can be called wi
     ~~~
 </expected>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
 
@@ -4103,7 +4103,7 @@ End Module
     </file>
 </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOptionStrict(OptionStrict.On))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -5212,7 +5212,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OptionsDll)
+            Dim comp = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
 
             Dim comp2 = CreateCompilationWithMscorlib(source2, references:={comp.EmitToImageReference()})
             CompilationUtils.AssertTheseDiagnostics(comp2,
@@ -5451,7 +5451,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="A.Test")
         End Sub

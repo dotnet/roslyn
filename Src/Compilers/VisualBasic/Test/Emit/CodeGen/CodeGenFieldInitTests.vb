@@ -492,7 +492,7 @@ End Class
     </file>
 </compilation>,
                 references:=DefaultReferences,
-                options:=OptionsDll)
+                options:=TestOptions.ReleaseDll)
 
             Using executableStream As New MemoryStream()
                 Dim result = compilation.Emit(executableStream)
@@ -519,7 +519,7 @@ End Class
     </file>
 </compilation>,
                 references:=DefaultReferences,
-                options:=OptionsDll)
+                options:=TestOptions.ReleaseDll)
 
             Using executableStream As New MemoryStream()
                 Dim result = compilation.Emit(executableStream)

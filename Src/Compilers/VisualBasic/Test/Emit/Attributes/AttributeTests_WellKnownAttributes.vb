@@ -1972,7 +1972,7 @@ End Class
 
             Dim c = CompilationUtils.CreateCompilationWithReferences(source,
                                                                      references:={MscorlibRef, SystemRef, SystemCoreRef},
-                                                                     options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+                                                                     options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             CompileAndVerify(c, validator:=
                 Sub(assembly, _omitted)
                     Dim peFileReader = assembly.GetMetadataReader()
@@ -3770,7 +3770,7 @@ Public Interface NotExtensibleInterface3
 End Interface
 ]]>
     </file>
-</compilation>, options:=OptionsDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             Dim validator =
                 Sub(m As ModuleSymbol)
@@ -3876,7 +3876,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             Dim expectedErrors =
 <errors><![CDATA[
@@ -4352,7 +4352,7 @@ End Class
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
 
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
@@ -4383,7 +4383,7 @@ End Class
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.AssertNoErrors()
 
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
@@ -4417,7 +4417,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
 
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
@@ -4451,7 +4451,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
 
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)

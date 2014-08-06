@@ -1666,8 +1666,8 @@ Imports System
                                     End If
                                 End Sub
 
-            CompileAndVerify(source, options:=OptionsDll, sourceSymbolValidator:=validator(True, True), symbolValidator:=validator(True, False))
-            CompileAndVerify(source, options:=OptionsNetModule, sourceSymbolValidator:=validator(True, True), symbolValidator:=validator(False, True), verify:=False) ' PEVerify doesn't like netmodules
+            CompileAndVerify(source, options:=TestOptions.ReleaseDll, sourceSymbolValidator:=validator(True, True), symbolValidator:=validator(True, False))
+            CompileAndVerify(source, options:=TestOptions.ReleaseModule, sourceSymbolValidator:=validator(True, True), symbolValidator:=validator(False, True), verify:=False) ' PEVerify doesn't like netmodules
         End Sub
 
         <Fact>
@@ -1962,7 +1962,7 @@ Imports System
                 </compilation>
 
             ' Nothing reported since the namespace inherits CLSCompliant(False) from the assembly.
-            CreateCompilationWithMscorlib(source1, options:=OptionsDll.WithRootNamespace("_A")).AssertNoDiagnostics()
+            CreateCompilationWithMscorlib(source1, options:=TestOptions.ReleaseDll.WithRootNamespace("_A")).AssertNoDiagnostics()
 
 
             Dim source2 =
@@ -1976,7 +1976,7 @@ Imports System
                     </file>
                 </compilation>
 
-            CreateCompilationWithMscorlib(source2, options:=OptionsDll.WithRootNamespace("_A")).AssertTheseDiagnostics(<errors><![CDATA[
+            CreateCompilationWithMscorlib(source2, options:=TestOptions.ReleaseDll.WithRootNamespace("_A")).AssertTheseDiagnostics(<errors><![CDATA[
   BC40038: Root namespace '_A' is not CLS-compliant.
 ]]></errors>)
         End Sub
@@ -1994,19 +1994,19 @@ Imports System
                     </file>
                 </compilation>
 
-            CreateCompilationWithMscorlib(source, options:=OptionsDll.WithRootNamespace("_A.B.C")).AssertTheseDiagnostics(<errors><![CDATA[
+            CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithRootNamespace("_A.B.C")).AssertTheseDiagnostics(<errors><![CDATA[
 BC40039: Name '_A' in the root namespace '_A.B.C' is not CLS-compliant.
 ]]></errors>)
 
-            CreateCompilationWithMscorlib(source, options:=OptionsDll.WithRootNamespace("A._B.C")).AssertTheseDiagnostics(<errors><![CDATA[
+            CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithRootNamespace("A._B.C")).AssertTheseDiagnostics(<errors><![CDATA[
 BC40039: Name '_B' in the root namespace 'A._B.C' is not CLS-compliant.
 ]]></errors>)
 
-            CreateCompilationWithMscorlib(source, options:=OptionsDll.WithRootNamespace("A.B._C")).AssertTheseDiagnostics(<errors><![CDATA[
+            CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithRootNamespace("A.B._C")).AssertTheseDiagnostics(<errors><![CDATA[
 BC40039: Name '_C' in the root namespace 'A.B._C' is not CLS-compliant.
 ]]></errors>)
 
-            CreateCompilationWithMscorlib(source, options:=OptionsDll.WithRootNamespace("_A.B._C")).AssertTheseDiagnostics(<errors><![CDATA[
+            CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithRootNamespace("_A.B._C")).AssertTheseDiagnostics(<errors><![CDATA[
 BC40039: Name '_A' in the root namespace '_A.B._C' is not CLS-compliant.
 BC40039: Name '_C' in the root namespace '_A.B._C' is not CLS-compliant.
 ]]></errors>)
@@ -2681,7 +2681,7 @@ End Namespace
 
             Dim tree1 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 1), path:="a.vb")
             Dim tree2 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 2), path:="b.vb")
-            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, OptionsDll)
+            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, TestOptions.ReleaseDll)
 
             ' Two copies of each diagnostic - one from each file.
             comp.AssertTheseDiagnostics(<errors><![CDATA[

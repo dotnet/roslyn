@@ -33,7 +33,7 @@ Imports System
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 
@@ -102,7 +102,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 
@@ -185,7 +185,7 @@ End Structure
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C.Main")
 
@@ -258,7 +258,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C.Main")
 
@@ -329,7 +329,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C.Main")
 
@@ -394,7 +394,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             ' Note: the scope of the loop variable is intentionally different from Dev11. It's now the scope of the complete loop and not just the body
 
@@ -455,7 +455,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             ' Note: the scope of the loop variable is intentionally different from Dev11. It's now the scope of the complete loop and not just the body            
 

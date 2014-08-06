@@ -87,7 +87,7 @@ End Namespace
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:prjlevel1=""http://NewNamespace"">",
+                    TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:prjlevel1=""http://NewNamespace"">",
                                                                      "<xmlns=""http://NewNamespace/prjlevel"">",
                                                                      "prjlevel=System.Collections.Generic",
                                                                      "System.Threading",
@@ -266,7 +266,7 @@ End Namespace
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:prjlevel1=""http://NewNamespace"">",
+                    TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:prjlevel1=""http://NewNamespace"">",
                                                                      "<xmlns=""http://NewNamespace/prjlevel"">",
                                                                      "prjlevel=System.Collections.Generic",
                                                                      "System.Threading",

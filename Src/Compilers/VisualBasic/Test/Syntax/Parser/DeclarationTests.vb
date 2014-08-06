@@ -47,8 +47,8 @@ end namespace
         Dim tree2 = ParseFile(text2)
         Assert.NotNull(tree1)
         Assert.NotNull(tree2)
-        Dim decl1 = DeclarationTreeBuilder.ForTree(tree1, rootNamespace, OptionsDll.ScriptClassName, isSubmission:=False)
-        Dim decl2 = DeclarationTreeBuilder.ForTree(tree2, rootNamespace, OptionsDll.ScriptClassName, isSubmission:=False)
+        Dim decl1 = DeclarationTreeBuilder.ForTree(tree1, rootNamespace, TestOptions.ReleaseDll.ScriptClassName, isSubmission:=False)
+        Dim decl2 = DeclarationTreeBuilder.ForTree(tree2, rootNamespace, TestOptions.ReleaseDll.ScriptClassName, isSubmission:=False)
         Assert.Equal(DeclarationKind.Namespace, decl1.Kind)
         Assert.Equal(DeclarationKind.Namespace, decl2.Kind)
         Assert.NotNull(decl1)
@@ -190,7 +190,7 @@ End Class
 
         Dim tree1 = ParseFile(text1)
         Assert.NotNull(tree1)
-        Dim decl1 = DeclarationTreeBuilder.ForTree(tree1, {"Foo", "Bar"}.AsImmutableOrNull(), OptionsDll.ScriptClassName, isSubmission:=False)
+        Dim decl1 = DeclarationTreeBuilder.ForTree(tree1, {"Foo", "Bar"}.AsImmutableOrNull(), TestOptions.ReleaseDll.ScriptClassName, isSubmission:=False)
 
         Assert.Equal(DeclarationKind.Namespace, decl1.Kind)
         Assert.NotNull(decl1)

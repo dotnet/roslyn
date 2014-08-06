@@ -355,7 +355,7 @@ End Class
             ' coming from the field initializers
             Dim c1 = CompilationUtils.CreateCompilationWithMscorlib(
                 source,
-                options:=OptionsExe.WithOverflowChecks(True))
+                options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
 
             AssertTheseDiagnostics(c1,
 <expected>

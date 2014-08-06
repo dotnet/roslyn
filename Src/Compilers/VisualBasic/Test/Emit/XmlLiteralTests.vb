@@ -1126,7 +1126,7 @@ End Module
         ' imports do not contain namespace.
         <Fact()>
         Public Sub ProjectImports()
-            Dim options = OptionsExe.WithGlobalImports(GlobalImport.Parse({"<xmlns=""default1"">", "<xmlns:p=""p1"">", "<xmlns:q=""q1"">"}))
+            Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"<xmlns=""default1"">", "<xmlns:p=""p1"">", "<xmlns:q=""q1"">"}))
             Dim compilation = CompileAndVerify(
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -1231,7 +1231,7 @@ q2
 
         <Fact()>
         Public Sub ImplicitXmlnsAttributes()
-            Dim options = OptionsExe.WithGlobalImports(GlobalImport.Parse({"<xmlns=""http://roslyn"">", "<xmlns:p=""http://roslyn/p"">"}))
+            Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"<xmlns=""http://roslyn"">", "<xmlns:p=""http://roslyn/p"">"}))
             Dim compilation = CompileAndVerify(
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -2636,7 +2636,7 @@ End Class
         ' Do not evaluate embedded expressions in Imports to avoid cycles.
         <Fact()>
         Public Sub EmbeddedExpressionImportCycle()
-            Dim options = OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=<%= <p:x/>.@y %>>"}))
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=<%= <p:x/>.@y %>>"}))
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -2860,8 +2860,8 @@ End Module
         <WorkItem(544261, "DevDiv")>
         <Fact()>
         Public Sub IncompleteProjectLevelImport()
-            Assert.Throws(Of ArgumentException)(Sub() OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=""..."""})))
-            Assert.Throws(Of ArgumentException)(Sub() OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=""..."">, <xmlns:q=""..."""})))
+            Assert.Throws(Of ArgumentException)(Sub() TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=""..."""})))
+            Assert.Throws(Of ArgumentException)(Sub() TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=""..."">, <xmlns:q=""..."""})))
         End Sub
 
         <WorkItem(544360, "DevDiv")>
@@ -4147,7 +4147,7 @@ End Module
             Assert.True(CallsRemoveNamespaceAttributes(verifier.VisualizeIL("M.F1()")))
 
             ' Imports <...> at project scope.
-            Dim options = OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=""http://roslyn"">"}))
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=""http://roslyn"">"}))
             verifier = CompileAndVerify(
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -4253,7 +4253,7 @@ End Module]]>
             Dim comp = CreateCompilationWithReferences(
                 source,
                 references:={MscorlibRef_v20, SystemRef_v20, MsvbRef, SystemXmlRef, SystemXmlLinqRef, SystemCoreRef},
-                options:=OptionsExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
+                options:=TestOptions.ReleaseExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             CompileAndVerify(comp, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine &
                                                    "1" & Environment.NewLine & "2" & Environment.NewLine &
@@ -4286,7 +4286,7 @@ End Module
             Dim comp = CreateCompilationWithReferences(
                 source,
                 references:={MscorlibRef_v20, SystemRef_v20, MsvbRef, SystemXmlRef, SystemXmlLinqRef, SystemCoreRef},
-                options:=OptionsExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
+                options:=TestOptions.ReleaseExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             VerifyDiagnostics(comp, Diagnostic(ERRID.ERR_TypeDisallowsElements, "objArray.<output>").WithArguments("Object()"),
                                     Diagnostic(ERRID.ERR_TypeDisallowsAttributes, "objArray.@someAttrib").WithArguments("Object()"))
@@ -4305,7 +4305,7 @@ Class scen1(Of T As XElement)
     End Sub
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, options:=OptionsDll).
+</compilation>, additionalRefs:=XmlReferences, options:=TestOptions.ReleaseDll).
             VerifyIL("scen1(Of T).foo(T)",
             <![CDATA[
 {
@@ -4326,7 +4326,7 @@ End Class
         <WorkItem(531445, "DevDiv")>
         <Fact(Skip:="531445")>
         Public Sub SameNamespaceDifferentPrefixes()
-            Dim options = OptionsExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:r=""http://roslyn/"">", "<xmlns:s=""http://roslyn/"">"}))
+            Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:r=""http://roslyn/"">", "<xmlns:s=""http://roslyn/"">"}))
             Dim compilation = CompileAndVerify(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4363,7 +4363,7 @@ Friend Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, XmlReferences, OptionsExe.WithOptionStrict(OptionStrict.Off))
+</compilation>, XmlReferences, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -4507,7 +4507,7 @@ content
 
         Private Sub XmlnsNamespaceTooLong(identifier As String, tooLong As Boolean)
             Dim [imports] = GlobalImport.Parse({String.Format("<xmlns:p=""{0}"">", identifier)})
-            Dim options = UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full).WithGlobalImports([imports])
+            Dim options = TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full).WithGlobalImports([imports])
             Dim source = String.Format(<![CDATA[
 Imports <xmlns="{0}">
 Imports <xmlns:q="{0}">

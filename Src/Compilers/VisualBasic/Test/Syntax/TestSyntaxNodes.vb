@@ -3143,7 +3143,7 @@ Option Infer On
 Option Explicit On
 Option Compare Text
     </file>
-</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
+</compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
 
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GetSemanticInfo">
@@ -3153,7 +3153,7 @@ Option Infer On
 Option Explicit On
 Option Compare Text
     </file>
-</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(False).WithOptionCompareText(False))
+</compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(False).WithOptionCompareText(False))
 
             Dim Compilation3 = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GetSemanticInfo">
@@ -3163,7 +3163,7 @@ Option Infer On
 Option Explicit On
 Option Compare Text
     </file>
-</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
+</compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
 
 
             Dim vbpo1 = compilation.Options
@@ -3186,7 +3186,7 @@ Sub Main
 End Sub
 End Module
     </file>
-</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
+</compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
 
             vbpo1 = compilation4.Options
             Dim ObjCommonCompilationOptions As CompilationOptions = vbpo1

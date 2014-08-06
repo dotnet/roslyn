@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
             End Using
 
             Dim resolver As New SourceFileResolver(ImmutableArray(Of String).Empty, baseDirectory)
-            Return VisualBasicCompilation.Create(GetUniqueName(), {tree}, {MscorlibRef}, Options.UnoptimizedDll.WithSourceReferenceResolver(resolver))
+            Return VisualBasicCompilation.Create(GetUniqueName(), {tree}, {MscorlibRef}, TestOptions.UnoptimizedDll.WithSourceReferenceResolver(resolver))
         End Function
 
 

@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             'inside Global
         End Namespace
     </file>
-      </compilation>, options:=OptionsExe.WithRootNamespace("Foo.Bar"))
+      </compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Foo.Bar"))
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)

@@ -3726,7 +3726,7 @@ Class Test2
     Public Shared Sub M1(ByRef x As Integer)
     End Sub
 End Class    </file>
-</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+</compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
 
             CompileAndVerify(compilation)
 

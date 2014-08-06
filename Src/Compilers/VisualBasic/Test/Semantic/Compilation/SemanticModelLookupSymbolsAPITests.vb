@@ -480,7 +480,7 @@ Class C1
     End Function
 End Class
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
 
             CompileAndVerify(compilation, <![CDATA[

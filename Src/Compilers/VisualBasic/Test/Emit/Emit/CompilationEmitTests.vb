@@ -65,18 +65,18 @@ End Module
                          </compilation>
 
             'Compilation with unquote Rootnamespace and MainTypename.
-            CreateCompilationWithMscorlibAndVBRuntime(source, options:=OptionsExe.WithRootNamespace("Test").WithMainTypeName("Test.Module1")).VerifyDiagnostics()
+            CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("Test").WithMainTypeName("Test.Module1")).VerifyDiagnostics()
 
             ' Compilation with quoted Rootnamespace and MainTypename still produces diagnostics.
             ' we do not unquote the options on WithRootnamespace or WithMainTypeName functions 
-            CreateCompilationWithMscorlibAndVBRuntime(source, options:=Options.OptionsExe.WithRootNamespace("""Test""").WithMainTypeName("""Test.Module1""")).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""Test""").WithMainTypeName("""Test.Module1""")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("""Test""", "RootNamespace").WithLocation(1, 1),
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""Test.Module1""").WithLocation(1, 1))
 
             ' Use of Cyrillic rootnamespace and maintypename
-            CreateCompilationWithMscorlibAndVBRuntime(source, options:=OptionsExe.WithRootNamespace("решения").WithMainTypeName("решения.Module1")).VerifyDiagnostics()
+            CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("решения").WithMainTypeName("решения.Module1")).VerifyDiagnostics()
 
-            CreateCompilationWithMscorlibAndVBRuntime(source, options:=Options.OptionsExe.WithRootNamespace("""решения""").WithMainTypeName("""решения.Module1""")).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""решения""").WithMainTypeName("""решения.Module1""")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("""решения""", "RootNamespace").WithLocation(1, 1),
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""решения.Module1""").WithLocation(1, 1))
 
@@ -1847,7 +1847,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, Options.OptionsNetModule)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseModule)
             compilation.VerifyDiagnostics()
 
             Dim assembly = compilation.Assembly
@@ -1883,7 +1883,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, Options.OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim assembly = compilation.Assembly
@@ -1920,7 +1920,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, Options.OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim assembly = compilation.Assembly
@@ -1957,7 +1957,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, Options.OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim assembly = compilation.Assembly
@@ -1994,7 +1994,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, Options.OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim assembly = compilation.Assembly
@@ -2026,7 +2026,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, Options.OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Assert.Throws(Of ArgumentException)(Function() compilation.Emit(New MemoryStream(), outputName:=" "))
@@ -2068,7 +2068,7 @@ End Class
                 GetUniqueName(),
                 {syntaxTree},
                 {MscorlibRef},
-                OptionsDll.WithXmlReferenceResolver(resolver))
+                TestOptions.ReleaseDll.WithXmlReferenceResolver(resolver))
 
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments(
@@ -2113,7 +2113,7 @@ end class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source, options:=Options.OptionsDll.WithXmlReferenceResolver(XmlFileResolver.Default)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default)).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                     Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistantFile.xml""").WithArguments("NonExistantFile.xml", "File"),
@@ -2133,7 +2133,7 @@ end class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source, options:=Options.OptionsDll.WithXmlReferenceResolver(Nothing)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(Nothing)).VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.").WithLocation(3, 25),
                 Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistantFile.xml""").WithArguments("NonExistantFile.xml", "File").WithLocation(3, 46))
         End Sub
@@ -2226,7 +2226,7 @@ End Class
                     GetUniqueName(),
                     {syntaxTree},
                     {MscorlibRef},
-                    Options.OptionsDll.WithXmlReferenceResolver(New XmlFileResolver(Path.GetDirectoryName(filePath))))
+                    TestOptions.ReleaseDll.WithXmlReferenceResolver(New XmlFileResolver(Path.GetDirectoryName(filePath))))
 
                 comp.VerifyDiagnostics(Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments(
                     "Deny",
@@ -2312,7 +2312,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
             Dim metadataRef = comp.EmitToImageReference()
-            CompileAndVerify(source2, additionalRefs:={metadataRef}, options:=OptionsNetModule, verify:=False)
+            CompileAndVerify(source2, additionalRefs:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=False)
         End Sub
 
         <Fact>
@@ -2325,7 +2325,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, OptionsDll.WithPlatform(Platform.Itanium))
+            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
@@ -2343,31 +2343,31 @@ End interface
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
-                OptionsDll.WithPlatform(Platform.AnyCpu))
+                TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics, <expected></expected>)
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsDll.WithPlatform(Platform.AnyCpu))
+                TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics, <expected></expected>)
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
-                OptionsNetModule.WithPlatform(Platform.AnyCpu))
+                TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics, <expected></expected>)
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsNetModule.WithPlatform(Platform.AnyCpu))
+                TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics, <expected></expected>)
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
-                OptionsDll.WithPlatform(Platform.X86))
+                TestOptions.ReleaseDll.WithPlatform(Platform.X86))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2376,7 +2376,7 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsDll.WithPlatform(Platform.X86))
+                TestOptions.ReleaseDll.WithPlatform(Platform.X86))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2385,7 +2385,7 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
-                OptionsNetModule.WithPlatform(Platform.X86))
+                TestOptions.ReleaseModule.WithPlatform(Platform.X86))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2394,7 +2394,7 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsNetModule.WithPlatform(Platform.X86))
+                TestOptions.ReleaseModule.WithPlatform(Platform.X86))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2418,7 +2418,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, OptionsNetModule.WithPlatform(Platform.Itanium))
+            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
@@ -2435,7 +2435,7 @@ End interface
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsDll.WithPlatform(Platform.AnyCpu))
+                TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
 
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
@@ -2445,7 +2445,7 @@ BC37213: Agnostic assembly cannot have a processor specific module 'PlatformMism
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsDll.WithPlatform(Platform.X86))
+                TestOptions.ReleaseDll.WithPlatform(Platform.X86))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2454,7 +2454,7 @@ BC37214: Assembly and module 'PlatformMismatch.netmodule' cannot target differen
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsNetModule.WithPlatform(Platform.X86))
+                TestOptions.ReleaseModule.WithPlatform(Platform.X86))
 
             ' No BC37213 when building a module and adding a conflicting one
             useCompilation.VerifyEmitDiagnostics()
@@ -2471,7 +2471,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, OptionsDll.WithPlatform(Platform.X86))
+            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.X86))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
@@ -2490,7 +2490,7 @@ End interface
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
-                OptionsDll.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2499,7 +2499,7 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsDll.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2508,7 +2508,7 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
-                OptionsNetModule.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2517,7 +2517,7 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsNetModule.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2535,7 +2535,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, OptionsNetModule.WithPlatform(Platform.X86))
+            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.X86))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
@@ -2552,7 +2552,7 @@ End interface
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsDll.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2570,7 +2570,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, OptionsDll.WithPlatform(Platform.AnyCpu))
+            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
@@ -2589,7 +2589,7 @@ End interface
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
-                OptionsDll.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2597,7 +2597,7 @@ End interface
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsDll.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2605,7 +2605,7 @@ End interface
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
-                OptionsNetModule.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2613,7 +2613,7 @@ End interface
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsNetModule.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2630,7 +2630,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, OptionsNetModule.WithPlatform(Platform.AnyCpu))
+            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
@@ -2647,7 +2647,7 @@ End interface
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsDll.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2664,7 +2664,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, OptionsDll.WithPlatform(Platform.Itanium))
+            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
@@ -2683,7 +2683,7 @@ End interface
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
-                OptionsDll.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2691,7 +2691,7 @@ End interface
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsDll.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2699,7 +2699,7 @@ End interface
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
-                OptionsNetModule.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2707,7 +2707,7 @@ End interface
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsNetModule.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2724,7 +2724,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, OptionsNetModule.WithPlatform(Platform.Itanium))
+            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
@@ -2741,7 +2741,7 @@ End interface
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
-                OptionsDll.WithPlatform(Platform.Itanium))
+                TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
@@ -2756,7 +2756,7 @@ End interface
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, OptionsDebugDll)
+            Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, TestOptions.DebugDll)
 
             CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug, verify:=False)
         End Sub
@@ -2790,7 +2790,7 @@ End interface
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(useSource, OptionsDll.WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlib(useSource, TestOptions.ReleaseDll.WithOptimizations(True))
             Dim metadataReader = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).Module.GetMetadataReader()
 
             Dim P1RVA = 0

@@ -167,38 +167,38 @@ BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'Platform'
 BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'Platform'
 </expected>)
 
-            Assert.Equal(Nothing, OptionsDll.WithModuleName("foo").WithModuleName(Nothing).ModuleName)
-            AssertTheseDiagnostics(OptionsDll.WithModuleName("").Errors,
+            Assert.Equal(Nothing, TestOptions.ReleaseDll.WithModuleName("foo").WithModuleName(Nothing).ModuleName)
+            AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("").Errors,
 <expected>
 BC37206: Name cannot be empty.
 Parameter name: ModuleName
 </expected>)
 
-            AssertTheseDiagnostics(OptionsDll.WithModuleName("a\0a").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a\0a").Errors,
 <expected>
 BC37206: Name contains invalid characters.
 Parameter name: ModuleName
 </expected>)
 
-            AssertTheseDiagnostics(OptionsDll.WithModuleName("a\uD800b").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a\uD800b").Errors,
 <expected>
 BC37206: Name contains invalid characters.
 Parameter name: ModuleName
 </expected>)
 
-            AssertTheseDiagnostics(OptionsDll.WithModuleName("a\\b").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a\\b").Errors,
 <expected>
 BC37206: Name contains invalid characters.
 Parameter name: ModuleName
 </expected>)
 
-            AssertTheseDiagnostics(OptionsDll.WithModuleName("a/b").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a/b").Errors,
 <expected>
 BC37206: Name contains invalid characters.
 Parameter name: ModuleName
 </expected>)
 
-            AssertTheseDiagnostics(OptionsDll.WithModuleName("a:b").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a:b").Errors,
 <expected>
 BC37206: Name contains invalid characters.
 Parameter name: ModuleName

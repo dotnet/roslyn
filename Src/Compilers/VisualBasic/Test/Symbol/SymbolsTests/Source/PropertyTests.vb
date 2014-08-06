@@ -1265,7 +1265,7 @@ End Class
 </compilation>,
                 sourceSymbolValidator:=validator(True),
                 symbolValidator:=validator(False),
-                options:=OptionsDllAlwaysImportInternals)
+                options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
         End Sub
 
         <Fact>
@@ -2443,7 +2443,7 @@ Module M
 End Module
     </file>
             </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(source, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(source, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -3742,7 +3742,7 @@ Module Program
 End Module
     </file>
             </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(source, customIL.Value, OptionsExe, includeVbRuntime:=True)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(source, customIL.Value, TestOptions.ReleaseExe, includeVbRuntime:=True)
             CompilationUtils.AssertNoErrors(compilation)
             CompileAndVerify(compilation, expectedOutput:="9")
         End Sub
@@ -3792,7 +3792,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             Dim position = (source...<file>.Single().Value.IndexOf("' bind-position"))
 
             Dim bindings = compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "a.vb"))
@@ -4020,7 +4020,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="234")
         End Sub
 
@@ -4531,7 +4531,7 @@ End Class
                     CheckPropertyAccessibility(p9, Accessibility.Protected, Accessibility.Protected, privateOrNotApplicable)
                 End Sub
 
-            CompileAndVerify(source, symbolValidator:=validator(False), sourceSymbolValidator:=validator(True), options:=OptionsDllAlwaysImportInternals)
+            CompileAndVerify(source, symbolValidator:=validator(False), sourceSymbolValidator:=validator(True), options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
         End Sub
 #End Region
 #Region "Ported C# test cases"
@@ -4665,7 +4665,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {TestReferences.SymbolsTests.Properties}, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {TestReferences.SymbolsTests.Properties}, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30456: 'Instance' is not a member of 'NoAccessors'.
@@ -4701,7 +4701,7 @@ Module Module1
 End Module
     </file>
 </compilation>
-            Dim compilation = CompileWithCustomPropertiesAssembly(source, OptionsDllAlwaysImportInternals)
+            Dim compilation = CompileWithCustomPropertiesAssembly(source, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim type = DirectCast(compilation.GlobalNamespace.GetMembers("FamilyAssembly").Single(), PENamedTypeSymbol)
             VerifyAccessibility(
@@ -5689,7 +5689,7 @@ Class C
 End Class
     </file>
 </compilation>
-            CompileAndVerify(source, options:=OptionsDll, emitPdb:=True).VerifyDiagnostics()
+            CompileAndVerify(source, options:=TestOptions.ReleaseDll, emitPdb:=True).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -7996,7 +7996,7 @@ End Class
                         libSrc,
                         sourceSymbolValidator:=validator,
                         symbolValidator:=validator,
-                        options:=If(winmd, OptionsWinMDObj, OptionsDll))
+                        options:=If(winmd, TestOptions.ReleaseWinMD, TestOptions.ReleaseDll))
                     verifier.VerifyDiagnostics()
                 End Sub
 
@@ -8057,7 +8057,7 @@ End Class
 
             Dim verifier = CompileAndVerify(src,
                                             allReferences:={MscorlibRef_v4_0_30316_17626},
-                                            options:=OptionsWinMDObj,
+                                            options:=TestOptions.ReleaseWinMD,
                                             sourceSymbolValidator:=srcValidator,
                                             symbolValidator:=mdValidator)
         End Sub

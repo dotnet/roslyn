@@ -46,7 +46,7 @@ Public Class InternalsVisibleToAndStrongNameTests
             g.ToString(),
             {VisualBasicSyntaxTree.ParseText(s)},
             {MscorlibRef},
-            OptionsDll.WithStrongNameProvider(DefaultProvider))
+            TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
         Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, other.Assembly.Identity.PublicKey))
@@ -64,7 +64,7 @@ Public Class InternalsVisibleToAndStrongNameTests
         Dim syntaxTree = ParseAndVerify(s)
 
         ' verify failure with default assembly key file resolver
-        Dim comp = CreateCompilationWithMscorlib({syntaxTree}, compOptions:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+        Dim comp = CreateCompilationWithMscorlib({syntaxTree}, compOptions:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
         comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(keyFileName, "File not found."))
 
@@ -75,7 +75,7 @@ Public Class InternalsVisibleToAndStrongNameTests
             GetUniqueName(),
             {syntaxTree},
             {MscorlibRef},
-            OptionsDll.WithStrongNameProvider(GetProviderWithPath(keyFileDir)))
+            TestOptions.ReleaseDll.WithStrongNameProvider(GetProviderWithPath(keyFileDir)))
 
         comp.VerifyDiagnostics()
         Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
@@ -93,7 +93,7 @@ Public Class InternalsVisibleToAndStrongNameTests
         Dim syntaxTree = ParseAndVerify(s)
 
         ' verify failure with default assembly key file resolver
-        Dim comp As Compilation = CreateCompilationWithMscorlib({syntaxTree}, compOptions:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+        Dim comp As Compilation = CreateCompilationWithMscorlib({syntaxTree}, compOptions:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
         comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments("..\" & keyFileName, "File not found."))
 
@@ -104,7 +104,7 @@ Public Class InternalsVisibleToAndStrongNameTests
             GetUniqueName(),
             references:={MscorlibRef},
             syntaxTrees:={syntaxTree},
-            options:=OptionsDll.WithStrongNameProvider(GetProviderWithPath(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, "TempSubDir\"))))
+            options:=TestOptions.ReleaseDll.WithStrongNameProvider(GetProviderWithPath(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, "TempSubDir\"))))
 
         comp.VerifyDiagnostics()
         Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
@@ -122,7 +122,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
         Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, other.Assembly.Identity.PublicKey))
@@ -140,7 +140,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-        options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
         Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, other.Assembly.Identity.PublicKey))
@@ -165,7 +165,7 @@ End Class
             GetUniqueName(),
             references:=references,
             syntaxTrees:=syntaxTrees,
-            options:=OptionsDll.WithCryptoKeyFile(keyFileName).WithStrongNameProvider(DefaultProvider))
+            options:=TestOptions.ReleaseDll.WithCryptoKeyFile(keyFileName).WithStrongNameProvider(DefaultProvider))
 
         comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(keyFileName, "File not found."))
@@ -177,7 +177,7 @@ End Class
             GetUniqueName(),
             references:=references,
             syntaxTrees:=syntaxTrees,
-            options:=OptionsDll.WithCryptoKeyFile(keyFileName).WithStrongNameProvider(GetProviderWithPath(keyFileDir)))
+            options:=TestOptions.ReleaseDll.WithCryptoKeyFile(keyFileName).WithStrongNameProvider(GetProviderWithPath(keyFileDir)))
 
         comp.VerifyDiagnostics()
         Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
@@ -195,7 +195,7 @@ End Class
 ]]>
                 </file>
             </compilation>
-        Dim other = CreateCompilationWithMscorlib(s, options:=OptionsDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
+        Dim other = CreateCompilationWithMscorlib(s, options:=TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
 
         Assert.Empty(other.GetDiagnostics())
         Assert.True(ByteSequenceComparer.Instance.Equals(TestResources.SymbolsTests.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey))
@@ -221,7 +221,7 @@ End Class
             GetUniqueName(),
             references:=references,
             syntaxTrees:=syntaxTrees,
-            options:=OptionsDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
+            options:=TestOptions.ReleaseDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
 
         ' error CS7027: Error extracting public key from file 'PublicKeyFile.snk' -- File not found.
         ' warning CS7033: Delay signing was specified and requires a public key, but no public key was specified
@@ -235,7 +235,7 @@ End Class
             GetUniqueName(),
             references:=references,
             syntaxTrees:=syntaxTrees,
-            options:=OptionsDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(True).WithStrongNameProvider(GetProviderWithPath(publicKeyFileDir)))
+            options:=TestOptions.ReleaseDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(True).WithStrongNameProvider(GetProviderWithPath(publicKeyFileDir)))
 
         comp.VerifyDiagnostics()
         Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
@@ -253,7 +253,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-        options:=OptionsExe.WithCryptoKeyFile("foo").WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseExe.WithCryptoKeyFile("foo").WithStrongNameProvider(DefaultProvider))
 
         CompilationUtils.AssertTheseDeclarationDiagnostics(other,
             <errors>
@@ -275,7 +275,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
@@ -293,7 +293,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
@@ -313,7 +313,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-        options:=OptionsDll.WithCryptoKeyFile(tmp.Path).WithStrongNameProvider(New DesktopStrongNameProvider()))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(tmp.Path).WithStrongNameProvider(New DesktopStrongNameProvider()))
 
         other.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(tmp.Path, "Value does not fall within the expected range."))
@@ -332,7 +332,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsExe.WithCryptoKeyContainer("foo").WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseExe.WithCryptoKeyContainer("foo").WithStrongNameProvider(DefaultProvider))
 
         CompilationUtils.AssertTheseDeclarationDiagnostics(other,
             <errors>
@@ -355,7 +355,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
 
@@ -371,7 +371,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New VisualBasicCompilationReference(other)}, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         'compilation should not succeed, and internals should not be imported.
         c.GetDiagnostics()
@@ -394,7 +394,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New VisualBasicCompilationReference(other)}, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         c2.VerifyDiagnostics()
     End Sub
@@ -411,7 +411,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         Dim otherImage = other.EmitToArray()
 
@@ -427,7 +427,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New MetadataImageReference(otherImage)}, OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, {New MetadataImageReference(otherImage)}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         'compilation should not succeed, and internals should not be imported.
         c.GetDiagnostics()
@@ -452,7 +452,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New MetadataImageReference(otherImage)}, OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, {New MetadataImageReference(otherImage)}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         c2.VerifyDiagnostics()
     End Sub
@@ -467,7 +467,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, Options.OptionsNetModule.WithStrongNameProvider(DefaultProvider))
+</compilation>, TestOptions.ReleaseModule.WithStrongNameProvider(DefaultProvider))
 
         'shouldn't have an error. The attribute's contents are checked when the module is added.
         Dim reference = c1.EmitToImageReference()
@@ -479,7 +479,7 @@ Public Class C
 End Class
 ]]>
      </file>
- </compilation>), {reference}, Options.OptionsDll.WithStrongNameProvider(DefaultProvider))
+ </compilation>), {reference}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Keyset does not exist (Exception from HRESULT: 0x80090016)"))
     End Sub
@@ -494,7 +494,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, OptionsNetModule.WithStrongNameProvider(DefaultProvider))
+</compilation>, TestOptions.ReleaseModule.WithStrongNameProvider(DefaultProvider))
 
         'shouldn't have an error. The attribute's contents are checked when the module is added.
         Dim reference = c1.EmitToImageReference()
@@ -506,7 +506,7 @@ Public Class C
 End Class
 ]]>
      </file>
- </compilation>), {reference}, Options.OptionsDll.WithStrongNameProvider(DefaultProvider))
+ </compilation>), {reference}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments("bogus", "File not found."))
     End Sub
@@ -523,7 +523,7 @@ Friend Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
 
@@ -538,7 +538,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-{New VisualBasicCompilationReference(other)}, OptionsDll.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider))
+{New VisualBasicCompilationReference(other)}, TestOptions.ReleaseDll.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider))
 
         Assert.DoesNotThrow(Function() requestor.Assembly.Identity)
         requestor.VerifyDiagnostics()
@@ -556,7 +556,7 @@ Friend Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
 
@@ -570,7 +570,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New VisualBasicCompilationReference(other)}, OptionsDll.WithCryptoKeyFile(KeyPairFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
+</compilation>, {New VisualBasicCompilationReference(other)}, TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
 
         Assert.DoesNotThrow(Function() requestor.Assembly.Identity)
         'gives "is not accessible" error because internals were imported because IVT was found
@@ -593,7 +593,7 @@ Friend Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
         other.VerifyDiagnostics()
 
         Dim requestor As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
@@ -605,7 +605,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New VisualBasicCompilationReference(other)}, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         Assert.DoesNotThrow(Function() requestor.Assembly.Identity)
         Assert.True(DirectCast(other.Assembly, IAssemblySymbol).GivesAccessTo(requestor.Assembly))
@@ -624,7 +624,7 @@ Friend Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
 
@@ -637,7 +637,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New VisualBasicCompilationReference(other)}, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         Assert.DoesNotThrow(Function() requestor.Assembly.Identity)
         CompilationUtils.AssertTheseDiagnostics(requestor,
@@ -657,7 +657,7 @@ Friend Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
 
@@ -670,7 +670,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New VisualBasicCompilationReference(other)}, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         Assert.DoesNotThrow(Function() requestor.Assembly.Identity)
         CompilationUtils.AssertTheseDiagnostics(requestor, <errors>BC36957: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</errors>)
@@ -690,7 +690,7 @@ Friend Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
 
@@ -703,7 +703,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New VisualBasicCompilationReference(other)}, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         Assert.True(DirectCast(other.Assembly, IAssemblySymbol).GivesAccessTo(requestor.Assembly))
     End Sub
@@ -720,7 +720,7 @@ Friend Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
 
@@ -733,7 +733,7 @@ Public Class A
 End Class
 ]]>
     </file>
-</compilation>, {New VisualBasicCompilationReference(other)}, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         Assert.False(DirectCast(other.Assembly, IAssemblySymbol).GivesAccessTo(requestor.Assembly))
     End Sub
@@ -753,7 +753,7 @@ Namespace ClassLibrary
 end Namespace
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithCryptoKeyFile(SigningTestHelpers.KeyPairFile2).WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithCryptoKeyFile(SigningTestHelpers.KeyPairFile2).WithStrongNameProvider(DefaultProvider))
 
         giver.VerifyDiagnostics()
 
@@ -766,7 +766,7 @@ Public Class ClassWithFriendMethod
 End Class
 ]]>
     </file>
-</compilation>, {New VisualBasicCompilationReference(giver)}, options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+</compilation>, {New VisualBasicCompilationReference(giver)}, options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         Assert.True(DirectCast(giver.Assembly, IAssemblySymbol).GivesAccessTo(requestor.Assembly))
         Assert.Empty(requestor.GetDiagnostics())
@@ -787,7 +787,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         Dim expectedErrors = <error><![CDATA[
 BC31534: Friend assembly reference 'WantsIVTAccess, Culture=neutral' is invalid. InternalsVisibleTo declarations cannot have a version, culture, public key token, or processor architecture specified.
@@ -810,7 +810,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         Dim expectedErrors = <error><![CDATA[
 BC31535: Friend assembly reference 'WantsIVTAccess' is invalid. Strong-name signed assemblies must specify a public key in their InternalsVisibleTo declarations.
@@ -834,7 +834,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-        options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         Dim peHeaders = New PEHeaders(other.EmitToStream())
         Assert.Equal(CorFlags.StrongNameSigned, peHeaders.CorHeader.Flags And CorFlags.StrongNameSigned)
@@ -852,7 +852,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-        options:=OptionsDll.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(DefaultProvider))
 
         Using outStrm = New MemoryStream()
             Dim emitResult = other.Emit(outStrm)
@@ -863,7 +863,7 @@ BC36961: Key file '<%= PublicKeyFile %>' is missing the private key needed for s
 </errors>)
         End Using
 
-        other = other.WithOptions(OptionsNetModule.WithCryptoKeyFile(PublicKeyFile))
+        other = other.WithOptions(TestOptions.ReleaseModule.WithCryptoKeyFile(PublicKeyFile))
 
         Dim assembly As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
 <compilation name="Sam2">
@@ -871,7 +871,7 @@ BC36961: Key file '<%= PublicKeyFile %>' is missing the private key needed for s
     </file>
 </compilation>,
         {other.EmitToImageReference()},
-        options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         Using outStrm = New MemoryStream()
             Dim emitResult = assembly.Emit(outStrm)
@@ -896,7 +896,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-        options:=OptionsDll.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(DefaultProvider))
 
         CompileAndVerify(other)
     End Sub
@@ -913,7 +913,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         Dim outStrm = New MemoryStream()
         Dim emitResult = other.Emit(outStrm)
@@ -934,7 +934,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         Dim outStrm = New MemoryStream()
         Dim emitResult = other.Emit(outStrm)
@@ -977,7 +977,7 @@ End Class
 
         Dim ilRef = CompileIL(il.Value, appendDefaultHeader:=False)
 
-        Dim comp = CreateCompilationWithMscorlibAndReferences(vb, {ilRef}, OptionsDll.WithStrongNameProvider(DefaultProvider))
+        Dim comp = CreateCompilationWithMscorlibAndReferences(vb, {ilRef}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         ' NOTE: dev10 reports ERR_FriendAssemblyNameInvalid, but Roslyn won't (DevDiv #15099).
         comp.VerifyDiagnostics(
@@ -1005,7 +1005,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, {MscorlibRef_v4_0_30316_17626}, OptionsDll.WithDelaySign(True).WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+</compilation>, {MscorlibRef_v4_0_30316_17626}, TestOptions.ReleaseDll.WithDelaySign(True).WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         ' confirm header has expected SN signature size
         Dim peHeaders = New PEHeaders(other.EmitToStream())
@@ -1024,7 +1024,7 @@ End Class
               "End Class"
 
         Dim tree = ParseAndVerify(src)
-        Dim comp = CreateCompilationWithMscorlib({tree}, compOptions:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+        Dim comp = CreateCompilationWithMscorlib({tree}, compOptions:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         ' Native Compiler:
         'warning BC41008: Use command-line option '/keycontainer' or appropriate project settings instead of 'System.Reflection.AssemblyKeyNameAttribute() '.
@@ -1075,7 +1075,7 @@ End Class
 
             ' now that the module checks out, ensure that adding it to a compilation outputing a dll
             ' results in a signed assembly.
-            Dim assemblyComp = CreateCompilationWithMscorlibAndReferences(source, {New MetadataImageReference(metadata)}, OptionsDll.WithStrongNameProvider(DefaultProvider))
+            Dim assemblyComp = CreateCompilationWithMscorlibAndReferences(source, {New MetadataImageReference(metadata)}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
             Using finalStrm = tempFile.Open()
                 success = assemblyComp.Emit(finalStrm)
@@ -1110,7 +1110,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib(source, OptionsNetModule.WithStrongNameProvider(DefaultProvider))
+        Dim other = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule.WithStrongNameProvider(DefaultProvider))
 
         ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(other.EmitToStream(), AttributeDescription.AssemblyKeyFileAttribute)
     End Sub
@@ -1127,7 +1127,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib(source, OptionsNetModule.WithStrongNameProvider(DefaultProvider))
+        Dim other = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule.WithStrongNameProvider(DefaultProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1147,7 +1147,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib(source, OptionsNetModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider))
+        Dim other = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1169,7 +1169,7 @@ End Class
     ]]></file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib(source, OptionsNetModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider))
+        Dim other = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1191,7 +1191,7 @@ End Class
     ]]></file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib(source, OptionsNetModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider))
+        Dim other = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider))
 
         AssertTheseDiagnostics(other,
 <expected>
@@ -1210,7 +1210,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib(source, OptionsNetModule.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+        Dim other = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1233,7 +1233,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib(source, OptionsNetModule.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+        Dim other = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1254,7 +1254,7 @@ End Class
     </file>
 </compilation>
 
-        Dim other = CreateCompilationWithMscorlib(source, OptionsNetModule.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+        Dim other = CreateCompilationWithMscorlib(source, TestOptions.ReleaseModule.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         AssertTheseDiagnostics(other,
 <expected>
@@ -1273,7 +1273,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-        options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1287,7 +1287,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-        options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         CompileAndVerify(other.WithReferences({other.References(0), New VisualBasicCompilationReference(unsigned)})).VerifyDiagnostics()
 
@@ -1305,7 +1305,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-        options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1319,7 +1319,7 @@ End Class
 ]]>
     </file>
 </compilation>,
-        options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         Dim comps = {other.WithReferences({other.References(0), New VisualBasicCompilationReference(unsigned)}),
                      other.WithReferences({other.References(0), New MetadataImageReference(unsigned.EmitToArray)})}
@@ -1354,7 +1354,7 @@ End Class
 ]]>
     </file>
 </compilation>, {MscorlibRef_v4_0_30316_17626},
-        options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         Dim peHeaders = New PEHeaders(other.EmitToStream())
         Assert.Equal(CorFlags.StrongNameSigned, peHeaders.CorHeader.Flags And CorFlags.StrongNameSigned)
@@ -1376,7 +1376,7 @@ End Class
 ]]>
     </file>
 </compilation>, {MscorlibRef_v4_0_30316_17626},
-        options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         Dim outStrm = New MemoryStream()
         Dim emitResult = other.Emit(outStrm)
@@ -1407,7 +1407,7 @@ End Class
 ]]>
     </file>
 </compilation>, {MscorlibRef_v4_0_30316_17626},
-        options:=OptionsDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         Dim outStrm = New MemoryStream()
         Dim emitResult = other.Emit(outStrm)
@@ -1436,7 +1436,7 @@ End Class
 ]]>
     </file>
 </compilation>, {MscorlibRef_v4_0_30316_17626},
-        options:=OptionsDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
 
         Dim outStrm = New MemoryStream()
         Dim emitResult = other.Emit(outStrm)
@@ -1467,7 +1467,7 @@ End Class
 ]]>
     </file>
 </compilation>, {MscorlibRef_v4_0_30316_17626},
-        options:=OptionsDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
 
         CompileAndVerify(other)
     End Sub
@@ -1488,7 +1488,7 @@ End Class
 ]]>
     </file>
 </compilation>, {MscorlibRef_v4_0_30316_17626},
-        options:=OptionsDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
 
         Dim outStrm = New MemoryStream()
         Dim emitResult = other.Emit(outStrm)
@@ -1519,7 +1519,7 @@ End Class
 ]]>
     </file>
 </compilation>, {MscorlibRef_v4_0_30316_17626},
-        options:=OptionsDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
+        options:=TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
 
         CompileAndVerify(other)
     End Sub
@@ -1537,7 +1537,7 @@ Friend Class A
 	Public Value As Integer = 3
 End Class
 ]]></file>
-</compilation>, options:=OptionsDll.WithStrongNameProvider(DefaultProvider))
+</compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         CompileAndVerify(ca)
 
@@ -1550,7 +1550,7 @@ Friend Class B
     End Function
 End Class
 ]]></file>
-</compilation>, {New VisualBasicCompilationReference(ca)}, options:=OptionsNetModule.WithStrongNameProvider(DefaultProvider))
+</compilation>, {New VisualBasicCompilationReference(ca)}, options:=TestOptions.ReleaseModule.WithStrongNameProvider(DefaultProvider))
 
         CompileAndVerify(cb, verify:=False).Diagnostics.Verify()
     End Sub

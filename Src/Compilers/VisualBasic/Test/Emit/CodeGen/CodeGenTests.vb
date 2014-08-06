@@ -1108,7 +1108,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ClassesWithReadWriteProperties.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ClassesWithReadWriteProperties.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
             VerifyIL("D3.Test",
             <![CDATA[
 {
@@ -1569,7 +1569,7 @@ End Module
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("M.Main",
             <![CDATA[
                                                {
@@ -1650,7 +1650,7 @@ End Module
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.S",
             <![CDATA[
 {
@@ -1723,7 +1723,7 @@ End Module
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("M.Main",
             <![CDATA[
 {
@@ -8558,7 +8558,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8637,7 +8637,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8713,7 +8713,7 @@ End Class
 </compilation>
 
             ' TODO (tomat): verification fails
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8780,7 +8780,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8853,7 +8853,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8918,7 +8918,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8989,7 +8989,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -9058,7 +9058,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -9127,7 +9127,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -9197,7 +9197,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -9260,7 +9260,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -9466,7 +9466,7 @@ End Class
             ' CONSIDER: This is the dev10 behavior.
             ' Shouldn't there be an error for trying to call an inaccessible ctor?
             ' NOTE: Current behaviour is to skip private constructor and use 'initobj'
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -10013,7 +10013,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim comp = CompileAndVerify(source, options:=OptionsDll.WithRootNamespace("Project"), validator:=
+            Dim comp = CompileAndVerify(source, options:=TestOptions.ReleaseDll.WithRootNamespace("Project"), validator:=
                 Sub(a, _omitted)
                     AssertEx.SetEqual({"<Module>",
                                        "PROJEcT.Quuz.A",
@@ -11075,7 +11075,7 @@ Module M1
     End Sub
 End Module
     ]]></file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, sourceSymbolValidator:=sourceValidator, expectedOutput:="PASS1, PASS2")
         End Sub
 
@@ -11228,7 +11228,7 @@ Class Program
     End Property
 End Class
     ]]></file>
-</compilation>, Options.OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 In get
 1
@@ -11502,7 +11502,7 @@ Module Module1
     End Function 
 End Module
     </file>
-</compilation>, options:=OptionsExe.WithOptimizations(True),
+</compilation>, options:=TestOptions.ReleaseExe.WithOptimizations(True),
 expectedOutput:=
             <![CDATA[
 -100
@@ -11636,7 +11636,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -11731,8 +11731,8 @@ End Module
     </file>
                 </compilation>
 
-            Dim compOpt = CreateCompilationWithMscorlibAndVBRuntime(source, options:=Options.OptionsExe.WithOptimizations(True))
-            Dim compNoOpt = CreateCompilationWithMscorlibAndVBRuntime(source, options:=Options.OptionsExe.WithOptimizations(False))
+            Dim compOpt = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithOptimizations(True))
+            Dim compNoOpt = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithOptimizations(False))
 
             ' (2) is not met.
             CompileAndVerify(compOpt, emitPdb:=False).VerifyIL("C.Main",
@@ -11841,7 +11841,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -12435,7 +12435,7 @@ End Module
 
 ]]>
     </file>
-</compilation>, options:=OptionsExe.WithOptimizations(False),
+</compilation>, options:=TestOptions.ReleaseExe.WithOptimizations(False),
                 expectedOutput:="i=2 -> x.bool = True i=21474836472 -> x.bool = True").
             VerifyIL("Module1.Main",
             <![CDATA[

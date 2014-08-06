@@ -270,7 +270,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             ' x.Foo      - Dev10 reports error BC30456: 'Foo' is not a member of 'Integer'.
             ' Foo(x)     - no change, works
@@ -288,7 +288,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             ' Dev10 reports two errors:
             '     error BC31429: 'C' is ambiguous because multiple kinds of members with this name exist in namespace 'Extensions'.
@@ -567,7 +567,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             ' x.Foo      - Dev10 reports error BC30456: 'Foo' is not a member of 'Integer'.
             ' Foo(x)     - no change, works
@@ -585,7 +585,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             ' Dev10 reports two errors:
             '     error BC31429: 'C' is ambiguous because multiple kinds of members with this name exist in namespace 'Extensions'.
@@ -746,7 +746,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
@@ -890,7 +890,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
@@ -972,7 +972,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
@@ -991,7 +991,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected>
@@ -1091,7 +1091,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             ' !!! Difference with Dev10 - less accessible type wins in type-only context.
             CompileAndVerify(compilation1, expectedOutput:=
@@ -1123,7 +1123,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected>
@@ -1195,7 +1195,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -1263,7 +1263,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -1281,7 +1281,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -1371,7 +1371,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
@@ -1387,7 +1387,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -2672,7 +2672,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, appendDefaultHeader:=False, options:=OptionsExe, ilReference:=ilAssemblyRef1)
+</compilation>, customIL.Value, includeVbRuntime:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe, ilReference:=ilAssemblyRef1)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -2721,7 +2721,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1}, options:=OptionsExe)
+</compilation>, additionalRefs:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -2749,7 +2749,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1}, options:=OptionsExe)
+</compilation>, additionalRefs:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation3,
 <expected>
@@ -2796,7 +2796,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1}, options:=OptionsExe)
+</compilation>, additionalRefs:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation4, expectedOutput:=
             <![CDATA[
@@ -2923,7 +2923,7 @@ Namespace BByyx
     End Class
 End Namespace
     </file>
-</compilation>, OptionsDll)
+</compilation>, TestOptions.ReleaseDll)
 
             Dim vbCompilationRef = New VisualBasicCompilationReference(vbCompilationToRef)
 
@@ -2950,7 +2950,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=OptionsExe)
+    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation5,
     <expected>
@@ -3005,7 +3005,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=OptionsExe)
+    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation6, expectedOutput:=
                 <![CDATA[
@@ -3037,7 +3037,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=OptionsExe)
+    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation7,
     <expected>
@@ -3094,7 +3094,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=OptionsExe)
+    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation8, expectedOutput:=
                 <![CDATA[
@@ -3126,7 +3126,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=OptionsExe)
+    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation5,
     <expected>
@@ -3181,7 +3181,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=OptionsExe)
+    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation6, expectedOutput:=
                 <![CDATA[
@@ -3213,7 +3213,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=OptionsExe)
+    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation7,
     <expected>
@@ -3270,7 +3270,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=OptionsExe)
+    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation8, expectedOutput:=
                 <![CDATA[
@@ -3305,7 +3305,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, appendDefaultHeader:=False, options:=OptionsExe, ilReference:=ilAssemblyRef2)
+</compilation>, customIL.Value, includeVbRuntime:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe, ilReference:=ilAssemblyRef2)
 
             compilation9 = compilation9.AddReferences(ilAssemblyRef1, vbCompilationRef)
 
@@ -3375,7 +3375,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef2, vbCompilationRef, ilAssemblyRef1}, options:=OptionsExe)
+</compilation>, additionalRefs:={ilAssemblyRef2, vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation10,
 <expected>
@@ -3443,7 +3443,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef2, ilAssemblyRef1}, options:=OptionsExe)
+</compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef2, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation11,
 <expected>
@@ -3500,7 +3500,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1, ilAssemblyRef2}, options:=OptionsExe)
+</compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation12, expectedOutput:=
             <![CDATA[
@@ -3520,7 +3520,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=OptionsExe)
+</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation13, expectedOutput:=
             <![CDATA[
@@ -3540,7 +3540,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, ilAssemblyRef2, vbCompilationRef}, options:=OptionsExe)
+</compilation>, additionalRefs:={ilAssemblyRef1, ilAssemblyRef2, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation14, expectedOutput:=
             <![CDATA[
@@ -3676,7 +3676,7 @@ Namespace BByyx
 End Namespace
 
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=OptionsExe)
+</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation15, expectedOutput:=
             <![CDATA[
@@ -3823,7 +3823,7 @@ Class BByyx
 End Class
 
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=OptionsExe)
+</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation16, expectedOutput:=
             <![CDATA[
@@ -4527,7 +4527,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -4660,7 +4660,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -4724,7 +4724,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation3, expectedOutput:=
             <![CDATA[
@@ -4776,7 +4776,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation4,
 <expected>
@@ -5225,7 +5225,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -5252,7 +5252,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -5273,7 +5273,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation3,
 <expected>
@@ -5300,7 +5300,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation4, expectedOutput:=
             <![CDATA[
@@ -5732,7 +5732,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -5759,7 +5759,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -5780,7 +5780,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation3,
 <expected>
@@ -5807,7 +5807,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation4, expectedOutput:=
             <![CDATA[
@@ -6089,7 +6089,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -6139,7 +6139,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -6228,7 +6228,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -6260,7 +6260,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -6341,7 +6341,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -6431,7 +6431,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
@@ -6525,7 +6525,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             ' !!! c.Foo(Integer.MaxValue) - Dev10 reports an error BC31429: 'FOO' is ambiguous because multiple kinds of members with this name exist in class 'Container2'.
             ' !!! c.Foo(m)                - Dev10 reports an error BC31429: 'FOO' is ambiguous because multiple kinds of members with this name exist in class 'Container2'.
@@ -6626,7 +6626,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
@@ -6716,7 +6716,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
@@ -6739,7 +6739,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected>
@@ -6881,7 +6881,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
@@ -7024,7 +7024,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
@@ -7135,7 +7135,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             ' Dev10 reports error BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
             CompileAndVerify(compilation2, expectedOutput:=
@@ -7315,7 +7315,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             ' Dev10 reports error BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
             CompileAndVerify(compilation2, expectedOutput:=
@@ -7424,7 +7424,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -8303,7 +8303,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -8382,7 +8382,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -8460,7 +8460,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -8487,7 +8487,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -8558,7 +8558,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
@@ -8585,7 +8585,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[

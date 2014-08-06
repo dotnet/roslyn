@@ -167,7 +167,7 @@ BC30439: Constant expression not representable in type 'Byte'.
 </errors>)
 
 
-            comp = CompilationUtils.CreateCompilationWithMscorlib(text, OptionsDll.WithOptionStrict(OptionStrict.On))
+            comp = CompilationUtils.CreateCompilationWithMscorlib(text, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
 BC30512: Option Strict On disallows implicit conversions from 'String' to 'Byte'.
@@ -477,7 +477,7 @@ BC30396: 'NotInheritable' is not valid on an Enum declaration.
 ValueE
 -1
 ]]>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(text, Options.OptionsExe)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(text, TestOptions.ReleaseExe)
             CompileAndVerify(comp, expectedOutput)
         End Sub
 

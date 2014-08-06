@@ -35,7 +35,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation, "Program+VB$StateMachine_2__Lambda$__1.MoveNext")
 
@@ -110,7 +110,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation, "Module1+VB$StateMachine_1_Foo.MoveNext")
 
@@ -198,7 +198,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsDll)
+                    TestOptions.ReleaseDll)
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_4_Iterator_Lambda_Hoisted.MoveNext")
 
@@ -259,7 +259,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsDll)
+                    TestOptions.ReleaseDll)
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_4_Iterator_Lambda_NotHoisted.MoveNext")
 
@@ -316,7 +316,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsDll)
+                    TestOptions.ReleaseDll)
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_1_Iterator_NoLambda_Hoisted.MoveNext")
 
@@ -374,7 +374,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsDll)
+                    TestOptions.ReleaseDll)
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted.MoveNext")
 
@@ -438,7 +438,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation, "Module1+VB$StateMachine_1_Foo.MoveNext")
 

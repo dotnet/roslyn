@@ -376,7 +376,7 @@ MustOverride Sub M()
             MustOverrideMember(CompilationUtils.CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(<![CDATA[
 MustOverride Sub M()
 ]]>.Value,
-                options:=OptionsScript)}))
+                options:=TestOptions.Script)}))
             ' MustOverride method in invalid class.
             MustOverrideMember(CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>

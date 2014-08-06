@@ -1747,7 +1747,7 @@ Module Program
 End Module
 ]]></file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(comp)
         End Sub
 
@@ -1865,7 +1865,7 @@ Class Bar
 End Class
 ]]></file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, XmlReferences, OptionsExe)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, XmlReferences, TestOptions.ReleaseExe)
             CompileAndVerify(comp,
             <![CDATA[
 Static=VB$AnonymousType_0`1[System.Int32][], Runtime=VB$AnonymousType_0`1[System.Int32][]
@@ -1931,7 +1931,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[System.String[]]]>)
 

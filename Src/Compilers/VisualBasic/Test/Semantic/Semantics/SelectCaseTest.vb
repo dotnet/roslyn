@@ -549,7 +549,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+</compilation>, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[

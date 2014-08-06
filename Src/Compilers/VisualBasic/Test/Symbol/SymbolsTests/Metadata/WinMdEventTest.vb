@@ -157,7 +157,7 @@ End Namespace
             EventLibRef = CreateCompilationWithReferences(
                 eventLibSrc,
                 references:={MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929},
-                options:=OptionsWinMDObj).EmitToImageReference()
+                options:=TestOptions.ReleaseWinMD).EmitToImageReference()
         End Sub
 
         <Fact()>
@@ -209,7 +209,7 @@ End Class
                 references:={
                     MscorlibRef_v4_0_30316_17626,
                     EventLibRef},
-                options:=OptionsNetModule).EmitToImageReference()
+                options:=TestOptions.ReleaseModule).EmitToImageReference()
 
             Dim verifer = CompileAndVerifyOnWin8Only(
                 src,
@@ -655,7 +655,7 @@ End Class
             Dim comp = CreateCompilationWithReferences(
             src,
             references:={MscorlibRef_v4_0_30316_17626},
-            options:=OptionsWinMDObj)
+            options:=TestOptions.ReleaseWinMD)
             comp.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_WinRTEventWithoutDelegate, "E"))
         End Sub
 
@@ -935,7 +935,7 @@ End Class
 
             Dim ilRef = CompileIL(String.Format(EventInterfaceILTemplate, "I1") + String.Format(EventInterfaceILTemplate, "I2"))
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), Options.OptionsDll)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), TestOptions.ReleaseDll)
             comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_MixingWinRTAndNETEvents, "I2.WinRT").WithArguments("Normal", "I2.WinRT", "I1.Normal"),
             Diagnostic(ERRID.ERR_MixingWinRTAndNETEvents, "I2.Normal").WithArguments("WinRT", "I1.WinRT", "I2.Normal"))
@@ -965,7 +965,7 @@ End Class
 
             Dim ilRef = CompileIL(String.Format(EventInterfaceILTemplate, "I1") + String.Format(EventInterfaceILTemplate, "I2"))
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), Options.OptionsDll)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), TestOptions.ReleaseDll)
 
             ' CONSIDER: This is not how dev11 handles this scenario: it reports the first diagnostic, but then reports
             ' ERR_IdentNotMemberOfInterface4 (BC30401) and ERR_UnimplementedMember3 (BC30149) for all subsequent implemented members
@@ -989,7 +989,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, TestOptions.ReleaseWinMD)
             comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_WinRTEventWithoutDelegate, "E"))
 
@@ -1020,7 +1020,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, TestOptions.ReleaseWinMD)
             ' Once the as-clause is missing, the event is parsed as a field-like event, hence the many syntax errors.
             comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_WinRTEventWithoutDelegate, "E"),
@@ -1072,7 +1072,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, TestOptions.ReleaseWinMD)
 
             ' Everything goes sideways for E2 since it custom events are required to have as-clauses.
             ' The key thing is that neither event reports ERR_WinRTEventWithoutDelegate.
@@ -1116,7 +1116,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, TestOptions.ReleaseWinMD)
 
             comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_AddParamWrongForWinRT, "AddHandler(value As System.Action(Of Integer))"))
@@ -1148,7 +1148,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, TestOptions.ReleaseWinMD)
 
             comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_RemoveParamWrongForWinRT, "RemoveHandler(value As System.Action)"))
@@ -1180,7 +1180,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseWinMD)
 
             ' This diagnostic is from binding the return type of the AddHandler, not from checking the parameter type
             ' of the ReturnHandler.  The key point is that a cascading ERR_RemoveParamWrongForWinRT is not reported.
@@ -1222,7 +1222,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, TestOptions.ReleaseWinMD)
 
             comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_EventImplRemoveHandlerParamWrong, "RemoveHandler(value As System.Action)").WithArguments("F", "E", "I"))
@@ -1260,7 +1260,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseWinMD)
 
             ' This diagnostic is from binding the return type of the AddHandler, not from checking the parameter type
             ' of the ReturnHandler.  The key point is that a cascading ERR_RemoveParamWrongForWinRT is not reported.
@@ -1293,7 +1293,7 @@ End Namespace
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseWinMD)
             AssertTheseDeclarationDiagnostics(comp, <errors><![CDATA[
 BC31091: Import of type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable(Of )' from assembly or module 'test.winmdobj' failed.
     Event E As System.Action    
@@ -1324,7 +1324,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, TestOptions.ReleaseWinMD)
             comp.VerifyDiagnostics()
 
             Dim type = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Test")
@@ -1408,7 +1408,7 @@ End Class
                     </file>
             </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             comp.VerifyDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -1450,7 +1450,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, TestOptions.ReleaseWinMD)
             ' Note the distinct new error code.
             comp.VerifyDiagnostics(
             Diagnostic(ERRID.WRN_DefAsgNoRetValWinRtEventVal1, "End AddHandler").WithArguments("E"))
@@ -1544,7 +1544,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, TestOptions.ReleaseWinMD)
             ' No backing field for custom event.
             comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_NameNotDeclared1, "CustomEventEvent").WithArguments("CustomEventEvent"))
@@ -1584,7 +1584,7 @@ Class C1
 End Class
     </file>
 </compilation>
-            CreateCompilationWithReferences(source, WinRtRefs, Options.OptionsWinMDObj).VerifyDiagnostics()
+            CreateCompilationWithReferences(source, WinRtRefs, TestOptions.ReleaseWinMD).VerifyDiagnostics()
         End Sub
 
     End Class

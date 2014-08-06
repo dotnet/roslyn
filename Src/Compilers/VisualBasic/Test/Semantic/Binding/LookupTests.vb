@@ -290,7 +290,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
             Dim context = GetContext(compilation, "a.vb", "Sub Main")
             Dim globalNS = compilation.GlobalNamespace
 
@@ -560,7 +560,7 @@ End Namespace
 Namespace P.Q
 End Namespace
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 R.Q
@@ -586,7 +586,7 @@ Namespace R
     End Class
 End Namespace
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -907,7 +907,7 @@ Namespace P
     End Namespace
 End Namespace
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 P.Q.R.S
@@ -938,7 +938,7 @@ Namespace P
     End Namespace
 End Namespace
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 P.Q.R.S
@@ -1229,7 +1229,7 @@ Namespace A
   End Module
 End Namespace
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 Sub c()
@@ -1319,7 +1319,7 @@ Namespace NS1
 
 End Namespace
     </file>
-</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, OptionsExe)
+</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation3, <![CDATA[
 NS1.NS2.C1.C2
@@ -1350,7 +1350,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2), New VisualBasicCompilationReference(compilation4)}, OptionsExe)
+</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2), New VisualBasicCompilationReference(compilation4)}, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation3,
 <expected>
@@ -1372,7 +1372,7 @@ Namespace NS5
 
 End Namespace    
 </file>
-</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, OptionsExe)
+</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation3,
 <expected>
@@ -1399,7 +1399,7 @@ Namespace NS5
     End Module
 
 End Namespace    </file>
-</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, OptionsExe)
+</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation3, <![CDATA[
 Module2.Test
@@ -1432,7 +1432,7 @@ Module C
     End Sub
 End Module
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
 
             CompileAndVerify(compilation, <![CDATA[
@@ -1465,7 +1465,7 @@ Module C
     End Sub
 End Module
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1501,7 +1501,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
             Dim context = GetContext(compilation, "a.vb", "Sub Main")
             Dim globalNS = compilation.GlobalNamespace
 
@@ -1596,7 +1596,7 @@ Module Program
 End Module
 
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2792,7 +2792,7 @@ Module M
     Dim c As X.C
 End Module
     ]]></file>
-</compilation>, OptionsDll)
+</compilation>, TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                     <expected><![CDATA[

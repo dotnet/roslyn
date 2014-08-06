@@ -3352,7 +3352,7 @@ Dim b = Loc
 
         <Fact()>
         Public Sub VbRuntimeEmbeddedIsIncompatibleWithNetModule()
-            Dim opt = Options.OptionsNetModule
+            Dim opt = TestOptions.ReleaseModule
 
             opt = opt.WithEmbedVbCoreRuntime(True)
             opt.Errors.Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
@@ -4650,7 +4650,7 @@ Class ??
     End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim comp = VisualBasicCompilation.Create("a.dll", options:=Options.OptionsDll.WithSubsystemVersion(SubsystemVersion.Create(5, 1)))
+            Dim comp = VisualBasicCompilation.Create("a.dll", options:=TestOptions.ReleaseDll.WithSubsystemVersion(SubsystemVersion.Create(5, 1)))
             Dim peHeaders = New PEHeaders(comp.EmitToStream())
             Assert.Equal(5, peHeaders.PEHeader.MajorSubsystemVersion)
             Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion)

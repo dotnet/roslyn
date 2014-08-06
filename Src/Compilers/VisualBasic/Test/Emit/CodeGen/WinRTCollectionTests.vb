@@ -6269,7 +6269,7 @@ End Class
                                         additionalRefs:=LegacyRefs,
                                         emitOptions:=EmitOptions.RefEmitBug,
                                         verify:=False,
-                                        options:=OptionsExe)
+                                        options:=TestOptions.ReleaseExe)
 
             comp.VerifyIL("A.Main", <![CDATA[
 {
@@ -6314,7 +6314,7 @@ End Namespace
 
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source,
-                options:=OptionsWinMDObj,
+                options:=TestOptions.ReleaseWinMD,
                 emitOptions:=EmitOptions.RefEmitBug,
                 additionalRefs:=WinRtRefs)
 

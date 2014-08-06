@@ -36,7 +36,7 @@ Public Class Module1
     End Sub
 End Class
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[StaticLocalInSub
 System.Int32
@@ -68,7 +68,7 @@ Public Module Module1
     End Sub
 End Module 
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[StaticLocalInSub
 System.Int32
@@ -104,7 +104,7 @@ Public Module Module1
         End Function
 End Module
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[StaticLocalInFunction
 System.Int64
@@ -138,7 +138,7 @@ Module Module1
         End Sub
 End Module
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[StaticLocalRefType
 System.String
@@ -186,7 +186,7 @@ Class TestUDClass
     Public Property ABC As Integer = 1
 End Class
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[StaticLocalUserDefinedType
 TestUDClass
@@ -230,7 +230,7 @@ Public Class UDTest(Of t)
     End Sub
 End Class
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2
@@ -263,7 +263,7 @@ Public Module Module1
 End Module
 
     </file>
-        </compilation>, Options.OptionsExe)
+        </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2
@@ -298,7 +298,7 @@ Class [Static]
     Public Property ABC As Integer
 End Class
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2
@@ -333,7 +333,7 @@ Class [Static]
     Public Property [Static] As Integer
 End Class
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2
@@ -378,7 +378,7 @@ Public Module Module1
     End Sub
 End Module
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[Prior:1
 After:1
@@ -434,7 +434,7 @@ Public Module Module1
     End Sub
 End Module
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 1
@@ -487,7 +487,7 @@ Public Module Module1
     End Sub
 End Module
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[3
 1 2 3 
@@ -529,7 +529,7 @@ End Namespace
             End Sub
         End Module
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1   Value:11
 2   Value:21
@@ -560,7 +560,7 @@ Public Module Module1
     End Sub
 End Module
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2
@@ -652,7 +652,7 @@ Public Module Module1
     End Sub
 End Module
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2
@@ -706,7 +706,7 @@ Public Module Module1
         End If
     End Function
 End Module    </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[
 Exception Thrown
@@ -978,7 +978,7 @@ Public Module Module1
     End Sub
 End Module
 </file>
-    </compilation>, OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 1
@@ -1019,7 +1019,7 @@ Public Class C1
     End Sub
 End Class
 </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[2
 2
@@ -1070,7 +1070,7 @@ Class Derived
     End Sub
 End Class
 </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2
@@ -1116,7 +1116,7 @@ Class Derived
     End Sub    
 End Class
 </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
     1
@@ -1191,7 +1191,7 @@ Public Module Module1
     End Sub
 End Module
 </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[2
 2
@@ -1278,7 +1278,7 @@ Public Module Module1
     End Sub
 End Module
 </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[2
 2
@@ -1339,7 +1339,7 @@ Public Module Module1
     End Class
 End Module
 </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2
@@ -1376,7 +1376,7 @@ Public Module Module1
     End Class
 End Module
 </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 1
@@ -1408,7 +1408,7 @@ Public Module Module1
     End Class
 End Module
 </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1]]>)
         End Sub
@@ -1441,7 +1441,7 @@ Class TestClass
     End Sub
 End Class
 </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             compilationDef.VerifyDiagnostics()
 
@@ -1473,7 +1473,7 @@ Public Module Module1
     End Sub
 End Module
 </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2
@@ -1520,7 +1520,7 @@ Partial Class P1
 End Class
 
     </file>
-    </compilation>, Options.OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2

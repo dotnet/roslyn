@@ -29,7 +29,7 @@ End Class
 </compilation>
 
             Dim reference = CreateCompilationWithMscorlibAndVBRuntime(source).EmitToImageReference()
-            Dim comp = VisualBasicCompilation.Create("Name", references:={reference}, options:=OptionsDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            Dim comp = VisualBasicCompilation.Create("Name", references:={reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim pid = DirectCast(comp.GlobalNamespace.GetMembers().Where(Function(s) s.Name.StartsWith("<PrivateImplementationDetails>")).Single(), NamedTypeSymbol)
             Dim expectedAttrs = {"CompilerGeneratedAttribute"}
@@ -53,9 +53,9 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
+                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
+                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
                 Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
@@ -107,9 +107,9 @@ Public MustInherit Class C
 End Class
     </file>
 </compilation>
-            For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
+                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
+                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
                 Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
@@ -172,9 +172,9 @@ Public Class C
 End Class
     </file>
 </compilation>
-            For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
+                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
+                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
                 CompileAndVerify(comp, symbolValidator:=
@@ -213,9 +213,9 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
+                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
+                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
                 CompileAndVerify(comp, symbolValidator:=
@@ -265,9 +265,9 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
+                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
+                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
                 CompileAndVerify(comp, symbolValidator:=
@@ -320,9 +320,9 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
+                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
+                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlibAndReferences(source, references:={SystemCoreRef}, options:=options)
 
                 ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
@@ -358,9 +358,9 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
+                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
+                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
                 Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef}, options:=options)
 
                 ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
@@ -390,9 +390,9 @@ Class C
 End Class
     </file>
 </compilation>
-            For Each options In {OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                 OptionsDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
+                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
+                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
 
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
@@ -462,7 +462,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, options:=OptionsDll.WithDebugInformationKind(DebugInformationKind.Full))
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full))
             CompileAndVerify(comp, symbolValidator:=
                 Sub(m)
                     Dim assembly = m.ContainingAssembly

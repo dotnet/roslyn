@@ -1473,7 +1473,7 @@ Module Program
             End Sub
         End Module
     </file>
-</compilation>, options:=OptionsExe)
+</compilation>, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(comp, expectedOutput:="True")
         End Sub
@@ -3599,7 +3599,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                                                        symbolValidator:=Sub(m As ModuleSymbol)
@@ -3666,7 +3666,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3725,7 +3725,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -4169,7 +4169,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:="remove_Test")
         End Sub
@@ -4269,7 +4269,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:="remove_Test")
         End Sub
@@ -4369,7 +4369,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:="remove_Test")
         End Sub
@@ -4469,7 +4469,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:="add_Test")
         End Sub
@@ -4569,7 +4569,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:="add_Test")
         End Sub
@@ -4669,7 +4669,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:="add_Test")
         End Sub
@@ -4734,7 +4734,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithCustomILSource(compilationDef1, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation1 = CreateCompilationWithCustomILSource(compilationDef1, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:="add_Test
 remove_Test")
@@ -4834,7 +4834,7 @@ End Module]]>.Value.Replace("~"c, SyntaxFacts.FULLWIDTH_COL)
                     <file name="M.vb"><%= source %></file>
                 </compilation>,
                 XmlReferences,
-                OptionsExe)
+                TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 >1

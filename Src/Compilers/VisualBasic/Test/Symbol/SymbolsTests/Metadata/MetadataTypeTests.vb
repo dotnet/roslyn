@@ -64,7 +64,7 @@ End Class
 Public Module A
 End Module
     </file>
-</compilation>, OptionsDll)
+</compilation>, TestOptions.ReleaseDll)
 
             CompileAndVerify(compilation,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -146,7 +146,7 @@ End Class
 Public Class A
 End Class
     </file>
-</compilation>, options:=OptionsDllAlwaysImportInternals)
+</compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim mscorNS = compilation.GetReferencedAssemblySymbol(compilation.References(0))
             Assert.Equal("mscorlib", mscorNS.Name)
@@ -255,7 +255,7 @@ End Class
 Public Class A
 End Class
     </file>
-</compilation>, OptionsDllAlwaysImportInternals)
+</compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim mscorNS = compilation.GetReferencedAssemblySymbol(compilation.References(0))
             Assert.Equal("mscorlib", mscorNS.Name)
@@ -307,7 +307,7 @@ End Class
 Public Class A
 End Class
     </file>
-</compilation>, options:=OptionsDllAlwaysImportInternals)
+</compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim mscorNS = compilation.GetReferencedAssemblySymbol(compilation.References(0))
             Assert.Equal("mscorlib", mscorNS.Name)

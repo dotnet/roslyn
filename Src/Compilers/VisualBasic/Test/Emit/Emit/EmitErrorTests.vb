@@ -321,7 +321,7 @@ Module Module1
     End Sub
 End Module
         </file>
-    </compilation>, OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(comp1, <![CDATA[
 Called lambda.
@@ -346,7 +346,7 @@ Module M1
     End Sub
 End Module
         </file>
-    </compilation>, OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(comp1, <![CDATA[
 Hello Bug 7002
@@ -521,7 +521,7 @@ End Module
 Class Test
 End Class
         </file>
-    </compilation>, OptionsNetModule)
+    </compilation>, TestOptions.ReleaseModule)
 
             Dim netModuleMetadata = ModuleMetadata.CreateFromImage(netModule.EmitToArray())
 

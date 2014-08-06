@@ -143,7 +143,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, options:=OptionsExe, additionalRefs:={SystemCoreRef})
+</compilation>, options:=TestOptions.ReleaseExe, additionalRefs:={SystemCoreRef})
 
             Dim model As VisualBasicSemanticModel = GetSemanticModel(compilation, "a.vb")
             Dim operatorSyntax As OperatorStatementSyntax

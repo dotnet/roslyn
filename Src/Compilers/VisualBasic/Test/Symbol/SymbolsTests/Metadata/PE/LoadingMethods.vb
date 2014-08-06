@@ -769,7 +769,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             For Each m In compilation.GetTypeByMetadataName("cls1").GetMembers()
                 Assert.Equal(If(m.Name = ".cctor", MethodKind.SharedConstructor, MethodKind.Constructor), DirectCast(m, MethodSymbol).MethodKind)
@@ -857,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
             Dim fooMethod = compilation.GetTypeByMetadataName("C1").GetMember("Foo")
 
             Assert.Equal(#11/4/2008#, CType(fooMethod, PEMethodSymbol).Parameters(0).ExplicitDefaultValue)
@@ -890,7 +890,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             For Each m In compilation.GetTypeByMetadataName("Microsoft.FSharp.Control.IDelegateEvent`1").GetMembers()
                 Assert.False(DirectCast(m, MethodSymbol).IsOverridable)

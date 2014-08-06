@@ -348,7 +348,7 @@ End Module
     </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start
 1
 2]]>)
@@ -388,7 +388,7 @@ End Module
     </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedSpecifier, "Labels"),
                                           Diagnostic(ERRID.ERR_ExpectedDeclaration, "sing"),
                                           Diagnostic(ERRID.ERR_ExpectedEOS, "."),
@@ -434,7 +434,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
 
             Dim ExpectedOutput = <![CDATA[Try
                 On Error GoTo foo
@@ -470,7 +470,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
-                                                                         options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+                                                                         options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
             Dim ExpectedOutput = <![CDATA[Public Sub Main        
             On Error GoTo foo
@@ -505,7 +505,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
-                                                                         options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+                                                                         options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a + 1").WithArguments("Late binding").WithLocation(6, 13),
@@ -531,7 +531,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
-                                                                         options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+                                                                         options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
             Dim ExpectedOutput = <![CDATA["F" Like "F"]]>
 
@@ -554,7 +554,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
-                                                                         options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+                                                                         options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "Error 1").WithArguments("Unstructured exception handling").WithLocation(4, 18))
         End Sub
@@ -579,7 +579,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(source,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
-                                                                         options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+                                                                         options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a + 1").WithArguments("Late binding").WithLocation(6, 40))
         End Sub
@@ -600,7 +600,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(source,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
-                                                                         options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+                                                                         options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "My").WithArguments("My").WithLocation(3, 13))
         End Sub
@@ -624,7 +624,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "On Error Goto foo"))
         End Sub
 
@@ -714,7 +714,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
             compilation.AssertNoDiagnostics()
         End Sub
 
@@ -790,7 +790,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -814,7 +814,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
             compilation.AssertNoDiagnostics()
         End Sub
 
@@ -837,7 +837,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_NarrowingConversionDisallowed2, """3""").WithArguments("String", "Integer"),
                                           Diagnostic(ERRID.ERR_NarrowingConversionDisallowed2, "4!").WithArguments("Single", "Integer"))
         End Sub
@@ -868,7 +868,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_LabelNotDefined1, "handler").WithArguments("handler"),
                                           Diagnostic(ERRID.ERR_OnErrorInSyncLock, "On Error GoTo foo"))
         End Sub
@@ -907,7 +907,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.None).WithOptimizations(True))
             compilation.VerifyDiagnostics()
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start
 In SyncLock

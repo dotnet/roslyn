@@ -31,8 +31,8 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib(
                 sources,
-                options:=Options.OptionsDll.WithXmlReferenceResolver(Nothing),
-                parseOptions:=Options.OptionsRegular.WithDocumentationMode(DocumentationMode.Parse))
+                options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(Nothing),
+                parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse))
 
             compilation.VerifyDiagnostics()
 
@@ -11103,7 +11103,7 @@ End Class
 ]]>
                     </file>
                 </compilation>,
-                OptionsNetModule)
+                TestOptions.ReleaseModule)
             CheckXmlDocument(comp,
 <xml>
     <![CDATA[
@@ -12048,7 +12048,7 @@ xmlDoc)
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources,
                                                                         additionalRefs,
-                                                                        Options.OptionsDll.WithXmlReferenceResolver(XmlFileResolver.Default),
+                                                                        TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
                                                                         parseOptions)
             If errors IsNot Nothing Then
                 Dim diagnostics = compilation.GetDiagnostics(CompilationStage.Emit).ToArray()

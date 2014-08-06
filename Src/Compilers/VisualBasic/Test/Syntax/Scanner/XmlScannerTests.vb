@@ -14,13 +14,13 @@ Public Class XmlInternalSyntax
         Dim str = SourceText.From(" <!-- hello there --> ")
 
         ' First validate that we corrrectly detect comment in the element context
-        Using s As InternalSyntax.Scanner = New InternalSyntax.Scanner(str, OptionsRegular)
+        Using s As InternalSyntax.Scanner = New InternalSyntax.Scanner(str, TestOptions.Regular)
             Dim tkBeginComment = s.ScanXmlElement()
             Assert.Equal(SyntaxKind.LessThanExclamationMinusMinusToken, tkBeginComment.Kind)
             Assert.Equal(" <!--", tkBeginComment.ToFullString())
         End Using
         ' Now validate that we can scan the entire comment
-        Using s = New InternalSyntax.Scanner(str, OptionsRegular)
+        Using s = New InternalSyntax.Scanner(str, TestOptions.Regular)
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB)
             Dim tkBeginComment = s.GetCurrentToken
             Assert.Equal(SyntaxKind.LessThanExclamationMinusMinusToken, tkBeginComment.Kind)
@@ -41,14 +41,14 @@ Public Class XmlInternalSyntax
         Dim str = SourceText.From(" <![CDATA[some data / > < % @ here ]]> ")
 
         ' First validate that we corrrectly detect CData in the element context
-        Using s = New InternalSyntax.Scanner(str, OptionsRegular)
+        Using s = New InternalSyntax.Scanner(str, TestOptions.Regular)
             Dim tkBeginComment = s.ScanXmlElement()
             Assert.Equal(SyntaxKind.BeginCDataToken, tkBeginComment.Kind)
             Assert.Equal(" <![CDATA[", tkBeginComment.ToFullString())
         End Using
 
         ' Now validate that we can scan the entire CData
-        Using s = New InternalSyntax.Scanner(str, OptionsRegular)
+        Using s = New InternalSyntax.Scanner(str, TestOptions.Regular)
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB)
             Dim tkBeginComment = s.GetCurrentToken
             Assert.Equal(SyntaxKind.BeginCDataToken, tkBeginComment.Kind)
@@ -69,7 +69,7 @@ Public Class XmlInternalSyntax
 
         Dim str = SourceText.From(" <E1 : E2 A1 = 'q q' BB= "" w&apos; &#x2F blah" & ChrW(8216) & ChrW(8217) & ChrW(8220) & ChrW(8221) & """ > Ha &lt; </E1 > ")
 
-        Using s As New InternalSyntax.Scanner(str, OptionsRegular)
+        Using s As New InternalSyntax.Scanner(str, TestOptions.Regular)
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB)
             Dim tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.LessThanToken, tk.Kind)
@@ -192,7 +192,7 @@ Public Class XmlInternalSyntax
 
         Dim str = SourceText.From(" <E1 /> ")
 
-        Using s As New InternalSyntax.Scanner(str, OptionsRegular)
+        Using s As New InternalSyntax.Scanner(str, TestOptions.Regular)
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB)
             Dim tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.LessThanToken, tk.Kind)
@@ -213,7 +213,7 @@ Public Class XmlInternalSyntax
     Public Sub ScannerXml_WhiteSpaceElement()
         Dim str = SourceText.From(" <E1> q <a/>  <b/>  &lt; " & vbCrLf & "  </E1>")
 
-        Using s As New InternalSyntax.Scanner(str, OptionsRegular)
+        Using s As New InternalSyntax.Scanner(str, TestOptions.Regular)
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB)
             Dim tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.LessThanToken, tk.Kind)
@@ -285,7 +285,7 @@ Public Class XmlInternalSyntax
         ' smart strings
         Dim valueText = "some text"
         Dim str = SourceText.From(ChrW(8216) & valueText & ChrW(8217))
-        Using s As New InternalSyntax.Scanner(str, OptionsRegular)
+        Using s As New InternalSyntax.Scanner(str, TestOptions.Regular)
             s.GetNextTokenInState(InternalSyntax.ScannerState.Element)
             Dim tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.SingleQuoteToken, tk.Kind)
@@ -301,7 +301,7 @@ Public Class XmlInternalSyntax
             str = SourceText.From(ChrW(8220) & valueText & ChrW(8221))
         End Using
 
-        Using s = New InternalSyntax.Scanner(str, OptionsRegular)
+        Using s = New InternalSyntax.Scanner(str, TestOptions.Regular)
             s.GetNextTokenInState(InternalSyntax.ScannerState.Element)
             Dim tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.DoubleQuoteToken, tk.Kind)
@@ -320,14 +320,14 @@ Public Class XmlInternalSyntax
     <Fact>
     Public Sub ScannerXml_CharEntity()
 
-        Using s As New InternalSyntax.Scanner(SourceText.From("&#x03C0;"), OptionsRegular)
+        Using s As New InternalSyntax.Scanner(SourceText.From("&#x03C0;"), TestOptions.Regular)
             s.GetNextTokenInState(InternalSyntax.ScannerState.Content)
             Dim tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.XmlEntityLiteralToken, tk.Kind)
             Assert.Equal("&#x03C0;", tk.ToFullString())
         End Using
 
-        Using s = New InternalSyntax.Scanner(SourceText.From("&#x03C0"), OptionsRegular)
+        Using s = New InternalSyntax.Scanner(SourceText.From("&#x03C0"), TestOptions.Regular)
             s.GetNextTokenInState(InternalSyntax.ScannerState.Content)
             Dim tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.XmlEntityLiteralToken, tk.Kind)
@@ -339,7 +339,7 @@ Public Class XmlInternalSyntax
     <WorkItem(897814, "DevDiv/Personal")>
     <Fact>
     Public Sub ScannerXml_SurrogateCharEntity()
-        Using s As New InternalSyntax.Scanner(SourceText.From("&#x103fe;"), OptionsRegular)
+        Using s As New InternalSyntax.Scanner(SourceText.From("&#x103fe;"), TestOptions.Regular)
 
             Dim tk = s.ScanXmlContent()
             Dim value As String = tk.ValueText

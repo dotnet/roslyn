@@ -39,7 +39,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -134,7 +134,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -242,7 +242,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -325,7 +325,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -409,7 +409,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -496,7 +496,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -606,7 +606,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                                 source,
-                                OptionsExe.WithOptimizations(False))
+                                TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -696,7 +696,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                                 source,
-                                OptionsExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_NestedExternalSource, "#ExternalSource(""bar1.vb"", 41)"),
+                                TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_NestedExternalSource, "#ExternalSource(""bar1.vb"", 41)"),
                                                               Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"))
         End Sub
 
@@ -721,7 +721,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                                 source,
-                                OptionsExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"),
+                                TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"),
                                                               Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"),
                                                               Diagnostic(ERRID.ERR_ExpectedDeclaration, "boo"))
         End Sub
@@ -749,7 +749,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                                 source,
-                                OptionsExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"),
+                                TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"),
                                                               Diagnostic(ERRID.ERR_ExpectedEndExternalSource, "#ExternalSource(""bar1.vb"", 23)"),
                                                               Diagnostic(ERRID.ERR_ExpectedDeclaration, "boo"))
         End Sub
@@ -773,7 +773,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                                 source,
-                                OptionsExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_NestedExternalSource, "#ExternalSource (""bar1.vb"", 23)"))
+                                TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_NestedExternalSource, "#ExternalSource (""bar1.vb"", 23)"))
         End Sub
 
         <WorkItem(545307, "DevDiv")>
@@ -823,7 +823,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -879,7 +879,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsDll.WithOptimizations(False).WithSourceReferenceResolver(SourceFileResolver.Default))
+                    TestOptions.ReleaseDll.WithOptimizations(False).WithSourceReferenceResolver(SourceFileResolver.Default))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 

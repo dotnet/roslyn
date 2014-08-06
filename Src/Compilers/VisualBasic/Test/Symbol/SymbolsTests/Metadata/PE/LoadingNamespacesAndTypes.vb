@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 } // end of class S
 ]]>
 
-            CompileWithCustomILSource(<compilation name="TestStructParameterlessConstructor_Explicit"/>, ilSource.Value, OptionsDll,
+            CompileWithCustomILSource(<compilation name="TestStructParameterlessConstructor_Explicit"/>, ilSource.Value, TestOptions.ReleaseDll,
                                                        Sub(compilation)
                                                            Dim structType = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("S")
                                                            Dim constructor = structType.InstanceConstructors.Single()
@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 } // end of class S
 ]]>
 
-            CompileWithCustomILSource(<compilation name="TestStructParameterlessConstructor_Explicit"/>, ilSource.Value, OptionsDll,
+            CompileWithCustomILSource(<compilation name="TestStructParameterlessConstructor_Explicit"/>, ilSource.Value, TestOptions.ReleaseDll,
                                                        Sub(compilation)
                                                            Dim structType = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("S")
                                                            Dim constructor = structType.InstanceConstructors.Single()
@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 } // end of class S
 ]]>
 
-            CompileWithCustomILSource(<compilation name="TestStructParameterlessConstructor_Explicit"/>, ilSource.Value, OptionsDll,
+            CompileWithCustomILSource(<compilation name="TestStructParameterlessConstructor_Explicit"/>, ilSource.Value, TestOptions.ReleaseDll,
                                                        Sub(compilation)
                                                            Dim structType = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("S")
                                                            Dim constructors = structType.InstanceConstructors

@@ -1392,7 +1392,7 @@ End Class
             Next
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -1467,7 +1467,7 @@ End Class
 
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -1591,7 +1591,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -1675,7 +1675,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -1719,7 +1719,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -1841,7 +1841,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -1870,7 +1870,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -1902,7 +1902,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -1973,7 +1973,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2008,7 +2008,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2043,7 +2043,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2099,7 +2099,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2152,7 +2152,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected><![CDATA[
@@ -2204,7 +2204,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2239,7 +2239,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2310,7 +2310,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2396,7 +2396,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2478,7 +2478,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2560,7 +2560,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2603,7 +2603,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2636,7 +2636,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -2846,7 +2846,7 @@ End Class
 
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -2887,7 +2887,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -3204,7 +3204,7 @@ End Class
 
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -3358,7 +3358,7 @@ End Class
 
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -3512,7 +3512,7 @@ End Class
 
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -3541,7 +3541,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim expected =
 <expected>
@@ -3691,7 +3691,7 @@ End Namespace
 
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -3823,7 +3823,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -4137,7 +4137,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -4514,7 +4514,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -4706,7 +4706,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -4898,7 +4898,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -5090,7 +5090,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -5289,7 +5289,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -5505,7 +5505,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                                         symbolValidator:=Sub(m As ModuleSymbol)
                                                                              Dim pe = DirectCast(m, PEModuleSymbol)
                                                                              AssertReflection(expected,
@@ -5721,7 +5721,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -5937,7 +5937,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                                                                         symbolValidator:=Sub(m As ModuleSymbol)
                                                                                                              Dim pe = DirectCast(m, PEModuleSymbol)
                                                                                                              AssertReflection(expected,
@@ -6160,7 +6160,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -6335,7 +6335,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -6517,7 +6517,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -6646,7 +6646,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -6782,7 +6782,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -6896,7 +6896,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -6976,7 +6976,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -7122,7 +7122,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -7301,7 +7301,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -7338,7 +7338,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             AssertTheseDeclarationDiagnostics(compilation,
 <expected>
@@ -7376,7 +7376,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             AssertTheseDeclarationDiagnostics(compilation,
 <expected>
@@ -7498,7 +7498,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -7797,7 +7797,7 @@ End Class
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -7966,7 +7966,7 @@ Imports System.Runtime.InteropServices
 </Class>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -8074,7 +8074,7 @@ End Class
             Next
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim pe = DirectCast(m, PEModuleSymbol)
                                                                  AssertReflection(expected,
@@ -8121,7 +8121,7 @@ End Class
 </compilation>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim ComClass1_Struct1 = DirectCast(m.ContainingAssembly.GetTypeByMetadataName("ComClass1+Struct1"), PENamedTypeSymbol)
                                                                  Dim ComClass1_Struct1_Struct2 = DirectCast(m.ContainingAssembly.GetTypeByMetadataName("ComClass1+Struct1+Struct2"), PENamedTypeSymbol)
@@ -8159,7 +8159,7 @@ End Class
 </compilation>
 
             Dim verifier = CompileAndVerify(compilationDef,
-                                            options:=OptionsDllAlwaysImportInternals,
+                                            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
                                                                  Dim _ComClass1 = DirectCast(m.ContainingAssembly.GetTypeByMetadataName("ComClass1+_ComClass1"), PENamedTypeSymbol)
                                                                  Assert.Equal(0, _ComClass1.GetMembers("oBrowser").Length)

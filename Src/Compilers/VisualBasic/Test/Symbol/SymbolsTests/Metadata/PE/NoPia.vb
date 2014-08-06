@@ -1078,7 +1078,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -1149,7 +1149,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -1168,7 +1168,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim i3Comilation = CreateCompilationWithMscorlib(i3Def, OptionsDll)
+            Dim i3Comilation = CreateCompilationWithMscorlib(i3Def, TestOptions.ReleaseDll)
 
             Dim ilSource =
             <![CDATA[
@@ -1233,7 +1233,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
                              dependencies:={New ModuleData(i3Comilation.Assembly.Identity,

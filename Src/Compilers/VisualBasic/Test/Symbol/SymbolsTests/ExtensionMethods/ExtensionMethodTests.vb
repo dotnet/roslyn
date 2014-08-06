@@ -1720,7 +1720,7 @@ End Module
                                                                                                        {SystemCoreRef,
                                                                                                         New VisualBasicCompilationReference(compilation2),
                                                                                                         New VisualBasicCompilationReference(compilation3)},
-                                                                                                       OptionsExe)
+                                                                                                       TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:="345")
 
@@ -1738,7 +1738,7 @@ End Namespace
             Dim compilation1_1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilation1Def,
                                                                                                         {SystemCoreRef,
                                                                                                          New VisualBasicCompilationReference(compilation3_1)},
-                                                                                                         OptionsExe)
+                                                                                                         TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1_1,
 <expected>
@@ -1776,7 +1776,7 @@ End Namespace
             Dim compilation1_2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilation1Def,
                                                                                                         {SystemCoreRef,
                                                                                                          New VisualBasicCompilationReference(compilation3_2)},
-                                                                                                         OptionsExe)
+                                                                                                         TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1_2, expectedOutput:="345")
 
@@ -1801,7 +1801,7 @@ End Module
             Dim compilation1_3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilation1_3_Def,
                                                                                                         {SystemCoreRef,
                                                                                                          New VisualBasicCompilationReference(compilation3_1)},
-                                                                                                        OptionsExe)
+                                                                                                        TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1_3,
 <expected>
@@ -1846,7 +1846,7 @@ End Namespace
             Dim compilation1_4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilation1_4_Def,
                                                                                                         {SystemCoreRef,
                                                                                                          New VisualBasicCompilationReference(compilation3_1)},
-                                                                                                        OptionsExe)
+                                                                                                        TestOptions.ReleaseExe)
 
 
             CompileAndVerify(compilation1_4, expectedOutput:="345")

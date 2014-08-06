@@ -40,7 +40,7 @@ Namespace System
     End Class
 End Namespace
     </file>
-</compilation>, OptionsDll)
+</compilation>, TestOptions.ReleaseDll)
 
             Dim obj = corLib.GetSpecialType(SpecialType.System_Object)
 
@@ -55,7 +55,7 @@ Namespace System
     End Class
 End Namespace
     </file>
-</compilation>, {New VisualBasicCompilationReference(corLib)}, OptionsDll)
+</compilation>, {New VisualBasicCompilationReference(corLib)}, TestOptions.ReleaseDll)
 
             Assert.Same(obj, consumer.GetSpecialType(SpecialType.System_Object))
         End Sub
@@ -70,7 +70,7 @@ Namespace System
     End Class
 End Namespace
     </file>
-</compilation>, OptionsDll)
+</compilation>, TestOptions.ReleaseDll)
 
             Dim obj = corLib.GetSpecialType(SpecialType.System_Object)
 
@@ -82,7 +82,7 @@ Namespace System
     End Class
 End Namespace
     </file>
-</compilation>, {New VisualBasicCompilationReference(corLib)}, OptionsDll)
+</compilation>, {New VisualBasicCompilationReference(corLib)}, TestOptions.ReleaseDll)
 
             Assert.True(consumer.GetSpecialType(SpecialType.System_Object).IsErrorType())
         End Sub

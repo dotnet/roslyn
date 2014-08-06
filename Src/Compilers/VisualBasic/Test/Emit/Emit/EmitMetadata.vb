@@ -89,7 +89,7 @@ End Class
             Dim c1 = VisualBasicCompilation.Create("VB_EmitTest1",
                                         {VisualBasicSyntaxTree.ParseText(source)},
                                         {mscorlibRef},
-                                        OptionsDllAlwaysImportInternals)
+                                        TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             CompileAndVerify(c1, symbolValidator:=
                 Sub([Module])
@@ -187,7 +187,7 @@ Public Class D
     Shared arrayField As String()
 End Class 
 </file>
-</compilation>, {TestReferences.NetFx.v4_0_21006.mscorlib}, OptionsExe)
+</compilation>, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseExe)
 
             CompileAndVerify(comp,
                              expectedOutput:=
@@ -211,7 +211,7 @@ End Class
             Dim c1 = VisualBasicCompilation.Create("VB_EmitAssemblyRefs",
                                         {VisualBasicSyntaxTree.ParseText(source)},
                                         {mscorlibRef, metadataTestLib1, metadataTestLib2},
-                                        OptionsDll)
+                                        TestOptions.ReleaseDll)
 
             Dim dllImage = CompileAndVerify(c1).EmittedAssemblyData
 
@@ -236,7 +236,7 @@ End Class
             Dim c2 = VisualBasicCompilation.Create("VB_EmitAssemblyRefs2",
                                         {VisualBasicSyntaxTree.ParseText(source2)},
                                         {mscorlibRef, multiModule},
-                                        OptionsDll)
+                                        TestOptions.ReleaseDll)
 
             dllImage = CompileAndVerify(c2).EmittedAssemblyData
 
@@ -270,7 +270,7 @@ End Class
             Dim c1 = VisualBasicCompilation.Create("VB_EmitAddModule",
                                         {VisualBasicSyntaxTree.ParseText(source)},
                                         {mscorlibRef, New MetadataImageReference(netModule1), New MetadataImageReference(netModule2)},
-                                        Options.OptionsDll)
+                                        TestOptions.ReleaseDll)
 
 
             Dim class1 = c1.GlobalNamespace.GetMembers("Class1")
@@ -331,7 +331,7 @@ End Class
             Dim c1 = VisualBasicCompilation.Create("VB_ImplementingAnInterface",
                                                    {VisualBasicSyntaxTree.ParseText(source)},
                                                    {mscorlibRef},
-                                                   OptionsDll)
+                                                   TestOptions.ReleaseDll)
 
             CompileAndVerify(c1, symbolValidator:=
                 Sub([module])
@@ -408,7 +408,7 @@ End Class
             Dim c1 = VisualBasicCompilation.Create("VB_Types",
                                                    {VisualBasicSyntaxTree.ParseText(source)},
                                                    {mscorlibRef},
-                                                   OptionsDll)
+                                                   TestOptions.ReleaseDll)
 
             Dim validator =
                 Function(isFromSource As Boolean) _
@@ -516,7 +516,7 @@ End Class
             Dim c1 = VisualBasicCompilation.Create("VB_Fields",
                                                    {VisualBasicSyntaxTree.ParseText(source)},
                                                    {mscorlibRef},
-                                                   Options.OptionsDll)
+                                                   TestOptions.ReleaseDll)
 
             CompileAndVerify(c1, symbolValidator:=
                 Sub(m)
@@ -705,7 +705,7 @@ Class TC3(Of T8)
     End Class
 End Class
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
 
             CompileAndVerify(compilation, <![CDATA[
@@ -847,7 +847,7 @@ End Class
                                     CheckPrivateMembers([module].GlobalNamespace.GetTypeMembers("Properties").Single(), isFromSource, False)
                                 End Sub
 
-            CompileAndVerify(sources, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), options:=OptionsDllAlwaysImportInternals)
+            CompileAndVerify(sources, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
         End Sub
 
         Private Sub CheckPrivateMembers(type As NamedTypeSymbol, isFromSource As Boolean, importPrivates As Boolean)

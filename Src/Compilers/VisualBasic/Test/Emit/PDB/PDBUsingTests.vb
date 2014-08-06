@@ -36,7 +36,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsExe.WithOptimizations(False))
+                    TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 
@@ -113,7 +113,7 @@ End Class
                                <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, UnoptimizedDll, "C1.Main")))
+            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.UnoptimizedDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -150,7 +150,7 @@ End Class
                                <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, UnoptimizedDll, "C1.Main")))
+            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.UnoptimizedDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -191,7 +191,7 @@ End Class
                                <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, UnoptimizedDll, "C1.Main")))
+            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.UnoptimizedDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -230,7 +230,7 @@ End Class
                                <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, UnoptimizedDll, "C1.Main")))
+            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.UnoptimizedDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -277,7 +277,7 @@ End Class
                                <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, UnoptimizedDll, "C1.Main")))
+            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.UnoptimizedDll, "C1.Main")))
         End Sub
     End Class
 End Namespace

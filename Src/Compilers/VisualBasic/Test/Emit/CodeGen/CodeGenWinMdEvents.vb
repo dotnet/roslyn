@@ -220,7 +220,7 @@ Class C
     Event E As System.Action
 End Class
     </file>
-    </compilation>, WinRtRefs, options:=Options.OptionsWinMDObj)
+    </compilation>, WinRtRefs, options:=TestOptions.ReleaseWinMD)
 
             verifier.VerifyIL("C.add_E", <![CDATA[
 {
@@ -258,7 +258,7 @@ Class C
     Shared Event E As System.Action
 End Class
     </file>
-    </compilation>, WinRtRefs, options:=Options.OptionsWinMDObj)
+    </compilation>, WinRtRefs, options:=TestOptions.ReleaseWinMD)
 
             verifier.VerifyIL("C.add_E", <![CDATA[
 {
@@ -318,7 +318,7 @@ Class D
     End Sub
 End Class
     </file>
-    </compilation>, WinRtRefs, options:=Options.OptionsWinMDObj)
+    </compilation>, WinRtRefs, options:=TestOptions.ReleaseWinMD)
 
             verifier.VerifyIL("D.InstanceAdd", <![CDATA[
 {
@@ -413,7 +413,7 @@ Class C
     End Sub
 End Class
     </file>
-    </compilation>, WinRtRefs, options:=Options.OptionsWinMDObj)
+    </compilation>, WinRtRefs, options:=TestOptions.ReleaseWinMD)
 
             verifier.VerifyIL("C.InstanceRaise", <![CDATA[
 {
@@ -536,14 +536,14 @@ End Namespace
     </file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithReferences(source1, WinRtRefs, options:=Options.OptionsWinMDObj)
+            Dim comp1 = CreateCompilationWithReferences(source1, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             comp1.VerifyDiagnostics()
 
             Dim serializationRef As New MetadataImageReference(
                 ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_Serialization.AsImmutableOrNull(),
                 display:="System.Runtime.Serialization.dll")
 
-            Dim comp2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=Options.OptionsExe)
+            Dim comp2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
             CompileAndVerify(comp2, emitOptions:=EmitOptions.RefEmitBug, expectedOutput:=<![CDATA[
 A
 False
@@ -607,7 +607,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             Dim verifier = CompileAndVerify(comp)
 
             ' Attach Me.InstanceHandler to {Base/Derived/Derived}.{InstanceEvent/SharedEvent} (from {MyBase/MyClass/Me}.{InstanceEvent/SharedEvent}).
@@ -947,7 +947,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             Dim verifier = CompileAndVerify(comp)
 
             verifier.VerifyIL("Test..ctor", <![CDATA[
@@ -1064,7 +1064,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=Options.OptionsWinMDObj)
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             Dim verifier = CompileAndVerify(comp)
 
             ' Note: actually attaching a lambda.

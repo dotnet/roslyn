@@ -2039,12 +2039,12 @@ End Module
 </file>
 </compilation>
 
-            CompileAndVerify(source, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            CompileAndVerify(source, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
 expectedOutput:=<![CDATA[
 Derived
     ]]>)
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe.WithOptionStrict(OptionStrict.Custom)).
+            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom)).
                 VerifyDiagnostics(Diagnostic(ERRID.WRN_ImplicitConversionSubst1, "AddressOf foo").WithArguments("warning BC42350: Implicit conversion from 'Base' to 'Derived'."))
         End Sub
 
@@ -2104,7 +2104,7 @@ Module M1
     End Sub
 End Module
         </file>
-    </compilation>, OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(comp1, expectedOutput:="23")
         End Sub
@@ -2427,7 +2427,7 @@ Module Test
 End Module
     </file>
 </compilation>
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, options:=OptionsDll.WithOptionStrict(OptionStrict.Custom))
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(c,
 <expected>
@@ -2520,7 +2520,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+                Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
                 CompilationUtils.AssertNoErrors(c)
                 CompileAndVerify(c, expectedOutput:="passpass")
             Next
@@ -2580,7 +2580,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+                Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
                 CompilationUtils.AssertNoErrors(c)
                 CompileAndVerify(c, expectedOutput:="passpass")
             Next
@@ -2753,7 +2753,7 @@ Option Strict Off
 ]]>)
 #Else
             ' According to the spec, zero argument relaxation can be used only when target method has NO parameters.
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2796,7 +2796,7 @@ End Class
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>

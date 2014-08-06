@@ -296,7 +296,7 @@ BC30652: Reference required to assembly 'CL2, Version=0.0.0.0, Culture=neutral, 
 </errors>
 
 
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {cl3}, options:=OptionsExe)
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {cl3}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation2, errors)
 
@@ -309,13 +309,13 @@ BC30652: Reference required to assembly 'CL2, Version=0.0.0.0, Culture=neutral, 
 
             CompilationUtils.AssertNoErrors(cl3Compilation)
 
-            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3Compilation)}, options:=OptionsExe)
+            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3Compilation)}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation3, errors)
 
             Dim cl3BadCompilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(cl3Source, {cl3})
 
-            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation1)}, options:=OptionsExe)
+            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation1)}, options:=TestOptions.ReleaseExe)
 
             Dim errors2 =
 <errors>
@@ -383,7 +383,7 @@ BC30002: Type 'CL2_I1' is not defined.
 
             CompilationUtils.AssertTheseDiagnostics(cl3BadCompilation2, errors3)
 
-            Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation2)}, options:=OptionsExe)
+            Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation2)}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation5, errors2)
 
@@ -538,7 +538,7 @@ BC31143: Method 'Public Sub Test2(x As Integer)' does not have a signature compa
 
             Dim cl3BadCompilation = CompilationUtils.CreateCompilationWithMscorlib(cl3Source)
 
-            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation)}, options:=OptionsExe)
+            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation)}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation4, errors)
         End Sub
@@ -687,7 +687,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, OptionsDll)
+                </compilation>, TestOptions.ReleaseDll)
 
             Dim lib1Ref = New VisualBasicCompilationReference(lib1)
 
@@ -703,7 +703,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, {lib1Ref}, OptionsDll)
+                </compilation>, {lib1Ref}, TestOptions.ReleaseDll)
 
             Dim lib2Ref = New VisualBasicCompilationReference(lib2)
 
@@ -725,7 +725,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, {lib1Ref, lib2Ref}, OptionsDll)
+                </compilation>, {lib1Ref, lib2Ref}, TestOptions.ReleaseDll)
 
             Dim lib3Ref = New VisualBasicCompilationReference(lib3)
 
@@ -793,7 +793,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib3Ref}, OptionsDll)
+            Dim lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             Dim expectedErrors =
 <expected>
@@ -852,11 +852,11 @@ BC32044: Type argument 'ErrorTest.I5' does not inherit from or implement the con
 
             AssertTheseDiagnostics(lib4, expectedErrors)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, OptionsDll)
+            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             CompileAndVerify(lib4)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, OptionsDll)
+            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(lib4, expectedErrors)
         End Sub
@@ -877,7 +877,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, OptionsDll)
+                </compilation>, TestOptions.ReleaseDll)
 
             Dim lib1Ref = New VisualBasicCompilationReference(lib1)
 
@@ -900,7 +900,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, {lib1Ref}, OptionsDll)
+                </compilation>, {lib1Ref}, TestOptions.ReleaseDll)
 
             Dim lib2Ref = New VisualBasicCompilationReference(lib2)
 
@@ -926,7 +926,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, {lib1Ref, lib2Ref}, OptionsDll)
+                </compilation>, {lib1Ref, lib2Ref}, TestOptions.ReleaseDll)
 
             Dim lib3Ref = New VisualBasicCompilationReference(lib3)
 
@@ -1005,7 +1005,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib3Ref}, OptionsDll)
+            Dim lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             Dim expectedErrors =
 <expected>
@@ -1082,7 +1082,7 @@ BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0
 
             AssertTheseDiagnostics(lib4, expectedErrors)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, OptionsDll)
+            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(lib4,
 <expected>
@@ -1094,7 +1094,7 @@ BC30390: 'C4.Private Sub M1()' is not accessible in this context because it is '
             ~~~~~
 </expected>)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, OptionsDll)
+            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(lib4, expectedErrors)
         End Sub
@@ -1116,7 +1116,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, OptionsDll)
+                </compilation>, TestOptions.ReleaseDll)
 
             Dim lib1Ref = New VisualBasicCompilationReference(lib1)
 
@@ -1132,7 +1132,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, {lib1Ref}, OptionsDll)
+                </compilation>, {lib1Ref}, TestOptions.ReleaseDll)
 
             Dim lib2Ref = New VisualBasicCompilationReference(lib2)
 
@@ -1148,7 +1148,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, {lib1Ref, lib2Ref}, OptionsDll)
+                </compilation>, {lib1Ref, lib2Ref}, TestOptions.ReleaseDll)
 
             Dim lib3Ref = New VisualBasicCompilationReference(lib3)
 
@@ -1195,7 +1195,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib3Ref}, OptionsDll)
+            Dim lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             Dim expectedErrors =
 <expected>
@@ -1236,11 +1236,11 @@ BC32044: Type argument 'ErrorTest.C4' does not inherit from or implement the con
 
             AssertTheseDiagnostics(lib4, expectedErrors)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, OptionsDll)
+            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             CompileAndVerify(lib4)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, OptionsDll)
+            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(lib4, expectedErrors)
         End Sub
@@ -1253,7 +1253,7 @@ BC32044: Type argument 'ErrorTest.C4' does not inherit from or implement the con
 Public Class Missing
 End Class]]>
                     </file>
-                </compilation>, OptionsDll)
+                </compilation>, TestOptions.ReleaseDll)
 
             Dim missingRef = New VisualBasicCompilationReference(missing)
 
@@ -1312,7 +1312,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compDef, ilSource1.Value, OptionsDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compDef, ilSource1.Value, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1346,7 +1346,7 @@ BC30652: Reference required to assembly 'missing, Version=0.0.0.0, Culture=neutr
 } // end of class UseSiteErrors
 ]]>
 
-            compilation = CompilationUtils.CreateCompilationWithCustomILSource(compDef, ilSource2.Value, OptionsDll)
+            compilation = CompilationUtils.CreateCompilationWithCustomILSource(compDef, ilSource2.Value, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>

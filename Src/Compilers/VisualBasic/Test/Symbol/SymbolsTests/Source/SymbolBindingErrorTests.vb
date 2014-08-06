@@ -245,7 +245,7 @@ Class C
     End Sub
 
 End Class    </file>
-</compilation>, OptionsDll)
+</compilation>, TestOptions.ReleaseDll)
 
             Dim expectedErrors = <errors>
 BC30233: 'Dim' is not valid on a constant declaration.

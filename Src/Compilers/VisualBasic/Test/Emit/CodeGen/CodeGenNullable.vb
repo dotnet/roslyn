@@ -1745,7 +1745,7 @@ End Module
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, Options.OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3617,7 +3617,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options:=OptionsDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3644,7 +3644,7 @@ BC30672: Explicit initialization is not permitted for arrays declared with expli
                ~~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(True))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(True))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3680,7 +3680,7 @@ BC33112: Nullable modifier cannot be used with a variable whose implicit type is
                ~~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionStrict(OptionStrict.On).WithOptionInfer(False))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On).WithOptionInfer(False))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3728,7 +3728,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
               ~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionStrict(OptionStrict.On).WithOptionInfer(True))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On).WithOptionInfer(True))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3816,7 +3816,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options:=OptionsDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3840,7 +3840,7 @@ BC30424: Constants must be of an intrinsic or enumerated type, not a class, stru
               ~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(True))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(True))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3864,7 +3864,7 @@ BC30424: Constants must be of an intrinsic or enumerated type, not a class, stru
               ~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionStrict(OptionStrict.On).WithOptionInfer(False))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On).WithOptionInfer(False))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3888,7 +3888,7 @@ BC30424: Constants must be of an intrinsic or enumerated type, not a class, stru
               ~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionStrict(OptionStrict.On).WithOptionInfer(True))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On).WithOptionInfer(True))
 
             AssertTheseDiagnostics(compilation,
 <expected>

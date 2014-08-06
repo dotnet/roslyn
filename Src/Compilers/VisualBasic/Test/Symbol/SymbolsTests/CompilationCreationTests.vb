@@ -115,7 +115,7 @@ Namespace XYZ
 End Namespace
 </text>.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", {sourceTree}, DefaultReferences, Options.OptionsDll.WithRootNamespace("A.B.C"))
+            Dim c1 = VisualBasicCompilation.Create("Test", {sourceTree}, DefaultReferences, TestOptions.ReleaseDll.WithRootNamespace("A.B.C"))
 
             Dim root As NamespaceSymbol = c1.RootNamespace
             Assert.NotNull(root)
@@ -135,14 +135,14 @@ Namespace XYZ
 End Namespace
 </text>.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", {sourceTree}, DefaultReferences, Options.OptionsDll)
+            Dim c1 = VisualBasicCompilation.Create("Test", {sourceTree}, DefaultReferences, TestOptions.ReleaseDll)
 
             Dim root As NamespaceSymbol = c1.RootNamespace
             Assert.NotNull(root)
             Assert.Equal("", root.Name)
             Assert.True(root.IsGlobalNamespace)
 
-            c1 = c1.WithOptions(Options.OptionsDll.WithRootNamespace("A.B"))
+            c1 = c1.WithOptions(TestOptions.ReleaseDll.WithRootNamespace("A.B"))
 
             root = c1.RootNamespace
             Assert.NotNull(root)
@@ -150,7 +150,7 @@ End Namespace
             Assert.Equal("A", root.ContainingNamespace.Name)
             Assert.False(root.IsGlobalNamespace)
 
-            c1 = c1.WithOptions(Options.OptionsDll.WithRootNamespace(""))
+            c1 = c1.WithOptions(TestOptions.ReleaseDll.WithRootNamespace(""))
 
             root = c1.RootNamespace
             Assert.NotNull(root)
@@ -160,14 +160,14 @@ End Namespace
 
         <Fact()>
         Public Sub RootNamespace_NoFiles_UpdateCompilation()
-            Dim c1 = VisualBasicCompilation.Create("Test", references:=DefaultReferences, options:=Options.OptionsDll)
+            Dim c1 = VisualBasicCompilation.Create("Test", references:=DefaultReferences, options:=TestOptions.ReleaseDll)
 
             Dim root As NamespaceSymbol = c1.RootNamespace
             Assert.NotNull(root)
             Assert.Equal("", root.Name)
             Assert.True(root.IsGlobalNamespace)
 
-            c1 = c1.WithOptions(Options.OptionsDll.WithRootNamespace("A.B"))
+            c1 = c1.WithOptions(TestOptions.ReleaseDll.WithRootNamespace("A.B"))
 
             root = c1.RootNamespace
             Assert.NotNull(root)
@@ -175,7 +175,7 @@ End Namespace
             Assert.Equal("A", root.ContainingNamespace.Name)
             Assert.False(root.IsGlobalNamespace)
 
-            c1 = c1.WithOptions(Options.OptionsDll.WithRootNamespace(""))
+            c1 = c1.WithOptions(TestOptions.ReleaseDll.WithRootNamespace(""))
 
             root = c1.RootNamespace
             Assert.NotNull(root)
@@ -205,9 +205,9 @@ Namespace InSource
 End Namespace
 </text>.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", {sourceTree}, options:=Options.OptionsDll.WithRootNamespace("FromOptions"))
+            Dim c1 = VisualBasicCompilation.Create("Test", {sourceTree}, options:=TestOptions.ReleaseDll.WithRootNamespace("FromOptions"))
             VerifyNamespaceShape(c1)
-            c1 = VisualBasicCompilation.Create("Test", {sourceTree}, options:=Options.OptionsDll)
+            c1 = VisualBasicCompilation.Create("Test", {sourceTree}, options:=TestOptions.ReleaseDll)
             c1 = c1.WithOptions(c1.Options.WithRootNamespace("FromOptions"))
             VerifyNamespaceShape(c1)
         End Sub

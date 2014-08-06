@@ -186,7 +186,7 @@ Public MustInherit Class BasicTestBase
     ) As CompilationVerifier
 
         If options Is Nothing Then
-            options = OptionsDll.WithOutputKind(If(expectedOutput IsNot Nothing, OutputKind.ConsoleApplication, OutputKind.DynamicallyLinkedLibrary))
+            options = TestOptions.ReleaseDll.WithOutputKind(If(expectedOutput IsNot Nothing, OutputKind.ConsoleApplication, OutputKind.DynamicallyLinkedLibrary))
         End If
 
         If emitPdb Then
@@ -382,7 +382,7 @@ Public MustInherit Class BasicTestBase
                                                            Optional expectedSignatures As SignatureDescription() = Nothing,
                                                            Optional isField As Boolean = True) As CompilationVerifier
         Return CompileAndVerify(source,
-                                options:=OptionsDll,
+                                options:=TestOptions.ReleaseDll,
                                 validator:=Sub(assembly, emitOptions) MarshalAsMetadataValidator(assembly, getExpectedBlob, emitOptions, isField),
                                 expectedSignatures:=expectedSignatures)
     End Function

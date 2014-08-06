@@ -1123,7 +1123,7 @@ End Class
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, options:=OptionsDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Off))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Off))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1135,7 +1135,7 @@ BC36629: Nullable type inference is not supported in this context.
                  ~~~~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Off))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Off))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1144,7 +1144,7 @@ BC36629: Nullable type inference is not supported in this context.
                  ~~~~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.On))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1156,7 +1156,7 @@ BC36629: Nullable type inference is not supported in this context.
                  ~~~~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2632,7 +2632,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source, options:=OptionsExe).VerifyIL("C1.DoStuff", <![CDATA[
+            CompileAndVerify(source, options:=TestOptions.ReleaseExe).VerifyIL("C1.DoStuff", <![CDATA[
 {
   // Code size       34 (0x22)
   .maxstack  1
@@ -2839,7 +2839,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe, expectedOutput:=<![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe, expectedOutput:=<![CDATA[
 H
 e
 l
@@ -3735,7 +3735,7 @@ Class C1
     End Sub
 End Class    
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C1.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C1.Main", <![CDATA[
 {
   // Code size       37 (0x25)
   .maxstack  2

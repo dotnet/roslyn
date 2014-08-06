@@ -768,7 +768,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CreateCompilationWithMscorlib(source, options:=OptionsDll.WithConcurrentBuild(False)).VerifyDiagnostics()
+            CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithConcurrentBuild(False)).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1345,7 +1345,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CreateCompilationWithReferences(source0, WinRtRefs, OptionsDll)
+            Dim compilation0 = CreateCompilationWithReferences(source0, WinRtRefs, TestOptions.ReleaseDll)
 
             compilation0.VerifyDiagnostics()
 

@@ -2572,7 +2572,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2634,7 +2634,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2702,7 +2702,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             CompileAndVerify(compilation)
         End Sub
@@ -2757,7 +2757,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2814,7 +2814,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2877,7 +2877,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2932,7 +2932,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {moduleRef}, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {moduleRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
@@ -3020,9 +3020,9 @@ end namespace
     </file>
 </compilation>
 
-            Dim moduleRef2 = CreateCompilationWithMscorlib(mod2, OptionsNetModule).EmitToImageReference()
+            Dim moduleRef2 = CreateCompilationWithMscorlib(mod2, TestOptions.ReleaseModule).EmitToImageReference()
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {moduleRef1, moduleRef2}, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {moduleRef1, moduleRef2}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
@@ -3050,15 +3050,15 @@ End Class
 </compilation>
 
             forwardedTypesSource.@name= "ForwardedTypes1"
-            Dim forwardedTypes1 = CreateCompilationWithMscorlib(forwardedTypesSource, OptionsDll)
+            Dim forwardedTypes1 = CreateCompilationWithMscorlib(forwardedTypesSource, TestOptions.ReleaseDll)
             Dim forwardedTypes1Ref = New VisualBasicCompilationReference(forwardedTypes1)
 
             forwardedTypesSource.@name= "ForwardedTypes2"
-            Dim forwardedTypes2 = CreateCompilationWithMscorlib(forwardedTypesSource, OptionsDll)
+            Dim forwardedTypes2 = CreateCompilationWithMscorlib(forwardedTypesSource, TestOptions.ReleaseDll)
             Dim forwardedTypes2Ref = New VisualBasicCompilationReference(forwardedTypes2)
 
             forwardedTypesSource.@name= "forwardedTypesMod"
-            Dim forwardedTypesModRef = CreateCompilationWithMscorlib(forwardedTypesSource, OptionsNetModule).EmitToImageReference()
+            Dim forwardedTypesModRef = CreateCompilationWithMscorlib(forwardedTypesSource, TestOptions.ReleaseModule).EmitToImageReference()
 
             Dim modSource =
             <![CDATA[
@@ -3148,7 +3148,7 @@ End Class
                 {
                     module1_FT1_Ref,
                     forwardedTypes1Ref
-                }, OptionsDll)
+                }, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
@@ -3167,7 +3167,7 @@ BC37217: Forwarded type 'ns.CF2' conflicts with type declared in primary module 
                     forwardedTypesModRef,
                     module1_FT1_Ref,
                     forwardedTypes1Ref
-                }, OptionsDll)
+                }, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
@@ -3180,7 +3180,7 @@ BC37218: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, 
                     module1_FT1_Ref,
                     forwardedTypesModRef,
                     forwardedTypes1Ref
-                }, OptionsDll)
+                }, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
@@ -3193,7 +3193,7 @@ BC37218: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, 
                     module1_FT1_Ref,
                     module2_FT1_Ref,
                     forwardedTypes1Ref
-                }, OptionsDll)
+                }, TestOptions.ReleaseDll)
 
             ' Exported types in .Net modules cause PEVerify to fail.
             CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug, verify:=False).VerifyDiagnostics()
@@ -3204,7 +3204,7 @@ BC37218: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, 
                     module3_FT2_Ref,
                     forwardedTypes1Ref,
                     forwardedTypes2Ref
-                }, OptionsDll)
+                }, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>

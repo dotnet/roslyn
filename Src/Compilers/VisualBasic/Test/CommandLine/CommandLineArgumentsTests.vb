@@ -248,7 +248,7 @@ End Module
 ]]></file>
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source,
-                                                                                               options:=OptionsExe,
+                                                                                               options:=TestOptions.ReleaseExe,
                                                                                                parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
             CompileAndVerify(comp,
                              expectedOutput:=<![CDATA[
@@ -264,7 +264,7 @@ blah
             Assert.Equal(True, dict("blah"))
 
             comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source,
-                                                                                               options:=OptionsExe,
+                                                                                               options:=TestOptions.ReleaseExe,
                                                                                                parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
             CompileAndVerify(comp,
                              expectedOutput:=<![CDATA[

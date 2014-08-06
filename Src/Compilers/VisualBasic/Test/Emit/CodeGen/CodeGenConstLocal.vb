@@ -740,7 +740,7 @@ Module C
 End Module
 
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             verifier.VerifyDiagnostics(Diagnostic(ERRID.ERR_CircularEvaluation1, "i").WithArguments("i"),
                                        Diagnostic(ERRID.ERR_CircularEvaluation1, "j").WithArguments("j"))

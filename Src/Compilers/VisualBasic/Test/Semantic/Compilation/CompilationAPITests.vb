@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             ' System.dll
             listRef.Add(TestReferences.NetFx.v4_0_30319.System)
-            Dim ops = OptionsExe
+            Dim ops = TestOptions.ReleaseExe
 
             ' Create Compilation with Option is not Nothing
             Dim comp = VisualBasicCompilation.Create("Compilation", listSyntaxTree, listRef, ops)
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(1, comp.References.Count)
 
             ' Create Compilation with PreProcessorSymbols of Option is empty
-            Dim ops1 = OptionsExe.WithGlobalImports(GlobalImport.Parse({"System", "Microsoft.VisualBasic"})).WithRootNamespace("")
+            Dim ops1 = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"System", "Microsoft.VisualBasic"})).WithRootNamespace("")
             ' Create Compilation with Assembly name contains invalid char
             Dim asmname = "楽聖いち にÅÅ€"
             comp = VisualBasicCompilation.Create(asmname, listSyntaxTree, listRef, ops1)
@@ -184,7 +184,7 @@ End Namespace
         Public Sub EmitToMemoryStreams()
             Const pdbPath As String = "Foo.pdb"
             Const outputName As String = Nothing
-            Dim comp = VisualBasicCompilation.Create("Compilation", options:=OptionsDll)
+            Dim comp = VisualBasicCompilation.Create("Compilation", options:=TestOptions.ReleaseDll)
 
             Using output = New MemoryStream()
                 Using outputPdb = New MemoryStream()
@@ -223,7 +223,7 @@ End Namespace
         <Fact>
         <WorkItem(538169, "DevDiv")>
         Public Sub EmitToFileStreams()
-            Dim ops1 = OptionsDll.WithGlobalImports(GlobalImport.Parse({"System", "Microsoft.VisualBasic"})).WithRootNamespace("")
+            Dim ops1 = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"System", "Microsoft.VisualBasic"})).WithRootNamespace("")
             Dim comp = VisualBasicCompilation.Create("compilation", options:=ops1)
 
             ' Emit test
@@ -385,7 +385,7 @@ End Namespace
             Dim comp = VisualBasicCompilation.Create("Compilation",
                                                      {t1},
                                                      {MscorlibRef, MsvbRef},
-                                                     Options.OptionsDll)
+                                                     TestOptions.ReleaseDll)
             Dim tree = comp.SyntaxTrees.AsEnumerable()
             comp.VerifyDiagnostics()
 
@@ -589,7 +589,7 @@ End Namespace
 Class C1
 End Class
     </file>
-</compilation>, options:=OptionsNetModule)
+</compilation>, options:=TestOptions.ReleaseModule)
             netModule1.VerifyDiagnostics()
 
             Dim netModule2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -601,7 +601,7 @@ Class C2
     End Sub
 End Class
     </file>
-    </compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=OptionsNetModule)
+    </compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
             netModule2.VerifyDiagnostics()
 
             Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -640,7 +640,7 @@ End Class
 Class C1
 End Class
     </file>
-</compilation>, options:=OptionsNetModule)
+</compilation>, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule1)
 
             Dim netModule2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -652,7 +652,7 @@ Class C2
     End Sub
 End Class
     </file>
-    </compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=OptionsNetModule)
+    </compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule2)
 
             Dim netModule3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -664,7 +664,7 @@ Class C22
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=OptionsNetModule)
+</compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule3)
 
             Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -699,7 +699,7 @@ Public Class ClassDLLImports
         ByVal lpBuffer As String, ByRef nSize As Integer) As Integer
 End Class
     </file>
-</compilation>, options:=OptionsNetModule)
+</compilation>, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule1)
 
             Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -724,7 +724,7 @@ End Class
 Class C1
 End Class
     </file>
-</compilation>, options:=OptionsNetModule)
+</compilation>, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule1)
 
             Dim netModule2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -735,7 +735,7 @@ Class C2
     End Sub
 End Class
     </file>
-    </compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=OptionsNetModule)
+    </compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule2)
 
             Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -961,7 +961,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <WorkItem(537567, "DevDiv")>
         <Fact>
         Public Sub NegReference4()
-            Dim opt = OptionsExe
+            Dim opt = TestOptions.ReleaseExe
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
 
@@ -1004,7 +1004,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <WorkItem(537618, "DevDiv")>
         <Fact>
         Public Sub NegReference6()
-            Dim opt = OptionsExe
+            Dim opt = TestOptions.ReleaseExe
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Assert.Throws(Of ArgumentNullException)(Sub() comp = comp.AddReferences(Nothing))
         End Sub
@@ -1013,7 +1013,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <WorkItem(537621, "DevDiv")>
         <Fact>
         Public Sub NegReference7()
-            Dim opt = OptionsExe
+            Dim opt = TestOptions.ReleaseExe
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim RemoveNothingRefEx = Assert.Throws(Of ArgumentNullException)(Sub() comp = comp.RemoveReferences(Nothing))
         End Sub
@@ -1022,7 +1022,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <WorkItem(537576, "DevDiv")>
         <Fact>
         Public Sub NegSyntaxTree1()
-            Dim opt = OptionsExe
+            Dim opt = TestOptions.ReleaseExe
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim t1 = VisualBasicSyntaxTree.ParseText("Using System;")
             Assert.Throws(Of ArgumentException)(Sub() comp.AddSyntaxTrees(t1, t1))
@@ -1033,7 +1033,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <WorkItem(527256, "DevDiv")>
         <Fact>
         Public Sub NegContainsSyntaxTrees()
-            Dim opt = OptionsExe
+            Dim opt = TestOptions.ReleaseExe
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Assert.False(comp.SyntaxTrees.Contains(Nothing))
         End Sub
@@ -1042,7 +1042,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <WorkItem(537778, "DevDiv")>
         <Fact>
         Public Sub NegGetSymbol()
-            Dim opt = OptionsExe
+            Dim opt = TestOptions.ReleaseExe
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
             Dim csComp = CS.CSharpCompilation.Create("CompilationCS")
@@ -1129,27 +1129,27 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
         <Fact>
         Public Sub RootNSIllegalIdentifiers()
-            AssertTheseDiagnostics(OptionsExe.WithRootNamespace("[[Global]]").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseExe.WithRootNamespace("[[Global]]").Errors,
 <expected>
 BC2014: the value '[[Global]]' is invalid for option 'RootNamespace'
 </expected>)
 
-            AssertTheseDiagnostics(OptionsExe.WithRootNamespace("From()").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseExe.WithRootNamespace("From()").Errors,
 <expected>
 BC2014: the value 'From()' is invalid for option 'RootNamespace'
 </expected>)
 
-            AssertTheseDiagnostics(OptionsExe.WithRootNamespace("x$").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseExe.WithRootNamespace("x$").Errors,
 <expected>
 BC2014: the value 'x$' is invalid for option 'RootNamespace'
 </expected>)
 
-            AssertTheseDiagnostics(OptionsExe.WithRootNamespace("Foo.").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseExe.WithRootNamespace("Foo.").Errors,
 <expected>
 BC2014: the value 'Foo.' is invalid for option 'RootNamespace'
 </expected>)
 
-            AssertTheseDiagnostics(OptionsExe.WithRootNamespace("_").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseExe.WithRootNamespace("_").Errors,
 <expected>
 BC2014: the value '_' is invalid for option 'RootNamespace'
 </expected>)
@@ -1268,21 +1268,21 @@ End Class
 </text>.Value
 
             ' equivalent of vbc with no /moduleassemblyname specified:
-            Dim c = VisualBasicCompilation.Create(assemblyName:=Nothing, options:=OptionsNetModule, syntaxTrees:={Parse(source)}, references:={MscorlibRef})
+            Dim c = VisualBasicCompilation.Create(assemblyName:=Nothing, options:=TestOptions.ReleaseModule, syntaxTrees:={Parse(source)}, references:={MscorlibRef})
             c.VerifyDiagnostics()
             Assert.Null(c.AssemblyName)
             Assert.Equal("?", c.Assembly.Name)
             Assert.Equal("?", c.Assembly.Identity.Name)
 
             ' no name is allowed for assembly as well, although it isn't useful:
-            c = VisualBasicCompilation.Create(assemblyName:=Nothing, options:=OptionsNetModule, syntaxTrees:={Parse(source)}, references:={MscorlibRef})
+            c = VisualBasicCompilation.Create(assemblyName:=Nothing, options:=TestOptions.ReleaseModule, syntaxTrees:={Parse(source)}, references:={MscorlibRef})
             c.VerifyDiagnostics()
             Assert.Null(c.AssemblyName)
             Assert.Equal("?", c.Assembly.Name)
             Assert.Equal("?", c.Assembly.Identity.Name)
 
             ' equivalent of vbc with /moduleassemblyname specified:
-            c = VisualBasicCompilation.Create(assemblyName:="ModuleAssemblyName", options:=OptionsNetModule, syntaxTrees:={Parse(source)}, references:={MscorlibRef})
+            c = VisualBasicCompilation.Create(assemblyName:="ModuleAssemblyName", options:=TestOptions.ReleaseModule, syntaxTrees:={Parse(source)}, references:={MscorlibRef})
             c.VerifyDiagnostics()
             Assert.Equal("ModuleAssemblyName", c.AssemblyName)
             Assert.Equal("ModuleAssemblyName", c.Assembly.Name)
@@ -1298,7 +1298,7 @@ End Class
         End Sub
     End Class
     ]]>
-            Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=OptionsScript)}, Options.OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Assert.Null(compilation.GetEntryPoint(Nothing))
@@ -1316,7 +1316,7 @@ End Class
             Dim compilation = Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CreateSubmission(
                 "sub",
                 references:={MscorlibRef, MockScriptingRef},
-                syntaxTree:=Parse(source.Value, options:=Options.OptionsInteractive))
+                syntaxTree:=Parse(source.Value, options:=TestOptions.Interactive))
             compilation.VerifyDiagnostics()
 
             Assert.True(compilation.IsSubmission)
@@ -1341,7 +1341,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=Options.OptionsExe.WithMainTypeName("B"))
+            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
             compilation.VerifyDiagnostics()
 
             Dim mainMethod = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("B").GetMember(Of MethodSymbol)("Main")
@@ -1355,33 +1355,33 @@ End Class
 
         <Fact>
         Public Sub ReferenceManagerReuse_WithOptions()
-            Dim c1 = VisualBasicCompilation.Create("c", options:=OptionsDll)
+            Dim c1 = VisualBasicCompilation.Create("c", options:=TestOptions.ReleaseDll)
 
-            Dim c2 = c1.WithOptions(OptionsExe)
+            Dim c2 = c1.WithOptions(TestOptions.ReleaseExe)
             Assert.True(c1.ReferenceManagerEquals(c2))
 
             c2 = c1.WithOptions(New VisualBasicCompilationOptions(OutputKind.WindowsApplication))
             Assert.True(c1.ReferenceManagerEquals(c2))
 
-            c2 = c1.WithOptions(OptionsDll.WithHighEntropyVirtualAddressSpace(True))
+            c2 = c1.WithOptions(TestOptions.ReleaseDll.WithHighEntropyVirtualAddressSpace(True))
             Assert.True(c1.ReferenceManagerEquals(c2))
 
-            c2 = c1.WithOptions(OptionsNetModule)
+            c2 = c1.WithOptions(TestOptions.ReleaseModule)
             Assert.False(c1.ReferenceManagerEquals(c2))
 
 
-            c1 = VisualBasicCompilation.Create("c", options:=OptionsNetModule)
+            c1 = VisualBasicCompilation.Create("c", options:=TestOptions.ReleaseModule)
 
-            c2 = c1.WithOptions(OptionsExe)
+            c2 = c1.WithOptions(TestOptions.ReleaseExe)
             Assert.False(c1.ReferenceManagerEquals(c2))
 
-            c2 = c1.WithOptions(OptionsDll)
+            c2 = c1.WithOptions(TestOptions.ReleaseDll)
             Assert.False(c1.ReferenceManagerEquals(c2))
 
             c2 = c1.WithOptions(New VisualBasicCompilationOptions(OutputKind.WindowsApplication))
             Assert.False(c1.ReferenceManagerEquals(c2))
 
-            c2 = c1.WithOptions(OptionsNetModule.WithHighEntropyVirtualAddressSpace(True))
+            c2 = c1.WithOptions(TestOptions.ReleaseModule.WithHighEntropyVirtualAddressSpace(True))
             Assert.True(c1.ReferenceManagerEquals(c2))
         End Sub
 
@@ -1396,34 +1396,34 @@ End Class
 
         <Fact>
         Public Sub ReferenceManagerReuse_WithXmlFileResolver()
-            Dim c1 = VisualBasicCompilation.Create("c", options:=OptionsDll)
+            Dim c1 = VisualBasicCompilation.Create("c", options:=TestOptions.ReleaseDll)
 
-            Dim c2 = c1.WithOptions(OptionsDll.WithXmlReferenceResolver(New XmlFileResolver(Nothing)))
+            Dim c2 = c1.WithOptions(TestOptions.ReleaseDll.WithXmlReferenceResolver(New XmlFileResolver(Nothing)))
             Assert.False(c1.ReferenceManagerEquals(c2))
 
-            Dim c3 = c1.WithOptions(OptionsDll.WithXmlReferenceResolver(c1.Options.XmlReferenceResolver))
+            Dim c3 = c1.WithOptions(TestOptions.ReleaseDll.WithXmlReferenceResolver(c1.Options.XmlReferenceResolver))
             Assert.True(c1.ReferenceManagerEquals(c3))
         End Sub
 
         <Fact>
         Public Sub ReferenceManagerReuse_WithMetadataReferenceResolver()
-            Dim c1 = VisualBasicCompilation.Create("c", options:=OptionsDll)
+            Dim c1 = VisualBasicCompilation.Create("c", options:=TestOptions.ReleaseDll)
 
-            Dim c2 = c1.WithOptions(OptionsDll.WithMetadataReferenceResolver(New MetadataFileReferenceResolver(ImmutableArray.Create(Of String)(), Nothing)))
+            Dim c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(New MetadataFileReferenceResolver(ImmutableArray.Create(Of String)(), Nothing)))
             Assert.False(c1.ReferenceManagerEquals(c2))
 
-            Dim c3 = c1.WithOptions(OptionsDll.WithMetadataReferenceResolver(c1.Options.MetadataReferenceResolver))
+            Dim c3 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(c1.Options.MetadataReferenceResolver))
             Assert.True(c1.ReferenceManagerEquals(c3))
         End Sub
 
         <Fact>
         Public Sub ReferenceManagerReuse_WithMetadataReferenceProvider()
-            Dim c1 = VisualBasicCompilation.Create("c", options:=OptionsDll)
+            Dim c1 = VisualBasicCompilation.Create("c", options:=TestOptions.ReleaseDll)
 
-            Dim c2 = c1.WithOptions(OptionsDll.WithMetadataReferenceProvider(New MetadataFileReferenceProvider()))
+            Dim c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceProvider(New MetadataFileReferenceProvider()))
             Assert.False(c1.ReferenceManagerEquals(c2))
 
-            Dim c3 = c1.WithOptions(OptionsDll.WithMetadataReferenceProvider(c1.Options.MetadataReferenceProvider))
+            Dim c3 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceProvider(c1.Options.MetadataReferenceProvider))
             Assert.True(c1.ReferenceManagerEquals(c3))
         End Sub
 
@@ -1470,10 +1470,10 @@ End Class
         <Fact(Skip:="790235")>
         Public Sub ReferenceManagerReuse_WithSyntaxTrees()
             Dim ta = Parse("Imports System")
-            Dim tb = Parse("Imports System", options:=OptionsScript)
+            Dim tb = Parse("Imports System", options:=TestOptions.Script)
             Dim tc = Parse("#r ""bar""  ' error: #r in regular code")
-            Dim tr = Parse("#r ""foo""", options:=OptionsScript)
-            Dim ts = Parse("#r ""bar""", options:=OptionsScript)
+            Dim tr = Parse("#r ""foo""", options:=TestOptions.Script)
+            Dim ts = Parse("#r ""bar""", options:=TestOptions.Script)
 
             Dim a = VisualBasicCompilation.Create("c", syntaxTrees:={ta})
 
@@ -1551,11 +1551,11 @@ End Class
 
         <Fact>
         Public Sub MetadataConsistencyWhileEvolvingCompilation()
-            Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class C : End Class"}, compOptions:=OptionsDll).EmitToArray())
-            Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class D : End Class"}, compOptions:=OptionsDll).EmitToArray())
+            Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class C : End Class"}, compOptions:=TestOptions.ReleaseDll).EmitToArray())
+            Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class D : End Class"}, compOptions:=TestOptions.ReleaseDll).EmitToArray())
             Dim reference = New EvolvingTestReference({md1, md2})
 
-            Dim c1 = CreateCompilationWithMscorlib({"Public Class Main : Public Shared C As C : End Class"}, {reference, reference}, compOptions:=OptionsDll)
+            Dim c1 = CreateCompilationWithMscorlib({"Public Class Main : Public Shared C As C : End Class"}, {reference, reference}, compOptions:=TestOptions.ReleaseDll)
             Dim c2 = c1.WithAssemblyName("c2")
             Dim c3 = c2.AddSyntaxTrees(Parse("Public Class Main2 : Public Shared A As Integer : End Class"))
             Dim c4 = c3.WithOptions(New VisualBasicCompilationOptions(OutputKind.NetModule))
@@ -1579,7 +1579,7 @@ End Class
 
             Using pinnedPEImage = PinnedImmutableArray.Create(moduleBytes.AsImmutable())
                 Using mdModule = ModuleMetadata.CreateFromMetadata(pinnedPEImage.Pointer + headers.MetadataStartOffset, headers.MetadataSize)
-                    Dim c = VisualBasicCompilation.Create("Foo", references:={MscorlibRef, New MetadataImageReference(mdModule, display:="ModuleCS00")}, options:=OptionsDll)
+                    Dim c = VisualBasicCompilation.Create("Foo", references:={MscorlibRef, New MetadataImageReference(mdModule, display:="ModuleCS00")}, options:=TestOptions.ReleaseDll)
                     c.VerifyDiagnostics(Diagnostic(ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage).WithArguments("ModuleCS00").WithLocation(1, 1))
                 End Using
             End Using
@@ -1621,7 +1621,7 @@ Namespace NS2
     End Namespace
 End Namespace
     </file>
-</compilation>, OptionsNetModule)
+</compilation>, TestOptions.ReleaseModule)
 
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
@@ -1689,7 +1689,7 @@ End Namespace
             Dim tree3 = SyntaxFactory.ParseSyntaxTree(SourceText.From("Class C : End Class", encoding:=Nothing), path:="Bar.vb")
             Dim tree4 = SyntaxFactory.ParseSyntaxTree("Class D : End Class", path:="Baz.vb", encoding:=Encoding.UTF8)
 
-            Dim comp = VisualBasicCompilation.Create("Compilation", {tree1, tree2, tree3, tree4}, {MscorlibRef}, options:=OptionsDll)
+            Dim comp = VisualBasicCompilation.Create("Compilation", {tree1, tree2, tree3, tree4}, {MscorlibRef}, options:=TestOptions.ReleaseDll)
 
             Dim result = comp.Emit(New MemoryStream(), pdbStream:=New MemoryStream())
             result.Diagnostics.Verify(
@@ -1706,7 +1706,7 @@ End Namespace
             Dim tree3 = SyntaxFactory.ParseSyntaxTree("Class C" & vbCrLf & "Sub F() : End Sub : End Class", path:="Bar.vb", encoding:=New UTF8Encoding(True, False))
             Dim tree4 = SyntaxFactory.ParseSyntaxTree(SourceText.From("Class D" & vbCrLf & "Sub F() : End Sub : End Class", New UTF8Encoding(False, False)), path:="Baz.vb")
 
-            Dim comp = VisualBasicCompilation.Create("Compilation", {tree1, tree2, tree3, tree4}, {MscorlibRef}, options:=OptionsDll)
+            Dim comp = VisualBasicCompilation.Create("Compilation", {tree1, tree2, tree3, tree4}, {MscorlibRef}, options:=TestOptions.ReleaseDll)
 
             Dim result = comp.Emit(New MemoryStream(), pdbStream:=New MemoryStream())
             result.Diagnostics.Verify()

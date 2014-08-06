@@ -37,7 +37,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseParseDiagnostics(comp2,
 <expected>
 BC31122: 'Custom' modifier is not valid on events declared without explicit delegate types.
@@ -60,9 +60,9 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.Off))
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off))
             CompilationUtils.AssertNoErrors(comp1)
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
@@ -182,9 +182,9 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.Off))
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off))
             CompilationUtils.AssertNoErrors(comp1)
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
@@ -207,7 +207,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -245,7 +245,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -276,7 +276,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
 BC31059: event '_Empty' implicitly defines '_EmptyEventHandler', which conflicts with a member implicitly declared for property 'EmptyEventhandler' in class 'MissileLauncher1'.
@@ -306,7 +306,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -336,7 +336,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -376,7 +376,7 @@ End Module
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -421,7 +421,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
     <![CDATA[   
@@ -466,7 +466,7 @@ End Class
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertNoErrors(comp2)
 
 
@@ -632,7 +632,7 @@ End Module
                          </compilation>
 
 
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
 BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
@@ -767,7 +767,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp2 = CreateCompilationWithCustomILSource(vbSource, ilSource.Value, OptionsDll)
+            Dim comp2 = CreateCompilationWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
@@ -905,7 +905,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, OptionsDll, emitOptions:=EmitOptions.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=EmitOptions.RefEmitBug).
     VerifyIL("C.M",
             <![CDATA[
 

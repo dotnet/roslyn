@@ -8,7 +8,7 @@ Public Class QuickTokenTableTests
 
     Private Shared Sub ShouldBeGoodQuickToken(s As String)
         Dim txt = SourceText.From(s)
-        Using acc As New InternalSyntax.Scanner(txt, OptionsRegular)
+        Using acc As New InternalSyntax.Scanner(txt, TestOptions.Regular)
 
             Dim qt = acc.QuickScanToken(False)
 
@@ -24,7 +24,7 @@ Public Class QuickTokenTableTests
 
     Private Shared Sub ShouldBeBadQuickToken(s As String)
         Dim txt = SourceText.From(s)
-        Using acc As New InternalSyntax.Scanner(txt, OptionsRegular)
+        Using acc As New InternalSyntax.Scanner(txt, TestOptions.Regular)
             Dim qt = acc.QuickScanToken(False)
 
             Assert.False(qt.Succeeded)
@@ -81,7 +81,7 @@ Public Class QuickTokenTableTests
         buf(count) = " "c
         buf(count + 1) = "Z"c
 
-        Using scanner As New InternalSyntax.Scanner(SourceText.From(New String(buf)), OptionsRegular)
+        Using scanner As New InternalSyntax.Scanner(SourceText.From(New String(buf)), TestOptions.Regular)
             Dim qt = scanner.QuickScanToken(False)
             Assert.True(qt.Succeeded)
 
@@ -102,7 +102,7 @@ Public Class QuickTokenTableTests
         Next
         buf(e.Item1.Length) = "Z"c
 
-        Using scanner As New InternalSyntax.Scanner(SourceText.From(New String(buf)), OptionsRegular)
+        Using scanner As New InternalSyntax.Scanner(SourceText.From(New String(buf)), TestOptions.Regular)
             Dim qt = scanner.QuickScanToken(False)
             Assert.True(qt.Succeeded)
 

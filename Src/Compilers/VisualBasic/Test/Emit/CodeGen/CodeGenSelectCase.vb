@@ -3223,7 +3223,7 @@ Module M1
 End Module
     ]]></file>
 </compilation>,
-    options:=OptionsExe.WithOptionCompareText(False),
+    options:=TestOptions.ReleaseExe.WithOptionCompareText(False),
     expectedOutput:=<![CDATA[0:Equal to 0
 1:Between 1 and 5, inclusive
 2:Between 1 and 5, inclusive
@@ -3379,7 +3379,7 @@ End Module
 
             ' verify that hash method is Friend
             Dim reference = compVerifier.Compilation.EmitToImageReference()
-            Dim comp = VisualBasicCompilation.Create("Name", references:={reference}, options:=OptionsDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            Dim comp = VisualBasicCompilation.Create("Name", references:={reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim pid = DirectCast(comp.GlobalNamespace.GetMembers().Where(Function(s) s.Name.StartsWith("<PrivateImplementationDetails>")).Single(), NamedTypeSymbol)
 
@@ -3414,7 +3414,7 @@ Module M1
 End Module
     ]]></file>
 </compilation>,
-    options:=OptionsExe.WithOptionCompareText(False),
+    options:=TestOptions.ReleaseExe.WithOptionCompareText(False),
     expectedOutput:=<![CDATA[0:Equal to 0
 1:Between 1 and 5, inclusive
 2:Between 1 and 5, inclusive
@@ -3504,7 +3504,7 @@ Module M1
 End Module
     ]]></file>
 </compilation>,
-    options:=OptionsExe.WithOptionCompareText(True),
+    options:=TestOptions.ReleaseExe.WithOptionCompareText(True),
     expectedOutput:=<![CDATA[0:Equal to 0
 1:Between 1 and 5, inclusive
 2:Between 1 and 5, inclusive
@@ -3630,7 +3630,7 @@ End Module
 
     ]]></file>
 </compilation>,
-    options:=OptionsExe.WithOptionCompareText(False),
+    options:=TestOptions.ReleaseExe.WithOptionCompareText(False),
     expectedOutput:=<![CDATA[Equal to a
 Equal to A]]>)
         End Sub
@@ -3662,7 +3662,7 @@ Module M1
 End Module
     ]]></file>
 </compilation>,
-    options:=OptionsExe.WithOptionCompareText(False),
+    options:=TestOptions.ReleaseExe.WithOptionCompareText(False),
     expectedOutput:=<![CDATA[Equal to a
 Equal to A]]>).VerifyIL("M1.Test", <![CDATA[
 {
@@ -3815,7 +3815,7 @@ Module M1
 End Module
     ]]></file>
 </compilation>,
-    options:=OptionsExe.WithOptionCompareText(False),
+    options:=TestOptions.ReleaseExe.WithOptionCompareText(False),
     expectedOutput:=<![CDATA[Equal to a
 Equal to A]]>).VerifyIL("M1.Test", <![CDATA[
 {
@@ -3884,7 +3884,7 @@ Module M1
 End Module
     ]]></file>
 </compilation>,
-    options:=OptionsExe.WithOptionCompareText(True),
+    options:=TestOptions.ReleaseExe.WithOptionCompareText(True),
     expectedOutput:=<![CDATA[Equal to a
 Equal to a]]>).VerifyIL("M1.Test", <![CDATA[
 {
@@ -3996,7 +3996,7 @@ Module M1
 End Module
     ]]></file>
 </compilation>,
-    options:=OptionsExe.WithOptionCompareText(False),
+    options:=TestOptions.ReleaseExe.WithOptionCompareText(False),
     expectedOutput:=<![CDATA[0:Equal to 0
 1:Between 1 and 5, inclusive
 2:Between 1 and 5, inclusive
@@ -4184,7 +4184,7 @@ Module M1
 End Module
     ]]></file>
 </compilation>,
-    options:=OptionsExe.WithOptionCompareText(True),
+    options:=TestOptions.ReleaseExe.WithOptionCompareText(True),
     expectedOutput:=<![CDATA[0:Equal to 0
 1:Between 1 and 5, inclusive
 2:Between 1 and 5, inclusive
@@ -4340,7 +4340,7 @@ Module M1
 End Module
     ]]></file>
 </compilation>,
-    options:=OptionsExe.WithOptionCompareText(False),
+    options:=TestOptions.ReleaseExe.WithOptionCompareText(False),
     expectedOutput:=<![CDATA[0:Equal to 0
 0:Equal to 0
 1:Between 1 and 5, inclusive

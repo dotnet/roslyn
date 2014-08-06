@@ -397,7 +397,7 @@ Namespace System.Runtime.CompilerServices
 
 End Namespace
     </file>
-</compilation>, options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
+</compilation>, options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", name:="Test1", includeReducedExtensionMethods:=True)
 
@@ -524,7 +524,7 @@ Namespace System.Runtime.CompilerServices
 
 End Namespace
     </file>
-</compilation>, options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
+</compilation>, options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", name:="Test1", includeReducedExtensionMethods:=True)
 
@@ -645,7 +645,7 @@ Namespace System.Runtime.CompilerServices
 
 End Namespace
     </file>
-</compilation>, options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
+</compilation>, options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", name:="Test1", includeReducedExtensionMethods:=True)
 
@@ -768,7 +768,7 @@ Namespace System.Runtime.CompilerServices
 
 End Namespace
     </file>
-</compilation>, options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
+</compilation>, options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", name:="Test1", includeReducedExtensionMethods:=True)
 
@@ -897,7 +897,7 @@ Namespace System.Runtime.CompilerServices
 
 End Namespace
     </file>
-</compilation>, options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
+</compilation>, options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
 
             Dim c1 = compilation.GetTypeByMetadataName("NS1.NS2.Module1+C1")
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", container:=c1, includeReducedExtensionMethods:=True)
@@ -1030,7 +1030,7 @@ Namespace System.Runtime.CompilerServices
 
 End Namespace
     </file>
-</compilation>, options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
+</compilation>, options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", includeReducedExtensionMethods:=True)
 
@@ -1156,7 +1156,7 @@ Namespace System.Runtime.CompilerServices
 
 End Namespace
     </file>
-</compilation>, options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
+</compilation>, options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
 
             Dim c1 = compilation.GetTypeByMetadataName("NS1.NS2.Module1+C1")
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", container:=c1, includeReducedExtensionMethods:=True)
@@ -1272,7 +1272,7 @@ Namespace System.Runtime.CompilerServices
 
 End Namespace
     </file>
-</compilation>, options:=OptionsExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
+</compilation>, options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"NS4.Module7", "NS4"})))
 
             Dim module1 = compilation.GetTypeByMetadataName("NS1.NS2.Module1")
             Dim main = DirectCast(module1.GetMember("Main"), MethodSymbol)

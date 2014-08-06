@@ -162,7 +162,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 11
@@ -224,7 +224,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 11
@@ -281,7 +281,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Module1+C2`2[System.Byte,System.Int32].CType(x As Module1+C1`1[System.Byte]) As Module1+C2`2[System.Byte,System.Int32]
@@ -321,7 +321,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Module1+C1`1[System.Byte].CType(x As Module1+C1`1[System.Byte]) As Module1+C2`2[System.Byte,System.Int32]
@@ -357,7 +357,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Module1+C2`2[System.Byte,System.Int32].CType(x As Module1+C2`2[System.Byte,System.Int32]) As Module1+C1`1[System.Byte]
@@ -397,7 +397,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Module1+C1`1[System.Byte].CType(x As Module1+C2`2[System.Byte,System.Int32]) As Module1+C1`1[System.Byte]
@@ -487,7 +487,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Module1+C2`2[System.Byte,System.Int32].CType(x As C2(Of T, S)) As C1(Of T)
@@ -539,7 +539,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Module1+C2`2[System.Byte,System.Byte].CType(x As C2(Of T, S)) As C1(Of Byte)
@@ -592,7 +592,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Module1+C2`2[System.Byte,System.Byte].CType(x As C2(Of T, S)) As C1(Of Byte)
@@ -645,7 +645,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Module1+C2`2[System.Byte,System.Byte].CType(x As C2(Of T, S)) As C1(Of Byte)
@@ -698,7 +698,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Module1+C2`2[System.Byte,System.Byte].CType(x As C1(Of Byte)) As C2(Of T, S)
@@ -788,7 +788,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C2(Of T, S)) As C1
@@ -838,7 +838,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C2(Of Integer, Integer)) As C1
@@ -1003,7 +1003,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C2) As C3
@@ -1045,7 +1045,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C1) As C3
@@ -1096,7 +1096,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C3) As C2
@@ -1441,7 +1441,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C4) As C1
@@ -1497,7 +1497,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C4) As C1
@@ -1556,7 +1556,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C0) As C2
@@ -1612,7 +1612,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C0) As C2
@@ -1846,7 +1846,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C0(Of T, S)) As Integer
@@ -1917,7 +1917,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C0(Of T, S)) As Integer
@@ -2144,7 +2144,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -2328,7 +2328,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -2459,7 +2459,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2531,7 +2531,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2600,7 +2600,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, customIL.Value, includeVbRuntime:=True, options:=OptionsExe)
+</compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2640,7 +2640,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As Short) As C2
@@ -2683,7 +2683,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C2) As UInteger
@@ -2741,7 +2741,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As Short) As C2
@@ -2785,7 +2785,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As Long) As C1
@@ -2820,7 +2820,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             Dim model = GetSemanticModel(compilation, "a.vb")
 
@@ -2874,7 +2874,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2912,7 +2912,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim model = GetSemanticModel(compilation, "a.vb")
 
@@ -2976,7 +2976,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3011,7 +3011,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim model = GetSemanticModel(compilation, "a.vb")
 
@@ -3070,7 +3070,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As C0) As Integer
@@ -3121,7 +3121,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(True))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(True))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[ 
@@ -3184,7 +3184,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(True),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(True),
                              expectedOutput:=
             <![CDATA[
 CType(x As Integer) As C2
@@ -3238,7 +3238,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
-                                                                        options:=OptionsExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
+                                                                        options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[ 
@@ -3304,7 +3304,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
-                                                                        options:=OptionsExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
+                                                                        options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[ 
@@ -3371,7 +3371,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
-                                                                        options:=OptionsExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
+                                                                        options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[ 
@@ -3431,7 +3431,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False),
                              expectedOutput:=
             <![CDATA[
 CType(x As Byte) As C1
@@ -3477,7 +3477,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
-                                                                        options:=OptionsExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
+                                                                        options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[ 
@@ -3534,7 +3534,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe,
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe,
                              expectedOutput:=
             <![CDATA[
 IsTrue
@@ -3581,7 +3581,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe,
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe,
                              expectedOutput:=
             <![CDATA[
 Else
@@ -3640,7 +3640,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Widening Operator CType(x As S8) As Boolean?
@@ -3706,7 +3706,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 IsTrue(x As S8) As Boolean
@@ -3760,7 +3760,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Narrowing Operator CType(x As S8) As Boolean
@@ -3813,7 +3813,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 IsTrue(x As S8) As Boolean
@@ -3853,7 +3853,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 Narrowing Operator CType(x As S8) As Boolean?
@@ -3920,7 +3920,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -3972,7 +3972,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim model = GetSemanticModel(compilation, "a.vb")
             Dim x_node As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)
@@ -4040,7 +4040,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim model = GetSemanticModel(compilation, "a.vb")
             Dim x_node As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)
@@ -4127,7 +4127,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -4195,7 +4195,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -4254,7 +4254,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -4307,7 +4307,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -4344,7 +4344,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -4383,7 +4383,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 CType(x As B1) As B2()
@@ -4444,7 +4444,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom),
+            Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom),
                              expectedOutput:=
             <![CDATA[
 False
@@ -4514,7 +4514,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="0")
 

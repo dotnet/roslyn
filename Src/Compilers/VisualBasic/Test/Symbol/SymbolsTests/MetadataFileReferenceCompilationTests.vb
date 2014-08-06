@@ -119,7 +119,7 @@ End Class
     </file>
 </compilation>,
             references:={New MetadataImageReference(TestResources.SymbolsTests.General.C2.AsImmutableOrNull())},
-            options:=OptionsDll)
+            options:=TestOptions.ReleaseDll)
 
             file3.WriteAllBytes(b.EmitToArray())
 
@@ -134,7 +134,7 @@ End Class
     </file>
 </compilation>,
             references:={New MetadataFileReference(file1.Path), New MetadataFileReference(file2.Path), New MetadataFileReference(file3.Path)},
-            options:=OptionsDll)
+            options:=TestOptions.ReleaseDll)
 
             Using stream = New MemoryStream()
                 a.Emit(stream)

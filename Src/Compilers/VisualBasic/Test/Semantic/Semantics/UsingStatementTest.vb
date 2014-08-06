@@ -228,7 +228,7 @@ Module M
     End Sub
 End Module
     </file>
-    </compilation>, expectedOutput:="Hi there", options:=OptionsExe.WithOptionStrict(OptionStrict.Off)).
+    </compilation>, expectedOutput:="Hi there", options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Off)).
                 VerifyIL("M.Main",
             <![CDATA[
 {
@@ -278,7 +278,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
-            compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -290,7 +290,7 @@ BC42016: Implicit conversion from 'Object' to 'System.IDisposable'.
               ~~~~~~~~~~~~~~~~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>

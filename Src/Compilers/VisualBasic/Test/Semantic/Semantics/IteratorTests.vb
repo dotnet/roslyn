@@ -898,7 +898,7 @@ Module Program
 End Module
 ]]>
                         </file>
-                    </compilation>, OptionsExe)
+                    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
             <![CDATA[

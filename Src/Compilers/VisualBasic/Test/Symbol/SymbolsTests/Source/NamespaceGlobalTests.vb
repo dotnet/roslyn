@@ -81,7 +81,7 @@ Class A
         ' Set the root namespace of compilation to ‘Global’
         <Fact>
         Public Sub RootNSIsGlobal()
-            Dim opt = OptionsDll.WithRootNamespace("Global")
+            Dim opt = TestOptions.ReleaseDll.WithRootNamespace("Global")
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
                 <compilation name="comp1">
                     <file name="a.vb">
@@ -495,9 +495,9 @@ BC30179: class 'C2' and class 'C2' conflict in namespace 'NS1.Global'.
         <WorkItem(539077, "DevDiv")>
         <Fact>
         Public Sub BC30554ERR_AmbiguousInUnnamedNamespace1_GlobalOnCompilation()
-            Dim opt1 = OptionsDll.WithRootNamespace("NS1")
-            Dim opt2 = OptionsDll.WithRootNamespace("NS2")
-            Dim opt3 = OptionsDll.WithRootNamespace("NS3")
+            Dim opt1 = TestOptions.ReleaseDll.WithRootNamespace("NS1")
+            Dim opt2 = TestOptions.ReleaseDll.WithRootNamespace("NS2")
+            Dim opt3 = TestOptions.ReleaseDll.WithRootNamespace("NS3")
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
                 <compilation name="comp1">
                     <file name="a.vb">

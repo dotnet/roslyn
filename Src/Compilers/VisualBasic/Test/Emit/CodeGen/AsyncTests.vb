@@ -1421,7 +1421,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, options:=OptionsExe.WithDebugInformationKind(DebugInformationKind.Full), useLatestFramework:=True).
+</compilation>, options:=TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.Full), useLatestFramework:=True).
             VerifyIL("Program.VB$StateMachine_0_Test2.MoveNext",
             <![CDATA[
 {
@@ -1675,7 +1675,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, options:=OptionsExe.WithDebugInformationKind(DebugInformationKind.Full), useLatestFramework:=True).
+</compilation>, options:=TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.Full), useLatestFramework:=True).
             VerifyIL("Program.VB$StateMachine_0_Test2.MoveNext",
             <![CDATA[
 {
@@ -8082,8 +8082,8 @@ Public Class TestCase
 End Class
     </file>
 </compilation>, options:=If(dbg,
-                            OptionsDll.WithDebugInformationKind(DebugInformationKind.Full),
-                            OptionsDll.WithDebugInformationKind(DebugInformationKind.None)),
+                            TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
+                            TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)),
                 useLatestFramework:=True,
                 symbolValidator:=moduleValidator)
         End Sub
@@ -8110,7 +8110,7 @@ End Class
     </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, OptionsDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
 
             Using stream As New MemoryStream()
                 AssertTheseDiagnostics(comp.Emit(stream).Diagnostics, <errors><![CDATA[

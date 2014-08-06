@@ -35,7 +35,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
@@ -111,7 +111,7 @@ End Module
     }
     ]]>)
 
-            compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
 
@@ -120,7 +120,7 @@ End Module
 <expected>
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -148,10 +148,10 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -246,10 +246,10 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -344,10 +344,10 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -441,7 +441,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
@@ -518,7 +518,7 @@ End Module
     }
     ]]>)
 
-            compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
 
@@ -546,7 +546,7 @@ BC42016: Implicit conversion from 'Object' to 'Integer'.
                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -592,10 +592,10 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -676,10 +676,10 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -760,10 +760,10 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -848,7 +848,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -924,7 +924,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
                 Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
@@ -969,7 +969,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
                 Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
@@ -1022,7 +1022,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -1178,7 +1178,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
                 Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
@@ -1241,7 +1241,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
                 Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
@@ -1290,7 +1290,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
@@ -1403,7 +1403,7 @@ End Module
   IL_0006:  ret
         }
         ]]>)
-            compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
 
@@ -1448,7 +1448,7 @@ BC42016: Implicit conversion from 'Object' to 'Integer'.
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -1515,7 +1515,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -1614,7 +1614,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -1691,7 +1691,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -1745,7 +1745,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -1905,7 +1905,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -1998,7 +1998,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -2051,7 +2051,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
@@ -2143,7 +2143,7 @@ End Module
 }
 ]]>)
 
-            compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
 
@@ -2171,7 +2171,7 @@ BC41999: Implicit conversion from 'Object' to 'String' in copying the value of '
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -2226,7 +2226,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
-                compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(optStrict))
+                compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
 
                 Assert.Equal(optStrict, compilation.Options.OptionStrict)
 
@@ -2443,7 +2443,7 @@ End Module
 </compilation>
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
@@ -2500,7 +2500,7 @@ End Module
 </compilation>
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.Func`2[System.Object,System.Int32]
@@ -2537,7 +2537,7 @@ End Module
 </compilation>
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2548,7 +2548,7 @@ BC30519: Overload resolution failed because no accessible 'Test2' can be called 
         ~~~~~
 </expected>)
 
-            compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.On))
+            compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'Test2' can be called with these arguments:
@@ -2615,7 +2615,7 @@ End Module
 </compilation>
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2743,7 +2743,7 @@ End Module
 </compilation>
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2790,7 +2790,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
@@ -2912,7 +2912,7 @@ End Class
   } // end of method TestCustomModifiers::Invoke
 
 } // end of class TestCustomModifiers
-]]>.Value, OptionsExe)
+]]>.Value, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2960,7 +2960,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="Base Method")
@@ -2989,7 +2989,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, OptionsDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
             Dim verifier = CompileAndVerify(compilation)

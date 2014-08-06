@@ -460,7 +460,7 @@ Class C1(Of C1T1, C1T2)
 
 End Class
     </file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             Dim int = compilation.GetSpecialType(SpecialType.System_Int32)
 

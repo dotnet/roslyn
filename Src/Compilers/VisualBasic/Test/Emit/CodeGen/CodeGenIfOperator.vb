@@ -106,7 +106,7 @@ False
                 End Function
             End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
 {
   // Code size       28 (0x1c)
   .maxstack  1
@@ -149,7 +149,7 @@ End Sub, Y + 1)
     End Sub
 End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
 {
   // Code size       73 (0x49)
   .maxstack  2
@@ -384,7 +384,7 @@ Module C
     End Sub
 End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
 {
   // Code size       36 (0x24)
   .maxstack  1
@@ -451,7 +451,7 @@ Module C
     End Function
 End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
 {
   // Code size       35 (0x23)
   .maxstack  1
@@ -489,7 +489,7 @@ Module C
     End Sub
 End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -514,7 +514,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("Program.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Program.Main", <![CDATA[
 {
   // Code size        1 (0x1)
   .maxstack  0
@@ -538,7 +538,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("Program.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Program.Main", <![CDATA[
 {
   // Code size       20 (0x14)
   .maxstack  2
@@ -566,7 +566,7 @@ Public Class base
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyDiagnostics()
+</compilation>, options:=TestOptions.ReleaseExe).VerifyDiagnostics()
         End Sub
 
         ' #const val =if
@@ -583,7 +583,7 @@ Public Class Program
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("Program.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Program.Main", <![CDATA[
 {
   // Code size        1 (0x1)
   .maxstack  0
@@ -606,7 +606,7 @@ Module M1
     End Function
 End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("M1.if", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("M1.if", <![CDATA[
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -648,7 +648,7 @@ Module M1
     End Sub
 End Module
     </file>
-</compilation>, options:=OptionsExe)
+</compilation>, options:=TestOptions.ReleaseExe)
         End Sub
 
         ' Passing IF as byref arg 
@@ -669,7 +669,7 @@ Module M1
     End Function
 End Module
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("M1.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("M1.Main", <![CDATA[
 {
   // Code size       26 (0x1a)
   .maxstack  1
@@ -702,7 +702,7 @@ Public Class Test
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsDll).VerifyIL("Test.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseDll).VerifyIL("Test.Main", <![CDATA[
 {
   // Code size       25 (0x19)
   .maxstack  2
@@ -758,7 +758,7 @@ Class MainClass
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("MainClass.g", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("MainClass.g", <![CDATA[
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -800,7 +800,7 @@ Class MainClass
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("MainClass.g", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("MainClass.g", <![CDATA[
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -843,7 +843,7 @@ Class MainClass
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("MainClass.g", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("MainClass.g", <![CDATA[
 {
   // Code size       28 (0x1c)
   .maxstack  2
@@ -897,7 +897,7 @@ Class Test1
     'version2 
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("Test1.m1", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Test1.m1", <![CDATA[
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -958,7 +958,7 @@ Class Test1
     'version2 
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("Test1.m1", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Test1.m1", <![CDATA[
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -1019,7 +1019,7 @@ Class Test1
     'version2 
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("Test1.m1", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Test1.m1", <![CDATA[
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -1064,7 +1064,7 @@ Class Test1
     End Function
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("Test1.GetEnumerator", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Test1.GetEnumerator", <![CDATA[
 {
   // Code size       17 (0x11)
   .maxstack  1
@@ -1101,7 +1101,7 @@ Structure struct
     End Function
 End Structure
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("struct.GetEnumerator", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("struct.GetEnumerator", <![CDATA[
 {
   // Code size        9 (0x9)
   .maxstack  1
@@ -1142,7 +1142,7 @@ Structure struct
     End Function
 End Structure
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("struct.GetEnumerator", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("struct.GetEnumerator", <![CDATA[
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1183,7 +1183,7 @@ Structure struct
     End Function
 End Structure
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("struct.GetEnumerator", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("struct.GetEnumerator", <![CDATA[
 {
   // Code size       34 (0x22)
   .maxstack  1

@@ -572,7 +572,7 @@ Public Interface IComplicated
 End Interface
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=OptionsExe)
+                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -627,7 +627,7 @@ Module Module1
 End Module
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=OptionsExe)
+                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -672,7 +672,7 @@ l4:
 End Module
 ]]>
                         </file>
-                    </compilation>, options:=OptionsExe.WithOptionStrict(OptionStrict.On))
+                    </compilation>, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -724,7 +724,7 @@ l4:
 End Module
 ]]>
                         </file>
-                    </compilation>, options:=OptionsExe.WithOptionStrict(OptionStrict.Off))
+                    </compilation>, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Off))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
 
@@ -791,7 +791,7 @@ Class C
 End Class
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=OptionsExe)
+                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -858,7 +858,7 @@ Class C
 End Class
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=OptionsExe)
+                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
@@ -918,7 +918,7 @@ Class C
 End Class
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=OptionsExe)
+                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -983,7 +983,7 @@ Class C
 End Class
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=OptionsExe)
+                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -1314,7 +1314,7 @@ Public Interface IComplicated
 End Interface
 ]]>
                         </file>
-                    </compilation>, options:=OptionsExe)
+                    </compilation>, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
             CompileAndVerify(compilation, expectedOutput:="Unable to cast object of type 'CoClassImplementation' to type 'IComplicated'.")
@@ -1784,7 +1784,7 @@ Public Class C
 End Class
 ]]>
                         </file>
-                    </compilation>, OptionsDll)
+                    </compilation>, TestOptions.ReleaseDll)
 
             Dim validator = Sub(m As ModuleSymbol)
                                 Assert.Null(m.GlobalNamespace.GetTypeMember("C").CoClassType)

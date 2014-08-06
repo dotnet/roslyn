@@ -355,7 +355,7 @@ End Interface
 
             source.<file>.Single().Value = String.Format(source.<file>.Single().Value, text)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsDll.WithOptionStrict(strict))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(strict))
 
             If errors IsNot Nothing Then
                 CompilationUtils.AssertTheseDiagnostics(compilation, errors)
@@ -577,7 +577,7 @@ Class CG(Of T1, T2, T3, T4)
 
 End Class
     </file>
-</compilation>, OptionsDll.WithOptionStrict(strict))
+</compilation>, TestOptions.ReleaseDll.WithOptionStrict(strict))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, errs)
         End Sub
@@ -737,7 +737,7 @@ Class CG(Of T1, T2, T3, T4)
 
 End Class
     </file>
-</compilation>, OptionsDll.WithOptionStrict(strict))
+</compilation>, TestOptions.ReleaseDll.WithOptionStrict(strict))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, errs)
         End Sub
@@ -914,7 +914,7 @@ Module Module1
 
 End Module
 ]]></file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(comp, expectedOutput:=
             <![CDATA[
@@ -976,7 +976,7 @@ Module Module1
     End Sub
 End Module
 ]]></file>
-</compilation>, OptionsExe)
+</compilation>, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(comp, expectedOutput:=
             <![CDATA[

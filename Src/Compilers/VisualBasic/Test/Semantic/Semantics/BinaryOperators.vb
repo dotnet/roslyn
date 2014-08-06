@@ -29,13 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.True(compilation.Options.CheckOverflow)
 
             CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOverflowChecks(False))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Assert.False(compilation.Options.CheckOverflow)
 
@@ -203,11 +203,11 @@ End Module
 [Ob & Da] Object: -138:30:00 AM
 [Tc & Da] String: [148:30:00 AM]]]>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
                 Assert.True(compilation.Options.CheckOverflow)
                 CompileAndVerify(compilation, expectedOutput:=expected)
 
-                compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOverflowChecks(False))
+                compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
                 Assert.False(compilation.Options.CheckOverflow)
                 CompileAndVerify(compilation, expectedOutput:=expected)
 
@@ -282,7 +282,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.False(compilation.Options.OptionCompareText)
 
@@ -295,7 +295,7 @@ False
 False    
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOptionCompareText(True))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionCompareText(True))
 
             Assert.True(compilation.Options.OptionCompareText)
 
@@ -336,7 +336,7 @@ False
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline4)
         End Sub
@@ -354,11 +354,11 @@ False
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             Assert.True(compilation.Options.CheckOverflow)
             CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline5)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOverflowChecks(False))
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
             Assert.False(compilation.Options.CheckOverflow)
             CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline5)
 
@@ -470,11 +470,11 @@ End Module
 [TypeCode.Double & #8:30:00 AM#] String: [148:30:00 AM]
 ]]>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
                 Assert.True(compilation.Options.CheckOverflow)
                 CompileAndVerify(compilation, expectedOutput:=expected)
 
-                compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOverflowChecks(False))
+                compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
                 Assert.False(compilation.Options.CheckOverflow)
                 CompileAndVerify(compilation, expectedOutput:=expected)
 
@@ -749,7 +749,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, options:=OptionsExe.WithOptionStrict(OptionStrict.Custom))
+</compilation>, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -821,7 +821,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -929,7 +929,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, OptionsDll.WithOverflowChecks(True))
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll.WithOverflowChecks(True))
 
             Dim types(typeNames.Length - 1) As NamedTypeSymbol
 
@@ -1260,7 +1260,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, OptionsDll.WithOverflowChecks(False))
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll.WithOverflowChecks(False))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -1276,7 +1276,7 @@ End Class
                 builder1.Add(symbol)
             Next
 
-            compilation = compilation.WithOptions(OptionsDll.WithOverflowChecks(True))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(True))
             semanticModel = compilation.GetSemanticModel(tree)
 
             Dim builder2 = ArrayBuilder(Of MethodSymbol).GetInstance()
@@ -1327,7 +1327,7 @@ End Structure
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, OptionsDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[

@@ -930,7 +930,7 @@ End Namespace
 
 
             'Check Expected Behaviour - Expect no diagnostic errors without retargeting            
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=OptionsDll).Compilation, VisualBasicCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -941,7 +941,7 @@ End Namespace
 
             'Retargetted - should result in No additional Errors also and same runtime behaviour
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=OptionsExe,
+            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[Success
 ]]>)
             Main_Retarget.VerifyDiagnostics()
@@ -1294,7 +1294,7 @@ End Namespace
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=OptionsDll).Compilation, VisualBasicCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -1305,7 +1305,7 @@ End Namespace
 
             '//Retargetted - should result in No Errors also and same runtime behaviour
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=OptionsExe,
+            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[Success
 ]]>)
             Main_Retarget.VerifyDiagnostics()
@@ -1486,14 +1486,14 @@ End Namespace
 
 
             'Check Expected Behaviour             
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=OptionsDll).Compilation, VisualBasicCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibraryMetaData = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={referenceLibraryMetaData})
 
             '//Retargetted 
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={RetargetReference}, options:=OptionsExe)
+            Dim Main_Retarget = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe)
 
             'Check the retargeting symbol information
             Dim sourceAssembly = DirectCast(RetargetReference.Compilation.Assembly, SourceAssemblySymbol)
@@ -1673,7 +1673,7 @@ Imports System
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=OptionsDll).Compilation, VisualBasicCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -1691,7 +1691,7 @@ Imports System
 
             '//Retargetted - should result in No Errors also and same runtime behaviour
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=OptionsExe,
+            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[11
 12
 13
@@ -1875,7 +1875,7 @@ End Class
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=OptionsDll).Compilation, VisualBasicCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -1892,7 +1892,7 @@ MethodOverload(Base)
 
             '//Retargetted - should result in No Errors also same runtime behaviour
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=OptionsExe,
+            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[Sharedmethod
 method(Other)
 MethodOverload(Other)
@@ -2153,7 +2153,7 @@ End Class
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=OptionsDll).Compilation, VisualBasicCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -2170,7 +2170,7 @@ Success]]>)
 
             '//Retargetted - should result in No Errors also and same runtime behaviour
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=OptionsExe,
+            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[Success
 Success
 Success
@@ -2351,7 +2351,7 @@ End Class
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=OptionsDll).Compilation, VisualBasicCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -2363,7 +2363,7 @@ test
 
             '//Retargetted - should result in No Errors also
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=OptionsExe,
+            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[1
 test
 ]]>)
@@ -2678,13 +2678,13 @@ End Class
     </file>
 </compilation>
             ''//All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(sourceLibV1, options:=OptionsDll).Compilation, VisualBasicCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(sourceLibV1, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
             Dim main_NoRetarget = CompileAndVerify(sourceMain, additionalRefs:={referenceLibrary_Compilation.ToMetadataReference})
             main_NoRetarget.VerifyDiagnostics()
 
             ''//Retargetted - should result in No Errors also
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(sourceMain, additionalRefs:={RetargetReference}, options:=OptionsExe)
+            Dim Main_Retarget = CompileAndVerify(sourceMain, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe)
             main_NoRetarget.VerifyDiagnostics()
         End Sub
 
@@ -2958,7 +2958,7 @@ End Class
     </file>
 </compilation>
             ''//All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(sourceLibV1, options:=OptionsDll).Compilation, VisualBasicCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(sourceLibV1, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
             Dim main_NoRetarget = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceMain, additionalRefs:={referenceLibrary_Compilation.ToMetadataReference})
             main_NoRetarget.VerifyDiagnostics(Diagnostic(ERRID.ERR_GenericConstraintNotSatisfied2, "NewClass").WithArguments("NewClass", "ClassLibrary1.TestInterface"),
                                               Diagnostic(ERRID.ERR_NoSuitableNewForNewConstraint2, "ClassLibrary1.TestInterface").WithArguments("ClassLibrary1.TestInterface", "t"),
@@ -2967,7 +2967,7 @@ End Class
 
             ''//Retargetted - should result in Same Errors 
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceMain, additionalRefs:={RetargetReference}, options:=OptionsExe)
+            Dim Main_Retarget = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceMain, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe)
             main_NoRetarget.VerifyDiagnostics(Diagnostic(ERRID.ERR_GenericConstraintNotSatisfied2, "NewClass").WithArguments("NewClass", "ClassLibrary1.TestInterface"),
                                               Diagnostic(ERRID.ERR_NoSuitableNewForNewConstraint2, "ClassLibrary1.TestInterface").WithArguments("ClassLibrary1.TestInterface", "t"),
                                               Diagnostic(ERRID.ERR_GenericConstraintNotSatisfied2, "Integer").WithArguments("Integer", "ClassLibrary1.TestClass"),
@@ -3068,7 +3068,7 @@ End Namespace
 
             'Check Expected Behaviour - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
-            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=OptionsDll).Compilation, VisualBasicCompilation)
+            Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
             Dim main_NoRetarget = CompileAndVerify(source, additionalRefs:={referenceLibrary_Metadata},
@@ -3079,7 +3079,7 @@ End Namespace
 
             '//Retargetted - should result in No Errors also and same runtime behaviour
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=OptionsExe,
+            Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[Success
 ]]>)
             Main_Retarget.VerifyDiagnostics()
@@ -3197,7 +3197,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithReferences(source1, {MscorlibRef_v20}, OptionsDll)
+            Dim comp1 = CreateCompilationWithReferences(source1, {MscorlibRef_v20}, TestOptions.ReleaseDll)
             comp1.VerifyDiagnostics()
 
             Dim c1 As NamedTypeSymbol = comp1.Assembly.GlobalNamespace.GetTypeMembers("C1").Single
@@ -3208,7 +3208,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp2 = CreateCompilationWithReferences(source2, {MscorlibRef_v4_0_30316_17626, New VisualBasicCompilationReference(comp1)}, OptionsDll)
+            Dim comp2 = CreateCompilationWithReferences(source2, {MscorlibRef_v4_0_30316_17626, New VisualBasicCompilationReference(comp1)}, TestOptions.ReleaseDll)
 
             Dim c1r As NamedTypeSymbol = comp2.GlobalNamespace.GetTypeMembers("C1").Single
 

@@ -47,7 +47,7 @@ End Class
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
 
             Dim actual = GetPdbXml(compilation, "C1..ctor")
 
@@ -97,7 +97,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -131,7 +131,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -165,7 +165,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -193,7 +193,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -227,7 +227,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
@@ -260,7 +260,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -294,7 +294,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
@@ -327,7 +327,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -357,7 +357,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
@@ -386,7 +386,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -416,7 +416,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))

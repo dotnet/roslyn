@@ -89,7 +89,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
 {
   // Code size       37 (0x25)
   .maxstack  3
@@ -198,7 +198,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
 {
   // Code size       43 (0x2b)
   .maxstack  4
@@ -248,7 +248,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
 {
   // Code size       34 (0x22)
   .maxstack  4
@@ -305,7 +305,7 @@ a _
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
 {
   // Code size       30 (0x1e)
   .maxstack  4
@@ -1022,7 +1022,7 @@ Public Class Gen(Of T As New)
     End Function
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
 {
   // Code size       41 (0x29)
   .maxstack  1
@@ -2290,7 +2290,7 @@ Class C2
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C1(Of S).DoStuff", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C1(Of S).DoStuff", <![CDATA[
 {
   // Code size       80 (0x50)
   .maxstack  1
@@ -2363,7 +2363,7 @@ Class C2
     End Sub
 End Class
     </file>
-</compilation>, options:=OptionsExe).VerifyIL("C1(Of S).DoStuff", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C1(Of S).DoStuff", <![CDATA[
 {
   // Code size       72 (0x48)
   .maxstack  1

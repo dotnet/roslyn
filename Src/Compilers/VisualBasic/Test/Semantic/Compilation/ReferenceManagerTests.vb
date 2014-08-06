@@ -48,10 +48,10 @@ End Class
 </text>
 
             ' reference asks for a lower version than available:
-            Dim testRefV1 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, compOptions:=OptionsDll)
+            Dim testRefV1 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, compOptions:=TestOptions.ReleaseDll)
 
             ' reference asks for a higher version than available:
-            Dim testRefV2 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, compOptions:=OptionsDll)
+            Dim testRefV2 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, compOptions:=TestOptions.ReleaseDll)
 
             testRefV1.VerifyDiagnostics()
 
@@ -89,10 +89,10 @@ End Class
 </text>
 
             ' reference asks for a lower version than available:
-            Dim testRefV1 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, compOptions:=OptionsDll)
+            Dim testRefV1 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, compOptions:=TestOptions.ReleaseDll)
 
             ' reference asks for a higher version than available:
-            Dim testRefV2 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, compOptions:=OptionsDll)
+            Dim testRefV2 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, compOptions:=TestOptions.ReleaseDll)
 
             testRefV1.VerifyDiagnostics()
             testRefV2.VerifyDiagnostics()
@@ -624,7 +624,7 @@ End Interface
         </file>
     </compilation>
 
-            Dim refLibV1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceRefLibV1, {New VisualBasicCompilationReference(libV1)}, options:=Options.OptionsDll)
+            Dim refLibV1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceRefLibV1, {New VisualBasicCompilationReference(libV1)}, options:=TestOptions.ReleaseDll)
             refLibV1.VerifyDiagnostics()
 
             Dim sourceMain =
@@ -664,7 +664,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'IB'. Are y
                 "DupSignedRefs",
                 {VisualBasicSyntaxTree.ParseText(text)},
                 {TestReferences.NetFx.v4_0_30319.System, TestReferences.NetFx.v2_0_50727.System},
-                OptionsDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
+                TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_DuplicateReferenceStrong).WithArguments(TestReferences.NetFx.v4_0_30319.System.Display, TestReferences.NetFx.v2_0_50727.System.Display))
@@ -685,7 +685,7 @@ Class D
 End Class
 </text>.Value
 
-            c = CreateCompilationWithMscorlib({source}, {r1, r2}, compOptions:=OptionsDll)
+            c = CreateCompilationWithMscorlib({source}, {r1, r2}, compOptions:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics()
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2))
@@ -697,12 +697,12 @@ Class D
 End Class
 </text>.Value
 
-            c = CreateCompilationWithMscorlib({source}, {r1, r2}, compOptions:=OptionsDll)
+            c = CreateCompilationWithMscorlib({source}, {r1, r2}, compOptions:=TestOptions.ReleaseDll)
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2))
             c.AssertTheseDiagnostics()
 
-            c = CreateCompilationWithMscorlib({source}, {r1, rEmbed}, compOptions:=OptionsDll)
+            c = CreateCompilationWithMscorlib({source}, {r1, rEmbed}, compOptions:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics(<errors>
 BC31549: Cannot embed interop types from assembly 'C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9' because it is missing the 'System.Runtime.InteropServices.GuidAttribute' attribute.
 BC31553: Cannot embed interop types from assembly 'C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9' because it is missing either the 'System.Runtime.InteropServices.ImportedFromTypeLibAttribute' attribute or the 'System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute' attribute.
@@ -713,7 +713,7 @@ BC31541: Reference to class 'C' is not allowed when its assembly is configured t
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(rEmbed))
 
-            c = CreateCompilationWithMscorlib({source}, {rEmbed, r1}, compOptions:=OptionsDll)
+            c = CreateCompilationWithMscorlib({source}, {rEmbed, r1}, compOptions:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics()
             Assert.Null(c.GetReferencedAssemblySymbol(rEmbed))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r1))
@@ -793,7 +793,7 @@ End Class
                 main = CompilationUtils.CreateCompilationWithMscorlibAndReferences(sourceMain, {
                     New MetadataFileReference(tempFile1_copy1.Path),
                     New MetadataFileReference(tempFile2.Path),
-                    New MetadataFileReference(tempFile1_copy2.Path)}, OptionsDll)
+                    New MetadataFileReference(tempFile1_copy2.Path)}, TestOptions.ReleaseDll)
 
                 ' Dev12 reports BC32208: Project already has a reference to assembly 'Lib'. A second reference to '...' cannot be added.
                 main.VerifyDiagnostics()
@@ -803,7 +803,7 @@ End Class
                 main = CompilationUtils.CreateCompilationWithMscorlibAndReferences(sourceMain, {
                     New MetadataFileReference(tempFile1_copy1.Path),
                     New MetadataFileReference(tempFile2.Path),
-                    New MetadataFileReference(tempFile1_copy1.Path)}, OptionsDll)
+                    New MetadataFileReference(tempFile1_copy1.Path)}, TestOptions.ReleaseDll)
 
                 main.VerifyDiagnostics()
                 Dim compRef1Copy = libV1.Clone()
@@ -816,14 +816,14 @@ End Class
                     New VisualBasicCompilationReference(libV1),
                     New VisualBasicCompilationReference(refLibV1),
                     New VisualBasicCompilationReference(compRef1Copy)
-                }, OptionsDll)
+                }, TestOptions.ReleaseDll)
 
                 ' Dev12 reports BC32208: Project already has a reference to assembly 'Lib'. A second reference to 'Lib' cannot be added.
                 main.VerifyDiagnostics()
 
                 ' test duplicate references in assemblies from compilations do not show an error if the assembly has a strong name
                 DirectCast(libV1.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity(libV1.AssemblyName, New Version("4.3.2.1"), publicKeyOrToken:=New Byte() {0, 1, 2, 3, 4, 5, 6, 7}.AsImmutableOrNull())
-                main = CompilationUtils.CreateCompilationWithMscorlibAndReferences(sourceMain, {New VisualBasicCompilationReference(libV1), New VisualBasicCompilationReference(refLibV1), New VisualBasicCompilationReference(libV1)}, OptionsDll)
+                main = CompilationUtils.CreateCompilationWithMscorlibAndReferences(sourceMain, {New VisualBasicCompilationReference(libV1), New VisualBasicCompilationReference(refLibV1), New VisualBasicCompilationReference(libV1)}, TestOptions.ReleaseDll)
                 main.VerifyDiagnostics()
             End Using
         End Sub
@@ -1142,7 +1142,7 @@ End Class
             Dim refA2 = New MetadataImageReference(a2.EmitToArray())
 
             Dim withCircularReference1 = CreateCompilationWithMscorlibAndReferences(sourceB, {refA2})
-            Dim withCircularReference2 = withCircularReference1.WithOptions(OptionsDll.WithMainTypeName("Blah"))
+            Dim withCircularReference2 = withCircularReference1.WithOptions(TestOptions.ReleaseDll.WithMainTypeName("Blah"))
             Assert.NotSame(withCircularReference1, withCircularReference2)
 
             ' until we try to reuse bound references we share the manager:
@@ -1176,7 +1176,7 @@ End Module
                     </file>
                 </compilation>,
                 references:={MscorlibRef, MsvbRef, SystemRef, SystemRef_v20},
-                options:=OptionsDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
+                options:=TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_DuplicateReferenceStrong).WithArguments("System.v4_0_30319.dll", "System.v2_0_50727.dll"))
@@ -1452,7 +1452,7 @@ End Class
 
             ' Note: we just need *a* module reference for the repro - we're not depending on its contents, name, etc.
             Dim assemblyMd = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib(assemblySource).EmitToArray())
-            Dim moduleRef = CreateCompilationWithMscorlibAndReferences(moduleSource, {New MetadataImageReference(assemblyMd)}, Options.OptionsNetModule).EmitToImageReference()
+            Dim moduleRef = CreateCompilationWithMscorlibAndReferences(moduleSource, {New MetadataImageReference(assemblyMd)}, TestOptions.ReleaseModule).EmitToImageReference()
 
             Dim text1 =
     <compilation name="test">
@@ -1533,12 +1533,12 @@ Namespace A
 
         <Fact>
         Public Sub CachingAndVisibility()
-            Dim cPublic = CreateCompilationWithMscorlib(<code></code>, options:=OptionsDll.WithMetadataImportOptions(MetadataImportOptions.Public))
-            Dim cInternal = CreateCompilationWithMscorlib(<code></code>, options:=OptionsDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
-            Dim [cAll] = CreateCompilationWithMscorlib(<code></code>, options:=OptionsDll.WithMetadataImportOptions(MetadataImportOptions.All))
-            Dim cPublic2 = CreateCompilationWithMscorlib(<code></code>, options:=OptionsDll.WithMetadataImportOptions(MetadataImportOptions.Public))
-            Dim cInternal2 = CreateCompilationWithMscorlib(<code></code>, options:=OptionsDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
-            Dim cAll2 = CreateCompilationWithMscorlib(<code></code>, options:=OptionsDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim cPublic = CreateCompilationWithMscorlib(<code></code>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Public))
+            Dim cInternal = CreateCompilationWithMscorlib(<code></code>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            Dim [cAll] = CreateCompilationWithMscorlib(<code></code>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim cPublic2 = CreateCompilationWithMscorlib(<code></code>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Public))
+            Dim cInternal2 = CreateCompilationWithMscorlib(<code></code>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            Dim cAll2 = CreateCompilationWithMscorlib(<code></code>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             Assert.NotSame(cPublic.Assembly.CorLibrary, cInternal.Assembly.CorLibrary)
             Assert.NotSame([cAll].Assembly.CorLibrary, cInternal.Assembly.CorLibrary)
@@ -1563,21 +1563,21 @@ End Class
 
             Dim mainSource = <compilation><file></file></compilation>
 
-            Dim netModule = CreateCompilationWithMscorlib(moduleSource, options:=OptionsNetModule)
+            Dim netModule = CreateCompilationWithMscorlib(moduleSource, options:=TestOptions.ReleaseModule)
             Dim moduleRef = netModule.EmitToImageReference()
 
             ' All
-            Dim mainAll = CreateCompilationWithMscorlibAndReferences(mainSource, {moduleRef}, options:=OptionsDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim mainAll = CreateCompilationWithMscorlibAndReferences(mainSource, {moduleRef}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim mAll = mainAll.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMembers("m")
             Assert.Equal(1, mAll.Length)
 
             ' Internal
-            Dim mainInternal = CreateCompilationWithMscorlibAndReferences(mainSource, {moduleRef}, options:=OptionsDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            Dim mainInternal = CreateCompilationWithMscorlibAndReferences(mainSource, {moduleRef}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
             Dim mInternal = mainInternal.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMembers("m")
             Assert.Equal(0, mInternal.Length)
 
             ' Public
-            Dim mainPublic = CreateCompilationWithMscorlibAndReferences(mainSource, {moduleRef}, options:=OptionsDll.WithMetadataImportOptions(MetadataImportOptions.Public))
+            Dim mainPublic = CreateCompilationWithMscorlibAndReferences(mainSource, {moduleRef}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Public))
             Dim mPublic = mainPublic.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMembers("m")
             Assert.Equal(0, mPublic.Length)
         End Sub
@@ -1632,7 +1632,7 @@ End Class
 
         <Fact, WorkItem(905495, "DevDiv")>
         Public Sub ReferenceWithNoMetadataSection()
-            Dim c = CreateCompilationWithMscorlib({}, {New TestImageReference(TestResources.MetadataTests.Basic.NativeApp, "NativeApp.exe")}, Options.OptionsDll)
+            Dim c = CreateCompilationWithMscorlib({}, {New TestImageReference(TestResources.MetadataTests.Basic.NativeApp, "NativeApp.exe")}, TestOptions.ReleaseDll)
             c.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_BadMetaDataReference1).WithArguments("NativeApp.exe", "PE image doesn't contain managed metadata."))
         End Sub

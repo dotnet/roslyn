@@ -2866,7 +2866,7 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, OptionsDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -2895,7 +2895,7 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, OptionsDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -2924,7 +2924,7 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, OptionsDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -2953,7 +2953,7 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, OptionsDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -3003,7 +3003,7 @@ BC30663: Attribute 'ParamArrayAttribute' cannot be applied multiple times.
             End Sub
         End Class
         ]]></file>
-    </compilation>, OptionsDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -3032,7 +3032,7 @@ BC30663: Attribute 'ParamArrayAttribute' cannot be applied multiple times.
             End Sub
         End Class
         ]]></file>
-    </compilation>, OptionsDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -5976,7 +5976,7 @@ End Class
 
         <Fact>
         Public Sub BC30561ERR_AmbiguousInImports2()
-            Dim options = OptionsExe.WithGlobalImports(GlobalImport.Parse({"N1", "N2"}))
+            Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"N1", "N2"}))
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="AmbiguousInImports2">
         <file name="a.vb"><![CDATA[
@@ -6006,7 +6006,7 @@ BC30561: 'I1' is ambiguous, imported from the namespaces or types 'N1, N2'.
 
         <Fact>
         Public Sub BC30562ERR_AmbiguousInModules2()
-            Dim options = OptionsExe.WithGlobalImports(GlobalImport.Parse({"N1", "N2"}))
+            Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"N1", "N2"}))
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="AmbiguousInModules2">
         <file name="a.vb"><![CDATA[
@@ -6086,7 +6086,7 @@ Imports <xmlns:p="p2">
 
         <Fact()>
         Public Sub BC30573ERR_DuplicatePrefix_1()
-            Dim options = OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns=""default1"">", "<xmlns=""default2"">", "<xmlns:p=""p1"">", "<xmlns:q=""q"">", "<xmlns:p=""p2"">"}))
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"<xmlns=""default1"">", "<xmlns=""default2"">", "<xmlns:p=""p1"">", "<xmlns:q=""q"">", "<xmlns:p=""p2"">"}))
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -7679,7 +7679,7 @@ End Interface
 <DefaultEvent("LogonCompleted")> Structure EventSource8
 End Structure
         ]]></file>
-    </compilation>, {SystemRef}, OptionsDll)
+    </compilation>, {SystemRef}, TestOptions.ReleaseDll)
             Dim expectedErrors = <errors><![CDATA[
 BC30770: Event 'LogonCompleted' specified by the 'DefaultEvent' attribute is not a publicly accessible event for this class.
 <DefaultEvent("LogonCompleted")> Public Class EventSource1
@@ -15060,7 +15060,7 @@ BC32105: Type argument 'V' does not satisfy the 'Structure' constraint for type 
 
         <Fact()>
         Public Sub BC32105ERR_BadTypeArgForStructConstraint2_4()
-            Dim options = OptionsDll.WithGlobalImports(GlobalImport.Parse({"N.A(Of Object).B(Of String)", "C=N.A(Of N.B).B(Of Object)"}))
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"N.A(Of Object).B(Of String)", "C=N.A(Of N.B).B(Of Object)"}))
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -19532,7 +19532,7 @@ BC40056: Namespace or type specified in the Imports 'Alias2' doesn't contain any
         <Fact>
         Public Sub BC40057WRN_UndefinedOrEmpyProjectNamespaceOrClass1()
             Dim globalImports = GlobalImport.Parse({"Alias2 = System", "N12 = Alias2"})
-            Dim options = OptionsExe.WithGlobalImports(globalImports)
+            Dim options = TestOptions.ReleaseExe.WithGlobalImports(globalImports)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="UndefinedOrEmpyProjectNamespaceOrClass1">
         <file name="a.vb"><![CDATA[
@@ -19669,7 +19669,7 @@ BC40003: sub 'Dispose1' shadows an overloadable member declared in the base clas
                 End Function
             End Module
         ]]></file>
-    </compilation>, OptionsExe.WithOptionInfer(False).WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseExe.WithOptionInfer(False).WithOptionStrict(OptionStrict.Custom))
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC42020: Variable declaration without an 'As' clause; type of Object assumed.
@@ -19684,7 +19684,7 @@ BC42020: Variable declaration without an 'As' clause; type of Object assumed.
                  ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
 
-            compilation1 = compilation1.WithOptions(OptionsExe.WithOptionInfer(False).WithOptionStrict(OptionStrict.Off))
+            compilation1 = compilation1.WithOptions(TestOptions.ReleaseExe.WithOptionInfer(False).WithOptionStrict(OptionStrict.Off))
 
             CompilationUtils.AssertNoErrors(compilation1)
         End Sub
@@ -19765,7 +19765,7 @@ BC30112: 'NS' is a namespace and cannot be used as an expression.
 
             End Module
         ]]></file>
-    </compilation>, OptionsDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
+    </compilation>, TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors><![CDATA[
@@ -19783,7 +19783,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
                 End Sub
             End Module
         ]]></file>
-    </compilation>, OptionsExe.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
+    </compilation>, TestOptions.ReleaseExe.WithOptionInfer(True).WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation2, <errors/>)
 
@@ -19843,7 +19843,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 
             End Module
         ]]></file>
-    </compilation>, OptionsExe.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(True))
+    </compilation>, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(True))
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC42021: Function without an 'As' clause; return type of Object assumed.
@@ -19913,7 +19913,7 @@ BC30210: Option Strict On requires all Function, Property, and Operator declarat
                 End Property
             End Module
         ]]></file>
-    </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom))
+    </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
             Dim expectedErrors1 = <errors><![CDATA[
 BC42022: Property without an 'As' clause; type of Object assumed.
                 ReadOnly Property p()
@@ -20587,7 +20587,7 @@ BC31398: Error in project-level import 'D$ = System.Collections' at 'D$' : Type 
 ]]></errors>)
 
             ' only include the imports with correct syntax:
-            Dim options = OptionsDll.WithGlobalImports(globalImports)
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(globalImports)
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -23338,7 +23338,7 @@ Public Class MyAttribute1
     Inherits System.Attribute
 End Class
         ]]></file>
-    </compilation>, OptionsDll)
+    </compilation>, TestOptions.ReleaseDll)
 
             Dim comp2 = CreateCompilationWithMscorlibAndReferences(
     <compilation>
@@ -23347,7 +23347,7 @@ Public Class MyAttribute2
     Inherits MyAttribute1
 End Class
         ]]></file>
-    </compilation>, {New VisualBasicCompilationReference(comp1)}, OptionsDll)
+    </compilation>, {New VisualBasicCompilationReference(comp1)}, TestOptions.ReleaseDll)
 
             Dim source3 =
     <compilation>
@@ -23365,10 +23365,10 @@ BC30652: Reference required to assembly 'Bug783920_VB, Version=0.0.0.0, Culture=
  ~~~~~~~~~~~~
 ]]></expected>
 
-            Dim comp4 = CreateCompilationWithMscorlibAndReferences(source3, {comp2.EmitToImageReference()}, OptionsDll)
+            Dim comp4 = CreateCompilationWithMscorlibAndReferences(source3, {comp2.EmitToImageReference()}, TestOptions.ReleaseDll)
             AssertTheseDiagnostics(comp4, expected)
 
-            Dim comp3 = CreateCompilationWithMscorlibAndReferences(source3, {New VisualBasicCompilationReference(comp2)}, OptionsDll)
+            Dim comp3 = CreateCompilationWithMscorlibAndReferences(source3, {New VisualBasicCompilationReference(comp2)}, TestOptions.ReleaseDll)
             AssertTheseDiagnostics(comp3, expected)
         End Sub
 

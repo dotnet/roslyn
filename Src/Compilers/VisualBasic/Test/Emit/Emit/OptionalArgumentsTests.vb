@@ -160,7 +160,7 @@ End Module
             Dim libraryCompilation = VisualBasicCompilation.Create("library",
                                                         {VisualBasicSyntaxTree.ParseText(source)},
                                                         {MsvbRef, MscorlibRef, SystemCoreRef},
-                                                        OptionsDll)
+                                                        TestOptions.ReleaseDll)
 
             Return New MetadataImageReference(libraryCompilation.EmitToArray())
         End Function
@@ -818,7 +818,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=UnoptimizedExe)
+            Dim comp = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.UnoptimizedExe)
             comp.AssertTheseDiagnostics(<errors/>)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
 System.Reflection.Missing: System.Reflection.Missing
@@ -922,7 +922,7 @@ End Class
             Dim comp2a = CreateCompilationWithMscorlibAndVBRuntime(
                 source2,
                 additionalRefs:={New VisualBasicCompilationReference(comp1)},
-                options:=UnoptimizedExe)
+                options:=TestOptions.UnoptimizedExe)
             comp2a.AssertTheseDiagnostics(
 <errors>
 BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F2(o As Integer) As Object'.
@@ -938,7 +938,7 @@ BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F8(
             Dim comp2b = CreateCompilationWithMscorlibAndVBRuntime(
                 source2,
                 additionalRefs:={New MetadataImageReference(comp1.EmitToArray())},
-                options:=UnoptimizedExe)
+                options:=TestOptions.UnoptimizedExe)
             comp2b.AssertTheseDiagnostics(<errors/>)
             CompileAndVerify(comp2b, expectedOutput:=
             <![CDATA[

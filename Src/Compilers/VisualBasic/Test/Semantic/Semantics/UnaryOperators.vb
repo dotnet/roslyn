@@ -315,12 +315,12 @@ Long: -24
 Long: -25
 ]]>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             Assert.True(c1.Options.CheckOverflow)
 
             CompileAndVerify(c1, expected)
 
-            c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe.WithOverflowChecks(False))
+            c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOverflowChecks(False))
             Assert.False(c1.Options.CheckOverflow)
 
             CompileAndVerify(c1, expected)
@@ -424,7 +424,7 @@ Module Module1
 
 End Module</text>.Value
                         )},
-                references:=Nothing, options:=OptionsDll)
+                references:=Nothing, options:=TestOptions.ReleaseDll)
 
 
             CompilationUtils.AssertTheseDiagnostics(c1,
@@ -514,7 +514,7 @@ BC30439: Constant expression not representable in type 'Long'.
 
             CompilationUtils.AssertTheseDiagnostics(c1, expected)
 
-            Dim c2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe.WithOverflowChecks(False))
+            Dim c2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Assert.False(c2.Options.CheckOverflow)
 
@@ -562,7 +562,7 @@ BC42019: Operands of type Object used for operator 'Not'; runtime errors could o
                  ~~
 </expected>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
             CompilationUtils.AssertTheseDiagnostics(compilation, expected)
 
@@ -663,7 +663,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, OptionsDll.WithOverflowChecks(True))
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll.WithOverflowChecks(True))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -806,7 +806,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, OptionsDll.WithOverflowChecks(False))
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll.WithOverflowChecks(False))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -818,7 +818,7 @@ End Class
             Dim symbol1 = DirectCast(semanticModel.GetSymbolInfo(node1).Symbol, MethodSymbol)
             Assert.False(symbol1.IsCheckedBuiltin)
 
-            compilation = compilation.WithOptions(OptionsDll.WithOverflowChecks(True))
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(True))
             semanticModel = compilation.GetSemanticModel(tree)
 
             Dim symbol2 = DirectCast(semanticModel.GetSymbolInfo(node1).Symbol, MethodSymbol)

@@ -1076,7 +1076,7 @@ End Class
             Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
             Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib},
-                                        options:=OptionsExe.WithOverflowChecks(False))
+                                        options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -3365,7 +3365,7 @@ End Module
     </file>
     </compilation>
                 CompileAndVerify(compilationDef,
-                             options:=OptionsExe.WithOverflowChecks(False),
+                             options:=TestOptions.ReleaseExe.WithOverflowChecks(False),
                              expectedOutput:=<![CDATA[
 Object: []
 Boolean: False
@@ -4246,7 +4246,7 @@ Module M1
     End Sub
 End Module
     ]]></file>
-    </compilation>, OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation)
         End Sub
@@ -4271,7 +4271,7 @@ Module M1
     End Sub
 End Module
     ]]></file>
-    </compilation>, OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -4307,7 +4307,7 @@ Module Module1
 End Module
 
     ]]></file>
-    </compilation>, OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -4392,7 +4392,7 @@ Structure BooleanEx
     End Operator
 End Structure
     ]]></file>
-    </compilation>, OptionsExe)
+    </compilation>, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:=
 "---
