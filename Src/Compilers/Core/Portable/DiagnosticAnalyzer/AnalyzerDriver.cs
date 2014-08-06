@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 try
                 {
-                    await InitialWorker(analyzers, continueOnError, cancellationToken).ConfigureAwait(false);
+                    await InitialWorkerAsync(analyzers, continueOnError, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -122,14 +122,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Return a task that completes when the driver is done producing diagnostics.
         /// </summary>
-        public async Task WhenCompleted()
+        public async Task WhenCompletedAsync()
         {
             await Task.WhenAll(SpecializedCollections.SingletonEnumerable(CompilationEventQueue.WhenCompleted)
                 .Concat(workers))
                 .ConfigureAwait(false);
         }
 
-        private async Task InitialWorker(ImmutableArray<IDiagnosticAnalyzer> initialAnalyzers, bool continueOnError, CancellationToken cancellationToken)
+        private async Task InitialWorkerAsync(ImmutableArray<IDiagnosticAnalyzer> initialAnalyzers, bool continueOnError, CancellationToken cancellationToken)
         {
             // Pull out the first event, which should be the "start compilation" event.
             var firstEvent = await CompilationEventQueue.DequeueAsync(/*cancellationToken*/).ConfigureAwait(false);
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var workers = ArrayBuilder<Task>.GetInstance();
             for (int i = 0; i < nTasks; i++)
             {
-                workers.Add(Task.Run(() => ProcessCompilationEvents(cancellationToken)));
+                workers.Add(Task.Run(() => ProcessCompilationEventsAsync(cancellationToken)));
             }
 
             ImmutableInterlocked.InterlockedInitialize(ref this.workers, workers.ToImmutableAndFree());
@@ -216,11 +216,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzersByKind.Select(a => a.ToImmutableAndFree()).ToImmutableArray();
         }
 
-        private async void ProcessCompilationEvents(CancellationToken cancellationToken)
+        private async Task ProcessCompilationEventsAsync(CancellationToken cancellationToken)
         {
             try
             {
-                await ProcessEvents(cancellationToken).ConfigureAwait(false);
+                await ProcessEventsAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {
@@ -229,14 +229,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ProcessEvents(CancellationToken cancellationToken)
+        private async Task ProcessEventsAsync(CancellationToken cancellationToken)
         {
             while (true)
             {
                 try
                 {
                     var e = await CompilationEventQueue.DequeueAsync(/*cancellationToken*/).ConfigureAwait(false);
-                    await ProcessEvent(e, cancellationToken).ConfigureAwait(false);
+                    await ProcessEventAsync(e, cancellationToken).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException)
                 {
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ProcessEvent(CompilationEvent e, CancellationToken cancellationToken)
+        private async Task ProcessEventAsync(CompilationEvent e, CancellationToken cancellationToken)
         {
             var symbolEvent = e as SymbolDeclaredCompilationEvent;
             if (symbolEvent != null)
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var endEvent = e as CompilationCompletedEvent;
             if (endEvent != null)
             {
-                await ProcessCompilationCompleted(endEvent, cancellationToken).ConfigureAwait(false);
+                await ProcessCompilationCompletedAsync(endEvent, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var decl in declaringSyntaxRefs)
             {
-                tasks.Add(AnalyzeDeclaringReference(symbolEvent, decl, addDiagnostic, cancellationToken));
+                tasks.Add(AnalyzeDeclaringReferenceAsync(symbolEvent, decl, addDiagnostic, cancellationToken));
             }
 
             return Task.WhenAll(tasks.ToImmutableAndFree());
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        protected abstract Task AnalyzeDeclaringReference(SymbolDeclaredCompilationEvent symbolEvent, SyntaxReference decl, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken);
+        protected abstract Task AnalyzeDeclaringReferenceAsync(SymbolDeclaredCompilationEvent symbolEvent, SyntaxReference decl, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken);
         
         private Task ProcessCompilationUnitCompleted(CompilationUnitCompletedEvent completedEvent, CancellationToken cancellationToken)
         {
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ProcessCompilationCompleted(CompilationCompletedEvent endEvent, CancellationToken cancellationToken)
+        private async Task ProcessCompilationCompletedAsync(CompilationCompletedEvent endEvent, CancellationToken cancellationToken)
         {
             var tasks = ArrayBuilder<Task>.GetInstance();
             foreach (var da in analyzers.OfType<ICompilationAnalyzer>())
@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        protected override async Task AnalyzeDeclaringReference(SymbolDeclaredCompilationEvent symbolEvent, SyntaxReference decl, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        protected override async Task AnalyzeDeclaringReferenceAsync(SymbolDeclaredCompilationEvent symbolEvent, SyntaxReference decl, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
         {
             var symbol = symbolEvent.Symbol;
             SemanticModel semanticModel = symbolEvent.SemanticModel(decl);
