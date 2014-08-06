@@ -249,19 +249,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var proxy = LambdaCapturedVariable.Create(frame, captured, ref synthesizedFieldNameIdDispenser);
-                proxies.Add(captured, new CapturedToFrameSymbolReplacement(proxy));
+                var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref synthesizedFieldNameIdDispenser);
+                proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
                 if (CompilationState.Emitting)
                 {
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, proxy);
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
                 }
 
-                if (proxy.Type.IsRestrictedType())
+                if (hoistedField.Type.IsRestrictedType())
                 {
                     foreach (CSharpSyntaxNode syntax in analysis.capturedSyntax[captured])
                     {
                         // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                        this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, proxy.Type);
+                        this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
                     }
                 }
             }
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame);
                     }
 
-                    proxies[innermostFramePointer] = new CapturedToFrameSymbolReplacement(capturedFrame);
+                    proxies[innermostFramePointer] = new CapturedToFrameSymbolReplacement(capturedFrame, isReusable: false);
                 }
             }
 

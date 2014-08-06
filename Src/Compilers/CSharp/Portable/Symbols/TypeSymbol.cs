@@ -299,18 +299,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        private class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
+        private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
         {
             private readonly bool ignoreDynamic, ignoreCustomModifiers;
+
             public EqualsIgnoringComparer(bool ignoreDynamic, bool ignoreCustomModifiers)
             {
                 this.ignoreDynamic = ignoreDynamic;
                 this.ignoreCustomModifiers = ignoreCustomModifiers;
             }
+
             public override int GetHashCode(TypeSymbol obj)
             {
                 return obj.GetHashCode();
             }
+
             public override bool Equals(TypeSymbol x, TypeSymbol y)
             {
                 return

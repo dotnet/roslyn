@@ -1,57 +1,63 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class CapturedSymbolReplacement
     {
-        public delegate BoundExpression FramePointerMaker(NamedTypeSymbol frameType);
-
-        internal virtual SynthesizedFieldSymbolBase HoistedField
-        {
-            get { return null; }
-        }
-
         /// <summary>
         /// Rewrite the replacement expression for the hoisted local so all synthesized field are accessed as members
         /// of the appropriate frame.
         /// </summary>
-        internal abstract BoundExpression Replacement(CSharpSyntaxNode node, FramePointerMaker makeFrame);
+        public abstract BoundExpression Replacement(CSharpSyntaxNode node, Func<NamedTypeSymbol, BoundExpression> makeFrame);
+
+        public abstract bool IsReusable { get; }
     }
 
-    internal class CapturedToFrameSymbolReplacement : CapturedSymbolReplacement
+    internal sealed class CapturedToFrameSymbolReplacement : CapturedSymbolReplacement
     {
-        private readonly SynthesizedFieldSymbolBase field;
+        public readonly SynthesizedFieldSymbolBase HoistedField;
+        public readonly bool isReusable;
 
-        public CapturedToFrameSymbolReplacement(SynthesizedFieldSymbolBase field)
+        public CapturedToFrameSymbolReplacement(SynthesizedFieldSymbolBase hoistedField, bool isReusable)
         {
-            this.field = field;
+            this.HoistedField = hoistedField;
+            this.isReusable = isReusable;
         }
 
-        internal override SynthesizedFieldSymbolBase HoistedField
+        public override bool IsReusable
         {
-            get { return field; }
+            get { return isReusable; }
         }
 
-        internal override BoundExpression Replacement(CSharpSyntaxNode node, FramePointerMaker makeFrame)
+        public override BoundExpression Replacement(CSharpSyntaxNode node, Func<NamedTypeSymbol, BoundExpression> makeFrame)
         {
-            var frame = makeFrame(this.field.ContainingType);
-            var field = this.field.AsMember((NamedTypeSymbol)frame.Type);
+            var frame = makeFrame(this.HoistedField.ContainingType);
+            var field = this.HoistedField.AsMember((NamedTypeSymbol)frame.Type);
             return new BoundFieldAccess(node, frame, field, default(ConstantValue));
         }
     }
 
-    internal class CapturedToExpressionSymbolReplacement : CapturedSymbolReplacement
+    internal sealed class CapturedToExpressionSymbolReplacement : CapturedSymbolReplacement
     {
         private readonly BoundExpression replacement;
+        public readonly ImmutableArray<SynthesizedFieldSymbolBase> HoistedFields;
 
-        internal CapturedToExpressionSymbolReplacement(BoundExpression replacement)
+        public CapturedToExpressionSymbolReplacement(BoundExpression replacement, ImmutableArray<SynthesizedFieldSymbolBase> hoistedFields)
         {
             this.replacement = replacement;
+            this.HoistedFields = hoistedFields;
         }
 
-        internal override BoundExpression Replacement(CSharpSyntaxNode node, FramePointerMaker makeFrame)
+        public override bool IsReusable
+        {
+            get { return true; }
+        }
+
+        public override BoundExpression Replacement(CSharpSyntaxNode node, Func<NamedTypeSymbol, BoundExpression> makeFrame)
         {
             // By returning the same replacement each time, it is possible we
             // are constructing a DAG instead of a tree for the translation.

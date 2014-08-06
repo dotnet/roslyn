@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly SyntheticBoundNodeFactory F;
         protected readonly SynthesizedContainer stateMachineClass;
         protected FieldSymbol stateField;
-        protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> variableProxies;
+        protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
         protected HashSet<Symbol> variablesCaptured;
         protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
         protected readonly bool generateDebugInfo;
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.variablesCaptured = new HashSet<Symbol>(captured.Keys);
 
-            this.variableProxies = CreateInitialProxies(captured);
+            this.nonReusableLocalProxies = CreateNonReusableLocalProxies(captured);
 
             GenerateMethodImplementations();
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ReplaceOriginalMethod();
         }
 
-        private IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> CreateInitialProxies(MultiDictionary<Symbol, CSharpSyntaxNode> captured)
+        private IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> CreateNonReusableLocalProxies(MultiDictionary<Symbol, CSharpSyntaxNode> captured)
         {
             var proxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // create proxies for user-defined variables and for lambda closures:
                         Debug.Assert(local.RefKind == RefKind.None);
-                        proxies.Add(local, MakeInitialProxy(typeMap, captured, local));
+                        proxies.Add(local, MakeNonReusableLocalProxy(typeMap, captured, local));
                     }
                 }
                 else
@@ -134,26 +134,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameter.IsThis)
                     {
                         var proxyField = F.StateMachineField(method.ContainingType, GeneratedNames.ThisProxyName(), isPublic: true);
-                        proxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField));
+                        proxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValues)
                         {
                             var initialThis = method.ContainingType.IsStructType() ?
                                 F.StateMachineField(method.ContainingType, GeneratedNames.StateMachineThisParameterProxyName(), isPublic: true) : proxyField;
 
-                            initialParameters.Add(parameter, new CapturedToFrameSymbolReplacement(initialThis));
+                            initialParameters.Add(parameter, new CapturedToFrameSymbolReplacement(initialThis, isReusable: false));
                         }
                     }
                     else
                     {
                         var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type), parameter.Name, isPublic: true);
-                        proxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField));
+                        proxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValues)
                         {
                             string proxyName = GeneratedNames.StateMachineParameterProxyName(parameter.Name);
                             initialParameters.Add(parameter, new CapturedToFrameSymbolReplacement(
-                                F.StateMachineField(typeMap.SubstituteType(parameter.Type), proxyName, isPublic: true)));
+                                F.StateMachineField(typeMap.SubstituteType(parameter.Type), proxyName, isPublic: true), 
+                                isReusable: false));
                         }
 
                         if (parameter.Type.IsRestrictedType())
@@ -168,10 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return proxies;
         }
 
-        private CapturedSymbolReplacement MakeInitialProxy(TypeMap TypeMap, MultiDictionary<Symbol, CSharpSyntaxNode> locations, LocalSymbol local)
+        private CapturedSymbolReplacement MakeNonReusableLocalProxy(TypeMap TypeMap, MultiDictionary<Symbol, CSharpSyntaxNode> locations, LocalSymbol local)
         {
             Debug.Assert(local.RefKind == RefKind.None);
-            CapturedSymbolReplacement result = new CapturedToFrameSymbolReplacement(MakeHoistedLocalField(TypeMap, local, local.Type));
+            CapturedSymbolReplacement result = new CapturedToFrameSymbolReplacement(MakeHoistedLocalField(TypeMap, local, local.Type), isReusable: false);
 
             if (local.Type.IsRestrictedType())
             {
@@ -214,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializeStateMachine(bodyBuilder, frameType, stateMachineVariable);
 
             // plus code to initialize all of the parameter proxies result.proxy
-            var proxies = PreserveInitialParameterValues ? initialParameters : variableProxies;
+            var proxies = PreserveInitialParameterValues ? initialParameters : nonReusableLocalProxies;
 
             // starting with the "this" proxy
             if (!method.IsStatic)

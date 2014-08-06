@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 state: stateField,
                 builder: builderField,
                 variablesCaptured: variablesCaptured,
-                initialProxies: variableProxies,
+                nonReusableLocalProxies: nonReusableLocalProxies,
                 diagnostics: diagnostics,
                 generateDebugInfo: generateDebugInfo);
 

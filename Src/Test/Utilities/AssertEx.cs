@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -381,7 +382,12 @@ namespace Roslyn.Test.Utilities
             Assert.True(false, "No exception was thrown.");
         }
 
-        public static void AssertEqualToleratingWhitespaceDifferences(string expected, string actual, bool escapeQuotes = true, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
+        public static void AssertEqualToleratingWhitespaceDifferences(
+            string expected, 
+            string actual, 
+            bool escapeQuotes = true, 
+            [CallerFilePath]string expectedValueSourcePath = null, 
+            [CallerLineNumber]int expectedValueSourceLine = 0)
         {
             var normalizedExpected = NormalizeWhitespace(expected);
             var normalizedActual = NormalizeWhitespace(actual);

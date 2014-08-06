@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>u__$awaiter" + number;
         }
 
-        internal static string SpillTempFieldName(int number)
+        internal static string ReusableHoistedLocalFieldName(int number)
         {
             return "<>7__wrap" + number;
         }

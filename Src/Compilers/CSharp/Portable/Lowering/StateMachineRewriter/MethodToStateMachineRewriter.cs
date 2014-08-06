@@ -17,12 +17,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol originalMethod,
             FieldSymbol state,
             HashSet<Symbol> variablesCaptured,
-            IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> initialProxies,
+            IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             DiagnosticBag diagnostics,
             bool useFinalizerBookkeeping,
             bool generateDebugInfo)
             : base(F.CompilationState, variablesCaptured, diagnostics, generateDebugInfo)
         {
+            Debug.Assert(F != null);
+            Debug.Assert(originalMethod != null);
+            Debug.Assert(state != null);
+            Debug.Assert(variablesCaptured != null);
+            Debug.Assert(nonReusableLocalProxies != null);
+            Debug.Assert(diagnostics != null);
+
             this.F = F;
             this.stateField = state;
             this.cachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), kind: SynthesizedLocalKind.StateMachineCachedState);
@@ -30,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.hasFinalizerState = useFinalizerBookkeeping;
             this.originalMethod = originalMethod;
 
-            foreach (var p in initialProxies)
+            foreach (var proxy in nonReusableLocalProxies)
             {
-                this.proxies.Add(p.Key, p.Value);
+                this.proxies.Add(proxy.Key, proxy.Value);
             }
         }
 
@@ -95,23 +102,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private int currentFinalizerState = -1;
 
         /// <summary>
-        /// A pool of fields used to hoist temporary variables.  They appear in this set when not in scope,
-        /// so that members of this set may be allocated to temps when the temps come into scope.
+        /// A pool of fields used to hoist locals. They appear in this set when not in scope,
+        /// so that members of this set may be allocated to locals when the locals come into scope.
         /// </summary>
-        private ArrayBuilder<SynthesizedFieldSymbolBase> availableTempFields = new ArrayBuilder<SynthesizedFieldSymbolBase>();
-
-        /// <summary>
-        /// A map from the identity of a temp local symbol in the original method to the set of fields
-        /// allocated to the temp in the translation.  When a temp goes out of scope, it is "freed" up
-        /// for allocation to other temps of the same type.
-        /// </summary>
-        Dictionary<LocalSymbol, ArrayBuilder<SynthesizedFieldSymbolBase>> freeTempsMap = new Dictionary<LocalSymbol, ArrayBuilder<SynthesizedFieldSymbolBase>>();
+        private Dictionary<TypeSymbol, ArrayBuilder<SynthesizedFieldSymbolBase>> availableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<SynthesizedFieldSymbolBase>>(TypeSymbol.EqualsIgnoringDynamicComparer);
 
         /// <summary>
         /// Fields allocated for temporary variables are given unique names distinguished by a number at the end.
         /// This counter ensures they are unique within a given translated method.
         /// </summary>
-        private int nextTempNumber = 1;
+        private int nextHoistedFieldId = 1;
 
         /// <summary>
         /// Used to compute if a struct type is actually empty.
@@ -184,12 +184,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Spilled local temps do not appear here in a sequence expression, because any temps in a
             // sequence expression that need to be spilled would have been moved up to the
             // statement level by the AwaitLiftingRewriter.
-            if (!node.Locals.IsDefaultOrEmpty)
+            foreach (var local in node.Locals)
             {
-                foreach (var local in node.Locals)
-                {
-                    Debug.Assert(!IsCaptured(local) || proxies.ContainsKey(local));
-                }
+                Debug.Assert(!IsCaptured(local) || proxies.ContainsKey(local));
             }
 
             return base.VisitSequence(node);
@@ -209,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return wrapped();
             }
 
-            var proxyFields = ArrayBuilder<SynthesizedFieldSymbolBase>.GetInstance();
+            var hoistedUserDefinedLocals = ArrayBuilder<SynthesizedFieldSymbolBase>.GetInstance();
             foreach (var local in locals)
             {
                 if (!IsCaptured(local))
@@ -217,79 +214,92 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                CapturedSymbolReplacement proxy;
-                if (proxies.TryGetValue(local, out proxy))
+                // Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
+                if (local.RefKind != RefKind.None) 
                 {
-                    // All of the user-declared variables have pre-allocated proxies
-                    var field = proxy.HoistedField;
-                    Debug.Assert((object)field != null);
-
-                    Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.None ||
-                                 local.SynthesizedLocalKind == SynthesizedLocalKind.LambdaDisplayClass);
-
-                    if (local.DeclarationKind != LocalDeclarationKind.None)
-                    {
-                        proxyFields.Add(field);
-                    }
+                    Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpill);
+                    continue;
                 }
-                else
+
+                Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.None || 
+                             local.SynthesizedLocalKind.IsLongLived());
+
+                CapturedSymbolReplacement proxy;
+                if (!proxies.TryGetValue(local, out proxy))
                 {
-                    if (local.RefKind == RefKind.None)
-                    {
-                        SynthesizedFieldSymbolBase field = MakeHoistedTemp(local, TypeMap.SubstituteType(local.Type));
-                        proxy = new CapturedToFrameSymbolReplacement(field);
-                        proxies.Add(local, proxy);
-                    }
-                    // ref temporary variables have proxies that are allocated on demand
-                    // See VisitAssignmentOperator.
+                    proxy = new CapturedToFrameSymbolReplacement(GetOrAllocateHoistedField(TypeMap.SubstituteType(local.Type)), isReusable: true);
+                    proxies.Add(local, proxy);
+                }
+
+                if (local.SynthesizedLocalKind == SynthesizedLocalKind.None)
+                {
+                    hoistedUserDefinedLocals.Add(((CapturedToFrameSymbolReplacement)proxy).HoistedField);
                 }
             }
 
             var translatedStatement = wrapped();
+            var variableCleanup = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
 
-            // produce code to free (e.g. mark as available for reuse) and clear (e.g. set to null) the proxies for any temps for these locals
-            var clearTemps = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
+            // produce cleanup code for all fields of locals defined by this block 
+            // as well as all proxies allocated by VisitAssignmentOperator within this block:
             foreach (var local in locals)
             {
-                ArrayBuilder<SynthesizedFieldSymbolBase> frees;
-                if (freeTempsMap.TryGetValue(local, out frees))
+                CapturedSymbolReplacement proxy;
+                if (!proxies.TryGetValue(local, out proxy))
                 {
-                    Debug.Assert(local.SynthesizedLocalKind.IsLongLived() && local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
+                    continue;
+                }
 
-                    Debug.Assert(local.SynthesizedLocalKind != SynthesizedLocalKind.None &&
-                                 local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
+                var simpleProxy = proxy as CapturedToFrameSymbolReplacement;
+                if (simpleProxy != null)
+                {
+                    AddVariableCleanup(variableCleanup, simpleProxy.HoistedField);
 
-                    freeTempsMap.Remove(local);
-                    foreach (var field in frees)
+                    if (proxy.IsReusable)
                     {
-                        if (MightContainReferences(field.Type))
-                        {
-                            clearTemps.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type)));
-                        }
-
-                        FreeTempField(field);
+                        FreeHoistedField(simpleProxy.HoistedField);
                     }
-                    frees.Free();
+                }
+                else
+                {
+                    foreach (var field in ((CapturedToExpressionSymbolReplacement)proxy).HoistedFields)
+                    {
+                        AddVariableCleanup(variableCleanup, field);
+
+                        if (proxy.IsReusable)
+                        {
+                            FreeHoistedField(field);
+                        }
+                    }
                 }
             }
 
-            if (clearTemps.Count != 0)
+            if (variableCleanup.Count != 0)
             {
                 translatedStatement = F.Block(
                     translatedStatement,
-                    F.Block(clearTemps.Select(e => F.ExpressionStatement(e)).AsImmutable<BoundStatement>())
-                    );
+                    F.Block(variableCleanup.SelectAsArray((e, f) => (BoundStatement)f.ExpressionStatement(e), F)));
             }
-            clearTemps.Free();
+
+            variableCleanup.Free();
 
             // wrap the node in an iterator scope for debugging
-            if (proxyFields.Count != 0)
+            if (hoistedUserDefinedLocals.Count != 0)
             {
-                translatedStatement = F.Block(new BoundIteratorScope(F.Syntax, proxyFields.ToImmutable(), translatedStatement));
+                translatedStatement = F.Block(new BoundIteratorScope(F.Syntax, hoistedUserDefinedLocals.ToImmutable(), translatedStatement));
             }
-            proxyFields.Free();
+
+            hoistedUserDefinedLocals.Free();
 
             return translatedStatement;
+        }
+
+        private void AddVariableCleanup(ArrayBuilder<BoundAssignmentOperator> cleanup, FieldSymbol field)
+        {
+            if (MightContainReferences(field.Type))
+            {
+                cleanup.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type)));
+            }
         }
 
         /// <summary>
@@ -313,62 +323,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        /// <summary>
-        /// Allocate a temp of the given type, and note that it should be freed and cleared when the
-        /// given local symbol goes out of scope.
-        /// </summary>
-        private SynthesizedFieldSymbolBase MakeHoistedTemp(LocalSymbol local, TypeSymbol type)
+        private SynthesizedFieldSymbolBase GetOrAllocateHoistedField(TypeSymbol type)
         {
-            Debug.Assert(local.SynthesizedLocalKind.IsLongLived() && local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
-
-            Debug.Assert(local.SynthesizedLocalKind != SynthesizedLocalKind.None &&
-                         local.SynthesizedLocalKind != SynthesizedLocalKind.LambdaDisplayClass);
-
-            SynthesizedFieldSymbolBase result = GetOrAllocateTempField(type);
-            ArrayBuilder<SynthesizedFieldSymbolBase> freeFields;
-            if (!this.freeTempsMap.TryGetValue(local, out freeFields))
+            ArrayBuilder<SynthesizedFieldSymbolBase> fields;
+            if (availableHoistedFields.TryGetValue(type, out fields) && fields.Count > 0)
             {
-                this.freeTempsMap.Add(local, freeFields = ArrayBuilder<SynthesizedFieldSymbolBase>.GetInstance());
+                var field = fields.Last();
+                fields.RemoveLast();
+                return field;
             }
-            freeFields.Add(result);
-            return result;
+
+            var fieldName = GeneratedNames.ReusableHoistedLocalFieldName(nextHoistedFieldId++);
+            return F.StateMachineField(type, fieldName, isPublic: true);
         }
 
-        /// <summary>
-        /// Allocate a field of the state machine of the given type, to serve as a temporary.
-        /// </summary>
-        private SynthesizedFieldSymbolBase GetOrAllocateTempField(TypeSymbol type)
+        private void FreeHoistedField(SynthesizedFieldSymbolBase field)
         {
-            SynthesizedFieldSymbolBase result = null;
-
-            // See if we've allocated a temp field we can reuse.  Not particularly efficient, but
-            // there should not normally be a lot of hoisted temps.
-            for (int i = 0; i < availableTempFields.Count; i++)
+            ArrayBuilder<SynthesizedFieldSymbolBase> fields;
+            if (!availableHoistedFields.TryGetValue(field.Type, out fields))
             {
-                SynthesizedFieldSymbolBase f = availableTempFields[i];
-                if (f.Type == type)
-                {
-                    result = f;
-                    availableTempFields.RemoveAt(i);
-                    break;
-                }
+                availableHoistedFields.Add(field.Type, fields = new ArrayBuilder<SynthesizedFieldSymbolBase>());
             }
 
-            if ((object)result == null)
-            {
-                var fieldName = GeneratedNames.SpillTempFieldName(nextTempNumber++);
-                result = F.StateMachineField(type, fieldName, isPublic: true);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Add a state machine field to the set of fields available for allocation to temps
-        /// </summary>
-        private void FreeTempField(SynthesizedFieldSymbolBase field)
-        {
-            availableTempFields.Add(field);
+            fields.Add(field);
         }
 
         private BoundExpression HoistRefInitialization(LocalSymbol local, BoundAssignmentOperator node)
@@ -376,10 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var right = (BoundExpression)Visit(node.Right);
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
             bool needsSacrificialEvaluation = false;
-            var replacement = HoistExpression(local, right, true, sideEffects, ref needsSacrificialEvaluation);
+
+            var hoistedFields = ArrayBuilder<SynthesizedFieldSymbolBase>.GetInstance();
+            var replacement = HoistExpression(right, true, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
 
             Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpill);
-            proxies.Add(local, new CapturedToExpressionSymbolReplacement(replacement));
+            proxies.Add(local, new CapturedToExpressionSymbolReplacement(replacement, hoistedFields.ToImmutableAndFree()));
 
             if (needsSacrificialEvaluation)
             {
@@ -402,10 +381,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression HoistExpression(
-            LocalSymbol top,
             BoundExpression expr,
             bool isRef,
             ArrayBuilder<BoundExpression> sideEffects,
+            ArrayBuilder<SynthesizedFieldSymbolBase> hoistedFields,
             ref bool needsSacrificialEvaluation)
         {
             switch (expr.Kind)
@@ -413,15 +392,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ArrayAccess:
                     {
                         var array = (BoundArrayAccess)expr;
-                        BoundExpression expression = HoistExpression(top, array.Expression, false, sideEffects, ref needsSacrificialEvaluation);
+                        BoundExpression expression = HoistExpression(array.Expression, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
                         var indices = ArrayBuilder<BoundExpression>.GetInstance();
                         foreach (var index in array.Indices)
                         {
-                            indices.Add(HoistExpression(top, index, false, sideEffects, ref needsSacrificialEvaluation));
+                            indices.Add(HoistExpression(index, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation));
                         }
+
                         needsSacrificialEvaluation = true; // need to force array index out of bounds exceptions
                         return array.Update(expression, indices.ToImmutableAndFree(), array.Type);
                     }
+
                 case BoundKind.FieldAccess:
                     {
                         var field = (BoundFieldAccess)expr;
@@ -431,22 +412,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (isRef || field.FieldSymbol.IsReadOnly) return expr;
                             goto default;
                         }
-                        if (!isRef) goto default;
+
+                        if (!isRef)
+                        {
+                            goto default;
+                        }
+
                         var isFieldOfStruct = !field.FieldSymbol.ContainingType.IsReferenceType;
-                        var receiver = HoistExpression(top, field.ReceiverOpt, isFieldOfStruct, sideEffects, ref needsSacrificialEvaluation);
-                        if (receiver.Kind != BoundKind.ThisReference && !isFieldOfStruct) needsSacrificialEvaluation = true; // need the null check in field receiver
+                        
+                        var receiver = HoistExpression(field.ReceiverOpt, isFieldOfStruct, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+                        if (receiver.Kind != BoundKind.ThisReference && !isFieldOfStruct)
+                        {
+                            needsSacrificialEvaluation = true; // need the null check in field receiver
+                        }
+
                         return F.Field(receiver, field.FieldSymbol);
                     }
+
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
                 case BoundKind.DefaultOperator:
                     return expr;
+
                 default:
                     {
-                        if (expr.ConstantValue != null) return expr;
-                        if (isRef) throw ExceptionUtilities.UnexpectedValue(expr.Kind);
-                        var hoistingField = MakeHoistedTemp(top, expr.Type);
-                        var replacement = F.Field(F.This(), hoistingField);
+                        if (expr.ConstantValue != null)
+                        {
+                            return expr;
+                        }
+
+                        if (isRef)
+                        {
+                            throw ExceptionUtilities.UnexpectedValue(expr.Kind);
+                        }
+
+                        var hoistedField = GetOrAllocateHoistedField(expr.Type);
+                        hoistedFields.Add(hoistedField);
+
+                        var replacement = F.Field(F.This(), hoistedField);
                         sideEffects.Add(F.AssignmentExpression(replacement, expr));
                         return replacement;
                     }
@@ -570,16 +573,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.Assignment(F.Field(F.This(), stateField), F.AssignmentExpression(F.Local(cachedState), F.Literal(StateMachineStates.NotStartedStateMachine))),
                         GenerateReturn(false),
                         F.Label(skipFinalizer),
-                        tryBlock
-                        );
+                        tryBlock);
                 }
                 else
                 {
                     tryBlock = F.Block(
                         F.HiddenSequencePoint(),
                         Dispatch(),
-                        tryBlock
-                        );
+                        tryBlock);
                 }
 
                 if (oldDispatches == null)

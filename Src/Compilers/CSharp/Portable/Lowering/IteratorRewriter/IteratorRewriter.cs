@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Initialize all the parameter copies
             var copySrc = initialParameters;
-            var copyDest = variableProxies;
+            var copyDest = nonReusableLocalProxies;
             if (!method.IsStatic)
             {
                 // starting with "this"
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stateField,
                 currentField,
                 variablesCaptured,
-                variableProxies,
+                nonReusableLocalProxies,
                 diagnostics,
                 generateDebugInfo);
 
