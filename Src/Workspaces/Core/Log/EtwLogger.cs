@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics.Tracing;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -14,14 +13,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     internal sealed class EtwLogger : ILogger
     {
         public static readonly EtwLogger Instance = new EtwLogger();
+
         private readonly Func<FunctionId, bool> loggingChecker;
 
         // Due to ETW specifics, RoslynEventSource.Instance needs to be initialized during EtwLogger construction 
         // so that we can enable the listeners synchronously before any events are logged.
         private readonly RoslynEventSource source = RoslynEventSource.Instance;
-
-        // Use an object pool since we may be logging up to 1-10k events/second
-        private readonly ObjectPool<RoslynEtwLogBlock> etwBlocksPool;
 
         public EtwLogger()
             : this((Func<FunctionId, bool>)null)
@@ -36,11 +33,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         public EtwLogger(Func<FunctionId, bool> loggingChecker)
         {
             this.loggingChecker = loggingChecker;
-
-            // Regardless of how many tasks we can run in parallel on the machine, we likely won't need more than 256
-            // instrumentation points in flight at a given time.
-            var poolSize = Math.Min(Environment.ProcessorCount * 8, 256);
-            etwBlocksPool = new ObjectPool<RoslynEtwLogBlock>(() => new RoslynEtwLogBlock(etwBlocksPool), poolSize);
         }
 
         public bool IsEnabled(FunctionId functionId)
@@ -48,68 +40,37 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return source.IsEnabled() && (this.loggingChecker == null || this.loggingChecker(functionId));
         }
 
-        public bool IsVerbose()
+        public void Log(FunctionId functionId, LogMessage logMessage)
+        {
+            source.Log(GetMessage(logMessage), functionId);
+        }
+
+        public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
+        {
+            RoslynEventSource.Instance.BlockStart(GetMessage(logMessage), functionId, uniquePairId);
+        }
+
+        public void LogBlockEnd(FunctionId functionId, int delta, int uniquePairId, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                RoslynEventSource.Instance.BlockCanceled(functionId, delta, uniquePairId);
+            }
+            else
+            {
+                RoslynEventSource.Instance.BlockStop(functionId, delta, uniquePairId);
+            }
+        }
+
+        private bool IsVerbose()
         {
             // "-1" makes this to work with any keyword
             return source.IsEnabled(EventLevel.Verbose, (EventKeywords)(-1));
         }
 
-        public void Log(FunctionId functionId, string message)
+        private string GetMessage(LogMessage logMessage)
         {
-            source.Log(message, functionId);
-        }
-
-        public IDisposable LogBlock(FunctionId functionId, string message, int blockId, CancellationToken cancellationToken)
-        {
-            var block = etwBlocksPool.Allocate();
-            block.Construct(functionId, message, blockId, cancellationToken);
-            return block;
-        }
-
-        /// <summary>
-        /// This tracks the logged message. On instantiation, it logs 'Started block' with other event data.
-        /// On dispose, it logs 'Ended block' with the same event data so we can track which block started and ended when looking at logs.
-        /// </summary>
-        private sealed class RoslynEtwLogBlock : IDisposable
-        {
-            private FunctionId functionId;
-            private int tick;
-            private int blockId;
-            private CancellationToken cancellationToken;
-            private readonly ObjectPool<RoslynEtwLogBlock> pool;
-
-            public RoslynEtwLogBlock(ObjectPool<RoslynEtwLogBlock> pool)
-            {
-                this.pool = pool;
-            }
-
-            public void Construct(FunctionId functionId, string message, int blockId, CancellationToken cancellationToken)
-            {
-                this.functionId = functionId;
-                this.tick = Environment.TickCount;
-                this.blockId = blockId;
-                this.cancellationToken = cancellationToken;
-
-                RoslynEventSource.Instance.BlockStart(message, functionId, blockId);
-            }
-
-            public void Dispose()
-            {
-                // This delta is valid for durations of < 25 days
-                var delta = Environment.TickCount - this.tick;
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    RoslynEventSource.Instance.BlockCanceled(functionId, delta, blockId);
-                }
-                else
-                {
-                    RoslynEventSource.Instance.BlockStop(functionId, delta, blockId);
-                }
-
-                // Free this block back to the pool
-                cancellationToken = default(CancellationToken);
-                pool.Free(this);
-            }
+            return IsVerbose() ? logMessage.GetMessage() : string.Empty;
         }
     }
 }

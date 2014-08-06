@@ -38,48 +38,20 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return this.loggingChecker == null || this.loggingChecker(functionId);
         }
 
-        /// <summary>
-        /// Trace logger always uses verbose mode.
-        /// </summary>
-        public bool IsVerbose()
+        public void Log(FunctionId functionId, LogMessage logMessage)
         {
-            return true;
+            Trace.WriteLine(string.Format("[{0}] {1}/{2} - {3}", Thread.CurrentThread.ManagedThreadId, functionId.ToString(), logMessage.GetMessage()));
         }
 
-        public void Log(FunctionId functionId, string message)
+        public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
         {
-            Trace.WriteLine(string.Format("[{0}] {1}/{2} - {3}", Thread.CurrentThread.ManagedThreadId, functionId.ToString(), message));
+            Trace.WriteLine(string.Format("[{0}] Start({1}) : {2}/{3} - {4}", Thread.CurrentThread.ManagedThreadId, uniquePairId, functionId.ToString(), logMessage.GetMessage()));
         }
 
-        public IDisposable LogBlock(FunctionId functionId, string message, int uniquePairId, CancellationToken cancellationToken)
+        public void LogBlockEnd(FunctionId functionId, int delta, int uniquePairId, CancellationToken cancellationToken)
         {
-            return new TraceLogBlock(functionId, message, uniquePairId, cancellationToken);
-        }
-
-        private class TraceLogBlock : IDisposable
-        {
-            private readonly CancellationToken cancellationToken;
-            private readonly FunctionId functionId;
-            private readonly int uniquePairId;
-
-            private readonly Stopwatch watch;
-
-            public TraceLogBlock(FunctionId functionId, string message, int uniquePairId, CancellationToken cancellationToken)
-            {
-                this.functionId = functionId;
-                this.uniquePairId = uniquePairId;
-                this.cancellationToken = cancellationToken;
-
-                this.watch = Stopwatch.StartNew();
-                Trace.WriteLine(string.Format("[{0}] Start({1}) : {2}/{3} - {4}", Thread.CurrentThread.ManagedThreadId, uniquePairId, functionId.ToString(), message));
-            }
-
-            public void Dispose()
-            {
-                var timeSpan = watch.ElapsedMilliseconds;
-                var functionString = functionId.ToString() + (cancellationToken.IsCancellationRequested ? " Canceled" : string.Empty);
-                Trace.WriteLine(string.Format("[{0}] End({1}) : [{2}ms] {3}/{4}", Thread.CurrentThread.ManagedThreadId, uniquePairId, timeSpan, functionString));
-            }
+            var functionString = functionId.ToString() + (cancellationToken.IsCancellationRequested ? " Canceled" : string.Empty);
+            Trace.WriteLine(string.Format("[{0}] End({1}) : [{2}ms] {3}/{4}", Thread.CurrentThread.ManagedThreadId, uniquePairId, delta, functionString));
         }
     }
 }

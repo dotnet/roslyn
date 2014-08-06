@@ -3,17 +3,18 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class EtwLoggingTests : TestBase
+    public class LoggingTests : TestBase
     {
         [Fact]
         public void TestAllocationPooling()
         {
+            Logger.SetLogger(AggregateLogger.Create(TestLogger.Instance, Logger.GetLogger()));
+
             var block1 = LogBlock();
             var block2 = LogBlock();
             Assert.NotEqual(block1, block2);
@@ -21,13 +22,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
             block1.Dispose();
             var block3 = LogBlock();
             Assert.Same(block1, block3);
+
             block2.Dispose();
             block3.Dispose();
         }
 
         private static IDisposable LogBlock()
         {
-            return EtwLogger.Instance.LogBlock(FunctionId.TestEvent_NotUsed, "", 0, CancellationToken.None);
+            return Logger.LogBlock(FunctionId.TestEvent_NotUsed, CancellationToken.None);
+        }
+
+        private class TestLogger : ILogger
+        {
+            public static readonly ILogger Instance = new TestLogger();
+
+            public bool IsEnabled(FunctionId functionId)
+            {
+                return true;
+            }
+
+            public void Log(FunctionId functionId, LogMessage logMessage) { }
+            public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken) { }
+            public void LogBlockEnd(FunctionId functionId, int delta, int uniquePairId, CancellationToken cancellationToken) { }
         }
     }
 }

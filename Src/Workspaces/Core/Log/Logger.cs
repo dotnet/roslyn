@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// provide a way to log activities to various back end such as etl, code marker and etc
     /// </summary>
     [ExcludeFromCodeCoverage]
-    internal static class Logger
+    internal static partial class Logger
     {
         private static ILogger currentLogger = null;
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// ensure we have a logger by putting one from workspace service if one is not there already.
         /// </summary>
-        private static ILogger GetLogger()
+        public static ILogger GetLogger()
         {
             return Logger.currentLogger;
         }
@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            message = logger.IsVerbose() ? message : string.Empty;
-            logger.Log(functionId, message ?? string.Empty);
+            logger.Log(functionId, LogMessage.Create(message));
         }
 
         /// <summary>
@@ -75,8 +74,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            var message = logger.IsVerbose() ? messageGetter() : string.Empty;
-            logger.Log(functionId, message);
+            logger.Log(functionId, LogMessage.Create(messageGetter));
         }
 
         /// <summary>
@@ -96,8 +94,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            var message = logger.IsVerbose() ? messageGetter(arg) : string.Empty;
-            logger.Log(functionId, message);
+            logger.Log(functionId, LogMessage.Create(messageGetter, arg));
         }
 
         /// <summary>
@@ -117,8 +114,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            var message = logger.IsVerbose() ? messageGetter(arg0, arg1) : string.Empty;
-            logger.Log(functionId, message);
+            logger.Log(functionId, LogMessage.Create(messageGetter, arg0, arg1));
         }
 
         /// <summary>
@@ -138,8 +134,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            var message = logger.IsVerbose() ? messageGetter(arg0, arg1, arg2) : string.Empty;
-            logger.Log(functionId, message);
+            logger.Log(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2));
         }
 
         /// <summary>
@@ -159,8 +154,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            var message = logger.IsVerbose() ? messageGetter(arg0, arg1, arg2, arg3) : string.Empty;
-            logger.Log(functionId, message);
+            logger.Log(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3));
         }
 
         /// <summary>
@@ -195,8 +189,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            message = logger.IsVerbose() ? message : string.Empty;
-            return logger.LogBlock(functionId, message ?? string.Empty, GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(message), GetNextUniqueBlockId(), token);
         }
 
         /// <summary>
@@ -216,8 +209,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            var message = logger.IsVerbose() ? messageGetter() : string.Empty;
-            return logger.LogBlock(functionId, message, GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(messageGetter), GetNextUniqueBlockId(), token);
         }
 
         /// <summary>
@@ -237,8 +229,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            var message = logger.IsVerbose() ? messageGetter(arg) : string.Empty;
-            return logger.LogBlock(functionId, message, GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg), GetNextUniqueBlockId(), token);
         }
 
         /// <summary>
@@ -258,8 +249,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            var message = logger.IsVerbose() ? messageGetter(arg0, arg1) : string.Empty;
-            return logger.LogBlock(functionId, message, GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1), GetNextUniqueBlockId(), token);
         }
 
         /// <summary>
@@ -279,8 +269,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            var message = logger.IsVerbose() ? messageGetter(arg0, arg1, arg2) : string.Empty;
-            return logger.LogBlock(functionId, message, GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2), GetNextUniqueBlockId(), token);
         }
 
         /// <summary>
@@ -300,8 +289,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            var message = logger.IsVerbose() ? messageGetter(arg0, arg1, arg2, arg3) : string.Empty;
-            return logger.LogBlock(functionId, message, GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3), GetNextUniqueBlockId(), token);
         }
 
         public static Func<FunctionId, bool> GetLoggingChecker(IOptionService optionService)

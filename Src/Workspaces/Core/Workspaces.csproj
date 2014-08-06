@@ -344,6 +344,9 @@
     <Compile Include="CodeGeneration\Symbols\CodeGenerationTypeSymbol.cs" />
     <Compile Include="CodeGeneration\SyntaxAnnotationExtensions.cs" />
     <Compile Include="CodeGeneration\TypeGenerator.cs" />
+    <Compile Include="Log\AggregateLogger.cs" />
+    <Compile Include="Log\Logger.LogBlock.cs" />
+    <Compile Include="Log\LogMessage.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Workspace\Host\Caching\AbstractCacheServiceFactory.cs" />
     <Compile Include="Workspace\Host\Caching\CacheOptions.cs" />
