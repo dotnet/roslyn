@@ -902,7 +902,7 @@ public class C {}
             var consoleappCompilation = CreateCompilationWithMscorlib(
                 consoleappSource, 
                 references: new[] { new MetadataImageReference(netModuleWithAssemblyAttributes) }, 
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+                options: TestOptions.ReleaseExe);
 
             var diagnostics = consoleappCompilation.GetDiagnostics();
 
@@ -937,7 +937,7 @@ public class C {}
 
             Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
             Assert.Equal(3, metadataReader.GetTableRowCount(TableIndex.ExportedType));
-            Assert.Equal(5, metadataReader.CustomAttributes.Count);
+            Assert.Equal(6, metadataReader.CustomAttributes.Count);
             Assert.Equal(1, metadataReader.DeclarativeSecurityAttributes.Count); 
 
             token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
@@ -1057,9 +1057,11 @@ public class C {}
                         break;
                     case "CompilationRelaxationsAttribute":
                     case "RuntimeCompatibilityAttribute":
+                    case "DebuggableAttribute":
                         // synthesized attributes
                         break;
                     default:
+                        Assert.Equal("Unexpected Attr", a.AttributeClass.Name);
                         break;
                 }
             }

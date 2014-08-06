@@ -918,17 +918,16 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         Private Sub VerifySynthesizedDebuggableAttribute(attribute As VisualBasicAttributeData, sourceAssembly As SourceAssemblySymbol, emitDebugInfoKind As DebugInformationKind, optimizationsEnabled As Boolean)
-            Assert.NotEqual(DebugInformationKind.None, emitDebugInfoKind)
-
-            Dim expectedDebuggingMode = DebuggableAttribute.DebuggingModes.Default Or
-                                        DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints
+            Dim expectedDebuggingMode = DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints
 
             If Not optimizationsEnabled Then
-                expectedDebuggingMode = expectedDebuggingMode Or DebuggableAttribute.DebuggingModes.DisableOptimizations
+                expectedDebuggingMode = expectedDebuggingMode Or
+                                        DebuggableAttribute.DebuggingModes.Default Or
+                                        DebuggableAttribute.DebuggingModes.DisableOptimizations
+            End If
 
-                If emitDebugInfoKind = DebugInformationKind.Full Then
-                    expectedDebuggingMode = expectedDebuggingMode Or DebuggableAttribute.DebuggingModes.EnableEditAndContinue
-                End If
+            If Not optimizationsEnabled AndAlso emitDebugInfoKind = DebugInformationKind.Full Then
+                expectedDebuggingMode = expectedDebuggingMode Or DebuggableAttribute.DebuggingModes.EnableEditAndContinue
             End If
 
             VerifyDebuggableAttribute(attribute, sourceAssembly, expectedDebuggingMode)
@@ -985,29 +984,30 @@ End Class
                              </file>
                          </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) = Sub(compilation As VisualBasicCompilation)
-                                                                     Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                                                                     Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                                                                     Dim options As VisualBasicCompilationOptions = compilation.Options
+            Dim validator As Action(Of VisualBasicCompilation) =
+                Sub(compilation As VisualBasicCompilation)
+                    Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
+                    Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
+                    Dim options As VisualBasicCompilationOptions = compilation.Options
 
-                                                                     If Not options.OutputKind.IsNetModule() Then
-                                                                         ' Verify synthesized DebuggableAttribute based on compilation options.
+                    If Not options.OutputKind.IsNetModule() Then
+                        ' Verify synthesized DebuggableAttribute based on compilation options.
 
-                                                                         Dim emitDebugInformationKind As DebugInformationKind = options.DebugInformationKind
-                                                                         If emitDebugInformationKind <> DebugInformationKind.None Then
-                                                                             Assert.Equal(3, synthesizedAttributes.Length)
-                                                                             VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                                                                             VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
-                                                                             VerifySynthesizedDebuggableAttribute(synthesizedAttributes(2), sourceAssembly, emitDebugInformationKind, options.Optimize)
-                                                                         Else
-                                                                             Assert.Equal(2, synthesizedAttributes.Length)
-                                                                             VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                                                                             VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
-                                                                         End If
-                                                                     Else
-                                                                         Assert.Equal(0, synthesizedAttributes.Length)
-                                                                     End If
-                                                                 End Sub
+                        Dim emitDebugInformationKind As DebugInformationKind = options.DebugInformationKind
+                        If emitDebugInformationKind <> DebugInformationKind.None Then
+                            Assert.Equal(3, synthesizedAttributes.Length)
+                            VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
+                            VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
+                            VerifySynthesizedDebuggableAttribute(synthesizedAttributes(2), sourceAssembly, emitDebugInformationKind, options.Optimize)
+                        Else
+                            Assert.Equal(2, synthesizedAttributes.Length)
+                            VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
+                            VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
+                        End If
+                    Else
+                        Assert.Equal(0, synthesizedAttributes.Length)
+                    End If
+                End Sub
 
             TestDebuggableAttributeMatrix(source.Value, validator)
         End Sub

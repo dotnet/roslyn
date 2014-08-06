@@ -497,7 +497,7 @@ End Class
                                 list.Add(peReader.GetString(peReader.GetTypeReference(typeRef).Name))
                             Next
 
-                            AssertEx.SetEqual({"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "Object", "Array"}, list)
+                            AssertEx.SetEqual({"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "DebuggingModes", "Object", "Array"}, list)
                         End If
                     End Sub
 

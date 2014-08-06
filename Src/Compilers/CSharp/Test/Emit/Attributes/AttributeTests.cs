@@ -962,9 +962,8 @@ namespace AttributeTest
 ";
 
             var references = new[] { new MetadataImageReference(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
-            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
+            var compilation = CreateCompilationWithMscorlib(source, references, options: TestOptions.ReleaseDll);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {

@@ -1149,7 +1149,7 @@ End Class
 
         Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef))
         Assert.Equal(3, metadataReader.GetTableRowCount(TableIndex.ExportedType))
-        Assert.Equal(5, metadataReader.CustomAttributes.Count)
+        Assert.Equal(6, metadataReader.CustomAttributes.Count)
         Assert.Equal(1, metadataReader.DeclarativeSecurityAttributes.Count)
 
         token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
@@ -1265,7 +1265,9 @@ End Class
                 Case "UserDefinedAssemblyAttrAllowMultipleAttribute"
                     Assert.Equal("UserDefinedAssemblyAttrAllowMultipleAttribute(""UserDefinedAssemblyAttrAllowMultiple"")", a.ToString())
                     Exit Select
-                Case "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute"
+                Case "CompilationRelaxationsAttribute",
+                     "RuntimeCompatibilityAttribute",
+                     "DebuggableAttribute"
                     ' synthesized attributes
                     Exit Select
                 Case Else
@@ -1630,6 +1632,7 @@ End Class
                 Dim attrs = moduleSymbol.ContainingAssembly.GetAttributes().Select(Function(a) a.ToString()).ToArray()
 
                 AssertEx.SetEqual({
+                     "System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)",
                      "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows:=False)",
                      "System.Runtime.CompilerServices.CompilationRelaxationsAttribute(System.Runtime.CompilerServices.CompilationRelaxations.NoStringInterning)"
                  },

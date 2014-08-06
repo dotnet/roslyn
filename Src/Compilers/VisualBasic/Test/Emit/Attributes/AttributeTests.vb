@@ -718,7 +718,7 @@ End Namespace
                         Dim attrs = m.GetAttributes()
                         Assert.Equal(1, attrs.Length)
                         Assert.Equal("CustomAttribute.AttrNameAttribute", attrs(0).AttributeClass.ToDisplayString)
-                        attrs(0).VerifyValue(Of Type)(0, "TypeField", TypedConstantKind.Type, GetType(FileStream))
+                        attrs(0).VerifyValue(0, "TypeField", TypedConstantKind.Type, GetType(FileStream))
 
                         Dim assembly = m.ContainingSymbol
                         attrs = assembly.GetAttributes()
@@ -727,9 +727,9 @@ End Namespace
                             Assert.Equal("CustomAttribute.AttrName", attrs(0).AttributeClass.ToDisplayString)
                             attrs(1).VerifyValue(Of UShort)(0, "UShortField", TypedConstantKind.Primitive, 1234)
                         Else
-                            Assert.Equal(4, attrs.Length) ' two synthesized assembly attributes
-                            Assert.Equal("CustomAttribute.AttrName", attrs(2).AttributeClass.ToDisplayString)
-                            attrs(3).VerifyValue(Of UShort)(0, "UShortField", TypedConstantKind.Primitive, 1234)
+                            Assert.Equal(5, attrs.Length) ' 3 synthesized assembly attributes
+                            Assert.Equal("CustomAttribute.AttrName", attrs(3).AttributeClass.ToDisplayString)
+                            attrs(4).VerifyValue(Of UShort)(0, "UShortField", TypedConstantKind.Primitive, 1234)
                         End If
 
                         Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
@@ -746,7 +746,7 @@ End Namespace
                         Dim nenum = top.GetMember(Of TypeSymbol)("NestedEnum")
                         attrs = nenum.GetAttributes()
                         Assert.Equal(2, attrs.Length)
-                        attrs(0).VerifyValue(Of Char())(0, TypedConstantKind.Array, {"q"c, "c"c})
+                        attrs(0).VerifyValue(0, TypedConstantKind.Array, {"q"c, "c"c})
 
                         attrs = nenum.GetMember("three").GetAttributes()
                         Assert.Equal(2, attrs.Length)

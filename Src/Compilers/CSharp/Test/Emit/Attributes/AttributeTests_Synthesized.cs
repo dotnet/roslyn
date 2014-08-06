@@ -779,24 +779,17 @@ public class Test
 
         private void VerifySynthesizedDebuggableAttribute(CSharpAttributeData attribute, SourceAssemblySymbol sourceAssembly, DebugInformationKind emitDebugInfoKind, bool optimizationsEnabled)
         {
-            Assert.NotEqual(DebugInformationKind.None, emitDebugInfoKind);
-
             var expectedDebuggingMode = DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints;
-
             bool emittingFullDebugInfo = emitDebugInfoKind == DebugInformationKind.Full;
-            if (emittingFullDebugInfo)
-            {
-                expectedDebuggingMode |= DebuggableAttribute.DebuggingModes.Default;
-            }
 
             if (!optimizationsEnabled)
             {
-                expectedDebuggingMode |= DebuggableAttribute.DebuggingModes.DisableOptimizations;
+                expectedDebuggingMode |= DebuggableAttribute.DebuggingModes.Default | DebuggableAttribute.DebuggingModes.DisableOptimizations;
+            }
 
-                if (emittingFullDebugInfo)
-                {
-                    expectedDebuggingMode |= DebuggableAttribute.DebuggingModes.EnableEditAndContinue;
-                }
+            if (!optimizationsEnabled && emittingFullDebugInfo)
+            {
+                expectedDebuggingMode |= DebuggableAttribute.DebuggingModes.EnableEditAndContinue;
             }
 
             VerifyDebuggableAttribute(attribute, sourceAssembly, expectedDebuggingMode);

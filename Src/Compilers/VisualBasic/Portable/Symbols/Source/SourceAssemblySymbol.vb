@@ -1333,41 +1333,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(m_lazyEmitExtensionAttribute <> ThreeState.Unknown)
             Debug.Assert(m_lazySourceAttributesBag.IsSealed)
-            Dim emitExtensionAttribute As Boolean = m_lazyEmitExtensionAttribute = ThreeState.True
-
-            ' Note that manager's collection of referenced symbols may not be sealed 
-            ' yet in case this and previous emits didn't emit IL, but only metadata
-            Dim emitEmbeddedAttribute As Boolean = Me.DeclaringCompilation.EmbeddedSymbolManager.IsAnySymbolReferenced
-
-            ' Synthesize CompilationRelaxationsAttribute only if all the following requirements are met:
-            ' (a) We are not building a netmodule.
-            ' (b) There is no applied CompilationRelaxationsAttribute assembly attribute in source.
-            ' (c) There is no applied CompilationRelaxationsAttribute assembly attribute for any of the added PE modules.
-
-            ' Above requirements also hold for synthesizing RuntimeCompatibilityAttribute attribute.
 
             Dim options As VisualBasicCompilationOptions = Me.DeclaringCompilation.Options
             Dim isBuildingNetModule As Boolean = options.OutputKind.IsNetModule()
-            Dim emitCompilationRelaxationsAttribute As Boolean = Not isBuildingNetModule AndAlso Not Me.Modules.Any(Function(m) m.HasAssemblyCompilationRelaxationsAttribute)
-            Dim emitRuntimeCompatibilityAttribute As Boolean = Not isBuildingNetModule AndAlso Not Me.Modules.Any(Function(m) m.HasAssemblyRuntimeCompatibilityAttribute)
 
-            ' Synthesize DebuggableAttribute only if all the following requirements are met:
-            ' (a) We are not building a netmodule.
-            ' (b) We are emitting debug information (full or pdbonly).
-            ' (c) There is no applied DebuggableAttribute assembly attribute in source.
-            ' (d) There is no applied DebuggableAttribute module attribute in source (NOTE: Native C# compiler and Roslyn C# compiler doesn't check this).
-
-            Dim emitDebuggableAttribute As Boolean = Not isBuildingNetModule AndAlso
-                options.DebugInformationKind.IsValid() AndAlso options.DebugInformationKind <> DebugInformationKind.None AndAlso
-                Not Me.HasAssemblyOrModuleDebuggableAttribute
+            Dim emitExtensionAttribute As Boolean = m_lazyEmitExtensionAttribute = ThreeState.True
 
             If emitExtensionAttribute Then
                 AddSynthesizedAttribute(attributes, m_Compilation.SynthesizeExtensionAttribute())
             End If
 
+            ' Note that manager's collection of referenced symbols may not be sealed 
+            ' yet in case this and previous emits didn't emit IL, but only metadata
+            Dim emitEmbeddedAttribute As Boolean = Me.DeclaringCompilation.EmbeddedSymbolManager.IsAnySymbolReferenced
+
             If emitEmbeddedAttribute Then
                 AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeAttribute(WellKnownMember.Microsoft_VisualBasic_Embedded__ctor))
             End If
+
+            ' Synthesize CompilationRelaxationsAttribute only if all the following requirements are met:
+            ' (a) We are not building a netmodule.
+            ' (b) There is no applied CompilationRelaxationsAttribute assembly attribute in source.
+            ' (c) There is no applied CompilationRelaxationsAttribute assembly attribute for any of the added PE modules.
+            ' Above requirements also hold for synthesizing RuntimeCompatibilityAttribute attribute.
+
+            Dim emitCompilationRelaxationsAttribute As Boolean = Not isBuildingNetModule AndAlso Not Me.Modules.Any(Function(m) m.HasAssemblyCompilationRelaxationsAttribute)
 
             If emitCompilationRelaxationsAttribute Then
                 ' Synthesize attribute: <CompilationRelaxationsAttribute(CompilationRelaxations.NoStringInterning)>
@@ -1384,6 +1374,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ImmutableArray.Create(typedConstantNoStringInterning)))
                 End If
             End If
+
+            Dim emitRuntimeCompatibilityAttribute As Boolean = Not isBuildingNetModule AndAlso Not Me.Modules.Any(Function(m) m.HasAssemblyRuntimeCompatibilityAttribute)
 
             If emitRuntimeCompatibilityAttribute Then
                 ' Synthesize attribute: <RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)>
@@ -1402,16 +1394,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
+            ' Synthesize DebuggableAttribute only if all the following requirements are met:
+            ' (a) We are not building a netmodule.
+            ' (b) We are emitting debug information (full or pdbonly).
+            ' (c) There is no applied DebuggableAttribute assembly attribute in source.
+            ' (d) There is no applied DebuggableAttribute module attribute in source (NOTE: Native C# compiler and Roslyn C# compiler doesn't check this).
+
+            Dim emitDebuggableAttribute As Boolean =
+                Not isBuildingNetModule AndAlso
+                options.DebugInformationKind <> DebugInformationKind.None AndAlso
+                Not Me.HasAssemblyOrModuleDebuggableAttribute
+
             If emitDebuggableAttribute Then
                 ' Synthesize attribute: <DebuggableAttribute(DebuggableAttribute.DebuggingMode.<Value>)>
 
                 Dim int32Type = Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32)
                 If int32Type.GetUseSiteErrorInfo() Is Nothing Then
-                    Dim debuggingMode = DebuggableAttribute.DebuggingModes.Default Or
-                                        DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints
+                    Dim debuggingMode = DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints
 
+                    ' Since .NET 2.0 the combinations of None, Default And DisableOptimizations have the following effect
+                    ' 
+                    ' None                                         JIT optimizations enabled
+                    ' Default                                      JIT optimizations enabled
+                    ' DisableOptimizations                         JIT optimizations enabled
+                    ' Default | DisableOptimizations               JIT optimizations disabled
                     If Not options.Optimize Then
-                        debuggingMode = debuggingMode Or DebuggableAttribute.DebuggingModes.DisableOptimizations
+                        debuggingMode = debuggingMode Or DebuggableAttribute.DebuggingModes.Default Or
+                                                         DebuggableAttribute.DebuggingModes.DisableOptimizations
                     End If
 
                     If options.EnableEditAndContinue Then

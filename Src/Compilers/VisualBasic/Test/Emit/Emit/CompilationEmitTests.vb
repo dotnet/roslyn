@@ -2748,7 +2748,7 @@ End interface
 </expected>)
         End Sub
 
-        <Fact, WorkItem(769741, "DevDiv")>
+        <Fact(Skip:="1001945"), WorkItem(769741, "DevDiv"), WorkItem(1001945)>
         Public Sub Bug769741()
             Dim source =
 <compilation>
@@ -2756,7 +2756,7 @@ End interface
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, OptionsDll)
+            Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, OptionsDebugDll)
 
             CompileAndVerify(compilation, emitOptions:=EmitOptions.RefEmitBug, verify:=False)
         End Sub

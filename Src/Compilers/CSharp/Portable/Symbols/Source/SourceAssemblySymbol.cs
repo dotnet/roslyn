@@ -1636,31 +1636,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            bool containsExtensionMethods = this.ContainsExtensionMethods();
             CSharpCompilationOptions options = this.compilation.Options;
-
-            // Synthesize CompilationRelaxationsAttribute only if all the following requirements are met:
-            // (a) We are not building a netmodule.
-            // (b) There is no applied CompilationRelaxationsAttribute assembly attribute in source.
-            // (c) There is no applied CompilationRelaxationsAttribute assembly attribute for any of the added PE modules.
-
-            // Above requirements also hold for synthesizing RuntimeCompatibilityAttribute attribute.
-
             bool isBuildingNetModule = options.OutputKind.IsNetModule();
-            bool emitCompilationRelaxationsAttribute = !isBuildingNetModule && !this.Modules.Any(m => m.HasAssemblyCompilationRelaxationsAttribute);
-            bool emitRuntimeCompatibilityAttribute = !isBuildingNetModule && !this.Modules.Any(m => m.HasAssemblyRuntimeCompatibilityAttribute);
-
-            // Synthesize DebuggableAttribute only if all the following requirements are met:
-            // (a) We are not building a netmodule.
-            // (b) We are emitting debug information (full or pdbonly).
-            // (c) There is no applied DebuggableAttribute assembly attribute in source.
-
-            // CONSIDER: Native VB compiler and Roslyn VB compiler also have an additional requirement: There is no applied DebuggableAttribute *module* attribute in source.
-            // CONSIDER: Should we check for module DebuggableAttribute?
-
-            bool emitDebuggableAttribute = !isBuildingNetModule &&
-                options.DebugInformationKind.IsValid() && options.DebugInformationKind != DebugInformationKind.None &&
-                !this.HasDebuggableAttribute;
+            bool containsExtensionMethods = this.ContainsExtensionMethods();
 
             if (containsExtensionMethods)
             {
@@ -1670,6 +1648,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
             }
 
+            // Synthesize CompilationRelaxationsAttribute only if all the following requirements are met:
+            // (a) We are not building a netmodule.
+            // (b) There is no applied CompilationRelaxationsAttribute assembly attribute in source.
+            // (c) There is no applied CompilationRelaxationsAttribute assembly attribute for any of the added PE modules.
+            // Above requirements also hold for synthesizing RuntimeCompatibilityAttribute attribute.
+
+            bool emitCompilationRelaxationsAttribute = !isBuildingNetModule && !this.Modules.Any(m => m.HasAssemblyCompilationRelaxationsAttribute);
             if (emitCompilationRelaxationsAttribute)
             {
                 // Synthesize attribute: [CompilationRelaxationsAttribute(CompilationRelaxations.NoStringInterning)]
@@ -1689,6 +1674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            bool emitRuntimeCompatibilityAttribute = !isBuildingNetModule && !this.Modules.Any(m => m.HasAssemblyRuntimeCompatibilityAttribute);
             if (emitRuntimeCompatibilityAttribute)
             {
                 // Synthesize attribute: [RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
@@ -1707,6 +1693,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ImmutableArray.Create(new KeyValuePair<string, TypedConstant>("WrapNonExceptionThrows", typedConstantTrue))));
                 }
             }
+
+            // Synthesize DebuggableAttribute only if all the following requirements are met:
+            // (a) We are not building a netmodule.
+            // (b) We are emitting debug information (full or pdbonly).
+            // (c) There is no applied DebuggableAttribute assembly attribute in source.
+
+            // CONSIDER: Native VB compiler and Roslyn VB compiler also have an additional requirement: There is no applied DebuggableAttribute *module* attribute in source.
+            // CONSIDER: Should we check for module DebuggableAttribute?
+
+            bool emitDebuggableAttribute = 
+                !isBuildingNetModule &&
+                options.DebugInformationKind != DebugInformationKind.None &&
+                !this.HasDebuggableAttribute;
 
             if (emitDebuggableAttribute)
             {
