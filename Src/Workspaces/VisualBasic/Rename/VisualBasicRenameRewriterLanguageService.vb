@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 newNode = newNode.WithAdditionalAnnotations(annotation)
                 Dim speculativeTree = originalNode.SyntaxTree.GetRoot(cancellationToken).ReplaceNode(originalNode, newNode)
                 newNode = speculativeTree.GetAnnotatedNodes(Of SyntaxNode)(annotation).First()
-                Me.speculativeModel = GetSemanticModelForNode(newNode, originalNode.Span.Start, Me.semanticModel)
+                Me.speculativeModel = GetSemanticModelForNode(newNode, Me.semanticModel)
                 Debug.Assert(speculativeModel IsNot Nothing, "expanding a syntax node which cannot be speculated?")
 
                 Dim oldSpan = originalNode.Span
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim probableRenameNode = speculativeTree.GetAnnotatedNodes(Of SyntaxNode)(annotation).First()
                 Dim speculativeNewNode = speculativeTree.GetAnnotatedNodes(Of SyntaxNode)(annotationForSpeculativeNode).First()
 
-                Me.speculativeModel = GetSemanticModelForNode(speculativeNewNode, originalNode.Span.Start, Me.semanticModel)
+                Me.speculativeModel = GetSemanticModelForNode(speculativeNewNode, Me.semanticModel)
                 Debug.Assert(speculativeModel IsNot Nothing, "expanding a syntax node which cannot be speculated?")
                 Dim renamedNode = MyBase.Visit(probableRenameNode)
 
@@ -525,7 +525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         ' or the replacement itself is escaped.
                         newToken = newToken.WithAdditionalAnnotations(Simplifier.Annotation)
                     Else
-                        Dim semanticModel = GetSemanticModelForNode(parent, parent.Span.Start, If(Me.speculativeModel, Me.semanticModel))
+                        Dim semanticModel = GetSemanticModelForNode(parent, If(Me.speculativeModel, Me.semanticModel))
                         newToken = Simplification.VisualBasicSimplificationService.TryEscapeIdentifierToken(newToken, semanticModel, oldToken)
                     End If
                 End If
@@ -920,7 +920,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             End If
         End Sub
 
-        Public Shared Function GetSemanticModelForNode(node As SyntaxNode, position As Integer, originalSemanticModel As SemanticModel) As SemanticModel
+        ''' <summary>
+        ''' Gets the semantic model for the given node. 
+        ''' If the node belongs to the syntax tree of the original semantic model, then returns originalSemanticModel.
+        ''' Otherwise, returns a speculative model.
+        ''' The assumption for the later case is that span start position of the given node in it's syntax tree is same as
+        ''' the span start of the original node in the original syntax tree.
+        ''' </summary>
+        ''' <param name="node"></param>
+        ''' <param name="originalSemanticModel"></param>
+        ''' <returns></returns>
+        Public Shared Function GetSemanticModelForNode(node As SyntaxNode, originalSemanticModel As SemanticModel) As SemanticModel
             If node.SyntaxTree Is originalSemanticModel.SyntaxTree Then
                 ' This is possible if the previous rename phase didn't rewrite any nodes in this tree.
                 Return originalSemanticModel
@@ -936,6 +946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 End If
             End If
             Dim isInNamespaceOrTypeContext = SyntaxFacts.IsInNamespaceOrTypeContext(TryCast(syntax, ExpressionSyntax))
+            Dim position = nodeToSpeculate.SpanStart
             Return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(nodeToSpeculate, DirectCast(originalSemanticModel, SemanticModel), position, isInNamespaceOrTypeContext)
         End Function
 

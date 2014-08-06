@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 var speculativeTree = originalNode.SyntaxTree.GetRoot(cancellationToken).ReplaceNode(originalNode, newNode);
                 newNode = speculativeTree.GetAnnotatedNodes<SyntaxNode>(annotation).First();
 
-                this.speculativeModel = GetSemanticModelForNode(newNode, originalNode.Span.Start, this.semanticModel);
+                this.speculativeModel = GetSemanticModelForNode(newNode, this.semanticModel);
                 Debug.Assert(speculativeModel != null, "expanding a syntax node which cannot be speculated?");
 
                 var oldSpan = originalNode.Span;
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 speculativeTree = originalNode.SyntaxTree.GetRoot(cancellationToken).ReplaceNode(originalNode, newNode);
                 newNode = speculativeTree.GetAnnotatedNodes<SyntaxNode>(annotation).First();
 
-                this.speculativeModel = GetSemanticModelForNode(newNode, originalNode.Span.Start, this.semanticModel);
+                this.speculativeModel = GetSemanticModelForNode(newNode, this.semanticModel);
 
                 newNode = base.Visit(newNode);
                 var newSpan = newNode.Span;
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     }
                     else
                     {
-                        var semanticModel = GetSemanticModelForNode(parent, parent.Span.Start, this.speculativeModel ?? this.semanticModel);
+                        var semanticModel = GetSemanticModelForNode(parent, this.speculativeModel ?? this.semanticModel);
                         newToken = Simplification.CSharpSimplificationService.TryEscapeIdentifierToken(newToken, parent, semanticModel);
                     }
                 }
@@ -1098,7 +1098,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             return true;
         }
 
-        public static SemanticModel GetSemanticModelForNode(SyntaxNode node, int position, SemanticModel originalSemanticModel)
+        /// <summary>
+        /// Gets the semantic model for the given node.
+        /// If the node belongs to the syntax tree of the original semantic model, then returns originalSemanticModel.
+        /// Otherwise, returns a speculative model.
+        /// The assumption for the later case is that span start position of the given node in it's syntax tree is same as
+        /// the span start of the original node in the original syntax tree.
+        /// </summary>
+        public static SemanticModel GetSemanticModelForNode(SyntaxNode node, SemanticModel originalSemanticModel)
         {
             if (node.SyntaxTree == originalSemanticModel.SyntaxTree)
             {
@@ -1124,6 +1131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
 
             bool isInNamespaceOrTypeContext = SyntaxFacts.IsInNamespaceOrTypeContext(node as ExpressionSyntax);
+            var position = nodeToSpeculate.SpanStart;
             return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(nodeToSpeculate, (SemanticModel)originalSemanticModel, position, isInNamespaceOrTypeContext);
         }
 
