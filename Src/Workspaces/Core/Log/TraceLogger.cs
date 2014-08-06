@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             Trace.WriteLine(string.Format("[{0}] Start({1}) : {2}/{3} - {4}", Thread.CurrentThread.ManagedThreadId, uniquePairId, functionId.ToString(), logMessage.GetMessage()));
         }
 
-        public void LogBlockEnd(FunctionId functionId, int delta, int uniquePairId, CancellationToken cancellationToken)
+        public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {
             var functionString = functionId.ToString() + (cancellationToken.IsCancellationRequested ? " Canceled" : string.Empty);
             Trace.WriteLine(string.Format("[{0}] End({1}) : [{2}ms] {3}/{4}", Thread.CurrentThread.ManagedThreadId, uniquePairId, delta, functionString));

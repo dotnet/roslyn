@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             public void Log(FunctionId functionId, LogMessage logMessage) { }
             public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken) { }
-            public void LogBlockEnd(FunctionId functionId, int delta, int uniquePairId, CancellationToken cancellationToken) { }
+            public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken) { }
         }
     }
 }

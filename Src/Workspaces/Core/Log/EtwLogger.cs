@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             RoslynEventSource.Instance.BlockStart(GetMessage(logMessage), functionId, uniquePairId);
         }
 
-        public void LogBlockEnd(FunctionId functionId, int delta, int uniquePairId, CancellationToken cancellationToken)
+        public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
             {

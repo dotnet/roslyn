@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
         }
 
-        public void LogBlockEnd(FunctionId functionId, int delta, int uniquePairId, CancellationToken cancellationToken)
+        public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {
             for (var i = 0; i < this.loggers.Length; i++)
             {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                     continue;
                 }
 
-                logger.LogBlockEnd(functionId, delta, uniquePairId, cancellationToken);
+                logger.LogBlockEnd(functionId, logMessage, uniquePairId, delta, cancellationToken);
             }
         }
     }

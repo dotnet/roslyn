@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 // This delta is valid for durations of < 25 days
                 var delta = Environment.TickCount - this.tick;
 
-                logger.LogBlockEnd(functionId, delta, blockId, cancellationToken);
+                logger.LogBlockEnd(functionId, logMessage, blockId, delta, cancellationToken);
 
                 // Free this block back to the pool
                 logMessage.Free();
