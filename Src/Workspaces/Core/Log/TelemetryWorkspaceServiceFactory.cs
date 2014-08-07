@@ -23,10 +23,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             void ITelemetryService.LogRenameSession(Telemetry.RenameSessionInfo renameSession)
             {
             }
-
-            void ITelemetryService.LogLinkedFileDiffMergingSession(LinkedFileDiffMergingSessionInfo session)
-            {
-            }
         }
     }
 }

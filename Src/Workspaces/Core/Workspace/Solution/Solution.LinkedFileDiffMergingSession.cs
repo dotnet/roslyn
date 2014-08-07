@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Internal.Log.Telemetry;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -62,8 +61,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                var telemetryService = newSolution.Workspace.Services.GetService<ITelemetryService>();
-                telemetryService.LogLinkedFileDiffMergingSession(sessionInfo);
+                LogLinkedFileDiffMergingSessionInfo(sessionInfo);
 
                 return updatedSolution;
             }
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var mergeConflictCommentAdder = originalDocument.GetLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
                     var commentChanges = mergeConflictCommentAdder.CreateCommentsForUnmergedChanges(originalSourceText, unmergedChanges);
-                    
+
                     allChanges = MergeChangesWithMergeFailComments(appliedChanges, commentChanges, groupSessionInfo);
                 }
                 else
@@ -265,7 +263,7 @@ namespace Microsoft.CodeAnalysis
 
                 changes = changes.OrderBy(c => c.Span.Start);
                 var normalizedChanges = new List<TextChange>();
-                
+
                 var currentChange = changes.First();
                 foreach (var nextChange in changes.Skip(1))
                 {
@@ -282,6 +280,92 @@ namespace Microsoft.CodeAnalysis
 
                 normalizedChanges.Add(currentChange);
                 return normalizedChanges;
+            }
+
+            private void LogLinkedFileDiffMergingSessionInfo(LinkedFileDiffMergingSessionInfo sessionInfo)
+            {
+                var sessionId = SessionLogMessasge.GetNextId();
+
+                Logger.Log(FunctionId.Workspace_Solution_LinkedFileDiffMergingSession, SessionLogMessasge.Create(sessionId, sessionInfo));
+
+                foreach (var groupInfo in sessionInfo.LinkedFileGroups)
+                {
+                    Logger.Log(FunctionId.Workspace_Solution_LinkedFileDiffMergingSession_LinkedFileGroup, SessionLogMessasge.Create(sessionId, groupInfo));
+                }
+            }
+
+            private static class SessionLogMessasge
+            {
+                private const string SessionId = "SessionId";
+                private const string HasLinkedFile = "HasLinkedFile";
+
+                private const string LinkedDocuments = "LinkedDocuments";
+                private const string DocumentsWithChanges = "DocumentsWithChanges";
+                private const string IdenticalDiffs = "IdenticalDiffs";
+                private const string IsolatedDiffs = "IsolatedDiffs";
+                private const string OverlappingDistinctDiffs = "OverlappingDistinctDiffs";
+                private const string OverlappingDistinctDiffsWithSameSpan = "OverlappingDistinctDiffsWithSameSpan";
+                private const string OverlappingDistinctDiffsWithSameSpanAndSubstringRelation = "OverlappingDistinctDiffsWithSameSpanAndSubstringRelation";
+                private const string InsertedMergeConflictComments = "InsertedMergeConflictComments";
+                private const string InsertedMergeConflictCommentsAtAdjustedLocation = "InsertedMergeConflictCommentsAtAdjustedLocation";
+
+                private static int globalId = 0;
+
+                public static KeyValueLogMessage Create(int sessionId, LinkedFileDiffMergingSessionInfo sessionInfo)
+                {
+                    return KeyValueLogMessage.Create(m =>
+                    {
+                        m[SessionId] = sessionId.ToString();
+
+                        m[HasLinkedFile] = (sessionInfo.LinkedFileGroups.Count > 0).ToString();
+                    });
+                }
+
+                public static KeyValueLogMessage Create(int sessionId, LinkedFileGroupSessionInfo groupInfo)
+                {
+                    return KeyValueLogMessage.Create(m =>
+                    {
+                        m[SessionId] = sessionId.ToString();
+
+                        m[LinkedDocuments] = groupInfo.LinkedDocuments.ToString();
+                        m[DocumentsWithChanges] = groupInfo.DocumentsWithChanges.ToString();
+                        m[IdenticalDiffs] = groupInfo.IdenticalDiffs.ToString();
+                        m[IsolatedDiffs] = groupInfo.IsolatedDiffs.ToString();
+                        m[OverlappingDistinctDiffs] = groupInfo.OverlappingDistinctDiffs.ToString();
+                        m[OverlappingDistinctDiffsWithSameSpan] = groupInfo.OverlappingDistinctDiffsWithSameSpan.ToString();
+                        m[OverlappingDistinctDiffsWithSameSpanAndSubstringRelation] = groupInfo.OverlappingDistinctDiffsWithSameSpanAndSubstringRelation.ToString();
+                        m[InsertedMergeConflictComments] = groupInfo.InsertedMergeConflictComments.ToString();
+                        m[InsertedMergeConflictCommentsAtAdjustedLocation] = groupInfo.InsertedMergeConflictCommentsAtAdjustedLocation.ToString();
+                    });
+                }
+
+                public static int GetNextId()
+                {
+                    return Interlocked.Increment(ref globalId);
+                }
+            }
+
+            private class LinkedFileDiffMergingSessionInfo
+            {
+                public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = new List<LinkedFileGroupSessionInfo>();
+
+                public void LogLinkedFileResult(LinkedFileGroupSessionInfo info)
+                {
+                    LinkedFileGroups.Add(info);
+                }
+            }
+
+            private class LinkedFileGroupSessionInfo
+            {
+                public int LinkedDocuments;
+                public int DocumentsWithChanges;
+                public int IsolatedDiffs;
+                public int IdenticalDiffs;
+                public int OverlappingDistinctDiffs;
+                public int OverlappingDistinctDiffsWithSameSpan;
+                public int OverlappingDistinctDiffsWithSameSpanAndSubstringRelation;
+                public int InsertedMergeConflictComments;
+                public int InsertedMergeConflictCommentsAtAdjustedLocation;
             }
         }
     }

@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Workspace_ApplyChanges,
         Workspace_TryGetDocument,
         Workspace_TryGetDocumentFromInProgressSolution,
+        Workspace_Solution_LinkedFileDiffMergingSession,
+        Workspace_Solution_LinkedFileDiffMergingSession_LinkedFileGroup,
 
         EndConstruct_DoStatement,
         EndConstruct_XmlCData,
