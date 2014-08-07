@@ -808,6 +808,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
+            var sequence = node.Left as BoundSequence;
+            if (sequence != null)
+            {
+                // assigning to a sequence is uncommon, but could happen in a
+                // case if LHS was a declaration expression.
+                // 
+                // Just rewrite {se1, se2, se3, val} = something
+                // into ==>     {se1, se2, se3, val = something}
+                BoundExpression rewritten = sequence.Update(sequence.Locals,
+                                        sequence.SideEffects,
+                                        node.Update(sequence.Value, node.Right, node.RefKind, node.Type),
+                                        sequence.Type);
+
+                rewritten = (BoundExpression)Visit(rewritten);
+
+                // do not count the assignment twice
+                this.counter--;
+
+                return rewritten;
+            }
+
+
             var isIndirectAssignement = IsIndirectAssignment(node);
 
             var left = VisitExpression(node.Left, isIndirectAssignement ?
@@ -1307,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     int prevStack = this.evalStack;
                     exceptionSourceOpt = VisitExpression(exceptionSourceOpt, ExprContext.AssignmentTarget);
-                    Debug.Assert(evalStack == prevStack + 1);
+                    Debug.Assert(evalStack == prevStack + (LhsUsesStackWhenAssignedTo(exceptionSourceOpt, ExprContext.AssignmentTarget) ? 1 : 0));
                     this.evalStack = prevStack;
                 }
 

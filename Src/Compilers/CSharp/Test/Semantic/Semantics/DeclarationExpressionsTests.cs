@@ -5418,7 +5418,8 @@ public class Cls
             TestSemanticModelAPI(compilation, diagnostics);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
+        [WorkItem(1000910)]
         public void CatchFilter_01()
         {
             var text = @"
@@ -6038,7 +6039,8 @@ class Test
             TestSemanticModelAPI(compilation, diagnostics);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
+        [WorkItem(1000910)]
         public void BugCodePlex_18_01()
         {
             var text = @"
@@ -6052,24 +6054,21 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Cls.Main",
-@"{
-  // Code size       21 (0x15)
+@"
+{
+  // Code size       19 (0x13)
   .maxstack  4
-  .locals init (int[] V_0, //x
-  int[] V_1) //y
   IL_0000:  ldc.i4.0
   IL_0001:  newarr     ""int""
-  IL_0006:  stloc.1
+  IL_0006:  pop
   IL_0007:  ldc.i4.1
   IL_0008:  newarr     ""int""
   IL_000d:  dup
   IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.1
   IL_0010:  stelem.i4
-  IL_0011:  dup
-  IL_0012:  stloc.1
-  IL_0013:  stloc.0
-  IL_0014:  ret
+  IL_0011:  pop
+  IL_0012:  ret
 }");
 
             TestSemanticModelAPI(compilation);
@@ -7845,7 +7844,7 @@ public class Cls
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
         public void InitializationScope_01()
         {
             var text = @"
@@ -7872,7 +7871,7 @@ class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
         public void InitializationScope_02()
         {
             var text = @"
@@ -7911,7 +7910,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
         public void InitializationScope_03()
         {
             var text = @"
@@ -7950,7 +7949,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
         public void InitializationScope_04()
         {
             var text = @"
@@ -7989,7 +7988,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
         public void InitializationScope_05()
         {
             var text = @"
@@ -8015,7 +8014,7 @@ class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
         public void InitializationScope_06()
         {
             var text = @"
@@ -8050,7 +8049,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
         public void InitializationScope_07()
         {
             var text = @"
@@ -8083,7 +8082,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
         public void InitializationScope_08()
         {
             var text = @"
@@ -8118,7 +8117,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
         public void InitializationScope_09()
         {
             var text = @"
@@ -8149,7 +8148,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact(Skip = "1000910")]
+        [Fact]
         public void InitializationScope_10()
         {
             var text = @"

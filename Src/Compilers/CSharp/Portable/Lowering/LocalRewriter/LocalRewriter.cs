@@ -366,14 +366,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (statement == null || statement.Kind != BoundKind.ExpressionStatement)
             {
-                Debug.Assert(false, "initializer does not initialize a field?");
                 return false;
             }
 
             BoundAssignmentOperator assignment = ((BoundExpressionStatement)statement).Expression as BoundAssignmentOperator;
             if (assignment == null)
             {
-                Debug.Assert(false, "initializer does not initialize a field?");
                 return false;
             }
 
