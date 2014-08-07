@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return newParameterSyntax;
             }
 
-            return node.WithoutAnnotations(Simplifier.Annotation);
+            return node;
         }
 
         private static SyntaxNode SimplifyParenthesizedLambdaExpression(
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
             }
 
-            return node.WithoutAnnotations(Simplifier.Annotation);
+            return node;
         }
     }
 }
