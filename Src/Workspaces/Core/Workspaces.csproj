@@ -532,13 +532,8 @@
     <Compile Include="Log\FunctionIdOptions.cs" />
     <Compile Include="Log\ILogger.cs" />
     <Compile Include="Log\InteractionClass.cs" />
-    <Compile Include="Log\ITelemetry.cs" />
     <Compile Include="Log\Logger.cs" />
     <Compile Include="Log\RoslynEventSource.cs" />
-    <Compile Include="Log\Telemetry.Parameters.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="Log\TelemetryWorkspaceServiceFactory.cs" />
     <Compile Include="Log\TraceLogger.cs" />
     <Compile Include="Notification\AbstractGlobalOperationNotificationService.cs" />
     <Compile Include="Notification\GlobalOperationEventArgs.cs" />

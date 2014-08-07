@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SmartIndentation_CloseCurly,
 
         Rename_InlineSession,
+        Rename_InlineSession_Session,
         Rename_FindLinkedSpans,
         Rename_GetSymbolRenameInfo,
         Rename_OnTextBufferChanged,
@@ -170,6 +171,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Misc_NonReentrantLock_BlockingWait,
         Misc_VisualStudioWaitIndicator_Wait,
         Misc_SaveEventsSink_OnBeforeSave,
+        Misc_Environment,
 
         TaskList_Refresh,
         TaskList_NavigateTo,

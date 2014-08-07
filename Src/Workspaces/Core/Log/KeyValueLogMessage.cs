@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return logMessage;
         }
 
-        private Dictionary<string, string> map;
+        private Dictionary<string, string> map = null;
+        private Action<Dictionary<string, string>> propertySetter = null;
 
         private KeyValueLogMessage()
         {
@@ -31,31 +32,55 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         private void Constrcut(Action<Dictionary<string, string>> propertySetter)
         {
-            this.map = SharedPools.Default<Dictionary<string, string>>().AllocateAndClear();
-            propertySetter(map);
+            this.propertySetter = propertySetter;
         }
 
         public bool ContainsProperty
         {
-            get { return this.map.Count > 0; }
+            get
+            {
+                EnsureMap();
+                return this.map.Count > 0;
+            }
         }
 
         public IEnumerable<KeyValuePair<string, string>> Properties
         {
-            get { return this.map; }
+            get
+            {
+                EnsureMap();
+                return this.map;
+            }
         }
 
         protected override string CreateMessage()
         {
+            EnsureMap();
             return string.Join("|", map.Select(kv => string.Format("{0}={1}", kv.Key, kv.Value)));
         }
 
-        public override void Dispose()
+        public override void Free()
         {
-            SharedPools.Default<Dictionary<string, string>>().ClearAndFree(this.map);
-            this.map = null;
+            if (this.map != null)
+            {
+                SharedPools.Default<Dictionary<string, string>>().ClearAndFree(this.map);
+                this.map = null;
+            }
 
-            Pool.Free(this);
+            if (this.propertySetter != null)
+            {
+                this.propertySetter = null;
+                Pool.Free(this);
+            }
+        }
+
+        private void EnsureMap()
+        {
+            if (this.map == null && this.propertySetter != null)
+            {
+                this.map = SharedPools.Default<Dictionary<string, string>>().AllocateAndClear();
+                this.propertySetter(this.map);
+            }
         }
     }
 }

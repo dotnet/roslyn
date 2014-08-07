@@ -74,7 +74,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            logger.Log(functionId, LogMessage.Create(messageGetter));
+            var logMessage = LogMessage.Create(messageGetter);
+            logger.Log(functionId, logMessage);
+
+            logMessage.Free();
         }
 
         /// <summary>
@@ -94,7 +97,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            logger.Log(functionId, LogMessage.Create(messageGetter, arg));
+            var logMessage = LogMessage.Create(messageGetter, arg);
+            logger.Log(functionId, logMessage);
+            logMessage.Free();
         }
 
         /// <summary>
@@ -114,7 +119,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            logger.Log(functionId, LogMessage.Create(messageGetter, arg0, arg1));
+            var logMessage = LogMessage.Create(messageGetter, arg0, arg1);
+            logger.Log(functionId, logMessage);
+            logMessage.Free();
         }
 
         /// <summary>
@@ -134,7 +141,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            logger.Log(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2));
+            var logMessage = LogMessage.Create(messageGetter, arg0, arg1, arg2);
+            logger.Log(functionId, logMessage);
+            logMessage.Free();
         }
 
         /// <summary>
@@ -154,7 +163,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            logger.Log(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3));
+            var logMessage = LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3);
+            logger.Log(functionId, logMessage);
+            logMessage.Free();
         }
 
         /// <summary>
@@ -174,6 +185,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             logger.Log(functionId, logMessage);
+            logMessage.Free();
         }
 
         /// <summary>

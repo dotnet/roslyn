@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 logger.LogBlockEnd(functionId, logMessage, blockId, delta, cancellationToken);
 
                 // Free this block back to the pool
-                logMessage.Dispose();
+                logMessage.Free();
                 logMessage = null;
                 logger = null;
                 cancellationToken = default(CancellationToken);

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// <summary>
     /// log message that can generate string lazily
     /// </summary>
-    internal abstract class LogMessage : IDisposable
+    internal abstract class LogMessage
     {
         public static LogMessage Create(string message)
         {
@@ -44,7 +44,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         private string message;
 
         protected abstract string CreateMessage();
-        public abstract void Dispose();
+
+        /// <summary>
+        /// Logger will call this to return LogMessage to its pool
+        /// </summary>
+        public abstract void Free();
 
         public string GetMessage()
         {
@@ -73,8 +77,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.message;
             }
 
-            public override void Dispose()
+            public override void Free()
             {
+                if (this.message == null)
+                {
+                    return;
+                }
+
                 this.message = null;
                 Pool.Free(this);
             }
@@ -99,8 +108,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.messageGetter();
             }
 
-            public override void Dispose()
+            public override void Free()
             {
+                if (this.messageGetter == null)
+                {
+                    return;
+                }
+
                 this.messageGetter = null;
                 Pool.Free(this);
             }
@@ -127,8 +141,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.messageGetter(this.arg);
             }
 
-            public override void Dispose()
+            public override void Free()
             {
+                if (this.messageGetter == null)
+                {
+                    return;
+                }
+
                 this.messageGetter = null;
                 this.arg = default(TArg0);
                 Pool.Free(this);
@@ -158,8 +177,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.messageGetter(arg0, arg1);
             }
 
-            public override void Dispose()
+            public override void Free()
             {
+                if (this.messageGetter == null)
+                {
+                    return;
+                }
+
                 this.messageGetter = null;
                 this.arg0 = default(TArg0);
                 this.arg1 = default(TArg1);
@@ -192,8 +216,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.messageGetter(arg0, arg1, arg2);
             }
 
-            public override void Dispose()
+            public override void Free()
             {
+                if (this.messageGetter == null)
+                {
+                    return;
+                }
+
                 this.messageGetter = null;
                 this.arg0 = default(TArg0);
                 this.arg1 = default(TArg1);
@@ -229,8 +258,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.messageGetter(arg0, arg1, arg2, arg3);
             }
 
-            public override void Dispose()
+            public override void Free()
             {
+                if (this.messageGetter == null)
+                {
+                    return;
+                }
+
                 this.messageGetter = null;
                 this.arg0 = default(TArg0);
                 this.arg1 = default(TArg1);
