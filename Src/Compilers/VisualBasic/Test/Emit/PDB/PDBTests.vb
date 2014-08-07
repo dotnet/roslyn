@@ -27,7 +27,7 @@ End Class
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptimizations(False).WithParseOptions(parseOptions))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
 
             Dim actual = GetPdbXml(compilation)
 
@@ -88,7 +88,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "M1.Main")
 
@@ -186,7 +186,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "M1.Main")
 
@@ -269,7 +269,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -319,7 +319,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
             Dim actual = GetPdbXml(compilation, "C1..ctor")
 
@@ -360,7 +360,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
             Dim actual = GetPdbXml(compilation, "C1..ctor")
 
@@ -424,7 +424,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -546,7 +546,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -648,7 +648,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -937,9 +937,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.ReleaseExe.WithOptimizations(False).WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -999,7 +997,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             ' By Design (better than Dev10): <entry il_offset="0x19" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="0"/>
             Dim actual = GetPdbXml(compilation, "MyMod.Main")
@@ -1061,7 +1059,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
 
             Dim actual = GetPdbXml(compilation, "MyMod.Main")
@@ -1139,7 +1137,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
@@ -1238,7 +1236,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "MyMod.Main")
             ' start_row="33"
@@ -1353,7 +1351,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "M1+C1`1+_Closure$__2`2._Lambda$__4")
 
@@ -1416,7 +1414,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                                 source,
-                                TestOptions.ReleaseExe.WithOptimizations(False))
+                                TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -1485,7 +1483,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -1536,7 +1534,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -1591,7 +1589,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -1649,7 +1647,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -1710,7 +1708,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False).WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe.WithOptimizations(False))
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -1775,7 +1773,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -1840,7 +1838,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -1904,7 +1902,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -1968,7 +1966,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -2031,7 +2029,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -2092,7 +2090,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "Module1.Main")
 
@@ -2144,7 +2142,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
             Dim actual = GetPdbXml(compilation)
 
@@ -2184,7 +2182,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
             Dim actual = GetPdbXml(compilation)
 
@@ -2256,7 +2254,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "FooDerived.ComputeMatrix")
 
@@ -2330,7 +2328,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = GetPdbXml(compilation, "SubMod.Main")
 
@@ -2383,7 +2381,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
             Dim actual = GetPdbXml(compilation)
 
             Dim expected =
@@ -2447,7 +2445,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
             Dim actual = GetPdbXml(compilation)
 
             Dim expected =
@@ -2547,7 +2545,7 @@ Module Module1
 End Module
 </file>
             </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.Full).WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
             Dim actual As XElement = GetPdbXml(compilation, "Module1._Lambda$__1")
 
             Dim expected = <symbols>
@@ -2606,7 +2604,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
             Dim actual = GetPdbXml(compilation, "CLAZZ..ctor")
 
@@ -2653,7 +2651,7 @@ End Module
 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.Full).WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
             Dim exebits = New IO.MemoryStream()
             Dim pdbbits = New IO.MemoryStream()
@@ -2694,12 +2692,7 @@ Public Class C
 End Class
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                source,
-                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full).
-                           WithOptimizations(False).
-                           WithEmbedVbCoreRuntime(True))
-
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
             Dim actual As XElement = GetPdbXml(compilation)
 
             ' Dev11 generates debug info for embedded symbols. There is no reason to do so since the source code is not available to the user.
@@ -2749,7 +2742,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
             Dim actual = GetPdbXml(compilation, "Module1.MakeIncrementer")
 
@@ -2795,7 +2788,7 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
             AssertXmlEqual(
 <symbols>
     <methods>
@@ -2834,7 +2827,7 @@ Module M
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
             AssertXmlEqual(
 <symbols>
     <methods>
@@ -2947,7 +2940,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -3094,7 +3087,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -3165,7 +3158,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -3264,7 +3257,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -3346,7 +3339,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -3438,7 +3431,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -3519,7 +3512,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -3600,7 +3593,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -3682,7 +3675,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -3783,7 +3776,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -3894,7 +3887,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -3997,7 +3990,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -4162,7 +4155,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -4274,7 +4267,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -4364,7 +4357,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -4454,7 +4447,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -4544,7 +4537,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -4616,7 +4609,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -4689,7 +4682,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -4780,7 +4773,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -4890,7 +4883,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -5002,7 +4995,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -5102,7 +5095,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -5212,7 +5205,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -5321,7 +5314,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -5423,7 +5416,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -5543,7 +5536,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -5673,7 +5666,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -5784,7 +5777,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -5913,7 +5906,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -6046,7 +6039,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -6130,7 +6123,7 @@ Module Module1
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseDll.WithOptimizations(False))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
 
             compilation.AssertTheseDiagnostics(<expected></expected>)
 
@@ -6226,7 +6219,7 @@ End Class
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptimizations(False).WithParseOptions(parseOptions))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
 
             Dim actual = GetPdbXml(compilation)
 

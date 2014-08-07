@@ -87,15 +87,14 @@ End Namespace
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:prjlevel1=""http://NewNamespace"">",
+                    TestOptions.DebugExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:prjlevel1=""http://NewNamespace"">",
                                                                      "<xmlns=""http://NewNamespace/prjlevel"">",
                                                                      "prjlevel=System.Collections.Generic",
                                                                      "System.Threading",
                                                                      "typeproj1=System.Int64",
                                                                      "prjlevelIgnored=System.Collections.Generic.List(Of String)",
                                                                      "System.Collections.Generic.List(Of String)",
-                                                                     "System.Collections.ArrayList"})).WithRootNamespace("").
-                               WithOptimizations(False))
+                                                                     "System.Collections.ArrayList"})).WithRootNamespace(""))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -266,15 +265,14 @@ End Namespace
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:prjlevel1=""http://NewNamespace"">",
+                    TestOptions.DebugExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:prjlevel1=""http://NewNamespace"">",
                                                                      "<xmlns=""http://NewNamespace/prjlevel"">",
                                                                      "prjlevel=System.Collections.Generic",
                                                                      "System.Threading",
                                                                      "typeproj1=System.Int64",
                                                                      "prjlevelIgnored=System.Collections.Generic.List(Of String)",
                                                                      "System.Collections.Generic.List(Of String)",
-                                                                     "System.Collections.ArrayList"})).WithRootNamespace("TheDefaultNamespace").
-                               WithOptimizations(False))
+                                                                     "System.Collections.ArrayList"})).WithRootNamespace("TheDefaultNamespace"))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 

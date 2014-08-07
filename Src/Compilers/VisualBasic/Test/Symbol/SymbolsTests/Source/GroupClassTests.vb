@@ -106,7 +106,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef,
                                                                                      {SystemCoreRef},
-                                                                                     TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.Full).WithOptimizations(False))
+                                                                                     TestOptions.DebugExe)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -3563,7 +3563,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef,
                                                                                      {SystemCoreRef},
-                                                                                     TestOptions.ReleaseExe.WithRootNamespace("WindowsApplication1").WithDebugInformationKind(DebugInformationKind.Full))
+                                                                                     TestOptions.DebugExe.WithRootNamespace("WindowsApplication1"))
 
             compilation.MyTemplate = WindowsFormsMyTemplateTree
 

@@ -490,59 +490,77 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.Full))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             Dim verifier = CompileAndVerify(compilation)
 
             verifier.VerifyIL("Test.TestProc1",
             <![CDATA[
 {
-  // Code size      116 (0x74)
+  // Code size      138 (0x8a)
   .maxstack  3
-  .locals init (Boolean V_0)
+  .locals init (Boolean V_0,
+                Boolean V_1)
   IL_0000:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_0005:  brtrue.s   IL_0018
-  IL_0007:  ldsflda    "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_000c:  newobj     "Sub Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor()"
-  IL_0011:  ldnull
-  IL_0012:  call       "Function System.Threading.Interlocked.CompareExchange(Of Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag)(ByRef Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag, Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag, Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag) As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_0017:  pop
-  IL_0018:  ldc.i4.0
-  IL_0019:  stloc.0
+  IL_0005:  ldnull
+  IL_0006:  cgt.un
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.1
+  IL_000a:  brtrue.s   IL_001d
+  IL_000c:  ldsflda    "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+  IL_0011:  newobj     "Sub Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor()"
+  IL_0016:  ldnull
+  IL_0017:  call       "Function System.Threading.Interlocked.CompareExchange(Of Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag)(ByRef Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag, Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag, Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag) As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+  IL_001c:  pop
+  IL_001d:  ldc.i4.0
+  IL_001e:  stloc.0
   .try
-{
-  IL_001a:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_001f:  ldloca.s   V_0
-  IL_0021:  call       "Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)"
-  IL_0026:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_002b:  ldfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
-  IL_0030:  brtrue.s   IL_0045
-  IL_0032:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_0037:  ldc.i4.2
-  IL_0038:  stfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
-  IL_003d:  ldc.i4.0
-  IL_003e:  stsfld     "Test.x As Integer"
-  IL_0043:  leave.s    IL_0073
-  IL_0045:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_004a:  ldfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
-  IL_004f:  ldc.i4.2
-  IL_0050:  bne.un.s   IL_0058
-  IL_0052:  newobj     "Sub Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor()"
-  IL_0057:  throw
-  IL_0058:  leave.s    IL_0073
-}
+  {
+    IL_001f:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+    IL_0024:  ldloca.s   V_0
+    IL_0026:  call       "Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)"
+    IL_002b:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+    IL_0030:  ldfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
+    IL_0035:  ldc.i4.0
+    IL_0036:  cgt.un
+    IL_0038:  stloc.1
+    IL_0039:  ldloc.1
+    IL_003a:  brtrue.s   IL_004f
+    IL_003c:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+    IL_0041:  ldc.i4.2
+    IL_0042:  stfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
+    IL_0047:  ldc.i4.0
+    IL_0048:  stsfld     "Test.x As Integer"
+    IL_004d:  br.s       IL_0069
+    IL_004f:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+    IL_0054:  ldfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
+    IL_0059:  ldc.i4.2
+    IL_005a:  ceq
+    IL_005c:  ldc.i4.0
+    IL_005d:  ceq
+    IL_005f:  stloc.1
+    IL_0060:  ldloc.1
+    IL_0061:  brtrue.s   IL_0069
+    IL_0063:  newobj     "Sub Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor()"
+    IL_0068:  throw
+    IL_0069:  leave.s    IL_0089
+  }
   finally
-{
-  IL_005a:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_005f:  ldc.i4.1
-  IL_0060:  stfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
-  IL_0065:  ldloc.0
-  IL_0066:  brfalse.s  IL_0072
-  IL_0068:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_006d:  call       "Sub System.Threading.Monitor.Exit(Object)"
-  IL_0072:  endfinally
-}
-  IL_0073:  ret
+  {
+    IL_006b:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+    IL_0070:  ldc.i4.1
+    IL_0071:  stfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
+    IL_0076:  ldloc.0
+    IL_0077:  ldc.i4.0
+    IL_0078:  ceq
+    IL_007a:  stloc.1
+    IL_007b:  ldloc.1
+    IL_007c:  brtrue.s   IL_0088
+    IL_007e:  ldsfld     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+    IL_0083:  call       "Sub System.Threading.Monitor.Exit(Object)"
+    IL_0088:  endfinally
+  }
+  IL_0089:  ret
 }
 ]]>)
 
@@ -590,63 +608,76 @@ End Class
             Dim compilation = CreateCompilationWithReferences(
                 compilationDef,
                 {MsvbRef, TestReferences.NetFx.v2_0_50727.mscorlib},
-                TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.Full).
-                           WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
+                TestOptions.DebugExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             Dim verifier = CompileAndVerify(compilation)
 
             verifier.VerifyIL("Test.TestProc1",
             <![CDATA[
 {
-  // Code size      118 (0x76)
+  // Code size      135 (0x87)
   .maxstack  3
+  .locals init (Boolean V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_0006:  brtrue.s   IL_001a
-  IL_0008:  ldarg.0
-  IL_0009:  ldflda     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_000e:  newobj     "Sub Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor()"
-  IL_0013:  ldnull
-  IL_0014:  call       "Function System.Threading.Interlocked.CompareExchange(Of Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag)(ByRef Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag, Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag, Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag) As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_0019:  pop
-  IL_001a:  ldarg.0
-  IL_001b:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_0020:  call       "Sub System.Threading.Monitor.Enter(Object)"
+  IL_0006:  ldnull
+  IL_0007:  cgt.un
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brtrue.s   IL_001f
+  IL_000d:  ldarg.0
+  IL_000e:  ldflda     "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+  IL_0013:  newobj     "Sub Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor()"
+  IL_0018:  ldnull
+  IL_0019:  call       "Function System.Threading.Interlocked.CompareExchange(Of Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag)(ByRef Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag, Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag, Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag) As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+  IL_001e:  pop
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+  IL_0025:  call       "Sub System.Threading.Monitor.Enter(Object)"
   .try
-{
-  IL_0025:  ldarg.0
-  IL_0026:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_002b:  ldfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
-  IL_0030:  brtrue.s   IL_0047
-  IL_0032:  ldarg.0
-  IL_0033:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_0038:  ldc.i4.2
-  IL_0039:  stfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
-  IL_003e:  ldarg.0
-  IL_003f:  ldc.i4.0
-  IL_0040:  stfld      "Test.x As Integer"
-  IL_0045:  leave.s    IL_0075
-  IL_0047:  ldarg.0
-  IL_0048:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_004d:  ldfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
-  IL_0052:  ldc.i4.2
-  IL_0053:  bne.un.s   IL_005b
-  IL_0055:  newobj     "Sub Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor()"
-  IL_005a:  throw
-  IL_005b:  leave.s    IL_0075
-}
+  {
+    IL_002a:  ldarg.0
+    IL_002b:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+    IL_0030:  ldfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
+    IL_0035:  ldc.i4.0
+    IL_0036:  cgt.un
+    IL_0038:  stloc.0
+    IL_0039:  ldloc.0
+    IL_003a:  brtrue.s   IL_0051
+    IL_003c:  ldarg.0
+    IL_003d:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+    IL_0042:  ldc.i4.2
+    IL_0043:  stfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
+    IL_0048:  ldarg.0
+    IL_0049:  ldc.i4.0
+    IL_004a:  stfld      "Test.x As Integer"
+    IL_004f:  br.s       IL_006c
+    IL_0051:  ldarg.0
+    IL_0052:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+    IL_0057:  ldfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
+    IL_005c:  ldc.i4.2
+    IL_005d:  ceq
+    IL_005f:  ldc.i4.0
+    IL_0060:  ceq
+    IL_0062:  stloc.0
+    IL_0063:  ldloc.0
+    IL_0064:  brtrue.s   IL_006c
+    IL_0066:  newobj     "Sub Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor()"
+    IL_006b:  throw
+    IL_006c:  leave.s    IL_0086
+  }
   finally
-{
-  IL_005d:  ldarg.0
-  IL_005e:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_0063:  ldc.i4.1
-  IL_0064:  stfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
-  IL_0069:  ldarg.0
-  IL_006a:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
-  IL_006f:  call       "Sub System.Threading.Monitor.Exit(Object)"
-  IL_0074:  endfinally
-}
-  IL_0075:  ret
+  {
+    IL_006e:  ldarg.0
+    IL_006f:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+    IL_0074:  ldc.i4.1
+    IL_0075:  stfld      "Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State As Short"
+    IL_007a:  ldarg.0
+    IL_007b:  ldfld      "Test.x$Init As Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag"
+    IL_0080:  call       "Sub System.Threading.Monitor.Exit(Object)"
+    IL_0085:  endfinally
+  }
+  IL_0086:  ret
 }
 ]]>)
 
@@ -831,8 +862,6 @@ BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
-Imports System
-
 Class Test
 
     Shared Sub Main()
@@ -856,39 +885,42 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.Full))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
 
-            CompileAndVerify(compilation,
-            <![CDATA[
+            Dim v = CompileAndVerify(compilation, expectedOutput:="
 0
 1
 -1
 0
 2
 -1
-]]>).VerifyIL("Test.TestProc",
-            <![CDATA[
+")
+
+            v.VerifyIL("Test.TestProc", <![CDATA[
 {
-  // Code size       37 (0x25)
-  .maxstack  3
-  .locals init (Integer V_0) //x
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (Integer V_0, //x
+                Integer V_1) //z
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.m1
-  IL_0003:  ldsfld     "Test.y As Integer"
-  IL_0008:  ldc.i4.1
-  IL_0009:  add.ovf
-  IL_000a:  stsfld     "Test.y As Integer"
-  IL_000f:  ldloc.0
-  IL_0010:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0015:  ldsfld     "Test.y As Integer"
-  IL_001a:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_001f:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0024:  ret
+  IL_0003:  stloc.1
+  IL_0004:  ldsfld     "Test.y As Integer"
+  IL_0009:  ldc.i4.1
+  IL_000a:  add.ovf
+  IL_000b:  stsfld     "Test.y As Integer"
+  IL_0010:  ldloc.0
+  IL_0011:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0016:  ldsfld     "Test.y As Integer"
+  IL_001b:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0020:  ldloc.1
+  IL_0021:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0026:  ret
 }
 ]]>)
 
-            AssertTheseDiagnostics(compilation, <expected></expected>)
+            compilation.VerifyDiagnostics()
         End Sub
 
         <WorkItem(530442, "DevDiv")>

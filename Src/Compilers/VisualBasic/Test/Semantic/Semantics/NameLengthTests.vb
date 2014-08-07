@@ -444,7 +444,7 @@ End Class
 ]]>
 
             Dim source = Format(sourceTemplate, LongLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, compOptions:=TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full))
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, compOptions:=TestOptions.DebugDll)
             Dim _longSquiggle_ As New String("~"c, LongLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
@@ -467,7 +467,7 @@ End Class
 ]]>
 
             Dim source = Format(sourceTemplate, LongLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, compOptions:=TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full))
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, compOptions:=TestOptions.DebugDll)
             Dim _longSquiggle_ As New String("~"c, LongLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>

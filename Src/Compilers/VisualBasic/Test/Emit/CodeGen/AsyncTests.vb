@@ -1391,7 +1391,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact(Skip:="1002672"), WorkItem(1002672)>
         Public Sub Simple_LateBinding_1()
             CompileAndVerify(
 <compilation>
@@ -1421,7 +1421,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.Full), useLatestFramework:=True).
+</compilation>, options:=TestOptions.DebugExe, useLatestFramework:=True).
             VerifyIL("Program.VB$StateMachine_0_Test2.MoveNext",
             <![CDATA[
 {
@@ -1626,7 +1626,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact(Skip:="1002672"), WorkItem(1002672)>
         Public Sub Simple_LateBinding_2()
             CompileAndVerify(
 <compilation>
@@ -1675,7 +1675,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithDebugInformationKind(DebugInformationKind.Full), useLatestFramework:=True).
+</compilation>, options:=TestOptions.DebugExe, useLatestFramework:=True).
             VerifyIL("Program.VB$StateMachine_0_Test2.MoveNext",
             <![CDATA[
 {
@@ -8081,14 +8081,12 @@ Public Class TestCase
     End Function
 End Class
     </file>
-</compilation>, options:=If(dbg,
-                            TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
-                            TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)),
+</compilation>, options:=If(dbg, TestOptions.DebugDll, TestOptions.ReleaseDll),
                 useLatestFramework:=True,
                 symbolValidator:=moduleValidator)
         End Sub
 
-        <Fact()>
+        <Fact(Skip:="1002672"), WorkItem(1002672)>
         Public Sub EmittedSymbolsCheck_Debug_Full()
             EmittedSymbolsCheck(True)
         End Sub

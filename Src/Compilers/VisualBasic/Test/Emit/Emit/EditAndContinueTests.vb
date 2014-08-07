@@ -40,8 +40,8 @@ Partial Class C
 End Class
 </file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -65,10 +65,10 @@ End Class
                     CheckNames(readers, reader1.GetMethodDefNames(), "M2")
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default))
                     CheckEncMap(reader1,
-                        Handle(4, TableIndex.TypeRef),
+                        Handle(6, TableIndex.TypeRef),
                         Handle(3, TableIndex.MethodDef),
                         Handle(2, TableIndex.AssemblyRef))
                 End Using
@@ -123,10 +123,10 @@ Class B
 End Class
 </file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.UnoptimizedDll)
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, TestOptions.UnoptimizedDll)
-            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntime(source3, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, TestOptions.DebugDll)
+            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntime(source3, TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -145,10 +145,10 @@ End Class
                     CheckNames(readers, reader1.GetMethodDefNames(), ".ctor", "M")
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(3, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                        Row(3, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(1, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                         Row(2, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -161,15 +161,15 @@ End Class
                         Row(1, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
                         Row(2, TableIndex.InterfaceImpl, EditAndContinueOperation.Default))
                     CheckEncMap(reader1,
-                        Handle(3, TableIndex.TypeRef),
+                        Handle(5, TableIndex.TypeRef),
                         Handle(3, TableIndex.TypeDef),
                         Handle(2, TableIndex.MethodDef),
                         Handle(3, TableIndex.MethodDef),
                         Handle(1, TableIndex.InterfaceImpl),
                         Handle(2, TableIndex.InterfaceImpl),
-                        Handle(3, TableIndex.MemberRef),
                         Handle(4, TableIndex.MemberRef),
                         Handle(5, TableIndex.MemberRef),
+                        Handle(6, TableIndex.MemberRef),
                         Handle(1, TableIndex.MethodImpl),
                         Handle(2, TableIndex.MethodImpl),
                         Handle(1, TableIndex.TypeSpec),
@@ -188,12 +188,12 @@ End Class
                         CheckNames(readers, reader2.GetMethodDefNames(), "M")
                         CheckEncLog(reader2,
                             Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                             Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default))
                         CheckEncMap(reader2,
-                            Handle(4, TableIndex.TypeRef),
+                            Handle(6, TableIndex.TypeRef),
                             Handle(3, TableIndex.MethodDef),
                             Handle(3, TableIndex.TypeSpec),
                             Handle(4, TableIndex.TypeSpec),
@@ -211,9 +211,9 @@ End Class
                             CheckNames(readers, reader3.GetMethodDefNames(), ".ctor", "M")
                             CheckEncLog(reader3,
                                 Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
                                 Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                                Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                                Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                                 Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                                 Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
                                 Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
@@ -223,13 +223,13 @@ End Class
                                 Row(3, TableIndex.MethodImpl, EditAndContinueOperation.Default),
                                 Row(3, TableIndex.InterfaceImpl, EditAndContinueOperation.Default))
                             CheckEncMap(reader3,
-                                Handle(4, TableIndex.TypeRef),
+                                Handle(6, TableIndex.TypeRef),
                                 Handle(4, TableIndex.TypeDef),
                                 Handle(4, TableIndex.MethodDef),
                                 Handle(5, TableIndex.MethodDef),
                                 Handle(3, TableIndex.InterfaceImpl),
-                                Handle(6, TableIndex.MemberRef),
                                 Handle(7, TableIndex.MemberRef),
+                                Handle(8, TableIndex.MemberRef),
                                 Handle(3, TableIndex.MethodImpl),
                                 Handle(3, TableIndex.TypeSpec),
                                 Handle(3, TableIndex.AssemblyRef))
@@ -257,8 +257,8 @@ Class C
 End Class
 </file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -278,13 +278,13 @@ End Class
                     CheckNames(readers, reader1.GetMethodDefNames(), ".ctor")
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default))
                     CheckEncMap(reader1,
-                        Handle(4, TableIndex.TypeRef),
+                        Handle(6, TableIndex.TypeRef),
                         Handle(3, TableIndex.MethodDef),
-                        Handle(4, TableIndex.MemberRef),
+                        Handle(5, TableIndex.MemberRef),
                         Handle(2, TableIndex.AssemblyRef))
                 End Using
             End Using
@@ -292,7 +292,7 @@ End Class
 
         <Fact>
         Public Sub NamespacesAndOverloads()
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(options:=TestOptions.UnoptimizedDll, sources:=
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(options:=TestOptions.DebugDll, sources:=
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -317,7 +317,7 @@ End Namespace
 
             Dim bytes = compilation0.EmitToArray(debug:=True)
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes), EmptyLocalsProvider)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(options:=TestOptions.UnoptimizedDll, sources:=
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(options:=TestOptions.DebugDll, sources:=
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -371,7 +371,7 @@ End Namespace
 }
 ]]>.Value)
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(options:=TestOptions.UnoptimizedDll, sources:=
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(options:=TestOptions.DebugDll, sources:=
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -447,8 +447,8 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources1, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources1, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -546,8 +546,8 @@ End Class
 ]]></file>
                           </compilation>
             Const ComputeStringHashName As String = "$$method0x6000001-ComputeStringHash"
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -614,8 +614,8 @@ Module M
 End Module
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources1, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources1, TestOptions.DebugDll)
 
             ' Verify full metadata contains expected rows.
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
@@ -623,7 +623,7 @@ End Module
                 Dim reader0 = md0.MetadataReader
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "M")
                 CheckNames(reader0, reader0.GetMethodDefNames(), "F", "G")
-                CheckNames(reader0, reader0.GetMemberRefNames(), ".ctor", ".ctor", ".ctor", "WriteLine")
+                CheckNames(reader0, reader0.GetMemberRefNames(), ".ctor", ".ctor", ".ctor", ".ctor", "WriteLine")
 
                 Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
 
@@ -657,8 +657,8 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
             Dim matcher = New SymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing)
             Dim members = compilation1.GetMember(Of NamedTypeSymbol)("A.B").GetMembers("M")
@@ -683,8 +683,8 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
             Dim matcher = New SymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing)
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.M")
@@ -714,8 +714,8 @@ End Class
                     </file>
                 </compilation>
             Dim metadata = CompileIL(ilSource)
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, {metadata}, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, {metadata}, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, {metadata}, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, {metadata}, TestOptions.DebugDll)
 
             Dim member1 = compilation1.GetMember(Of MethodSymbol)("B.F")
             Const nModifiers As Integer = 1
@@ -765,8 +765,8 @@ End Class
             Dim compilationPIA = CreateCompilationWithMscorlibAndVBRuntime(sourcesPIA)
             compilationPIA.AssertTheseDiagnostics()
             Dim referencePIA As MetadataReference = New MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes:=True)
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, options:=TestOptions.UnoptimizedDll, additionalRefs:={referencePIA})
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1, options:=TestOptions.UnoptimizedDll, additionalRefs:={referencePIA})
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -860,9 +860,9 @@ End Class
             Dim compilationPIA = CreateCompilationWithMscorlibAndVBRuntime(sourcesPIA)
             compilationPIA.AssertTheseDiagnostics()
             Dim referencePIA As MetadataReference = New MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes:=True)
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, options:=TestOptions.UnoptimizedDll, additionalRefs:={referencePIA})
-            Dim compilation1A = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1A, options:=TestOptions.UnoptimizedDll, additionalRefs:={referencePIA})
-            Dim compilation1B = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1B, options:=TestOptions.UnoptimizedDll, additionalRefs:={referencePIA})
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
+            Dim compilation1A = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1A, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
+            Dim compilation1B = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1B, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -945,8 +945,8 @@ End Class
             Dim compilationPIA = CreateCompilationWithMscorlibAndVBRuntime(sourcesPIA)
             compilationPIA.AssertTheseDiagnostics()
             Dim referencePIA As MetadataReference = New MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes:=True)
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, options:=TestOptions.UnoptimizedDll, additionalRefs:={referencePIA})
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, options:=TestOptions.UnoptimizedDll, additionalRefs:={referencePIA})
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
 
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -1001,8 +1001,8 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -1025,20 +1025,20 @@ End Class
                     CheckEncLog(reader1,
                         Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                        Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default))
                     CheckEncMap(reader1,
-                        Handle(6, TableIndex.TypeRef),
-                        Handle(7, TableIndex.TypeRef),
                         Handle(8, TableIndex.TypeRef),
+                        Handle(9, TableIndex.TypeRef),
+                        Handle(10, TableIndex.TypeRef),
                         Handle(3, TableIndex.MethodDef),
-                        Handle(7, TableIndex.MemberRef),
                         Handle(8, TableIndex.MemberRef),
+                        Handle(9, TableIndex.MemberRef),
                         Handle(2, TableIndex.StandAloneSig),
                         Handle(3, TableIndex.AssemblyRef),
                         Handle(4, TableIndex.AssemblyRef))
@@ -1088,8 +1088,8 @@ Module Module1
 End Module</file>
 </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -1155,8 +1155,8 @@ End Class
 </file>
 </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -1308,10 +1308,10 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.UnoptimizedDll)
-            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.UnoptimizedDll)
-            Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
+            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.DebugDll)
+            Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.DebugDll)
 
             ' Verify full metadata contains expected rows.
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
@@ -1335,7 +1335,7 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
 
-            diff1.VerifyIL(<![CDATA[
+            diff1.VerifyIL("
 {
   // Code size       41 (0x29)
   .maxstack  1
@@ -1347,7 +1347,7 @@ End Class
   IL_000d:  call       0x06000003
   IL_0012:  stloc.s    V_4
   IL_0014:  ldloc.s    V_4
-  IL_0016:  call       0x0A000006
+  IL_0016:  call       0x0A000007
   IL_001b:  call       0x06000004
   IL_0020:  nop
   IL_0021:  ldloc.1
@@ -1355,7 +1355,7 @@ End Class
   IL_0027:  nop
   IL_0028:  ret
 }
-]]>.Value)
+")
 
             diff1.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <?xml version="1.0" encoding="utf-16"?>
@@ -1392,7 +1392,7 @@ End Class
                 diff1.NextGeneration,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetLocalMap(method2, method1), preserveLocalVariables:=True)))
 
-            diff2.VerifyIL(<![CDATA[
+            diff2.VerifyIL("
 {
   // Code size       35 (0x23)
   .maxstack  1
@@ -1402,7 +1402,7 @@ End Class
   IL_0008:  call       0x06000003
   IL_000d:  stloc.3
   IL_000e:  ldloc.s    V_5
-  IL_0010:  call       0x0A000007
+  IL_0010:  call       0x0A000008
   IL_0015:  call       0x06000004
   IL_001a:  nop
   IL_001b:  ldloc.3
@@ -1410,7 +1410,7 @@ End Class
   IL_0021:  nop
   IL_0022:  ret
 }
-]]>.Value)
+")
 
             diff2.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <?xml version="1.0" encoding="utf-16"?>
@@ -1451,7 +1451,7 @@ End Class
                 diff2.NextGeneration,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2, method3, GetLocalMap(method3, method2), preserveLocalVariables:=True)))
 
-            diff3.VerifyIL(<![CDATA[
+            diff3.VerifyIL("
 {
   // Code size       38 (0x26)
   .maxstack  1
@@ -1461,16 +1461,16 @@ End Class
   IL_0007:  call       0x06000003
   IL_000c:  stloc.1
   IL_000d:  ldloc.2
-  IL_000e:  call       0x0A000008
+  IL_000e:  call       0x0A000009
   IL_0013:  call       0x06000004
   IL_0018:  nop
   IL_0019:  ldloc.1
-  IL_001a:  call       0x0A000008
+  IL_001a:  call       0x0A000009
   IL_001f:  call       0x06000004
   IL_0024:  nop
   IL_0025:  ret
 }
-]]>.Value)
+")
 
             diff3.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <?xml version="1.0" encoding="utf-16"?>
@@ -1532,9 +1532,9 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.UnoptimizedDll)
-            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
+            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
@@ -1619,8 +1619,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.Main")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.Main")
@@ -1671,8 +1671,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -1749,8 +1749,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -1862,8 +1862,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -1954,8 +1954,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -2046,8 +2046,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -2252,8 +2252,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -2435,8 +2435,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -2618,8 +2618,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -2850,8 +2850,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -2955,8 +2955,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -3057,8 +3057,8 @@ End Class
 
 
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -3160,8 +3160,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
@@ -3298,8 +3298,8 @@ End Namespace
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -3377,8 +3377,8 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -3518,10 +3518,10 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.UnoptimizedDll)
-            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.UnoptimizedDll)
-            Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
+            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.DebugDll)
+            Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -3696,10 +3696,10 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.UnoptimizedDll)
-            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.UnoptimizedDll)
-            Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
+            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.DebugDll)
+            Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -3782,8 +3782,8 @@ End Class
             Dim metadata0 = DirectCast(CompileIL(ilSource, appendDefaultHeader:=False), MetadataImageReference)
             ' Still need a compilation with source for the initial
             ' generation - to get a MethodSymbol and syntax map.
-            Dim compilation0 = CreateCompilationWithMscorlib(source, options:=TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full))
-            Dim compilation1 = CreateCompilationWithMscorlib(source, options:=TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full))
+            Dim compilation0 = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
 
             Dim moduleMetadata0 = DirectCast(metadata0.GetMetadata(), AssemblyMetadata).Modules(0)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
@@ -3868,8 +3868,8 @@ Module M
 End Module
 </file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.F")
@@ -3904,8 +3904,8 @@ Module M
 End Module
 </file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.F")
@@ -3915,13 +3915,13 @@ End Module
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
 
-            diff0.VerifyIL(<![CDATA[
+            diff0.VerifyIL("
 {
   // Code size       13 (0xd)
   .maxstack  3
   IL_0000:  nop
   IL_0001:  ldc.i4.6
-  IL_0002:  newarr     0x01000008
+  IL_0002:  newarr     0x0100000A
   IL_0007:  stloc.1
   IL_0008:  ldloc.1
   IL_0009:  ldc.i4.3
@@ -3929,7 +3929,7 @@ End Module
   IL_000b:  stelem.i4
   IL_000c:  ret
 }
-]]>.Value)
+")
         End Sub
 
 #End Region
@@ -3952,8 +3952,8 @@ End Module
         End Class
 ]]></file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, TestOptions.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(source1, TestOptions.UnoptimizedDll)
+            Dim compilation0 = CreateCompilationWithMscorlib(source0, TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(source1, TestOptions.DebugDll)
 
             ' Verify full metadata contains expected rows.
             Dim bytes0 = compilation0.EmitToArray(debug:=True)

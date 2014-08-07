@@ -3774,7 +3774,6 @@ class Program
 }");
         }
 
-
         #region "Regressions"
 
         [WorkItem(539439, "DevDiv")]
@@ -4837,6 +4836,7 @@ namespace ConsoleApplication16
 ";
             var compilation = CompileAndVerify(source);
         }
+
         #endregion
     }
 }

@@ -39,7 +39,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -134,7 +134,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -242,7 +242,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -325,7 +325,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -409,7 +409,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -496,7 +496,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -606,7 +606,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                                 source,
-                                TestOptions.ReleaseExe.WithOptimizations(False))
+                                TestOptions.DebugExe)
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -823,7 +823,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
@@ -879,7 +879,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseDll.WithOptimizations(False).WithSourceReferenceResolver(SourceFileResolver.Default))
+                    TestOptions.DebugDll.WithSourceReferenceResolver(SourceFileResolver.Default))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 

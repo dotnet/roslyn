@@ -25,7 +25,7 @@ end class
 </compilation>
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                 source,
-                TestOptions.ReleaseDll.WithOptimizations(False))
+                TestOptions.DebugDll)
 
             compilation.VerifyDiagnostics()
 
@@ -77,7 +77,7 @@ end class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                 source,
-                TestOptions.ReleaseDll.WithOptimizations(False))
+                TestOptions.DebugDll)
 
             Dim actual As XElement = GetPdbXml(compilation)
             Dim expected = <symbols>
@@ -165,7 +165,7 @@ End Class
                          </compilation>
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                 source,
-                TestOptions.ReleaseDll.WithOptimizations(False))
+                TestOptions.DebugDll)
 
             compilation.VerifyDiagnostics(
                  Diagnostic(ERRID.WRN_UnusedLocalConst, "o").WithArguments("o"),

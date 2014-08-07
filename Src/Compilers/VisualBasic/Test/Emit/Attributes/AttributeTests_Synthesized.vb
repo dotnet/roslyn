@@ -53,9 +53,7 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll, TestOptions.DebuggableReleaseDll, TestOptions.DebugDll}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
                 Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
@@ -107,9 +105,7 @@ Public MustInherit Class C
 End Class
     </file>
 </compilation>
-            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll, TestOptions.DebuggableReleaseDll, TestOptions.DebugDll}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
                 Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
@@ -172,9 +168,7 @@ Public Class C
 End Class
     </file>
 </compilation>
-            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll, TestOptions.DebuggableReleaseDll, TestOptions.DebugDll}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
                 CompileAndVerify(comp, symbolValidator:=
@@ -213,9 +207,7 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll, TestOptions.DebuggableReleaseDll, TestOptions.DebugDll}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
                 CompileAndVerify(comp, symbolValidator:=
@@ -265,9 +257,7 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll, TestOptions.DebuggableReleaseDll, TestOptions.DebugDll}
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
                 CompileAndVerify(comp, symbolValidator:=
@@ -320,9 +310,7 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll, TestOptions.DebuggableReleaseDll, TestOptions.DebugDll}
                 Dim comp = CreateCompilationWithMscorlibAndReferences(source, references:={SystemCoreRef}, options:=options)
 
                 ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
@@ -358,9 +346,7 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll, TestOptions.DebuggableReleaseDll, TestOptions.DebugDll}
                 Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef}, options:=options)
 
                 ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
@@ -390,9 +376,7 @@ Class C
 End Class
     </file>
 </compilation>
-            For Each options In {TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
-                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.PdbOnly),
-                                 TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.None)}
+            For Each options In {TestOptions.ReleaseDll, TestOptions.DebuggableReleaseDll, TestOptions.DebugDll}
 
                 Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
@@ -462,7 +446,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full))
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
             CompileAndVerify(comp, symbolValidator:=
                 Sub(m)
                     Dim assembly = m.ContainingAssembly

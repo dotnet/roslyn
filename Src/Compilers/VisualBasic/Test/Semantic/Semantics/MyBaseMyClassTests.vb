@@ -3920,7 +3920,7 @@ End Module
             Dim position = compilationDef.<file>.Value.IndexOf("'POSITION")
 
             Dim verifier = CompileAndVerify(compilationDef,
-                             options:=TestOptions.ReleaseDll.WithDebugInformationKind(DebugInformationKind.Full),
+                             options:=TestOptions.DebugDll,
                              additionalRefs:={SystemCoreRef})
 
 

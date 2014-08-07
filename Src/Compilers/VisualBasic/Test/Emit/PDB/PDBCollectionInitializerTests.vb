@@ -26,7 +26,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 
@@ -77,7 +77,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 
@@ -125,11 +125,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim actual = GetPdbXml(compilation, "C1.Main")
 
             Dim expected = <symbols>
                                <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
@@ -178,7 +175,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    TestOptions.ReleaseExe.WithOptimizations(False))
+                    TestOptions.DebugExe)
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
 

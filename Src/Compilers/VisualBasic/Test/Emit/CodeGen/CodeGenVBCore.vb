@@ -476,7 +476,7 @@ End Class
   End Namespace
 </expected>.Value)
                              End Sub,
-                options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True).WithMetadataImportOptions(MetadataImportOptions.Internal).WithDebugInformationKind(DebugInformationKind.Full),
+                options:=TestOptions.DebugExe.WithEmbedVbCoreRuntime(True).WithMetadataImportOptions(MetadataImportOptions.Internal),
                 emitPdb:=True)
         End Sub
 
@@ -2210,8 +2210,7 @@ symbolValidator:=Sub([module])
     End Namespace
   End Namespace
 </expected>.Value)
-                 End Sub,
-                 debugKind:=DebugInformationKind.None)
+                 End Sub)
         End Sub
 
         <Fact>
@@ -2558,9 +2557,8 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                                    source, TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True).WithOptimizations(False))
-            Dim actual = PDB.PDBTests.GetPdbXml(compilation)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe.WithEmbedVbCoreRuntime(True))
+            Dim actual = GetPdbXml(compilation)
 
             Dim expected =
 <symbols>
@@ -3304,11 +3302,12 @@ End Module
             Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
             Optional validator As Action(Of PEAssembly) = Nothing,
             Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
-            Optional emitPdb As Boolean = True,
-            Optional debugKind As DebugInformationKind = DebugInformationKind.Full
+            Optional emitPdb As Boolean = True
         ) As CompilationVerifier
 
-            Dim options = If(expectedOutput IsNot Nothing, TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal), TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal)).WithEmbedVbCoreRuntime(True).WithDebugInformationKind(debugKind)
+            Dim options = If(expectedOutput IsNot Nothing, TestOptions.ReleaseExe, TestOptions.ReleaseDll).
+                WithMetadataImportOptions(MetadataImportOptions.Internal).
+                WithEmbedVbCoreRuntime(True)
 
             Return MyBase.CompileAndVerify(source:=source,
                                            allReferences:=NoVbRuntimeReferences,

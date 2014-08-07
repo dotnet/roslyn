@@ -11502,7 +11502,7 @@ Module Module1
     End Function 
 End Module
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithOptimizations(True),
+</compilation>, options:=TestOptions.ReleaseExe,
 expectedOutput:=
             <![CDATA[
 -100
@@ -11731,11 +11731,11 @@ End Module
     </file>
                 </compilation>
 
-            Dim compOpt = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithOptimizations(True))
-            Dim compNoOpt = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithOptimizations(False))
+            Dim compRelease = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe)
+            Dim compDebug = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugExe)
 
             ' (2) is not met.
-            CompileAndVerify(compOpt, emitPdb:=False).VerifyIL("C.Main",
+            CompileAndVerify(compRelease, emitPdb:=False).VerifyIL("C.Main",
             <![CDATA[
 {
   // Code size       12 (0xc)
@@ -11748,7 +11748,7 @@ End Module
 ]]>)
 
             ' Neither (2) nor (3) is met.
-            CompileAndVerify(compOpt, emitPdb:=True).VerifyIL("C.Main",
+            CompileAndVerify(compRelease, emitPdb:=True).VerifyIL("C.Main",
             <![CDATA[
 {
   // Code size       12 (0xc)
@@ -11760,7 +11760,7 @@ End Module
 }]]>)
 
             ' (3) is not met.
-            CompileAndVerify(compNoOpt, emitPdb:=False).VerifyIL("C.Main",
+            CompileAndVerify(compDebug, emitPdb:=False).VerifyIL("C.Main",
             <![CDATA[
 {
   // Code size       12 (0xc)
@@ -11773,7 +11773,7 @@ End Module
 ]]>)
 
             ' S meets (1), but F does not (it doesn't need a nop since it has a pop).
-            CompileAndVerify(compNoOpt, emitPdb:=True).VerifyIL("C.Main",
+            CompileAndVerify(compDebug, emitPdb:=True).VerifyIL("C.Main",
             <![CDATA[
 {
   // Code size       14 (0xe)
@@ -12435,7 +12435,7 @@ End Module
 
 ]]>
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithOptimizations(False),
+</compilation>, options:=TestOptions.DebugExe,
                 expectedOutput:="i=2 -> x.bool = True i=21474836472 -> x.bool = True").
             VerifyIL("Module1.Main",
             <![CDATA[

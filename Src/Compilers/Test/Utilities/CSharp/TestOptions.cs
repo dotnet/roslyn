@@ -31,9 +31,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static readonly CSharpCompilationOptions UnsafeDebugDll = DebugDll.WithAllowUnsafe(true);
         public static readonly CSharpCompilationOptions UnsafeDebugExe = DebugExe.WithAllowUnsafe(true);
-
-        // TODO: remove
-        public static readonly CSharpCompilationOptions UnoptimizedDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize: false);
-        public static readonly CSharpCompilationOptions UnoptimizedExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false);
     }
 }

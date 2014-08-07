@@ -31,7 +31,7 @@ namespace Roslyn.Utilities.Pdb
         /// <summary>
         /// Returns local names indexed by slot.
         /// </summary>
-        internal static ImmutableArray<string> GetLocalNames(this ISymUnmanagedReader symReader, int methodToken, int ilOffset)
+        internal static ImmutableArray<string> GetLocalNames(this ISymUnmanagedReader symReader, int methodToken, int ilOffset, bool isScopeEndInclusive)
         {
             if (symReader == null)
             {
@@ -39,10 +39,15 @@ namespace Roslyn.Utilities.Pdb
             }
             
             var symMethod = symReader.GetBaselineMethod(methodToken);
-            return symMethod.GetLocalVariableSlots(ilOffset);
+            return symMethod.GetLocalVariableSlots(ilOffset, isScopeEndInclusive);
         }
 
-        internal static ImmutableArray<string> GetLocalVariableSlots(this ISymUnmanagedMethod method, int offset = -1)
+        internal static ImmutableArray<string> GetLocalVariableSlots(this ISymUnmanagedMethod method)
+        {
+            return GetLocalVariableSlots(method, offset: -1, isScopeEndInclusive: false);
+        }
+
+        internal static ImmutableArray<string> GetLocalVariableSlots(this ISymUnmanagedMethod method, int offset, bool isScopeEndInclusive)
         {
             char[] nameBuffer = null;
             string[] result = null;
@@ -52,7 +57,7 @@ namespace Roslyn.Utilities.Pdb
 
             ISymUnmanagedVariable[] localsBuffer = null;
 
-            ForEachLocalVariableRecursive(rootScope, offset, ref localsBuffer, local =>
+            ForEachLocalVariableRecursive(rootScope, offset, isScopeEndInclusive, ref localsBuffer, local =>
             {
                 int nameLength;
                 local.GetName(0, out nameLength, null);
@@ -89,10 +94,11 @@ namespace Roslyn.Utilities.Pdb
         private static void ForEachLocalVariableRecursive(
             ISymUnmanagedScope scope,
             int offset,
+            bool isScopeEndInclusive,
             ref ISymUnmanagedVariable[] localsBuffer,
             Action<ISymUnmanagedVariable> action)
         {
-            Debug.Assert((offset < 0) || scope.IsInScope(offset));
+            Debug.Assert((offset < 0) || scope.IsInScope(offset, isScopeEndInclusive));
 
             // apply action on locals of the current scope:
 
@@ -122,9 +128,9 @@ namespace Roslyn.Utilities.Pdb
 
                 foreach (var child in children)
                 {
-                    if ((offset < 0) || child.IsInScope(offset))
+                    if ((offset < 0) || child.IsInScope(offset, isScopeEndInclusive))
                     {
-                        ForEachLocalVariableRecursive(child, offset, ref localsBuffer, action);
+                        ForEachLocalVariableRecursive(child, offset, isScopeEndInclusive, ref localsBuffer, action);
                         if (offset >= 0)
                         {
                             return;
@@ -134,7 +140,7 @@ namespace Roslyn.Utilities.Pdb
             }
         }
 
-        internal static bool IsInScope(this ISymUnmanagedScope scope, int offset)
+        internal static bool IsInScope(this ISymUnmanagedScope scope, int offset, bool isEndInclusive)
         {
             int startOffset;
             scope.GetStartOffset(out startOffset);
@@ -145,7 +151,10 @@ namespace Roslyn.Utilities.Pdb
 
             int endOffset;
             scope.GetEndOffset(out endOffset);
-            return offset <= endOffset;
+
+            // In PDBs emitted by VB the end offset is inclusive, 
+            // in PDBs emitted by C# the end offset is exclusive.
+            return isEndInclusive ? offset <= endOffset : offset < endOffset;
         }
 
         private static void EnsureBufferSize<T>(ref T[] buffer, int minSize)

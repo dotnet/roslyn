@@ -1,17 +1,10 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
@@ -19,7 +12,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
@@ -39,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     static string F() { return ""a""; }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
@@ -85,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     static void Main() { }
     static string F() { return string.Empty; }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedExe);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedExe);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -95,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 var reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
                 CheckNames(reader0, reader0.GetMethodDefNames(), "Main", "F", ".ctor");
-                CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor");
+                CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
 
                 var method0 = compilation0.GetMember<MethodSymbol>("C.F");
                 var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -118,16 +110,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     CheckNames(readers, reader1.GetMemberRefNames(), /*String.*/"Empty");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)); // C.F
                     CheckEncMap(reader1,
-                        Handle(4, TableIndex.TypeRef),
-                        Handle(5, TableIndex.TypeRef),
-                        Handle(2, TableIndex.MethodDef), // C.F
-                        Handle(4, TableIndex.MemberRef),
+                        Handle(6, TableIndex.TypeRef),
+                        Handle(7, TableIndex.TypeRef),
+                        Handle(2, TableIndex.MethodDef),
+                        Handle(5, TableIndex.MemberRef),
                         Handle(2, TableIndex.StandAloneSig),
                         Handle(2, TableIndex.AssemblyRef));
                 }
@@ -147,8 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     static partial void M1() { }
     static partial void M2() { }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
@@ -177,10 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     CheckNames(readers, reader1.GetMethodDefNames(), "M2");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(4, TableIndex.TypeRef),
+                        Handle(6, TableIndex.TypeRef),
                         Handle(2, TableIndex.MethodDef),
                         Handle(2, TableIndex.AssemblyRef));
                 }
@@ -216,9 +208,9 @@ class C
     static void Main() { F2(); }
     [return:A]static object F2(string s2 = ""2"") { return null; }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedExe);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedExe);
-            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.UnoptimizedExe);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugExe);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -247,23 +239,23 @@ class C
                     CheckNames(readers, reader1.GetParameterDefNames(), "", "s2");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default), // C.F2
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                        Row(2, TableIndex.Param, EditAndContinueOperation.Default), // return type
+                        Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                        Row(3, TableIndex.Param, EditAndContinueOperation.Default), // s2
-                        Row(1, TableIndex.Constant, EditAndContinueOperation.Default), // = "2"
-                        Row(3, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // [A]
+                        Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.Constant, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(5, TableIndex.TypeRef),
-                        Handle(5, TableIndex.MethodDef), // C.F2
-                        Handle(2, TableIndex.Param), // return type
-                        Handle(3, TableIndex.Param), // s2
+                        Handle(7, TableIndex.TypeRef),
+                        Handle(5, TableIndex.MethodDef),
+                        Handle(2, TableIndex.Param),
+                        Handle(3, TableIndex.Param),
                         Handle(1, TableIndex.Constant),
-                        Handle(3, TableIndex.CustomAttribute),
+                        Handle(4, TableIndex.CustomAttribute),
                         Handle(2, TableIndex.StandAloneSig),
                         Handle(2, TableIndex.AssemblyRef));
 
@@ -283,12 +275,12 @@ class C
                         CheckNames(readers, reader2.GetParameterDefNames());
                         CheckEncLog(reader2,
                             Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default), // C.BaseType. Not strictly necessary.
+                            Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)); // C.F2
                         CheckEncMap(reader2,
-                            Handle(6, TableIndex.TypeRef), // C.BaseType. Not strictly necessary.
-                            Handle(5, TableIndex.MethodDef), // C.F2
+                            Handle(8, TableIndex.TypeRef),
+                            Handle(5, TableIndex.MethodDef),
                             Handle(3, TableIndex.StandAloneSig),
                             Handle(3, TableIndex.AssemblyRef));
                     }
@@ -310,8 +302,8 @@ class C
     string F = ""F"";
     string G = ""G"";
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -342,16 +334,16 @@ class C
                     CheckNames(readers, reader1.GetMethodDefNames(), ".ctor");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                        Row(2, TableIndex.Field, EditAndContinueOperation.Default), // C.G
+                        Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(4, TableIndex.TypeRef),
-                        Handle(2, TableIndex.Field), // C.G
+                        Handle(6, TableIndex.TypeRef),
+                        Handle(2, TableIndex.Field),
                         Handle(1, TableIndex.MethodDef),
-                        Handle(4, TableIndex.MemberRef),
+                        Handle(5, TableIndex.MemberRef),
                         Handle(2, TableIndex.AssemblyRef));
                 }
             }
@@ -388,9 +380,9 @@ class B
     object R { get { return null; } }
     object S { set { } }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
-            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -419,7 +411,7 @@ class B
                     CheckNames(readers, reader1.GetMethodDefNames(), "get_R");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.PropertyMap, EditAndContinueOperation.Default),
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
@@ -428,7 +420,7 @@ class B
                         Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                         Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(5, TableIndex.TypeRef),
+                        Handle(9, TableIndex.TypeRef),
                         Handle(5, TableIndex.MethodDef),
                         Handle(2, TableIndex.StandAloneSig),
                         Handle(2, TableIndex.PropertyMap),
@@ -453,9 +445,12 @@ class B
                         CheckNames(readers, reader2.GetMethodDefNames(), "get_Q", "set_Q", "set_S");
                         CheckEncLog(reader2,
                             Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default), // CompilerGeneratedAttribute..ctor for <Q>k__BackingField
-                            Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
@@ -473,25 +468,30 @@ class B
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(8, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(3, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
                         CheckEncMap(reader2,
-                            Handle(6, TableIndex.TypeRef),
-                            Handle(7, TableIndex.TypeRef),
+                            Handle(10, TableIndex.TypeRef),
+                            Handle(11, TableIndex.TypeRef),
+                            Handle(12, TableIndex.TypeRef),
+                            Handle(13, TableIndex.TypeRef),
                             Handle(2, TableIndex.Field),
                             Handle(6, TableIndex.MethodDef),
                             Handle(7, TableIndex.MethodDef),
                             Handle(8, TableIndex.MethodDef),
                             Handle(2, TableIndex.Param),
                             Handle(3, TableIndex.Param),
-                            Handle(5, TableIndex.MemberRef), // CompilerGeneratedAttribute..ctor for <Q>k__BackingField
-                            Handle(6, TableIndex.CustomAttribute),
-                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.MemberRef),
+                            Handle(8, TableIndex.MemberRef),
                             Handle(8, TableIndex.CustomAttribute),
+                            Handle(9, TableIndex.CustomAttribute),
+                            Handle(10, TableIndex.CustomAttribute),
+                            Handle(11, TableIndex.CustomAttribute),
                             Handle(3, TableIndex.StandAloneSig),
                             Handle(3, TableIndex.Property),
                             Handle(4, TableIndex.Property),
@@ -538,9 +538,9 @@ class B
     event D F;
     event D H;
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
-            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -568,15 +568,18 @@ class B
                     CheckNames(readers, reader1.GetMethodDefNames(), "add_F", "remove_F");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(10, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(11, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(12, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(13, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(14, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodSpec, EditAndContinueOperation.Default),
-                        Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                        Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                        Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.EventMap, EditAndContinueOperation.Default),
                         Row(2, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
@@ -591,28 +594,33 @@ class B
                         Row(8, TableIndex.Param, EditAndContinueOperation.Default),
                         Row(10, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                         Row(9, TableIndex.Param, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(10, TableIndex.TypeRef),
-                        Handle(11, TableIndex.TypeRef),
-                        Handle(12, TableIndex.TypeRef),
-                        Handle(13, TableIndex.TypeRef),
+                        Handle(14, TableIndex.TypeRef),
+                        Handle(15, TableIndex.TypeRef),
+                        Handle(16, TableIndex.TypeRef),
+                        Handle(17, TableIndex.TypeRef),
+                        Handle(18, TableIndex.TypeRef),
+                        Handle(19, TableIndex.TypeRef),
                         Handle(2, TableIndex.Field),
                         Handle(9, TableIndex.MethodDef),
                         Handle(10, TableIndex.MethodDef),
                         Handle(8, TableIndex.Param),
                         Handle(9, TableIndex.Param),
-                        Handle(8, TableIndex.MemberRef),
-                        Handle(9, TableIndex.MemberRef),
                         Handle(10, TableIndex.MemberRef),
                         Handle(11, TableIndex.MemberRef),
-                        Handle(6, TableIndex.CustomAttribute),
-                        Handle(7, TableIndex.CustomAttribute),
+                        Handle(12, TableIndex.MemberRef),
+                        Handle(13, TableIndex.MemberRef),
+                        Handle(14, TableIndex.MemberRef),
                         Handle(8, TableIndex.CustomAttribute),
+                        Handle(9, TableIndex.CustomAttribute),
+                        Handle(10, TableIndex.CustomAttribute),
+                        Handle(11, TableIndex.CustomAttribute),
                         Handle(2, TableIndex.StandAloneSig),
                         Handle(2, TableIndex.EventMap),
                         Handle(2, TableIndex.Event),
@@ -637,15 +645,18 @@ class B
                         CheckNames(readers, reader2.GetMethodDefNames(), "add_G", "remove_G", "add_H", "remove_H");
                         CheckEncLog(reader2,
                             Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                            Row(12, TableIndex.MemberRef, EditAndContinueOperation.Default), // CompilerGeneratedAttribute..ctor for A.G and B.H fields
-                            Row(13, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                            Row(14, TableIndex.MemberRef, EditAndContinueOperation.Default),
                             Row(15, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(16, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(17, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(18, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(19, TableIndex.MemberRef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSpec, EditAndContinueOperation.Default),
-                            Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(21, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(22, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(23, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(24, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(25, TableIndex.TypeRef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(1, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
                             Row(3, TableIndex.Event, EditAndContinueOperation.Default),
@@ -671,21 +682,25 @@ class B
                             Row(12, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(14, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(13, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                            Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(7, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(8, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
                         CheckEncMap(reader2,
-                            Handle(14, TableIndex.TypeRef),
-                            Handle(15, TableIndex.TypeRef),
-                            Handle(16, TableIndex.TypeRef),
-                            Handle(17, TableIndex.TypeRef),
+                            Handle(20, TableIndex.TypeRef),
+                            Handle(21, TableIndex.TypeRef),
+                            Handle(22, TableIndex.TypeRef),
+                            Handle(23, TableIndex.TypeRef),
+                            Handle(24, TableIndex.TypeRef),
+                            Handle(25, TableIndex.TypeRef),
                             Handle(3, TableIndex.Field),
                             Handle(4, TableIndex.Field),
                             Handle(11, TableIndex.MethodDef),
@@ -696,16 +711,19 @@ class B
                             Handle(11, TableIndex.Param),
                             Handle(12, TableIndex.Param),
                             Handle(13, TableIndex.Param),
-                            Handle(12, TableIndex.MemberRef), // CompilerGeneratedAttribute..ctor for A.G and B.H fields
-                            Handle(13, TableIndex.MemberRef),
-                            Handle(14, TableIndex.MemberRef),
                             Handle(15, TableIndex.MemberRef),
-                            Handle(9, TableIndex.CustomAttribute),
-                            Handle(10, TableIndex.CustomAttribute),
-                            Handle(11, TableIndex.CustomAttribute),
+                            Handle(16, TableIndex.MemberRef),
+                            Handle(17, TableIndex.MemberRef),
+                            Handle(18, TableIndex.MemberRef),
+                            Handle(19, TableIndex.MemberRef),
                             Handle(12, TableIndex.CustomAttribute),
                             Handle(13, TableIndex.CustomAttribute),
                             Handle(14, TableIndex.CustomAttribute),
+                            Handle(15, TableIndex.CustomAttribute),
+                            Handle(16, TableIndex.CustomAttribute),
+                            Handle(17, TableIndex.CustomAttribute),
+                            Handle(18, TableIndex.CustomAttribute),
+                            Handle(19, TableIndex.CustomAttribute),
                             Handle(3, TableIndex.StandAloneSig),
                             Handle(3, TableIndex.Event),
                             Handle(4, TableIndex.Event),
@@ -750,8 +768,8 @@ class B
         return C.G();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -780,8 +798,8 @@ class B
                     CheckNames(readers, reader1.GetMethodDefNames(), "F", "G", ".ctor", ".ctor");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -797,7 +815,7 @@ class B
                         Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default),
                         Row(3, TableIndex.NestedClass, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(4, TableIndex.TypeRef),
+                        Handle(6, TableIndex.TypeRef),
                         Handle(4, TableIndex.TypeDef),
                         Handle(5, TableIndex.TypeDef),
                         Handle(1, TableIndex.Field),
@@ -805,7 +823,7 @@ class B
                         Handle(4, TableIndex.MethodDef),
                         Handle(5, TableIndex.MethodDef),
                         Handle(6, TableIndex.MethodDef),
-                        Handle(4, TableIndex.MemberRef),
+                        Handle(5, TableIndex.MemberRef),
                         Handle(2, TableIndex.StandAloneSig),
                         Handle(2, TableIndex.AssemblyRef),
                         Handle(2, TableIndex.NestedClass),
@@ -853,8 +871,8 @@ class B
         class C4 { }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
@@ -912,8 +930,8 @@ class B
         return new B<A>.C<B<object>>().F<A>();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -940,12 +958,12 @@ class B
                     Assert.Equal(1, reader1.GetTableRowCount(TableIndex.NestedClass));
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(1, TableIndex.MethodSpec, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(1, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                         Row(2, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                         Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
@@ -962,15 +980,15 @@ class B
                         Row(4, TableIndex.GenericParam, EditAndContinueOperation.Default),
                         Row(1, TableIndex.GenericParamConstraint, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(4, TableIndex.TypeRef),
+                        Handle(6, TableIndex.TypeRef),
                         Handle(4, TableIndex.TypeDef),
                         Handle(1, TableIndex.MethodDef),
                         Handle(4, TableIndex.MethodDef),
                         Handle(5, TableIndex.MethodDef),
-                        Handle(4, TableIndex.MemberRef),
                         Handle(5, TableIndex.MemberRef),
                         Handle(6, TableIndex.MemberRef),
                         Handle(7, TableIndex.MemberRef),
+                        Handle(8, TableIndex.MemberRef),
                         Handle(2, TableIndex.StandAloneSig),
                         Handle(1, TableIndex.TypeSpec),
                         Handle(2, TableIndex.TypeSpec),
@@ -998,8 +1016,8 @@ class C : I
 {
     void I.M() { }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -1026,10 +1044,10 @@ class C : I
                     CheckNames(readers, reader1.GetMethodDefNames(), "I.M");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(4, TableIndex.TypeRef),
+                        Handle(6, TableIndex.TypeRef),
                         Handle(2, TableIndex.MethodDef),
                         Handle(2, TableIndex.AssemblyRef));
                 }
@@ -1067,9 +1085,9 @@ class B : I
     void I.M() { }
 }";
             var source2 = source1;
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
-            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
@@ -1089,12 +1107,12 @@ class B : I
                     CheckNames(readers, reader1.GetMethodDefNames(), "I.M");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                         Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodImpl, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(4, TableIndex.TypeRef),
+                        Handle(6, TableIndex.TypeRef),
                         Handle(6, TableIndex.MethodDef),
                         Handle(2, TableIndex.MethodImpl),
                         Handle(2, TableIndex.AssemblyRef));
@@ -1113,10 +1131,10 @@ class B : I
                         CheckNames(readers, reader2.GetMethodDefNames(), "I.M");
                         CheckEncLog(reader2,
                             Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default));
                         CheckEncMap(reader2,
-                            Handle(5, TableIndex.TypeRef),
+                            Handle(7, TableIndex.TypeRef),
                             Handle(6, TableIndex.MethodDef),
                             Handle(3, TableIndex.AssemblyRef));
                     }
@@ -1140,8 +1158,8 @@ class C : I
     void I.M() { }
 }
 ";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
@@ -1164,13 +1182,13 @@ class C : I
                     CheckNames(readers, reader1.GetMethodDefNames(), ".ctor");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(4, TableIndex.TypeRef),
+                        Handle(6, TableIndex.TypeRef),
                         Handle(2, TableIndex.MethodDef),
-                        Handle(4, TableIndex.MemberRef),
+                        Handle(5, TableIndex.MemberRef),
                         Handle(2, TableIndex.AssemblyRef));
                 }
             }
@@ -1207,8 +1225,8 @@ class C
 }
 delegate void D();
 ";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -1218,16 +1236,18 @@ delegate void D();
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "B", "C", "D");
                 CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", ".ctor", "M1", "get_P1", "add_E1", "remove_E1", ".ctor", ".ctor", "BeginInvoke", "EndInvoke", "Invoke");
                 CheckAttributes(reader0,
-                    new CustomAttributeRow(Handle(1, TableIndex.Field), Handle(2, TableIndex.MethodDef)), // C.F1, B..ctor
-                    new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(1, TableIndex.MethodDef)), // C.P1, A..ctor
-                    new CustomAttributeRow(Handle(1, TableIndex.Event), Handle(2, TableIndex.MethodDef)), // C.E1, B..ctor
-                    new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)), // assembly, CompilationRelaxations
-                    new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)), // assembly, RuntimeCompatibility
-                    new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(2, TableIndex.MethodDef)), // C.M1.T, B..ctor
-                    new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(3, TableIndex.MemberRef)), // C.E1, CompilerGenerated
-                    new CustomAttributeRow(Handle(3, TableIndex.MethodDef), Handle(1, TableIndex.MethodDef)), // C.M1, A..ctor
-                    new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(3, TableIndex.MemberRef)), // C.add_E1, CompilerGenerated
-                    new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(3, TableIndex.MemberRef))); // C.remove_E1, CompilerGenerated
+                    new CustomAttributeRow(Handle(1, TableIndex.Field), Handle(2, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(1, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(1, TableIndex.Event), Handle(2, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(2, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(4, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(5, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(3, TableIndex.MethodDef), Handle(1, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef)));
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
@@ -1248,15 +1268,18 @@ delegate void D();
                     CheckNames(readers, reader1.GetMethodDefNames(), "M2", "get_P2", "add_E2", "remove_E2");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                        Row(10, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(11, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(12, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(13, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(14, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(15, TableIndex.MemberRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodSpec, EditAndContinueOperation.Default),
-                        Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                        Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(1, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
@@ -1279,23 +1302,26 @@ delegate void D();
                         Row(8, TableIndex.Param, EditAndContinueOperation.Default),
                         Row(15, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                         Row(9, TableIndex.Param, EditAndContinueOperation.Default),
-                        Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         Row(2, TableIndex.GenericParam, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(11, TableIndex.TypeRef),
-                        Handle(12, TableIndex.TypeRef),
-                        Handle(13, TableIndex.TypeRef),
-                        Handle(14, TableIndex.TypeRef),
+                        Handle(15, TableIndex.TypeRef),
+                        Handle(16, TableIndex.TypeRef),
+                        Handle(17, TableIndex.TypeRef),
+                        Handle(18, TableIndex.TypeRef),
+                        Handle(19, TableIndex.TypeRef),
+                        Handle(20, TableIndex.TypeRef),
                         Handle(3, TableIndex.Field),
                         Handle(4, TableIndex.Field),
                         Handle(12, TableIndex.MethodDef),
@@ -1304,18 +1330,20 @@ delegate void D();
                         Handle(15, TableIndex.MethodDef),
                         Handle(8, TableIndex.Param),
                         Handle(9, TableIndex.Param),
-                        Handle(9, TableIndex.MemberRef),
-                        Handle(10, TableIndex.MemberRef),
                         Handle(11, TableIndex.MemberRef),
                         Handle(12, TableIndex.MemberRef),
-                        Handle(11, TableIndex.CustomAttribute),
-                        Handle(12, TableIndex.CustomAttribute),
+                        Handle(13, TableIndex.MemberRef),
+                        Handle(14, TableIndex.MemberRef),
+                        Handle(15, TableIndex.MemberRef),
                         Handle(13, TableIndex.CustomAttribute),
                         Handle(14, TableIndex.CustomAttribute),
                         Handle(15, TableIndex.CustomAttribute),
                         Handle(16, TableIndex.CustomAttribute),
                         Handle(17, TableIndex.CustomAttribute),
                         Handle(18, TableIndex.CustomAttribute),
+                        Handle(19, TableIndex.CustomAttribute),
+                        Handle(20, TableIndex.CustomAttribute),
+                        Handle(21, TableIndex.CustomAttribute),
                         Handle(3, TableIndex.StandAloneSig),
                         Handle(4, TableIndex.StandAloneSig),
                         Handle(2, TableIndex.Event),
@@ -1331,10 +1359,11 @@ delegate void D();
                         new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
                         new CustomAttributeRow(Handle(2, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
                         new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(1, TableIndex.MethodDef)),
-                        new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(9, TableIndex.MemberRef)),
+                        new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(11, TableIndex.MemberRef)),
+                        new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(12, TableIndex.MemberRef)),
                         new CustomAttributeRow(Handle(12, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)),
-                        new CustomAttributeRow(Handle(14, TableIndex.MethodDef), Handle(9, TableIndex.MemberRef)),
-                        new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(9, TableIndex.MemberRef)));
+                        new CustomAttributeRow(Handle(14, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
+                        new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)));
                 }
             }
         }
@@ -1361,8 +1390,8 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -1385,12 +1414,12 @@ class C
                     CheckNames(readers, md1.Reader.GetMethodDefNames(), "M");
                     CheckEncLog(md1.Reader,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)); // C.M
                     CheckEncMap(md1.Reader,
-                        Handle(5, TableIndex.TypeRef),
-                        Handle(2, TableIndex.MethodDef), // C.M
+                        Handle(7, TableIndex.TypeRef),
+                        Handle(2, TableIndex.MethodDef),
                         Handle(2, TableIndex.AssemblyRef));
                 }
             }
@@ -1426,8 +1455,8 @@ class C
         E += null;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -1803,8 +1832,8 @@ class C
         return ((D)(() => o))();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
             var bytes0 = compilation0.EmitToArray(debug: true);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
@@ -1817,10 +1846,10 @@ class C
                 var reader1 = md1.Reader;
                 CheckEncLog(reader1,
                     Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
                     Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                    Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                     Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
@@ -1831,19 +1860,19 @@ class C
                     Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                     Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default));
                 CheckEncMap(reader1,
-                    Handle(7, TableIndex.TypeRef),
-                    Handle(8, TableIndex.TypeRef),
+                    Handle(9, TableIndex.TypeRef),
+                    Handle(10, TableIndex.TypeRef),
                     Handle(4, TableIndex.TypeDef),
                     Handle(1, TableIndex.Field),
                     Handle(5, TableIndex.MethodDef),
                     Handle(7, TableIndex.MethodDef),
                     Handle(8, TableIndex.MethodDef),
-                    Handle(4, TableIndex.MemberRef),
                     Handle(5, TableIndex.MemberRef),
-                    Handle(3, TableIndex.CustomAttribute),
+                    Handle(6, TableIndex.MemberRef),
+                    Handle(4, TableIndex.CustomAttribute),
                     Handle(2, TableIndex.StandAloneSig),
                     Handle(3, TableIndex.StandAloneSig),
                     Handle(2, TableIndex.AssemblyRef),
@@ -1870,8 +1899,8 @@ class C
         int[] a = new[] { 1, 2, 3, 4 };
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(Parse(source0, "a.cs"), options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(Parse(source1, "a.cs"), options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(Parse(source1, "a.cs"), options: TestOptions.DebugDll);
             var bytes0 = compilation0.EmitToArray(debug: true);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), token => ImmutableArray.Create("a"));
@@ -1885,14 +1914,14 @@ class C
                 var reader1 = md1.Reader;
                 CheckEncLog(reader1,
                     Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                    Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(2, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                     Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                     Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
                 CheckEncMap(reader1,
-                    Handle(10, TableIndex.TypeRef),
-                    Handle(11, TableIndex.TypeRef),
+                    Handle(12, TableIndex.TypeRef),
+                    Handle(13, TableIndex.TypeRef),
                     Handle(1, TableIndex.MethodDef),
                     Handle(2, TableIndex.StandAloneSig),
                     Handle(2, TableIndex.TypeSpec),
@@ -1905,7 +1934,7 @@ class C
   .maxstack  4
   IL_0000:  nop
   IL_0001:  ldc.i4.4
-  IL_0002:  newarr     0x0100000B
+  IL_0002:  newarr     0x0100000D
   IL_0007:  dup
   IL_0008:  ldc.i4.0
   IL_0009:  ldc.i4.1
@@ -1973,8 +2002,8 @@ class C
     [DllImport(""msvcrt.dll"")]
     public static extern int puts(string s);
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
             var bytes0 = compilation0.EmitToArray(debug: true);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
@@ -1988,14 +2017,14 @@ class C
                 CheckEncLog(reader1,
                     Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                     Row(2, TableIndex.ModuleRef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                     Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                     Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                     Row(2, TableIndex.ImplMap, EditAndContinueOperation.Default));
                 CheckEncMap(reader1,
-                    Handle(4, TableIndex.TypeRef),
+                    Handle(6, TableIndex.TypeRef),
                     Handle(3, TableIndex.MethodDef),
                     Handle(1, TableIndex.Param),
                     Handle(2, TableIndex.ModuleRef),
@@ -2032,8 +2061,8 @@ class B
     [FieldOffset(0)]internal short F;
     [FieldOffset(4)]internal short G;
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
             var bytes0 = compilation0.EmitToArray(debug: true);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
@@ -2046,8 +2075,8 @@ class B
                 var reader1 = md1.Reader;
                 CheckEncLog(reader1,
                     Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                    Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                    Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
                     Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                     Row(3, TableIndex.Field, EditAndContinueOperation.Default),
@@ -2059,12 +2088,12 @@ class B
                     Row(3, TableIndex.FieldLayout, EditAndContinueOperation.Default),
                     Row(4, TableIndex.FieldLayout, EditAndContinueOperation.Default));
                 CheckEncMap(reader1,
-                    Handle(4, TableIndex.TypeRef),
+                    Handle(6, TableIndex.TypeRef),
                     Handle(3, TableIndex.TypeDef),
                     Handle(3, TableIndex.Field),
                     Handle(4, TableIndex.Field),
                     Handle(2, TableIndex.MethodDef),
-                    Handle(4, TableIndex.MemberRef),
+                    Handle(5, TableIndex.MemberRef),
                     Handle(2, TableIndex.ClassLayout),
                     Handle(3, TableIndex.FieldLayout),
                     Handle(4, TableIndex.FieldLayout),
@@ -2075,7 +2104,7 @@ class B
         [Fact]
         public void NamespacesAndOverloads()
         {
-            var compilation0 = CreateCompilationWithMscorlib(options: TestOptions.UnoptimizedDll, text:
+            var compilation0 = CreateCompilationWithMscorlib(options: TestOptions.DebugDll, text:
 @"class C { }
 namespace N
 {
@@ -2099,7 +2128,7 @@ namespace M
             var bytes0 = compilation0.EmitToArray(debug: true);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
-            var compilation1 = CreateCompilationWithMscorlib(options: TestOptions.UnoptimizedDll, text:
+            var compilation1 = CreateCompilationWithMscorlib(options: TestOptions.DebugDll, text:
 @"class C { }
 namespace N
 {
@@ -2131,7 +2160,7 @@ namespace M
   IL_0001:  ret
 }");
 
-            var compilation2 = CreateCompilationWithMscorlib(options: TestOptions.UnoptimizedDll, text:
+            var compilation2 = CreateCompilationWithMscorlib(options: TestOptions.DebugDll, text:
 @"class C { }
 namespace N
 {
@@ -2261,7 +2290,7 @@ class C
         M((A<int>.B<B>)null);
     }
 }";
-            var options = TestOptions.UnoptimizedDll.WithAllowUnsafe(true);
+            var options = TestOptions.DebugDll.WithAllowUnsafe(true);
             var compilation0 = CreateCompilationWithMscorlib(options: options, references: new[] { SystemCoreRef, CSharpRef }, text: source);
             var bytes0 = compilation0.EmitToArray(debug: true);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
@@ -2336,7 +2365,7 @@ class C
   IL_0002:  call       0x06000004
   IL_0007:  nop
   IL_0008:  ldarg.0
-  IL_0009:  newobj     0x0A000015
+  IL_0009:  newobj     0x0A000016
   IL_000e:  call       0x06000005
   IL_0013:  nop
   IL_0014:  ret
@@ -2361,7 +2390,7 @@ class C
   IL_0002:  call       0x06000005
   IL_0007:  nop
   IL_0008:  ldarga.s   V_0
-  IL_000a:  call       0x0A000016
+  IL_000a:  call       0x0A000017
   IL_000f:  call       0x06000004
   IL_0014:  nop
   IL_0015:  ret
@@ -2658,8 +2687,8 @@ class C
         System.Console.WriteLine(y.C);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedExe);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedExe);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
@@ -2728,8 +2757,8 @@ class C
         return F[index] + G[index];
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
@@ -3293,8 +3322,8 @@ class C
     static void F() { System.Console.WriteLine(1); }
     static void G() { System.Console.Write(2); }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -3303,7 +3332,7 @@ class C
                 var reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
                 CheckNames(reader0, reader0.GetMethodDefNames(), "F", "G", ".ctor");
-                CheckNames(reader0, reader0.GetMemberRefNames(), ".ctor", ".ctor", "WriteLine", ".ctor");
+                CheckNames(reader0, reader0.GetMemberRefNames(), ".ctor", ".ctor", ".ctor", "WriteLine", ".ctor");
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
                 var method0 = compilation0.GetMember<MethodSymbol>("C.G");
@@ -3425,10 +3454,10 @@ class B : A<B>
         M(b);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
-            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.UnoptimizedDll);
-            var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+            var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.DebugDll);
 
             var method0 = compilation0.GetMember<MethodSymbol>("B.M");
             var methodN = compilation0.GetMember<MethodSymbol>("B.N");
@@ -3653,9 +3682,9 @@ class B : A<B>
         var b = string.Empty;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
-            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
@@ -3741,8 +3770,8 @@ class B : A<B>
         System.Console.WriteLine(y);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
             var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
             var method1 = compilation1.GetMember<MethodSymbol>("C.Main");
             var bytes0 = compilation0.EmitToArray(debug: true);
@@ -4345,10 +4374,10 @@ class B
         return y.B;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
-            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.UnoptimizedDll);
-            var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+            var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
@@ -4524,10 +4553,10 @@ class B
         return x;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
-            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.UnoptimizedDll);
-            var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+            var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
@@ -4631,11 +4660,11 @@ class B
         return y;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
-            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.UnoptimizedDll);
-            var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.UnoptimizedDll);
-            var compilation4 = CreateCompilationWithMscorlib(source4, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+            var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.DebugDll);
+            var compilation4 = CreateCompilationWithMscorlib(source4, options: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
@@ -5316,8 +5345,8 @@ class B
     static object G = ((dynamic)F).F();
     object x = ((dynamic)F) + 1;
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll, references: new[] { SystemCoreRef, CSharpRef });
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
@@ -5432,10 +5461,10 @@ public interface I
         M(x);
     }
 }";
-            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.UnoptimizedDll);
+            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = new MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes: true);
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll, references: new MetadataReference[] { referencePIA });
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll, references: new MetadataReference[] { referencePIA });
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA });
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA });
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
@@ -5528,11 +5557,11 @@ public struct S
     {
     }
 }";
-            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.UnoptimizedDll);
+            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = new MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes: true);
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
-            var compilation1A = CreateCompilationWithMscorlib(source1A, options: TestOptions.UnoptimizedDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
-            var compilation1B = CreateCompilationWithMscorlib(source1B, options: TestOptions.UnoptimizedDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
+            var compilation1A = CreateCompilationWithMscorlib(source1A, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
+            var compilation1B = CreateCompilationWithMscorlib(source1B, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
@@ -5614,10 +5643,10 @@ public interface IB
     }
     enum E { X }
 }";
-            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.UnoptimizedDll);
+            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = new MetadataImageReference(compilationPIA.EmitToArray(), embedInteropTypes: true);
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
+            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
 
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
@@ -5675,8 +5704,8 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
@@ -5701,11 +5730,11 @@ class C
                     CheckNames(readers, reader1.GetTypeRefNames(), "Object");
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
-                        Handle(5, TableIndex.TypeRef),
+                        Handle(7, TableIndex.TypeRef),
                         Handle(2, TableIndex.MethodDef),
                         Handle(2, TableIndex.StandAloneSig),
                         Handle(2, TableIndex.AssemblyRef));
@@ -5760,9 +5789,9 @@ class C
         return null;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
-            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
@@ -5786,7 +5815,7 @@ class C
                     var readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetAssemblyRefNames(), "mscorlib");
                     CheckNames(readers, reader1.GetTypeDefNames(), "<>f__AnonymousType1`1");
-                    CheckNames(readers, reader1.GetTypeRefNames(), "CompilerGeneratedAttribute", "Object", "DebuggerBrowsableState", "DebuggerBrowsableAttribute", "DebuggerHiddenAttribute", "EqualityComparer`1", "String");
+                    CheckNames(readers, reader1.GetTypeRefNames(), "CompilerGeneratedAttribute", "DebuggerDisplayAttribute", "Object", "DebuggerBrowsableState", "DebuggerBrowsableAttribute", "DebuggerHiddenAttribute", "EqualityComparer`1", "String");
                     // Change method updated in generation 1.
                     var method2F = compilation2.GetMember<MethodSymbol>("C.F");
                     var diff2F = compilation2.EmitDifference(
@@ -5829,8 +5858,8 @@ class C
 {
     static void Main() { }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.UnoptimizedDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.UnoptimizedDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);

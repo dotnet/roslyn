@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -46,10 +47,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return methodData;
         }
 
-        internal static void VerifyIL(this CompilationTestData.MethodData method, string expectedIL)
+        internal static void VerifyIL(
+            this CompilationTestData.MethodData method, 
+            string expectedIL,
+            [CallerFilePath]string expectedValueSourcePath = null,
+            [CallerLineNumber]int expectedValueSourceLine = 0)
         {
             string actualIL = GetMethodIL(method);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
         internal static string GetMethodIL(this CompilationTestData.MethodData method)

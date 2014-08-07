@@ -135,7 +135,7 @@
     <Compile Include="MockSymbols.vb" />
     <Compile Include="MockVbi.vb" />
     <Compile Include="MockVisualBasicCompiler.vb" />
-    <Compile Include="Options.vb" />
+    <Compile Include="TestOptions.vb" />
     <Compile Include="ParserTestUtilities.vb" />
     <Compile Include="SemanticModelTestBase.vb" />
     <Compile Include="SyntaxTreeExtensions.vb" />

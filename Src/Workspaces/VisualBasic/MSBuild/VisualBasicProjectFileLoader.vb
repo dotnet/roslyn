@@ -410,14 +410,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetDebugType(emitDebugInformation As Boolean, debugType As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetDebugType
-                    If Not String.IsNullOrEmpty(debugType) Then
-                        Dim kind As DebugInformationKind
-                        If [Enum].TryParse(Of DebugInformationKind)(debugType, ignoreCase:=True, result:=kind) Then
-                            Me._compilationOptions = Me._compilationOptions.WithDebugInformationKind(kind)
-                            Return True
-                        End If
+                    Dim newKind As DebugInformationKind
+                    If String.Equals(debugType, "none", comparisonType:=StringComparison.OrdinalIgnoreCase) Then
+                        newKind = DebugInformationKind.None
+                    ElseIf String.Equals(debugType, "pdbonly", comparisonType:=StringComparison.OrdinalIgnoreCase) Then
+                        newKind = DebugInformationKind.PdbOnly
+                    ElseIf String.Equals(debugType, "full", comparisonType:=StringComparison.OrdinalIgnoreCase) Then
+                        newKind = DebugInformationKind.Full
+                    Else
+                        Return False
                     End If
-                    Return False
+
+                    Me._compilationOptions = Me._compilationOptions.WithDebugInformationKind(newKind)
+                    Return True
                 End Function
 
                 Public Function SetDefineConstants(defineConstants As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetDefineConstants

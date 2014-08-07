@@ -4507,7 +4507,7 @@ content
 
         Private Sub XmlnsNamespaceTooLong(identifier As String, tooLong As Boolean)
             Dim [imports] = GlobalImport.Parse({String.Format("<xmlns:p=""{0}"">", identifier)})
-            Dim options = TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full).WithGlobalImports([imports])
+            Dim options = TestOptions.DebugDll.WithGlobalImports([imports])
             Dim source = String.Format(<![CDATA[
 Imports <xmlns="{0}">
 Imports <xmlns:q="{0}">

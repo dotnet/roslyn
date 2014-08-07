@@ -1810,7 +1810,7 @@ End Structure
                         <%= QueryTesting %>
                     </compilation>,
                     references:=If(addXmlReferences, DefaultReferences.Concat(XmlReferences), DefaultReferences),
-                    options:=TestOptions.ReleaseDll.WithOverflowChecks(checked).WithOptimizations(optimize))
+                    options:=If(optimize, TestOptions.ReleaseDll, TestOptions.DebugDll).WithOverflowChecks(checked))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, diagnostics)
         End Sub
@@ -1829,7 +1829,7 @@ End Structure
                     <%= ExprTesting %>
                     <%= QueryTesting %>
                 </compilation>,
-                options:=TestOptions.ReleaseExe.WithOverflowChecks(checked).WithOptimizations(optimize),
+                options:=If(optimize, TestOptions.ReleaseExe, TestOptions.DebugExe).WithOverflowChecks(checked),
                 expectedOutput:=If(result IsNot Nothing, result.Trim, Nothing),
                 additionalRefs:=If(addXmlReferences, XmlReferences, {}),
                 useLatestFramework:=latestReferences)

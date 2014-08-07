@@ -17,8 +17,4 @@ Public Class TestOptions
 
     Public Shared ReadOnly ReleaseModule As New VisualBasicCompilationOptions(OutputKind.NetModule, optimize:=True, debugInformationKind:=DebugInformationKind.PdbOnly)
     Public Shared ReadOnly ReleaseWinMD As New VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata, optimize:=True, debugInformationKind:=DebugInformationKind.PdbOnly)
-
-    ' TODO:remove
-    Public Shared ReadOnly UnoptimizedDll As New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize:=False, concurrentBuild:=False)
-    Public Shared ReadOnly UnoptimizedExe As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimize:=False, concurrentBuild:=False)
 End Class

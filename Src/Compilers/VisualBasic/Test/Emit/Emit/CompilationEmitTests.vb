@@ -2790,7 +2790,7 @@ End interface
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(useSource, TestOptions.ReleaseDll.WithOptimizations(True))
+            Dim compilation = CreateCompilationWithMscorlib(useSource, TestOptions.ReleaseDll)
             Dim metadataReader = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).Module.GetMetadataReader()
 
             Dim P1RVA = 0
