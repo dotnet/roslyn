@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log.Telemetry
 {
@@ -51,44 +50,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log.Telemetry
             this.ResolvableReferenceConflicts = resolvableReferenceConflicts;
             this.ResolvableNonReferenceConflicts = resolvableNonReferenceConflicts;
             this.UnresolvableConflicts = unresolvableConflicts;
-        }
-    }
-
-    internal class EncDebuggingSessionInfo
-    {
-        public readonly List<EncEditSessionInfo> EditSessions = new List<EncEditSessionInfo>();
-        public int EmptyEditSessions = 0;
-
-        internal void EndEditSession(EncEditSessionInfo encEditSessionInfo)
-        {
-            if (encEditSessionInfo.IsEmpty())
-            {
-                EmptyEditSessions++;
-            }
-            else
-            {
-                EditSessions.Add(encEditSessionInfo);
-            }
-        }
-    }
-
-    internal class EncEditSessionInfo
-    {
-        public readonly HashSet<ValueTuple<ushort, ushort>> RudeEdits = new HashSet<ValueTuple<ushort, ushort>>();
-        public IEnumerable<string> EmitDeltaErrorIds;
-        public bool HadCompilationErrors;
-        public bool HadRudeEdits;
-        public bool HadValidChanges;
-        public bool HadValidInsignificantChanges;
-
-        internal void LogRudeEdit(ushort kind, ushort syntaxKind)
-        {
-            RudeEdits.Add(ValueTuple.Create(kind, syntaxKind));
-        }
-
-        internal bool IsEmpty()
-        {
-            return !(HadCompilationErrors || HadRudeEdits || HadValidChanges || HadValidInsignificantChanges);
         }
     }
 

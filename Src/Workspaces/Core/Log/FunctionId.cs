@@ -207,6 +207,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Debugging_VsLanguageDebugInfo_ResolveName,
         Debugging_VsLanguageDebugInfo_GetNameOfLocation,
         Debugging_VsLanguageDebugInfo_GetDataTipText,
+        Debugging_EncSession,
+        Debugging_EncSession_EditSession,
+        Debugging_EncSession_EditSession_EmitDeltaErrorId,
+        Debugging_EncSession_EditSession_RudeEdit,
 
         Simplifier_ReduceAsync,
         Simplifier_ExpandNode,

@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class KeyValueLogMessage : LogMessage
     {
-        private static readonly ObjectPool<KeyValueLogMessage> Pool = SharedPools.Default<KeyValueLogMessage>();
+        private static readonly ObjectPool<KeyValueLogMessage> Pool = new ObjectPool<KeyValueLogMessage>(() => new KeyValueLogMessage(), 20);
 
-        public static LogMessage Create(Action<Dictionary<string, string>> propertySetter)
+        public static KeyValueLogMessage Create(Action<Dictionary<string, string>> propertySetter)
         {
             var logMessage = Pool.Allocate();
             logMessage.Constrcut(propertySetter);
@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         private Dictionary<string, string> map;
+
+        private KeyValueLogMessage()
+        {
+            // prevent it from being created directly
+        }
 
         private void Constrcut(Action<Dictionary<string, string>> propertySetter)
         {

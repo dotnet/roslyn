@@ -24,10 +24,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             {
             }
 
-            void ITelemetryService.LogEncDebugSession(Telemetry.EncDebuggingSessionInfo session)
-            {
-            }
-
             void ITelemetryService.LogLinkedFileDiffMergingSession(LinkedFileDiffMergingSessionInfo session)
             {
             }

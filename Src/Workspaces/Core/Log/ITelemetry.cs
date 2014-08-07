@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         void EndCurrentSession();
         void LogRenameSession(RenameSessionInfo renameSession);
-        void LogEncDebugSession(EncDebuggingSessionInfo session);
         void LogLinkedFileDiffMergingSession(LinkedFileDiffMergingSessionInfo session);
     }
 }
