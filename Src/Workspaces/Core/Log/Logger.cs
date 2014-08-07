@@ -158,6 +158,25 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         /// <summary>
+        /// log a specific event with a context message.
+        /// </summary>
+        public static void Log(FunctionId functionId, LogMessage logMessage)
+        {
+            var logger = GetLogger();
+            if (logger == null)
+            {
+                return;
+            }
+
+            if (!logger.IsEnabled(functionId))
+            {
+                return;
+            }
+
+            logger.Log(functionId, logMessage);
+        }
+
+        /// <summary>
         /// return next unique pair id
         /// </summary>
         private static int GetNextUniqueBlockId()
@@ -290,6 +309,25 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3), GetNextUniqueBlockId(), token);
+        }
+
+        /// <summary>
+        /// log a start and end pair with a context message.
+        /// </summary>
+        public static IDisposable LogBlock(FunctionId functionId, LogMessage logMessage, CancellationToken token)
+        {
+            var logger = GetLogger();
+            if (logger == null)
+            {
+                return EmptyLogBlock.Instance;
+            }
+
+            if (!logger.IsEnabled(functionId))
+            {
+                return EmptyLogBlock.Instance;
+            }
+
+            return CreateLogBlock(functionId, logMessage, GetNextUniqueBlockId(), token);
         }
 
         public static Func<FunctionId, bool> GetLoggingChecker(IOptionService optionService)

@@ -12,18 +12,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class EtwLogger : ILogger
     {
-        public static readonly EtwLogger Instance = new EtwLogger();
-
         private readonly Func<FunctionId, bool> loggingChecker;
 
         // Due to ETW specifics, RoslynEventSource.Instance needs to be initialized during EtwLogger construction 
         // so that we can enable the listeners synchronously before any events are logged.
         private readonly RoslynEventSource source = RoslynEventSource.Instance;
-
-        public EtwLogger()
-            : this((Func<FunctionId, bool>)null)
-        {
-        }
 
         public EtwLogger(IOptionService optionService)
             : this(Logger.GetLoggingChecker(optionService))

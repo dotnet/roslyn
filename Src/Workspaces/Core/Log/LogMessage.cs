@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// <summary>
     /// log message that can generate string lazily
     /// </summary>
-    internal abstract class LogMessage
+    internal abstract class LogMessage : IDisposable
     {
         public static LogMessage Create(string message)
         {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         private string message;
 
         protected abstract string CreateMessage();
-        public abstract void Free();
+        public abstract void Dispose();
 
         public string GetMessage()
         {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.message;
             }
 
-            public override void Free()
+            public override void Dispose()
             {
                 this.message = null;
                 Pool.Free(this);
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.messageGetter();
             }
 
-            public override void Free()
+            public override void Dispose()
             {
                 this.messageGetter = null;
                 Pool.Free(this);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.messageGetter(this.arg);
             }
 
-            public override void Free()
+            public override void Dispose()
             {
                 this.messageGetter = null;
                 this.arg = default(TArg0);
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.messageGetter(arg0, arg1);
             }
 
-            public override void Free()
+            public override void Dispose()
             {
                 this.messageGetter = null;
                 this.arg0 = default(TArg0);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.messageGetter(arg0, arg1, arg2);
             }
 
-            public override void Free()
+            public override void Dispose()
             {
                 this.messageGetter = null;
                 this.arg0 = default(TArg0);
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return this.messageGetter(arg0, arg1, arg2, arg3);
             }
 
-            public override void Free()
+            public override void Dispose()
             {
                 this.messageGetter = null;
                 this.arg0 = default(TArg0);
