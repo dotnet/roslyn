@@ -98,6 +98,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string touchedFilesPath = null;
                 var sqmSessionGuid = Guid.Empty;
 
+                // Process ruleset files first so that diagnostic severity settings specified on the command line via
+                // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
+                if (!IsInteractive)
+                {
+                    foreach (string arg in flattenedArgs)
+                    {
+                        string name, value;
+                        if (TryParseOption(arg, out name, out value) && (name == "ruleset"))
+                        {
+                            var unquoted = RemoveAllQuotes(value);
+
+                            if (string.IsNullOrEmpty(unquoted))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
+                            }
+                            else
+                            {
+                                generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(diagnosticOptions, diagnostics, unquoted, baseDirectory);
+                            }
+                        }
+                    }
+                }
+
                 foreach (string arg in flattenedArgs)
                 {
                     Debug.Assert(!arg.StartsWith("@"));
@@ -522,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 int newWarningLevel;
-                                if (string.IsNullOrEmpty(value) || 
+                                if (string.IsNullOrEmpty(value) ||
                                     !int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out newWarningLevel))
                                 {
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
@@ -843,16 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
 
                             case "ruleset":
-                                unquoted = RemoveAllQuotes(value);
-
-                                if (string.IsNullOrEmpty(unquoted))
-                                {
-                                    AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
-                                }
-                                else
-                                {
-                                    generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(diagnosticOptions, diagnostics, unquoted, baseDirectory);
-                                }
+                                // The ruleset arg has already been processed in a separate pass above.
                                 continue;
 
                             case "additionalfile":
@@ -889,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     additionalOptions.Add(parts[0], parts[1]);
                                 }
-                                
+
                                 continue;
                         }
                     }
@@ -1472,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (string id in values)
             {
                 ushort number;
-                if (!ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out number) || 
+                if (!ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out number) ||
                     (!ErrorFacts.IsWarning((ErrorCode)number)))
                 {
                     AddDiagnostic(diagnostics, ErrorCode.WRN_BadWarningNumber, id);

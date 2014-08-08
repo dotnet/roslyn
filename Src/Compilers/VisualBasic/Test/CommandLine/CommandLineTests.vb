@@ -1880,6 +1880,107 @@ a.vb
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
+        <Fact>
+        Public Sub Analyzers_CommandLineOverridesRuleset1()
+            Dim source = "Imports System " + vbCrLf + "Public Class Tester" + vbCrLf + "End Class"
+
+            Dim dir = Temp.CreateDirectory()
+
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(source)
+
+            Dim rulesetSource = <?xml version="1.0" encoding="utf-8"?>
+                                <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
+                                    <IncludeAll Action="Warning"/>
+                                </RuleSet>
+
+            Dim ruleSetFile = CreateRuleSetFile(rulesetSource)
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                                                  {
+                                                        "/nologo", "/t:library",
+                                                        "/a:" + Assembly.GetExecutingAssembly().Location, "a.vb",
+                                                        "/ruleset:" & ruleSetFile.Path, "/warnaserror"
+                                                  })
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(1, exitCode)
+            ' Diagnostics thrown as error: command line always overrides ruleset.
+            Dim output = outWriter.ToString()
+            Assert.Contains("error Test01", output)
+            Assert.Contains("error BC31072", output)
+            Assert.Contains("error Test03", output)
+
+            outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                                                  {
+                                                        "/nologo", "/t:library",
+                                                        "/a:" + Assembly.GetExecutingAssembly().Location, "a.vb",
+                                                        "/warnaserror+", "/ruleset:" & ruleSetFile.Path
+                                                  })
+            exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(1, exitCode)
+            ' Diagnostics thrown as error: command line always overrides ruleset.
+            output = outWriter.ToString()
+            Assert.Contains("error Test01", output)
+            Assert.Contains("error BC31072", output)
+            Assert.Contains("error Test03", output)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
+        <Fact>
+        Public Sub Analyzer_CommandLineOverridesRuleset2()
+            Dim source = "Imports System " + vbCrLf + "Public Class Tester" + vbCrLf + "End Class"
+
+            Dim dir = Temp.CreateDirectory()
+
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(source)
+
+            Dim rulesetSource = <?xml version="1.0" encoding="utf-8"?>
+                                <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
+                                    <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                                        <Rule Id="Test01" Action="Error"/>
+                                        <Rule Id="Test03" Action="Warning"/>
+                                    </Rules>
+                                </RuleSet>
+
+            Dim ruleSetFile = CreateRuleSetFile(rulesetSource)
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                                                  {
+                                                        "/nologo", "/t:library",
+                                                        "/a:" + Assembly.GetExecutingAssembly().Location, "a.vb",
+                                                        "/ruleset:" & ruleSetFile.Path, "/nowarn"
+                                                  })
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            ' Diagnostics suppressed: command line always overrides ruleset.
+            Dim output = outWriter.ToString()
+            Assert.DoesNotContain("Test01", output)
+            Assert.DoesNotContain("BC31072", output)
+            Assert.DoesNotContain("Test03", output)
+
+            outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                                                  {
+                                                        "/nologo", "/t:library",
+                                                        "/a:" + Assembly.GetExecutingAssembly().Location, "a.vb",
+                                                        "/nowarn", "/ruleset:" & ruleSetFile.Path
+                                                  })
+            exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            ' Diagnostics suppressed: command line always overrides ruleset.
+            output = outWriter.ToString()
+            Assert.DoesNotContain("Test01", output)
+            Assert.DoesNotContain("BC31072", output)
+            Assert.DoesNotContain("Test03", output)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
         <Fact(Skip:="899050")>
         Public Sub Analyzers_WithRuleSetIncludeAll()
             Dim source = "Imports System \r\n Public Class Tester \r\n Public Sub Foo() \r\n Dim x As Integer \r\n End Sub \r\n End Class"

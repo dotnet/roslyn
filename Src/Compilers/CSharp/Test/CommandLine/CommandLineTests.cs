@@ -1697,6 +1697,104 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
+        [WorkItem(912906)]
+        [Fact]
+        public void Analyzers_CommandLineOverridesRuleset1()
+        {
+            string source = @"
+class C
+{
+}
+";
+            var dir = Temp.CreateDirectory();
+
+            var file = dir.CreateFile("a.cs");
+            file.WriteAllText(source);
+
+            string rulesetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <IncludeAll Action=""Warning"" />
+</RuleSet>
+";
+            var ruleSetFile = CreateRuleSetFile(rulesetSource);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            // This assembly has a MockAbstractDiagnosticAnalyzer type which should get run by this compilation.
+            var csc = new MockCSharpCompiler(null, dir.Path,
+                new[] {
+                    "/nologo", "/t:library",
+                    "/a:" + Assembly.GetExecutingAssembly().Location, "a.cs",
+                    "/ruleset:" + ruleSetFile.Path, "/warnaserror+" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            // Diagnostic thrown as error: command line always overrides ruleset.
+            Assert.Contains("a.cs(2,7): error Test01: Warning as Error: Throwing a test diagnostic for types declared", outWriter.ToString());
+
+            outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            csc = new MockCSharpCompiler(null, dir.Path,
+                new[] {
+                    "/nologo", "/t:library",
+                    "/a:" + Assembly.GetExecutingAssembly().Location, "a.cs",
+                    "/warnaserror+", "/ruleset:" + ruleSetFile.Path });
+            exitCode = csc.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            // Diagnostic thrown as error: command line always overrides ruleset.
+            Assert.Contains("a.cs(2,7): error Test01: Warning as Error: Throwing a test diagnostic for types declared", outWriter.ToString());
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(file.Path);
+        }
+
+        [WorkItem(912906)]
+        [Fact]
+        public void Analyzers_CommandLineOverridesRuleset2()
+        {
+            string source = @"
+class C
+{
+}
+";
+            var dir = Temp.CreateDirectory();
+
+            var file = dir.CreateFile("a.cs");
+            file.WriteAllText(source);
+
+            string rulesetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test01"" Action=""Error"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSetFile = CreateRuleSetFile(rulesetSource);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            // This assembly has a MockAbstractDiagnosticAnalyzer type which should get run by this compilation.
+            var csc = new MockCSharpCompiler(null, dir.Path,
+                new[] {
+                    "/nologo", "/t:library",
+                    "/a:" + Assembly.GetExecutingAssembly().Location, "a.cs",
+                    "/ruleset:" + ruleSetFile.Path, "/warn:0" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            // Diagnostic suppressed: commandline always overrides ruleset.
+            Assert.DoesNotContain("Test01", outWriter.ToString());
+
+            outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            csc = new MockCSharpCompiler(null, dir.Path,
+                new[] {
+                    "/nologo", "/t:library",
+                    "/a:" + Assembly.GetExecutingAssembly().Location, "a.cs",
+                    "/warn:0", "/ruleset:" + ruleSetFile.Path });
+            exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            // Diagnostic suppressed: commandline always overrides ruleset.
+            Assert.DoesNotContain("Test01", outWriter.ToString());
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(file.Path);
+        }
+
         [Fact]
         public void DiagnosticFormatting()
         {

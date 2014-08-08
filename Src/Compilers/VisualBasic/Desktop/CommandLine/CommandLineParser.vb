@@ -141,6 +141,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim touchedFilesPath As String = Nothing
                 Dim features = New List(Of String)()
 
+                ' Process ruleset files first so that diagnostic severity settings specified on the command line via
+                ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
+                If Not IsInteractive Then
+                    For Each arg In flattenedArgs
+                        Dim name As String = Nothing
+                        Dim value As String = Nothing
+                        If TryParseOption(arg, name, value) AndAlso (name = "ruleset") Then
+                            Dim unquoted = RemoveAllQuotes(value)
+                            If String.IsNullOrEmpty(unquoted) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
+                                Continue For
+                            End If
+
+                            generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptions, diagnostics, unquoted, baseDirectory)
+                        End If
+                    Next
+                End If
+
                 For Each arg In flattenedArgs
                     Debug.Assert(Not arg.StartsWith("@", StringComparison.Ordinal))
 
@@ -923,13 +941,7 @@ lVbRuntimePlus:
                                 Continue For
 
                             Case "ruleset"
-                                Dim unquoted = RemoveAllQuotes(value)
-                                If (String.IsNullOrEmpty(unquoted)) Then
-                                    AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
-                                    Continue For
-                                End If
-
-                                generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptions, diagnostics, unquoted, baseDirectory)
+                                '  The ruleset arg has already been processed in a separate pass above.
                                 Continue For
 
                             Case "features"
