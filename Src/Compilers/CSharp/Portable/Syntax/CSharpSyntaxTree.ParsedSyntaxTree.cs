@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new ParsedSyntaxTree(
-                    this.lazyText,
+                    null,
                     this.encodingOpt,
                     this.path,
                     (CSharpParseOptions)options,

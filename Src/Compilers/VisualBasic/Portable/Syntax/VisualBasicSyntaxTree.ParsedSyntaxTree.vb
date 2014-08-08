@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return New ParsedSyntaxTree(
-                    Me._lazyText,
+                    Nothing,
                     Me._encodingOpt,
                     Me._path,
                     DirectCast(options, VisualBasicParseOptions),
