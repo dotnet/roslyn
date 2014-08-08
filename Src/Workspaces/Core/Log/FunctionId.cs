@@ -9,9 +9,30 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         // a value to use in unit tests that won't interfere with reporting
         // for our other scenarios.
-        TestEvent_NotUsed,
+        TestEvent_NotUsed = 1,
 
-        Tagger_AdornmentManager_OnLayoutChanged = 1,
+        Run_Environment,
+
+        WorkCoordinator_DocumentWorker_Enqueue,
+        WorkCoordinator_ProcessProjectAsync,
+        WorkCoordinator_ProcessDocumentAsync,
+        WorkCoordinator_SemanticChange_Enqueue,
+        WorkCoordinator_SemanticChange_EnqueueFromMember,
+        WorkCoordinator_SemanticChange_EnqueueFromType,
+        WorkCoordinator_SemanticChange_FullProjects,
+        WorkCoordinator_Project_Enqueue,
+        WorkCoordinator_AsyncWorkItemQueue_LastItem,
+        WorkCoordinator_AsyncWorkItemQueue_FirstItem,
+
+        Diagnostics_SyntaxDiagnostic,
+        Diagnostics_SemanticDiagnostic,
+        Diagnostics_ProjectDiagnostic,
+        Diagnostics_DocumentReset,
+        Diagnostics_DocumentOpen,
+        Diagnostics_RemoveDocument,
+        Diagnostics_RemoveProject,
+
+        Tagger_AdornmentManager_OnLayoutChanged,
         Tagger_AdornmentManager_UpdateInvalidSpans,
         Tagger_BatchChangeNotifier_NotifyEditorNow,
         Tagger_BatchChangeNotifier_NotifyEditor,
@@ -171,7 +192,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Misc_NonReentrantLock_BlockingWait,
         Misc_VisualStudioWaitIndicator_Wait,
         Misc_SaveEventsSink_OnBeforeSave,
-        Misc_Environment,
 
         TaskList_Refresh,
         TaskList_NavigateTo,
@@ -235,25 +255,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TemporaryStorageServiceFactory_WriteText,
         TemporaryStorageServiceFactory_ReadStream,
         TemporaryStorageServiceFactory_WriteStream,
-
-        WorkCoordinator_DocumentWorker_Enqueue,
-        WorkCoordinator_ProcessProjectAsync,
-        WorkCoordinator_ProcessDocumentAsync,
-        WorkCoordinator_SemanticChange_Enqueue,
-        WorkCoordinator_SemanticChange_EnqueueFromMember,
-        WorkCoordinator_SemanticChange_EnqueueFromType,
-        WorkCoordinator_SemanticChange_FullProjects,
-        WorkCoordinator_Project_Enqueue,
-        WorkCoordinator_AsyncWorkItemQueue_LastItem,
-        WorkCoordinator_AsyncWorkItemQueue_FirstItem,
-
-        Diagnostics_SyntaxDiagnostic,
-        Diagnostics_SemanticDiagnostic,
-        Diagnostics_ProjectDiagnostic,
-        Diagnostics_DocumentReset,
-        Diagnostics_DocumentOpen,
-        Diagnostics_RemoveDocument,
-        Diagnostics_RemoveProject,
 
         // currently no one uses these
         SmartTags_RefreshSession,
