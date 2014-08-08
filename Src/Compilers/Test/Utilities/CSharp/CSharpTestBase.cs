@@ -106,12 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             bool emitPdb = false,
             bool verify = true)
         {
-            var options = TestOptions.ReleaseExe;
-            if (!emitPdb)
-            {
-                options = options.WithOptimizations(true);
-            }
-
+            var options = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
+            
             var compilation = CreateExperimentalCompilationWithMscorlib45(source, additionalRefs, options);
 
             return CompileAndVerify(

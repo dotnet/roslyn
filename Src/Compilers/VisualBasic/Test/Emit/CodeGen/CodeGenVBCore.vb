@@ -3078,7 +3078,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, emitPdb:=False).VerifyIL("Module1.Main", <![CDATA[
+</compilation>, emitPdb:=True).VerifyIL("Module1.Main", <![CDATA[
 {
   // Code size       29 (0x1d)
   .maxstack  2

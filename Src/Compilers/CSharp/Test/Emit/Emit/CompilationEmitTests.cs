@@ -1569,7 +1569,6 @@ public class Test
 
             var compilation = CreateCompilationWithMscorlib(source);
 
-            CompileAndVerify(source, expectedOutput: "CheckPoint-2", emitPdb: false);
             CompileAndVerify(source, expectedOutput: "CheckPoint-2", emitPdb: true);
         }
 

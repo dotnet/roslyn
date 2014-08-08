@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1426,10 +1427,10 @@ partial class A
             var compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename"),
-                    SyntaxFactory.ParseSyntaxTree(source2, path: @"a\b\..\c\d"),
-                    SyntaxFactory.ParseSyntaxTree(source3, path: @"*"),
-                    SyntaxFactory.ParseSyntaxTree(source4, path: @"       "),
+                    SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename", encoding: Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source2, path: @"a\b\..\c\d", encoding: Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source3, path: @"*", encoding: Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source4, path: @"       ", encoding: Encoding.UTF8),
                 },
                 new[] { SystemRef },
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default));
@@ -1485,11 +1486,11 @@ partial class A { static void Main5() { Log(); } }
             var compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename"),
-                    SyntaxFactory.ParseSyntaxTree(source2, path: @"a\b\..\c\d.cs"),
-                    SyntaxFactory.ParseSyntaxTree(source3, path: @"*"),
-                    SyntaxFactory.ParseSyntaxTree(source4, path: @"C:\x.cs"),
-                    SyntaxFactory.ParseSyntaxTree(source5, path: @"C:\x.cs"),
+                    SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename", encoding: Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source2, path: @"a\b\..\c\d.cs", encoding: Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source3, path: @"*", encoding: Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source4, path: @"C:\x.cs", encoding: Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source5, path: @"C:\x.cs", encoding: Encoding.UTF8),
                 },
                 new[] { SystemRef },
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\A\B")));
@@ -2359,7 +2360,7 @@ query path : C:\filename
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename") }, 
+                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) }, 
                 new[] { SystemCoreRef }, 
                 TestOptions.ReleaseExe);
 
@@ -2410,7 +2411,7 @@ C:\filename
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename") }, 
+                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) }, 
                 options: TestOptions.ReleaseExe);
             
             compilation.VerifyDiagnostics(

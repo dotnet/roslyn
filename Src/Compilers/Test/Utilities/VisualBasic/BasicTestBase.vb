@@ -1,12 +1,11 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.IO
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.CodeGen
 Imports Xunit
 
 Public MustInherit Class BasicTestBase
@@ -186,11 +185,7 @@ Public MustInherit Class BasicTestBase
     ) As CompilationVerifier
 
         If options Is Nothing Then
-            options = TestOptions.ReleaseDll.WithOutputKind(If(expectedOutput IsNot Nothing, OutputKind.ConsoleApplication, OutputKind.DynamicallyLinkedLibrary))
-        End If
-
-        If emitPdb Then
-            options = options.WithOptimizations(False)
+            options = If(expectedOutput Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
         End If
 
         Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=allReferences, options:=options, parseOptions:=parseOptions)

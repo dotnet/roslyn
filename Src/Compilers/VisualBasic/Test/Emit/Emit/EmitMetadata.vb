@@ -924,11 +924,7 @@ End Class
         End Sub
 
         Private Shared Sub VerifyEmitWithNoResources(comp As VisualBasicCompilation, platform As Platform)
-            Dim options As New VisualBasicCompilationOptions(
-                OutputKind.ConsoleApplication,
-                optimize:=True,
-                platform:=platform,
-                debugInformationKind:=DebugInformationKind.None)
+            Dim options = TestOptions.ReleaseExe.WithPlatform(platform)
 
             Using outputStream As New MemoryStream()
                 Dim success = comp.WithOptions(options).Emit(outputStream).Success

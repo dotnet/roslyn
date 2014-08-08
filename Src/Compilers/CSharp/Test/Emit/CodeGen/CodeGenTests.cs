@@ -57,45 +57,47 @@ class Program
             result.VerifyIL("Program.Main(object[])",
 @"
 {
-  // Code size       74 (0x4a)
+  // Code size       76 (0x4c)
   .maxstack  4
   .locals init (object V_0, //trackArg1
-  object V_1, //trackArg2
-  DoubleAndStruct V_2, //localArg1
-  DoubleAndStruct V_3) //localArg2
-  IL_0000:  ldloca.s   V_2
-  IL_0002:  initobj    ""DoubleAndStruct""
-  IL_0008:  ldloca.s   V_3
-  IL_000a:  initobj    ""DoubleAndStruct""
-  IL_0010:  ldc.i4.2
-  IL_0011:  newarr     ""object""
-  IL_0016:  dup
-  IL_0017:  ldc.i4.0
-  IL_0018:  ldloc.2
-  IL_0019:  box        ""DoubleAndStruct""
-  IL_001e:  stelem.ref
-  IL_001f:  dup
-  IL_0020:  ldc.i4.1
-  IL_0021:  ldloc.3
-  IL_0022:  box        ""DoubleAndStruct""
-  IL_0027:  stelem.ref
-  IL_0028:  starg.s    V_0
-  IL_002a:  ldarg.0
-  IL_002b:  ldc.i4.0
-  IL_002c:  ldelem.ref
-  IL_002d:  stloc.0
-  IL_002e:  ldarg.0
-  IL_002f:  ldc.i4.1
-  IL_0030:  ldelem.ref
-  IL_0031:  stloc.1
-  IL_0032:  ldarg.0
-  IL_0033:  ldc.i4.0
-  IL_0034:  ldelem.ref
-  IL_0035:  unbox      ""DoubleAndStruct""
-  IL_003a:  ldflda     ""TwoInteger DoubleAndStruct.y""
-  IL_003f:  ldfld      ""int TwoInteger.x""
-  IL_0044:  call       ""void System.Console.WriteLine(int)""
-  IL_0049:  ret
+                object V_1, //trackArg2
+                DoubleAndStruct V_2, //localArg1
+                DoubleAndStruct V_3) //localArg2
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_2
+  IL_0003:  initobj    ""DoubleAndStruct""
+  IL_0009:  ldloca.s   V_3
+  IL_000b:  initobj    ""DoubleAndStruct""
+  IL_0011:  ldc.i4.2
+  IL_0012:  newarr     ""object""
+  IL_0017:  dup
+  IL_0018:  ldc.i4.0
+  IL_0019:  ldloc.2
+  IL_001a:  box        ""DoubleAndStruct""
+  IL_001f:  stelem.ref
+  IL_0020:  dup
+  IL_0021:  ldc.i4.1
+  IL_0022:  ldloc.3
+  IL_0023:  box        ""DoubleAndStruct""
+  IL_0028:  stelem.ref
+  IL_0029:  starg.s    V_0
+  IL_002b:  ldarg.0
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldelem.ref
+  IL_002e:  stloc.0
+  IL_002f:  ldarg.0
+  IL_0030:  ldc.i4.1
+  IL_0031:  ldelem.ref
+  IL_0032:  stloc.1
+  IL_0033:  ldarg.0
+  IL_0034:  ldc.i4.0
+  IL_0035:  ldelem.ref
+  IL_0036:  unbox      ""DoubleAndStruct""
+  IL_003b:  ldflda     ""TwoInteger DoubleAndStruct.y""
+  IL_0040:  ldfld      ""int TwoInteger.x""
+  IL_0045:  call       ""void System.Console.WriteLine(int)""
+  IL_004a:  nop
+  IL_004b:  ret
 }
 ");
         }
@@ -142,28 +144,30 @@ class Program
             result.VerifyIL("Program.Main(object[])",
 @"
 {
-  // Code size       54 (0x36)
+  // Code size       56 (0x38)
   .maxstack  4
   .locals init (OuterStruct V_0)
-  IL_0000:  ldc.i4.1
-  IL_0001:  newarr     ""object""
-  IL_0006:  dup
-  IL_0007:  ldc.i4.0
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  initobj    ""OuterStruct""
-  IL_0010:  ldloc.0
-  IL_0011:  box        ""OuterStruct""
-  IL_0016:  stelem.ref
-  IL_0017:  starg.s    V_0
-  IL_0019:  ldarg.0
-  IL_001a:  ldc.i4.0
-  IL_001b:  ldelem.ref
-  IL_001c:  unbox      ""OuterStruct""
-  IL_0021:  ldflda     ""DoubleAndStruct OuterStruct.z""
-  IL_0026:  ldflda     ""TwoInteger DoubleAndStruct.y""
-  IL_002b:  ldfld      ""int TwoInteger.x""
-  IL_0030:  call       ""void System.Console.WriteLine(int)""
-  IL_0035:  ret
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  newarr     ""object""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  initobj    ""OuterStruct""
+  IL_0011:  ldloc.0
+  IL_0012:  box        ""OuterStruct""
+  IL_0017:  stelem.ref
+  IL_0018:  starg.s    V_0
+  IL_001a:  ldarg.0
+  IL_001b:  ldc.i4.0
+  IL_001c:  ldelem.ref
+  IL_001d:  unbox      ""OuterStruct""
+  IL_0022:  ldflda     ""DoubleAndStruct OuterStruct.z""
+  IL_0027:  ldflda     ""TwoInteger DoubleAndStruct.y""
+  IL_002c:  ldfld      ""int TwoInteger.x""
+  IL_0031:  call       ""void System.Console.WriteLine(int)""
+  IL_0036:  nop
+  IL_0037:  ret
 }
 ");
         }
@@ -205,25 +209,27 @@ class Program
         Console.WriteLine(((((OuterStruct)args[0]).z).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithOptimizations(false));
+            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
 {
-  // Code size       37 (0x25)
+  // Code size       39 (0x27)
   .maxstack  2
-  IL_0000:  ldc.i4.1
-  IL_0001:  newarr     ""object""
-  IL_0006:  starg.s    V_0
-  IL_0008:  ldarg.0
-  IL_0009:  ldc.i4.0
-  IL_000a:  ldelem.ref
-  IL_000b:  castclass  ""OuterStruct""
-  IL_0010:  ldflda     ""DoubleAndStruct OuterStruct.z""
-  IL_0015:  ldflda     ""TwoInteger DoubleAndStruct.y""
-  IL_001a:  ldfld      ""int TwoInteger.x""
-  IL_001f:  call       ""void System.Console.WriteLine(int)""
-  IL_0024:  ret
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  newarr     ""object""
+  IL_0007:  starg.s    V_0
+  IL_0009:  ldarg.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldelem.ref
+  IL_000c:  castclass  ""OuterStruct""
+  IL_0011:  ldflda     ""DoubleAndStruct OuterStruct.z""
+  IL_0016:  ldflda     ""TwoInteger DoubleAndStruct.y""
+  IL_001b:  ldfld      ""int TwoInteger.x""
+  IL_0020:  call       ""void System.Console.WriteLine(int)""
+  IL_0025:  nop
+  IL_0026:  ret
 }
 ");
         }
@@ -269,13 +275,15 @@ class Program
             result.VerifyIL("Program.Main(object[])",
 @"
 {
-  // Code size       21 (0x15)
+  // Code size       23 (0x17)
   .maxstack  1
-  IL_0000:  ldsflda    ""DoubleAndStruct OuterStruct.z""
-  IL_0005:  ldflda     ""TwoInteger DoubleAndStruct.y""
-  IL_000a:  ldfld      ""int TwoInteger.x""
-  IL_000f:  call       ""void System.Console.WriteLine(int)""
-  IL_0014:  ret
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""DoubleAndStruct OuterStruct.z""
+  IL_0006:  ldflda     ""TwoInteger DoubleAndStruct.y""
+  IL_000b:  ldfld      ""int TwoInteger.x""
+  IL_0010:  call       ""void System.Console.WriteLine(int)""
+  IL_0015:  nop
+  IL_0016:  ret
 }
 ");
         }
@@ -569,26 +577,27 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseDll.WithOptimizations(false));
+            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
             var result = CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug);
 
             result.VerifyIL("C.A",
 @"{
-  // Code size       25 (0x19)
+  // Code size       26 (0x1a)
   .maxstack  1
   .locals init (B V_0, //b
-  bool V_1) //x
-  IL_0000:  newobj     ""B..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
-  IL_0007:  callvirt   ""bool B.M1.get""
-  IL_000c:  brfalse.s  IL_0016
-  IL_000e:  ldloc.0
-  IL_000f:  callvirt   ""bool B.M2.get""
-  IL_0014:  br.s       IL_0017
-  IL_0016:  ldc.i4.0
-  IL_0017:  stloc.1
-  IL_0018:  ret
+                bool V_1) //x
+  IL_0000:  nop
+  IL_0001:  newobj     ""B..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  callvirt   ""bool B.M1.get""
+  IL_000d:  brfalse.s  IL_0017
+  IL_000f:  ldloc.0
+  IL_0010:  callvirt   ""bool B.M2.get""
+  IL_0015:  br.s       IL_0018
+  IL_0017:  ldc.i4.0
+  IL_0018:  stloc.1
+  IL_0019:  ret
 }
 ");
         }
@@ -7223,7 +7232,7 @@ class A
 }
 
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithOptimizations(false), emitPdb: true);
+            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe, emitPdb: true);
 
             compilation.VerifyIL("A.Main",
 @"{
@@ -11476,17 +11485,15 @@ class Program
             // Dev10
             compilation.VerifyIL("Program.Main",
 @"{
-  // Code size       18 (0x12)
+  // Code size       16 (0x10)
   .maxstack  1
   .locals init (sbyte V_0)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.s   123
-  IL_0003:  stloc.0
-  IL_0004:  ldloca.s   V_0
-  IL_0006:  call       ""string sbyte.ToString()""
-  IL_000b:  call       ""void System.Console.Write(string)""
-  IL_0010:  nop
-  IL_0011:  ret
+  IL_0000:  ldc.i4.s   123
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""string sbyte.ToString()""
+  IL_000a:  call       ""void System.Console.Write(string)""
+  IL_000f:  ret
 }");
         }
 
@@ -11536,15 +11543,13 @@ static class Test
             // Dev10
             compilation.VerifyIL("Test.M1<T>(T)",
 @"{
-  // Code size       19 (0x13)
+  // Code size       17 (0x11)
   .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  box        ""T""
-  IL_0007:  ldflda     ""object Test.A.F""
-  IL_000c:  call       ""void Test.M<object>(ref object)""
-  IL_0011:  nop
-  IL_0012:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  ldflda     ""object Test.A.F""
+  IL_000b:  call       ""void Test.M<object>(ref object)""
+  IL_0010:  ret
 }");
         }
 
@@ -12194,7 +12199,7 @@ class Module1
     {   
 	     return y;
     }
-}", options: TestOptions.ReleaseExe.WithOptimizations(true),
+}", options: TestOptions.ReleaseExe,
 expectedOutput: "-100");
         }
 
@@ -12326,8 +12331,7 @@ blah");
         {
             // For a nop to be inserted after a call, three conditions must be met:
             //   1) void return
-            //   2) optimization is disabled
-            //   3) generating debug info
+            //   2) debug build
 
             var source = @"
 class C
@@ -12343,11 +12347,12 @@ class C
 }
 ";
 
-            var compOpt = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
-            var compNoOpt = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var compRelease = CreateCompilationWithMscorlib(source, options:TestOptions.ReleaseExe);
+            var compDebug = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var compDebuggableRelease = CreateCompilationWithMscorlib(source, options: TestOptions.DebuggableReleaseExe);
 
             // (2) is not met.
-            CompileAndVerify(compOpt, emitPdb: false).VerifyIL("C.Main", @"
+            CompileAndVerify(compRelease).VerifyIL("C.Main", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -12357,19 +12362,8 @@ class C
   IL_000b:  ret
 }");
 
-            // Neither (2) nor (3) is met.
-            CompileAndVerify(compOpt, emitPdb: true).VerifyIL("C.Main", @"
-{
-  // Code size       12 (0xc)
-  .maxstack  1
-  IL_0000:  call       ""void C.Void()""
-  IL_0005:  call       ""int C.NonVoid()""
-  IL_000a:  pop
-  IL_000b:  ret
-}");
-
-            // (3) is not met.
-            CompileAndVerify(compNoOpt, emitPdb: false).VerifyIL("C.Main", @"
+            // (2) is not met.
+            CompileAndVerify(compDebuggableRelease).VerifyIL("C.Main", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -12380,7 +12374,7 @@ class C
 }");
 
             // Void meets (1), but NonVoid does not (it doesn't need a nop since it has a pop).
-            CompileAndVerify(compNoOpt, emitPdb: true).VerifyIL("C.Main", @"
+            CompileAndVerify(compDebug).VerifyIL("C.Main", @"
 {
   // Code size       14 (0xe)
   .maxstack  1
@@ -12409,28 +12403,31 @@ class C
 }
 ";
             // Nop after Debugger.Break(), even though it isn't at the end of a statement.
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithOptimizations(false));
-            var v = CompileAndVerify(comp, emitPdb: true);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var v = CompileAndVerify(comp);
             
             v.VerifyIL("C.Main", @"
 {
-  // Code size       19 (0x13)
+  // Code size       23 (0x17)
   .maxstack  2
-  .locals init (int V_0) //i
-  IL_0000:  nop       
-  IL_0001:  ldc.i4.0  
-  IL_0002:  stloc.0   
+  .locals init (int V_0, //i
+                bool V_1) //CS$4$0000
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
   IL_0003:  br.s       IL_000d
-  IL_0005:  nop       
-  IL_0006:  nop       
+  IL_0005:  nop
+  IL_0006:  nop
   IL_0007:  call       ""void System.Diagnostics.Debugger.Break()""
-  IL_000c:  nop       
-  IL_000d:  ldloc.0   
+  IL_000c:  nop
+  IL_000d:  ldloc.0
   IL_000e:  ldc.i4.s   10
-  IL_0010:  blt.s      IL_0005
-  IL_0012:  ret       
-}
-");
+  IL_0010:  clt
+  IL_0012:  stloc.1
+  IL_0013:  ldloc.1
+  IL_0014:  brtrue.s   IL_0005
+  IL_0016:  ret
+}");
         }
 
         [Fact]

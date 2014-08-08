@@ -2513,7 +2513,7 @@ End Class
 
         <Fact>
         Public Sub ForEachQuery()
-            Dim TEMP = CompileAndVerify(
+            CompileAndVerify(
 <compilation>
     <file name="a.vb">      
 Imports System.Linq

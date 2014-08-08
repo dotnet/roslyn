@@ -53,7 +53,7 @@ class C
 }
 ";
             
-            CompileAndVerify(text, emitPdb: true).
+            CompileAndVerify(text, options: TestOptions.DebugExe).
                 VerifyDiagnostics(
                 // (20,1): warning CS1697: Different checksum values given for 'bogus1.cs'
                 // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A798}" "ab007f1d23d9"

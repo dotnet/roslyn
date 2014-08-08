@@ -1507,30 +1507,35 @@ static class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe.WithOptimizations(false));
+            var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugExe);
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
-  // Code size       49 (0x31)
+  // Code size       54 (0x36)
   .maxstack  1
   .locals init (int V_0, //Int32
-  int V_1) //OtherName
-  IL_0000:  ldc.i4.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  box        ""int""
-  IL_0008:  call       ""void Test.ExtensionMethod(object)""
-  IL_000d:  ldloc.0
-  IL_000e:  box        ""int""
-  IL_0013:  call       ""void Test.ExtensionMethod(object)""
-  IL_0018:  ldc.i4.0
-  IL_0019:  stloc.1
-  IL_001a:  ldloc.1
-  IL_001b:  box        ""int""
-  IL_0020:  call       ""void Test.ExtensionMethod(object)""
-  IL_0025:  ldloc.1
-  IL_0026:  box        ""int""
-  IL_002b:  call       ""void Test.ExtensionMethod(object)""
-  IL_0030:  ret
+                int V_1) //OtherName
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  box        ""int""
+  IL_0009:  call       ""void Test.ExtensionMethod(object)""
+  IL_000e:  nop
+  IL_000f:  ldloc.0
+  IL_0010:  box        ""int""
+  IL_0015:  call       ""void Test.ExtensionMethod(object)""
+  IL_001a:  nop
+  IL_001b:  ldc.i4.0
+  IL_001c:  stloc.1
+  IL_001d:  ldloc.1
+  IL_001e:  box        ""int""
+  IL_0023:  call       ""void Test.ExtensionMethod(object)""
+  IL_0028:  nop
+  IL_0029:  ldloc.1
+  IL_002a:  box        ""int""
+  IL_002f:  call       ""void Test.ExtensionMethod(object)""
+  IL_0034:  nop
+  IL_0035:  ret
 }
 ");
         }

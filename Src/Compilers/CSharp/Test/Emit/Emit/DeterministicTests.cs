@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -16,21 +18,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             var compilation = CreateCompilation(source,
                 assemblyName: assemblyName,
                 references: new[] { MscorlibRef },
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithFeatures((new[] { "deterministic" }).AsImmutable()));
+                options: TestOptions.ReleaseExe.WithFeatures(ImmutableArray.Create("deterministic")));
 
             Guid result = default(Guid);
             base.CompileAndVerify(compilation, emitOptions: EmitOptions.CCI, validator: (a, eo) =>
-                {
-                    var module = a.Modules[0];
-                    result = module.GetModuleVersionIdOrThrow();
-                });
+            {
+                var module = a.Modules[0];
+                result = module.GetModuleVersionIdOrThrow();
+            });
 
             return result;
         }
 
-        private ImmutableArray<byte> GetBytesEmitted(string source, Platform platform, DebugInformationKind debug, bool deterministic)
+        private ImmutableArray<byte> GetBytesEmitted(string source, Platform platform, bool debug, bool deterministic)
         {
-            var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication, platform: platform, debugInformationKind: debug);
+            var options = (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe).WithPlatform(platform);
             if (deterministic)
             {
                 options = options.WithFeatures((new[] { "dEtErmInIstIc" }).AsImmutable()); // expect case-insensitivity
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        [Fact]
+        [Fact(Skip="900646"), WorkItem(900646)]
         public void Simple()
         {
             var source =
@@ -85,17 +87,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 }";
             var comparer = new ImmutableByteArrayEqualityComparer();
 
-            var result1 = GetBytesEmitted(source, platform: Platform.AnyCpu32BitPreferred, debug: DebugInformationKind.Full, deterministic: true);
-            var result2 = GetBytesEmitted(source, platform: Platform.AnyCpu32BitPreferred,  debug: DebugInformationKind.Full, deterministic: true);
+            var result1 = GetBytesEmitted(source, platform: Platform.AnyCpu32BitPreferred, debug: true, deterministic: true);
+            var result2 = GetBytesEmitted(source, platform: Platform.AnyCpu32BitPreferred,  debug: true, deterministic: true);
             Assert.Equal(result1, result2, comparer);
 
-            var result3 = GetBytesEmitted(source, platform: Platform.X64, debug: DebugInformationKind.None, deterministic: true);
-            var result4 = GetBytesEmitted(source, platform: Platform.X64, debug: DebugInformationKind.None, deterministic: true);
+            var result3 = GetBytesEmitted(source, platform: Platform.X64, debug: false, deterministic: true);
+            var result4 = GetBytesEmitted(source, platform: Platform.X64, debug: false, deterministic: true);
             Assert.Equal(result3, result4, comparer);
             Assert.NotEqual(result1, result3, comparer);
 
-            var result5 = GetBytesEmitted(source, platform: Platform.X64, debug: DebugInformationKind.None, deterministic: false);
-            var result6 = GetBytesEmitted(source, platform: Platform.X64, debug: DebugInformationKind.None, deterministic: false);
+            var result5 = GetBytesEmitted(source, platform: Platform.X64, debug: false, deterministic: false);
+            var result6 = GetBytesEmitted(source, platform: Platform.X64, debug: false, deterministic: false);
             Assert.NotEqual(result5, result6, comparer);
             Assert.NotEqual(result3, result5, comparer);
         }

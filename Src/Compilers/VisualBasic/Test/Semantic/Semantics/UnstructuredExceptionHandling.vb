@@ -461,9 +461,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True,
-                         expectedOutput:=
-            <![CDATA[
+            Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 1
 2
 3

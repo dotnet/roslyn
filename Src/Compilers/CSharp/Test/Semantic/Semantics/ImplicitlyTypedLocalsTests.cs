@@ -114,16 +114,11 @@ class B
             var verifier = CompileAndVerify(alias + text, emitPdb: true, expectedOutput: "1");
             verifier.VerifyIL("B.Main", @"
 {
-  // Code size       11 (0xb)
+  // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0) //a
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  call       ""void System.Console.WriteLine(int)""
-  IL_0009:  nop
-  IL_000a:  ret
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.WriteLine(int)""
+  IL_0006:  ret
 }
 ");
         }

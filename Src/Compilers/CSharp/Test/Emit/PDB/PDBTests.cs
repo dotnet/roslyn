@@ -1174,7 +1174,7 @@ class Program
 }
 ";
             // we just want this to compile without crashing/asserting
-            string actual = GetPdbXml(source, TestOptions.ReleaseExe.WithOptimizations(true));
+            GetPdbXml(source, TestOptions.ReleaseExe);
         }
 
         #endregion
@@ -3803,7 +3803,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.DebugExe.WithOptimizations(false));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.DebugExe);
 
             var exebits = new MemoryStream();
             var pdbbits = new MemoryStream();

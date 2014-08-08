@@ -7012,7 +7012,7 @@ End Module
 </compilation>, useLatestFramework:=True, expectedOutput:="1 3 5 7 9")
         End Sub
 
-        <Fact()>
+        <Fact(Skip:="1003196"), WorkItem(1003196)>
         Public Sub AsyncAndPartialMethods()
             CompileAndVerify(
 <compilation>
@@ -7044,7 +7044,7 @@ Partial Class C
     End Sub
 End Class
     </file>
-</compilation>, useLatestFramework:=True, expectedOutput:="")
+</compilation>, useLatestFramework:=True, expectedOutput:="", emitPdb:=True)
         End Sub
 
         <Fact()>

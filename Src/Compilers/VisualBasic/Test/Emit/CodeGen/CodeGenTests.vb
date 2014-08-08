@@ -7075,14 +7075,13 @@ Module Module1
 End Module
     </file>
 </compilation>,
-                expectedOutput:="",
-                emitPdb:=True)
+                expectedOutput:="")
         End Sub
 
         <WorkItem(540121, "DevDiv")>
         <Fact>
         Public Sub BooleanAndOrInDebug()
-            CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Module M1
@@ -7099,9 +7098,11 @@ Module M1
 End Module
             </file>
 </compilation>,
+                options:=TestOptions.DebugExe,
                 expectedOutput:="",
-                emitPdb:=True).
-            VerifyIL("M1.Main",
+                emitPdb:=True)
+
+            c.VerifyIL("M1.Main",
             <![CDATA[
 {
   // Code size       38 (0x26)
@@ -10043,7 +10044,9 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, emitPdb:=True).VerifyIL("Module1.Main", <![CDATA[
+</compilation>, emitPdb:=True, options:=TestOptions.DebugDll)
+
+            comp.VerifyIL("Module1.Main", <![CDATA[
 {
   // Code size       80 (0x50)
   .maxstack  3
@@ -10107,7 +10110,7 @@ End Module]]>,
         <WorkItem(543243, "DevDiv")>
         <Fact()>
         Public Sub TestOrInDebug()
-            CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -10124,10 +10127,11 @@ Module Module1
 End Module
     </file>
 </compilation>,
-emitPdb:=True,
-expectedOutput:=<![CDATA[Pass]]>).
-            VerifyIL("Module1.Main",
-            <![CDATA[
+            emitPdb:=True,
+            options:=TestOptions.DebugExe,
+            expectedOutput:="Pass")
+
+            c.VerifyIL("Module1.Main", <![CDATA[
 {
   // Code size       80 (0x50)
   .maxstack  3
@@ -10525,24 +10529,20 @@ True
         System.Console.WriteLine(Microsoft.VisualBasic.Information.TypeName(x))
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+                compilationOptions:=TestOptions.ReleaseExe)
 
-            Dim vbVerifier = CompileAndVerify(vbCompilation,
-                expectedOutput:=<![CDATA[UInteger
-]]>)
+            Dim vbVerifier = CompileAndVerify(vbCompilation, expectedOutput:="UInteger")
+
             vbVerifier.VerifyDiagnostics()
             vbVerifier.VerifyIL("Program.Main", <![CDATA[
 {
-  // Code size       19 (0x13)
+  // Code size       17 (0x11)
   .maxstack  1
-  .locals init (UInteger V_0) //x
   IL_0000:  ldc.i4.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  box        "UInteger"
-  IL_0008:  call       "Function Microsoft.VisualBasic.CompilerServices.Versioned.TypeName(Object) As String"
-  IL_000d:  call       "Sub System.Console.WriteLine(String)"
-  IL_0012:  ret
+  IL_0001:  box        "UInteger"
+  IL_0006:  call       "Function Microsoft.VisualBasic.CompilerServices.Versioned.TypeName(Object) As String"
+  IL_000b:  call       "Sub System.Console.WriteLine(String)"
+  IL_0010:  ret
 }]]>)
         End Sub
 
@@ -11707,10 +11707,9 @@ BC40054: 'Public Sub New(c As Integer)' in designer-generated type 'FromDesigner
         <WorkItem(530067, "DevDiv")>
         <Fact>
         Public Sub NopAfterCall()
-            ' For a nop to be inserted after a call, three conditions must be met:
+            ' For a nop to be inserted after a call, two conditions must be met:
             '   1) sub (vs function)
-            '   2) optimization is disabled
-            '   3) generating debug info
+            '   2) debug build
 
             Dim source =
                 <compilation>
@@ -11733,9 +11732,10 @@ End Module
 
             Dim compRelease = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe)
             Dim compDebug = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugExe)
+            Dim compDebuggableRelease = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebuggableReleaseExe)
 
             ' (2) is not met.
-            CompileAndVerify(compRelease, emitPdb:=False).VerifyIL("C.Main",
+            CompileAndVerify(compRelease).VerifyIL("C.Main",
             <![CDATA[
 {
   // Code size       12 (0xc)
@@ -11747,8 +11747,8 @@ End Module
 }
 ]]>)
 
-            ' Neither (2) nor (3) is met.
-            CompileAndVerify(compRelease, emitPdb:=True).VerifyIL("C.Main",
+            ' (2) is not met.
+            CompileAndVerify(compDebuggableRelease).VerifyIL("C.Main",
             <![CDATA[
 {
   // Code size       12 (0xc)
@@ -11759,21 +11759,8 @@ End Module
   IL_000b:  ret
 }]]>)
 
-            ' (3) is not met.
-            CompileAndVerify(compDebug, emitPdb:=False).VerifyIL("C.Main",
-            <![CDATA[
-{
-  // Code size       12 (0xc)
-  .maxstack  1
-  IL_0000:  call       "Sub C.S()"
-  IL_0005:  call       "Function C.F() As Integer"
-  IL_000a:  pop
-  IL_000b:  ret
-}
-]]>)
-
             ' S meets (1), but F does not (it doesn't need a nop since it has a pop).
-            CompileAndVerify(compDebug, emitPdb:=True).VerifyIL("C.Main",
+            CompileAndVerify(compDebug).VerifyIL("C.Main",
             <![CDATA[
 {
   // Code size       14 (0xe)
@@ -12401,7 +12388,7 @@ End Module
         <WorkItem(770557, "DevDiv")>
         <Fact()>
         Public Sub BoolConditionDebug002()
-            CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 
@@ -12436,41 +12423,53 @@ End Module
 ]]>
     </file>
 </compilation>, options:=TestOptions.DebugExe,
-                expectedOutput:="i=2 -> x.bool = True i=21474836472 -> x.bool = True").
-            VerifyIL("Module1.Main",
+                expectedOutput:="i=2 -> x.bool = True i=21474836472 -> x.bool = True")
+
+            c.VerifyIL("Module1.Main",
             <![CDATA[
 {
-  // Code size       85 (0x55)
+  // Code size       96 (0x60)
   .maxstack  2
   .locals init (BoolBreaker V_0, //x
-  Boolean V_1)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.2
-  IL_0003:  stfld      "BoolBreaker.i As Integer"
-  IL_0008:  ldloc.0
-  IL_0009:  ldfld      "BoolBreaker.bool As Boolean"
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  brtrue.s   IL_001e
-  IL_0012:  ldstr      "i=2 -> x.bool <> True "
-  IL_0017:  call       "Sub System.Console.Write(String)"
-  IL_001c:  br.s       IL_0028
-  IL_001e:  ldstr      "i=2 -> x.bool = True "
-  IL_0023:  call       "Sub System.Console.Write(String)"
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  ldc.i4     0x7fffffff
-  IL_002f:  stfld      "BoolBreaker.i As Integer"
-  IL_0034:  ldloc.0
-  IL_0035:  ldfld      "BoolBreaker.bool As Boolean"
-  IL_003a:  stloc.1
-  IL_003b:  ldloc.1
-  IL_003c:  brtrue.s   IL_004a
-  IL_003e:  ldstr      "i=2147483647 -> x.bool <> True "
-  IL_0043:  call       "Sub System.Console.Write(String)"
-  IL_0048:  br.s       IL_0054
-  IL_004a:  ldstr      "i=21474836472 -> x.bool = True "
-  IL_004f:  call       "Sub System.Console.Write(String)"
-  IL_0054:  ret
+                Boolean V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.2
+  IL_0004:  stfld      "BoolBreaker.i As Integer"
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      "BoolBreaker.bool As Boolean"
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  brtrue.s   IL_0021
+  IL_0013:  ldstr      "i=2 -> x.bool <> True "
+  IL_0018:  call       "Sub System.Console.Write(String)"
+  IL_001d:  nop
+  IL_001e:  nop
+  IL_001f:  br.s       IL_002e
+  IL_0021:  nop
+  IL_0022:  ldstr      "i=2 -> x.bool = True "
+  IL_0027:  call       "Sub System.Console.Write(String)"
+  IL_002c:  nop
+  IL_002d:  nop
+  IL_002e:  ldloca.s   V_0
+  IL_0030:  ldc.i4     0x7fffffff
+  IL_0035:  stfld      "BoolBreaker.i As Integer"
+  IL_003a:  ldloc.0
+  IL_003b:  ldfld      "BoolBreaker.bool As Boolean"
+  IL_0040:  stloc.1
+  IL_0041:  ldloc.1
+  IL_0042:  brtrue.s   IL_0052
+  IL_0044:  ldstr      "i=2147483647 -> x.bool <> True "
+  IL_0049:  call       "Sub System.Console.Write(String)"
+  IL_004e:  nop
+  IL_004f:  nop
+  IL_0050:  br.s       IL_005f
+  IL_0052:  nop
+  IL_0053:  ldstr      "i=21474836472 -> x.bool = True "
+  IL_0058:  call       "Sub System.Console.Write(String)"
+  IL_005d:  nop
+  IL_005e:  nop
+  IL_005f:  ret
 }
 ]]>)
         End Sub

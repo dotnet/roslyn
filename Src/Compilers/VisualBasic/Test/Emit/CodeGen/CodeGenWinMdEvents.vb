@@ -459,7 +459,7 @@ End Class
         ''' <remarks>
         ''' I'm assuming this is why the final dev11 impl uses GetOrCreateEventRegistrationTokenTable.
         ''' </remarks>
-        <Fact>
+        <Fact(Skip:="1003209"), WorkItem(1003209)>
         Public Sub FieldLikeEventSerialization()
 
             Dim source1 =
@@ -544,7 +544,7 @@ End Namespace
                 display:="System.Runtime.Serialization.dll")
 
             Dim comp2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
-            CompileAndVerify(comp2, emitOptions:=EmitOptions.RefEmitBug, expectedOutput:=<![CDATA[
+            CompileAndVerify(comp2, emitOptions:=EmitOptions.RefEmitBug, emitPdb:=True, expectedOutput:=<![CDATA[
 A
 False
 
@@ -905,7 +905,7 @@ End Class
         End Sub
 
         ' Field-like and custom events are not treated differently.
-        <Fact>
+        <Fact(Skip:="1003209"), WorkItem(1003209)>
         Public Sub HandlesClauses_EventKinds()
 
             Dim source =
@@ -948,7 +948,7 @@ End Class
 </compilation>
 
             Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
-            Dim verifier = CompileAndVerify(comp)
+            Dim verifier = CompileAndVerify(comp, emitPdb:=True)
 
             verifier.VerifyIL("Test..ctor", <![CDATA[
 {

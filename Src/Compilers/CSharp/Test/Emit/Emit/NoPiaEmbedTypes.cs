@@ -1861,23 +1861,25 @@ class UsePia
             var expected =
 @"
 {
-  // Code size       39 (0x27)
+  // Code size       41 (0x29)
   .maxstack  2
   .locals init (ITest28 V_0)
-  IL_0000:  ldstr      ""00000000-0000-0000-0000-000000000000""
-  IL_0005:  newobj     ""System.Guid..ctor(string)""
-  IL_000a:  call       ""System.Type System.Type.GetTypeFromCLSID(System.Guid)""
-  IL_000f:  call       ""object System.Activator.CreateInstance(System.Type)""
-  IL_0014:  castclass  ""ITest28""
-  IL_0019:  stloc.0
-  IL_001a:  ldloc.0
-  IL_001b:  ldc.i4.2
-  IL_001c:  callvirt   ""void ITest28.P1.set""
-  IL_0021:  ldloc.0
-  IL_0022:  stloc.0
-  IL_0023:  br.s       IL_0025
-  IL_0025:  ldloc.0
-  IL_0026:  ret
+  IL_0000:  nop
+  IL_0001:  ldstr      ""00000000-0000-0000-0000-000000000000""
+  IL_0006:  newobj     ""System.Guid..ctor(string)""
+  IL_000b:  call       ""System.Type System.Type.GetTypeFromCLSID(System.Guid)""
+  IL_0010:  call       ""object System.Activator.CreateInstance(System.Type)""
+  IL_0015:  castclass  ""ITest28""
+  IL_001a:  stloc.0
+  IL_001b:  ldloc.0
+  IL_001c:  ldc.i4.2
+  IL_001d:  callvirt   ""void ITest28.P1.set""
+  IL_0022:  nop
+  IL_0023:  ldloc.0
+  IL_0024:  stloc.0
+  IL_0025:  br.s       IL_0027
+  IL_0027:  ldloc.0
+  IL_0028:  ret
 }
 ";
 
@@ -1952,18 +1954,19 @@ class UsePia
             var expected =
 @"
 {
-  // Code size       30 (0x1e)
+  // Code size       31 (0x1f)
   .maxstack  1
   .locals init (ITest28 V_0)
-  IL_0000:  ldstr      ""f9c2d51d-4f44-45f0-9eda-c9d599b58278""
-  IL_0005:  newobj     ""System.Guid..ctor(string)""
-  IL_000a:  call       ""System.Type System.Runtime.InteropServices.Marshal.GetTypeFromCLSID(System.Guid)""
-  IL_000f:  call       ""object System.Activator.CreateInstance(System.Type)""
-  IL_0014:  castclass  ""ITest28""
-  IL_0019:  stloc.0
-  IL_001a:  br.s       IL_001c
-  IL_001c:  ldloc.0
-  IL_001d:  ret
+  IL_0000:  nop
+  IL_0001:  ldstr      ""f9c2d51d-4f44-45f0-9eda-c9d599b58278""
+  IL_0006:  newobj     ""System.Guid..ctor(string)""
+  IL_000b:  call       ""System.Type System.Runtime.InteropServices.Marshal.GetTypeFromCLSID(System.Guid)""
+  IL_0010:  call       ""object System.Activator.CreateInstance(System.Type)""
+  IL_0015:  castclass  ""ITest28""
+  IL_001a:  stloc.0
+  IL_001b:  br.s       IL_001d
+  IL_001d:  ldloc.0
+  IL_001e:  ret
 }
 ";
 

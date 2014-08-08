@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// When the output type is .winmdobj, delegate types shouldn't output Begin/End invoke 
         /// members.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "1003193"), WorkItem(1003193)]
         public void SimpleDelegateMembersTest()
         {
             const string libSrc =
@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     libSrc,
                     sourceSymbolValidator: validator,
                     symbolValidator: validator,
-                    options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);
+                    options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll,
+                    emitPdb: true);
                 verifier.VerifyDiagnostics();
             };
 

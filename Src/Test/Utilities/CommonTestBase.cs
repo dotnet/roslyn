@@ -134,11 +134,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 options = CompilationOptionsReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
             }
 
-            if (emitPdb)
-            {
-                options = options.WithOptimizations(false);
-            }
-
             var compilation = GetCompilationForEmit(sources, additionalRefs, options);
 
             return this.CompileAndVerify(
@@ -277,18 +272,6 @@ Example app.config:
         /// <summary>
         /// Compiles, but only verifies on a Windows 8 machine.
         /// </summary>
-        /// <param name="compilation"></param>
-        /// <param name="dependencies"></param>
-        /// <param name="emitOptions"></param>
-        /// <param name="sourceSymbolValidator"></param>
-        /// <param name="validator"></param>
-        /// <param name="symbolValidator"></param>
-        /// <param name="expectedSignatures"></param>
-        /// <param name="expectedOutput"></param>
-        /// <param name="collectEmittedAssembly"></param>
-        /// <param name="emitPdb"></param>
-        /// <param name="verify"></param>
-        /// <returns></returns>
         internal CompilationVerifier CompileAndVerifyOnWin8Only(
             Compilation compilation,
             IEnumerable<ModuleData> dependencies = null,

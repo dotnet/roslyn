@@ -36,39 +36,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         using (F()) { }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, debugInformationKind: DebugInformationKind.Full, optimize: false, concurrentBuild: false));
-            var compilation1 = CreateCompilationWithMscorlib(
-                source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, debugInformationKind: DebugInformationKind.Full, optimize: true, concurrentBuild: false));
-            var compilation2 = CreateCompilationWithMscorlib(
-                source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, debugInformationKind: DebugInformationKind.None, optimize: false, concurrentBuild: false));
-            var compilation3 = CreateCompilationWithMscorlib(
-                source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, debugInformationKind: DebugInformationKind.None, optimize: true, concurrentBuild: false));
+            var debug = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var debuggableRelease = CreateCompilationWithMscorlib(source, options: TestOptions.DebuggableReleaseDll);
+            var release = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             CompilationTestData testData;
             ImmutableArray<string> names;
 
             testData = new CompilationTestData();
-            compilation0.EmitToArray(debug: true, testData: testData);
+            debug.EmitToArray(debug: true, testData: testData);
             names = GetLocalNames(testData.GetMethodData("C.M"));
             AssertEx.Equal(new string[] { "CS$2$0000", "CS$520$0001", "CS$3$0002" }, names);
 
             testData = new CompilationTestData();
-            compilation1.EmitToArray(debug: true, testData: testData);
+            debuggableRelease.EmitToArray(debug: true, testData: testData);
             names = GetLocalNames(testData.GetMethodData("C.M"));
             AssertEx.Equal(new string[] { "CS$2$0000", "CS$520$0001", "CS$3$0002" }, names);
 
             testData = new CompilationTestData();
-            compilation2.EmitToArray(debug: true, testData: testData);
-            names = GetLocalNames(testData.GetMethodData("C.M"));
-            AssertEx.Equal(new string[] { null, null }, names);
-
-            testData = new CompilationTestData();
-            compilation3.EmitToArray(debug: true, testData: testData);
+            release.EmitToArray(debug: true, testData: testData);
             names = GetLocalNames(testData.GetMethodData("C.M"));
             AssertEx.Equal(new string[] { null, null }, names);
         }

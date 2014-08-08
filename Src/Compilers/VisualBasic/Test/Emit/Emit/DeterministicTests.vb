@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
     Public Class DeterministicTests : Inherits BasicTestBase
 
-        Private Function GetBytesEmitted(source As String, platform As Platform, debug As DebugInformationKind, deterministic As Boolean) As ImmutableArray(Of Byte)
-            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, platform:=platform, debugInformationKind:=debug)
+        Private Function GetBytesEmitted(source As String, platform As Platform, debug As Boolean, deterministic As Boolean) As ImmutableArray(Of Byte)
+            Dim options = If(debug, TestOptions.DebugExe, TestOptions.ReleaseExe).WithPlatform(platform)
             If deterministic Then
                 options = options.WithFeatures({"dEtErmInIstIc"}.AsImmutable()) ' expect case-insensitivity
             End If
@@ -44,17 +44,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 End Class"
             Dim comparer = New ImmutableByteArrayEqualityComparer()
 
-            Dim result1 = GetBytesEmitted(source, platform:=Platform.AnyCpu32BitPreferred, debug:=DebugInformationKind.Full, deterministic:=True)
-            Dim result2 = GetBytesEmitted(source, platform:=Platform.AnyCpu32BitPreferred, debug:=DebugInformationKind.Full, deterministic:=True)
+            Dim result1 = GetBytesEmitted(source, platform:=Platform.AnyCpu32BitPreferred, debug:=True, deterministic:=True)
+            Dim result2 = GetBytesEmitted(source, platform:=Platform.AnyCpu32BitPreferred, debug:=True, deterministic:=True)
             Assert.Equal(result1, result2, comparer)
 
-            Dim result3 = GetBytesEmitted(source, platform:=Platform.X64, debug:=DebugInformationKind.None, deterministic:=True)
-            Dim result4 = GetBytesEmitted(source, platform:=Platform.X64, debug:=DebugInformationKind.None, deterministic:=True)
+            Dim result3 = GetBytesEmitted(source, platform:=Platform.X64, debug:=False, deterministic:=True)
+            Dim result4 = GetBytesEmitted(source, platform:=Platform.X64, debug:=False, deterministic:=True)
             Assert.Equal(result3, result4, comparer)
             Assert.NotEqual(result1, result3, comparer)
 
-            Dim result5 = GetBytesEmitted(source, platform:=Platform.X64, debug:=DebugInformationKind.None, deterministic:=False)
-            Dim result6 = GetBytesEmitted(source, platform:=Platform.X64, debug:=DebugInformationKind.None, deterministic:=False)
+            Dim result5 = GetBytesEmitted(source, platform:=Platform.X64, debug:=False, deterministic:=False)
+            Dim result6 = GetBytesEmitted(source, platform:=Platform.X64, debug:=False, deterministic:=False)
             Assert.NotEqual(result5, result6, comparer)
             Assert.NotEqual(result3, result5, comparer)
         End Sub

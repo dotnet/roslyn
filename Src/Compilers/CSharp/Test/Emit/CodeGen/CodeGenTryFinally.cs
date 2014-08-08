@@ -248,42 +248,31 @@ class C
             var compilation = CompileAndVerify(source, expectedOutput: "", emitPdb: true);
             compilation.VerifyIL("C.M",
 @"{
-  // Code size       32 (0x20)
+  // Code size       24 (0x18)
   .maxstack  1
-  .locals init (object V_0, //o
-  System.NullReferenceException V_1, //NullException
-  System.ApplicationException V_2) //AppException
-  IL_0000:  nop
   .try
-{
-  IL_0001:  nop
-  IL_0002:  ldnull
-  IL_0003:  stloc.0
-  IL_0004:  ldloc.0
-  IL_0005:  callvirt   ""string object.ToString()""
-  IL_000a:  pop
-  IL_000b:  nop
-  IL_000c:  leave.s    IL_001f
-}
+  {
+    IL_0000:  ldnull
+    IL_0001:  callvirt   ""string object.ToString()""
+    IL_0006:  pop
+    IL_0007:  leave.s    IL_0017
+  }
   catch System.NullReferenceException
-{
-  IL_000e:  stloc.1
-  IL_000f:  nop
-  .try
-{
-  IL_0010:  nop
-  IL_0011:  newobj     ""System.ApplicationException..ctor()""
-  IL_0016:  throw
-}
-  catch System.ApplicationException
-{
-  IL_0017:  stloc.2
-  IL_0018:  nop
-  IL_0019:  newobj     ""System.DivideByZeroException..ctor()""
-  IL_001e:  throw
-}
-}
-  IL_001f:  ret
+  {
+    IL_0009:  pop
+    .try
+    {
+      IL_000a:  newobj     ""System.ApplicationException..ctor()""
+      IL_000f:  throw
+    }
+    catch System.ApplicationException
+    {
+      IL_0010:  pop
+      IL_0011:  newobj     ""System.DivideByZeroException..ctor()""
+      IL_0016:  throw
+    }
+  }
+  IL_0017:  ret
 }");
         }
 
@@ -325,47 +314,33 @@ class C
     }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: "", emitPdb: true);
-            compilation.VerifyIL("C.M",
-@"{
-  // Code size       35 (0x23)
+            compilation.VerifyIL("C.M", @"
+{
+  // Code size       24 (0x18)
   .maxstack  1
-  .locals init (object V_0, //o
-  System.NullReferenceException V_1, //NullException
-  System.ApplicationException V_2) //AppException
-  IL_0000:  nop
   .try
-{
-  IL_0001:  nop
-  IL_0002:  ldnull
-  IL_0003:  stloc.0
-  IL_0004:  ldloc.0
-  IL_0005:  callvirt   ""string object.ToString()""
-  IL_000a:  pop
-  IL_000b:  leave.s    IL_001e
-}
+  {
+    IL_0000:  ldnull
+    IL_0001:  callvirt   ""string object.ToString()""
+    IL_0006:  pop
+    IL_0007:  leave.s    IL_0017
+  }
   catch System.NullReferenceException
-{
-  IL_000d:  stloc.1
-  IL_000e:  nop
-  .try
-{
-  IL_000f:  nop
-  IL_0010:  newobj     ""System.ApplicationException..ctor()""
-  IL_0015:  throw
-}
-  catch System.ApplicationException
-{
-  IL_0016:  stloc.2
-  IL_0017:  nop
-  IL_0018:  newobj     ""System.DivideByZeroException..ctor()""
-  IL_001d:  throw
-}
-}
-  IL_001e:  nop
-  IL_001f:  nop
-  IL_0020:  nop
-  IL_0021:  nop
-  IL_0022:  ret
+  {
+    IL_0009:  pop
+    .try
+    {
+      IL_000a:  newobj     ""System.ApplicationException..ctor()""
+      IL_000f:  throw
+    }
+    catch System.ApplicationException
+    {
+      IL_0010:  pop
+      IL_0011:  newobj     ""System.DivideByZeroException..ctor()""
+      IL_0016:  throw
+    }
+  }
+  IL_0017:  ret
 }");
         }
 

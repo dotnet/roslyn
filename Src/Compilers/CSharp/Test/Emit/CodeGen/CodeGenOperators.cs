@@ -1380,61 +1380,65 @@ class C : I
                 options: TestOptions.DebugExe, expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
 {
-  // Code size       82 (0x52)
+  // Code size       86 (0x56)
   .maxstack  2
   .locals init (I V_0, //i
-  I V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.1
-  IL_0002:  ldloc.1
-  IL_0003:  dup
-  IL_0004:  brtrue.s   IL_0013
-  IL_0006:  pop
-  IL_0007:  ldarg.1
-  IL_0008:  stloc.1
-  IL_0009:  ldloc.1
-  IL_000a:  dup
-  IL_000b:  brtrue.s   IL_0013
-  IL_000d:  pop
-  IL_000e:  newobj     ""C..ctor()""
-  IL_0013:  stloc.0
-  IL_0014:  ldloc.0
-  IL_0015:  callvirt   ""void I.DoNothing()""
-  IL_001a:  ldarg.0
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.1
-  IL_001d:  dup
-  IL_001e:  brtrue.s   IL_002d
-  IL_0020:  pop
-  IL_0021:  ldarg.1
-  IL_0022:  stloc.1
-  IL_0023:  ldloc.1
-  IL_0024:  dup
-  IL_0025:  brtrue.s   IL_002d
-  IL_0027:  pop
-  IL_0028:  newobj     ""C..ctor()""
-  IL_002d:  stloc.0
-  IL_002e:  ldloc.0
-  IL_002f:  callvirt   ""void I.DoNothing()""
-  IL_0034:  ldarg.0
-  IL_0035:  stloc.1
-  IL_0036:  ldloc.1
-  IL_0037:  dup
-  IL_0038:  brtrue.s   IL_003c
-  IL_003a:  pop
-  IL_003b:  ldarg.1
-  IL_003c:  dup
-  IL_003d:  brtrue.s   IL_0045
-  IL_003f:  pop
-  IL_0040:  newobj     ""C..ctor()""
-  IL_0045:  stloc.0
-  IL_0046:  ldloc.0
-  IL_0047:  callvirt   ""void I.DoNothing()""
-  IL_004c:  ldloc.0
-  IL_004d:  stloc.1
-  IL_004e:  br.s       IL_0050
-  IL_0050:  ldloc.1
-  IL_0051:  ret
+                I V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloc.1
+  IL_0004:  dup
+  IL_0005:  brtrue.s   IL_0014
+  IL_0007:  pop
+  IL_0008:  ldarg.1
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  dup
+  IL_000c:  brtrue.s   IL_0014
+  IL_000e:  pop
+  IL_000f:  newobj     ""C..ctor()""
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  callvirt   ""void I.DoNothing()""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  stloc.1
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  brtrue.s   IL_002f
+  IL_0022:  pop
+  IL_0023:  ldarg.1
+  IL_0024:  stloc.1
+  IL_0025:  ldloc.1
+  IL_0026:  dup
+  IL_0027:  brtrue.s   IL_002f
+  IL_0029:  pop
+  IL_002a:  newobj     ""C..ctor()""
+  IL_002f:  stloc.0
+  IL_0030:  ldloc.0
+  IL_0031:  callvirt   ""void I.DoNothing()""
+  IL_0036:  nop
+  IL_0037:  ldarg.0
+  IL_0038:  stloc.1
+  IL_0039:  ldloc.1
+  IL_003a:  dup
+  IL_003b:  brtrue.s   IL_003f
+  IL_003d:  pop
+  IL_003e:  ldarg.1
+  IL_003f:  dup
+  IL_0040:  brtrue.s   IL_0048
+  IL_0042:  pop
+  IL_0043:  newobj     ""C..ctor()""
+  IL_0048:  stloc.0
+  IL_0049:  ldloc.0
+  IL_004a:  callvirt   ""void I.DoNothing()""
+  IL_004f:  nop
+  IL_0050:  ldloc.0
+  IL_0051:  stloc.1
+  IL_0052:  br.s       IL_0054
+  IL_0054:  ldloc.1
+  IL_0055:  ret
 }");
             // Optimized
             verify = CompileAndVerify(src, expectedOutput: "C");
@@ -3161,7 +3165,8 @@ public static class Test
 
 ";
 
-            var comp = CompileAndVerify(text, emitPdb: true, expectedOutput: @"-1
+            var comp = CompileAndVerify(text, emitPdb: true, expectedOutput: @"
+-1
 -1
 255
 255
@@ -3169,93 +3174,63 @@ public static class Test
 
             comp.VerifyIL("Test.TestE()", @"
 {
-  // Code size       46 (0x2e)
-  .maxstack  2
-  .locals init (e V_0, //x
-  e V_1, //y
-  e V_2) //z
-  IL_0000:  nop
-  IL_0001:  ldc.i4.s   -128
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.s   127
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.0
-  IL_0008:  ldloc.1
-  IL_0009:  xor
-  IL_000a:  stloc.2
-  IL_000b:  ldloc.2
-  IL_000c:  call       ""void System.Console.WriteLine(int)""
-  IL_0011:  nop
-  IL_0012:  ldloc.0
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (e V_0) //y
+  IL_0000:  ldc.i4.s   -128
+  IL_0002:  ldc.i4.s   127
+  IL_0004:  stloc.0
+  IL_0005:  dup
+  IL_0006:  ldloc.0
+  IL_0007:  xor
+  IL_0008:  call       ""void System.Console.WriteLine(int)""
+  IL_000d:  ldc.i4.1
+  IL_000e:  xor
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.m1
+  IL_0011:  xor
+  IL_0012:  stloc.0
   IL_0013:  ldc.i4.1
   IL_0014:  xor
-  IL_0015:  stloc.0
-  IL_0016:  ldloc.1
-  IL_0017:  ldc.i4.m1
-  IL_0018:  xor
-  IL_0019:  stloc.1
-  IL_001a:  ldloc.0
-  IL_001b:  ldc.i4.1
-  IL_001c:  xor
-  IL_001d:  stloc.0
-  IL_001e:  ldloc.1
-  IL_001f:  ldc.i4.m1
-  IL_0020:  xor
-  IL_0021:  stloc.1
-  IL_0022:  ldloc.0
-  IL_0023:  ldloc.1
-  IL_0024:  xor
-  IL_0025:  stloc.2
-  IL_0026:  ldloc.2
-  IL_0027:  call       ""void System.Console.WriteLine(int)""
-  IL_002c:  nop
-  IL_002d:  ret
+  IL_0015:  ldloc.0
+  IL_0016:  ldc.i4.m1
+  IL_0017:  xor
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  xor
+  IL_001b:  call       ""void System.Console.WriteLine(int)""
+  IL_0020:  ret
 }
 ");
 
             comp.VerifyIL("Test.TestE1()", @"
 {
-  // Code size       56 (0x38)
-  .maxstack  2
-  .locals init (e1 V_0, //x
-  e1 V_1, //y
-  e1 V_2) //z
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
-  IL_0003:  ldc.i4     0xff
-  IL_0008:  stloc.1
-  IL_0009:  ldloc.0
-  IL_000a:  ldloc.1
-  IL_000b:  xor
-  IL_000c:  stloc.2
-  IL_000d:  ldloc.2
-  IL_000e:  call       ""void System.Console.WriteLine(int)""
-  IL_0013:  nop
-  IL_0014:  ldloc.0
-  IL_0015:  ldc.i4.1
-  IL_0016:  xor
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.1
-  IL_0019:  ldc.i4     0xff
-  IL_001e:  xor
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.0
-  IL_0021:  ldc.i4.1
-  IL_0022:  xor
-  IL_0023:  stloc.0
-  IL_0024:  ldloc.1
-  IL_0025:  ldc.i4     0xff
-  IL_002a:  xor
-  IL_002b:  stloc.1
-  IL_002c:  ldloc.0
-  IL_002d:  ldloc.1
-  IL_002e:  xor
-  IL_002f:  stloc.2
-  IL_0030:  ldloc.2
-  IL_0031:  call       ""void System.Console.WriteLine(int)""
-  IL_0036:  nop
-  IL_0037:  ret
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (e1 V_0) //y
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4     0xff
+  IL_0006:  stloc.0
+  IL_0007:  dup
+  IL_0008:  ldloc.0
+  IL_0009:  xor
+  IL_000a:  call       ""void System.Console.WriteLine(int)""
+  IL_000f:  ldc.i4.1
+  IL_0010:  xor
+  IL_0011:  ldloc.0
+  IL_0012:  ldc.i4     0xff
+  IL_0017:  xor
+  IL_0018:  stloc.0
+  IL_0019:  ldc.i4.1
+  IL_001a:  xor
+  IL_001b:  ldloc.0
+  IL_001c:  ldc.i4     0xff
+  IL_0021:  xor
+  IL_0022:  stloc.0
+  IL_0023:  ldloc.0
+  IL_0024:  xor
+  IL_0025:  call       ""void System.Console.WriteLine(int)""
+  IL_002a:  ret
 }
 ");
 

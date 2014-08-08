@@ -4503,7 +4503,7 @@ class Test
         foreach (var x in GetObjectEnum()) await F(2);
     }
 }";
-            var c = CompileAndVerify(source, expectedOutput: null, compOptions: TestOptions.ReleaseDll, emitPdb: false);
+            var c = CompileAndVerify(source, expectedOutput: null, compOptions: TestOptions.ReleaseDll);
 
             var actual = GetFieldLoadsAndStores(c, "Test.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext");
 

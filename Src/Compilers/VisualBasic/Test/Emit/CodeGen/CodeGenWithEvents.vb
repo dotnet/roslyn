@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1006,7 +1001,7 @@ End Interface
 
         <Fact>
         Public Sub GenericWithEventsNoOpt()
-            Dim compilation1 = CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 
@@ -1050,14 +1045,14 @@ End Interface
 
 
     </file>
-</compilation>, emitPdb:=True, expectedOutput:=<![CDATA[inside EventHandler2
-]]>).VerifyIL("C1(Of T).set_o(T)", <![CDATA[
+</compilation>, expectedOutput:="inside EventHandler2")
+
+            c.VerifyIL("C1(Of T).set_o(T)", <![CDATA[
 {
-  // Code size       85 (0x55)
+  // Code size       75 (0x4b)
   .maxstack  2
   .locals init (iTest.Event2EventHandler V_0,
-  T V_1,
-  Boolean V_2)
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldftn      "Public Sub EventHandler2()"
   IL_0007:  newobj     "Sub iTest.Event2EventHandler..ctor(Object, System.IntPtr)"
@@ -1067,35 +1062,27 @@ End Interface
   IL_0013:  stloc.1
   IL_0014:  ldloc.1
   IL_0015:  box        "T"
-  IL_001a:  ldnull
-  IL_001b:  ceq
-  IL_001d:  stloc.2
-  IL_001e:  ldloc.2
-  IL_001f:  brtrue.s   IL_002d
-  IL_0021:  ldloc.1
-  IL_0022:  box        "T"
-  IL_0027:  ldloc.0
-  IL_0028:  callvirt   "Sub iTest.remove_Event2(iTest.Event2EventHandler)"
-  IL_002d:  ldarg.0
-  IL_002e:  ldarg.1
-  IL_002f:  stfld      "Private _o As T"
-  IL_0034:  ldarg.0
-  IL_0035:  ldfld      "Private _o As T"
-  IL_003a:  stloc.1
-  IL_003b:  ldloc.1
-  IL_003c:  box        "T"
-  IL_0041:  ldnull
-  IL_0042:  ceq
-  IL_0044:  stloc.2
-  IL_0045:  ldloc.2
-  IL_0046:  brtrue.s   IL_0054
-  IL_0048:  ldloc.1
-  IL_0049:  box        "T"
-  IL_004e:  ldloc.0
-  IL_004f:  callvirt   "Sub iTest.add_Event2(iTest.Event2EventHandler)"
-  IL_0054:  ret
+  IL_001a:  brfalse.s  IL_0028
+  IL_001c:  ldloc.1
+  IL_001d:  box        "T"
+  IL_0022:  ldloc.0
+  IL_0023:  callvirt   "Sub iTest.remove_Event2(iTest.Event2EventHandler)"
+  IL_0028:  ldarg.0
+  IL_0029:  ldarg.1
+  IL_002a:  stfld      "Private _o As T"
+  IL_002f:  ldarg.0
+  IL_0030:  ldfld      "Private _o As T"
+  IL_0035:  stloc.1
+  IL_0036:  ldloc.1
+  IL_0037:  box        "T"
+  IL_003c:  brfalse.s  IL_004a
+  IL_003e:  ldloc.1
+  IL_003f:  box        "T"
+  IL_0044:  ldloc.0
+  IL_0045:  callvirt   "Sub iTest.add_Event2(iTest.Event2EventHandler)"
+  IL_004a:  ret
 }
-]]>).Compilation
+]]>)
 
         End Sub
 

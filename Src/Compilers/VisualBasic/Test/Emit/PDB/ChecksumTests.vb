@@ -63,10 +63,9 @@ End Class
 
 ]]>
         </file>
-    </compilation>, OutputKind.DynamicallyLinkedLibrary)
+    </compilation>, options:=TestOptions.DebugDll)
 
-
-            CompileAndVerify(other, emitPdb:=True).VerifyDiagnostics(
+            CompileAndVerify(other).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_MultipleDeclFileExtChecksum, "#ExternalChecksum(""bogUs.vb"", ""{406EA660-64CF-4C82-B6F0-42D48172A788}"", ""ab007f1d23d9"")").WithArguments("bogUs.vb"),
                     Diagnostic(ERRID.WRN_MultipleDeclFileExtChecksum, "#ExternalChecksum(""bogus1.cs"", ""{406EA660-64CF-4C82-B6F0-42D48172A798}"", ""ab007f1d23d9"")").WithArguments("bogus1.cs"),
                     Diagnostic(ERRID.WRN_MultipleDeclFileExtChecksum, "#ExternalChecksum(""bogus1.cs"", ""{406EA660-64CF-4C82-B6F0-42D48172A799}"", ""ab007f1d23d8"")").WithArguments("bogus1.cs")
@@ -98,7 +97,7 @@ End Class
 
 ]]>
         </file>
-    </compilation>, OutputKind.DynamicallyLinkedLibrary)
+    </compilation>, options:=TestOptions.DebugDll)
 
 
             CompileAndVerify(other, emitPdb:=True).VerifyDiagnostics(
@@ -143,7 +142,7 @@ End Class
 
 ]]>
         </file>
-    </compilation>, OutputKind.DynamicallyLinkedLibrary)
+    </compilation>, options:=TestOptions.DebugDll)
 
 
             CompileAndVerify(other, emitPdb:=True).VerifyDiagnostics(

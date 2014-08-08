@@ -319,7 +319,7 @@ unsafe class C
   IL_000d:  ret
 }
 ");
-            var compVerifierUnoptimized = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: "2");
+            var compVerifierUnoptimized = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, emitPdb: true, expectedOutput: "2");
 
             compVerifierUnoptimized.VerifyIL("C.Main", @"
 {
@@ -466,26 +466,19 @@ unsafe class C
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       30 (0x1e)
-  .maxstack  1
-  .locals init (char V_0, //c
-  char* V_1) //p
-  IL_0000:  nop
-  IL_0001:  ldc.i4.s   97
-  IL_0003:  stloc.0
-  IL_0004:  ldloca.s   V_0
-  IL_0006:  conv.u
-  IL_0007:  stloc.1
-  IL_0008:  ldloc.0
-  IL_0009:  call       ""void System.Console.Write(char)""
-  IL_000e:  nop
-  IL_000f:  ldloc.1
-  IL_0010:  call       ""void C.Incr(ref char)""
-  IL_0015:  nop
-  IL_0016:  ldloc.0
-  IL_0017:  call       ""void System.Console.Write(char)""
-  IL_001c:  nop
-  IL_001d:  ret
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (char V_0) //c
+  IL_0000:  ldc.i4.s   97
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  conv.u
+  IL_0006:  ldloc.0
+  IL_0007:  call       ""void System.Console.Write(char)""
+  IL_000c:  call       ""void C.Incr(ref char)""
+  IL_0011:  ldloc.0
+  IL_0012:  call       ""void System.Console.Write(char)""
+  IL_0017:  ret
 }
 ");
         }
@@ -521,29 +514,22 @@ unsafe struct S
 
             compVerifier.VerifyIL("S.Main", @"
 {
-  // Code size       45 (0x2d)
+  // Code size       39 (0x27)
   .maxstack  2
-  .locals init (S V_0, //s
-  S* V_1) //p
-  IL_0000:  nop
-  IL_0001:  ldloca.s   V_0
-  IL_0003:  ldc.i4.1
-  IL_0004:  stfld      ""int S.x""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  conv.u
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.0
-  IL_000e:  ldfld      ""int S.x""
-  IL_0013:  call       ""void System.Console.Write(int)""
-  IL_0018:  nop
-  IL_0019:  ldloc.1
-  IL_001a:  call       ""void S.Mutate()""
-  IL_001f:  nop
-  IL_0020:  ldloc.0
-  IL_0021:  ldfld      ""int S.x""
-  IL_0026:  call       ""void System.Console.Write(int)""
-  IL_002b:  nop
-  IL_002c:  ret
+  .locals init (S V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  stfld      ""int S.x""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  conv.u
+  IL_000b:  ldloc.0
+  IL_000c:  ldfld      ""int S.x""
+  IL_0011:  call       ""void System.Console.Write(int)""
+  IL_0016:  call       ""void S.Mutate()""
+  IL_001b:  ldloc.0
+  IL_001c:  ldfld      ""int S.x""
+  IL_0021:  call       ""void System.Console.Write(int)""
+  IL_0026:  ret
 }
 ");
         }
@@ -575,22 +561,17 @@ unsafe struct S
 
             compVerifier.VerifyIL("S.Main", @"
 {
-  // Code size       26 (0x1a)
+  // Code size       22 (0x16)
   .maxstack  2
-  .locals init (S V_0, //s
-  S* V_1) //p
-  IL_0000:  nop
-  IL_0001:  ldloca.s   V_0
-  IL_0003:  ldc.i4.3
-  IL_0004:  stfld      ""int S.x""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  conv.u
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.1
-  IL_000e:  ldfld      ""int S.x""
-  IL_0013:  call       ""void System.Console.Write(int)""
-  IL_0018:  nop
-  IL_0019:  ret
+  .locals init (S V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.3
+  IL_0003:  stfld      ""int S.x""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  conv.u
+  IL_000b:  ldfld      ""int S.x""
+  IL_0010:  call       ""void System.Console.Write(int)""
+  IL_0015:  ret
 }
 ");
 
@@ -638,33 +619,27 @@ unsafe struct S
 
             compVerifier.VerifyIL("S.Main", @"
 {
-  // Code size       45 (0x2d)
+  // Code size       40 (0x28)
   .maxstack  2
-  .locals init (S V_0, //s
-  S* V_1) //p
-  IL_0000:  nop
-  IL_0001:  ldloca.s   V_0
-  IL_0003:  ldc.i4.3
-  IL_0004:  stfld      ""int S.x""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  conv.u
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.0
-  IL_000e:  ldfld      ""int S.x""
-  IL_0013:  call       ""void System.Console.Write(int)""
-  IL_0018:  nop
-  IL_0019:  ldloc.1
-  IL_001a:  ldc.i4.4
-  IL_001b:  stfld      ""int S.x""
-  IL_0020:  ldloc.0
-  IL_0021:  ldfld      ""int S.x""
-  IL_0026:  call       ""void System.Console.Write(int)""
-  IL_002b:  nop
-  IL_002c:  ret
+  .locals init (S V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.3
+  IL_0003:  stfld      ""int S.x""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  conv.u
+  IL_000b:  ldloc.0
+  IL_000c:  ldfld      ""int S.x""
+  IL_0011:  call       ""void System.Console.Write(int)""
+  IL_0016:  ldc.i4.4
+  IL_0017:  stfld      ""int S.x""
+  IL_001c:  ldloc.0
+  IL_001d:  ldfld      ""int S.x""
+  IL_0022:  call       ""void System.Console.Write(int)""
+  IL_0027:  ret
 }
 ");
 
-            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: false, expectedOutput: @"34");
+            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: @"34");
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -719,32 +694,25 @@ static class Extensions
 
             compVerifier.VerifyIL("S.Main", @"
 {
-  // Code size       35 (0x23)
+  // Code size       29 (0x1d)
   .maxstack  3
-  .locals init (S V_0, //s
-      S* V_1) //p
-  IL_0000:  nop
-  IL_0001:  ldloca.s   V_0
-  IL_0003:  conv.u
-  IL_0004:  stloc.1
-  IL_0005:  ldloc.1
-  IL_0006:  call       ""void S.M()""
-  IL_000b:  nop
-  IL_000c:  ldloc.1
-  IL_000d:  ldc.i4.1
-  IL_000e:  call       ""void S.M(int)""
-  IL_0013:  nop
-  IL_0014:  ldloc.1
-  IL_0015:  ldobj      ""S""
-  IL_001a:  ldc.i4.1
-  IL_001b:  ldc.i4.2
-  IL_001c:  call       ""void Extensions.M(S, int, int)""
-  IL_0021:  nop
-  IL_0022:  ret
+  .locals init (S V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  conv.u
+  IL_0003:  dup
+  IL_0004:  call       ""void S.M()""
+  IL_0009:  dup
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.M(int)""
+  IL_0010:  ldobj      ""S""
+  IL_0015:  ldc.i4.1
+  IL_0016:  ldc.i4.2
+  IL_0017:  call       ""void Extensions.M(S, int, int)""
+  IL_001c:  ret
 }
 ");
 
-            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, emitPdb: false, expectedOutput: @"123");
+            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, emitPdb: true, expectedOutput: @"123");
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -802,30 +770,26 @@ static class Extensions
 
             compVerifier.VerifyIL("S.Test(ref S*)", @"
 {
-  // Code size       34 (0x22)
+  // Code size       30 (0x1e)
   .maxstack  3
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldind.i
-  IL_0003:  call       ""void S.M()""
-  IL_0008:  nop
-  IL_0009:  ldarg.0
-  IL_000a:  ldind.i
-  IL_000b:  ldc.i4.1
-  IL_000c:  call       ""void S.M(int)""
-  IL_0011:  nop
-  IL_0012:  ldarg.0
-  IL_0013:  ldind.i
-  IL_0014:  ldobj      ""S""
-  IL_0019:  ldc.i4.1
-  IL_001a:  ldc.i4.2
-  IL_001b:  call       ""void Extensions.M(S, int, int)""
-  IL_0020:  nop
-  IL_0021:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.i
+  IL_0002:  call       ""void S.M()""
+  IL_0007:  ldarg.0
+  IL_0008:  ldind.i
+  IL_0009:  ldc.i4.1
+  IL_000a:  call       ""void S.M(int)""
+  IL_000f:  ldarg.0
+  IL_0010:  ldind.i
+  IL_0011:  ldobj      ""S""
+  IL_0016:  ldc.i4.1
+  IL_0017:  ldc.i4.2
+  IL_0018:  call       ""void Extensions.M(S, int, int)""
+  IL_001d:  ret
 }
 ");
 
-            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, emitPdb: false, expectedOutput: @"123");
+            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, emitPdb: true, expectedOutput: @"123");
 
             compVerifier.VerifyIL("S.Test(ref S*)", @"
 {
@@ -869,56 +833,45 @@ unsafe struct S
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true , expectedOutput: @"34");
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: @"34");
 
             compVerifier.VerifyIL("S.Main", @"
 {
-  // Code size       58 (0x3a)
-  .maxstack  3
+  // Code size       49 (0x31)
+  .maxstack  4
   .locals init (S V_0, //s
-  S* V_1, //p
-  int& V_2,
-  int V_3)
-  IL_0000:  nop
-  IL_0001:  ldloca.s   V_0
-  IL_0003:  ldc.i4.3
-  IL_0004:  stfld      ""int S.x""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  conv.u
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.1
-  IL_000e:  ldflda     ""int S.x""
-  IL_0013:  stloc.2
-  IL_0014:  ldloc.2
-  IL_0015:  ldloc.2
-  IL_0016:  ldind.i4
-  IL_0017:  stloc.3
-  IL_0018:  ldloc.3
-  IL_0019:  ldc.i4.1
-  IL_001a:  add
-  IL_001b:  stind.i4
-  IL_001c:  ldloc.3
-  IL_001d:  call       ""void System.Console.Write(int)""
-  IL_0022:  nop
-  IL_0023:  ldloc.1
-  IL_0024:  ldflda     ""int S.x""
-  IL_0029:  stloc.2
-  IL_002a:  ldloc.2
-  IL_002b:  ldloc.2
-  IL_002c:  ldind.i4
-  IL_002d:  stloc.3
-  IL_002e:  ldloc.3
-  IL_002f:  ldc.i4.1
-  IL_0030:  add
-  IL_0031:  stind.i4
-  IL_0032:  ldloc.3
-  IL_0033:  call       ""void System.Console.Write(int)""
-  IL_0038:  nop
-  IL_0039:  ret
+                int V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.3
+  IL_0003:  stfld      ""int S.x""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  conv.u
+  IL_000b:  dup
+  IL_000c:  ldflda     ""int S.x""
+  IL_0011:  dup
+  IL_0012:  ldind.i4
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  ldc.i4.1
+  IL_0016:  add
+  IL_0017:  stind.i4
+  IL_0018:  ldloc.1
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ldflda     ""int S.x""
+  IL_0023:  dup
+  IL_0024:  ldind.i4
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.1
+  IL_0027:  ldc.i4.1
+  IL_0028:  add
+  IL_0029:  stind.i4
+  IL_002a:  ldloc.1
+  IL_002b:  call       ""void System.Console.Write(int)""
+  IL_0030:  ret
 }
 ");
 
-            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: false, expectedOutput: @"34");
+            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: @"34");
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -1000,109 +953,101 @@ unsafe struct S
             // Note that, unlike for numeric addition, the add operation is never checked.
             compVerifier.VerifyIL("S.Main", @"
 {
-  // Code size      180 (0xb4)
-  .maxstack  3
+  // Code size      170 (0xaa)
+  .maxstack  4
   .locals init (S V_0, //s
-  S* V_1, //p
-  int V_2, //i
-  uint V_3, //ui
-  long V_4, //l
-  ulong V_5) //ul
-  IL_0000:  nop
-  IL_0001:  ldloca.s   V_0
-  IL_0003:  initobj    ""S""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  conv.u
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.1
-  IL_000e:  conv.i4
-  IL_000f:  stloc.2
-  IL_0010:  ldloc.1
-  IL_0011:  conv.u4
-  IL_0012:  stloc.3
-  IL_0013:  ldloc.1
-  IL_0014:  conv.u8
-  IL_0015:  stloc.s    V_4
-  IL_0017:  ldloc.1
-  IL_0018:  conv.u8
-  IL_0019:  stloc.s    V_5
-  IL_001b:  nop
-  IL_001c:  ldloc.1
-  IL_001d:  ldloc.2
-  IL_001e:  conv.i
-  IL_001f:  sizeof     ""S""
-  IL_0025:  mul.ovf
-  IL_0026:  add
-  IL_0027:  ldobj      ""S""
-  IL_002c:  stloc.0
-  IL_002d:  ldloc.1
-  IL_002e:  ldloc.3
-  IL_002f:  conv.u8
-  IL_0030:  sizeof     ""S""
-  IL_0036:  conv.i8
-  IL_0037:  mul.ovf
-  IL_0038:  conv.i
-  IL_0039:  add
-  IL_003a:  ldobj      ""S""
-  IL_003f:  stloc.0
-  IL_0040:  ldloc.1
-  IL_0041:  ldloc.s    V_4
-  IL_0043:  sizeof     ""S""
-  IL_0049:  conv.i8
-  IL_004a:  mul.ovf
-  IL_004b:  conv.i
-  IL_004c:  add
-  IL_004d:  ldobj      ""S""
-  IL_0052:  stloc.0
-  IL_0053:  ldloc.1
-  IL_0054:  ldloc.s    V_5
-  IL_0056:  sizeof     ""S""
-  IL_005c:  conv.ovf.u8
-  IL_005d:  mul.ovf.un
-  IL_005e:  conv.u
-  IL_005f:  add
-  IL_0060:  ldobj      ""S""
-  IL_0065:  stloc.0
-  IL_0066:  nop
-  IL_0067:  nop
-  IL_0068:  ldloc.1
-  IL_0069:  ldloc.2
-  IL_006a:  conv.i
-  IL_006b:  sizeof     ""S""
-  IL_0071:  mul
-  IL_0072:  add
-  IL_0073:  ldobj      ""S""
-  IL_0078:  stloc.0
-  IL_0079:  ldloc.1
-  IL_007a:  ldloc.3
-  IL_007b:  conv.u8
-  IL_007c:  sizeof     ""S""
-  IL_0082:  conv.i8
-  IL_0083:  mul
-  IL_0084:  conv.i
-  IL_0085:  add
-  IL_0086:  ldobj      ""S""
-  IL_008b:  stloc.0
-  IL_008c:  ldloc.1
-  IL_008d:  ldloc.s    V_4
-  IL_008f:  sizeof     ""S""
-  IL_0095:  conv.i8
-  IL_0096:  mul
-  IL_0097:  conv.i
-  IL_0098:  add
-  IL_0099:  ldobj      ""S""
-  IL_009e:  stloc.0
-  IL_009f:  ldloc.1
-  IL_00a0:  ldloc.s    V_5
-  IL_00a2:  sizeof     ""S""
-  IL_00a8:  conv.i8
-  IL_00a9:  mul
-  IL_00aa:  conv.u
-  IL_00ab:  add
-  IL_00ac:  ldobj      ""S""
-  IL_00b1:  stloc.0
-  IL_00b2:  nop
-  IL_00b3:  ret
+                int V_1, //i
+                uint V_2, //ui
+                long V_3, //l
+                ulong V_4) //ul
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  conv.u
+  IL_000b:  dup
+  IL_000c:  conv.i4
+  IL_000d:  stloc.1
+  IL_000e:  dup
+  IL_000f:  conv.u4
+  IL_0010:  stloc.2
+  IL_0011:  dup
+  IL_0012:  conv.u8
+  IL_0013:  stloc.3
+  IL_0014:  dup
+  IL_0015:  conv.u8
+  IL_0016:  stloc.s    V_4
+  IL_0018:  dup
+  IL_0019:  ldloc.1
+  IL_001a:  conv.i
+  IL_001b:  sizeof     ""S""
+  IL_0021:  mul.ovf
+  IL_0022:  add
+  IL_0023:  ldobj      ""S""
+  IL_0028:  stloc.0
+  IL_0029:  dup
+  IL_002a:  ldloc.2
+  IL_002b:  conv.u8
+  IL_002c:  sizeof     ""S""
+  IL_0032:  conv.i8
+  IL_0033:  mul.ovf
+  IL_0034:  conv.i
+  IL_0035:  add
+  IL_0036:  ldobj      ""S""
+  IL_003b:  stloc.0
+  IL_003c:  dup
+  IL_003d:  ldloc.3
+  IL_003e:  sizeof     ""S""
+  IL_0044:  conv.i8
+  IL_0045:  mul.ovf
+  IL_0046:  conv.i
+  IL_0047:  add
+  IL_0048:  ldobj      ""S""
+  IL_004d:  stloc.0
+  IL_004e:  dup
+  IL_004f:  ldloc.s    V_4
+  IL_0051:  sizeof     ""S""
+  IL_0057:  conv.ovf.u8
+  IL_0058:  mul.ovf.un
+  IL_0059:  conv.u
+  IL_005a:  add
+  IL_005b:  ldobj      ""S""
+  IL_0060:  stloc.0
+  IL_0061:  dup
+  IL_0062:  ldloc.1
+  IL_0063:  conv.i
+  IL_0064:  sizeof     ""S""
+  IL_006a:  mul
+  IL_006b:  add
+  IL_006c:  ldobj      ""S""
+  IL_0071:  stloc.0
+  IL_0072:  dup
+  IL_0073:  ldloc.2
+  IL_0074:  conv.u8
+  IL_0075:  sizeof     ""S""
+  IL_007b:  conv.i8
+  IL_007c:  mul
+  IL_007d:  conv.i
+  IL_007e:  add
+  IL_007f:  ldobj      ""S""
+  IL_0084:  stloc.0
+  IL_0085:  dup
+  IL_0086:  ldloc.3
+  IL_0087:  sizeof     ""S""
+  IL_008d:  conv.i8
+  IL_008e:  mul
+  IL_008f:  conv.i
+  IL_0090:  add
+  IL_0091:  ldobj      ""S""
+  IL_0096:  stloc.0
+  IL_0097:  ldloc.s    V_4
+  IL_0099:  sizeof     ""S""
+  IL_009f:  conv.i8
+  IL_00a0:  mul
+  IL_00a1:  conv.u
+  IL_00a2:  add
+  IL_00a3:  ldobj      ""S""
+  IL_00a8:  stloc.0
+  IL_00a9:  ret
 }
 ");
         }
@@ -1126,19 +1071,18 @@ unsafe struct S
 
             compVerifier.VerifyIL("S.Main", @"
 {
-  // Code size       10 (0xa)
+  // Code size        9 (0x9)
   .maxstack  2
   .locals init (int* V_0) //p
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  conv.u
-  IL_0003:  stloc.0
-  IL_0004:  ldloc.0
-  IL_0005:  ldc.i4.4
-  IL_0006:  add
-  IL_0007:  ldc.i4.2
-  IL_0008:  stind.i4
-  IL_0009:  ret
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.4
+  IL_0005:  add
+  IL_0006:  ldc.i4.2
+  IL_0007:  stind.i4
+  IL_0008:  ret
 }
 ");
         }
@@ -1218,21 +1162,16 @@ unsafe class C
             // NOTE: no pointer arithmetic - just dereference p.
             var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: "1").VerifyIL("C.Main", @"
 {
-  // Code size       16 (0x10)
+  // Code size       12 (0xc)
   .maxstack  1
-  .locals init (int V_0, //x
-    int* V_1) //p
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  stloc.0
-  IL_0003:  ldloca.s   V_0
-  IL_0005:  conv.u
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
-  IL_0008:  ldind.i4
-  IL_0009:  call       ""void System.Console.WriteLine(int)""
-  IL_000e:  nop
-  IL_000f:  ret
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  conv.u
+  IL_0005:  ldind.i4
+  IL_0006:  call       ""void System.Console.WriteLine(int)""
+  IL_000b:  ret
 }
 ");
         }
@@ -1266,30 +1205,23 @@ unsafe class C
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       36 (0x24)
-  .maxstack  2
-  .locals init (C V_0, //c
-      pinned int& V_1) //p
-  IL_0000:  nop
-  IL_0001:  newobj     ""C..ctor()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldflda     ""int C.x""
-  IL_000d:  stloc.1
-  IL_000e:  nop
-  IL_000f:  ldloc.1
-  IL_0010:  conv.i
-  IL_0011:  ldc.i4.1
-  IL_0012:  stind.i4
-  IL_0013:  nop
-  IL_0014:  ldc.i4.0
-  IL_0015:  conv.u
-  IL_0016:  stloc.1
-  IL_0017:  ldloc.0
-  IL_0018:  ldfld      ""int C.x""
-  IL_001d:  call       ""void System.Console.WriteLine(int)""
-  IL_0022:  nop
-  IL_0023:  ret
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (pinned int& V_0) //p
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""int C.x""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  conv.i
+  IL_000e:  ldc.i4.1
+  IL_000f:  stind.i4
+  IL_0010:  ldc.i4.0
+  IL_0011:  conv.u
+  IL_0012:  stloc.0
+  IL_0013:  ldfld      ""int C.x""
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  ret
 }
 ");
         }
@@ -1322,45 +1254,37 @@ unsafe class C
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       62 (0x3e)
-  .maxstack  2
-  .locals init (C V_0, //c
-      pinned int& V_1, //p
-      pinned int& V_2) //q
-  IL_0000:  nop
-  IL_0001:  newobj     ""C..ctor()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldflda     ""int C.x""
-  IL_000d:  stloc.1
-  IL_000e:  ldloc.0
-  IL_000f:  ldflda     ""int C.y""
-  IL_0014:  stloc.2
-  IL_0015:  nop
-  IL_0016:  ldloc.1
-  IL_0017:  conv.i
-  IL_0018:  ldc.i4.1
-  IL_0019:  stind.i4
-  IL_001a:  ldloc.2
-  IL_001b:  conv.i
-  IL_001c:  ldc.i4.2
-  IL_001d:  stind.i4
-  IL_001e:  nop
-  IL_001f:  ldc.i4.0
-  IL_0020:  conv.u
-  IL_0021:  stloc.1
-  IL_0022:  ldc.i4.0
-  IL_0023:  conv.u
-  IL_0024:  stloc.2
-  IL_0025:  ldloc.0
-  IL_0026:  ldfld      ""int C.x""
-  IL_002b:  call       ""void System.Console.Write(int)""
-  IL_0030:  nop
-  IL_0031:  ldloc.0
-  IL_0032:  ldfld      ""int C.y""
-  IL_0037:  call       ""void System.Console.Write(int)""
-  IL_003c:  nop
-  IL_003d:  ret
+  // Code size       55 (0x37)
+  .maxstack  3
+  .locals init (pinned int& V_0, //p
+                pinned int& V_1) //q
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""int C.x""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldflda     ""int C.y""
+  IL_0012:  stloc.1
+  IL_0013:  ldloc.0
+  IL_0014:  conv.i
+  IL_0015:  ldc.i4.1
+  IL_0016:  stind.i4
+  IL_0017:  ldloc.1
+  IL_0018:  conv.i
+  IL_0019:  ldc.i4.2
+  IL_001a:  stind.i4
+  IL_001b:  ldc.i4.0
+  IL_001c:  conv.u
+  IL_001d:  stloc.0
+  IL_001e:  ldc.i4.0
+  IL_001f:  conv.u
+  IL_0020:  stloc.1
+  IL_0021:  dup
+  IL_0022:  ldfld      ""int C.x""
+  IL_0027:  call       ""void System.Console.Write(int)""
+  IL_002c:  ldfld      ""int C.y""
+  IL_0031:  call       ""void System.Console.Write(int)""
+  IL_0036:  ret
 }
 ");
         }
@@ -1523,22 +1447,19 @@ class C
 
             compVerifier.VerifyIL("C.M", @"
 {
-  // Code size       14 (0xe)
+  // Code size       11 (0xb)
   .maxstack  2
   .locals init (pinned char& V_0) //p
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  stloc.0
-  IL_0003:  nop
-  IL_0004:  ldloc.0
-  IL_0005:  conv.i
-  IL_0006:  ldc.i4.s   97
-  IL_0008:  stind.i2
-  IL_0009:  nop
-  IL_000a:  ldc.i4.0
-  IL_000b:  conv.u
-  IL_000c:  stloc.0
-  IL_000d:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  conv.i
+  IL_0004:  ldc.i4.s   97
+  IL_0006:  stind.i2
+  IL_0007:  ldc.i4.0
+  IL_0008:  conv.u
+  IL_0009:  stloc.0
+  IL_000a:  ret
 }
 ");
         }
@@ -1782,53 +1703,45 @@ unsafe class C
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       73 (0x49)
-  .maxstack  2
-  .locals init (C V_0, //c
-  pinned int& V_1, //p
-  int[] V_2)
-  IL_0000:  nop
-  IL_0001:  newobj     ""C..ctor()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldfld      ""int[] C.a""
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldelem.i4
-  IL_000f:  call       ""void System.Console.Write(int)""
-  IL_0014:  nop
-  IL_0015:  ldloc.0
-  IL_0016:  ldfld      ""int[] C.a""
-  IL_001b:  dup
-  IL_001c:  stloc.2
-  IL_001d:  brfalse.s  IL_0024
-  IL_001f:  ldloc.2
-  IL_0020:  ldlen
-  IL_0021:  conv.i4
-  IL_0022:  brtrue.s   IL_0029
-  IL_0024:  ldc.i4.0
-  IL_0025:  conv.u
-  IL_0026:  stloc.1
-  IL_0027:  br.s       IL_0031
-  IL_0029:  ldloc.2
-  IL_002a:  ldc.i4.0
-  IL_002b:  ldelema    ""int""
-  IL_0030:  stloc.1
-  IL_0031:  nop
-  IL_0032:  ldloc.1
-  IL_0033:  conv.i
-  IL_0034:  ldc.i4.1
-  IL_0035:  stind.i4
-  IL_0036:  nop
-  IL_0037:  ldc.i4.0
-  IL_0038:  conv.u
-  IL_0039:  stloc.1
-  IL_003a:  ldloc.0
-  IL_003b:  ldfld      ""int[] C.a""
-  IL_0040:  ldc.i4.0
-  IL_0041:  ldelem.i4
-  IL_0042:  call       ""void System.Console.Write(int)""
-  IL_0047:  nop
-  IL_0048:  ret
+  // Code size       66 (0x42)
+  .maxstack  3
+  .locals init (pinned int& V_0, //p
+                int[] V_1)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""int[] C.a""
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldelem.i4
+  IL_000d:  call       ""void System.Console.Write(int)""
+  IL_0012:  dup
+  IL_0013:  ldfld      ""int[] C.a""
+  IL_0018:  dup
+  IL_0019:  stloc.1
+  IL_001a:  brfalse.s  IL_0021
+  IL_001c:  ldloc.1
+  IL_001d:  ldlen
+  IL_001e:  conv.i4
+  IL_001f:  brtrue.s   IL_0026
+  IL_0021:  ldc.i4.0
+  IL_0022:  conv.u
+  IL_0023:  stloc.0
+  IL_0024:  br.s       IL_002e
+  IL_0026:  ldloc.1
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldelema    ""int""
+  IL_002d:  stloc.0
+  IL_002e:  ldloc.0
+  IL_002f:  conv.i
+  IL_0030:  ldc.i4.1
+  IL_0031:  stind.i4
+  IL_0032:  ldc.i4.0
+  IL_0033:  conv.u
+  IL_0034:  stloc.0
+  IL_0035:  ldfld      ""int[] C.a""
+  IL_003a:  ldc.i4.0
+  IL_003b:  ldelem.i4
+  IL_003c:  call       ""void System.Console.Write(int)""
+  IL_0041:  ret
 }
 ");
         }
@@ -3960,34 +3873,29 @@ unsafe class C
 
             var expectedIL = @"
 {
-  // Code size       36 (0x24)
+  // Code size       31 (0x1f)
   .maxstack  2
   .locals init (char V_0, //ch
-      char* V_1) //p
-  IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ldc.i4.s   97
-  IL_0004:  stloc.0
-  IL_0005:  ldloca.s   V_0
-  IL_0007:  conv.u
-  IL_0008:  stloc.1
-  IL_0009:  ldloc.1
-  IL_000a:  ldc.i4.0
-  IL_000b:  conv.u
-  IL_000c:  ceq
-  IL_000e:  call       ""void System.Console.WriteLine(bool)""
-  IL_0013:  nop
-  IL_0014:  ldc.i4.0
-  IL_0015:  conv.u
-  IL_0016:  stloc.1
-  IL_0017:  ldloc.1
-  IL_0018:  ldc.i4.0
-  IL_0019:  conv.u
-  IL_001a:  ceq
-  IL_001c:  call       ""void System.Console.WriteLine(bool)""
-  IL_0021:  nop
-  IL_0022:  nop
-  IL_0023:  ret
+                char* V_1) //p
+  IL_0000:  ldc.i4.s   97
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  conv.u
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  ldc.i4.0
+  IL_0009:  conv.u
+  IL_000a:  ceq
+  IL_000c:  call       ""void System.Console.WriteLine(bool)""
+  IL_0011:  ldc.i4.0
+  IL_0012:  conv.u
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  ldc.i4.0
+  IL_0016:  conv.u
+  IL_0017:  ceq
+  IL_0019:  call       ""void System.Console.WriteLine(bool)""
+  IL_001e:  ret
 }
 ";
             var expectedOutput = @"False
@@ -4021,32 +3929,25 @@ unsafe class C
 ";
             var expectedIL = @"
 {
-  // Code size       27 (0x1b)
+  // Code size       19 (0x13)
   .maxstack  1
   .locals init (char V_0, //ch
-  char* V_1, //c1
-  void* V_2, //v1
-  void* V_3, //v2
-  char* V_4) //c2
-  IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ldc.i4.s   97
-  IL_0004:  stloc.0
-  IL_0005:  ldloca.s   V_0
-  IL_0007:  conv.u
-  IL_0008:  stloc.1
-  IL_0009:  ldloc.1
-  IL_000a:  stloc.2
-  IL_000b:  ldloc.2
-  IL_000c:  stloc.3
-  IL_000d:  ldloc.3
-  IL_000e:  stloc.s    V_4
-  IL_0010:  ldloc.s    V_4
-  IL_0012:  ldind.u2
-  IL_0013:  call       ""void System.Console.WriteLine(char)""
-  IL_0018:  nop
-  IL_0019:  nop
-  IL_001a:  ret
+                void* V_1, //v1
+                void* V_2, //v2
+                char* V_3) //c2
+  IL_0000:  ldc.i4.s   97
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  conv.u
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  stloc.2
+  IL_0009:  ldloc.2
+  IL_000a:  stloc.3
+  IL_000b:  ldloc.3
+  IL_000c:  ldind.u2
+  IL_000d:  call       ""void System.Console.WriteLine(char)""
+  IL_0012:  ret
 }
 ";
             var expectedOutput = @"a";
@@ -4090,60 +3991,57 @@ unsafe class C
 ";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitPdb: true).VerifyIL("C.M", @"
 {
-  // Code size       68 (0x44)
+  // Code size       65 (0x41)
   .maxstack  1
-  IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ldarg.1
-  IL_0003:  conv.i1
-  IL_0004:  starg.s    V_3
-  IL_0006:  ldarg.1
-  IL_0007:  conv.u1
-  IL_0008:  starg.s    V_4
-  IL_000a:  ldarg.1
-  IL_000b:  conv.i2
-  IL_000c:  starg.s    V_5
-  IL_000e:  ldarg.1
-  IL_000f:  conv.u2
-  IL_0010:  starg.s    V_6
-  IL_0012:  ldarg.1
-  IL_0013:  conv.i4
-  IL_0014:  starg.s    V_7
-  IL_0016:  ldarg.1
-  IL_0017:  conv.u4
-  IL_0018:  starg.s    V_8
-  IL_001a:  ldarg.1
-  IL_001b:  conv.u8
-  IL_001c:  starg.s    V_9
-  IL_001e:  ldarg.1
-  IL_001f:  conv.u8
-  IL_0020:  starg.s    V_10
-  IL_0022:  ldarg.2
-  IL_0023:  conv.i1
-  IL_0024:  starg.s    V_3
-  IL_0026:  ldarg.2
-  IL_0027:  conv.u1
-  IL_0028:  starg.s    V_4
-  IL_002a:  ldarg.2
-  IL_002b:  conv.i2
-  IL_002c:  starg.s    V_5
-  IL_002e:  ldarg.2
-  IL_002f:  conv.u2
-  IL_0030:  starg.s    V_6
-  IL_0032:  ldarg.2
-  IL_0033:  conv.i4
-  IL_0034:  starg.s    V_7
-  IL_0036:  ldarg.2
-  IL_0037:  conv.u4
-  IL_0038:  starg.s    V_8
-  IL_003a:  ldarg.2
-  IL_003b:  conv.u8
-  IL_003c:  starg.s    V_9
-  IL_003e:  ldarg.2
-  IL_003f:  conv.u8
-  IL_0040:  starg.s    V_10
-  IL_0042:  nop
-  IL_0043:  ret
+  IL_0000:  ldarg.1
+  IL_0001:  conv.i1
+  IL_0002:  starg.s    V_3
+  IL_0004:  ldarg.1
+  IL_0005:  conv.u1
+  IL_0006:  starg.s    V_4
+  IL_0008:  ldarg.1
+  IL_0009:  conv.i2
+  IL_000a:  starg.s    V_5
+  IL_000c:  ldarg.1
+  IL_000d:  conv.u2
+  IL_000e:  starg.s    V_6
+  IL_0010:  ldarg.1
+  IL_0011:  conv.i4
+  IL_0012:  starg.s    V_7
+  IL_0014:  ldarg.1
+  IL_0015:  conv.u4
+  IL_0016:  starg.s    V_8
+  IL_0018:  ldarg.1
+  IL_0019:  conv.u8
+  IL_001a:  starg.s    V_9
+  IL_001c:  ldarg.1
+  IL_001d:  conv.u8
+  IL_001e:  starg.s    V_10
+  IL_0020:  ldarg.2
+  IL_0021:  conv.i1
+  IL_0022:  starg.s    V_3
+  IL_0024:  ldarg.2
+  IL_0025:  conv.u1
+  IL_0026:  starg.s    V_4
+  IL_0028:  ldarg.2
+  IL_0029:  conv.i2
+  IL_002a:  starg.s    V_5
+  IL_002c:  ldarg.2
+  IL_002d:  conv.u2
+  IL_002e:  starg.s    V_6
+  IL_0030:  ldarg.2
+  IL_0031:  conv.i4
+  IL_0032:  starg.s    V_7
+  IL_0034:  ldarg.2
+  IL_0035:  conv.u4
+  IL_0036:  starg.s    V_8
+  IL_0038:  ldarg.2
+  IL_0039:  conv.u8
+  IL_003a:  starg.s    V_9
+  IL_003c:  ldarg.2
+  IL_003d:  conv.u8
+  IL_003e:  starg.s    V_10
+  IL_0040:  ret
 }
 ");
         }
@@ -4183,60 +4081,57 @@ unsafe class C
 ";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitPdb: true).VerifyIL("C.M", @"
 {
-  // Code size       68 (0x44)
+  // Code size       65 (0x41)
   .maxstack  1
-  IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ldarg.1
-  IL_0003:  conv.ovf.i1.un
-  IL_0004:  starg.s    V_3
-  IL_0006:  ldarg.1
-  IL_0007:  conv.ovf.u1.un
-  IL_0008:  starg.s    V_4
-  IL_000a:  ldarg.1
-  IL_000b:  conv.ovf.i2.un
-  IL_000c:  starg.s    V_5
-  IL_000e:  ldarg.1
-  IL_000f:  conv.ovf.u2.un
-  IL_0010:  starg.s    V_6
-  IL_0012:  ldarg.1
-  IL_0013:  conv.ovf.i4.un
-  IL_0014:  starg.s    V_7
-  IL_0016:  ldarg.1
-  IL_0017:  conv.ovf.u4.un
-  IL_0018:  starg.s    V_8
-  IL_001a:  ldarg.1
-  IL_001b:  conv.ovf.i8.un
-  IL_001c:  starg.s    V_9
-  IL_001e:  ldarg.1
-  IL_001f:  conv.u8
-  IL_0020:  starg.s    V_10
-  IL_0022:  ldarg.2
-  IL_0023:  conv.ovf.i1.un
-  IL_0024:  starg.s    V_3
-  IL_0026:  ldarg.2
-  IL_0027:  conv.ovf.u1.un
-  IL_0028:  starg.s    V_4
-  IL_002a:  ldarg.2
-  IL_002b:  conv.ovf.i2.un
-  IL_002c:  starg.s    V_5
-  IL_002e:  ldarg.2
-  IL_002f:  conv.ovf.u2.un
-  IL_0030:  starg.s    V_6
-  IL_0032:  ldarg.2
-  IL_0033:  conv.ovf.i4.un
-  IL_0034:  starg.s    V_7
-  IL_0036:  ldarg.2
-  IL_0037:  conv.ovf.u4.un
-  IL_0038:  starg.s    V_8
-  IL_003a:  ldarg.2
-  IL_003b:  conv.ovf.i8.un
-  IL_003c:  starg.s    V_9
-  IL_003e:  ldarg.2
-  IL_003f:  conv.u8
-  IL_0040:  starg.s    V_10
-  IL_0042:  nop
-  IL_0043:  ret
+  IL_0000:  ldarg.1
+  IL_0001:  conv.ovf.i1.un
+  IL_0002:  starg.s    V_3
+  IL_0004:  ldarg.1
+  IL_0005:  conv.ovf.u1.un
+  IL_0006:  starg.s    V_4
+  IL_0008:  ldarg.1
+  IL_0009:  conv.ovf.i2.un
+  IL_000a:  starg.s    V_5
+  IL_000c:  ldarg.1
+  IL_000d:  conv.ovf.u2.un
+  IL_000e:  starg.s    V_6
+  IL_0010:  ldarg.1
+  IL_0011:  conv.ovf.i4.un
+  IL_0012:  starg.s    V_7
+  IL_0014:  ldarg.1
+  IL_0015:  conv.ovf.u4.un
+  IL_0016:  starg.s    V_8
+  IL_0018:  ldarg.1
+  IL_0019:  conv.ovf.i8.un
+  IL_001a:  starg.s    V_9
+  IL_001c:  ldarg.1
+  IL_001d:  conv.u8
+  IL_001e:  starg.s    V_10
+  IL_0020:  ldarg.2
+  IL_0021:  conv.ovf.i1.un
+  IL_0022:  starg.s    V_3
+  IL_0024:  ldarg.2
+  IL_0025:  conv.ovf.u1.un
+  IL_0026:  starg.s    V_4
+  IL_0028:  ldarg.2
+  IL_0029:  conv.ovf.i2.un
+  IL_002a:  starg.s    V_5
+  IL_002c:  ldarg.2
+  IL_002d:  conv.ovf.u2.un
+  IL_002e:  starg.s    V_6
+  IL_0030:  ldarg.2
+  IL_0031:  conv.ovf.i4.un
+  IL_0032:  starg.s    V_7
+  IL_0034:  ldarg.2
+  IL_0035:  conv.ovf.u4.un
+  IL_0036:  starg.s    V_8
+  IL_0038:  ldarg.2
+  IL_0039:  conv.ovf.i8.un
+  IL_003a:  starg.s    V_9
+  IL_003c:  ldarg.2
+  IL_003d:  conv.u8
+  IL_003e:  starg.s    V_10
+  IL_0040:  ret
 }
 ");
         }
@@ -4276,60 +4171,57 @@ unsafe class C
 ";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitPdb: true).VerifyIL("C.M", @"
 {
-  // Code size       82 (0x52)
+  // Code size       79 (0x4f)
   .maxstack  1
-  IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ldarg.3
-  IL_0003:  conv.i
-  IL_0004:  starg.s    V_1
-  IL_0006:  ldarg.s    V_4
-  IL_0008:  conv.u
-  IL_0009:  starg.s    V_1
-  IL_000b:  ldarg.s    V_5
-  IL_000d:  conv.i
-  IL_000e:  starg.s    V_1
-  IL_0010:  ldarg.s    V_6
-  IL_0012:  conv.u
-  IL_0013:  starg.s    V_1
-  IL_0015:  ldarg.s    V_7
-  IL_0017:  conv.i
-  IL_0018:  starg.s    V_1
-  IL_001a:  ldarg.s    V_8
-  IL_001c:  conv.u
-  IL_001d:  starg.s    V_1
-  IL_001f:  ldarg.s    V_9
-  IL_0021:  conv.u
-  IL_0022:  starg.s    V_1
-  IL_0024:  ldarg.s    V_10
-  IL_0026:  conv.u
-  IL_0027:  starg.s    V_1
-  IL_0029:  ldarg.3
-  IL_002a:  conv.i
-  IL_002b:  starg.s    V_2
-  IL_002d:  ldarg.s    V_4
-  IL_002f:  conv.u
-  IL_0030:  starg.s    V_2
-  IL_0032:  ldarg.s    V_5
-  IL_0034:  conv.i
-  IL_0035:  starg.s    V_2
-  IL_0037:  ldarg.s    V_6
-  IL_0039:  conv.u
-  IL_003a:  starg.s    V_2
-  IL_003c:  ldarg.s    V_7
-  IL_003e:  conv.i
-  IL_003f:  starg.s    V_2
-  IL_0041:  ldarg.s    V_8
-  IL_0043:  conv.u
-  IL_0044:  starg.s    V_2
-  IL_0046:  ldarg.s    V_9
-  IL_0048:  conv.u
-  IL_0049:  starg.s    V_2
-  IL_004b:  ldarg.s    V_10
-  IL_004d:  conv.u
-  IL_004e:  starg.s    V_2
-  IL_0050:  nop
-  IL_0051:  ret
+  IL_0000:  ldarg.3
+  IL_0001:  conv.i
+  IL_0002:  starg.s    V_1
+  IL_0004:  ldarg.s    V_4
+  IL_0006:  conv.u
+  IL_0007:  starg.s    V_1
+  IL_0009:  ldarg.s    V_5
+  IL_000b:  conv.i
+  IL_000c:  starg.s    V_1
+  IL_000e:  ldarg.s    V_6
+  IL_0010:  conv.u
+  IL_0011:  starg.s    V_1
+  IL_0013:  ldarg.s    V_7
+  IL_0015:  conv.i
+  IL_0016:  starg.s    V_1
+  IL_0018:  ldarg.s    V_8
+  IL_001a:  conv.u
+  IL_001b:  starg.s    V_1
+  IL_001d:  ldarg.s    V_9
+  IL_001f:  conv.u
+  IL_0020:  starg.s    V_1
+  IL_0022:  ldarg.s    V_10
+  IL_0024:  conv.u
+  IL_0025:  starg.s    V_1
+  IL_0027:  ldarg.3
+  IL_0028:  conv.i
+  IL_0029:  starg.s    V_2
+  IL_002b:  ldarg.s    V_4
+  IL_002d:  conv.u
+  IL_002e:  starg.s    V_2
+  IL_0030:  ldarg.s    V_5
+  IL_0032:  conv.i
+  IL_0033:  starg.s    V_2
+  IL_0035:  ldarg.s    V_6
+  IL_0037:  conv.u
+  IL_0038:  starg.s    V_2
+  IL_003a:  ldarg.s    V_7
+  IL_003c:  conv.i
+  IL_003d:  starg.s    V_2
+  IL_003f:  ldarg.s    V_8
+  IL_0041:  conv.u
+  IL_0042:  starg.s    V_2
+  IL_0044:  ldarg.s    V_9
+  IL_0046:  conv.u
+  IL_0047:  starg.s    V_2
+  IL_0049:  ldarg.s    V_10
+  IL_004b:  conv.u
+  IL_004c:  starg.s    V_2
+  IL_004e:  ret
 }
 ");
         }
@@ -4369,60 +4261,57 @@ unsafe class C
 ";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitPdb: true).VerifyIL("C.M", @"
 {
-  // Code size       82 (0x52)
+  // Code size       79 (0x4f)
   .maxstack  1
-  IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ldarg.3
-  IL_0003:  conv.ovf.u
-  IL_0004:  starg.s    V_1
-  IL_0006:  ldarg.s    V_4
-  IL_0008:  conv.u
-  IL_0009:  starg.s    V_1
-  IL_000b:  ldarg.s    V_5
-  IL_000d:  conv.ovf.u
-  IL_000e:  starg.s    V_1
-  IL_0010:  ldarg.s    V_6
-  IL_0012:  conv.u
-  IL_0013:  starg.s    V_1
-  IL_0015:  ldarg.s    V_7
-  IL_0017:  conv.ovf.u
-  IL_0018:  starg.s    V_1
-  IL_001a:  ldarg.s    V_8
-  IL_001c:  conv.u
-  IL_001d:  starg.s    V_1
-  IL_001f:  ldarg.s    V_9
-  IL_0021:  conv.ovf.u
-  IL_0022:  starg.s    V_1
-  IL_0024:  ldarg.s    V_10
-  IL_0026:  conv.ovf.u.un
-  IL_0027:  starg.s    V_1
-  IL_0029:  ldarg.3
-  IL_002a:  conv.ovf.u
-  IL_002b:  starg.s    V_2
-  IL_002d:  ldarg.s    V_4
-  IL_002f:  conv.u
-  IL_0030:  starg.s    V_2
-  IL_0032:  ldarg.s    V_5
-  IL_0034:  conv.ovf.u
-  IL_0035:  starg.s    V_2
-  IL_0037:  ldarg.s    V_6
-  IL_0039:  conv.u
-  IL_003a:  starg.s    V_2
-  IL_003c:  ldarg.s    V_7
-  IL_003e:  conv.ovf.u
-  IL_003f:  starg.s    V_2
-  IL_0041:  ldarg.s    V_8
-  IL_0043:  conv.u
-  IL_0044:  starg.s    V_2
-  IL_0046:  ldarg.s    V_9
-  IL_0048:  conv.ovf.u
-  IL_0049:  starg.s    V_2
-  IL_004b:  ldarg.s    V_10
-  IL_004d:  conv.ovf.u.un
-  IL_004e:  starg.s    V_2
-  IL_0050:  nop
-  IL_0051:  ret
+  IL_0000:  ldarg.3
+  IL_0001:  conv.ovf.u
+  IL_0002:  starg.s    V_1
+  IL_0004:  ldarg.s    V_4
+  IL_0006:  conv.u
+  IL_0007:  starg.s    V_1
+  IL_0009:  ldarg.s    V_5
+  IL_000b:  conv.ovf.u
+  IL_000c:  starg.s    V_1
+  IL_000e:  ldarg.s    V_6
+  IL_0010:  conv.u
+  IL_0011:  starg.s    V_1
+  IL_0013:  ldarg.s    V_7
+  IL_0015:  conv.ovf.u
+  IL_0016:  starg.s    V_1
+  IL_0018:  ldarg.s    V_8
+  IL_001a:  conv.u
+  IL_001b:  starg.s    V_1
+  IL_001d:  ldarg.s    V_9
+  IL_001f:  conv.ovf.u
+  IL_0020:  starg.s    V_1
+  IL_0022:  ldarg.s    V_10
+  IL_0024:  conv.ovf.u.un
+  IL_0025:  starg.s    V_1
+  IL_0027:  ldarg.3
+  IL_0028:  conv.ovf.u
+  IL_0029:  starg.s    V_2
+  IL_002b:  ldarg.s    V_4
+  IL_002d:  conv.u
+  IL_002e:  starg.s    V_2
+  IL_0030:  ldarg.s    V_5
+  IL_0032:  conv.ovf.u
+  IL_0033:  starg.s    V_2
+  IL_0035:  ldarg.s    V_6
+  IL_0037:  conv.u
+  IL_0038:  starg.s    V_2
+  IL_003a:  ldarg.s    V_7
+  IL_003c:  conv.ovf.u
+  IL_003d:  starg.s    V_2
+  IL_003f:  ldarg.s    V_8
+  IL_0041:  conv.u
+  IL_0042:  starg.s    V_2
+  IL_0044:  ldarg.s    V_9
+  IL_0046:  conv.ovf.u
+  IL_0047:  starg.s    V_2
+  IL_0049:  ldarg.s    V_10
+  IL_004b:  conv.ovf.u.un
+  IL_004c:  starg.s    V_2
+  IL_004e:  ret
 }
 ");
         }
@@ -4482,36 +4371,33 @@ unsafe class Implicit
 ";
             var expectedIL = @"
 {
-  // Code size       70 (0x46)
+  // Code size       67 (0x43)
   .maxstack  1
-  IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ldarg.1
-  IL_0003:  call       ""Explicit Explicit.op_Explicit(void*)""
-  IL_0008:  starg.s    V_3
-  IL_000a:  ldarg.2
-  IL_000b:  call       ""Explicit Explicit.op_Explicit(void*)""
-  IL_0010:  starg.s    V_3
-  IL_0012:  ldarg.1
-  IL_0013:  call       ""Implicit Implicit.op_Implicit(void*)""
-  IL_0018:  starg.s    V_4
-  IL_001a:  ldarg.2
-  IL_001b:  call       ""Implicit Implicit.op_Implicit(void*)""
-  IL_0020:  starg.s    V_4
-  IL_0022:  ldarg.3
-  IL_0023:  call       ""int* Explicit.op_Explicit(Explicit)""
-  IL_0028:  starg.s    V_1
-  IL_002a:  ldarg.3
-  IL_002b:  call       ""int* Explicit.op_Explicit(Explicit)""
-  IL_0030:  starg.s    V_2
-  IL_0032:  ldarg.s    V_4
-  IL_0034:  call       ""int* Implicit.op_Implicit(Implicit)""
-  IL_0039:  starg.s    V_1
-  IL_003b:  ldarg.s    V_4
-  IL_003d:  call       ""int* Implicit.op_Implicit(Implicit)""
-  IL_0042:  starg.s    V_2
-  IL_0044:  nop
-  IL_0045:  ret
+  IL_0000:  ldarg.1
+  IL_0001:  call       ""Explicit Explicit.op_Explicit(void*)""
+  IL_0006:  starg.s    V_3
+  IL_0008:  ldarg.2
+  IL_0009:  call       ""Explicit Explicit.op_Explicit(void*)""
+  IL_000e:  starg.s    V_3
+  IL_0010:  ldarg.1
+  IL_0011:  call       ""Implicit Implicit.op_Implicit(void*)""
+  IL_0016:  starg.s    V_4
+  IL_0018:  ldarg.2
+  IL_0019:  call       ""Implicit Implicit.op_Implicit(void*)""
+  IL_001e:  starg.s    V_4
+  IL_0020:  ldarg.3
+  IL_0021:  call       ""int* Explicit.op_Explicit(Explicit)""
+  IL_0026:  starg.s    V_1
+  IL_0028:  ldarg.3
+  IL_0029:  call       ""int* Explicit.op_Explicit(Explicit)""
+  IL_002e:  starg.s    V_2
+  IL_0030:  ldarg.s    V_4
+  IL_0032:  call       ""int* Implicit.op_Implicit(Implicit)""
+  IL_0037:  starg.s    V_1
+  IL_0039:  ldarg.s    V_4
+  IL_003b:  call       ""int* Implicit.op_Implicit(Implicit)""
+  IL_0040:  starg.s    V_2
+  IL_0042:  ret
 }
 ";
             CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseDll, emitPdb: true).VerifyIL("C.M", expectedIL);
@@ -4548,36 +4434,33 @@ unsafe class C
             // Nothing special here - just more UDCs.
             var expectedIL = @"
 {
-  // Code size       70 (0x46)
+  // Code size       67 (0x43)
   .maxstack  1
-  IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ldarg.1
-  IL_0003:  call       ""System.IntPtr System.IntPtr.op_Explicit(void*)""
-  IL_0008:  starg.s    V_3
-  IL_000a:  ldarg.2
-  IL_000b:  call       ""System.IntPtr System.IntPtr.op_Explicit(void*)""
-  IL_0010:  starg.s    V_3
-  IL_0012:  ldarg.1
-  IL_0013:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(void*)""
-  IL_0018:  starg.s    V_4
-  IL_001a:  ldarg.2
-  IL_001b:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(void*)""
-  IL_0020:  starg.s    V_4
-  IL_0022:  ldarg.3
-  IL_0023:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
-  IL_0028:  starg.s    V_1
-  IL_002a:  ldarg.3
-  IL_002b:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
-  IL_0030:  starg.s    V_2
-  IL_0032:  ldarg.s    V_4
-  IL_0034:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
-  IL_0039:  starg.s    V_1
-  IL_003b:  ldarg.s    V_4
-  IL_003d:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
-  IL_0042:  starg.s    V_2
-  IL_0044:  nop
-  IL_0045:  ret
+  IL_0000:  ldarg.1
+  IL_0001:  call       ""System.IntPtr System.IntPtr.op_Explicit(void*)""
+  IL_0006:  starg.s    V_3
+  IL_0008:  ldarg.2
+  IL_0009:  call       ""System.IntPtr System.IntPtr.op_Explicit(void*)""
+  IL_000e:  starg.s    V_3
+  IL_0010:  ldarg.1
+  IL_0011:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(void*)""
+  IL_0016:  starg.s    V_4
+  IL_0018:  ldarg.2
+  IL_0019:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(void*)""
+  IL_001e:  starg.s    V_4
+  IL_0020:  ldarg.3
+  IL_0021:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
+  IL_0026:  starg.s    V_1
+  IL_0028:  ldarg.3
+  IL_0029:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
+  IL_002e:  starg.s    V_2
+  IL_0030:  ldarg.s    V_4
+  IL_0032:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
+  IL_0037:  starg.s    V_1
+  IL_0039:  ldarg.s    V_4
+  IL_003b:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
+  IL_0040:  starg.s    V_2
+  IL_0042:  ret
 }
 ";
             CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseDll, emitPdb: true).VerifyIL("C.M", expectedIL);
@@ -5540,59 +5423,61 @@ unsafe class C
 ";
             // NOTE: even when not optimized.
             // NOTE: additional conversions applied to constants of type int and uint.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithOptimizations(false)).VerifyIL("C.Test", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("C.Test", @"
 {
-  // Code size       47 (0x2f)
+  // Code size       50 (0x32)
   .maxstack  2
   .locals init (byte V_0, //b
-  byte* V_1) //p
-  IL_0000:  ldc.i4.3
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  conv.u
-  IL_0005:  stloc.1
-  IL_0006:  ldloc.1
-  IL_0007:  ldc.i4.2
-  IL_0008:  add
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
-  IL_000b:  ldc.i4.3
-  IL_000c:  add
-  IL_000d:  stloc.1
-  IL_000e:  ldloc.1
-  IL_000f:  ldc.i4.4
-  IL_0010:  conv.i8
-  IL_0011:  conv.i
-  IL_0012:  add
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  ldc.i4.5
-  IL_0016:  conv.i8
-  IL_0017:  conv.u
-  IL_0018:  add
-  IL_0019:  stloc.1
-  IL_001a:  ldloc.1
-  IL_001b:  ldarg.1
-  IL_001c:  add
-  IL_001d:  stloc.1
-  IL_001e:  ldloc.1
-  IL_001f:  ldarg.2
-  IL_0020:  conv.u
-  IL_0021:  add
-  IL_0022:  stloc.1
-  IL_0023:  ldloc.1
-  IL_0024:  ldarg.3
-  IL_0025:  conv.i
-  IL_0026:  add
-  IL_0027:  stloc.1
-  IL_0028:  ldloc.1
-  IL_0029:  ldarg.s    V_4
-  IL_002b:  conv.u
-  IL_002c:  add
-  IL_002d:  stloc.1
-  IL_002e:  ret
-}
-");
+                byte* V_1) //p
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldc.i4.3
+  IL_0003:  stloc.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  conv.u
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  ldc.i4.2
+  IL_000a:  add
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4.3
+  IL_000e:  add
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.4
+  IL_0012:  conv.i8
+  IL_0013:  conv.i
+  IL_0014:  add
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.5
+  IL_0018:  conv.i8
+  IL_0019:  conv.u
+  IL_001a:  add
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  ldarg.1
+  IL_001e:  add
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  ldarg.2
+  IL_0022:  conv.u
+  IL_0023:  add
+  IL_0024:  stloc.1
+  IL_0025:  ldloc.1
+  IL_0026:  ldarg.3
+  IL_0027:  conv.i
+  IL_0028:  add
+  IL_0029:  stloc.1
+  IL_002a:  ldloc.1
+  IL_002b:  ldarg.s    V_4
+  IL_002d:  conv.u
+  IL_002e:  add
+  IL_002f:  stloc.1
+  IL_0030:  nop
+  IL_0031:  ret
+}");
         }
 
         [WorkItem(546750, "DevDiv")]
@@ -5625,59 +5510,61 @@ unsafe class C
             // NOTE: even when not optimized.
             // NOTE: additional conversions applied to constants of type int and uint.
             // NOTE: identical to unchecked except "add" becomes "add.ovf.un".
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithOptimizations(false)).VerifyIL("C.Test", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("C.Test", @"
 {
-  // Code size       47 (0x2f)
+  // Code size       50 (0x32)
   .maxstack  2
   .locals init (byte V_0, //b
-  byte* V_1) //p
-  IL_0000:  ldc.i4.3
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  conv.u
-  IL_0005:  stloc.1
-  IL_0006:  ldloc.1
-  IL_0007:  ldc.i4.2
-  IL_0008:  add.ovf.un
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
-  IL_000b:  ldc.i4.3
-  IL_000c:  add.ovf.un
-  IL_000d:  stloc.1
-  IL_000e:  ldloc.1
-  IL_000f:  ldc.i4.4
-  IL_0010:  conv.i8
-  IL_0011:  conv.i
-  IL_0012:  add.ovf.un
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  ldc.i4.5
-  IL_0016:  conv.i8
-  IL_0017:  conv.u
-  IL_0018:  add.ovf.un
-  IL_0019:  stloc.1
-  IL_001a:  ldloc.1
-  IL_001b:  ldarg.1
-  IL_001c:  add.ovf.un
-  IL_001d:  stloc.1
-  IL_001e:  ldloc.1
-  IL_001f:  ldarg.2
-  IL_0020:  conv.u
-  IL_0021:  add.ovf.un
-  IL_0022:  stloc.1
-  IL_0023:  ldloc.1
-  IL_0024:  ldarg.3
-  IL_0025:  conv.i
-  IL_0026:  add.ovf.un
-  IL_0027:  stloc.1
-  IL_0028:  ldloc.1
-  IL_0029:  ldarg.s    V_4
-  IL_002b:  conv.u
-  IL_002c:  add.ovf.un
-  IL_002d:  stloc.1
-  IL_002e:  ret
-}
-");
+                byte* V_1) //p
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldc.i4.3
+  IL_0003:  stloc.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  conv.u
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  ldc.i4.2
+  IL_000a:  add.ovf.un
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4.3
+  IL_000e:  add.ovf.un
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.4
+  IL_0012:  conv.i8
+  IL_0013:  conv.i
+  IL_0014:  add.ovf.un
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.5
+  IL_0018:  conv.i8
+  IL_0019:  conv.u
+  IL_001a:  add.ovf.un
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  ldarg.1
+  IL_001e:  add.ovf.un
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  ldarg.2
+  IL_0022:  conv.u
+  IL_0023:  add.ovf.un
+  IL_0024:  stloc.1
+  IL_0025:  ldloc.1
+  IL_0026:  ldarg.3
+  IL_0027:  conv.i
+  IL_0028:  add.ovf.un
+  IL_0029:  stloc.1
+  IL_002a:  ldloc.1
+  IL_002b:  ldarg.s    V_4
+  IL_002d:  conv.u
+  IL_002e:  add.ovf.un
+  IL_002f:  stloc.1
+  IL_0030:  nop
+  IL_0031:  ret
+}");
         }
 
         [Fact]
@@ -5714,51 +5601,32 @@ unsafe struct S
 
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: "4").VerifyIL("S.Main", @"
 {
-  // Code size       65 (0x41)
+  // Code size       47 (0x2f)
   .maxstack  2
-  .locals init (S* V_0, //p
-      S* V_1)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  conv.i
-  IL_0003:  stloc.0
-  IL_0004:  nop
-  IL_0005:  ldloc.0
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
-  IL_0008:  sizeof     ""S""
-  IL_000e:  add.ovf.un
-  IL_000f:  stloc.0
-  IL_0010:  nop
-  IL_0011:  nop
-  IL_0012:  ldloc.0
-  IL_0013:  sizeof     ""S""
-  IL_0019:  add.ovf.un
-  IL_001a:  stloc.1
-  IL_001b:  ldloc.1
-  IL_001c:  stloc.0
-  IL_001d:  nop
-  IL_001e:  nop
-  IL_001f:  ldloc.0
-  IL_0020:  stloc.1
-  IL_0021:  ldloc.1
-  IL_0022:  sizeof     ""S""
-  IL_0028:  add
-  IL_0029:  stloc.0
-  IL_002a:  nop
-  IL_002b:  nop
-  IL_002c:  ldloc.0
-  IL_002d:  sizeof     ""S""
-  IL_0033:  add
-  IL_0034:  stloc.1
-  IL_0035:  ldloc.1
-  IL_0036:  stloc.0
-  IL_0037:  nop
-  IL_0038:  ldloc.0
-  IL_0039:  conv.i4
-  IL_003a:  call       ""void System.Console.WriteLine(int)""
-  IL_003f:  nop
-  IL_0040:  ret
+  .locals init (S* V_0) //p
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  sizeof     ""S""
+  IL_000a:  add.ovf.un
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  sizeof     ""S""
+  IL_0013:  add.ovf.un
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  sizeof     ""S""
+  IL_001c:  add
+  IL_001d:  stloc.0
+  IL_001e:  ldloc.0
+  IL_001f:  sizeof     ""S""
+  IL_0025:  add
+  IL_0026:  stloc.0
+  IL_0027:  ldloc.0
+  IL_0028:  conv.i4
+  IL_0029:  call       ""void System.Console.WriteLine(int)""
+  IL_002e:  ret
 }
 ");
         }
@@ -5797,51 +5665,32 @@ unsafe struct S
 
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: "4").VerifyIL("S.Main", @"
 {
-  // Code size       65 (0x41)
+  // Code size       47 (0x2f)
   .maxstack  2
-  .locals init (S* V_0, //p
-      S* V_1)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.8
-  IL_0002:  conv.i
-  IL_0003:  stloc.0
-  IL_0004:  nop
-  IL_0005:  ldloc.0
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
-  IL_0008:  sizeof     ""S""
-  IL_000e:  sub.ovf.un
-  IL_000f:  stloc.0
-  IL_0010:  nop
-  IL_0011:  nop
-  IL_0012:  ldloc.0
-  IL_0013:  sizeof     ""S""
-  IL_0019:  sub.ovf.un
-  IL_001a:  stloc.1
-  IL_001b:  ldloc.1
-  IL_001c:  stloc.0
-  IL_001d:  nop
-  IL_001e:  nop
-  IL_001f:  ldloc.0
-  IL_0020:  stloc.1
-  IL_0021:  ldloc.1
-  IL_0022:  sizeof     ""S""
-  IL_0028:  sub
-  IL_0029:  stloc.0
-  IL_002a:  nop
-  IL_002b:  nop
-  IL_002c:  ldloc.0
-  IL_002d:  sizeof     ""S""
-  IL_0033:  sub
-  IL_0034:  stloc.1
-  IL_0035:  ldloc.1
-  IL_0036:  stloc.0
-  IL_0037:  nop
-  IL_0038:  ldloc.0
-  IL_0039:  conv.i4
-  IL_003a:  call       ""void System.Console.WriteLine(int)""
-  IL_003f:  nop
-  IL_0040:  ret
+  .locals init (S* V_0) //p
+  IL_0000:  ldc.i4.8
+  IL_0001:  conv.i
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  sizeof     ""S""
+  IL_000a:  sub.ovf.un
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  sizeof     ""S""
+  IL_0013:  sub.ovf.un
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  sizeof     ""S""
+  IL_001c:  sub
+  IL_001d:  stloc.0
+  IL_001e:  ldloc.0
+  IL_001f:  sizeof     ""S""
+  IL_0025:  sub
+  IL_0026:  stloc.0
+  IL_0027:  ldloc.0
+  IL_0028:  conv.i4
+  IL_0029:  call       ""void System.Console.WriteLine(int)""
+  IL_002e:  ret
 }
 ");
         }
@@ -5943,74 +5792,68 @@ unsafe struct S
 
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: "8").VerifyIL("S.Main", @"
 {
-  // Code size      109 (0x6d)
+  // Code size      103 (0x67)
   .maxstack  3
   .locals init (S* V_0) //p
-  IL_0000:  nop
-  IL_0001:  ldc.i4.8
-  IL_0002:  conv.i
-  IL_0003:  stloc.0
-  IL_0004:  nop
-  IL_0005:  ldloc.0
-  IL_0006:  sizeof     ""S""
-  IL_000c:  add.ovf.un
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ldc.i4.2
-  IL_0010:  conv.u8
-  IL_0011:  sizeof     ""S""
-  IL_0017:  conv.i8
-  IL_0018:  mul.ovf
-  IL_0019:  conv.i
-  IL_001a:  add.ovf.un
-  IL_001b:  stloc.0
-  IL_001c:  ldloc.0
-  IL_001d:  sizeof     ""S""
-  IL_0023:  sub.ovf.un
-  IL_0024:  stloc.0
-  IL_0025:  ldloc.0
-  IL_0026:  ldc.i4.2
-  IL_0027:  conv.i8
-  IL_0028:  sizeof     ""S""
-  IL_002e:  conv.ovf.u8
-  IL_002f:  mul.ovf.un
-  IL_0030:  conv.u
-  IL_0031:  sub.ovf.un
-  IL_0032:  stloc.0
-  IL_0033:  nop
-  IL_0034:  nop
-  IL_0035:  ldloc.0
-  IL_0036:  sizeof     ""S""
-  IL_003c:  add
-  IL_003d:  stloc.0
-  IL_003e:  ldloc.0
-  IL_003f:  ldc.i4.2
-  IL_0040:  conv.u8
-  IL_0041:  sizeof     ""S""
-  IL_0047:  conv.i8
-  IL_0048:  mul
-  IL_0049:  conv.i
-  IL_004a:  add
-  IL_004b:  stloc.0
-  IL_004c:  ldloc.0
-  IL_004d:  sizeof     ""S""
-  IL_0053:  sub
-  IL_0054:  stloc.0
-  IL_0055:  ldloc.0
-  IL_0056:  ldc.i4.2
-  IL_0057:  conv.i8
-  IL_0058:  sizeof     ""S""
-  IL_005e:  conv.i8
-  IL_005f:  mul
-  IL_0060:  conv.u
-  IL_0061:  sub
-  IL_0062:  stloc.0
-  IL_0063:  nop
-  IL_0064:  ldloc.0
-  IL_0065:  conv.i4
-  IL_0066:  call       ""void System.Console.WriteLine(int)""
-  IL_006b:  nop
-  IL_006c:  ret
+  IL_0000:  ldc.i4.8
+  IL_0001:  conv.i
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  sizeof     ""S""
+  IL_000a:  add.ovf.un
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.2
+  IL_000e:  conv.u8
+  IL_000f:  sizeof     ""S""
+  IL_0015:  conv.i8
+  IL_0016:  mul.ovf
+  IL_0017:  conv.i
+  IL_0018:  add.ovf.un
+  IL_0019:  stloc.0
+  IL_001a:  ldloc.0
+  IL_001b:  sizeof     ""S""
+  IL_0021:  sub.ovf.un
+  IL_0022:  stloc.0
+  IL_0023:  ldloc.0
+  IL_0024:  ldc.i4.2
+  IL_0025:  conv.i8
+  IL_0026:  sizeof     ""S""
+  IL_002c:  conv.ovf.u8
+  IL_002d:  mul.ovf.un
+  IL_002e:  conv.u
+  IL_002f:  sub.ovf.un
+  IL_0030:  stloc.0
+  IL_0031:  ldloc.0
+  IL_0032:  sizeof     ""S""
+  IL_0038:  add
+  IL_0039:  stloc.0
+  IL_003a:  ldloc.0
+  IL_003b:  ldc.i4.2
+  IL_003c:  conv.u8
+  IL_003d:  sizeof     ""S""
+  IL_0043:  conv.i8
+  IL_0044:  mul
+  IL_0045:  conv.i
+  IL_0046:  add
+  IL_0047:  stloc.0
+  IL_0048:  ldloc.0
+  IL_0049:  sizeof     ""S""
+  IL_004f:  sub
+  IL_0050:  stloc.0
+  IL_0051:  ldloc.0
+  IL_0052:  ldc.i4.2
+  IL_0053:  conv.i8
+  IL_0054:  sizeof     ""S""
+  IL_005a:  conv.i8
+  IL_005b:  mul
+  IL_005c:  conv.u
+  IL_005d:  sub
+  IL_005e:  stloc.0
+  IL_005f:  ldloc.0
+  IL_0060:  conv.i4
+  IL_0061:  call       ""void System.Console.WriteLine(int)""
+  IL_0066:  ret
 }
 ");
         }
@@ -6123,38 +5966,31 @@ unsafe struct S
             // NOTE: don't use checked subtraction or division in either case (matches dev10).
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: "44").VerifyIL("S.Main", @"
 {
-  // Code size       46 (0x2e)
+  // Code size       39 (0x27)
   .maxstack  2
   .locals init (S* V_0, //p
-  S* V_1) //q
-  IL_0000:  nop
-  IL_0001:  ldc.i4.8
-  IL_0002:  conv.i
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.4
-  IL_0005:  conv.i
-  IL_0006:  stloc.1
-  IL_0007:  nop
-  IL_0008:  ldloc.0
-  IL_0009:  ldloc.1
-  IL_000a:  sub
-  IL_000b:  sizeof     ""S""
-  IL_0011:  div
-  IL_0012:  conv.i8
-  IL_0013:  call       ""void System.Console.Write(long)""
-  IL_0018:  nop
-  IL_0019:  nop
-  IL_001a:  nop
-  IL_001b:  ldloc.0
-  IL_001c:  ldloc.1
-  IL_001d:  sub
-  IL_001e:  sizeof     ""S""
-  IL_0024:  div
-  IL_0025:  conv.i8
-  IL_0026:  call       ""void System.Console.Write(long)""
-  IL_002b:  nop
-  IL_002c:  nop
-  IL_002d:  ret
+                S* V_1) //q
+  IL_0000:  ldc.i4.8
+  IL_0001:  conv.i
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.4
+  IL_0004:  conv.i
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.1
+  IL_0008:  sub
+  IL_0009:  sizeof     ""S""
+  IL_000f:  div
+  IL_0010:  conv.i8
+  IL_0011:  call       ""void System.Console.Write(long)""
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  sub
+  IL_0019:  sizeof     ""S""
+  IL_001f:  div
+  IL_0020:  conv.i8
+  IL_0021:  call       ""void System.Console.Write(long)""
+  IL_0026:  ret
 }
 ");
         }
@@ -6188,38 +6024,31 @@ unsafe struct S
             // NOTE: don't use checked subtraction or division in either case (matches dev10).
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: "11").VerifyIL("S.Main", @"
 {
-  // Code size       46 (0x2e)
+  // Code size       39 (0x27)
   .maxstack  2
   .locals init (S* V_0, //p
-      S* V_1) //q
-  IL_0000:  nop
-  IL_0001:  ldc.i4.8
-  IL_0002:  conv.i
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.4
-  IL_0005:  conv.i
-  IL_0006:  stloc.1
-  IL_0007:  nop
-  IL_0008:  ldloc.0
-  IL_0009:  ldloc.1
-  IL_000a:  sub
-  IL_000b:  sizeof     ""S""
-  IL_0011:  div
-  IL_0012:  conv.i8
-  IL_0013:  call       ""void System.Console.Write(long)""
-  IL_0018:  nop
-  IL_0019:  nop
-  IL_001a:  nop
-  IL_001b:  ldloc.0
-  IL_001c:  ldloc.1
-  IL_001d:  sub
-  IL_001e:  sizeof     ""S""
-  IL_0024:  div
-  IL_0025:  conv.i8
-  IL_0026:  call       ""void System.Console.Write(long)""
-  IL_002b:  nop
-  IL_002c:  nop
-  IL_002d:  ret
+                S* V_1) //q
+  IL_0000:  ldc.i4.8
+  IL_0001:  conv.i
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.4
+  IL_0004:  conv.i
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.1
+  IL_0008:  sub
+  IL_0009:  sizeof     ""S""
+  IL_000f:  div
+  IL_0010:  conv.i8
+  IL_0011:  call       ""void System.Console.Write(long)""
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  sub
+  IL_0019:  sizeof     ""S""
+  IL_001f:  div
+  IL_0020:  conv.i8
+  IL_0021:  call       ""void System.Console.Write(long)""
+  IL_0026:  ret
 }
 ");
         }
@@ -6251,38 +6080,31 @@ unsafe struct S
             // NOTE: don't use checked subtraction or division in either case (matches dev10).
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: "11").VerifyIL("S.Main", @"
 {
-  // Code size       36 (0x24)
+  // Code size       29 (0x1d)
   .maxstack  2
   .locals init (int* V_0, //p
-      int* V_1) //q
-  IL_0000:  nop
-  IL_0001:  ldc.i4.8
-  IL_0002:  conv.i
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.4
-  IL_0005:  conv.i
-  IL_0006:  stloc.1
-  IL_0007:  nop
-  IL_0008:  ldloc.0
-  IL_0009:  ldloc.1
-  IL_000a:  sub
-  IL_000b:  ldc.i4.4
-  IL_000c:  div
-  IL_000d:  conv.i8
-  IL_000e:  call       ""void System.Console.Write(long)""
-  IL_0013:  nop
-  IL_0014:  nop
-  IL_0015:  nop
-  IL_0016:  ldloc.0
-  IL_0017:  ldloc.1
-  IL_0018:  sub
-  IL_0019:  ldc.i4.4
-  IL_001a:  div
-  IL_001b:  conv.i8
-  IL_001c:  call       ""void System.Console.Write(long)""
-  IL_0021:  nop
-  IL_0022:  nop
-  IL_0023:  ret
+                int* V_1) //q
+  IL_0000:  ldc.i4.8
+  IL_0001:  conv.i
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.4
+  IL_0004:  conv.i
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.1
+  IL_0008:  sub
+  IL_0009:  ldc.i4.4
+  IL_000a:  div
+  IL_000b:  conv.i8
+  IL_000c:  call       ""void System.Console.Write(long)""
+  IL_0011:  ldloc.0
+  IL_0012:  ldloc.1
+  IL_0013:  sub
+  IL_0014:  ldc.i4.4
+  IL_0015:  div
+  IL_0016:  conv.i8
+  IL_0017:  call       ""void System.Console.Write(long)""
+  IL_001c:  ret
 }
 ");
         }
@@ -6317,42 +6139,35 @@ unsafe struct S
             // NOTE: don't use checked subtraction or division in either case (matches dev10).
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitPdb: true, expectedOutput: "01").VerifyIL("S.Main", @"
 {
-  // Code size       50 (0x32)
+  // Code size       43 (0x2b)
   .maxstack  2
   .locals init (S* V_0, //p1
-      S* V_1, //p2
-      S* V_2) //q
-  IL_0000:  nop
-  IL_0001:  ldc.i4.7
-  IL_0002:  conv.i
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.s   9
-  IL_0006:  conv.i
-  IL_0007:  stloc.1
-  IL_0008:  ldc.i4.4
-  IL_0009:  conv.i
-  IL_000a:  stloc.2
-  IL_000b:  nop
-  IL_000c:  ldloc.0
-  IL_000d:  ldloc.2
-  IL_000e:  sub
-  IL_000f:  sizeof     ""S""
-  IL_0015:  div
-  IL_0016:  conv.i8
-  IL_0017:  call       ""void System.Console.Write(long)""
-  IL_001c:  nop
-  IL_001d:  nop
-  IL_001e:  nop
-  IL_001f:  ldloc.1
-  IL_0020:  ldloc.2
-  IL_0021:  sub
-  IL_0022:  sizeof     ""S""
-  IL_0028:  div
-  IL_0029:  conv.i8
-  IL_002a:  call       ""void System.Console.Write(long)""
-  IL_002f:  nop
-  IL_0030:  nop
-  IL_0031:  ret
+                S* V_1, //p2
+                S* V_2) //q
+  IL_0000:  ldc.i4.7
+  IL_0001:  conv.i
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.s   9
+  IL_0005:  conv.i
+  IL_0006:  stloc.1
+  IL_0007:  ldc.i4.4
+  IL_0008:  conv.i
+  IL_0009:  stloc.2
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.2
+  IL_000c:  sub
+  IL_000d:  sizeof     ""S""
+  IL_0013:  div
+  IL_0014:  conv.i8
+  IL_0015:  call       ""void System.Console.Write(long)""
+  IL_001a:  ldloc.1
+  IL_001b:  ldloc.2
+  IL_001c:  sub
+  IL_001d:  sizeof     ""S""
+  IL_0023:  div
+  IL_0024:  conv.i8
+  IL_0025:  call       ""void System.Console.Write(long)""
+  IL_002a:  ret
 }
 ");
         }
@@ -7789,94 +7604,77 @@ unsafe struct S
             // NOTE: all comparisons unsigned.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "011010011010", emitPdb: true).VerifyIL("S.Main", @"
 {
-  // Code size      150 (0x96)
+  // Code size      133 (0x85)
   .maxstack  2
   .locals init (S* V_0, //p
-      S* V_1) //q
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  conv.i
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.1
-  IL_0005:  conv.i
-  IL_0006:  stloc.1
-  IL_0007:  nop
-  IL_0008:  ldloc.0
-  IL_0009:  ldloc.1
-  IL_000a:  ceq
-  IL_000c:  call       ""void S.Write(bool)""
-  IL_0011:  nop
-  IL_0012:  ldloc.0
-  IL_0013:  ldloc.1
+                S* V_1) //q
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  conv.i
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.1
+  IL_0008:  ceq
+  IL_000a:  call       ""void S.Write(bool)""
+  IL_000f:  ldloc.0
+  IL_0010:  ldloc.1
+  IL_0011:  ceq
+  IL_0013:  ldc.i4.0
   IL_0014:  ceq
-  IL_0016:  ldc.i4.0
-  IL_0017:  ceq
-  IL_0019:  call       ""void S.Write(bool)""
-  IL_001e:  nop
-  IL_001f:  ldloc.0
-  IL_0020:  ldloc.1
-  IL_0021:  cgt.un
-  IL_0023:  ldc.i4.0
-  IL_0024:  ceq
-  IL_0026:  call       ""void S.Write(bool)""
-  IL_002b:  nop
-  IL_002c:  ldloc.0
-  IL_002d:  ldloc.1
-  IL_002e:  clt.un
-  IL_0030:  ldc.i4.0
-  IL_0031:  ceq
-  IL_0033:  call       ""void S.Write(bool)""
-  IL_0038:  nop
-  IL_0039:  ldloc.0
-  IL_003a:  ldloc.1
-  IL_003b:  clt.un
-  IL_003d:  call       ""void S.Write(bool)""
-  IL_0042:  nop
-  IL_0043:  ldloc.0
-  IL_0044:  ldloc.1
-  IL_0045:  cgt.un
-  IL_0047:  call       ""void S.Write(bool)""
-  IL_004c:  nop
-  IL_004d:  nop
-  IL_004e:  nop
-  IL_004f:  ldloc.0
-  IL_0050:  ldloc.1
-  IL_0051:  ceq
-  IL_0053:  call       ""void S.Write(bool)""
-  IL_0058:  nop
-  IL_0059:  ldloc.0
-  IL_005a:  ldloc.1
-  IL_005b:  ceq
-  IL_005d:  ldc.i4.0
-  IL_005e:  ceq
-  IL_0060:  call       ""void S.Write(bool)""
-  IL_0065:  nop
+  IL_0016:  call       ""void S.Write(bool)""
+  IL_001b:  ldloc.0
+  IL_001c:  ldloc.1
+  IL_001d:  cgt.un
+  IL_001f:  ldc.i4.0
+  IL_0020:  ceq
+  IL_0022:  call       ""void S.Write(bool)""
+  IL_0027:  ldloc.0
+  IL_0028:  ldloc.1
+  IL_0029:  clt.un
+  IL_002b:  ldc.i4.0
+  IL_002c:  ceq
+  IL_002e:  call       ""void S.Write(bool)""
+  IL_0033:  ldloc.0
+  IL_0034:  ldloc.1
+  IL_0035:  clt.un
+  IL_0037:  call       ""void S.Write(bool)""
+  IL_003c:  ldloc.0
+  IL_003d:  ldloc.1
+  IL_003e:  cgt.un
+  IL_0040:  call       ""void S.Write(bool)""
+  IL_0045:  ldloc.0
+  IL_0046:  ldloc.1
+  IL_0047:  ceq
+  IL_0049:  call       ""void S.Write(bool)""
+  IL_004e:  ldloc.0
+  IL_004f:  ldloc.1
+  IL_0050:  ceq
+  IL_0052:  ldc.i4.0
+  IL_0053:  ceq
+  IL_0055:  call       ""void S.Write(bool)""
+  IL_005a:  ldloc.0
+  IL_005b:  ldloc.1
+  IL_005c:  cgt.un
+  IL_005e:  ldc.i4.0
+  IL_005f:  ceq
+  IL_0061:  call       ""void S.Write(bool)""
   IL_0066:  ldloc.0
   IL_0067:  ldloc.1
-  IL_0068:  cgt.un
+  IL_0068:  clt.un
   IL_006a:  ldc.i4.0
   IL_006b:  ceq
   IL_006d:  call       ""void S.Write(bool)""
-  IL_0072:  nop
-  IL_0073:  ldloc.0
-  IL_0074:  ldloc.1
-  IL_0075:  clt.un
-  IL_0077:  ldc.i4.0
-  IL_0078:  ceq
-  IL_007a:  call       ""void S.Write(bool)""
-  IL_007f:  nop
-  IL_0080:  ldloc.0
-  IL_0081:  ldloc.1
-  IL_0082:  clt.un
-  IL_0084:  call       ""void S.Write(bool)""
-  IL_0089:  nop
-  IL_008a:  ldloc.0
-  IL_008b:  ldloc.1
-  IL_008c:  cgt.un
-  IL_008e:  call       ""void S.Write(bool)""
-  IL_0093:  nop
-  IL_0094:  nop
-  IL_0095:  ret
+  IL_0072:  ldloc.0
+  IL_0073:  ldloc.1
+  IL_0074:  clt.un
+  IL_0076:  call       ""void S.Write(bool)""
+  IL_007b:  ldloc.0
+  IL_007c:  ldloc.1
+  IL_007d:  cgt.un
+  IL_007f:  call       ""void S.Write(bool)""
+  IL_0084:  ret
 }
 ");
         }
@@ -7910,45 +7708,36 @@ unsafe class C
             // NOTE: conversion is always unchecked, multiplication is always checked.
             CompileAndVerify(text, emitPdb: true, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", @"
 {
-  // Code size       37 (0x25)
+  // Code size       31 (0x1f)
   .maxstack  2
-  .locals init (int V_0, //count
-      int* V_1, //p
-      char* V_2, //q
-      int* V_3, //p
-      char* V_4) //q
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  stloc.0
-  IL_0003:  nop
-  IL_0004:  ldc.i4.2
-  IL_0005:  conv.u
-  IL_0006:  ldc.i4.4
-  IL_0007:  mul.ovf.un
-  IL_0008:  localloc
-  IL_000a:  stloc.1
-  IL_000b:  ldloc.0
-  IL_000c:  conv.u
-  IL_000d:  ldc.i4.2
-  IL_000e:  mul.ovf.un
-  IL_000f:  localloc
-  IL_0011:  stloc.2
-  IL_0012:  nop
-  IL_0013:  nop
-  IL_0014:  ldc.i4.2
-  IL_0015:  conv.u
-  IL_0016:  ldc.i4.4
-  IL_0017:  mul.ovf.un
-  IL_0018:  localloc
-  IL_001a:  stloc.3
-  IL_001b:  ldloc.0
-  IL_001c:  conv.u
-  IL_001d:  ldc.i4.2
-  IL_001e:  mul.ovf.un
-  IL_001f:  localloc
-  IL_0021:  stloc.s    V_4
-  IL_0023:  nop
-  IL_0024:  ret
+  .locals init (int V_0) //count
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.2
+  IL_0003:  conv.u
+  IL_0004:  ldc.i4.4
+  IL_0005:  mul.ovf.un
+  IL_0006:  localloc
+  IL_0008:  pop
+  IL_0009:  ldloc.0
+  IL_000a:  conv.u
+  IL_000b:  ldc.i4.2
+  IL_000c:  mul.ovf.un
+  IL_000d:  localloc
+  IL_000f:  pop
+  IL_0010:  ldc.i4.2
+  IL_0011:  conv.u
+  IL_0012:  ldc.i4.4
+  IL_0013:  mul.ovf.un
+  IL_0014:  localloc
+  IL_0016:  pop
+  IL_0017:  ldloc.0
+  IL_0018:  conv.u
+  IL_0019:  ldc.i4.2
+  IL_001a:  mul.ovf.un
+  IL_001b:  localloc
+  IL_001d:  pop
+  IL_001e:  ret
 }
 ");
         }
@@ -7973,25 +7762,23 @@ unsafe class C
 ";
             CompileAndVerify(text, emitPdb: true, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", @"
 {
-  // Code size       21 (0x15)
+  // Code size       20 (0x14)
   .maxstack  2
-  .locals init (void* V_0, //p
-      C V_1) //q
-  IL_0000:  nop
-  IL_0001:  ldc.i4.2
-  IL_0002:  conv.u
-  IL_0003:  ldc.i4.4
-  IL_0004:  mul.ovf.un
-  IL_0005:  localloc
-  IL_0007:  stloc.0
-  IL_0008:  ldc.i4.2
-  IL_0009:  conv.u
-  IL_000a:  ldc.i4.4
-  IL_000b:  mul.ovf.un
-  IL_000c:  localloc
-  IL_000e:  call       ""C C.op_Implicit(int*)""
-  IL_0013:  stloc.1
-  IL_0014:  ret
+  .locals init (void* V_0) //p
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.u
+  IL_0002:  ldc.i4.4
+  IL_0003:  mul.ovf.un
+  IL_0004:  localloc
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.2
+  IL_0008:  conv.u
+  IL_0009:  ldc.i4.4
+  IL_000a:  mul.ovf.un
+  IL_000b:  localloc
+  IL_000d:  call       ""C C.op_Implicit(int*)""
+  IL_0012:  pop
+  IL_0013:  ret
 }
 ");
         }
@@ -8064,74 +7851,59 @@ unsafe class C
             // for C.<>c__DisplayClass0.p is pushed onto the stack.
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       28 (0x1c)
   .maxstack  2
   .locals init (C.<>c__DisplayClass0 V_0, //CS$<>8__locals0
-      int* V_1, //q
-      System.Action V_2, //a
-      int* V_3)
+                int* V_1)
   IL_0000:  newobj     ""C.<>c__DisplayClass0..ctor()""
   IL_0005:  stloc.0
-  IL_0006:  nop
-  IL_0007:  ldc.i4.2
-  IL_0008:  conv.u
-  IL_0009:  ldc.i4.4
-  IL_000a:  mul.ovf.un
-  IL_000b:  localloc
-  IL_000d:  stloc.3
-  IL_000e:  ldloc.0
-  IL_000f:  ldloc.3
-  IL_0010:  stfld      ""int* C.<>c__DisplayClass0.p""
-  IL_0015:  ldc.i4.2
-  IL_0016:  conv.u
-  IL_0017:  ldc.i4.4
-  IL_0018:  mul.ovf.un
-  IL_0019:  localloc
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.0
-  IL_001d:  ldftn      ""void C.<>c__DisplayClass0.<Main>b__2()""
-  IL_0023:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0028:  stloc.2
-  IL_0029:  ret
+  IL_0006:  ldc.i4.2
+  IL_0007:  conv.u
+  IL_0008:  ldc.i4.4
+  IL_0009:  mul.ovf.un
+  IL_000a:  localloc
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  stfld      ""int* C.<>c__DisplayClass0.p""
+  IL_0014:  ldc.i4.2
+  IL_0015:  conv.u
+  IL_0016:  ldc.i4.4
+  IL_0017:  mul.ovf.un
+  IL_0018:  localloc
+  IL_001a:  pop
+  IL_001b:  ret
 }
 ");
 
             // Check that the same thing works inside a lambda.
             verifier.VerifyIL("C.<>c__DisplayClass0.<Main>b__2", @"
 {
-  // Code size       51 (0x33)
+  // Code size       35 (0x23)
   .maxstack  2
   .locals init (C.<>c__DisplayClass1 V_0, //CS$<>8__locals0
-  int* V_1, //s
-  System.Action V_2, //b
-  int* V_3)
+                int* V_1)
   IL_0000:  newobj     ""C.<>c__DisplayClass1..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
   IL_0008:  stfld      ""C.<>c__DisplayClass0 C.<>c__DisplayClass1.CS$<>8__locals1""
-  IL_000d:  nop
-  IL_000e:  ldc.i4.2
-  IL_000f:  conv.u
-  IL_0010:  ldc.i4.4
-  IL_0011:  mul.ovf.un
-  IL_0012:  localloc
-  IL_0014:  stloc.3
-  IL_0015:  ldloc.0
-  IL_0016:  ldloc.3
-  IL_0017:  stfld      ""int* C.<>c__DisplayClass1.r""
-  IL_001c:  ldc.i4.2
-  IL_001d:  conv.u
-  IL_001e:  ldc.i4.4
-  IL_001f:  mul.ovf.un
-  IL_0020:  localloc
-  IL_0022:  stloc.1
-  IL_0023:  ldloc.0
-  IL_0024:  ldftn      ""void C.<>c__DisplayClass1.<Main>b__3()""
-  IL_002a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_002f:  stloc.2
-  IL_0030:  br.s       IL_0032
-  IL_0032:  ret
+  IL_000d:  ldc.i4.2
+  IL_000e:  conv.u
+  IL_000f:  ldc.i4.4
+  IL_0010:  mul.ovf.un
+  IL_0011:  localloc
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.0
+  IL_0015:  ldloc.1
+  IL_0016:  stfld      ""int* C.<>c__DisplayClass1.r""
+  IL_001b:  ldc.i4.2
+  IL_001c:  conv.u
+  IL_001d:  ldc.i4.4
+  IL_001e:  mul.ovf.un
+  IL_001f:  localloc
+  IL_0021:  pop
+  IL_0022:  ret
 }
 ");
         }
@@ -8156,32 +7928,27 @@ unsafe class T
 ";
             CompileAndVerify(text, emitPdb: true, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0").VerifyIL("T.Main", @"
 {
-  // Code size       47 (0x2f)
+  // Code size       43 (0x2b)
   .maxstack  2
   .locals init (T.<>c__DisplayClass0 V_0, //CS$<>8__locals0
-      T.D V_1, //d
-      int* V_2)
+                int* V_1)
   IL_0000:  newobj     ""T.<>c__DisplayClass0..ctor()""
   IL_0005:  stloc.0
-  IL_0006:  nop
-  IL_0007:  ldc.i4.1
-  IL_0008:  conv.u
-  IL_0009:  ldc.i4.4
-  IL_000a:  mul.ovf.un
-  IL_000b:  localloc
-  IL_000d:  stloc.2
-  IL_000e:  ldloc.0
-  IL_000f:  ldloc.2
-  IL_0010:  stfld      ""int* T.<>c__DisplayClass0.v""
-  IL_0015:  ldloc.0
-  IL_0016:  ldftn      ""int T.<>c__DisplayClass0.<Main>b__1()""
-  IL_001c:  newobj     ""T.D..ctor(object, System.IntPtr)""
-  IL_0021:  stloc.1
-  IL_0022:  ldloc.1
-  IL_0023:  callvirt   ""int T.D.Invoke()""
-  IL_0028:  call       ""void System.Console.WriteLine(int)""
-  IL_002d:  nop
-  IL_002e:  ret
+  IL_0006:  ldc.i4.1
+  IL_0007:  conv.u
+  IL_0008:  ldc.i4.4
+  IL_0009:  mul.ovf.un
+  IL_000a:  localloc
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  stfld      ""int* T.<>c__DisplayClass0.v""
+  IL_0014:  ldloc.0
+  IL_0015:  ldftn      ""int T.<>c__DisplayClass0.<Main>b__1()""
+  IL_001b:  newobj     ""T.D..ctor(object, System.IntPtr)""
+  IL_0020:  callvirt   ""int T.D.Invoke()""
+  IL_0025:  call       ""void System.Console.WriteLine(int)""
+  IL_002a:  ret
 }
 ");
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0").VerifyIL("T.Main", @"
@@ -8763,47 +8530,37 @@ unsafe class Test
             // Note that the pointer local is not scheduled on the stack.
             verifier.VerifyIL("Test.Test1", @"
 {
-  // Code size       22 (0x16)
+  // Code size       20 (0x14)
   .maxstack  1
   .locals init (S1* V_0) //structPointer
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  conv.u
-  IL_0003:  stloc.0
-  IL_0004:  ldloc.0
-  IL_0005:  ldfld      ""char* S1.charPointer""
-  IL_000a:  newobj     ""string..ctor(char*)""
-  IL_000f:  call       ""void System.Console.WriteLine(string)""
-  IL_0014:  nop
-  IL_0015:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldfld      ""char* S1.charPointer""
+  IL_0009:  newobj     ""string..ctor(char*)""
+  IL_000e:  call       ""void System.Console.WriteLine(string)""
+  IL_0013:  ret
 }");
 
             // All locals retained.
             verifier.VerifyIL("Test.Test2", @"
 {
-  // Code size       19 (0x13)
+  // Code size       10 (0xa)
   .maxstack  1
   .locals init (S1* V_0, //structPointer
-  int* V_1, //intPointer
-  void* V_2, //voidPointer
-  ulong V_3, //number
-  ulong V_4)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  conv.u
-  IL_0003:  stloc.0
-  IL_0004:  ldloc.0
-  IL_0005:  stloc.1
-  IL_0006:  ldloc.1
-  IL_0007:  stloc.2
-  IL_0008:  ldloc.2
-  IL_0009:  conv.u8
-  IL_000a:  stloc.3
-  IL_000b:  ldloc.3
-  IL_000c:  stloc.s    V_4
-  IL_000e:  br.s       IL_0010
-  IL_0010:  ldloc.s    V_4
-  IL_0012:  ret
+                int* V_1, //intPointer
+                void* V_2) //voidPointer
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.1
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  conv.u8
+  IL_0009:  ret
 }");
         }
 

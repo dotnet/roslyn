@@ -6114,18 +6114,19 @@ public class Cls
 
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Cls.Main",
 @"{
-  // Code size        7 (0x7)
+  // Code size        8 (0x8)
   .maxstack  1
   .locals init (int V_0, //x
-  int V_1, //y
-  int V_2) //z
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.2
-  IL_0002:  ldloc.2
-  IL_0003:  stloc.1
-  IL_0004:  ldloc.1
-  IL_0005:  stloc.0
-  IL_0006:  ret
+                int V_1, //y
+                int V_2) //z
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.2
+  IL_0003:  ldloc.2
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.1
+  IL_0006:  stloc.0
+  IL_0007:  ret
 }");
 
             TestSemanticModelAPI(compilation);
@@ -10190,18 +10191,17 @@ partial class Test1(int y1, int y2) : Base(y1, y2)
 
             var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(
-    // (17,21): error CS0103: The name 'y2' does not exist in the current context
-    //     static int f4 = y2;
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "y2").WithArguments("y2").WithLocation(17, 21),
-    // (23,21): error CS0103: The name 'y2' does not exist in the current context
-    //     static int f2 = y2;
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "y2").WithArguments("y2").WithLocation(23, 21)
-                );
+                // (17,21): error CS0103: The name 'y2' does not exist in the current context
+                //     static int f4 = y2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y2").WithArguments("y2").WithLocation(17, 21),
+                // (23,21): error CS0103: The name 'y2' does not exist in the current context
+                //     static int f2 = y2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y2").WithArguments("y2").WithLocation(23, 21));
 
             TestSemanticModelAPI(compilation, diagnostics);
         }
 
-        [Fact]
+        [Fact(Skip = "1003200"), WorkItem(1003200)]
         public void PrimaryCtorBody_01()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -10223,12 +10223,12 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"10").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, emitPdb: true, expectedOutput: @"10").VerifyDiagnostics();
 
             TestSemanticModelAPI(comp);
         }
 
-        [Fact]
+        [Fact(Skip= "1003200"), WorkItem(1003200)]
         public void PrimaryCtorBody_02()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -10252,12 +10252,12 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"11").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, emitPdb: true, expectedOutput: @"11").VerifyDiagnostics();
 
             TestSemanticModelAPI(comp);
         }
 
-        [Fact]
+        [Fact(Skip= "1003200"), WorkItem(1003200)]
         public void PrimaryCtorBody_03()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -10285,7 +10285,7 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"9
+            var verifier = CompileAndVerify(comp, emitPdb: true, expectedOutput: @"9
 10
 11").VerifyDiagnostics();
 

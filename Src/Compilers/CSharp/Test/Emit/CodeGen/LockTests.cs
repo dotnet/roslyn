@@ -1208,20 +1208,14 @@ class Test
 ";
             CompileAndVerify(text, emitPdb: true).VerifyIL("Test.Values", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  2
-  .locals init (Test.<Values>d__0 V_0,
-  System.Collections.Generic.IEnumerable<int> V_1)
+  // Code size       15 (0xf)
+  .maxstack  3
   IL_0000:  ldc.i4.s   -2
   IL_0002:  newobj     ""Test.<Values>d__0..ctor(int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloc.0
-  IL_0009:  ldarg.0
-  IL_000a:  stfld      ""Test Test.<Values>d__0.<>4__this""
-  IL_000f:  ldloc.0
-  IL_0010:  stloc.1
-  IL_0011:  ldloc.1
-  IL_0012:  ret
+  IL_0007:  dup
+  IL_0008:  ldarg.0
+  IL_0009:  stfld      ""Test Test.<Values>d__0.<>4__this""
+  IL_000e:  ret
 }");
         }
 

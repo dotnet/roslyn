@@ -195,10 +195,7 @@ public class Test : Class2
                 "public class C { }",
                 emitPdb: true,
                 verify: false,
-                options: new CSharpCompilationOptions(
-                    OutputKind.NetModule,
-                    optimize: false,
-                    debugInformationKind: DebugInformationKind.PdbOnly));
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
 
         [Fact]
@@ -1519,7 +1516,7 @@ class TC3<T8>
 
 ";
 
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithOptimizations(false), emitPdb: true, expectedOutput:
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, emitPdb: true, expectedOutput:
 @"TC1
 TC2`1[System.Byte]
 TC3`1+TC4[System.Byte]
@@ -1527,79 +1524,65 @@ TC3`1+TC4[System.Byte]
 
             verifier.VerifyIL("TC1.TM1<T1>",
 @"{
-  // Code size        9 (0x9)
+  // Code size        7 (0x7)
   .maxstack  1
-  IL_0000:  nop       
-  IL_0001:  ldarg.0   
-  IL_0002:  call       ""void TC1.TM1<T1>()""
-  IL_0007:  nop
-  IL_0008:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void TC1.TM1<T1>()""
+  IL_0006:  ret
 }
 ");
 
             verifier.VerifyIL("TC1.TM2<T2>",
 @"{
-  // Code size        9 (0x9)
+  // Code size        7 (0x7)
   .maxstack  1
-  IL_0000:  nop       
-  IL_0001:  ldarg.0   
-  IL_0002:  call       ""void TC1.TM2<int>()""
-  IL_0007:  nop
-  IL_0008:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void TC1.TM2<int>()""
+  IL_0006:  ret
 }
 ");
 
             verifier.VerifyIL("TC2<T3>.TM3<T4>",
 @"{
-  // Code size       16 (0x10)
+  // Code size       13 (0xd)
   .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  call       ""void TC2<T3>.TM3<T4>()""
-  IL_0007:  nop
-  IL_0008:  ldarg.0
-  IL_0009:  call       ""void TC2<T3>.TM3<T4>()""
-  IL_000e:  nop
-  IL_000f:  ret     
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void TC2<T3>.TM3<T4>()""
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""void TC2<T3>.TM3<T4>()""
+  IL_000c:  ret
 }
 ");
 
             verifier.VerifyIL("TC2<T3>.TM4<T5>",
 @"{
-  // Code size       16 (0x10)
+  // Code size       13 (0xd)
   .maxstack  1
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  call       ""void TC2<T3>.TM4<int>()""
-  IL_0007:  nop
-  IL_0008:  ldarg.0
-  IL_0009:  call       ""void TC2<T3>.TM4<int>()""
-  IL_000e:  nop
-  IL_000f:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void TC2<T3>.TM4<int>()""
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""void TC2<T3>.TM4<int>()""
+  IL_000c:  ret
 }
 ");
 
             verifier.VerifyIL("TC2<T3>.TM5<T6>",
 @"{
-  // Code size        9 (0x9)
+  // Code size        7 (0x7)
   .maxstack  1
-  IL_0000:  nop       
-  IL_0001:  ldarg.0   
-  IL_0002:  call       ""void TC2<int>.TM5<T6>(T6)""
-  IL_0007:  nop
-  IL_0008:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void TC2<int>.TM5<T6>(T6)""
+  IL_0006:  ret
 }
 ");
 
             verifier.VerifyIL("TC2<T3>.TM6<T7>",
 @"{
-  // Code size        9 (0x9)
+  // Code size        7 (0x7)
   .maxstack  1
-  IL_0000:  nop       
-  IL_0001:  ldc.i4.1  
-  IL_0002:  call       ""void TC2<int>.TM6<int>(int)""
-  IL_0007:  nop
-  IL_0008:  ret
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void TC2<int>.TM6<int>(int)""
+  IL_0006:  ret
 }
 ");
         }
@@ -2176,11 +2159,7 @@ public class Methods
 
         private static void VerifyEmitWithNoResources(CSharpCompilation comp, Platform platform)
         {
-            var options = new CSharpCompilationOptions(
-                OutputKind.ConsoleApplication,
-                optimize: true,
-                platform: platform,
-                debugInformationKind: DebugInformationKind.None);
+            var options = TestOptions.ReleaseExe.WithPlatform(platform);
 
             using (var outputStream = new MemoryStream())
             {

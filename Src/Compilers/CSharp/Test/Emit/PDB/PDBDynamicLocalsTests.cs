@@ -1978,7 +1978,7 @@ class C
     }
 }
 ";
-            string actual = GetPdbXml(source, TestOptions.DebugDll.WithOptimizations(true));
+            string actual = GetPdbXml(source, TestOptions.ReleaseDll);
             string expected = @"
 <symbols>
   <methods>
