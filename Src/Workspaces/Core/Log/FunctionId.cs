@@ -142,20 +142,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TPLTask_TaskStarted,
         TPLTask_TaskCompleted,
 
-        CodeHierarchy_SearchForField,
-        CodeHierarchy_FindMethodOrPropertyOrEventImplements,
-        CodeHierarchy_FindMethodOrPropertyOrEventImplementedBy,
-        CodeHierarchy_FindMethodOrPropertyOrEventOverrides,
-        CodeHierarchy_FindMethodOrPropertyOrEventOverriddenBy,
-        CodeHierarchy_FindMethodOrPropertyOrEventCallers,
-        CodeHierarchy_SearchForMethodOrPropertyOrEvent,
-        CodeHierarchy_SearchForNamedType,
-        CodeHierarchy_SearchForNamedTypeParts,
-        CodeHierarchy_SearchForNamedTypeImplements,
-        CodeHierarchy_SearchForNamedTypeImplementedBy,
-        CodeHierarchy_SearchForNamedTypeInherits,
-        CodeHierarchy_SearchForNamedTypeInheritedBy,
-
         QuickInfo_ModelComputation_ComputeModelInBackground,
 
         Completion_ModelComputer_DoInBackground,
