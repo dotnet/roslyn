@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props" Condition="Exists('..\..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4070101-beta\build\Microsoft.Net.ToolsetCompilers.props')" />
+    <Import Project="..\..\..\..\..\Open\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <!-- dynamic -->
+    <Nonshipping>true</Nonshipping>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <OutDir>..\..\..\..\..\Binaries\$(Configuration)\</OutDir>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6A3B538F-247F-456C-A763-91991ABEB324}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ImplementNotifyPropertyChangedCS.UnitTests</RootNamespace>
+    <AssemblyName>ImplementNotifyPropertyChangedCS.UnitTests</AssemblyName>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <ItemGroup Label="File References">
+    <Reference Include="xunit.abstractions">
+      <HintPath>..\..\..\..\packages\xunit.abstractions.2.0.0-alpha-build2576\lib\net35\xunit.abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit2.assert">
+      <HintPath>..\..\..\..\packages\xunit.assert.2.0.0-alpha-build2576\lib\net45\xunit2.assert.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit2">
+      <HintPath>..\..\..\..\packages\xunit.core.2.0.0-alpha-build2576\lib\net45\xunit2.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <Reference Include="Microsoft.CodeAnalysis">
+      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp">
+      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Workspaces">
+      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp.Workspaces">
+      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.CSharp.Workspaces.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Features">
+      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Features.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <ProjectReference Include="..\..\..\Shared\UnitTestFramework\UnitTestFramework.csproj">
+      <Project>{d571f126-f0b6-487e-bb79-e91eaee46f4f}</Project>
+      <Name>UnitTestFramework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Impl\ImplementNotifyPropertyChangedCS.csproj">
+      <Project>{23E24AFA-574E-47AA-860F-CAEF1DDCE74E}</Project>
+      <Name>ImplementNotifyPropertyChangedCS</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CodeRefactoringTests.cs" />
+    <Compile Include="IsExpandableTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\..\..\Open\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
+</Project>

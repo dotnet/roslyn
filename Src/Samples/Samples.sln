@@ -1,0 +1,250 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.22004.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APISampleUnitTestsCS", "CSharp\APISampleUnitTests\APISampleUnitTestsCS.csproj", "{CFF49CC1-85B5-49F7-B14B-A6EBF2592DD2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleClassifierCS", "CSharp\ConsoleClassifier\ConsoleClassifierCS.csproj", "{E1D96749-5BF9-4B04-81A1-9D4B3B1F6BF4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertToAutoPropertyCS", "CSharp\ConvertToAutoProperty\Impl\ConvertToAutoPropertyCS.csproj", "{AF90D220-D21A-4A85-8CB7-E33057AC5AE3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FormatSolutionCS", "CSharp\FormatSolution\FormatSolutionCS.csproj", "{E2AE5575-436C-4CA5-9471-89D923FE84C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImplementNotifyPropertyChangedCS", "CSharp\ImplementNotifyPropertyChanged\Impl\ImplementNotifyPropertyChangedCS.csproj", "{23E24AFA-574E-47AA-860F-CAEF1DDCE74E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImplementNotifyPropertyChangedCS.UnitTests", "CSharp\ImplementNotifyPropertyChanged\Test\ImplementNotifyPropertyChangedCS.UnitTests.csproj", "{6A3B538F-247F-456C-A763-91991ABEB324}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MakeConstCS", "CSharp\MakeConst\Impl\MakeConstCS.csproj", "{DE9D901F-43D6-4559-A068-B6E28E04F12E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MakeConstCS.UnitTests", "CSharp\MakeConst\Test\MakeConstCS.UnitTests.csproj", "{BFD0109A-767E-41F6-8EF3-1A75FB4F5E8D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CSharp", "CSharp", "{CC979E2E-846C-46EE-81D7-9AE234572B80}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestFramework", "Shared\UnitTestFramework\UnitTestFramework.csproj", "{D571F126-F0B6-487E-BB79-E91EAEE46F4F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{B769A73C-FA3A-43ED-B58E-AB037E503240}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "APISampleUnitTestsVB", "VisualBasic\APISampleUnitTests\APISampleUnitTestsVB.vbproj", "{A5C3CAA6-206D-41D1-9BE9-D8B5437D0D95}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConsoleClassifierVB", "VisualBasic\ConsoleClassifier\ConsoleClassifierVB.vbproj", "{41C3D7F9-BB1F-46F9-82E5-12B8C52F27B6}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertToAutoPropertyVB", "VisualBasic\ConvertToAutoProperty\Impl\ConvertToAutoPropertyVB.vbproj", "{DA0874AB-377A-48CF-99FF-0B209916309D}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ConvertToAutoPropertyVB.UnitTests", "VisualBasic\ConvertToAutoProperty\Test\ConvertToAutoPropertyVB.UnitTests.vbproj", "{A8D29846-9D4B-4B9F-91FF-7AE83965347C}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "FormatSolutionVB", "VisualBasic\FormatSolution\FormatSolutionVB.vbproj", "{979ECA30-895D-4F3F-AD2E-1B6388FAEBEF}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ImplementNotifyPropertyChangedVB", "VisualBasic\ImplementNotifyPropertyChanged\Impl\ImplementNotifyPropertyChangedVB.vbproj", "{C182B3BA-431B-475E-ABA8-21A56283B493}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ImplementNotifyPropertyChangedVB.UnitTests", "VisualBasic\ImplementNotifyPropertyChanged\Test\ImplementNotifyPropertyChangedVB.UnitTests.vbproj", "{EF5ACC32-7644-4CF0-87FC-AE9AFD0DB4D8}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "MakeConstVB", "VisualBasic\MakeConst\Impl\MakeConstVB.vbproj", "{050DC082-5E4E-4175-8F7E-723B134774BE}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "MakeConstVB.UnitTests", "VisualBasic\MakeConst\Test\MakeConstVB.UnitTests.vbproj", "{B9963F89-CF12-4A8D-B4BF-C2C0B9732144}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VisualBasic", "VisualBasic", "{0A8A5052-C6C9-4E92-9027-5229466DF86C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncPackage", "CSharp\AsyncPackage\AsyncPackage.csproj", "{68D3FDD2-DA02-453B-9DF9-022F65F9265E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncPackage.Test", "CSharp\AsyncPackage\Test\AsyncPackage.Test.csproj", "{0D9287FD-F17F-4CB8-B622-904E69994AC6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CFF49CC1-85B5-49F7-B14B-A6EBF2592DD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFF49CC1-85B5-49F7-B14B-A6EBF2592DD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFF49CC1-85B5-49F7-B14B-A6EBF2592DD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFF49CC1-85B5-49F7-B14B-A6EBF2592DD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1D96749-5BF9-4B04-81A1-9D4B3B1F6BF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1D96749-5BF9-4B04-81A1-9D4B3B1F6BF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1D96749-5BF9-4B04-81A1-9D4B3B1F6BF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1D96749-5BF9-4B04-81A1-9D4B3B1F6BF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF90D220-D21A-4A85-8CB7-E33057AC5AE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF90D220-D21A-4A85-8CB7-E33057AC5AE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF90D220-D21A-4A85-8CB7-E33057AC5AE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF90D220-D21A-4A85-8CB7-E33057AC5AE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2AE5575-436C-4CA5-9471-89D923FE84C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2AE5575-436C-4CA5-9471-89D923FE84C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2AE5575-436C-4CA5-9471-89D923FE84C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2AE5575-436C-4CA5-9471-89D923FE84C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23E24AFA-574E-47AA-860F-CAEF1DDCE74E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23E24AFA-574E-47AA-860F-CAEF1DDCE74E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23E24AFA-574E-47AA-860F-CAEF1DDCE74E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23E24AFA-574E-47AA-860F-CAEF1DDCE74E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A3B538F-247F-456C-A763-91991ABEB324}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A3B538F-247F-456C-A763-91991ABEB324}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A3B538F-247F-456C-A763-91991ABEB324}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A3B538F-247F-456C-A763-91991ABEB324}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE9D901F-43D6-4559-A068-B6E28E04F12E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE9D901F-43D6-4559-A068-B6E28E04F12E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE9D901F-43D6-4559-A068-B6E28E04F12E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE9D901F-43D6-4559-A068-B6E28E04F12E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFD0109A-767E-41F6-8EF3-1A75FB4F5E8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFD0109A-767E-41F6-8EF3-1A75FB4F5E8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFD0109A-767E-41F6-8EF3-1A75FB4F5E8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFD0109A-767E-41F6-8EF3-1A75FB4F5E8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D571F126-F0B6-487E-BB79-E91EAEE46F4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D571F126-F0B6-487E-BB79-E91EAEE46F4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D571F126-F0B6-487E-BB79-E91EAEE46F4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D571F126-F0B6-487E-BB79-E91EAEE46F4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5C3CAA6-206D-41D1-9BE9-D8B5437D0D95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5C3CAA6-206D-41D1-9BE9-D8B5437D0D95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5C3CAA6-206D-41D1-9BE9-D8B5437D0D95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5C3CAA6-206D-41D1-9BE9-D8B5437D0D95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41C3D7F9-BB1F-46F9-82E5-12B8C52F27B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41C3D7F9-BB1F-46F9-82E5-12B8C52F27B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41C3D7F9-BB1F-46F9-82E5-12B8C52F27B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41C3D7F9-BB1F-46F9-82E5-12B8C52F27B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA0874AB-377A-48CF-99FF-0B209916309D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA0874AB-377A-48CF-99FF-0B209916309D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA0874AB-377A-48CF-99FF-0B209916309D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA0874AB-377A-48CF-99FF-0B209916309D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8D29846-9D4B-4B9F-91FF-7AE83965347C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8D29846-9D4B-4B9F-91FF-7AE83965347C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8D29846-9D4B-4B9F-91FF-7AE83965347C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8D29846-9D4B-4B9F-91FF-7AE83965347C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{979ECA30-895D-4F3F-AD2E-1B6388FAEBEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{979ECA30-895D-4F3F-AD2E-1B6388FAEBEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{979ECA30-895D-4F3F-AD2E-1B6388FAEBEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{979ECA30-895D-4F3F-AD2E-1B6388FAEBEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C182B3BA-431B-475E-ABA8-21A56283B493}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C182B3BA-431B-475E-ABA8-21A56283B493}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C182B3BA-431B-475E-ABA8-21A56283B493}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C182B3BA-431B-475E-ABA8-21A56283B493}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF5ACC32-7644-4CF0-87FC-AE9AFD0DB4D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF5ACC32-7644-4CF0-87FC-AE9AFD0DB4D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF5ACC32-7644-4CF0-87FC-AE9AFD0DB4D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF5ACC32-7644-4CF0-87FC-AE9AFD0DB4D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{050DC082-5E4E-4175-8F7E-723B134774BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{050DC082-5E4E-4175-8F7E-723B134774BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{050DC082-5E4E-4175-8F7E-723B134774BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{050DC082-5E4E-4175-8F7E-723B134774BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9963F89-CF12-4A8D-B4BF-C2C0B9732144}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9963F89-CF12-4A8D-B4BF-C2C0B9732144}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9963F89-CF12-4A8D-B4BF-C2C0B9732144}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9963F89-CF12-4A8D-B4BF-C2C0B9732144}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CFF49CC1-85B5-49F7-B14B-A6EBF2592DD2} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
+		{E1D96749-5BF9-4B04-81A1-9D4B3B1F6BF4} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
+		{AF90D220-D21A-4A85-8CB7-E33057AC5AE3} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
+		{E2AE5575-436C-4CA5-9471-89D923FE84C6} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
+		{23E24AFA-574E-47AA-860F-CAEF1DDCE74E} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
+		{6A3B538F-247F-456C-A763-91991ABEB324} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
+		{DE9D901F-43D6-4559-A068-B6E28E04F12E} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
+		{BFD0109A-767E-41F6-8EF3-1A75FB4F5E8D} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
+		{D571F126-F0B6-487E-BB79-E91EAEE46F4F} = {B769A73C-FA3A-43ED-B58E-AB037E503240}
+		{A5C3CAA6-206D-41D1-9BE9-D8B5437D0D95} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
+		{41C3D7F9-BB1F-46F9-82E5-12B8C52F27B6} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
+		{DA0874AB-377A-48CF-99FF-0B209916309D} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
+		{A8D29846-9D4B-4B9F-91FF-7AE83965347C} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
+		{979ECA30-895D-4F3F-AD2E-1B6388FAEBEF} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
+		{C182B3BA-431B-475E-ABA8-21A56283B493} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
+		{EF5ACC32-7644-4CF0-87FC-AE9AFD0DB4D8} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
+		{050DC082-5E4E-4175-8F7E-723B134774BE} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
+		{B9963F89-CF12-4A8D-B4BF-C2C0B9732144} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
+		{68D3FDD2-DA02-453B-9DF9-022F65F9265E} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
+		{0D9287FD-F17F-4CB8-B622-904E69994AC6} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 21
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = http://vstfdevdiv:8080/devdiv2
+		SccProjectUniqueName0 = CSharp\\APISampleUnitTests\\APISampleUnitTestsCS.csproj
+		SccProjectTopLevelParentUniqueName0 = Samples.sln
+		SccProjectName0 = CSharp/APISampleUnitTests
+		SccLocalPath0 = CSharp\\APISampleUnitTests
+		SccProjectUniqueName1 = CSharp\\ConsoleClassifier\\ConsoleClassifierCS.csproj
+		SccProjectTopLevelParentUniqueName1 = Samples.sln
+		SccProjectName1 = CSharp/ConsoleClassifier
+		SccLocalPath1 = CSharp\\ConsoleClassifier
+		SccProjectUniqueName2 = CSharp\\ConvertToAutoProperty\\Impl\\ConvertToAutoPropertyCS.csproj
+		SccProjectTopLevelParentUniqueName2 = Samples.sln
+		SccProjectName2 = CSharp/ConvertToAutoProperty/Impl
+		SccLocalPath2 = CSharp\\ConvertToAutoProperty\\Impl
+		SccProjectUniqueName3 = CSharp\\FormatSolution\\FormatSolutionCS.csproj
+		SccProjectTopLevelParentUniqueName3 = Samples.sln
+		SccProjectName3 = CSharp/FormatSolution
+		SccLocalPath3 = CSharp\\FormatSolution
+		SccProjectUniqueName4 = CSharp\\ImplementNotifyPropertyChanged\\Impl\\ImplementNotifyPropertyChangedCS.csproj
+		SccProjectTopLevelParentUniqueName4 = Samples.sln
+		SccProjectName4 = CSharp/ImplementNotifyPropertyChanged/Impl
+		SccLocalPath4 = CSharp\\ImplementNotifyPropertyChanged\\Impl
+		SccProjectUniqueName5 = CSharp\\ImplementNotifyPropertyChanged\\Test\\ImplementNotifyPropertyChangedCS.UnitTests.csproj
+		SccProjectTopLevelParentUniqueName5 = Samples.sln
+		SccProjectName5 = CSharp/ImplementNotifyPropertyChanged/Test
+		SccLocalPath5 = CSharp\\ImplementNotifyPropertyChanged\\Test
+		SccProjectUniqueName6 = CSharp\\MakeConst\\Impl\\MakeConstCS.csproj
+		SccProjectTopLevelParentUniqueName6 = Samples.sln
+		SccProjectName6 = CSharp/MakeConst/Impl
+		SccLocalPath6 = CSharp\\MakeConst\\Impl
+		SccProjectUniqueName7 = CSharp\\MakeConst\\Test\\MakeConstCS.UnitTests.csproj
+		SccProjectTopLevelParentUniqueName7 = Samples.sln
+		SccProjectName7 = CSharp/MakeConst/Test
+		SccLocalPath7 = CSharp\\MakeConst\\Test
+		SccProjectUniqueName8 = Shared\\UnitTestFramework\\UnitTestFramework.csproj
+		SccProjectTopLevelParentUniqueName8 = Samples.sln
+		SccProjectName8 = Shared/UnitTestFramework
+		SccLocalPath8 = Shared\\UnitTestFramework
+		SccProjectUniqueName9 = VisualBasic\\APISampleUnitTests\\APISampleUnitTestsVB.vbproj
+		SccProjectTopLevelParentUniqueName9 = Samples.sln
+		SccProjectName9 = VisualBasic/APISampleUnitTests
+		SccLocalPath9 = VisualBasic\\APISampleUnitTests
+		SccProjectUniqueName10 = VisualBasic\\ConsoleClassifier\\ConsoleClassifierVB.vbproj
+		SccProjectTopLevelParentUniqueName10 = Samples.sln
+		SccProjectName10 = VisualBasic/ConsoleClassifier
+		SccLocalPath10 = VisualBasic\\ConsoleClassifier
+		SccProjectUniqueName11 = VisualBasic\\ConvertToAutoProperty\\Impl\\ConvertToAutoPropertyVB.vbproj
+		SccProjectTopLevelParentUniqueName11 = Samples.sln
+		SccProjectName11 = VisualBasic/ConvertToAutoProperty/Impl
+		SccLocalPath11 = VisualBasic\\ConvertToAutoProperty\\Impl
+		SccProjectUniqueName12 = VisualBasic\\ConvertToAutoProperty\\Test\\ConvertToAutoPropertyVB.UnitTests.vbproj
+		SccProjectTopLevelParentUniqueName12 = Samples.sln
+		SccProjectName12 = VisualBasic/ConvertToAutoProperty/Test
+		SccLocalPath12 = VisualBasic\\ConvertToAutoProperty\\Test
+		SccProjectUniqueName13 = VisualBasic\\FormatSolution\\FormatSolutionVB.vbproj
+		SccProjectTopLevelParentUniqueName13 = Samples.sln
+		SccProjectName13 = VisualBasic/FormatSolution
+		SccLocalPath13 = VisualBasic\\FormatSolution
+		SccProjectUniqueName14 = VisualBasic\\ImplementNotifyPropertyChanged\\Impl\\ImplementNotifyPropertyChangedVB.vbproj
+		SccProjectTopLevelParentUniqueName14 = Samples.sln
+		SccProjectName14 = VisualBasic/ImplementNotifyPropertyChanged/Impl
+		SccLocalPath14 = VisualBasic\\ImplementNotifyPropertyChanged\\Impl
+		SccProjectUniqueName15 = VisualBasic\\ImplementNotifyPropertyChanged\\Test\\ImplementNotifyPropertyChangedVB.UnitTests.vbproj
+		SccProjectTopLevelParentUniqueName15 = Samples.sln
+		SccProjectName15 = VisualBasic/ImplementNotifyPropertyChanged/Test
+		SccLocalPath15 = VisualBasic\\ImplementNotifyPropertyChanged\\Test
+		SccProjectUniqueName16 = VisualBasic\\MakeConst\\Impl\\MakeConstVB.vbproj
+		SccProjectTopLevelParentUniqueName16 = Samples.sln
+		SccProjectName16 = VisualBasic/MakeConst/Impl
+		SccLocalPath16 = VisualBasic\\MakeConst\\Impl
+		SccProjectUniqueName17 = VisualBasic\\MakeConst\\Test\\MakeConstVB.UnitTests.vbproj
+		SccProjectTopLevelParentUniqueName17 = Samples.sln
+		SccProjectName17 = VisualBasic/MakeConst/Test
+		SccLocalPath17 = VisualBasic\\MakeConst\\Test
+		SccLocalPath18 = .
+		SccProjectUniqueName19 = CSharp\\AsyncPackage\\AsyncPackage.csproj
+		SccProjectTopLevelParentUniqueName19 = Samples.sln
+		SccProjectName19 = CSharp/AsyncPackage
+		SccLocalPath19 = CSharp\\AsyncPackage
+		SccProjectUniqueName20 = CSharp\\AsyncPackage\\Test\\AsyncPackage.Test.csproj
+		SccProjectTopLevelParentUniqueName20 = Samples.sln
+		SccProjectName20 = CSharp/AsyncPackage/Test
+		SccLocalPath20 = CSharp\\AsyncPackage\\Test
+	EndGlobalSection
+EndGlobal
