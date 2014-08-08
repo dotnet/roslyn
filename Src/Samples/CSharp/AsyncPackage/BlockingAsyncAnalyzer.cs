@@ -37,39 +37,42 @@ namespace AsyncPackage
             {
                 var invokeMethod = semanticModel.GetSymbolInfo(node).Symbol as IMethodSymbol;
 
-                // Checks if the Wait method is called within an async method then creates the diagnostic.
-                if (invokeMethod != null && !invokeMethod.IsExtensionMethod && invokeMethod.OriginalDefinition.Name.Equals("Wait"))
+                if (invokeMethod != null && !invokeMethod.IsExtensionMethod)
                 {
-                    addDiagnostic(Diagnostic.Create(Rule, node.Parent.GetLocation()));
-                    return;
-                }
+                    // Checks if the Wait method is called within an async method then creates the diagnostic.
+                    if (invokeMethod.OriginalDefinition.Name.Equals("Wait"))
+                    {
+                        addDiagnostic(Diagnostic.Create(Rule, node.Parent.GetLocation()));
+                        return;
+                    }
 
-                // Checks if the WaitAny method is called within an async method then creates the diagnostic.
-                if (invokeMethod != null && !invokeMethod.IsExtensionMethod && invokeMethod.OriginalDefinition.Name.Equals("WaitAny"))
-                {
-                    addDiagnostic(Diagnostic.Create(Rule, node.Parent.GetLocation()));
-                    return;
-                }
+                    // Checks if the WaitAny method is called within an async method then creates the diagnostic.
+                    if (invokeMethod.OriginalDefinition.Name.Equals("WaitAny"))
+                    {
+                        addDiagnostic(Diagnostic.Create(Rule, node.Parent.GetLocation()));
+                        return;
+                    }
 
-                // Checks if the WaitAll method is called within an async method then creates the diagnostic.
-                if (invokeMethod != null && !invokeMethod.IsExtensionMethod && invokeMethod.OriginalDefinition.Name.Equals("WaitAll"))
-                {
-                    addDiagnostic(Diagnostic.Create(Rule, node.Parent.GetLocation()));
-                    return;
-                }
+                    // Checks if the WaitAll method is called within an async method then creates the diagnostic.
+                    if (invokeMethod.OriginalDefinition.Name.Equals("WaitAll"))
+                    {
+                        addDiagnostic(Diagnostic.Create(Rule, node.Parent.GetLocation()));
+                        return;
+                    }
 
-                // Checks if the Sleep method is called within an async method then creates the diagnostic.
-                if (invokeMethod != null && !invokeMethod.IsExtensionMethod && invokeMethod.OriginalDefinition.Name.Equals("Sleep"))
-                {
-                    addDiagnostic(Diagnostic.Create(Rule, node.Parent.GetLocation()));
-                    return;
-                }
+                    // Checks if the Sleep method is called within an async method then creates the diagnostic.
+                    if (invokeMethod.OriginalDefinition.Name.Equals("Sleep"))
+                    {
+                        addDiagnostic(Diagnostic.Create(Rule, node.Parent.GetLocation()));
+                        return;
+                    }
 
-                // Checks if the GetResult method is called within an async method then creates the diagnostic.     
-                if (invokeMethod != null && !invokeMethod.IsExtensionMethod && invokeMethod.OriginalDefinition.Name.Equals("GetResult"))
-                {
-                    addDiagnostic(Diagnostic.Create(Rule, node.Parent.GetLocation()));
-                    return;
+                    // Checks if the GetResult method is called within an async method then creates the diagnostic.     
+                    if (invokeMethod.OriginalDefinition.Name.Equals("GetResult"))
+                    {
+                        addDiagnostic(Diagnostic.Create(Rule, node.Parent.GetLocation()));
+                        return;
+                    }
                 }
 
                 var property = semanticModel.GetSymbolInfo(node).Symbol as IPropertySymbol;
