@@ -5,12 +5,12 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis
 {
-    public class InMemoryAssemblyLoadEventArgs : EventArgs
+    public class AnalyzerAssemblyLoadEventArgs : EventArgs
     {
         private readonly string path;
         private readonly Assembly loadedAssembly;
 
-        public InMemoryAssemblyLoadEventArgs(string path, Assembly loadedAssembly)
+        public AnalyzerAssemblyLoadEventArgs(string path, Assembly loadedAssembly)
         {
             this.path = path;
             this.loadedAssembly = loadedAssembly;

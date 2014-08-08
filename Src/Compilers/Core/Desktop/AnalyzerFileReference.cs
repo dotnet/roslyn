@@ -21,11 +21,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 
     /// If you need to manage the lifetime of the anayzer reference (and the file stream) explicitly use <see cref="AnalyzerImageReference"/>.
     /// </remarks>
-    public sealed class AnalyzerFileReference : AnalyzerReference
+    public sealed partial class AnalyzerFileReference : AnalyzerReference
     {
         private readonly string fullPath;
         private string displayName;
         private ImmutableArray<IDiagnosticAnalyzer>? lazyAnalyzers;
+        private Assembly assembly;
+
+        /// <summary>
+        /// Fired when an <see cref="Assembly"/> referred to by an <see cref="AnalyzerFileReference"/>
+        /// (or a dependent <see cref="Assembly"/>) is loaded.
+        /// </summary>
+        public static event EventHandler<AnalyzerAssemblyLoadEventArgs> AssemblyLoad;
 
         public AnalyzerFileReference(string fullPath)
         {
@@ -124,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-                Assembly analyzerAssembly = InMemoryAssemblyLoader.Load(fullPath);
+                Assembly analyzerAssembly = GetAssembly();
                 types = analyzerAssembly.GetTypes();
             }
             catch (FileLoadException e)
@@ -206,6 +213,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return Hash.Combine(this.Display,
                         Hash.Combine(this.FullPath, this.IsUnresolved.GetHashCode()));
+        }
+
+        public Assembly GetAssembly()
+        {
+            if (assembly == null)
+            {
+                assembly = InMemoryAssemblyLoader.Load(fullPath);
+            }
+
+            return assembly;
         }
     }
 }

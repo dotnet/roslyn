@@ -4,34 +4,36 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class InMemoryAssemblyLoaderTests : TestBase
+    public class AnalyzerFileReferenceTests : TestBase
     {
         [Fact]
-        public void Test()
+        public void AssemblyLoading()
         {
             StringBuilder sb = new StringBuilder();
             var directory = Temp.CreateDirectory();
 
-            EventHandler<InMemoryAssemblyLoadEventArgs> handler = (e, args) =>
+            EventHandler<AnalyzerAssemblyLoadEventArgs> handler = (e, args) =>
             {
                 var relativePath = args.Path.Substring(directory.Path.Length);
                 sb.AppendFormat("Assembly {0} loaded from {1}", args.LoadedAssembly.FullName, relativePath);
                 sb.AppendLine();
             };
 
-            InMemoryAssemblyLoader.AssemblyLoad += handler;
+            AnalyzerFileReference.AssemblyLoad += handler;
 
             var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
             var betaDll = directory.CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Beta);
             var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Gamma);
             var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Delta);
 
-            Assembly alpha = InMemoryAssemblyLoader.Load(alphaDll.Path);
+            AnalyzerFileReference alphaReference = new AnalyzerFileReference(alphaDll.Path);
+            Assembly alpha = alphaReference.GetAssembly();
             File.Delete(alphaDll.Path);
 
             var a = alpha.CreateInstance("Alpha.A");
@@ -40,7 +42,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             File.Delete(gammaDll.Path);
             File.Delete(deltaDll.Path);
 
-            Assembly beta = InMemoryAssemblyLoader.Load(betaDll.Path);
+            AnalyzerFileReference betaReference = new AnalyzerFileReference(betaDll.Path);
+            Assembly beta = betaReference.GetAssembly();
             var b = beta.CreateInstance("Beta.B");
             b.GetType().GetMethod("Write").Invoke(b, new object[] { sb, "Test B" });
 
@@ -56,7 +59,7 @@ Delta: Gamma: Beta: Test B
 
             Assert.Equal(expected, actual);
 
-            InMemoryAssemblyLoader.AssemblyLoad -= handler;
+            AnalyzerFileReference.AssemblyLoad -= handler;
         }
     }
 }

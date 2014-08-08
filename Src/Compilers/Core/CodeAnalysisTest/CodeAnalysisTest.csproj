@@ -23,7 +23,7 @@
     <Compile Include="..\..\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
-    <Compile Include="InMemoryAssemblyLoaderTests.cs" />
+    <Compile Include="AnalyzerFileReferenceTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">

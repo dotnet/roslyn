@@ -84,8 +84,8 @@
     <Compile Include="FailFast.cs" />
     <Compile Include="FileKey.cs" />
     <Compile Include="FileUtilities.cs" />
-    <Compile Include="InMemoryAssemblyLoadEventArgs.cs" />
-    <Compile Include="InMemoryAssemblyLoader.cs" />
+    <Compile Include="AnalyzerAssemblyLoadEventArgs.cs" />
+    <Compile Include="AnalyzerFileReference.InMemoryAssemblyLoader.cs" />
     <Compile Include="IVsSQM.cs" />
     <Compile Include="MetadataCache.cs" />
     <Compile Include="AnalyzerFileReference.cs" />
