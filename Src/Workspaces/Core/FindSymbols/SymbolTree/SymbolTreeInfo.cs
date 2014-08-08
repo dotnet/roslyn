@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.nodes = orderedNodes;
         }
 
+        public int Count
+        {
+            get { return this.nodes.Count; }
+        }
+
         public bool HasSymbols(string name, bool ignoreCase)
         {
             return BinarySearch(name, GetComparer(ignoreCase)) != -1;
