@@ -466,6 +466,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Private Function ReplacementBreaksBinaryExpression(binaryExpression As BinaryExpressionSyntax, newBinaryExpression As BinaryExpressionSyntax) As Boolean
+            Dim operatorTokenKind = binaryExpression.OperatorToken.VisualBasicKind
+            If SyntaxFacts.IsAssignmentStatementOperatorToken(operatorTokenKind) AndAlso
+                operatorTokenKind <> SyntaxKind.LessThanLessThanEqualsToken AndAlso
+                operatorTokenKind <> SyntaxKind.GreaterThanGreaterThanEqualsToken AndAlso
+                ReplacementBreaksCompoundAssignExpression(binaryExpression.Left, binaryExpression.Right, newBinaryExpression.Left, newBinaryExpression.Right) Then
+                Return True
+            End If
+
             Return Not SymbolsAreCompatible(binaryExpression, newBinaryExpression) OrElse
                 Not TypesAreCompatible(binaryExpression, newBinaryExpression)
         End Function
@@ -488,6 +496,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Protected Overrides Function ConversionsAreCompatible(originalModel As SemanticModel, originalExpression As ExpressionSyntax, newModel As SemanticModel, newExpression As ExpressionSyntax) As Boolean
             Return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression))
+        End Function
+
+        Protected Overrides Function ConversionsAreCompatible(originalExpression As ExpressionSyntax, originalTargetType As ITypeSymbol, newExpression As ExpressionSyntax, newTargetType As ITypeSymbol) As Boolean
+            Dim originalConversion = Me.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType)
+            Dim newConversion = Me.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType)
+            Return ConversionsAreCompatible(originalConversion, newConversion)
         End Function
 
         Private Overloads Function ConversionsAreCompatible(originalConversion As Conversion, newConversion As Conversion) As Boolean

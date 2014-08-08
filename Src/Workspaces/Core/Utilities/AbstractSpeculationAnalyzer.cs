@@ -233,7 +233,20 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return ConversionsAreCompatible(this.OriginalSemanticModel, originalExpression, this.SpeculativeSemanticModel, newExpression);
         }
 
+        private bool ImplicitConversionsAreCompatible(TExpressionSyntax originalExpression, ITypeSymbol originalTargetType, TExpressionSyntax newExpression, ITypeSymbol newTargetType)
+        {
+            Debug.Assert(originalExpression != null);
+            Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
+            Debug.Assert(newExpression != null);
+            Debug.Assert(this.SemanticRootOfReplacedExpression.DescendantNodesAndSelf().Contains(newExpression));
+            Debug.Assert(originalTargetType != null);
+            Debug.Assert(newTargetType != null);
+
+            return ConversionsAreCompatible(originalExpression, originalTargetType, newExpression, newTargetType);
+        }
+
         protected abstract bool ConversionsAreCompatible(SemanticModel model1, TExpressionSyntax expression1, SemanticModel model2, TExpressionSyntax expression2);
+        protected abstract bool ConversionsAreCompatible(TExpressionSyntax originalExpression, ITypeSymbol originalTargetType, TExpressionSyntax newExpression, ITypeSymbol newTargetType);
 
         protected bool SymbolsAreCompatible(TSyntaxNode originalNode, TSyntaxNode newNode, bool requireNonNullSymbols = false)
         {
@@ -710,6 +723,30 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             return true;
+        }
+
+        protected bool ReplacementBreaksCompoundAssignExpression(
+            TExpressionSyntax originalLeft,
+            TExpressionSyntax originalRight,
+            TExpressionSyntax newLeft,
+            TExpressionSyntax newRight)
+        {
+            var originalTargetType = this.OriginalSemanticModel.GetTypeInfo(originalLeft).Type;
+            if (originalTargetType != null)
+            {
+                var newTargetType = this.SpeculativeSemanticModel.GetTypeInfo(newLeft).Type;
+                if (originalTargetType != newTargetType)
+                {
+                    return true;
+                }
+
+                if (!ImplicitConversionsAreCompatible(originalRight, originalTargetType, newRight, newTargetType))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected abstract bool IsReferenceConversion(Compilation model, ITypeSymbol sourceType, ITypeSymbol targetType);

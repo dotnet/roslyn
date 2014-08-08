@@ -555,6 +555,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return true;
             }
 
+            if (binaryExpression.IsCompoundAssignExpression() &&
+                binaryExpression.CSharpKind() != SyntaxKind.LeftShiftAssignmentExpression &&
+                binaryExpression.CSharpKind() != SyntaxKind.RightShiftAssignmentExpression &&
+                ReplacementBreaksCompoundAssignExpression(binaryExpression.Left, binaryExpression.Right, newBinaryExpression.Left, newBinaryExpression.Right))
+            {
+                return true;
+            }
+
             return !SymbolsAreCompatible(binaryExpression, newBinaryExpression) ||
                 !TypesAreCompatible(binaryExpression, newBinaryExpression);
         }
@@ -597,6 +605,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
         {
             return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
+        }
+
+        protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
+        {
+            var originalConversion = this.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType);
+            var newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType);
+            return ConversionsAreCompatible(originalConversion, newConversion);
         }
 
         private bool ConversionsAreCompatible(Conversion originalConversion, Conversion newConversion)
