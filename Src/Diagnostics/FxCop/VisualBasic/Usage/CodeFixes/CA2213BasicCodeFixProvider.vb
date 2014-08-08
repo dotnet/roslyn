@@ -42,17 +42,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
                 Return Task.FromResult(document)
             End If
 
-            Dim factory = document.GetLanguageService(Of ISyntaxFactoryService)()
+            Dim factory = document.GetLanguageService(Of SyntaxGenerator)()
 
             ' Handle a case where a local in the Dipose method with the same name by generating this (or ClassName) and simplifying it
-            Dim path = If(fieldSymbol.IsStatic, factory.CreateIdentifierName(typeSymbol.MetadataName), factory.CreateThisExpression())
+            Dim path = If(fieldSymbol.IsStatic, factory.IdentifierName(typeSymbol.MetadataName), factory.ThisExpression())
 
             Dim statement =
-                factory.CreateExpressionStatement(
-                    factory.CreateInvocationExpression(
-                        factory.CreateMemberAccessExpression(
-                            factory.CreateMemberAccessExpression(path, factory.CreateIdentifierName(fieldSymbol.Name)).WithAdditionalAnnotations(Simplification.Simplifier.Annotation),
-                                factory.CreateIdentifierName(disposeSymbolOfField.MetadataName))))
+                factory.ExpressionStatement(
+                    factory.InvocationExpression(
+                        factory.MemberAccessExpression(
+                            factory.MemberAccessExpression(path, factory.IdentifierName(fieldSymbol.Name)).WithAdditionalAnnotations(Simplification.Simplifier.Annotation),
+                                factory.IdentifierName(disposeSymbolOfField.MetadataName))))
 
             Dim parent = DirectCast(member.Parent, MethodBlockSyntax)
             Dim newMember = parent.AddStatements(DirectCast(statement, StatementSyntax)).WithAdditionalAnnotations(Formatter.Annotation)

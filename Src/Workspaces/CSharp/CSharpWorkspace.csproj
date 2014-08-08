@@ -92,7 +92,7 @@
     <Compile Include="CodeGeneration\CSharpCodeGenerationService.cs" />
     <Compile Include="CodeGeneration\CSharpCodeGenerationServiceFactory.cs" />
     <Compile Include="CodeGeneration\CSharpDeclarationComparer.cs" />
-    <Compile Include="CodeGeneration\CSharpSyntaxFactory.cs" />
+    <Compile Include="CodeGeneration\CSharpSyntaxGenerator.cs" />
     <Compile Include="CodeGeneration\DestructorGenerator.cs" />
     <Compile Include="CodeGeneration\EnumMemberGenerator.cs" />
     <Compile Include="CodeGeneration\EventGenerator.cs" />

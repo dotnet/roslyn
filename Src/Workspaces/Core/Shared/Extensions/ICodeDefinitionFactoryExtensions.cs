@@ -14,39 +14,38 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class ICodeDefinitionFactoryExtensions
     {
         public static SyntaxNode CreateThrowNotImplementStatement(
-            this ISyntaxFactoryService codeDefinitionFactory,
+            this SyntaxGenerator codeDefinitionFactory,
             Compilation compilation)
         {
-            return codeDefinitionFactory.CreateThrowStatement(
-                codeDefinitionFactory.CreateObjectCreationExpression(
+            return codeDefinitionFactory.ThrowStatement(
+                codeDefinitionFactory.ObjectCreationExpression(
                     compilation.NotImplementedExceptionType(),
                     SpecializedCollections.EmptyList<SyntaxNode>()));
         }
 
         public static IList<SyntaxNode> CreateThrowNotImplementedStatementBlock(
-            this ISyntaxFactoryService codeDefinitionFactory,
+            this SyntaxGenerator codeDefinitionFactory,
             Compilation compilation)
         {
             return new[] { CreateThrowNotImplementStatement(codeDefinitionFactory, compilation) };
         }
 
         public static IList<SyntaxNode> CreateArguments(
-            this ISyntaxFactoryService factory,
+            this SyntaxGenerator factory,
             ImmutableArray<IParameterSymbol> parameters)
         {
             return parameters.Select(p => CreateArgument(factory, p)).ToList();
         }
 
         private static SyntaxNode CreateArgument(
-            this ISyntaxFactoryService factory,
+            this SyntaxGenerator factory,
             IParameterSymbol parameter)
         {
-            return factory.CreateArgument(nameOpt: null, refKind: parameter.RefKind,
-                expression: factory.CreateIdentifierName(parameter.Name));
+            return factory.Argument(parameter.RefKind, factory.IdentifierName(parameter.Name));
         }
 
         public static IMethodSymbol CreateBaseDelegatingConstructor(
-            this ISyntaxFactoryService factory,
+            this SyntaxGenerator factory,
             IMethodSymbol constructor,
             string typeName)
         {
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IEnumerable<ISymbol> CreateFieldDelegatingConstructor(
-            this ISyntaxFactoryService factory,
+            this SyntaxGenerator factory,
             string typeName,
             INamedTypeSymbol containingTypeOpt,
             IList<IParameterSymbol> parameters,
@@ -117,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IEnumerable<IFieldSymbol> CreateFieldsForParameters(
-            this ISyntaxFactoryService factory,
+            this SyntaxGenerator factory,
             IList<IParameterSymbol> parameters,
             IDictionary<string, string> parameterToNewFieldMap)
         {
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IEnumerable<SyntaxNode> CreateAssignmentStatements(
-            this ISyntaxFactoryService factory,
+            this SyntaxGenerator factory,
             IList<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap)
@@ -182,10 +181,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // If it's an out param, then don't create a field for it.  Instead, assign
                     // assign the default value for that type (i.e. "default(...)") to it.
-                    var assignExpression = factory.CreateAssignExpression(
-                        factory.CreateIdentifierName(parameterName),
-                        factory.CreateDefaultExpression(parameterType));
-                    var statement = factory.CreateExpressionStatement(assignExpression);
+                    var assignExpression = factory.AssignmentStatement(
+                        factory.IdentifierName(parameterName),
+                        factory.DefaultExpression(parameterType));
+                    var statement = factory.ExpressionStatement(assignExpression);
                     yield return statement;
                 }
                 else
@@ -196,12 +195,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (TryGetValue(parameterToExistingFieldMap, parameterName, out fieldName) ||
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {
-                        var assignExpression = factory.CreateAssignExpression(
-                            factory.CreateMemberAccessExpression(
-                                factory.CreateThisExpression(),
-                                factory.CreateIdentifierName(fieldName)),
-                            factory.CreateIdentifierName(parameterName));
-                        var statement = factory.CreateExpressionStatement(assignExpression);
+                        var assignExpression = factory.AssignmentStatement(
+                            factory.MemberAccessExpression(
+                                factory.ThisExpression(),
+                                factory.IdentifierName(fieldName)),
+                            factory.IdentifierName(parameterName));
+                        var statement = factory.ExpressionStatement(assignExpression);
                         yield return statement;
                     }
                 }
@@ -209,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IPropertySymbol OverrideProperty(
-            this ISyntaxFactoryService codeFactory,
+            this SyntaxGenerator codeFactory,
             IPropertySymbol overriddenProperty,
             SymbolModifiers modifiers,
             INamedTypeSymbol containingType,
@@ -231,17 +230,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else if (overriddenProperty.IsIndexer() && document.Project.Language == LanguageNames.CSharp)
             {
                 // Indexer: return or set base[]. Only in C#, since VB must refer to these by name.
-                getBody = codeFactory.CreateReturnStatement(
-                    codeFactory.CreateElementAccessExpression(
-                        codeFactory.CreateBaseExpression(),
+                getBody = codeFactory.ReturnStatement(
+                    codeFactory.ElementAccessExpression(
+                        codeFactory.BaseExpression(),
                         codeFactory.CreateArguments(overriddenProperty.Parameters)));
 
-                setBody = codeFactory.CreateExpressionStatement(
-                    codeFactory.CreateAssignExpression(
-                    codeFactory.CreateElementAccessExpression(
-                        codeFactory.CreateBaseExpression(),
+                setBody = codeFactory.ExpressionStatement(
+                    codeFactory.AssignmentStatement(
+                    codeFactory.ElementAccessExpression(
+                        codeFactory.BaseExpression(),
                         codeFactory.CreateArguments(overriddenProperty.Parameters)),
-                    codeFactory.CreateIdentifierName("value")));
+                    codeFactory.IdentifierName("value")));
             }
             else if (overriddenProperty.GetParameters().Any())
             {
@@ -255,51 +254,51 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                     getBody = getName == null
                         ? null
-                        : codeFactory.CreateReturnStatement(
-                    codeFactory.CreateInvocationExpression(
-                        codeFactory.CreateMemberAccessExpression(
-                            codeFactory.CreateBaseExpression(),
-                            codeFactory.CreateIdentifierName(getName)),
+                        : codeFactory.ReturnStatement(
+                    codeFactory.InvocationExpression(
+                        codeFactory.MemberAccessExpression(
+                            codeFactory.BaseExpression(),
+                            codeFactory.IdentifierName(getName)),
                         codeFactory.CreateArguments(overriddenProperty.Parameters)));
 
                     setBody = setName == null
                         ? null
-                        : codeFactory.CreateExpressionStatement(
-                        codeFactory.CreateInvocationExpression(
-                            codeFactory.CreateMemberAccessExpression(
-                                codeFactory.CreateBaseExpression(),
-                                codeFactory.CreateIdentifierName(setName)),
+                        : codeFactory.ExpressionStatement(
+                        codeFactory.InvocationExpression(
+                            codeFactory.MemberAccessExpression(
+                                codeFactory.BaseExpression(),
+                                codeFactory.IdentifierName(setName)),
                             codeFactory.CreateArguments(overriddenProperty.SetMethod.GetParameters())));
                 }
                 else
                 {
-                    getBody = codeFactory.CreateReturnStatement(
-                        codeFactory.CreateInvocationExpression(
-                        codeFactory.CreateMemberAccessExpression(
-                            codeFactory.CreateBaseExpression(),
-                            codeFactory.CreateIdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters)));
-                    setBody = codeFactory.CreateExpressionStatement(
-                        codeFactory.CreateAssignExpression(
-                            codeFactory.CreateInvocationExpression(
-                            codeFactory.CreateMemberAccessExpression(
-                            codeFactory.CreateBaseExpression(),
-                        codeFactory.CreateIdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters)),
-                        codeFactory.CreateIdentifierName("value")));
+                    getBody = codeFactory.ReturnStatement(
+                        codeFactory.InvocationExpression(
+                        codeFactory.MemberAccessExpression(
+                            codeFactory.BaseExpression(),
+                            codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters)));
+                    setBody = codeFactory.ExpressionStatement(
+                        codeFactory.AssignmentStatement(
+                            codeFactory.InvocationExpression(
+                            codeFactory.MemberAccessExpression(
+                            codeFactory.BaseExpression(),
+                        codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters)),
+                        codeFactory.IdentifierName("value")));
                 }
             }
             else
             {
                 // Regular property: return or set the base property
-                getBody = codeFactory.CreateReturnStatement(
-                    codeFactory.CreateMemberAccessExpression(
-                        codeFactory.CreateBaseExpression(),
-                        codeFactory.CreateIdentifierName(overriddenProperty.Name)));
-                setBody = codeFactory.CreateExpressionStatement(
-                    codeFactory.CreateAssignExpression(
-                        codeFactory.CreateMemberAccessExpression(
-                        codeFactory.CreateBaseExpression(),
-                    codeFactory.CreateIdentifierName(overriddenProperty.Name)),
-                    codeFactory.CreateIdentifierName("value")));
+                getBody = codeFactory.ReturnStatement(
+                    codeFactory.MemberAccessExpression(
+                        codeFactory.BaseExpression(),
+                        codeFactory.IdentifierName(overriddenProperty.Name)));
+                setBody = codeFactory.ExpressionStatement(
+                    codeFactory.AssignmentStatement(
+                        codeFactory.MemberAccessExpression(
+                        codeFactory.BaseExpression(),
+                    codeFactory.IdentifierName(overriddenProperty.Name)),
+                    codeFactory.IdentifierName("value")));
             }
 
             // Only generate a getter if the base getter is accessible.
@@ -337,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IEventSymbol OverrideEvent(
-            this ISyntaxFactoryService codeFactory,
+            this SyntaxGenerator codeFactory,
             IEventSymbol overriddenEvent,
             SymbolModifiers modifiers,
             INamedTypeSymbol newContainingType)
@@ -352,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IMethodSymbol OverrideMethod(
-            this ISyntaxFactoryService codeFactory,
+            this SyntaxGenerator codeFactory,
             IMethodSymbol overriddenMethod,
             SymbolModifiers modifiers,
             INamedTypeSymbol newContainingType,
@@ -372,11 +371,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // Otherwise, call the base method with the same parameters
                 var typeParams = overriddenMethod.GetTypeArguments();
-                var body = codeFactory.CreateInvocationExpression(
-                    codeFactory.CreateMemberAccessExpression(codeFactory.CreateBaseExpression(),
+                var body = codeFactory.InvocationExpression(
+                    codeFactory.MemberAccessExpression(codeFactory.BaseExpression(),
                     typeParams.IsDefaultOrEmpty
-                        ? codeFactory.CreateIdentifierName(overriddenMethod.Name)
-                        : codeFactory.CreateGenericName(overriddenMethod.Name, typeParams)),
+                        ? codeFactory.IdentifierName(overriddenMethod.Name)
+                        : codeFactory.GenericName(overriddenMethod.Name, typeParams)),
                     codeFactory.CreateArguments(overriddenMethod.GetParameters()));
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
@@ -384,8 +383,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
                     statements: ((IMethodSymbol)overriddenMethod).ReturnsVoid
-                        ? new SyntaxNode[] { codeFactory.CreateExpressionStatement(body) }
-                        : new SyntaxNode[] { codeFactory.CreateReturnStatement(body) });
+                        ? new SyntaxNode[] { codeFactory.ExpressionStatement(body) }
+                        : new SyntaxNode[] { codeFactory.ReturnStatement(body) });
             }
         }
     }

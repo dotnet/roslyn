@@ -124,7 +124,7 @@
     <Compile Include="CodeGeneration\VisualBasicCodeGenerationService.vb" />
     <Compile Include="CodeGeneration\VisualBasicCodeGenerationServiceFactory.vb" />
     <Compile Include="CodeGeneration\VisualBasicDeclarationComparer.vb" />
-    <Compile Include="CodeGeneration\VisualBasicSyntaxFactory.vb" />
+    <Compile Include="CodeGeneration\VisualBasicSyntaxGenerator.vb" />
     <Compile Include="Composition\VisualBasicWorkspaceFeatures.vb" />
     <Compile Include="Extensions\ArgumentListSyntaxExtensions.vb" />
     <Compile Include="Extensions\ArgumentSyntaxExtensions.vb" />

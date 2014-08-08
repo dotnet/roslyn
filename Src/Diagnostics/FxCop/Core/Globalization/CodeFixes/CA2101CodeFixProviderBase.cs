@@ -22,16 +22,16 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
         protected const string LPWStrText = "LPWStr";
         protected const string UnicodeText = "Unicode";
 
-        internal SyntaxNode CreateMarshalAsArgument(ISyntaxFactoryService syntaxFactoryService, INamedTypeSymbol unmanagedType)
+        internal SyntaxNode CreateMarshalAsArgument(SyntaxGenerator syntaxFactoryService, INamedTypeSymbol unmanagedType)
         {
-            return syntaxFactoryService.CreateMemberAccessExpression(
-                syntaxFactoryService.CreateTypeReferenceExpression(unmanagedType), syntaxFactoryService.CreateIdentifierName(LPWStrText));
+            return syntaxFactoryService.MemberAccessExpression(
+                syntaxFactoryService.NamedTypeExpression(unmanagedType), syntaxFactoryService.IdentifierName(LPWStrText));
         }
 
-        internal SyntaxNode CreateCharSetArgument(ISyntaxFactoryService syntaxFactoryService, INamedTypeSymbol charSetType)
+        internal SyntaxNode CreateCharSetArgument(SyntaxGenerator syntaxFactoryService, INamedTypeSymbol charSetType)
         {
-            return syntaxFactoryService.CreateMemberAccessExpression(
-                syntaxFactoryService.CreateTypeReferenceExpression(charSetType), syntaxFactoryService.CreateIdentifierName(UnicodeText));
+            return syntaxFactoryService.MemberAccessExpression(
+                syntaxFactoryService.NamedTypeExpression(charSetType), syntaxFactoryService.IdentifierName(UnicodeText));
         }
     }
 }

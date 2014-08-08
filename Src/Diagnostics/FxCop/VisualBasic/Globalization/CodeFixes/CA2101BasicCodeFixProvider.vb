@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
                 Return Task.FromResult(document)
             End If
 
-            Dim syntaxFactoryService = document.Project.LanguageServices.GetService(Of ISyntaxFactoryService)()
+            Dim syntaxFactoryService = document.Project.LanguageServices.GetService(Of SyntaxGenerator)()
 
             ' return the unchanged root if no fix is available
             Dim newRoot = root

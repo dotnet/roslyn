@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
                 return Task.FromResult(document);
             }
 
-            var syntaxFactoryService = document.Project.LanguageServices.GetService<ISyntaxFactoryService>();
+            var syntaxFactoryService = document.Project.LanguageServices.GetService<SyntaxGenerator>();
 
             // return the unchanged root if no fix is available
             var newRoot = root;

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return GenerateParameterList(DirectCast(parameterDefinitions, IList(Of IParameterSymbol)), options)
         End Function
 
-        Public Shared Function GenerateParameterList(parameterDefinitions As IList(Of IParameterSymbol), options As CodeGenerationOptions) As ParameterListSyntax
+        Public Shared Function GenerateParameterList(parameterDefinitions As IEnumerable(Of IParameterSymbol), options As CodeGenerationOptions) As ParameterListSyntax
             Dim result = New List(Of ParameterSyntax)()
             Dim seenOptional = False
 

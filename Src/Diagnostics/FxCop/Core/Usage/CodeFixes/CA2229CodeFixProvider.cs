@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         internal async override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)
         {
-            var syntaxFactoryService = document.GetLanguageService<ISyntaxFactoryService>();
+            var syntaxFactoryService = document.GetLanguageService<SyntaxGenerator>();
 
             var symbol = model.GetDeclaredSymbol(nodeToFix);
 

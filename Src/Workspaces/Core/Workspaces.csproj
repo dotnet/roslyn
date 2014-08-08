@@ -302,7 +302,6 @@
     <Compile Include="CodeGeneration\AbstractCodeGenerator.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerator_Constants.cs" />
     <Compile Include="CodeGeneration\AbstractImportsAdder.cs" />
-    <Compile Include="CodeGeneration\AbstractSyntaxFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerationDestination.cs" />
     <Compile Include="CodeGeneration\CodeGenerationHelpers.cs" />
     <Compile Include="CodeGeneration\CodeGenerationOperatorKind.cs" />
@@ -311,7 +310,7 @@
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
     <Compile Include="CodeGeneration\ICodeGenerationService.cs" />
     <Compile Include="CodeGeneration\INamedTypeSymbolExtensions.cs" />
-    <Compile Include="CodeGeneration\ISyntaxFactoryService.cs" />
+    <Compile Include="CodeGeneration\SyntaxGenerator.cs" />
     <Compile Include="CodeGeneration\SymbolModifiers.cs" />
     <Compile Include="CodeGeneration\Symbols\CodeGenerationAbstractMethodSymbol.cs" />
     <Compile Include="CodeGeneration\Symbols\CodeGenerationAbstractNamedTypeSymbol.cs" />

@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             bool isExplicit,
             CodeGenerationOptions options)
         {
-            return GenerateParameterList((IList<IParameterSymbol>)parameterDefinitions, isExplicit, options);
+            return GenerateParameterList((IEnumerable<IParameterSymbol>)parameterDefinitions, isExplicit, options);
         }
 
         public static ParameterListSyntax GenerateParameterList(
-            IList<IParameterSymbol> parameterDefinitions,
+            IEnumerable<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
             CodeGenerationOptions options)
         {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static BracketedParameterListSyntax GenerateBracketedParameterList(
-            IList<IParameterSymbol> parameterDefinitions,
+            IEnumerable<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
             CodeGenerationOptions options)
         {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal static List<ParameterSyntax> GetParameters(
-            IList<IParameterSymbol> parameterDefinitions,
+            IEnumerable<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
             CodeGenerationOptions options)
         {

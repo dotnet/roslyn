@@ -48,6 +48,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
+    <Reference Include="Microsoft.CodeAnalysis.Desktop, Version=42.42.42.42, Culture=neutral, PublicKeyToken=fc793a00266884fb, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.Desktop.dll</HintPath>
+    </Reference>
     <Reference Include="System.Collections.Immutable">
       <HintPath>..\..\packages\Microsoft.Bcl.Immutable.1.1.20-beta\lib\portable-net45+win8\System.Collections.Immutable.dll</HintPath>
     </Reference>
@@ -78,6 +82,7 @@
   <ItemGroup />
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="CodeGeneration\SyntaxGeneratorTests.cs" />
     <Compile Include="Formatting\CSharpFormattingTestBase.cs" />
     <Compile Include="Formatting\FormattingElasticTriviaTests.cs" />
     <Compile Include="Formatting\FormattingMultipleSpanTests.cs" />

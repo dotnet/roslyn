@@ -346,9 +346,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return CodeGenerationDestination.Unspecified;
         }
 
-        protected override ISyntaxFactoryService GetSyntaxFactory()
+        protected override SyntaxGenerator GetSyntaxGenerator()
         {
-            return new CSharpSyntaxFactory();
+            return new CSharpSyntaxGenerator();
         }
 
         protected static TSyntaxNode ConditionallyAddDocumentationCommentTo<TSyntaxNode>(

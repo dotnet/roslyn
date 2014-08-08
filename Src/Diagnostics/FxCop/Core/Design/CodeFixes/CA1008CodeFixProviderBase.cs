@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal abstract SyntaxNode GetFieldInitializer(IFieldSymbol field);
         internal abstract SyntaxNode CreateConstantValueInitializer(SyntaxNode constantValueExpression);
 
-        private IFieldSymbol GetExplicitlyAssignedField(IFieldSymbol originalField, ISyntaxFactoryService syntaxFactoryService)
+        private IFieldSymbol GetExplicitlyAssignedField(IFieldSymbol originalField, SyntaxGenerator syntaxFactoryService)
         {
             var originalInitializer = GetFieldInitializer(originalField);
             if (originalInitializer != null || !originalField.HasConstantValue)
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 return originalField;
             }
 
-            var constantValueExpression = syntaxFactoryService.CreateConstantExpression(originalField.ConstantValue);
+            var constantValueExpression = syntaxFactoryService.LiteralExpression(originalField.ConstantValue);
             var newInitializer = CreateConstantValueInitializer(constantValueExpression);
 
             return CodeGenerationSymbolFactory.CreateFieldSymbol(originalField.GetAttributes(), originalField.DeclaredAccessibility, originalField.GetSymbolModifiers(),
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             return GetUpdatedDocumentWithFix(document, root, nodeToFix, newFields, cancellationToken);
         }
 
-        private IList<ISymbol> GetNewFieldsForRuleNameMultipleZero(INamedTypeSymbol enumType, IEnumerable<IFieldSymbol> zeroValuedFields, ISyntaxFactoryService syntaxFactoryService)
+        private IList<ISymbol> GetNewFieldsForRuleNameMultipleZero(INamedTypeSymbol enumType, IEnumerable<IFieldSymbol> zeroValuedFields, SyntaxGenerator syntaxFactoryService)
         {
             // Diagnostic: Remove all members that have the value zero from '{0}' except for one member that is named 'None'.
             // Fix: Remove all members that have the value zero except for one member that is named 'None'.
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             if (needsNewZeroValuedNoneField)
             {
                 var firstZeroValuedField = zeroValuedFields.First();
-                var constantValueExpression = syntaxFactoryService.CreateConstantExpression(firstZeroValuedField.ConstantValue);
+                var constantValueExpression = syntaxFactoryService.LiteralExpression(firstZeroValuedField.ConstantValue);
                 var newInitializer = CreateConstantValueInitializer(constantValueExpression);
                 var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(firstZeroValuedField.GetAttributes(), firstZeroValuedField.DeclaredAccessibility, firstZeroValuedField.GetSymbolModifiers(),
                     firstZeroValuedField.Type, "None", firstZeroValuedField.HasConstantValue, firstZeroValuedField.ConstantValue, newInitializer);
@@ -155,18 +155,18 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         {
             Contract.ThrowIfFalse(zeroValuedFields.Count() > 1);
 
-            var syntaxFactoryService = document.GetLanguageService<ISyntaxFactoryService>();
+            var syntaxFactoryService = document.GetLanguageService<SyntaxGenerator>();
             var newFields = GetNewFieldsForRuleNameMultipleZero(enumType, zeroValuedFields, syntaxFactoryService);
             return GetUpdatedDocumentWithFix(document, root, nodeToFix, newFields, cancellationToken);
         }
 
-        private IList<ISymbol> GetNewFieldsForRuleNameNoZeroValue(INamedTypeSymbol enumType, ISyntaxFactoryService syntaxFactoryService)
+        private IList<ISymbol> GetNewFieldsForRuleNameNoZeroValue(INamedTypeSymbol enumType, SyntaxGenerator syntaxFactoryService)
         {
             // Diagnostic: Add a member to '{0}' that has a value of zero with a suggested name of 'None'.
             // Fix: Add a zero-valued member 'None' to enum.
 
             var newFields = new List<ISymbol>();
-            var constantValueExpression = syntaxFactoryService.CreateConstantExpression(0);
+            var constantValueExpression = syntaxFactoryService.LiteralExpression(0);
             var newInitializer = CreateConstantValueInitializer(constantValueExpression);
             var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(SpecializedCollections.EmptyList<AttributeData>(), Accessibility.Public,
                     default(SymbolModifiers), enumType.EnumUnderlyingType, "None", true, 0, newInitializer);
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         private Task<Document> GetUpdatedDocumentForRuleNameNoZeroValue(Document document, SyntaxNode root, SyntaxNode nodeToFix, INamedTypeSymbol enumType, CancellationToken cancellationToken)
         {
-            var syntaxFactoryService = document.GetLanguageService<ISyntaxFactoryService>();
+            var syntaxFactoryService = document.GetLanguageService<SyntaxGenerator>();
             var newFields = GetNewFieldsForRuleNameNoZeroValue(enumType, syntaxFactoryService);
             return GetUpdatedDocumentWithFix(document, root, nodeToFix, newFields, cancellationToken);
         }

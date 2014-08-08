@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                        nonStructureAccessibility As Accessibility)
             options = If(options, CodeGenerationOptions.Default)
             If Not options.GenerateDefaultAccessibility Then
-                If destination = CodeGenerationDestination.StructType AndAlso accessibility = Accessibility.Public Then
+                If destination = CodeGenerationDestination.StructType AndAlso accessibility = accessibility.Public Then
                     Return
                 End If
 
@@ -26,19 +26,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Select Case accessibility
-                Case Accessibility.Public
+                Case accessibility.Public
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
 
-                Case Accessibility.Protected
+                Case accessibility.Protected
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
 
-                Case Accessibility.Private
+                Case accessibility.Private
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
 
-                Case Accessibility.ProtectedAndInternal, Accessibility.Internal
+                Case accessibility.ProtectedAndInternal, accessibility.Internal
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
 
-                Case Accessibility.ProtectedOrInternal
+                Case accessibility.ProtectedOrInternal
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
 
@@ -253,8 +253,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return CodeGenerationDestination.Unspecified
         End Function
 
-        Protected Overrides Function GetSyntaxFactory() As ISyntaxFactoryService
-            Return New VisualBasicSyntaxFactory()
+        Protected Overrides Function GetSyntaxGenerator() As SyntaxGenerator
+            Return New VisualBasicSyntaxGenerator()
         End Function
 
         Protected Shared Function ConditionallyAddDocumentationCommentTo(Of TSyntaxNode As SyntaxNode)(

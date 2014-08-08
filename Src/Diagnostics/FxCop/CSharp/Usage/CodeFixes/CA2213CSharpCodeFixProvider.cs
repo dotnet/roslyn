@@ -44,20 +44,20 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
                 return Task.FromResult(document);
             }
 
-            var factory = document.GetLanguageService<ISyntaxFactoryService>();
+            var factory = document.GetLanguageService<SyntaxGenerator>();
             var symbol = model.GetDeclaredSymbol(syntaxNode);
 
             // handle a case where a local in the Dipose method with the same name by generating this (or ClassName) and simplifying it
             var path = symbol.IsStatic
-                            ? factory.CreateIdentifierName(symbol.ContainingType.MetadataName)
-                            : factory.CreateThisExpression();
+                            ? factory.IdentifierName(symbol.ContainingType.MetadataName)
+                            : factory.ThisExpression();
 
             var statement =
-                factory.CreateExpressionStatement(
-                    factory.CreateInvocationExpression(
-                        factory.CreateMemberAccessExpression(
-                            factory.CreateMemberAccessExpression(path, factory.CreateIdentifierName(symbol.Name)).WithAdditionalAnnotations(Simplification.Simplifier.Annotation),
-                                factory.CreateIdentifierName(CA2213DiagnosticAnalyzer.Dispose))));
+                factory.ExpressionStatement(
+                    factory.InvocationExpression(
+                        factory.MemberAccessExpression(
+                            factory.MemberAccessExpression(path, factory.IdentifierName(symbol.Name)).WithAdditionalAnnotations(Simplification.Simplifier.Annotation),
+                                factory.IdentifierName(CA2213DiagnosticAnalyzer.Dispose))));
 
             var newMember = member.AddBodyStatements((StatementSyntax)statement).WithAdditionalAnnotations(Formatter.Annotation);
             return Task.FromResult(document.WithSyntaxRoot(root.ReplaceNode(member, newMember)));

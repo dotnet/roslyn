@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
             return FxCopFixersResources.StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase;
         }
 
-        internal SyntaxNode CreateEqualsExpression(ISyntaxFactoryService syntaxFactoryService, SemanticModel model, SyntaxNode operand1, SyntaxNode operand2, bool isEquals)
+        internal SyntaxNode CreateEqualsExpression(SyntaxGenerator syntaxFactoryService, SemanticModel model, SyntaxNode operand1, SyntaxNode operand2, bool isEquals)
         {
             var stringType = model.Compilation.GetSpecialType(SpecialType.System_String);
-            var memberAccess = syntaxFactoryService.CreateMemberAccessExpression(
-                        syntaxFactoryService.CreateTypeReferenceExpression(stringType),
-                        syntaxFactoryService.CreateIdentifierName(CA1309DiagnosticAnalyzer.EqualsMethodName));
+            var memberAccess = syntaxFactoryService.MemberAccessExpression(
+                        syntaxFactoryService.NamedTypeExpression(stringType),
+                        syntaxFactoryService.IdentifierName(CA1309DiagnosticAnalyzer.EqualsMethodName));
             var ordinal = CreateOrdinalMemberAccess(syntaxFactoryService, model);
-            var invocation = syntaxFactoryService.CreateInvocationExpression(
+            var invocation = syntaxFactoryService.InvocationExpression(
                 memberAccess,
                 operand1,
                 operand2.WithTrailingTrivia(),
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
                 .WithAdditionalAnnotations(Formatter.Annotation);
             if (!isEquals)
             {
-                invocation = syntaxFactoryService.CreateLogicalNotExpression(invocation);
+                invocation = syntaxFactoryService.LogicalNotExpression(invocation);
             }
 
             invocation = invocation.WithTrailingTrivia(operand2.GetTrailingTrivia());
@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
             return invocation;
         }
 
-        internal SyntaxNode CreateOrdinalMemberAccess(ISyntaxFactoryService syntaxFactoryService, SemanticModel model)
+        internal SyntaxNode CreateOrdinalMemberAccess(SyntaxGenerator syntaxFactoryService, SemanticModel model)
         {
             var stringComparisonType = WellKnownTypes.StringComparison(model.Compilation);
-            return syntaxFactoryService.CreateMemberAccessExpression(
-                syntaxFactoryService.CreateTypeReferenceExpression(stringComparisonType),
-                syntaxFactoryService.CreateIdentifierName(CA1309DiagnosticAnalyzer.OrdinalText));
+            return syntaxFactoryService.MemberAccessExpression(
+                syntaxFactoryService.NamedTypeExpression(stringComparisonType),
+                syntaxFactoryService.IdentifierName(CA1309DiagnosticAnalyzer.OrdinalText));
         }
 
         protected bool CanAddStringComparison(IMethodSymbol methodSymbol)

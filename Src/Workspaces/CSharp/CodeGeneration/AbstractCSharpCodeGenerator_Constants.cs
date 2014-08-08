@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return expression;
             }
 
-            var factory = new CSharpSyntaxFactory();
-            return factory.CreateCastExpression(enumType, expression);
+            var factory = new CSharpSyntaxGenerator();
+            return factory.CastExpression(enumType, expression);
         }
 
         protected override bool IsValidName(INamedTypeSymbol enumType, string name)

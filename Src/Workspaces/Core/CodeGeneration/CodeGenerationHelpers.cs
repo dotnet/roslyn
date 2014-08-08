@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal static class CodeGenerationHelpers
     {
         public static SyntaxNode GenerateThrowStatement(
-            ISyntaxFactoryService factory,
+            SyntaxGenerator factory,
             SemanticDocument document,
             string exceptionMetadataName,
             CancellationToken cancellationToken)
@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return null;
             }
 
-            var exceptionCreationExpression = factory.CreateObjectCreationExpression(
+            var exceptionCreationExpression = factory.ObjectCreationExpression(
                 exceptionType,
                 SpecializedCollections.EmptyList<SyntaxNode>());
 
-            return factory.CreateThrowStatement(exceptionCreationExpression);
+            return factory.ThrowStatement(exceptionCreationExpression);
         }
     }
 }

@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Shared Function GenerateChrWExpression(c As Char) As InvocationExpressionSyntax
-            Dim factory = New VisualBasicSyntaxFactory()
+            Dim factory = New VisualBasicSyntaxGenerator()
             Dim access = GenerateMemberAccessExpression("Microsoft", "VisualBasic", "Strings", "ChrW")
 
             Dim value = AscW(c)
@@ -177,9 +177,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ' If it's the constant value 0, and the type of the value matches the type we want for 
             ' this context, then we can just emit the literal 0 here.  We don't want to emit things 
             ' like UInteger.MinValue.
-            If value IsNot Nothing AndAlso IntegerUtilities.ToUInt64(value) = 0 AndAlso TypesMatch(type, value) Then
-                Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
-                    "0", LiteralBase.Decimal, TypeCharacter.None, 0))
+            If value IsNot Nothing AndAlso IntegerUtilities.ToUInt64(value) = 0 Then
+                If TypesMatch(type, value) Then
+                    Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
+                        "0", LiteralBase.Decimal, TypeCharacter.None, 0))
+                ElseIf type Is Nothing Then
+                    canUseFieldReference = False
+                End If
             End If
 
             If canUseFieldReference Then
@@ -354,6 +358,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Shared Function GenerateDecimalLiteralExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As ExpressionSyntax
+            ' don't use field references for simple values
+            Dim m As Decimal = CType(value, Decimal)
+            If m <> Decimal.MaxValue AndAlso m <> Decimal.MinValue Then
+                canUseFieldReference = False
+            End If
+
             If canUseFieldReference Then
                 Dim constants = GetType(Decimal).GetFields(BindingFlags.Public Or BindingFlags.Static).Where(Function(f) f.IsInitOnly)
                 Dim field = GenerateFieldReference(Of Decimal)(SpecialType.System_Decimal, value, constants)
@@ -366,15 +376,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim suffix As String = String.Empty
             DetermineSuffix(type, value, typeSuffix, suffix)
 
-            Dim literal1 = DirectCast(value, IFormattable).ToString(Nothing, CultureInfo.InvariantCulture) & suffix
-            Dim literal2 = DirectCast(value, IFormattable).ToString("0.############################E+0D", CultureInfo.InvariantCulture)
-            If literal1.Length <= literal2.Length Then
-                Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.DecimalLiteralToken(
-                    literal1, typeSuffix, DirectCast(value, Decimal)))
-            Else
-                Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.DecimalLiteralToken(
-                    literal2, TypeCharacter.DecimalLiteral, DirectCast(value, Decimal)))
-            End If
+            Dim literal = DirectCast(value, IFormattable).ToString(Nothing, CultureInfo.InvariantCulture) & suffix
+            Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.DecimalLiteralToken(literal, typeSuffix, DirectCast(value, Decimal)))
         End Function
 
         Private Shared Function AddSpecialTypeAnnotation(type As SpecialType, expression As MemberAccessExpressionSyntax) As MemberAccessExpressionSyntax

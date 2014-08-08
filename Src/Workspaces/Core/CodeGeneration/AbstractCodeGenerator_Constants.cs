@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal abstract partial class AbstractCodeGenerator : IComparer<ValueTuple<IFieldSymbol, ulong>>
     {
-        protected abstract ISyntaxFactoryService GetSyntaxFactory();
+        protected abstract SyntaxGenerator GetSyntaxGenerator();
         protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object constantValue);
         protected abstract bool IsValidName(INamedTypeSymbol enumType, string name);
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 }
             }
 
-            var syntaxFactory = GetSyntaxFactory();
+            var syntaxFactory = GetSyntaxGenerator();
 
             // We were able to represent this number as a bitwise OR of valid flags.
             if (result == 0 && usedFieldsAndValues.Count > 0)
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     }
                     else
                     {
-                        finalNode = syntaxFactory.CreateBinaryOrExpression(finalNode, node);
+                        finalNode = syntaxFactory.BitwiseOrExpression(finalNode, node);
                     }
                 }
 
@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (IsValidName(enumType, field.Name))
             {
-                var syntaxFactory = GetSyntaxFactory();
-                return syntaxFactory.CreateMemberAccessExpression(
-                    syntaxFactory.CreateTypeReferenceExpression(enumType),
-                    syntaxFactory.CreateIdentifierName(field.Name));
+                var syntaxFactory = GetSyntaxGenerator();
+                return syntaxFactory.MemberAccessExpression(
+                    syntaxFactory.NamedTypeExpression(enumType),
+                    syntaxFactory.IdentifierName(field.Name));
             }
             else
             {

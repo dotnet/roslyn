@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
             ' if nothing can be fixed, return the unchanged node
             Dim newRoot = root
             Dim kind = nodeToFix.VisualBasicKind()
-            Dim syntaxFactoryService = document.GetLanguageService(Of ISyntaxFactoryService)
+            Dim syntaxFactoryService = document.GetLanguageService(Of SyntaxGenerator)
             Select Case kind
                 Case SyntaxKind.SimpleArgument
                     ' StringComparison.CurrentCulture => StringComparison.Ordinal
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
                         ' preserve the "IgnoreCase" suffix if present
                         Dim isIgnoreCase = memberAccess.Name.GetText().ToString().EndsWith(CA1309DiagnosticAnalyzer.IgnoreCaseText)
                         Dim newOrdinalText = If(isIgnoreCase, CA1309DiagnosticAnalyzer.OrdinalIgnoreCaseText, CA1309DiagnosticAnalyzer.OrdinalText)
-                        Dim newIdentifier = syntaxFactoryService.CreateIdentifierName(newOrdinalText)
+                        Dim newIdentifier = syntaxFactoryService.IdentifierName(newOrdinalText)
                         Dim newMemberAccess = memberAccess.WithName(CType(newIdentifier, SimpleNameSyntax)).WithAdditionalAnnotations(Formatter.Annotation)
                         newRoot = root.ReplaceNode(memberAccess, newMemberAccess)
                     End If
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
                         Dim methodSymbol = TryCast(model.GetSymbolInfo(identifier).Symbol, IMethodSymbol)
                         If methodSymbol IsNot Nothing AndAlso CanAddStringComparison(methodSymbol) Then
                             ' append a New StringComparison.Ordinal argument
-                            Dim newArg = syntaxFactoryService.CreateArgument(CreateOrdinalMemberAccess(syntaxFactoryService, model)).
+                            Dim newArg = syntaxFactoryService.Argument(CreateOrdinalMemberAccess(syntaxFactoryService, model)).
                                 WithAdditionalAnnotations(Formatter.Annotation)
                             Dim newInvoke = invokeParent.AddArgumentListArguments(CType(newArg, ArgumentSyntax)).WithAdditionalAnnotations(Formatter.Annotation)
                             newRoot = root.ReplaceNode(invokeParent, newInvoke)
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
             Return Task.FromResult(document.WithSyntaxRoot(newRoot))
         End Function
 
-        Private Function FixBinaryExpression(syntaxFactoryService As ISyntaxFactoryService, model As SemanticModel, node As BinaryExpressionSyntax, isEquals As Boolean) As SyntaxNode
+        Private Function FixBinaryExpression(syntaxFactoryService As SyntaxGenerator, model As SemanticModel, node As BinaryExpressionSyntax, isEquals As Boolean) As SyntaxNode
             Dim invocation = CreateEqualsExpression(syntaxFactoryService, model, node.Left, node.Right, isEquals)
             Return invocation
         End Function

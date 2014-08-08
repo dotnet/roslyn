@@ -7,6 +7,9 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
+    /// <summary>
+    /// A generator used for creating or modifing member declarations in source.
+    /// </summary>
     public static class CodeGenerator
     {
         private static ICodeGenerationService GetCodeGenerationService(Workspace workspace, string language)

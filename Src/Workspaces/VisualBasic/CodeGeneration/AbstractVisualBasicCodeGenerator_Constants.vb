@@ -23,8 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return expression
             End If
 
-            Dim factory = New VisualBasicSyntaxFactory()
-            Return factory.CreateConvertExpression(enumType, expression)
+            Dim factory = New VisualBasicSyntaxGenerator()
+            Return factory.ConvertExpression(enumType, expression)
         End Function
 
         Protected Overrides Function IsValidName(enumType As INamedTypeSymbol, name As String) As Boolean

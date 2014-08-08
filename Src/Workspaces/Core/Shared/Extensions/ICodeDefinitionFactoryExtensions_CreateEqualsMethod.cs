@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const string ObjName = "obj";
 
         public static IMethodSymbol CreateEqualsMethod(
-            this ISyntaxFactoryService factory,
+            this SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
             IList<ISymbol> symbols,
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static IList<SyntaxNode> CreateEqualsMethodStatements(
-            ISyntaxFactoryService factory,
+            SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
             IEnumerable<ISymbol> members,
@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            var localNameExpression = factory.CreateIdentifierName(localName);
+            var localNameExpression = factory.IdentifierName(localName);
 
-            var objNameExpression = factory.CreateIdentifierName(ObjName);
+            var objNameExpression = factory.IdentifierName(ObjName);
 
             var expressions = new List<SyntaxNode>();
 
@@ -73,18 +73,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return false;
                 }
 #endif
-                var ifStatement = factory.CreateIfStatement(
-                    factory.CreateLogicalNotExpression(
-                        factory.CreateIsExpression(
+                var ifStatement = factory.IfStatement(
+                    factory.LogicalNotExpression(
+                        factory.IsExpression(
                             objNameExpression,
                             containingType)),
-                    new[] { factory.CreateReturnStatement(factory.CreateFalseExpression()) });
+                    new[] { factory.ReturnStatement(factory.FalseLiteralExpression()) });
 
 #if false
                 var myType = (MyType)obj;
 #endif
-                var localDeclaration = factory.CreateLocalDeclarationStatement(
-                    factory.CreateVariableDeclarator(localName, factory.CreateCastExpression(containingType, objNameExpression)));
+                var localDeclaration = factory.LocalDeclarationStatement(localName, factory.CastExpression(containingType, objNameExpression));
 
                 statements.Add(ifStatement);
                 statements.Add(localDeclaration);
@@ -94,42 +93,41 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 #if false
                 var myType = obj as MyType;
 #endif
-                var localDeclaration = factory.CreateLocalDeclarationStatement(
-                    factory.CreateVariableDeclarator(localName, factory.CreateAsExpression(objNameExpression, containingType)));
+                var localDeclaration = factory.LocalDeclarationStatement(localName, factory.AsExpression(objNameExpression, containingType));
 
                 statements.Add(localDeclaration);
 
 #if false
                 myType != null
 #endif
-                expressions.Add(factory.CreateReferenceNotEqualsExpression(localNameExpression, factory.CreateNullExpression()));
+                expressions.Add(factory.ReferenceNotEqualsExpression(localNameExpression, factory.NullLiteralExpression()));
                 if (HasExistingBaseEqualsMethod(containingType, cancellationToken))
                 {
 #if false
                     base.Equals(obj)
 #endif
-                    expressions.Add(factory.CreateInvocationExpression(
-                        factory.CreateMemberAccessExpression(
-                            factory.CreateBaseExpression(),
-                            factory.CreateIdentifierName(EqualsName)),
+                    expressions.Add(factory.InvocationExpression(
+                        factory.MemberAccessExpression(
+                            factory.BaseExpression(),
+                            factory.IdentifierName(EqualsName)),
                         objNameExpression));
                 }
             }
 
             foreach (var member in members)
             {
-                var symbolNameExpression = factory.CreateIdentifierName(member.Name);
-                var thisSymbol = factory.CreateMemberAccessExpression(factory.CreateThisExpression(), symbolNameExpression).WithAdditionalAnnotations(Simplification.Simplifier.Annotation);
-                var otherSymbol = factory.CreateMemberAccessExpression(localNameExpression, symbolNameExpression);
+                var symbolNameExpression = factory.IdentifierName(member.Name);
+                var thisSymbol = factory.MemberAccessExpression(factory.ThisExpression(), symbolNameExpression).WithAdditionalAnnotations(Simplification.Simplifier.Annotation);
+                var otherSymbol = factory.MemberAccessExpression(localNameExpression, symbolNameExpression);
 
 #if false
                 EqualityComparer<SType>.Default.Equals(this.S1, myType.S1)
 #endif
                 var expression =
-                    factory.CreateInvocationExpression(
-                        factory.CreateMemberAccessExpression(
+                    factory.InvocationExpression(
+                        factory.MemberAccessExpression(
                             GetDefaultEqualityComparer(factory, compilation, member),
-                            factory.CreateIdentifierName(EqualsName)),
+                            factory.IdentifierName(EqualsName)),
                         thisSymbol,
                         otherSymbol);
 
@@ -139,22 +137,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 #if false
             return myType != null && base.Equals(obj) && EqualityComparer<int>.Default.Equals(this.S1, myType.S1) && ...;
 #endif
-            statements.Add(factory.CreateReturnStatement(
-                expressions.Aggregate(factory.CreateLogicalAndExpression)));
+            statements.Add(factory.ReturnStatement(
+                expressions.Aggregate(factory.LogicalAndExpression)));
 
             return statements;
         }
 
         private static SyntaxNode GetDefaultEqualityComparer(
-            ISyntaxFactoryService factory,
+            SyntaxGenerator factory,
             Compilation compilation,
             ISymbol member)
         {
             var equalityComparerType = compilation.EqualityComparerOfTType();
             var constructedType = equalityComparerType.Construct(GetType(compilation, member));
-            return factory.CreateMemberAccessExpression(
-                factory.CreateTypeReferenceExpression(constructedType),
-                factory.CreateIdentifierName(DefaultName));
+            return factory.MemberAccessExpression(
+                factory.NamedTypeExpression(constructedType),
+                factory.IdentifierName(DefaultName));
         }
 
         private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)

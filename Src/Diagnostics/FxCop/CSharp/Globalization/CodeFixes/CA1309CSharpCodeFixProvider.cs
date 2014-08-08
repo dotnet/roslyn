@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
             // if nothing can be fixed, return the unchanged node
             var newRoot = root;
             var kind = nodeToFix.CSharpKind();
-            var syntaxFactoryService = document.GetLanguageService<ISyntaxFactoryService>();
+            var syntaxFactoryService = document.GetLanguageService<SyntaxGenerator>();
             switch (kind)
             {
                 case SyntaxKind.Argument:
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
                         // preserve the "IgnoreCase" suffix if present
                         bool isIgnoreCase = memberAccess.Name.GetText().ToString().EndsWith(CA1309DiagnosticAnalyzer.IgnoreCaseText);
                         var newOrdinalText = isIgnoreCase ? CA1309DiagnosticAnalyzer.OrdinalIgnoreCaseText : CA1309DiagnosticAnalyzer.OrdinalText;
-                        var newIdentifier = syntaxFactoryService.CreateIdentifierName(newOrdinalText);
+                        var newIdentifier = syntaxFactoryService.IdentifierName(newOrdinalText);
                         var newMemberAccess = memberAccess.WithName((SimpleNameSyntax)newIdentifier).WithAdditionalAnnotations(Formatter.Annotation);
                         newRoot = root.ReplaceNode(memberAccess, newMemberAccess);
                     }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
                         if (methodSymbol != null && CanAddStringComparison(methodSymbol))
                         {
                             // append a new StringComparison.Ordinal argument
-                            var newArg = syntaxFactoryService.CreateArgument(CreateOrdinalMemberAccess(syntaxFactoryService, model))
+                            var newArg = syntaxFactoryService.Argument(CreateOrdinalMemberAccess(syntaxFactoryService, model))
                                 .WithAdditionalAnnotations(Formatter.Annotation);
                             var newInvoke = invokeParent.AddArgumentListArguments((ArgumentSyntax)newArg).WithAdditionalAnnotations(Formatter.Annotation);
                             newRoot = root.ReplaceNode(invokeParent, newInvoke);

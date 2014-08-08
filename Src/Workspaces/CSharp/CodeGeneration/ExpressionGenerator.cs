@@ -194,6 +194,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ExpressionSyntax GenerateDecimalLiteralExpression(
             ITypeSymbol type, object value, string suffix, bool canUseFieldReference)
         {
+            // don't use field references for simple values
+            decimal m = (decimal)value;
+            if (m != decimal.MaxValue && m != decimal.MinValue)
+            {
+                canUseFieldReference = false;
+            }
+
             if (canUseFieldReference)
             {
                 var constants = value.GetType().GetFields(BindingFlags.Public | BindingFlags.Static).Where(f => f.IsInitOnly);
@@ -205,11 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
-            var literal1 = ((IFormattable)value).ToString(null, CultureInfo.InvariantCulture) + suffix;
-            var literal2 = ((IFormattable)value).ToString("0.############################E+0", CultureInfo.InvariantCulture) + suffix;
-
-            var literal = literal1.Length <= literal2.Length ? literal1 : literal2;
-
+            var literal = ((IFormattable)value).ToString(null, CultureInfo.InvariantCulture) + suffix;
             return GenerateLiteralExpression(value, literal);
         }
 
@@ -219,12 +222,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // If it's the constant value 0, and the type of the value matches the type we want for 
             // this context, then we can just emit the literal 0 here.  We don't want to emit things 
             // like UInteger.MinValue.
-            if (value != null && IntegerUtilities.ToUInt64(value) == 0 && TypesMatch(type, value))
+            if (value != null && IntegerUtilities.ToUInt64(value) == 0 && (type == null || TypesMatch(type, value)))
             {
-                return GenerateLiteralExpression(0, "0");
+                if (TypesMatch(type, value))
+                {
+                    return GenerateLiteralExpression(0, "0");
+                }
+                else if (type == null)
+                {
+                    canUseFieldReference = false;
+                }
             }
 
-            var constants = value.GetType().GetFields(BindingFlags.Public | BindingFlags.Static).Where(f => f.IsLiteral);
+            var constants = canUseFieldReference ? value.GetType().GetFields(BindingFlags.Public | BindingFlags.Static).Where(f => f.IsLiteral) : null;
             return GenerateLiteralExpression(type, value, constants, null, suffix, canUseFieldReference);
         }
 
