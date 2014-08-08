@@ -81,8 +81,9 @@ public class C
 }").VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
         }
 
-#endregion
+        #endregion
 
+#if !DEBUG
         [Fact]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
@@ -90,6 +91,7 @@ public class C
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer => 
                 compilation.GetCSharpAnalyzerDiagnostics(new[] { analyzer }, continueOnError: true), typeof(AnalyzerDriver).Name);
         }
+#endif
 
         [Fact]
         public void AnalyzerOptionsArePassedToAllAnalyzers()

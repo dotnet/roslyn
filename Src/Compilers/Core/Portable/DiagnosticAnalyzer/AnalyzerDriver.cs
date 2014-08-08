@@ -258,6 +258,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                           defaultSeverity: DiagnosticSeverity.Error,
                           isEnabledByDefault: true);
                     addDiagnostic(Diagnostic.Create(desc, Location.None));
+#if DEBUG
+                    throw ex;
+#endif
                 }
             }
         }
@@ -546,12 +549,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // Create a info diagnostic saying that the analyzer failed
                     addDiagnostic(GetAnalyzerDiagnostic(a, oce));
+#if DEBUG
+                    throw oce;
+#endif
                 }
             }
             catch (Exception e) if (continueOnError)
             {
                 // Create a info diagnostic saying that the analyzer failed
                 addDiagnostic(GetAnalyzerDiagnostic(a, e));
+#if DEBUG
+                throw e;
+#endif
             }
         }
 
@@ -739,6 +748,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // Create a info diagnostic saying that the analyzer failed
                     addDiagnostic(GetAnalyzerDiagnostic(nodeAnalyzer, e));
+#if DEBUG
+                    throw e;
+#endif
                 }
             }
         }
