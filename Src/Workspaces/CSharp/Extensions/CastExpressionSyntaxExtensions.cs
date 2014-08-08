@@ -466,7 +466,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // 1. IList<object> y = (IList<dynamic>)new List<object>()
                 if (expressionToCastType.IsExplicit && castToOuterType.IsExplicit && expressionToOuterType.IsImplicit)
                 {
-                    return true;
+                    // If both expressionToCastType and castToOuterType are numeric, then this is a required cast as one of the conversions leads to loss of precision.
+                    // Cast removal can change program behavior.                    
+                    return !(expressionToCastType.IsNumeric && castToOuterType.IsNumeric);
                 }
 
                 // Case :
