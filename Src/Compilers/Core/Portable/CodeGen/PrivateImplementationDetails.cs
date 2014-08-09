@@ -5,11 +5,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -41,13 +43,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private int frozen;
 
         // fields mapped to metadata blocks
-        private readonly List<MappedField> mappedFields = new List<MappedField>();
+        private ImmutableArray<MappedField> orderedMappedFields;
+        private readonly ConcurrentDictionary<ImmutableArray<byte>, MappedField> mappedFields =
+            new ConcurrentDictionary<ImmutableArray<byte>, MappedField>(ByteSequenceComparer.Instance);
 
         // synthesized methods
+        private ImmutableArray<Cci.IMethodDefinition> orderedSynthesizedMethods;
         private readonly ConcurrentDictionary<string, Cci.IMethodDefinition> synthesizedMethods =
             new ConcurrentDictionary<string, Cci.IMethodDefinition>();
 
         // field types for different block sizes.
+        private ImmutableArray<Cci.ITypeReference> orderedProxyTypes;
         private readonly ConcurrentDictionary<uint, Cci.ITypeReference> proxyTypes = new ConcurrentDictionary<uint, Cci.ITypeReference>();
 
         internal PrivateImplementationDetails(
@@ -88,9 +94,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             var wasFrozen = Interlocked.Exchange(ref this.frozen, 1);
             if (wasFrozen != 0)
             {
-                //TODO EDMAURER consider what to do as part of synchronization review
                 throw new InvalidOperationException();
             }
+
+            // Sort data fields
+            this.orderedMappedFields = this.mappedFields.Values.OrderBy((x, y) => x.Name.CompareTo(y.Name)).AsImmutable();
+            this.orderedSynthesizedMethods = this.synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
+            this.orderedProxyTypes = this.proxyTypes.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
         }
 
         private bool IsFrozen
@@ -101,20 +111,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data)
         {
             Debug.Assert(!IsFrozen);
-
             Cci.ITypeReference type = this.proxyTypes.GetOrAdd((uint)data.Length, size => GetStorageStruct(size));
-
-            //This object may be accessed concurrently
-            //it is not expected to have a lot of contention here so we will just use lock
-            //if it becomes an issue we can switch to lock-free data structures.
-            lock (this.mappedFields)
-            {
-                var name = GenerateDataFieldName(this.mappedFields.Count);
-                var newField = new MappedField(name, this, type, data);
-                this.mappedFields.Add(newField);
-
+            return this.mappedFields.GetOrAdd(data, data0 => {
+                var name = GenerateDataFieldName(data0);
+                var newField = new MappedField(name, this, type, data0);
                 return newField;
-            }
+            });
         }
 
         private Cci.ITypeReference GetStorageStruct(uint size)
@@ -145,13 +147,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)
         {
             Debug.Assert(IsFrozen);
-            return mappedFields;
+            return orderedMappedFields;
         }
 
         public override IEnumerable<Cci.IMethodDefinition> GetMethods(EmitContext context)
         {
             Debug.Assert(IsFrozen);
-            return synthesizedMethods.Values;
+            return orderedSynthesizedMethods;
         }
 
         // Get method by name, if one exists. Otherwise return null.
@@ -165,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override IEnumerable<Cci.INestedTypeDefinition> GetNestedTypes(EmitContext context)
         {
             Debug.Assert(IsFrozen);
-            return System.Linq.Enumerable.OfType<ExplicitSizeStruct>(this.proxyTypes.Values);
+            return System.Linq.Enumerable.OfType<ExplicitSizeStruct>(this.orderedProxyTypes);
         }
 
         public override string ToString()
@@ -224,10 +226,22 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return ""; }
         }
 
-        internal static string GenerateDataFieldName(int offset)
+        internal static string GenerateDataFieldName(ImmutableArray<byte> data)
         {
-            return MemberNamePrefix + offset;
-        } 
+            var hash = CryptographicHashProvider.ComputeSha1(data);
+            // create a hex string from the hash data, using black magic from
+            // http://stackoverflow.com/questions/311165/how-do-you-convert-byte-array-to-hexadecimal-string-and-vice-versa/14333437#14333437
+            char[] c = new char[hash.Length * 2];
+            for (int i = 0; i < hash.Length; i++)
+            {
+                var bite = hash[i];
+                int nibble = bite >> 4;
+                c[i * 2] = (char)(55 + nibble + (((nibble - 10) >> 31) & -7));
+                nibble = bite & 0xF;
+                c[i * 2 + 1] = (char)(55 + nibble + (((nibble - 10) >> 31) & -7));
+            }
+            return MemberNamePrefix + new string(c);
+        }
     }
 
     /// <summary>

@@ -30,7 +30,7 @@ End Module
   IL_0001:  ldc.i4.3
   IL_0002:  newobj     "Integer(*,*)..ctor"
   IL_0007:  dup
-  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.$$method0x6000001-0"
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.$$method0x6000001-D64E555B758C5B66DFAC42F18587BB1B3C9BCFA8"
   IL_000d:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0012:  ldc.i4.1
   IL_0013:  ldc.i4.1
@@ -64,7 +64,7 @@ End Module
   IL_0001:  ldc.i4.3
   IL_0002:  newobj     "Integer(*,*)..ctor"
   IL_0007:  dup
-  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.$$method0x6000001-0"
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.$$method0x6000001-A4B74E064E285570B3499538C5B205C3D0972FDF"
   IL_000d:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0012:  dup
   IL_0013:  ldc.i4.1

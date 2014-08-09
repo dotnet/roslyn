@@ -466,7 +466,10 @@ namespace Microsoft.Cci
         private bool tableIndicesAreComplete;
 
         private uint[] pseudoSymbolTokenToTokenMap;
-        private List<uint> pseudoStringTokenToTokenMap;
+        private IReference[] pseudoSymbolTokenToReferenceMap;
+        private uint[] pseudoStringTokenToTokenMap;
+        private List<string> pseudoStringTokenToStringMap;
+        private ReferenceIndexer referenceVisitor;
 
         private readonly bool emitRuntimeStartupStub;
         private readonly BinaryWriter coverageDataWriter = new BinaryWriter(new MemoryStream());
@@ -1027,37 +1030,12 @@ namespace Microsoft.Cci
             var referencesInIL = module.ReferencesInIL(out count);
 
             this.pseudoSymbolTokenToTokenMap = new uint[count];
+            this.pseudoSymbolTokenToReferenceMap = new IReference[count];
+
             uint cur = 0;
             foreach (IReference o in referencesInIL)
             {
-                ITypeReference typeReference = o as ITypeReference;
-
-                if (typeReference != null)
-                {
-                    this.pseudoSymbolTokenToTokenMap[cur] = this.GetTypeToken(typeReference);
-                }
-                else
-                {
-                    IFieldReference fieldReference = o as IFieldReference;
-
-                    if (fieldReference != null)
-                    {
-                        this.pseudoSymbolTokenToTokenMap[cur] = this.GetFieldToken(fieldReference);
-                    }
-                    else
-                    {
-                        IMethodReference methodReference = o as IMethodReference;
-                        if (methodReference != null)
-                        {
-                            this.pseudoSymbolTokenToTokenMap[cur] = this.GetMethodToken(methodReference);
-                        }
-                        else
-                        {
-                            throw ExceptionUtilities.UnexpectedValue(o);
-                        }
-                    }
-                }
-
+                pseudoSymbolTokenToReferenceMap[cur] = o;
                 cur++;
             }
         }
@@ -1072,26 +1050,23 @@ namespace Microsoft.Cci
             this.CreateIndicesForModule();
             this.CreateInitialExportedTypeIndex();
 
-            // Find out all references. CCI used to do two passes: first without visiting attributes and the second including attributes.
-            // The first pass helped to make type reference tokens be more like C#. We just need a single pass.
-            var visitor = this.CreateReferenceVisitor();
-            this.module.Dispatch(visitor);
-
-            // EDMAURER since method bodies are not visited as they are in CCI, the operations
-            // that would have been done on them are done here.
-            visitor.VisitMethodBodyTypes(this.module);
+            // Find all references and assign tokens.
+            this.referenceVisitor = this.CreateReferenceVisitor();
+            this.module.Dispatch(referenceVisitor);
 
             this.CreateMethodBodyReferenceIndex();
         }
 
         private void CreateUserStringIndices()
         {
-            this.pseudoStringTokenToTokenMap = new List<uint>();
+            this.pseudoStringTokenToStringMap = new List<string>();
 
             foreach (string str in this.module.GetStrings())
             {
-                this.pseudoStringTokenToTokenMap.Add(this.GetUserStringToken(str));
+                this.pseudoStringTokenToStringMap.Add(str);
             }
+
+            this.pseudoStringTokenToTokenMap = new uint[pseudoStringTokenToStringMap.Count];
         }
 
         protected virtual void CreateIndicesForModule()
@@ -5194,6 +5169,71 @@ namespace Microsoft.Cci
             }
         }
 
+        private uint ResolveTokenFromReference(IReference reference)
+        {
+            ITypeReference typeReference = reference as ITypeReference;
+
+            if (typeReference != null)
+            {
+                return this.GetTypeToken(typeReference);
+            }
+            else
+            {
+                IFieldReference fieldReference = reference as IFieldReference;
+
+                if (fieldReference != null)
+                {
+                    return this.GetFieldToken(fieldReference);
+                }
+                else
+                {
+                    IMethodReference methodReference = reference as IMethodReference;
+                    if (methodReference != null)
+                    {
+                        return this.GetMethodToken(methodReference);
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(reference);
+                    }
+                }
+            }
+        }
+
+        private uint ResolveSymbolTokenFromPseudoSymbolToken(uint pseudoSymbolToken)
+        {
+            var index = (int)pseudoSymbolToken;
+            var reference = pseudoSymbolTokenToReferenceMap[index];
+            if (reference != null)
+            {
+                // EDMAURER since method bodies are not visited as they are in CCI, the operations
+                // that would have been done on them are done here.
+                this.referenceVisitor.VisitMethodBodyReference(reference);
+
+                var token = ResolveTokenFromReference(reference);
+                pseudoSymbolTokenToTokenMap[index] = token;
+                pseudoSymbolTokenToReferenceMap[index] = null; // Set to null to bypass next lookup
+                return token;
+            }
+
+            return pseudoSymbolTokenToTokenMap[index];
+        }
+
+        private uint ResolveStringTokenFromPseudoStringToken(uint pseudoStringToken)
+        {
+            var index = (int)pseudoStringToken;
+            var str = pseudoStringTokenToStringMap[index];
+            if (str != null)
+            {
+                var token = GetUserStringToken(str);
+                pseudoStringTokenToTokenMap[index] = token;
+                pseudoStringTokenToStringMap[index] = null; // Set to null to bypass next lookup
+                return token;
+            }
+
+            return pseudoStringTokenToTokenMap[index];
+        }
+
         private byte[] SerializeMethodBodyIL(IMethodBody methodBody)
         {
             // TODO: instead of writing into the byte[] on MethodBody we should write directly into MemoryStream
@@ -5211,7 +5251,7 @@ namespace Microsoft.Cci
                     case OperandType.InlineType:
                         {
                             uint currentToken = ReadUint(methodBodyIL, curIndex);
-                            uint newToken = this.pseudoSymbolTokenToTokenMap[(int)currentToken];
+                            uint newToken = ResolveSymbolTokenFromPseudoSymbolToken(currentToken);
                             WriteUint(methodBodyIL, newToken, curIndex);
                             curIndex += 4;
                         }
@@ -5220,7 +5260,7 @@ namespace Microsoft.Cci
                     case OperandType.InlineString:
                         {
                             uint currentToken = ReadUint(methodBodyIL, curIndex);
-                            uint newToken = this.pseudoStringTokenToTokenMap[(int)currentToken];
+                            uint newToken = ResolveStringTokenFromPseudoStringToken(currentToken);
                             WriteUint(methodBodyIL, newToken, curIndex);
                             curIndex += 4;
                         }

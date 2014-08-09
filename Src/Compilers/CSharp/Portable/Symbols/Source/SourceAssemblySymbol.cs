@@ -1386,18 +1386,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            var mergedAttributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
-
-            foreach (var rootNs in DeclaringCompilation.Declarations.AllRootNamespacesUnordered())
-            {
-                if (rootNs.HasAssemblyAttributes)
-                {
-                    var attrList = ((CompilationUnitSyntax)rootNs.Location.SourceTree.GetRoot()).AttributeLists;
-                    mergedAttributesBuilder.Add(attrList);
-                }
-            }
-
-            return mergedAttributesBuilder.ToImmutableAndFree();
+            var attrList =
+                from rootNs in DeclaringCompilation.Declarations.AllRootNamespacesUnordered()
+                where rootNs.HasAssemblyAttributes
+                select rootNs.Location.SourceTree into tree
+                orderby compilation.GetSyntaxTreeOrdinal(tree)
+                select ((CompilationUnitSyntax)tree.GetRoot()).AttributeLists;
+            return attrList.ToImmutableArray();
         }
 
         private void EnsureAttributesAreBound()

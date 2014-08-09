@@ -113,15 +113,15 @@ class C
   // Code size       90 (0x5a)
   .maxstack  3
   .locals init (double[,] V_0,
-      int V_1,
-      int V_2,
-      int V_3,
-      int V_4)
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4)
   IL_0000:  ldc.i4.2
   IL_0001:  ldc.i4.4
   IL_0002:  newobj     ""double[*,*]..ctor""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.$$method0x6000001-0""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.$$method0x6000001-E19C080DB8DAB85AF7CA3EF40FFB01B0778F9D25""
   IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0

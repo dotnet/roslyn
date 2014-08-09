@@ -525,39 +525,45 @@ namespace Microsoft.Cci
 
         public void VisitMethodBodyTypes(IModule module)
         {
-            // Emulates ReferenceIndexerBase.Visit(IOperation operation)
+            throw new NotImplementedException(); // is this used anywhere?
+            //// Emulates ReferenceIndexerBase.Visit(IOperation operation)
 
-            this.module = module;
+            //this.module = module;
 
-            int count;
-            foreach (IReference o in module.ReferencesInIL(out count))
+            //int count;
+            //foreach (IReference o in module.ReferencesInIL(out count))
+            //{
+            //    VisitMethodBodyReference(o);
+            //}
+        }
+
+        public void VisitMethodBodyReference(IReference reference)
+        {
+            var typeReference = reference as ITypeReference;
+            if (typeReference != null)
             {
-                var typeReference = o as ITypeReference;
-                if (typeReference != null)
+                this.typeReferenceNeedsToken = true;
+                this.Visit(typeReference);
+                Debug.Assert(!this.typeReferenceNeedsToken);
+            }
+            else
+            {
+                var fieldReference = reference as IFieldReference;
+                if (fieldReference != null)
                 {
-                    this.typeReferenceNeedsToken = true;
-                    this.Visit(typeReference);
-                    Debug.Assert(!this.typeReferenceNeedsToken);
+                    if (fieldReference.IsContextualNamedEntity)
+                    {
+                        ((IContextualNamedEntity)fieldReference).AssociateWithPeWriter(this.peWriter);
+                    }
+
+                    this.Visit(fieldReference);
                 }
                 else
                 {
-                    var fieldReference = o as IFieldReference;
-                    if (fieldReference != null)
+                    var methodReference = reference as IMethodReference;
+                    if (methodReference != null)
                     {
-                        if (fieldReference.IsContextualNamedEntity)
-                        {
-                            ((IContextualNamedEntity)fieldReference).AssociateWithPeWriter(this.peWriter);
-                        }
-
-                        this.Visit(fieldReference);
-                    }
-                    else
-                    {
-                        var methodReference = o as IMethodReference;
-                        if (methodReference != null)
-                        {
-                            this.Visit(methodReference);
-                        }
+                        this.Visit(methodReference);
                     }
                 }
             }

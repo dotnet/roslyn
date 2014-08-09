@@ -967,104 +967,104 @@ class C
   // Code size      169 (0xa9)
   .maxstack  4
   .locals init (int[,,] V_0, //array
-           int[,,] V_1, //CS$6$0000
-           int V_2, //CS$263$0001
-           int V_3, //CS$264$0002
-           int V_4, //CS$265$0003
-           int V_5, //CS$7$0004
-           int V_6, //CS$8$0005
-           int V_7, //CS$9$0006
-           int V_8, //i
-           bool V_9, //CS$4$0007
-           bool V_10) //CS$4$0008
- -IL_0000:  nop       
- -IL_0001:  ldc.i4.2  
-  IL_0002:  ldc.i4.2  
-  IL_0003:  ldc.i4.2  
+                int[,,] V_1, //CS$6$0000
+                int V_2, //CS$263$0001
+                int V_3, //CS$264$0002
+                int V_4, //CS$265$0003
+                int V_5, //CS$7$0004
+                int V_6, //CS$8$0005
+                int V_7, //CS$9$0006
+                int V_8, //i
+                bool V_9, //CS$4$0007
+                bool V_10) //CS$4$0008
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.2
+  IL_0002:  ldc.i4.2
+  IL_0003:  ldc.i4.2
   IL_0004:  newobj     ""int[*,*,*]..ctor""
-  IL_0009:  dup       
-  IL_000a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.$$method0x6000001-0""
+  IL_0009:  dup
+  IL_000a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.$$method0x6000001-EB196F988F4F427D318CA25B68671CF3A4510012""
   IL_000f:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0014:  stloc.0   
- -IL_0015:  nop       
- -IL_0016:  ldloc.0   
-  IL_0017:  stloc.1   
-  IL_0018:  ldloc.1   
-  IL_0019:  ldc.i4.0  
+  IL_0014:  stloc.0
+ -IL_0015:  nop
+ -IL_0016:  ldloc.0
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  ldc.i4.0
   IL_001a:  callvirt   ""int System.Array.GetUpperBound(int)""
-  IL_001f:  stloc.2   
-  IL_0020:  ldloc.1   
-  IL_0021:  ldc.i4.1  
+  IL_001f:  stloc.2
+  IL_0020:  ldloc.1
+  IL_0021:  ldc.i4.1
   IL_0022:  callvirt   ""int System.Array.GetUpperBound(int)""
-  IL_0027:  stloc.3   
-  IL_0028:  ldloc.1   
-  IL_0029:  ldc.i4.2  
+  IL_0027:  stloc.3
+  IL_0028:  ldloc.1
+  IL_0029:  ldc.i4.2
   IL_002a:  callvirt   ""int System.Array.GetUpperBound(int)""
   IL_002f:  stloc.s    V_4
-  IL_0031:  ldloc.1   
-  IL_0032:  ldc.i4.0  
+  IL_0031:  ldloc.1
+  IL_0032:  ldc.i4.0
   IL_0033:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_0038:  stloc.s    V_5
  ~IL_003a:  br.s       IL_00a3
-  IL_003c:  ldloc.1   
-  IL_003d:  ldc.i4.1  
+  IL_003c:  ldloc.1
+  IL_003d:  ldc.i4.1
   IL_003e:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_0043:  stloc.s    V_6
  ~IL_0045:  br.s       IL_0098
-  IL_0047:  ldloc.1   
-  IL_0048:  ldc.i4.2  
+  IL_0047:  ldloc.1
+  IL_0048:  ldc.i4.2
   IL_0049:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_004e:  stloc.s    V_7
  ~IL_0050:  br.s       IL_008c
- -IL_0052:  ldloc.1   
+ -IL_0052:  ldloc.1
   IL_0053:  ldloc.s    V_5
   IL_0055:  ldloc.s    V_6
   IL_0057:  ldloc.s    V_7
   IL_0059:  call       ""int[*,*,*].Get""
   IL_005e:  stloc.s    V_8
- -IL_0060:  nop       
+ -IL_0060:  nop
  -IL_0061:  ldloc.s    V_8
-  IL_0063:  ldc.i4.2  
-  IL_0064:  rem       
-  IL_0065:  ldc.i4.1  
-  IL_0066:  ceq       
+  IL_0063:  ldc.i4.2
+  IL_0064:  rem
+  IL_0065:  ldc.i4.1
+  IL_0066:  ceq
   IL_0068:  stloc.s    V_9
  ~IL_006a:  ldloc.s    V_9
   IL_006c:  brfalse.s  IL_0070
  -IL_006e:  br.s       IL_0086
  -IL_0070:  ldloc.s    V_8
-  IL_0072:  ldc.i4.4  
-  IL_0073:  cgt       
+  IL_0072:  ldc.i4.4
+  IL_0073:  cgt
   IL_0075:  stloc.s    V_10
  ~IL_0077:  ldloc.s    V_10
   IL_0079:  brfalse.s  IL_007d
  -IL_007b:  br.s       IL_00a8
  -IL_007d:  ldloc.s    V_8
   IL_007f:  call       ""void System.Console.WriteLine(int)""
-  IL_0084:  nop       
- -IL_0085:  nop       
+  IL_0084:  nop
+ -IL_0085:  nop
  ~IL_0086:  ldloc.s    V_7
-  IL_0088:  ldc.i4.1  
-  IL_0089:  add       
+  IL_0088:  ldc.i4.1
+  IL_0089:  add
   IL_008a:  stloc.s    V_7
  -IL_008c:  ldloc.s    V_7
   IL_008e:  ldloc.s    V_4
   IL_0090:  ble.s      IL_0052
  ~IL_0092:  ldloc.s    V_6
-  IL_0094:  ldc.i4.1  
-  IL_0095:  add       
+  IL_0094:  ldc.i4.1
+  IL_0095:  add
   IL_0096:  stloc.s    V_6
  -IL_0098:  ldloc.s    V_6
-  IL_009a:  ldloc.3   
+  IL_009a:  ldloc.3
   IL_009b:  ble.s      IL_0047
  ~IL_009d:  ldloc.s    V_5
-  IL_009f:  ldc.i4.1  
-  IL_00a0:  add       
+  IL_009f:  ldc.i4.1
+  IL_00a0:  add
   IL_00a1:  stloc.s    V_5
  -IL_00a3:  ldloc.s    V_5
-  IL_00a5:  ldloc.2   
+  IL_00a5:  ldloc.2
   IL_00a6:  ble.s      IL_003c
- -IL_00a8:  ret       
+ -IL_00a8:  ret
 }
 ", sequencePoints: "C.Main");
         }

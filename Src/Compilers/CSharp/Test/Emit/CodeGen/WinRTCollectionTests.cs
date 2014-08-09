@@ -5261,7 +5261,7 @@ class AllMembers
   IL_005b:  ldc.i4.5
   IL_005c:  newarr     ""int""
   IL_0061:  dup
-  IL_0062:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-0""
+  IL_0062:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-864782BF337E3DBC1A27023D5C0C065C80F17087""
   IL_0067:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_006c:  ldloc.0
   IL_006d:  ldftn      ""bool AllMembers.<>c__DisplayClass0.<TestLINQ>b__1(int)""
@@ -5324,25 +5324,25 @@ class AllMembers
   IL_0129:  call       ""bool AllMembers.ValidateValue(object, object)""
   IL_012e:  pop
   .try
-{
-  IL_012f:  ldstr      ""Dev11:205875""
-  IL_0134:  call       ""void System.Console.WriteLine(string)""
-  IL_0139:  ldc.i4.0
-  IL_013a:  box        ""bool""
-  IL_013f:  ldc.i4.0
-  IL_0140:  box        ""bool""
-  IL_0145:  call       ""bool AllMembers.ValidateValue(object, object)""
-  IL_014a:  pop
-  IL_014b:  leave.s    IL_0163
-}
+  {
+    IL_012f:  ldstr      ""Dev11:205875""
+    IL_0134:  call       ""void System.Console.WriteLine(string)""
+    IL_0139:  ldc.i4.0
+    IL_013a:  box        ""bool""
+    IL_013f:  ldc.i4.0
+    IL_0140:  box        ""bool""
+    IL_0145:  call       ""bool AllMembers.ValidateValue(object, object)""
+    IL_014a:  pop
+    IL_014b:  leave.s    IL_0163
+  }
   catch System.ArgumentException
-{
-  IL_014d:  ldstr      ""TestLINQ""
-  IL_0152:  call       ""void System.Console.WriteLine(string)""
-  IL_0157:  callvirt   ""string System.Exception.Message.get""
-  IL_015c:  call       ""void System.Console.WriteLine(string)""
-  IL_0161:  leave.s    IL_0163
-}
+  {
+    IL_014d:  ldstr      ""TestLINQ""
+    IL_0152:  call       ""void System.Console.WriteLine(string)""
+    IL_0157:  callvirt   ""string System.Exception.Message.get""
+    IL_015c:  call       ""void System.Console.WriteLine(string)""
+    IL_0161:  leave.s    IL_0163
+  }
   IL_0163:  ret
 }
 ");
