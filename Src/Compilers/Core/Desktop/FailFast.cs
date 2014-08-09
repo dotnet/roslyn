@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
                 Debugger.Break();
             }
 
-            Environment.FailFast(exception.Message, exception);
+            Environment.FailFast(exception.ToString(), exception);
         }
 
         /// <summary>
