@@ -7643,11 +7643,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 do
                 {
                     SyntaxToken specifier;
-                    ExpressionSyntax expression;
-                    SyntaxKind kind;
+                    SwitchLabelSyntax label;
+                    SyntaxToken colon;
                     if (this.CurrentToken.Kind == SyntaxKind.CaseKeyword)
                     {
-                        kind = SyntaxKind.CaseSwitchLabel;
+                        ExpressionSyntax expression;
                         specifier = this.EatToken();
                         if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                         {
@@ -7658,18 +7658,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             expression = this.ParseExpression();
                         }
+                        colon = this.EatToken(SyntaxKind.ColonToken);
+                        label = syntaxFactory.CaseSwitchLabel(specifier, expression, colon);
                     }
                     else
                     {
-                        kind = SyntaxKind.DefaultSwitchLabel;
                         Debug.Assert(this.CurrentToken.Kind == SyntaxKind.DefaultKeyword);
                         specifier = this.EatToken(SyntaxKind.DefaultKeyword);
-                        expression = null;
+                        colon = this.EatToken(SyntaxKind.ColonToken);
+                        label = syntaxFactory.DefaultSwitchLabel(specifier, colon);
                     }
 
-                    var colon = this.EatToken(SyntaxKind.ColonToken);
-                    var caseLabel = syntaxFactory.SwitchLabel(kind, specifier, expression, colon);
-                    labels.Add(caseLabel);
+                    labels.Add(label);
                 }
                 while (IsPossibleSwitchSection());
 

@@ -1984,22 +1984,11 @@
       <summary>Creates a SwitchSectionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="SwitchLabelSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="CaseSwitchLabel"/>
-    <Kind Name="DefaultSwitchLabel"/>
-    <Field Name="CaseOrDefaultKeyword" Type="SyntaxToken">
-      <Kind Name="CaseKeyword"/>
-      <Kind Name="DefaultKeyword"/>
+  <AbstractNode Name="SwitchLabelSyntax" Base="CSharpSyntaxNode">
+    <Field Name="Keyword" Type="SyntaxToken">
       <PropertyComment>
         <summary>
           Gets a SyntaxToken that represents a case or default keywords that belongs to a switch label.
-        </summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Value" Type="ExpressionSyntax" Optional="true">
-      <PropertyComment>
-        <summary>
-          Gets an ExpressionSyntax that represents the constant expression that gets matched for the case label. For default label the property returns null.
         </summary>
       </PropertyComment>
     </Field>
@@ -2014,8 +2003,44 @@
     <TypeComment>
       <summary>Represents a switch label within a switch statement.</summary>
     </TypeComment>
+  </AbstractNode>
+  <Node Name="CaseSwitchLabelSyntax" Base="SwitchLabelSyntax">
+    <Kind Name="CaseSwitchLabel"/>
+    <Field Name="Keyword" Type="SyntaxToken" Override="true">
+      <Kind Name="CaseKeyword"/>
+      <PropertyComment>
+        <summary>Gets the case keyword token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Value" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>
+          Gets an ExpressionSyntax that represents the constant expression that gets matched for the case label.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken" Override="true"/>
+    <TypeComment>
+      <summary>Represents a case label within a switch statement.</summary>
+    </TypeComment>
     <FactoryComment>
-      <summary>Creates a SwitchLabelSyntax node.</summary>
+      <summary>Creates a CaseSwitchLabelSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="DefaultSwitchLabelSyntax" Base="SwitchLabelSyntax">
+    <Kind Name="DefaultSwitchLabel"/>
+    <Field Name="Keyword" Type="SyntaxToken" Override="true">
+      <Kind Name="DefaultKeyword"/>
+      <PropertyComment>
+        <summary>Gets the default keyword token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken" Override="true"/>
+    <TypeComment>
+      <summary>Represents a default label within a switch statement.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a DefaultSwitchLabelSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="TryStatementSyntax" Base="StatementSyntax">

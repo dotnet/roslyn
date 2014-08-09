@@ -2409,7 +2409,8 @@ class C
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var switchLabel = switchStatement.Sections[0].Labels[0];
+            var switchLabel = switchStatement.Sections[0].Labels[0] as CaseSwitchLabelSyntax;
+            Assert.NotNull(switchLabel);
             var constantVal = speculativeModel.GetConstantValue(switchLabel.Value);
             Assert.True(constantVal.HasValue);
             Assert.Equal(1, constantVal.Value);

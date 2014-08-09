@@ -1822,6 +1822,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        /// <summary>Creates a new CaseSwitchLabelSyntax instance.</summary>
+        public static CaseSwitchLabelSyntax CaseSwitchLabel(ExpressionSyntax value)
+        {
+            return SyntaxFactory.CaseSwitchLabel(SyntaxFactory.Token(SyntaxKind.CaseKeyword), value, SyntaxFactory.Token(SyntaxKind.ColonToken));
+        }
+
+        /// <summary>Creates a new DefaultSwitchLabelSyntax instance.</summary>
+        public static DefaultSwitchLabelSyntax DefaultSwitchLabel()
+        {
+            return SyntaxFactory.DefaultSwitchLabel(SyntaxFactory.Token(SyntaxKind.DefaultKeyword), SyntaxFactory.Token(SyntaxKind.ColonToken));
+        }
+
         /// <summary>Creates a new BlockSyntax instance.</summary>
         public static BlockSyntax Block(params StatementSyntax[] statements)
         {

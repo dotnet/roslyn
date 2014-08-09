@@ -372,11 +372,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                     for (int i = 0; i < originalSwitchLabels.Count(); i++)
                     {
-                        var originalSwitchLabel = originalSwitchLabels[i];
-                        if (originalSwitchLabel.Value != null)
+                        var originalSwitchLabel = originalSwitchLabels[i] as CaseSwitchLabelSyntax;
+                        if (originalSwitchLabel != null)
                         {
-                            var newSwitchLabel = newSwitchLabels[i];
-                            if (!ImplicitConversionsAreCompatible(originalSwitchLabel.Value, newSwitchLabel.Value))
+                            var newSwitchLabel = newSwitchLabels[i] as CaseSwitchLabelSyntax;
+                            if (newSwitchLabel != null && !ImplicitConversionsAreCompatible(originalSwitchLabel.Value, newSwitchLabel.Value))
                             {
                                 return true;
                             }

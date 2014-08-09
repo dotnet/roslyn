@@ -1298,7 +1298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode DefaultSwitchSection(IEnumerable<SyntaxNode> statements)
         {
-            return SyntaxFactory.SwitchSection(SyntaxFactory.SingletonList(SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)), GetStatements(statements));
+            return SyntaxFactory.SwitchSection(SyntaxFactory.SingletonList(SyntaxFactory.DefaultSwitchLabel() as SwitchLabelSyntax), GetStatements(statements));
         }
 
         private SyntaxList<SwitchLabelSyntax> GetSwitchLabels(IEnumerable<SyntaxNode> expressions)
@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (expressions != null)
             {
-                labels = labels.AddRange(expressions.Select(e => SyntaxFactory.SwitchLabel(SyntaxKind.CaseSwitchLabel, (ExpressionSyntax)e)));
+                labels = labels.AddRange(expressions.Select(e => SyntaxFactory.CaseSwitchLabel((ExpressionSyntax)e)));
             }
 
             return labels;

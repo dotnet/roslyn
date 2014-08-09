@@ -1371,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (previousToken.HasValue)
                 {
-                    if (previousToken.Value != switchLabel.CaseOrDefaultKeyword ||
+                    if (previousToken.Value != switchLabel.Keyword ||
                         switchLabel.CSharpKind() != SyntaxKind.CaseSwitchLabel)
                     {
                         return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
@@ -1394,7 +1394,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Use the first case label to determine the return type.
                 var firstCase =
                     switchStatement.Sections.SelectMany(ss => ss.Labels)
-                                                  .FirstOrDefault(label => label.CSharpKind() == SyntaxKind.CaseSwitchLabel);
+                                                  .FirstOrDefault(label => label.CSharpKind() == SyntaxKind.CaseSwitchLabel)
+                                                  as CaseSwitchLabelSyntax;
                 if (firstCase != null)
                 {
                     var result = GetTypes(firstCase.Value);

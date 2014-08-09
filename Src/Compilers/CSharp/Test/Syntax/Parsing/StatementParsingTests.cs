@@ -1853,11 +1853,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, ss.Sections.Count);
             Assert.Equal(1, ss.Sections[0].Labels.Count);
-            Assert.NotNull(ss.Sections[0].Labels[0].CaseOrDefaultKeyword);
-            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[0].Labels[0].CaseOrDefaultKeyword.CSharpKind());
-            Assert.NotNull(ss.Sections[0].Labels[0].Value);
-            Assert.Equal("b", ss.Sections[0].Labels[0].Value.ToString());
-            Assert.NotNull(ss.Sections[0].Labels[0].ColonToken);
+            Assert.NotNull(ss.Sections[0].Labels[0].Keyword);
+            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[0].Labels[0].Keyword.CSharpKind());
+            var caseLabelSyntax = ss.Sections[0].Labels[0] as CaseSwitchLabelSyntax;
+            Assert.NotNull(caseLabelSyntax);
+            Assert.NotNull(caseLabelSyntax.Value);
+            Assert.Equal("b", caseLabelSyntax.Value.ToString());
+            Assert.NotNull(caseLabelSyntax.ColonToken);
             Assert.Equal(1, ss.Sections[0].Statements.Count);
             Assert.Equal(";", ss.Sections[0].Statements[0].ToString());
 
@@ -1887,20 +1889,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(2, ss.Sections.Count);
 
             Assert.Equal(1, ss.Sections[0].Labels.Count);
-            Assert.NotNull(ss.Sections[0].Labels[0].CaseOrDefaultKeyword);
-            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[0].Labels[0].CaseOrDefaultKeyword.CSharpKind());
-            Assert.NotNull(ss.Sections[0].Labels[0].Value);
-            Assert.Equal("b", ss.Sections[0].Labels[0].Value.ToString());
-            Assert.NotNull(ss.Sections[0].Labels[0].ColonToken);
+            Assert.NotNull(ss.Sections[0].Labels[0].Keyword);
+            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[0].Labels[0].Keyword.CSharpKind());
+            var caseLabelSyntax = ss.Sections[0].Labels[0] as CaseSwitchLabelSyntax;
+            Assert.NotNull(caseLabelSyntax);
+            Assert.NotNull(caseLabelSyntax.Value);
+            Assert.Equal("b", caseLabelSyntax.Value.ToString());
+            Assert.NotNull(caseLabelSyntax.ColonToken);
             Assert.Equal(1, ss.Sections[0].Statements.Count);
             Assert.Equal(";", ss.Sections[0].Statements[0].ToString());
 
             Assert.Equal(1, ss.Sections[1].Labels.Count);
-            Assert.NotNull(ss.Sections[1].Labels[0].CaseOrDefaultKeyword);
-            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[1].Labels[0].CaseOrDefaultKeyword.CSharpKind());
-            Assert.NotNull(ss.Sections[1].Labels[0].Value);
-            Assert.Equal("c", ss.Sections[1].Labels[0].Value.ToString());
-            Assert.NotNull(ss.Sections[1].Labels[0].ColonToken);
+            Assert.NotNull(ss.Sections[1].Labels[0].Keyword);
+            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[1].Labels[0].Keyword.CSharpKind());
+            var caseLabelSyntax2 = ss.Sections[1].Labels[0] as CaseSwitchLabelSyntax;
+            Assert.NotNull(caseLabelSyntax2);
+            Assert.NotNull(caseLabelSyntax2.Value);
+            Assert.Equal("c", caseLabelSyntax2.Value.ToString());
+            Assert.NotNull(caseLabelSyntax2.ColonToken);
             Assert.Equal(1, ss.Sections[1].Statements.Count);
             Assert.Equal(";", ss.Sections[0].Statements[0].ToString());
 
@@ -1930,9 +1936,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, ss.Sections.Count);
 
             Assert.Equal(1, ss.Sections[0].Labels.Count);
-            Assert.NotNull(ss.Sections[0].Labels[0].CaseOrDefaultKeyword);
-            Assert.Equal(SyntaxKind.DefaultKeyword, ss.Sections[0].Labels[0].CaseOrDefaultKeyword.CSharpKind());
-            Assert.Null(ss.Sections[0].Labels[0].Value);
+            Assert.NotNull(ss.Sections[0].Labels[0].Keyword);
+            Assert.Equal(SyntaxKind.DefaultKeyword, ss.Sections[0].Labels[0].Keyword.CSharpKind());
+            Assert.Equal(SyntaxKind.DefaultSwitchLabel, ss.Sections[0].Labels[0].CSharpKind());
             Assert.NotNull(ss.Sections[0].Labels[0].ColonToken);
             Assert.Equal(1, ss.Sections[0].Statements.Count);
             Assert.Equal(";", ss.Sections[0].Statements[0].ToString());
@@ -1963,14 +1969,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, ss.Sections.Count);
 
             Assert.Equal(2, ss.Sections[0].Labels.Count);
-            Assert.NotNull(ss.Sections[0].Labels[0].CaseOrDefaultKeyword);
-            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[0].Labels[0].CaseOrDefaultKeyword.CSharpKind());
-            Assert.NotNull(ss.Sections[0].Labels[0].Value);
-            Assert.Equal("b", ss.Sections[0].Labels[0].Value.ToString());
-            Assert.NotNull(ss.Sections[0].Labels[1].CaseOrDefaultKeyword);
-            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[0].Labels[1].CaseOrDefaultKeyword.CSharpKind());
-            Assert.NotNull(ss.Sections[0].Labels[1].Value);
-            Assert.Equal("c", ss.Sections[0].Labels[1].Value.ToString());
+            Assert.NotNull(ss.Sections[0].Labels[0].Keyword);
+            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[0].Labels[0].Keyword.CSharpKind());
+            var caseLabelSyntax = ss.Sections[0].Labels[0] as CaseSwitchLabelSyntax;
+            Assert.NotNull(caseLabelSyntax);
+            Assert.NotNull(caseLabelSyntax.Value);
+            Assert.Equal("b", caseLabelSyntax.Value.ToString());
+            Assert.NotNull(ss.Sections[0].Labels[1].Keyword);
+            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[0].Labels[1].Keyword.CSharpKind());
+            var caseLabelSyntax2 = ss.Sections[0].Labels[1] as CaseSwitchLabelSyntax;
+            Assert.NotNull(caseLabelSyntax2);
+            Assert.NotNull(caseLabelSyntax2.Value);
+            Assert.Equal("c", caseLabelSyntax2.Value.ToString());
             Assert.NotNull(ss.Sections[0].Labels[0].ColonToken);
             Assert.Equal(1, ss.Sections[0].Statements.Count);
             Assert.Equal(";", ss.Sections[0].Statements[0].ToString());
@@ -2001,11 +2011,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, ss.Sections.Count);
 
             Assert.Equal(1, ss.Sections[0].Labels.Count);
-            Assert.NotNull(ss.Sections[0].Labels[0].CaseOrDefaultKeyword);
-            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[0].Labels[0].CaseOrDefaultKeyword.CSharpKind());
-            Assert.NotNull(ss.Sections[0].Labels[0].Value);
-            Assert.Equal("b", ss.Sections[0].Labels[0].Value.ToString());
-
+            Assert.NotNull(ss.Sections[0].Labels[0].Keyword);
+            Assert.Equal(SyntaxKind.CaseKeyword, ss.Sections[0].Labels[0].Keyword.CSharpKind());
+            var caseLabelSyntax = ss.Sections[0].Labels[0] as CaseSwitchLabelSyntax;
+            Assert.NotNull(caseLabelSyntax);
+            Assert.NotNull(caseLabelSyntax.Value);
+            Assert.Equal("b", caseLabelSyntax.Value.ToString());
             Assert.Equal(2, ss.Sections[0].Statements.Count);
             Assert.Equal("s1();", ss.Sections[0].Statements[0].ToString());
             Assert.Equal("s2();", ss.Sections[0].Statements[1].ToString());

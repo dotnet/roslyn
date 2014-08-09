@@ -137,11 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Bind the switch expression and the switch case label expression, but do not report any diagnostics here.
                     // Diagnostics will be reported during binding.                        
-
-                    Debug.Assert(labelSyntax.Value != null);
+                    var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
+                    Debug.Assert(caseLabel.Value != null);
                     DiagnosticBag tempDiagnosticBag = DiagnosticBag.GetInstance();
 
-                    var boundLabelExpression = BindValue(labelSyntax.Value, tempDiagnosticBag, BindValueKind.RValue);
+                    var boundLabelExpression = BindValue(caseLabel.Value, tempDiagnosticBag, BindValueKind.RValue);
 
                     if ((object)switchGoverningType == null)
                     {
@@ -456,14 +456,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Prevent cascading diagnostics
             bool hasErrors = node.HasErrors;
 
-            if (node.Value != null)
+            if (node.Kind == SyntaxKind.CaseSwitchLabel)
             {
-                Debug.Assert(node.Kind == SyntaxKind.CaseSwitchLabel);
-
+                var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                 // Bind the label case expression
-                boundLabelExpressionOpt = BindValue(node.Value, diagnostics, BindValueKind.RValue);
+                boundLabelExpressionOpt = BindValue(caseLabelSyntax.Value, diagnostics, BindValueKind.RValue);
 
-                boundLabelExpressionOpt = ConvertCaseExpression(switchGoverningType, node, boundLabelExpressionOpt, ref labelExpressionConstant, diagnostics);
+                boundLabelExpressionOpt = ConvertCaseExpression(switchGoverningType, caseLabelSyntax, boundLabelExpressionOpt, ref labelExpressionConstant, diagnostics);
 
                 // Check for bind errors
                 hasErrors = hasErrors || boundLabelExpressionOpt.HasAnyErrors;
@@ -475,13 +474,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Prevent cascading diagnostics
                 if (!hasErrors && labelExpressionConstant == null)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ConstantExpected, node.Location);
+                    diagnostics.Add(ErrorCode.ERR_ConstantExpected, caseLabelSyntax.Location);
                     hasErrors = true;
                 }
 
                 // LabelSymbols for all the switch case labels are created by BuildLabels().
                 // Fetch the matching switch case label symbols
-                matchedLabelSymbols = FindMatchingSwitchCaseLabels(labelExpressionConstant, node);
+                matchedLabelSymbols = FindMatchingSwitchCaseLabels(labelExpressionConstant, caseLabelSyntax);
             }
             else
             {
