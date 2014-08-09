@@ -121,9 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     locals = ArrayBuilder<LocalSymbol>.GetInstance();
                 }
 
-                if (local.Type.SpecialType == SpecialType.System_TypedReference)
+                if (local.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0]);
+                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type.ToDisplayString());
                 }
 
                 locals.Add(local);

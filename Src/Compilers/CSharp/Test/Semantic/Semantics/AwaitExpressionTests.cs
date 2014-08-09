@@ -146,7 +146,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (8,27): error CS4007: 'await' cannot be used in an expression containing the type 'System.TypedReference'
                 //         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new TypedReference()").WithLocation(8, 27)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new TypedReference()").WithArguments("System.TypedReference").WithLocation(8, 27)
                 );
         }
     }
