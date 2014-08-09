@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     ''' CA2002: Do not lock on objects with weak identities
     ''' </summary>
     <DiagnosticAnalyzer>
-    <ExportDiagnosticAnalyzer(CA2002DiagnosticAnalyzer.RuleId, LanguageNames.VisualBasic)>
+    <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA2002DiagnosticAnalyzer
         Inherits CA2002DiagnosticAnalyzer
         Implements ISyntaxNodeAnalyzer(Of SyntaxKind)

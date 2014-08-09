@@ -19,8 +19,6 @@ namespace Roslyn.Diagnostics.Analyzers
         internal const string LinqEnumerableMetadataName = "System.Linq.Enumerable";
         internal const string EmptyMethodName = "Empty";
 
-        internal const string NameForExportAttribute = "NewArrayAnalyzer";
-
         internal static readonly DiagnosticDescriptor UseEmptyEnumerableRule = new DiagnosticDescriptor(
             "RS0001",
             RoslynDiagnosticsResources.UseEmptyEnumerableDescription,

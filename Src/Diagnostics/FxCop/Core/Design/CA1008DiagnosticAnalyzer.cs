@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// or the enumeration defines multiple zero-valued members.
     /// </summary>
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    [ExportDiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA1008DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         /*

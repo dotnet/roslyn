@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
     /// a combination of the other defined values on the enumeration.
     /// </summary>
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(RuleNameForExportAttribute, LanguageNames.CSharp)]
+    [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpEnumWithFlagsDiagnosticAnalyzer : EnumWithFlagsDiagnosticAnalyzer
     {
         protected override Location GetDiagnosticLocation(SyntaxNode type)

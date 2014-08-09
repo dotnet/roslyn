@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
     ''' 2) CA2217: Do not mark enums with FlagsAttribute
     ''' </summary>
     <DiagnosticAnalyzer>
-    <ExportDiagnosticAnalyzer(EnumWithFlagsDiagnosticAnalyzer.RuleNameForExportAttribute, LanguageNames.VisualBasic)>
+    <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public NotInheritable Class BasicEnumWithFlagsDiagnosticAnalyzer
         Inherits EnumWithFlagsDiagnosticAnalyzer
 

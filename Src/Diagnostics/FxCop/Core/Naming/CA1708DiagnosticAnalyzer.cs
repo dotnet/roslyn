@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
 {
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    [ExportDiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA1708DiagnosticAnalyzer : AbstractNamedTypeAnalyzer, ICompilationAnalyzer
     {
         internal const string RuleId = "CA1708";

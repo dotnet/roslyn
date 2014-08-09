@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     <DiagnosticAnalyzer>
-    <ExportDiagnosticAnalyzer(CA2200DiagnosticAnalyzer.RuleId, LanguageNames.VisualBasic)>
+    <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA2200DiagnosticAnalyzer
         Inherits CA2200DiagnosticAnalyzer
         Implements ISyntaxNodeAnalyzer(Of SyntaxKind)

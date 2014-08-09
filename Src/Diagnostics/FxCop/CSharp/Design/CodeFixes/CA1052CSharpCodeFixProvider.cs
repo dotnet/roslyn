@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
 {
-    [ExportCodeFixProvider(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId, LanguageNames.CSharp)]
+    [ExportCodeFixProvider(StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute, LanguageNames.CSharp)]
     public class CA1052CSharpCodeFixProvider : ICodeFixProvider
     {
         public IEnumerable<string> GetFixableDiagnosticIds()

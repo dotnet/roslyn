@@ -13,7 +13,7 @@ namespace AsyncPackage
     /// This analyzer check to see if there are Cancellation Tokens that can be propagated through async method calls
     /// </summary>
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(CancellationId, LanguageNames.CSharp)]
+    [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CancellationAnalyzer : ICodeBlockNestedAnalyzerFactory
     {
         internal const string CancellationId = "Async005";

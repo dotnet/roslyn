@@ -9,12 +9,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal class DiagnosticProviderMetadata : ILanguagesMetadata
     {
-        public string Name { get; private set; }
         public string[] Languages { get; private set; }
 
         public DiagnosticProviderMetadata(IDictionary<string, object> data)
         {
-            this.Name = (string)data.GetValueOrDefault("Name");
             this.Languages = (string[])data.GetValueOrDefault("Languages");
         }
     }

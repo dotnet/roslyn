@@ -12,11 +12,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(RuleNameForExportAttribute, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    [ExportDiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class SerializationRulesDiagnosticAnalyzer : ICompilationNestedAnalyzerFactory
     {
-        internal const string RuleNameForExportAttribute = "SerializationRules";
-
         // Implement serialization constructors
         internal const string RuleCA2229Id = "CA2229";
         internal static DiagnosticDescriptor RuleCA2229 = new DiagnosticDescriptor(RuleCA2229Id,

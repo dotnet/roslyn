@@ -12,8 +12,6 @@ namespace Roslyn.Diagnostics.Analyzers
 {
     public abstract class DirectlyAwaitingTaskAnalyzer<TSyntaxKind> : IDiagnosticAnalyzer, ICompilationNestedAnalyzerFactory
     {
-        internal const string NameForExportAttribute = "DirectlyAwaitingTaskAnalyzer";
-
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get { return ImmutableArray.Create(DirectlyAwaitingTaskAnalyzerRule.Rule); }

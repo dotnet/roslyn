@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp)]
+    [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA2200DiagnosticAnalyzer : CA2200DiagnosticAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
     {
         private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create(SyntaxKind.ThrowStatement);

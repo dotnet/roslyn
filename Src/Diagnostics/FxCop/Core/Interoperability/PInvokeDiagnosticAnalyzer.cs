@@ -11,10 +11,9 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
 {
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(PInvokeInteroperabilityRuleName, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    [ExportDiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class PInvokeDiagnosticAnalyzer : ICompilationNestedAnalyzerFactory
     {
-        public const string PInvokeInteroperabilityRuleName = "PInvokeInteroperability";
         public const string CA1401 = "CA1401";
         public const string CA2101 = "CA2101";
         internal static DiagnosticDescriptor RuleCA1401 = new DiagnosticDescriptor(CA1401,

@@ -10,7 +10,7 @@ namespace AsyncPackage
     /// This analyzer will run a codefix on any method that qualifies as async that renames it to follow naming conventions
     /// </summary>
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(RenameAsyncId, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    [ExportDiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class RenameAsyncAnalyzer : ISymbolAnalyzer
     {
         internal const string RenameAsyncId = "Async002";

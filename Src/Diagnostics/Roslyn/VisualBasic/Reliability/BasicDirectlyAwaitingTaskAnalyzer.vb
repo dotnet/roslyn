@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
 
     <DiagnosticAnalyzer>
-    <ExportDiagnosticAnalyzer(DirectlyAwaitingTaskAnalyzer(Of SyntaxKind).NameForExportAttribute, LanguageNames.VisualBasic)>
+    <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicDirectlyAwaitingTaskAnalyzer
         Inherits DirectlyAwaitingTaskAnalyzer(Of SyntaxKind)
 

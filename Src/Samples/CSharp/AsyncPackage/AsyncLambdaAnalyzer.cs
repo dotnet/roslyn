@@ -13,7 +13,7 @@ namespace AsyncPackage
     /// Analyzer that examines async lambdas and checks if they are being passed or stored as void-returning delegate types.
     /// </summary>
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(AsyncLambdaId1, LanguageNames.CSharp)]
+    [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class AsyncLambdaAnalyzer : ISyntaxNodeAnalyzer<SyntaxKind>
     {
         internal const string AsyncLambdaId1 = "Async003";

@@ -14,7 +14,7 @@ namespace AsyncPackage
     /// A codefix will then change that synchronous code to its asynchronous counterpart.
     /// </summary>
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(BlockingAsyncId, LanguageNames.CSharp)]
+    [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class BlockingAsyncAnalyzer : ISyntaxNodeAnalyzer<SyntaxKind>
     {
         internal const string BlockingAsyncId = "Async006";

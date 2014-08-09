@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Performance
 {
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp)]
+    [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA1821DiagnosticAnalyzer : CA1821DiagnosticAnalyzer
     {
         protected override AbstractCodeBlockEndedAnalyzer GetCodeBlockEndedAnalyzer()
