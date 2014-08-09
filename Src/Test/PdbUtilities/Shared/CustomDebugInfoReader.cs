@@ -541,16 +541,16 @@ namespace Roslyn.Utilities.Pdb
         ///  "ESystem alias" -> <namespace qualifier="alias" name="System" />
         /// ]]>
         /// </remarks>
-        public static void ParseCSharpImportString(string import, out string alias, out string externAlias, out string target, out ImportTargetKind kind)
+        public static bool TryParseCSharpImportString(string import, out string alias, out string externAlias, out string target, out ImportTargetKind kind)
         {
-            if (import == null)
-            {
-                throw new ArgumentNullException("import");
-            }
+            alias = null;
+            externAlias = null;
+            target = null;
+            kind = default(ImportTargetKind);
 
-            if (import.Length == 0)
+            if (string.IsNullOrEmpty(import))
             {
-                throw new ArgumentException(import, "import");
+                return false;
             }
 
             switch (import[0])
@@ -560,22 +560,22 @@ namespace Roslyn.Utilities.Pdb
                     externAlias = null;
                     target = import.Substring(1);
                     kind = ImportTargetKind.Namespace;
-                    return;
+                    return true;
                 case 'E': // C# using
                     // NOTE: Dev12 has related cases "I" and "O" in EMITTER::ComputeDebugNamespace,
                     // but they were probably implementation details that do not affect roslyn.
                     if (!TrySplit(import, 1, ' ', out target, out externAlias))
                     {
-                        throw new ArgumentException(import, "import");
+                        return false;
                     }
 
                     alias = null;
                     kind = ImportTargetKind.Namespace;
-                    return;
+                    return true;
                 case 'A': // C# type or namespace alias
                     if (!TrySplit(import, 1, ' ', out alias, out target))
                     {
-                        throw new ArgumentException(import, "import");
+                        return false;
                     }
 
                     switch (target[0])
@@ -584,39 +584,39 @@ namespace Roslyn.Utilities.Pdb
                             kind = ImportTargetKind.Namespace;
                             target = target.Substring(1);
                             externAlias = null;
-                            return;
+                            return true;
                         case 'T':
                             kind = ImportTargetKind.Type;
                             target = target.Substring(1);
                             externAlias = null;
-                            return;
+                            return true;
                         case 'E':
                             kind = ImportTargetKind.Namespace; // Never happens for types.
                             if (!TrySplit(target, 1, ' ', out target, out externAlias))
                             {
-                                throw new ArgumentException(import, "import");
+                                return false;
                             }
-                            return;
+                            return true;
                         default:
-                            throw new ArgumentException(import, "import");
+                            return false;
                     }
                 case 'X': // C# extern alias (in file)
                     externAlias = import.Substring(1);
                     alias = null;
                     target = null;
                     kind = ImportTargetKind.Assembly;
-                    return;
+                    return true;
                 case 'Z': // C# extern alias (module-level)
                     if (!TrySplit(import, 1, ' ', out externAlias, out target))
                     {
-                        throw new ArgumentException(import, "import");
+                        return false;
                     }
 
                     alias = null;
                     kind = ImportTargetKind.Assembly;
-                    return;
+                    return true;
                 default:
-                    throw new ArgumentException(import, "import");
+                    return false;
             }
         }
 
@@ -625,11 +625,16 @@ namespace Roslyn.Utilities.Pdb
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="import"/> is null.</exception>
         /// <exception cref="ArgumentException">Format of <paramref name="import"/> is not valid.</exception>
-        public static void ParseVisualBasicImportString(string import, out string alias, out string target, out ImportTargetKind kind, out ImportScope scope)
+        public static bool TryParseVisualBasicImportString(string import, out string alias, out string target, out ImportTargetKind kind, out ImportScope scope)
         {
+            alias = null;
+            target = null;
+            kind = default(ImportTargetKind);
+            scope = default(ImportScope);
+
             if (import == null)
             {
-                throw new ArgumentNullException("import");
+                return false;
             }
 
             if (import.Length == 0) // VB current namespace
@@ -638,7 +643,7 @@ namespace Roslyn.Utilities.Pdb
                 target = import;
                 kind = ImportTargetKind.CurrentNamespace;
                 scope = ImportScope.Unspecified;
-                return;
+                return true;
             }
 
             // TODO (acasey): looks like we missed some cases (e.g. '$', '#', '&')
@@ -654,13 +659,13 @@ namespace Roslyn.Utilities.Pdb
                     target = import.Substring(pos);
                     kind = ImportTargetKind.DefaultNamespace;
                     scope = ImportScope.Unspecified;
-                    return;
+                    return true;
                 case '@': // VB cases other than default and current namespace
                     // see PEBuilder.cpp in vb\language\CodeGen
                     pos++;
                     if (pos >= import.Length)
                     {
-                        throw new ArgumentException(import, "import");
+                        return false;
                     }
 
                     scope = ImportScope.Unspecified;
@@ -678,7 +683,7 @@ namespace Roslyn.Utilities.Pdb
 
                     if (pos >= import.Length)
                     {
-                        throw new ArgumentException(import, "import");
+                        return false;
                     }
 
                     switch (import[pos])
@@ -687,62 +692,62 @@ namespace Roslyn.Utilities.Pdb
                             pos++;
                             if (import[pos] != ':')
                             {
-                                throw new ArgumentException(import, "import");
+                                return false;
                             }
                             pos++;
 
                             if (!TrySplit(import, pos, '=', out alias, out target))
                             {
-                                throw new ArgumentException(import, "import");
+                                return false;
                             }
 
                             kind = ImportTargetKind.NamespaceOrType;
-                            return;
+                            return true;
                         case 'X':
                             pos++;
                             if (import[pos] != ':')
                             {
-                                throw new ArgumentException(import, "import");
+                                return false;
                             }
                             pos++;
 
                             if (!TrySplit(import, pos, '=', out alias, out target))
                             {
-                                throw new ArgumentException(import, "import");
+                                return false;
                             }
 
                             kind = ImportTargetKind.XmlNamespace;
-                            return;
+                            return true;
                         case 'T':
                             pos++;
                             if (import[pos] != ':')
                             {
-                                throw new ArgumentException(import, "import");
+                                return false;
                             }
                             pos++;
 
                             alias = null;
                             target = import.Substring(pos);
                             kind = ImportTargetKind.Type;
-                            return;
+                            return true;
                         case ':':
                             pos++;
                             alias = null;
                             target = import.Substring(pos);
                             kind = ImportTargetKind.Namespace;
-                            return;
+                            return true;
                         default:
                             alias = null;
                             target = import.Substring(pos);
                             kind = ImportTargetKind.MethodToken;
-                            return;
+                            return true;
                     }
                 default: // VB current namespace
                     alias = null;
                     target = import;
                     kind = ImportTargetKind.CurrentNamespace;
                     scope = ImportScope.Unspecified;
-                    return;
+                    return true;
             }
         }
 

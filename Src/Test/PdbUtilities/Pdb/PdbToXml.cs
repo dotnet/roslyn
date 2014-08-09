@@ -563,7 +563,8 @@ namespace Roslyn.Test.PdbUtilities
                 if (rawName.Length == 0)
                 {
                     externAlias = null;
-                    CDI.ParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope);
+                    var parsingSucceeded = CDI.TryParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope);
+                    Debug.Assert(parsingSucceeded);
                 }
                 else
                 {
@@ -575,12 +576,18 @@ namespace Roslyn.Test.PdbUtilities
                         case 'Z':
                         case 'E':
                             scope = ImportScope.Unspecified;
-                            CDI.ParseCSharpImportString(rawName, out alias, out externAlias, out target, out kind);
+                            if (!CDI.TryParseCSharpImportString(rawName, out alias, out externAlias, out target, out kind))
+                            {
+                                throw new InvalidOperationException(string.Format("Invalid import '{0}'", rawName));
+                            }
                             break;
 
                         default:
                             externAlias = null;
-                            CDI.ParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope);
+                            if (!CDI.TryParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope))
+                            {
+                                throw new InvalidOperationException(string.Format("Invalid import '{0}'", rawName));
+                            }
                             break;
                     }
                 }
