@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Instrumentation
         VisualBasic_Compilation_GetGlobalNamespace,
 
         VisualBasic_Compiler_CompileMethodBodies,
-        // VisualBasic_Compiler_CompileSynthesizedMethodMetadata, - This API does not exit in VB.
+        // VisualBasic_Compiler_CompileSynthesizedMethodMetadata, - This API does not exist in VB.
         VisualBasic_DocumentationCommentCompiler_WriteDocumentationCommentXml,
         VisualBasic_CommandLineParser_Parse,
 
@@ -95,17 +95,17 @@ namespace Microsoft.CodeAnalysis.Instrumentation
         VisualBasic_SemanticModel_AnalyzeControlFlow,
         VisualBasic_SemanticModel_AnalyzeDataFlow,
         VisualBasic_SemanticModel_ClassifyConversion,
-        // VisualBasic_SemanticModel_ClassifyConversionForCast, - This API does not exit in VB.
+        // VisualBasic_SemanticModel_ClassifyConversionForCast, - This API does not exist in VB.
         VisualBasic_SemanticModel_GetDeclaredSymbol,
         VisualBasic_SemanticModel_ResolveOverloads,
-        // VisualBasic_SemanticModel_ResolveIndexerOverloads, - This API does not exit in VB.
+        // VisualBasic_SemanticModel_ResolveIndexerOverloads, - This API does not exist in VB.
         VisualBasic_SemanticModel_GetDiagnostics,
         VisualBasic_SemanticModel_GetMemberGroup,
         VisualBasic_SemanticModel_GetSpeculativeMemberGroup,
-        // VisualBasic_SemanticModel_GetIndexerGroup, - This API does not exit in VB.
+        // VisualBasic_SemanticModel_GetIndexerGroup, - This API does not exist in VB.
         VisualBasic_SemanticModel_GetConstantValue,
         VisualBasic_SemanticModel_GetSpeculativeConstantValue,
-        // VisualBasic_SemanticModel_GetQueryClauseInfo, - This API does not exit in VB.
+        // VisualBasic_SemanticModel_GetQueryClauseInfo, - This API does not exist in VB.
         VisualBasic_SemanticModel_GetForEachStatementInfo,
         VisualBasic_SemanticModel_GetAliasInfo,
         VisualBasic_SemanticModel_GetSpeculativeAliasInfo,
