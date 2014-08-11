@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -21,8 +20,11 @@ namespace Microsoft.CodeAnalysis
             }
             set
             {
-                Debug.Assert(handler == null, "Handler already set");
-                handler = value;
+                if (handler != value)
+                {
+                    Debug.Assert(handler == null, "Handler already set");
+                    handler = value;
+                }
             }
         }
 
