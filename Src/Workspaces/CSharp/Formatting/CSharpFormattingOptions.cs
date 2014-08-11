@@ -14,117 +14,117 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> MethodDeclarationNameParenthesis = new Option<bool>(SpacingFeatureName, "MethodDeclarationNameParenthesis", defaultValue: false);
+        public static readonly Option<bool> SpacingAfterMethodDeclarationName = new Option<bool>(SpacingFeatureName, "SpacingAfterMethodDeclarationName", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> MethodDeclarationParenthesisArgumentList = new Option<bool>(SpacingFeatureName, "MethodDeclarationParenthesisArgumentList", defaultValue: false);
+        public static readonly Option<bool> SpaceWithinMethodDeclarationParenthesis = new Option<bool>(SpacingFeatureName, "SpaceWithinMethodDeclarationParenthesis", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> MethodDeclarationEmptyArgument = new Option<bool>(SpacingFeatureName, "MethodDeclarationEmptyArgument", defaultValue: false);
+        public static readonly Option<bool> SpaceBetweenEmptyMethodDeclarationParentheses = new Option<bool>(SpacingFeatureName, "SpaceBetweenEmptyMethodDeclarationParentheses", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> MethodCallNameParenthesis = new Option<bool>(SpacingFeatureName, "MethodCallNameParenthesis", defaultValue: false);
+        public static readonly Option<bool> SpaceAfterMethodCallName = new Option<bool>(SpacingFeatureName, "SpaceAfterMethodCallName", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> MethodCallArgumentList = new Option<bool>(SpacingFeatureName, "MethodCallArgumentList", defaultValue: false);
+        public static readonly Option<bool> SpaceWithinMethodCallParentheses = new Option<bool>(SpacingFeatureName, "SpaceWithinMethodCallParentheses", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> MethodCallEmptyArgument = new Option<bool>(SpacingFeatureName, "MethodCallEmptyArgument", defaultValue: false);
+        public static readonly Option<bool> SpaceBetweenEmptyMethodCallParentheses = new Option<bool>(SpacingFeatureName, "SpaceBetweenEmptyMethodCallParentheses", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OtherAfterControlFlowKeyword = new Option<bool>(SpacingFeatureName, "OtherAfterControlFlowKeyword", defaultValue: true);
+        public static readonly Option<bool> SpaceAfterControlFlowStatementKeyword = new Option<bool>(SpacingFeatureName, "SpaceAfterControlFlowStatementKeyword", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OtherBetweenParenthesisExpression = new Option<bool>(SpacingFeatureName, "OtherBetweenParenthesisExpression", defaultValue: false);
+        public static readonly Option<bool> SpaceWithinExpressionParentheses = new Option<bool>(SpacingFeatureName, "SpaceWithinExpressionParentheses", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OtherParenthesisTypeCast = new Option<bool>(SpacingFeatureName, "OtherParenthesisTypeCast", defaultValue: false);
+        public static readonly Option<bool> SpaceWithinCastParentheses = new Option<bool>(SpacingFeatureName, "SpaceWithinCastParentheses", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OtherParenControlFlow = new Option<bool>(SpacingFeatureName, "OtherParenControlFlow", defaultValue: false);
+        public static readonly Option<bool> SpaceWithinOtherParentheses = new Option<bool>(SpacingFeatureName, "SpaceWithinOtherParentheses", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OtherParenAfterCast = new Option<bool>(SpacingFeatureName, "OtherParenAfterCast", defaultValue: false);
+        public static readonly Option<bool> SpaceAfterCast = new Option<bool>(SpacingFeatureName, "SpaceAfterCast", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OtherSpacesDeclarationIgnore = new Option<bool>(SpacingFeatureName, "OtherSpacesDeclarationIgnore", defaultValue: false);
+        public static readonly Option<bool> WrappingIgnoreSpacesAroundVariableDeclaration = new Option<bool>(SpacingFeatureName, "WrappingIgnoreSpacesAroundVariableDeclaration", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> SquareBracesBefore = new Option<bool>(SpacingFeatureName, "SquareBracesBefore", defaultValue: false);
+        public static readonly Option<bool> SpaceBeforeOpenSquare = new Option<bool>(SpacingFeatureName, "SpaceBeforeOpenSquare", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> SquareBracesEmpty = new Option<bool>(SpacingFeatureName, "SquareBracesEmpty", defaultValue: false);
+        public static readonly Option<bool> SpaceBetweenEmptySquares = new Option<bool>(SpacingFeatureName, "SpaceBetweenEmptySquares", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> SquareBracesAndValue = new Option<bool>(SpacingFeatureName, "SquareBracesAndValue", defaultValue: false);
+        public static readonly Option<bool> SpaceWithinSquares = new Option<bool>(SpacingFeatureName, "SpaceWithinSquares", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> DelimitersAfterColonInTypeDeclaration = new Option<bool>(SpacingFeatureName, "DelimitersAfterColonInTypeDeclaration", defaultValue: true);
+        public static readonly Option<bool> SpaceAfterColonInBaseTypeDeclaration = new Option<bool>(SpacingFeatureName, "SpaceAfterColonInBaseTypeDeclaration", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> DelimitersAfterCommaInParameterArgument = new Option<bool>(SpacingFeatureName, "DelimitersAfterCommaInParameterArgument", defaultValue: true);
+        public static readonly Option<bool> SpaceAfterComma = new Option<bool>(SpacingFeatureName, "SpaceAfterComma", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> DelimitersAfterDotMemberAccessQualifiedName = new Option<bool>(SpacingFeatureName, "DelimitersAfterDotMemberAccessQualifiedName", defaultValue: false);
+        public static readonly Option<bool> SpaceAfterDot = new Option<bool>(SpacingFeatureName, "SpaceAfterDot", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> DelimitersAfterSemiColonInForStatement = new Option<bool>(SpacingFeatureName, "DelimitersAfterSemiColonInForStatement", defaultValue: true);
+        public static readonly Option<bool> SpaceAfterSemicolonsInForStatement = new Option<bool>(SpacingFeatureName, "SpaceAfterSemicolonsInForStatement", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> DelimitersBeforeColonInTypeDeclaration = new Option<bool>(SpacingFeatureName, "DelimitersBeforeColonInTypeDeclaration", defaultValue: true);
+        public static readonly Option<bool> SpaceBeforeColonInBaseTypeDeclaration = new Option<bool>(SpacingFeatureName, "SpaceBeforeColonInBaseTypeDeclaration", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> DelimitersBeforeCommaInParameterArgument = new Option<bool>(SpacingFeatureName, "DelimitersBeforeCommaInParameterArgument", defaultValue: false);
+        public static readonly Option<bool> SpaceBeforeComma = new Option<bool>(SpacingFeatureName, "SpaceBeforeComma", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> DelimitersBeforeDotMemberAccessQualifiedName = new Option<bool>(SpacingFeatureName, "DelimitersBeforeDotMemberAccessQualifiedName", defaultValue: false);
+        public static readonly Option<bool> SpaceBeforeDot = new Option<bool>(SpacingFeatureName, "SpaceBeforeDot", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> DelimitersBeforeSemiColonInForStatement = new Option<bool>(SpacingFeatureName, "DelimitersBeforeSemiColonInForStatement", defaultValue: false);
+        public static readonly Option<bool> SpaceBeforeSemicolonsInForStatement = new Option<bool>(SpacingFeatureName, "SpaceBeforeSemicolonsInForStatement", defaultValue: false);
 
 #if MEF
         [ExportOption]
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OpenCloseBracesIndent = new Option<bool>(IndentFeatureName, "OpenCloseBracesIndent", defaultValue: false);
+        public static readonly Option<bool> IndentBraces = new Option<bool>(IndentFeatureName, "OpenCloseBracesIndent", defaultValue: false);
 
 #if MEF
         [ExportOption]
@@ -159,47 +159,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> LeaveBlockSingleLine = new Option<bool>(WrappingFeatureName, "LeaveBlockSingleLine", defaultValue: true);
+        public static readonly Option<bool> WrappingPreserveSingleLine = new Option<bool>(WrappingFeatureName, "WrappingPreserveSingleLine", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> LeaveStatementMethodDeclarationSameLine = new Option<bool>(WrappingFeatureName, "LeaveStatementMethodDeclarationSameLine", defaultValue: true);
+        public static readonly Option<bool> WrappingKeepStatementsOnSingleLine = new Option<bool>(WrappingFeatureName, "WrappingKeepStatementsOnSingleLine", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OpenBracesInNewLineForTypes = new Option<bool>(NewLineFormattingFeatureName, "OpenBracesInNewLineForTypes", defaultValue: true);
+        public static readonly Option<bool> NewLinesForBracesInTypes = new Option<bool>(NewLineFormattingFeatureName, "NewLinesBracesType", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OpenBracesInNewLineForMethods = new Option<bool>(NewLineFormattingFeatureName, "OpenBracesInNewLineForMethods", defaultValue: true);
+        public static readonly Option<bool> NewLinesForBracesInMethods = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInMethods", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OpenBracesInNewLineForAnonymousMethods = new Option<bool>(NewLineFormattingFeatureName, "OpenBracesInNewLineForAnonymousMethods", defaultValue: true);
+        public static readonly Option<bool> NewLinesForBracesInAnonymousMethods = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInAnonymousMethods", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OpenBracesInNewLineForControl = new Option<bool>(NewLineFormattingFeatureName, "OpenBracesInNewLineForControl", defaultValue: true);
+        public static readonly Option<bool> NewLinesForBracesInControlBlocks = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInControlBlocks", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OpenBracesInNewLineForAnonymousType = new Option<bool>(NewLineFormattingFeatureName, "OpenBracesInNewLineForAnonymousType", defaultValue: true);
+        public static readonly Option<bool> NewLinesForBracesInAnonymousTypes = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInAnonymousTypes", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OpenBracesInNewLineForObjectInitializers = new Option<bool>(NewLineFormattingFeatureName, "OpenBracesInNewLineForObjectInitializers", defaultValue: true);
+        public static readonly Option<bool> NewLinesForBracesInObjectInitializers = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInObjectInitializers", defaultValue: true);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> OpenBracesInNewLineForLambda = new Option<bool>(NewLineFormattingFeatureName, "OpenBracesInNewLineForLambda", defaultValue: true);
+        public static readonly Option<bool> NewLinesForBracesInLambdaExpressionBody = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInLambdaExpressionBody", defaultValue: true);
 
 #if MEF
         [ExportOption]

@@ -148,7 +148,7 @@ class A { }";
     }
 }";
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.LeaveBlockSingleLine, false);
+            changingOptions.Add(CSharpFormattingOptions.WrappingPreserveSingleLine, false);
             AssertFormat(code, expected, changedOptionSet: changingOptions);
         }
 

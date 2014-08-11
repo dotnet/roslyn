@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            if (optionSet.GetOption(CSharpFormattingOptions.OpenCloseBracesIndent))
+            if (optionSet.GetOption(CSharpFormattingOptions.IndentBraces))
             {
                 AddIndentBlockOperation(list, bracePair.Item1, bracePair.Item1, bracePair.Item1.Span);
                 AddIndentBlockOperation(list, bracePair.Item2, bracePair.Item2, bracePair.Item2.Span);

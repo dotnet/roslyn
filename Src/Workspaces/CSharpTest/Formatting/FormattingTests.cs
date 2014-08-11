@@ -951,7 +951,7 @@ label3:
         public void RelativeIndentationToFirstTokenInBaseTokenWithObjectInitializers()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.OpenBracesInNewLineForObjectInitializers, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInObjectInitializers, false);
             AssertFormat(@"class Program
 {
     static void Main(string[] args)
@@ -991,11 +991,11 @@ class D
         public void IndentUserSettingNonDefaultTest_OpenBracesOfLambdaWithNoNewLine()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.OpenCloseBracesIndent, true);
+            changingOptions.Add(CSharpFormattingOptions.IndentBraces, true);
             changingOptions.Add(CSharpFormattingOptions.IndentBlock, false);
             changingOptions.Add(CSharpFormattingOptions.IndentSwitchSection, false);
             changingOptions.Add(CSharpFormattingOptions.IndentSwitchCaseSection, false);
-            changingOptions.Add(CSharpFormattingOptions.OpenBracesInNewLineForLambda, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, false);
             changingOptions.Add(CSharpFormattingOptions.LabelPositioning, LabelPositionOptions.LeftMost);
             AssertFormat(@"class Class2
     {
@@ -1021,7 +1021,7 @@ class D
         public void IndentUserSettingNonDefaultTest()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.OpenCloseBracesIndent, true);
+            changingOptions.Add(CSharpFormattingOptions.IndentBraces, true);
             changingOptions.Add(CSharpFormattingOptions.IndentBlock, false);
             changingOptions.Add(CSharpFormattingOptions.IndentSwitchSection, false);
             changingOptions.Add(CSharpFormattingOptions.IndentSwitchCaseSection, false);
@@ -1147,7 +1147,7 @@ l:
         public void TestWrappingNonDefault_FormatBlock()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.LeaveBlockSingleLine, false);
+            changingOptions.Add(CSharpFormattingOptions.WrappingPreserveSingleLine, false);
             AssertFormat(@"class Class5
 {
     delegate void Del(int x);
@@ -1216,7 +1216,7 @@ class foo{int x = 0;}", false, changingOptions);
         public void TestWrappingNonDefault_FormatStatmtMethDecl()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.LeaveStatementMethodDeclarationSameLine, false);
+            changingOptions.Add(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false);
             AssertFormat(@"class Class5
 {
     delegate void Del(int x);
@@ -1285,8 +1285,8 @@ class foo
         public void TestWrappingNonDefault()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.LeaveBlockSingleLine, false);
-            changingOptions.Add(CSharpFormattingOptions.LeaveStatementMethodDeclarationSameLine, false);
+            changingOptions.Add(CSharpFormattingOptions.WrappingPreserveSingleLine, false);
+            changingOptions.Add(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false);
             AssertFormat(@"class Class5
 {
     delegate void Del(int x);
@@ -1366,7 +1366,7 @@ class foo{int x = 0;}", false, changingOptions);
         public void TestLeaveStatementMethodDeclarationSameLineNotAffectingForStatement()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.LeaveStatementMethodDeclarationSameLine, false);
+            changingOptions.Add(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false);
             AssertFormat(@"class Program
 {
     static void Main(string[] args)
@@ -1513,13 +1513,13 @@ public class foo : System.Object
         public void NewLineForOpenBracesNonDefault()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.OpenBracesInNewLineForTypes, false);
-            changingOptions.Add(CSharpFormattingOptions.OpenBracesInNewLineForMethods, false);
-            changingOptions.Add(CSharpFormattingOptions.OpenBracesInNewLineForAnonymousMethods, false);
-            changingOptions.Add(CSharpFormattingOptions.OpenBracesInNewLineForControl, false);
-            changingOptions.Add(CSharpFormattingOptions.OpenBracesInNewLineForAnonymousType, false);
-            changingOptions.Add(CSharpFormattingOptions.OpenBracesInNewLineForObjectInitializers, false);
-            changingOptions.Add(CSharpFormattingOptions.OpenBracesInNewLineForLambda, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInTypes, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInMethods, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInObjectInitializers, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, false);
             AssertFormat(@"class f00 {
     void br() {
         Func<int, int> ret = x => {
@@ -4824,7 +4824,7 @@ class Program
         { }
     }
 }";
-            var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.OtherParenControlFlow, true } };
+            var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.SpaceWithinOtherParentheses, true } };
             AssertFormat(expected, code, changedOptionSet: optionSet);
         }
 
@@ -4861,7 +4861,7 @@ class Program
         var digits = new List<int> { 1,2,3,4 };
     }
 }";
-            var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.DelimitersAfterCommaInParameterArgument, false } };
+            var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.SpaceAfterComma, false } };
             AssertFormat(expectedAfterCommaDisabled, code, changedOptionSet: optionSet);
 
             var expectedBeforeCommaEnabled = @"
@@ -4873,7 +4873,7 @@ class Program
         var digits = new List<int> { 1 ,2 ,3 ,4 };
     }
 }";
-            optionSet.Add(CSharpFormattingOptions.DelimitersBeforeCommaInParameterArgument, true);
+            optionSet.Add(CSharpFormattingOptions.SpaceBeforeComma, true);
             AssertFormat(expectedBeforeCommaEnabled, code, changedOptionSet: optionSet);
         }
 
@@ -4924,7 +4924,7 @@ class C
         public void PropertyAccessorOptionOff()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.OpenBracesInNewLineForMethods, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInMethods, false);
 
             var code = @"
 class C
@@ -4963,7 +4963,7 @@ class C
         public void QueryExpressionInExpression()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.OpenBracesInNewLineForMethods, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInMethods, false);
 
             var code = @"
 class C
@@ -5178,7 +5178,7 @@ namespace N
     }
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.LeaveBlockSingleLine, false } };
+            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.WrappingPreserveSingleLine, false } };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -5196,7 +5196,7 @@ class C
     }
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.LeaveBlockSingleLine, false } };
+            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.WrappingPreserveSingleLine, false } };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -5222,7 +5222,7 @@ class Program
     }
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.LeaveStatementMethodDeclarationSameLine, false } };
+            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false } };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -5241,7 +5241,7 @@ class Program
     int[ ] x;
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SquareBracesEmpty, true } };
+            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBetweenEmptySquares, true } };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -5260,7 +5260,7 @@ class Program
     int [] x;
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SquareBracesBefore, true } };
+            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBeforeOpenSquare, true } };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -5279,7 +5279,7 @@ class Program
     int[ 3 ] x;
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SquareBracesAndValue, true } };
+            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceWithinSquares, true } };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -5312,7 +5312,7 @@ class Program
 
             var options = new Dictionary<OptionKey, object>()
             {
-                { CSharpFormattingOptions.OpenBracesInNewLineForControl, false }
+                { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false }
             };
 
             AssertFormat(expected, code, changedOptionSet: options);
@@ -5352,7 +5352,7 @@ class Program
 
             var options = new Dictionary<OptionKey, object>()
             {
-                { CSharpFormattingOptions.OpenBracesInNewLineForControl, false }
+                { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false }
             };
 
             AssertFormat(expected, code, changedOptionSet: options);
@@ -5407,7 +5407,7 @@ class Program
         public void IgnoreSpacesInDeclarationStatementEnabled()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.OtherSpacesDeclarationIgnore, true);
+            changingOptions.Add(CSharpFormattingOptions.WrappingIgnoreSpacesAroundVariableDeclaration, true);
             var code = @"
 class Program
 {
