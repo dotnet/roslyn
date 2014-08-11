@@ -2241,7 +2241,7 @@ class Program
         public string Execute(Compilation comp)
         {
             var output = new StringBuilder();
-            string exeFilename = "Output.exe", outputName = null, pdbFilename = "Output.pdb", xmlCommentsFilename = "Output.xml";
+            string exeFilename = "OutputCS.exe", outputName = null, pdbFilename = "OutputCS.pdb", xmlCommentsFilename = "OutputCS.xml";
             EmitResult emitResult = null;
 
             using (var ilStream = new FileStream(exeFilename, FileMode.OpenOrCreate))

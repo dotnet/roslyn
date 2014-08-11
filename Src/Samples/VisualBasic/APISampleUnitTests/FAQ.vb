@@ -2313,7 +2313,7 @@ End Module
         ' A simple helper to execute the code present inside a compilation.
         Public Function Execute(comp As Compilation) As String
             Dim output = New StringBuilder()
-            Dim exeFilename As String = "Output.exe", pdbFilename As String = "Output.pdb", xmlCommentsFilename As String = "Output.xml"
+            Dim exeFilename As String = "OutputVB.exe", pdbFilename As String = "OutputVB.pdb", xmlCommentsFilename As String = "OutputVB.xml"
             Dim emitResult As Microsoft.CodeAnalysis.Emit.EmitResult = Nothing
 
             Using ilStream = New FileStream(exeFilename, FileMode.OpenOrCreate),
