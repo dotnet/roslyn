@@ -110,6 +110,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     AddSuppressAllOperationIfOnMultipleLine(list, anchorToken, parameterNode.GetLastToken());
                 }
             }
+
+            var tryStatement = node as TryStatementSyntax;
+            if (tryStatement != null)
+            {
+                // Add a suppression operation if the try keyword and the block are in the same line
+                if (!tryStatement.TryKeyword.IsMissing && tryStatement.Block != null && !tryStatement.Block.CloseBraceToken.IsMissing)
+                {
+                    AddSuppressWrappingIfOnSingleLineOperation(list, tryStatement.TryKeyword, tryStatement.Block.CloseBraceToken);
+                }
+            }
+
+            var catchClause = node as CatchClauseSyntax;
+            if (catchClause != null)
+            {
+                // Add a suppression operation if the catch keyword and the corresponding block are in the same line
+                if (!catchClause.CatchKeyword.IsMissing && catchClause.Block != null && !catchClause.Block.CloseBraceToken.IsMissing)
+                {
+                    AddSuppressWrappingIfOnSingleLineOperation(list, catchClause.CatchKeyword, catchClause.Block.CloseBraceToken);
+                }
+            }
+
+            var finallyClause = node as FinallyClauseSyntax;
+            if (finallyClause != null)
+            {
+                // Add a suppression operation if the finally keyword and the corresponding block are in the same line
+                if (!finallyClause.FinallyKeyword.IsMissing && finallyClause.Block != null && !finallyClause.Block.CloseBraceToken.IsMissing)
+                {
+                    AddSuppressWrappingIfOnSingleLineOperation(list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
+                }
+            }
         }
 
         private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)

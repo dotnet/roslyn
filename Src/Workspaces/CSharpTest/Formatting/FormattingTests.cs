@@ -5457,5 +5457,33 @@ class C
 }";
             AssertFormat(expected, code);
         }
+
+        [WorkItem(991547, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontWrappingTryCatchFinallyIfOnSingleLine()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        try { }
+        catch { }
+        finally { }
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        try { }
+        catch { }
+        finally { }
+    }
+}";
+            AssertFormat(expected, code);
+        }
     }
 }
