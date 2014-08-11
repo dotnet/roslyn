@@ -76,13 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (syntax.Kind == SyntaxKind.Block)
             {
-                var blockSyntax = (BlockSyntax)syntax;
+                // Implicitly added return for async method does not need sequence points since lowering would add one.
+                if (method == null || !method.IsAsync)
+                {
+                    var blockSyntax = (BlockSyntax)syntax;
 
-                ret = new BoundSequencePointWithSpan(
-                    blockSyntax,
-                    ret,
-                    blockSyntax.CloseBraceToken.Span)
-                { WasCompilerGenerated = true };
+                    ret = new BoundSequencePointWithSpan(
+                        blockSyntax,
+                        ret,
+                        blockSyntax.CloseBraceToken.Span)
+                    { WasCompilerGenerated = true };
+                }
             }
 
             switch (node.Kind)
