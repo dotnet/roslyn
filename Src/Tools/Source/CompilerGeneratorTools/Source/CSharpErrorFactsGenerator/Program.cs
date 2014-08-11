@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
             var warningCodeNames = new List<string>();
             var fatalCodeNames = new List<string>();
             var infoCodeNames = new List<string>();
+            var hiddenCodeNames = new List<string>();
             foreach (var line in File.ReadAllLines(inputPath).Select(l => l.Trim()))
             {
                 if (line.StartsWith("WRN_", StringComparison.OrdinalIgnoreCase))
@@ -50,6 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
                 else if (line.StartsWith("INF_", StringComparison.OrdinalIgnoreCase))
                 {
                     infoCodeNames.Add(line.Substring(0, line.IndexOf(' ')));
+                }
+                else if (line.StartsWith("HDN_", StringComparison.OrdinalIgnoreCase))
+                {
+                    hiddenCodeNames.Add(line.Substring(0, line.IndexOf(' ')));
                 }
             }
 
@@ -94,6 +99,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
             outputText.AppendLine("            switch (code)");
             outputText.AppendLine("            {");
             foreach (var name in infoCodeNames)
+            {
+                outputText.Append("                case ErrorCode.");
+                outputText.Append(name);
+                outputText.AppendLine(":");
+            }
+            outputText.AppendLine("                    return true;");
+            outputText.AppendLine("                default:");
+            outputText.AppendLine("                    return false;");
+            outputText.AppendLine("            }");
+            outputText.AppendLine("        }");
+
+            outputText.AppendLine();
+
+            outputText.AppendLine("        public static bool IsHidden(ErrorCode code)");
+            outputText.AppendLine("        {");
+            outputText.AppendLine("            switch (code)");
+            outputText.AppendLine("            {");
+            foreach (var name in hiddenCodeNames)
             {
                 outputText.Append("                case ErrorCode.");
                 outputText.Append(name);

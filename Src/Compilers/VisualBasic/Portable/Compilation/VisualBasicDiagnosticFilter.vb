@@ -28,12 +28,15 @@ Public Class VisualBasicDiagnosticFilter
 
         ' Filter void diagnostics so that our callers don't have to perform resolution
         ' (which might copy the list of diagnostics).
-        If (diagnostic.Severity = InternalDiagnosticSeverity.Void) Then
+        If diagnostic.Severity = InternalDiagnosticSeverity.Void Then
             Return Nothing
         End If
 
-        ' If it is an error, keep it as it is.
-        If (diagnostic.Severity = DiagnosticSeverity.Error) Then
+        ' If it is a compiler error, keep it as it is.
+        ' TODO: We currently use .Category to detect whether the diagnostic is a compiler diagnostic.
+        ' Perhaps there should be a stronger way of checking this that avoids the possibility of an
+        ' inadvertent clash for some custom diagnostic that happens to use the same category string.
+        If (diagnostic.Severity = DiagnosticSeverity.Error) AndAlso (diagnostic.Category = Diagnostic.CompilerDiagnosticCategory) Then
             Return diagnostic
         End If
 
@@ -68,24 +71,22 @@ Public Class VisualBasicDiagnosticFilter
         Select Case (severity)
             Case InternalDiagnosticSeverity.Void
                 Return ReportDiagnostic.Suppress
-            Case DiagnosticSeverity.Hidden
-                ' Compiler diagnostics cannot have severity Hidden, but user generated diagnostics can.
-                Debug.Assert(category <> Diagnostic.CompilerDiagnosticCategory)
-                ' Leave Select
-            Case DiagnosticSeverity.Info
+            Case DiagnosticSeverity.Hidden, DiagnosticSeverity.Info, DiagnosticSeverity.Warning
+            ' Leave Select
+            Case DiagnosticSeverity.Error
+                ' Compiler errors should have been handled in the Filter() method above.
+                ' Severity of compiler errors can never be changed.
                 If category = Diagnostic.CompilerDiagnosticCategory Then
-                    ' Don't modify compiler generated Info diagnostics.
-                    Return ReportDiagnostic.Default
+                    Throw ExceptionUtilities.UnexpectedValue(category)
                 End If
-            Case DiagnosticSeverity.Warning
-                ' Leave Select
             Case Else
                 Throw ExceptionUtilities.UnexpectedValue(severity)
         End Select
 
         ' Read options (e.g., /nowarn or /warnaserror)
         Dim report As ReportDiagnostic = ReportDiagnostic.Default
-        If Not caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report) Then
+        Dim isSpecified = caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report)
+        If Not isSpecified Then
             report = If(isEnabledByDefault, ReportDiagnostic.Default, ReportDiagnostic.Suppress)
         End If
 
@@ -102,6 +103,8 @@ Public Class VisualBasicDiagnosticFilter
 
         ' check options (/nowarn)
         ' When doing suppress-all-warnings, don't lower severity for anything other than warning and info.
+        ' We shouldn't suppress hidden diagnostics here because then features that use hidden diagnostics to
+        ' display light bulb would stop working if someone has suppress-all-warnings (/nowarn) specified in their project.
         If generalDiagnosticOption = ReportDiagnostic.Suppress AndAlso
             (severity = DiagnosticSeverity.Warning OrElse severity = DiagnosticSeverity.Info) Then
             Return ReportDiagnostic.Suppress
@@ -109,11 +112,11 @@ Public Class VisualBasicDiagnosticFilter
 
         ' check the AllWarningsAsErrors flag and the specific lists from /warnaserror[+|-] option.
         ' If we've been asked to do warn-as-error then don't raise severity for anything below warning (info or hidden).
-        If (generalDiagnosticOption = ReportDiagnostic.Error AndAlso severity = DiagnosticSeverity.Warning) Then
+        If (generalDiagnosticOption = ReportDiagnostic.Error) AndAlso (severity = DiagnosticSeverity.Warning) Then
             ' In the case for both /warnaserror and /warnaserror-:<n> at the same time,
             ' do not report it as an error.
             ' If there has been no specific action for this warning, then turn it into an error.
-            If (report = ReportDiagnostic.Default) Then
+            If (Not isSpecified) AndAlso (report = ReportDiagnostic.Default) Then
                 Return ReportDiagnostic.Error
             End If
         End If

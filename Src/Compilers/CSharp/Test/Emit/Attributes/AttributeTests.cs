@@ -2832,7 +2832,7 @@ public class GClass<T> where T : Attribute
                 NamedTypeSymbol enumE = GClass.GetTypeMember("E");
                 Assert.Equal(1, enumE.GetAttributes(attributeType).Count());
             };
-            
+
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
@@ -3561,7 +3561,7 @@ class A
 }
 ", options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(    // (21,4): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
-                // [X(NotFound = null)]
+                                              // [X(NotFound = null)]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound"),
                 // (22,4): error CS0617: 'F1' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
                 // [X(F1 = null)]
@@ -5929,7 +5929,7 @@ class System : Attribute
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "System").WithArguments("System"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
 
             source = @"
 [assembly: X]
@@ -7200,5 +7200,5 @@ class Target<T>
         }
 
         #endregion
-}
+    }
 }

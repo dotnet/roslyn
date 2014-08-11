@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -78,12 +76,32 @@ namespace Microsoft.CodeAnalysis
 
         internal string GetMessagePrefix(Diagnostic diagnostic, CultureInfo culture)
         {
+            string prefix;
+            switch (diagnostic.Severity)
+            {
+                case DiagnosticSeverity.Hidden:
+                    prefix = "hidden";
+                    break;
+                case DiagnosticSeverity.Info:
+                    prefix = "info";
+                    break;
+                case DiagnosticSeverity.Warning:
+                    prefix = "warning";
+                    break;
+                case DiagnosticSeverity.Error:
+                    prefix = "error";
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(diagnostic.Severity);
+            }
+
+            if (diagnostic.IsWarningAsError)
+            {
+                prefix = "error";
+            }
+
             return string.Format(culture, "{0} {1}{2}",
-                diagnostic.Severity == DiagnosticSeverity.Info
-                    ? "info"
-                    : diagnostic.Severity == DiagnosticSeverity.Error || diagnostic.IsWarningAsError
-                        ? "error"
-                        : "warning",
+                prefix,
                 diagnostic.Id,
                 diagnostic.IsWarningAsError ? GetWarnAsErrorMessage(culture) : "");
         }

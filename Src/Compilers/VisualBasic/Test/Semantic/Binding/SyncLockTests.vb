@@ -1,10 +1,5 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -338,7 +333,7 @@ End Class
     </file>
 </compilation>).VerifyDiagnostics(
     Diagnostic(ERRID.ERR_CaseElseNoSelect, "Case Else"),
-    Diagnostic(ERRID.INF_UnusedImportStatement, "Imports System"))
+    Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System"))
         End Sub
 
         'Unassigned variable declared before the block gives no warnings if used before label to where we exit using unconditional goto

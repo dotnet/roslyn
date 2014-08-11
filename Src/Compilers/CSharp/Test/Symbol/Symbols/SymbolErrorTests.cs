@@ -2232,10 +2232,10 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_BadUsingNamespace, "NS.S").WithArguments("NS.S"),
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using System.Object;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Object;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Object;"),
                 // (5,5): info CS8019: Unnecessary using directive.
                 //     using NS.S;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using NS.S;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NS.S;"));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -3065,10 +3065,10 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NoExistNS2").WithArguments("NoExistNS2"),
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using NoExistNS1;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using NoExistNS1;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NoExistNS1;"),
                 // (5,5): info CS8019: Unnecessary using directive.
                 //     using NoExistNS2; // No error for this one
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using NoExistNS2;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NoExistNS2;"));
         }
 
         [Fact]
@@ -3480,7 +3480,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "B3").WithArguments("N.B3<T>", "T").WithLocation(19, 19),
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using NIA = N.IA;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using NIA = N.IA;").WithLocation(1, 1));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NIA = N.IA;").WithLocation(1, 1));
         }
 
         /// <summary>
@@ -4019,7 +4019,7 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfObject.F<int*>").WithArguments("int*").WithLocation(10, 9),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using COfArgIterator = C<System.ArgIterator>; // unused
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using COfArgIterator = C<System.ArgIterator>;").WithLocation(3, 1));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using COfArgIterator = C<System.ArgIterator>;").WithLocation(3, 1));
         }
 
         [WorkItem(538157, "DevDiv")]
@@ -4882,7 +4882,7 @@ public class MyClass { }
                 Diagnostic(ErrorCode.ERR_BadExternAlias, "MyType").WithArguments("MyType"),
                 // (1,1): info CS8020: Unused extern alias.
                 // extern alias MyType;   // CS0430
-                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias MyType;"));
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias MyType;"));
         }
 
         [Fact]
@@ -11518,7 +11518,7 @@ class TestClass
                 Diagnostic(ErrorCode.ERR_SystemVoid, "Void"),
                 Diagnostic(ErrorCode.ERR_SystemVoid, "Void"),
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo<Void>").WithArguments("NS.Foo.SFoo", "NS.IFoo<System.Void>.M(System.Void)"),
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "GetVoid").WithArguments("NS.Foo.GetVoid()")) ;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "GetVoid").WithArguments("NS.Foo.GetVoid()"));
         }
 
         [Fact]
@@ -13998,16 +13998,16 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_DuplicateAlias, "O").WithArguments("O"),
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using A = System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using A = System;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A = System;"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using A = System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using A = System;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A = System;"),
                 // (6,5): info CS8019: Unnecessary using directive.
                 //     using O = System.Object;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using O = System.Object;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using O = System.Object;"),
                 // (7,5): info CS8019: Unnecessary using directive.
                 //     using O = System.Object;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using O = System.Object;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using O = System.Object;"));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
         }
@@ -14044,10 +14044,10 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_DuplicateAlias, "ns").WithArguments("ns"),
                 // (14,5): info CS8019: Unnecessary using directive.
                 //     using ns = namespace2;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using ns = namespace2;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using ns = namespace2;"),
                 // (15,5): info CS8019: Unnecessary using directive.
                 //     using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("C").Single() as NamedTypeSymbol;
@@ -14065,10 +14065,10 @@ using X = ABC.X<int>;";
                 Diagnostic(ErrorCode.ERR_DuplicateAlias, "X").WithArguments("X"),
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using X = System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using X = System;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = System;"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using X = ABC.X<int>;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using X = ABC.X<int>;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = ABC.X<int>;"));
         }
 
         [WorkItem(539125, "DevDiv")]
@@ -15699,16 +15699,16 @@ namespace testns
                 Diagnostic(ErrorCode.WRN_DuplicateUsing, "Foo.Bar").WithArguments("Foo.Bar"),
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
                 // (12,5): info CS8019: Unnecessary using directive.
                 //     using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
                 // (13,5): info CS8019: Unnecessary using directive.
                 //     using Foo.Bar;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using Foo.Bar;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Foo.Bar;"));
 
             // TODO...
             // var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -16610,7 +16610,7 @@ class System { }
                 Diagnostic(ErrorCode.ERR_BadUsingNamespace, "System").WithArguments("System"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
         [Fact]
@@ -18633,10 +18633,10 @@ static class A
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(4, 11),
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using A = A;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using A = A;").WithLocation(1, 1),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A = A;").WithLocation(1, 1),
                 // (4,5): info CS8019: Unnecessary using directive.
                 //     using B;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using B;").WithLocation(4, 5));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using B;").WithLocation(4, 5));
         }
 
         [Fact]

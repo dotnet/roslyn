@@ -1231,8 +1231,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedTransparentIdentifierAccess = 8016,
         ERR_ParamDefaultValueDiffersFromAttribute = 8017,
         WRN_UnqualifiedNestedTypeInCref = 8018,
-        INF_UnusedUsingDirective = 8019,
-        INF_UnusedExternAlias = 8020,
+        HDN_UnusedUsingDirective = 8019,
+        HDN_UnusedExternAlias = 8020,
         WRN_NoRuntimeMetadataVersion = 8021,
 
         // Note: one per version to make telemetry easier

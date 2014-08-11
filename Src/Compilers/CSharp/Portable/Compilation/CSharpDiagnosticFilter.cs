@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -31,7 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (d.Severity)
             {
                 case DiagnosticSeverity.Error:
-                    return d;
+                    // If it is a compiler error, keep it as it is.
+                    // TODO: We currently use .Category to detect whether the diagnostic is a compiler diagnostic.
+                    // Perhaps there should be a stronger way of checking this that avoids the possibility of an
+                    // inadvertent clash for some custom diagnostic that happens to use the same category string.
+                    if (d.Category == Diagnostic.CompilerDiagnosticCategory)
+                    {
+                        return d;
+                    }
+                    break;
                 case InternalDiagnosticSeverity.Void:
                     return null;
                 default:
@@ -78,18 +85,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If this is a deleted diagnostic, suppress it.
                     return ReportDiagnostic.Suppress;
                 case DiagnosticSeverity.Hidden:
-                    // Compiler diagnostics cannot have severity Hidden, but user generated diagnostics can.
-                    Debug.Assert(category != Diagnostic.CompilerDiagnosticCategory);
-                    break;
                 case DiagnosticSeverity.Info:
-                    if (category == Diagnostic.CompilerDiagnosticCategory)
-                    {
-                        // Don't modify compiler generated Info diagnostics.
-                        return ReportDiagnostic.Default;
-                    }
-                    break;
                 case DiagnosticSeverity.Warning:
                     // Process warnings below.
+                    break;
+                case DiagnosticSeverity.Error:
+                    if (category == Diagnostic.CompilerDiagnosticCategory)
+                    {
+                        // Compiler errors should have been handled in the Filter() method above.
+                        // Severity of compiler errors can never be changed.
+                        throw ExceptionUtilities.UnexpectedValue(category);
+                    }
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(severity);
@@ -121,17 +127,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // follow the global option (/warnaserror[+|-] or /nowarn).
             if (report == ReportDiagnostic.Default)
             {
-                // If we've been asked to do warn-as-error then don't raise severity for anything below warning (info or hidden).
-                // When doing suppress-all-warnings, don't lower severity for anything other than warning and info
                 switch (generalDiagnosticOption)
                 {
                     case ReportDiagnostic.Error:
+                        // If we've been asked to do warn-as-error then don't raise severity for anything below warning (info or hidden).
                         if (severity == DiagnosticSeverity.Warning)
                         {
                             return ReportDiagnostic.Error;
                         }
                         break;
                     case ReportDiagnostic.Suppress:
+                        // When doing suppress-all-warnings, don't lower severity for anything other than warning and info.
+                        // We shouldn't suppress hidden diagnostics here because then features that use hidden diagnostics to
+                        // display a lightbulb would stop working if someone has suppress-all-warnings (/nowarn) specified in their project.
                         if (severity == DiagnosticSeverity.Warning || severity == DiagnosticSeverity.Info)
                         {
                             return ReportDiagnostic.Suppress;

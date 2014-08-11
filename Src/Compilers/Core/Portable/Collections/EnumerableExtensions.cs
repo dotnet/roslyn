@@ -20,6 +20,16 @@ namespace Microsoft.CodeAnalysis
             return ImmutableDictionary.CreateRange(items);
         }
 
+        public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<KeyValuePair<K, V>> items, IEqualityComparer<K> keyComparer)
+        {
+            if (items == null)
+            {
+                return ImmutableDictionary.Create<K, V>(keyComparer);
+            }
+
+            return ImmutableDictionary.CreateRange(keyComparer, items);
+        }
+
         internal static IList<IList<T>> Transpose<T>(this IEnumerable<IEnumerable<T>> data)
         {
 #if DEBUG

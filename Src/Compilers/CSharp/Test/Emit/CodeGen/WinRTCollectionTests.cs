@@ -1,14 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -456,13 +453,13 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
             verifier.VerifyIL("AllMembers.TestIIterableMembers",
 @"{
   // Code size       41 (0x29)
@@ -1484,13 +1481,13 @@ class AllMembers
             comp.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
         }
 
         [Fact]
@@ -1855,13 +1852,13 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
             verifier.VerifyIL("AllMembers.TestIMapIntIntMembers",
 @"{
   // Code size      756 (0x2f4)
@@ -3216,13 +3213,13 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
             verifier.VerifyIL("AllMembers.TestIVectorIntIVectorViewIntIMapIntIntIMapViewIntIntMembers",
 @"{
   // Code size     1497 (0x5d9)
@@ -4460,13 +4457,13 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
             verifier.VerifyIL("AllMembers.TestISimpleInterfaceImplMembers",
 @"{
   // Code size      686 (0x2ae)
@@ -4827,13 +4824,13 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
             verifier.VerifyIL("AllMembers.TestCollectionInitializers",
 @"{
   // Code size      236 (0xec)
@@ -5015,13 +5012,13 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
 
             verifier.VerifyIL("AllMembers.TestExpressionTreeCompiler",
 @"
@@ -5213,13 +5210,13 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"));
 
             verifier.VerifyIL("AllMembers.TestLINQ",
 @"
@@ -5433,16 +5430,16 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
             verifier.VerifyIL("AllMembers.TestNamedArguments",
 @"{
   // Code size      115 (0x73)
@@ -5571,16 +5568,16 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
             verifier.VerifyIL("AllMembers.TestNullableArgs",
 @"
 {
@@ -5723,13 +5720,13 @@ namespace Test
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "VectorChanged").WithArguments("Test.R.VectorChanged"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Runtime.InteropServices;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Runtime.InteropServices;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Runtime.InteropServices;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Threading;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Threading;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading;"));
         }
 
         [Fact]
@@ -5840,16 +5837,16 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
             verifier.VerifyIL("AllMembers.TestIBindableVectorMembers",
 @"{
   // Code size      410 (0x19a)
@@ -6068,19 +6065,19 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"),
                 // (7,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"));
             verifier.VerifyIL("AllMembers.TestIBindableIterableMembers",
 @"{
   // Code size       42 (0x2a)
@@ -6264,17 +6261,17 @@ class AllMembers
             var verifier = CompileAndVerify(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: EmitOptions.RefEmitBug,
-                verify:false);
+                verify: false);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
             verifier.VerifyIL("AllMembers.TestIBindableVectorIVectorIntMembers",
 @"
 {
@@ -6628,16 +6625,16 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
             verifier.VerifyIL("AllMembers.TestIBindableIterableIIterableMembers",
 @"{
   // Code size       41 (0x29)
@@ -6790,16 +6787,16 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
             verifier.VerifyIL("AllMembers.INotifyCollectionAndBindableVectorMembers",
 @"
 {
@@ -7063,19 +7060,19 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"),
                 // (7,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"));
             verifier.VerifyIL("AllMembers.INotifyCollectionChangedMembers",
 @"
 {
@@ -7191,19 +7188,19 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"),
                 // (7,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"));
             verifier.VerifyIL("AllMembers.INotifyCollectionChangedMembers",
 @"
 {
@@ -7313,19 +7310,19 @@ class AllMembers
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Reflection;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq.Expressions;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq.Expressions;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq.Expressions;"),
                 // (6,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"),
                 // (7,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"));
             verifier.VerifyIL("AllMembers.IPropertyChangedMembers",
 @"
 {
@@ -7423,7 +7420,7 @@ namespace Test2
             verifier.VerifyDiagnostics(
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
             verifier.VerifyIL("Test2.D.Main",
 @"{
   // Code size       12 (0xc)

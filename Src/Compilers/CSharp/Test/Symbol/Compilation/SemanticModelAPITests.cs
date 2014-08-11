@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = @"public class C { public void M() { int x = 10; } }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree); 
+            var comp = CreateCompilationWithMscorlib(tree);
 
             var model1 = comp.GetSemanticModel(tree);
             var model2 = comp.GetSemanticModel(tree);
@@ -703,7 +702,7 @@ partial class Partial001
 ";
             var tree1 = Parse(text1);
             var tree2 = Parse(text2);
-            var comp = CreateCompilationWithMscorlib(new List<SyntaxTree> {tree1, tree2});
+            var comp = CreateCompilationWithMscorlib(new List<SyntaxTree> { tree1, tree2 });
 
             var model1 = comp.GetSemanticModel(tree1);
             var model2 = comp.GetSemanticModel(tree2);
@@ -942,7 +941,7 @@ public class Test
             Assert.Equal(1, paras.Count());
             var parasym = model.GetDeclaredSymbol(paras.First());
             var ploc = parasym.Locations[0];
-            
+
             var args = descendants.OfType<ArgumentSyntax>().Where(s => s.ToString() == "index").Select(s => s);
             Assert.Equal(2, args.Count());
             var argsym1 = model.GetSymbolInfo(args.First().Expression).Symbol;
@@ -983,7 +982,7 @@ class X { }
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using X = System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using X = System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = System;"));
         }
 
         [WorkItem(529751, "DevDiv")]
@@ -1076,7 +1075,7 @@ class Test
             comp.VerifyDiagnostics(
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using X = System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using X = System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = System;"));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -1100,10 +1099,10 @@ class Test
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics();
-            
+
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            
+
             var oldSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
 
             var newSyntax = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer);
@@ -1477,7 +1476,7 @@ class C
   }
 }
 ");
-            
+
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
@@ -1603,7 +1602,7 @@ class C
 ");
 
             var speculatedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(@"Func<int, int> var = (z) => x + z;");
-            
+
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
@@ -1826,7 +1825,7 @@ class C
             var ctor1 = (ConstructorDeclarationSyntax)typeDecl.Members[0];
             var ctor2 = (ConstructorDeclarationSyntax)typeDecl.Members[1];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[2];
-            
+
             var model = compilation.GetSemanticModel(tree);
             var statement = (LocalDeclarationStatementSyntax)methodDecl.Body.Statements[0];
             var initializer = statement.Declaration.Variables[0].Initializer;
@@ -1883,7 +1882,7 @@ class C
             var success = model.TryGetSpeculativeSemanticModel(statement.SpanStart, speculatedStatement, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
-            
+
             // Chaining speculative semantic model is not supported.
             // (a) Expression
             var newSpeculatedStatement = statement.ReplaceNode(expression, SyntaxFactory.ParseExpression("1.1"));
@@ -2263,7 +2262,7 @@ class C
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
             var model = compilation.GetSemanticModel(tree);
-            
+
             var blockStatement = (BlockSyntax)SyntaxFactory.ParseStatement(@"{ label: y++; }");
             var speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
             blockStatement = speculatedMethod.Body;

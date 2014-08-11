@@ -8495,6 +8495,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unused extern alias..
+        /// </summary>
+        internal static string HDN_UnusedExternAlias {
+            get {
+                return ResourceManager.GetString("HDN_UnusedExternAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unnecessary using directive..
+        /// </summary>
+        internal static string HDN_UnusedUsingDirective {
+            get {
+                return ResourceManager.GetString("HDN_UnusedUsingDirective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
         internal static string IDS_AnonMethod {
@@ -9337,24 +9355,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string INF_UnableToLoadSomeTypesInAnalyzer {
             get {
                 return ResourceManager.GetString("INF_UnableToLoadSomeTypesInAnalyzer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unused extern alias..
-        /// </summary>
-        internal static string INF_UnusedExternAlias {
-            get {
-                return ResourceManager.GetString("INF_UnusedExternAlias", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unnecessary using directive..
-        /// </summary>
-        internal static string INF_UnusedUsingDirective {
-            get {
-                return ResourceManager.GetString("INF_UnusedUsingDirective", resourceCulture);
             }
         }
         

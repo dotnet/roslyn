@@ -4466,10 +4466,10 @@
   <data name="ElementsCannotBeNull" xml:space="preserve">
     <value>Elements cannot be null.</value>
   </data>
-  <data name="INF_UnusedImportClause" xml:space="preserve">
+  <data name="HDN_UnusedImportClause" xml:space="preserve">
     <value>Unused import clause.</value>
   </data>
-  <data name="INF_UnusedImportStatement" xml:space="preserve">
+  <data name="HDN_UnusedImportStatement" xml:space="preserve">
     <value>Unused import statement.</value>
   </data>
   <data name="WrongSemanticModelType" xml:space="preserve">

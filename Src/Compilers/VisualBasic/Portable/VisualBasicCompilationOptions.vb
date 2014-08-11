@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 platform:=platform,
                 generalDiagnosticOption:=generalDiagnosticOption,
                 warningLevel:=1,
-                specificDiagnosticOptions:=specificDiagnosticOptions,
+                specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
                 highEntropyVirtualAddressSpace:=highEntropyVirtualAddressSpace,
                 debugInformationKind:=debugInformationKind,
                 subsystemVersion:=subsystemVersion,

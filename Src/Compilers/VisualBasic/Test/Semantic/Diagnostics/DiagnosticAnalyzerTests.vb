@@ -213,8 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
-            Assert.Equal(1, effectiveDiags.Length)
-            Assert.Equal(errorDiagDesciptor.Id, effectiveDiags(0).Id)
+            Assert.Equal(0, effectiveDiags.Length)
 
             ' Shuffle diagnostic severity.
             specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
@@ -241,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                     Case DiagnosticSeverity.Warning
                         If Not effectiveDiag.IsWarningAsError Then
-                            Assert.Equal(infoDiagDesciptor.Id, effectiveDiag.Id)
+                            Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id)
                         Else
                             Assert.Equal(warningDiagDesciptor.Id, effectiveDiag.Id)
                         End If

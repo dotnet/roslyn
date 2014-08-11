@@ -1,15 +1,10 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods
@@ -2263,7 +2258,7 @@ End Module
 
                 compilation1.VerifyDiagnostics(
                     Diagnostic(ERRID.ERR_NameNotMember2, "x.Foo").WithArguments("Foo", "Integer"),
-                    Diagnostic(ERRID.INF_UnusedImportStatement, "Imports Extensions"))
+                    Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports Extensions"))
             End Using
 
         End Sub

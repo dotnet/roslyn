@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis
             Platform platform,
             ReportDiagnostic generalDiagnosticOption,
             int warningLevel,
-            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
+            ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
             bool highEntropyVirtualAddressSpace,
             DebugInformationKind debugInformationKind,
             SubsystemVersion subsystemVersion,
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis
             this.Platform = platform;
             this.GeneralDiagnosticOption = generalDiagnosticOption;
             this.WarningLevel = warningLevel;
-            this.SpecificDiagnosticOptions = specificDiagnosticOptions.ToImmutableDictionaryOrEmpty();
+            this.SpecificDiagnosticOptions = specificDiagnosticOptions;
             this.HighEntropyVirtualAddressSpace = highEntropyVirtualAddressSpace;
             this.DebugInformationKind = debugInformationKind;
             this.Optimize = optimize;
@@ -236,7 +235,7 @@ namespace Microsoft.CodeAnalysis
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
             this.Features = features;
-            
+
             this.lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {
                 var builder = ArrayBuilder<Diagnostic>.GetInstance();

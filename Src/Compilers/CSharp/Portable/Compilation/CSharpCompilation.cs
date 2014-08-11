@@ -185,13 +185,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilationOptions options = null)
         {
             return Create(
-                assemblyName, 
+                assemblyName,
                 options ?? DefaultOptions,
                 (syntaxTrees != null) ? syntaxTrees.Cast<SyntaxTree>() : null,
-                references, 
-                previousSubmission: null, 
-                returnType: null, 
-                hostObjectType: null, 
+                references,
+                previousSubmission: null,
+                returnType: null,
+                hostObjectType: null,
                 isSubmission: false);
         }
 
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     this.referenceManager = new ReferenceManager(
-                        MakeSourceAssemblySimpleName(), 
+                        MakeSourceAssemblySimpleName(),
                         options.AssemblyIdentityComparer,
                         (referenceManager != null) ? referenceManager.ObservedMetadata : null);
                 }
@@ -1754,8 +1754,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!this.IsImportDirectiveUsed(infoTree, infoSpan.Start))
                         {
                             ErrorCode code = info.Kind == SyntaxKind.ExternAliasDirective
-                                ? ErrorCode.INF_UnusedExternAlias
-                                : ErrorCode.INF_UnusedUsingDirective;
+                                ? ErrorCode.HDN_UnusedExternAlias
+                                : ErrorCode.HDN_UnusedUsingDirective;
                             diagnostics.Add(code, infoTree.GetLocation(infoSpan));
                         }
                     }
@@ -1817,10 +1817,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImportInfo other = (ImportInfo)obj;
                     return
                         other.Kind == this.Kind &&
-                        other.Tree == this.Tree && 
+                        other.Tree == this.Tree &&
                         other.Span == this.Span;
                 }
-                
+
                 return false;
             }
 
@@ -2063,7 +2063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !hasErrorOrWarningAsError;
         }
 
-        
+
 
         private ImmutableArray<Diagnostic> GetSourceDeclarationDiagnostics(SyntaxTree syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>> locationFilterOpt = null, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -2238,7 +2238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cancellationToken,
                 testData,
                 diagnostics,
-                metadataOnly, 
+                metadataOnly,
                 ImmutableArray<NamedTypeSymbol>.Empty);
         }
 
@@ -2378,7 +2378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-          
+
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             DiagnosticBag xmlDiagnostics = DiagnosticBag.GetInstance();
 
@@ -2528,11 +2528,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void AddDebugSourceDocumentsForChecksumDirectives(
-            PEModuleBuilder moduleBeingBuilt, 
-            SyntaxTree tree, 
+            PEModuleBuilder moduleBeingBuilt,
+            SyntaxTree tree,
             DiagnosticBag diagnostics)
         {
-            var checksumDirectives = tree.GetRoot().GetDirectives(d => d.Kind == SyntaxKind.PragmaChecksumDirectiveTrivia && 
+            var checksumDirectives = tree.GetRoot().GetDirectives(d => d.Kind == SyntaxKind.PragmaChecksumDirectiveTrivia &&
                                                                  !d.ContainsDiagnostics);
 
             foreach (var directive in checksumDirectives)
@@ -2555,7 +2555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (existingDoc.IsComputedChecksum)
                     {
                         continue;
-                    } 
+                    }
 
                     if (CheckSumMatches(checkSumText, existingDoc.SourceHash))
                     {
@@ -2883,7 +2883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (lazyMakeMemberMissingMap == null)
             {
-                lazyMakeMemberMissingMap = new SmallDictionary<int, bool>(); 
+                lazyMakeMemberMissingMap = new SmallDictionary<int, bool>();
             }
 
             lazyMakeMemberMissingMap[member] = true;

@@ -43,6 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return DiagnosticSeverity.Warning
             ElseIf ErrorFacts.IsInfo(errid) Then
                 Return DiagnosticSeverity.Info
+            ElseIf ErrorFacts.IsHidden(errid) Then
+                Return DiagnosticSeverity.Hidden
             Else
                 Return DiagnosticSeverity.Error
             End If

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MetadataImportOptions metadataImportOptions,
             ImmutableArray<string> features)
             : base(outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimize, checkOverflow, fileAlignment, baseAddress,
-                   platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind,
+                   platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(), highEntropyVirtualAddressSpace, debugInformationKind,
                    subsystemVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features)
         {
             this.Usings = usings.AsImmutableOrEmpty();

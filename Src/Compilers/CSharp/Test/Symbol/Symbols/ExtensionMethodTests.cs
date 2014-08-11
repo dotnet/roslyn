@@ -219,7 +219,7 @@ static class S
 }";
             var compilation = CreateCompilationWithMscorlib(source);
             var syntaxTree = compilation.SyntaxTrees.Single();
-            var fooSymbol = (MethodSymbol) compilation.GetSemanticModel(syntaxTree).GetSymbolInfo(
+            var fooSymbol = (MethodSymbol)compilation.GetSemanticModel(syntaxTree).GetSymbolInfo(
                 syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single()).Symbol;
             Assert.True(fooSymbol.IsExtensionMethod);
             Assert.Equal(MethodKind.ReducedExtension, fooSymbol.MethodKind);
@@ -2476,7 +2476,7 @@ static class S
                     "void U.M3<T, U>(IEnumerable<T> t)",
                     "void S.M3<T, U>(U u, IEnumerable<T> t)");
             };
-            
+
             CompileAndVerify(compilation, emitOptions: EmitOptions.CCI, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
@@ -2759,7 +2759,7 @@ class Program
         [WorkItem(529866, "DevDiv")]
         [Fact]
         public void InstanceMethodAndInaccessibleExtensionMethod_Diagnostics()
-        {            
+        {
             var source =
 @"class C
 {
@@ -2791,7 +2791,7 @@ static class Extensions
         [WorkItem(545322, "DevDiv")] // Bug relates to defunct LookupOptions.IgnoreAccessibility.
         [Fact]
         public void InstanceMethodAndInaccessibleExtensionMethod_Symbols()
-        {            
+        {
             var source =
 @"class C
 {
@@ -2849,7 +2849,7 @@ static class Extensions
         [WorkItem(541890, "DevDiv")]
         [Fact]
         public void InstanceMethodAndInaccessibleExtensionMethod_CandidateSymbols()
-        {       
+        {
             var source =
 @"class C
 {
@@ -2890,9 +2890,9 @@ static class Extensions
         }
 
         [WorkItem(529596, "DevDiv")]
-        [Fact(Skip="529596")]
+        [Fact(Skip = "529596")]
         public void DelegateFromValueTypeExtensionMethod()
-        {          
+        {
             var source = @"
 public delegate void VoidDelegate();
 
@@ -2921,7 +2921,7 @@ static class C
 
         [Fact]
         public void DelegateFromGenericExtensionMethod()
-        {         
+        {
             var source = @"
 public delegate void VoidDelegate();
 
@@ -3269,7 +3269,7 @@ namespace NB
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("NA.A.F(object)", "NA.B.F(object)").WithLocation(16, 26),
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using NB;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using NB;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NB;"));
         }
 
         [Fact, WorkItem(822125, "DevDiv")]

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -183,7 +182,7 @@ class Derived : Base
 
             Assert.Equal(baseType, ilAssembly1.ResolveForwardedType("Base"));
             Assert.Equal(baseType, ilAssembly2.ResolveForwardedType("Base"));
-            
+
             var derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
             Assert.Equal(baseType, derivedType.BaseType);
 
@@ -216,7 +215,7 @@ class Derived : Base
   .assembly extern pe1
 }
 ";
-            
+
             var csharp = @"
 class Derived : Base
 {
@@ -226,7 +225,7 @@ class Derived : Base
             var ref1 = CompileIL(il1, appendDefaultHeader: false);
             var ref2 = CompileIL(il2, appendDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib(csharp, new[] {ref1, ref2});
+            var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2 });
 
             var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
@@ -941,10 +940,10 @@ class Test
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Forwarded").WithArguments("Forwarded"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using Namespace;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using Namespace;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Namespace;"));
 
-                // We'd like to report this diagnostic, but the dev cost is too high.
-                // (8,21): error CS1069: The type name 'Forwarded' could not be found in the namespace 'Namespace'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+            // We'd like to report this diagnostic, but the dev cost is too high.
+            // (8,21): error CS1069: The type name 'Forwarded' could not be found in the namespace 'Namespace'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
         }
 
         [Fact]
@@ -988,7 +987,7 @@ class Test
 
             var ref1 = CompileIL(il1, appendDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib(csharp, new[] {ref1});
+            var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1 });
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS1070: The type name 'T0' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
@@ -1017,7 +1016,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Ls").WithArguments("Ls", "Ns.Ms"));
 
             var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => !ns.StartsWith("System") && !ns.StartsWith("Microsoft"));
-            var expectedNamespaces = new [] { "Ns", "Ns.Ms" };
+            var expectedNamespaces = new[] { "Ns", "Ns.Ms" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
 
@@ -1064,7 +1063,7 @@ namespace N1
 
             var ref1 = CompileIL(il1, appendDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib(csharp, new[] {ref1});
+            var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1 });
 
             compilation.VerifyDiagnostics(
                 // (7,15): error CS1069: The type name 'T' could not be found in the namespace 'N1.N2.N3'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
@@ -1332,7 +1331,7 @@ namespace NS
 
                     if (plus != -1)
                     {
-                        topLevelTypes.Add(fullName.Substring(0,plus));
+                        topLevelTypes.Add(fullName.Substring(0, plus));
                     }
                     else
                     {
@@ -1511,7 +1510,7 @@ public class CF1
          = {type(class 'CF1, ForwarderTargetAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null')}
 ";
 
-            var ilBytes = default(ImmutableArray<Byte>); 
+            var ilBytes = default(ImmutableArray<Byte>);
             using (var reference = SharedCompilationUtils.IlasmTempAssembly(ilSource, appendDefaultHeader: false))
             {
                 ilBytes = ReadFromFile(reference.Path);
@@ -1519,7 +1518,7 @@ public class CF1
 
             var modRef2 = new MetadataImageReference(ModuleMetadata.CreateFromImage(ilBytes));
 
-            appCompilation = CreateCompilationWithMscorlib(app, references: new MetadataReference [] { modRef2, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
+            appCompilation = CreateCompilationWithMscorlib(app, references: new MetadataReference[] { modRef2, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
 
             module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
             metadata = module.Module;
@@ -1531,7 +1530,7 @@ public class CF1
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
             Assert.Equal(1, peReader.CustomAttributes.Count);
 
-            CompileAndVerify(appCompilation, emitOptions: EmitOptions.RefEmitBug, 
+            CompileAndVerify(appCompilation, emitOptions: EmitOptions.RefEmitBug,
                 symbolValidator: m =>
                 {
                     var peReader1 = ((PEModuleSymbol)m).Module.GetMetadataReader();

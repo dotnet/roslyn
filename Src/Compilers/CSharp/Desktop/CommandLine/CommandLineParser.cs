@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    AddWarnings(diagnosticOptions, ReportDiagnostic.Error, ParseWarnings(value, diagnostics));
+                                    AddWarnings(diagnosticOptions, ReportDiagnostic.Error, ParseWarnings(value));
                                 }
                                 continue;
 
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    AddWarnings(diagnosticOptions, ReportDiagnostic.Warn, ParseWarnings(value, diagnostics));
+                                    AddWarnings(diagnosticOptions, ReportDiagnostic.Default, ParseWarnings(value));
                                 }
                                 continue;
 
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    AddWarnings(diagnosticOptions, ReportDiagnostic.Suppress, ParseWarnings(value, diagnostics));
+                                    AddWarnings(diagnosticOptions, ReportDiagnostic.Suppress, ParseWarnings(value));
                                 }
                                 continue;
 
@@ -1479,21 +1479,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static IEnumerable<string> ParseWarnings(string value, IList<Diagnostic> diagnostics)
+        private static IEnumerable<string> ParseWarnings(string value)
         {
             value = value.Unquote();
             string[] values = value.Split(new char[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string id in values)
             {
                 ushort number;
-                if (!ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out number) ||
-                    (!ErrorFacts.IsWarning((ErrorCode)number)))
+                if (ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out number) &&
+                    ErrorFacts.IsWarning((ErrorCode)number))
                 {
-                    AddDiagnostic(diagnostics, ErrorCode.WRN_BadWarningNumber, id);
+                    // The id refers to a compiler warning.
+                    yield return CSharp.MessageProvider.Instance.GetIdForErrorCode(number);
                 }
                 else
                 {
-                    yield return CSharp.MessageProvider.Instance.GetIdForErrorCode(number);
+                    // Previous versions of the compiler used to report a warning (CS1691)
+                    // whenever an unrecognized warning code was supplied in /nowarn or 
+                    // /warnaserror. We no longer generate a warning in such cases.
+                    // Instead we assume that the unrecognized id refers to a custom diagnostic.
+                    yield return id;
                 }
             }
         }

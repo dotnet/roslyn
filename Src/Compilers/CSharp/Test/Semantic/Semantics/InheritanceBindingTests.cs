@@ -142,7 +142,7 @@ abstract class AbstractFoo : IFoo
     static int IFoo.Property12 { set { } }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics( 
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (20,23): error CS0106: The modifier 'abstract' is not valid for this item
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property1").WithArguments("abstract"),
                 // (21,22): error CS0106: The modifier 'virtual' is not valid for this item
@@ -866,7 +866,7 @@ partial class Derived2
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Method2").WithArguments("Method2", "Derived2"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using str = System.String;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using str = System.String;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using str = System.String;"));
         }
 
         [Fact]
@@ -2438,7 +2438,7 @@ class Base : Interface2
     public object Method1() { return null; }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics( 
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface2").WithArguments("Base", "Interface2.Method2()"));
         }
 
@@ -2592,7 +2592,7 @@ class Derived2 : Base, Interface
     void BaseInterface.Method4() { } //fine
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics( 
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (20,10): error CS0538: 'object' in explicit interface declaration is not an interface
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "System.Object").WithArguments("object"),
                 // (21,10): error CS0538: 'Base' in explicit interface declaration is not an interface
@@ -2653,7 +2653,7 @@ class Derived2 : Base, Interface
     int BaseInterface.Property4 { get { return 1; } } //fine
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics( 
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (19,9): error CS0538: 'object' in explicit interface declaration is not an interface
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "System.Object").WithArguments("object"),
                 // (20,9): error CS0538: 'Base' in explicit interface declaration is not an interface
@@ -2821,7 +2821,7 @@ public class C : I<object>
             CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
                 // (9,10): error CS0540: 'C.I<dynamic>.F()': containing type does not implement interface 'I<dynamic>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.F()", "I<dynamic>"),
-                // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.F()'
+                 // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.F()'
                  Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.F()"));
         }
 
@@ -2847,7 +2847,7 @@ public class C : I<object>
             CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
                 // (9,9): error CS0540: 'C.I<dynamic>.P': containing type does not implement interface 'I<dynamic>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.P", "I<dynamic>"),
-                // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.P'
+               // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.P'
                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.P"));
         }
 
@@ -3122,7 +3122,7 @@ class Derived : Base3, Interface { }
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 24 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 24 },
 
-                 //Derived3
+                //Derived3
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 45, Column = 24 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 45, Column = 24 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 24 },
@@ -4868,11 +4868,11 @@ class Class : Interface
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyMissingAccessor, Line = 19, Column = 19 }, //1
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyMissingAccessor, Line = 20, Column = 19 }, //2
-                
+
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyMissingAccessor, Line = 24, Column = 19 }, //4
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyAddingAccessor, Line = 24, Column = 31 }, //4
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyAddingAccessor, Line = 25, Column = 49 }, //5
-               
+
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyMissingAccessor, Line = 27, Column = 19 }, //7
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyAddingAccessor, Line = 27, Column = 31 }, //7
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyAddingAccessor, Line = 29, Column = 31 }, //9
@@ -5720,7 +5720,7 @@ class C : I
                 var interfaceEvent = interfaceEvents[i];
 
                 Assert.Equal(classEvent, @class.FindImplementationForInterfaceMember(interfaceEvent));
-                
+
                 Assert.Equal(classEvent.AddMethod, @class.FindImplementationForInterfaceMember(interfaceEvent.AddMethod));
                 Assert.Equal(classEvent.RemoveMethod, @class.FindImplementationForInterfaceMember(interfaceEvent.RemoveMethod));
 
@@ -6858,7 +6858,7 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (16,7): error CS0535: 'Derived' does not implement interface member 'Interface.Method(System.Collections.Generic.List<int>)'
+               // (16,7): error CS0535: 'Derived' does not implement interface member 'Interface.Method(System.Collections.Generic.List<int>)'
                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived", "Interface.Method(System.Collections.Generic.List<int>)"));
         }
 
@@ -6983,7 +6983,7 @@ class Test
     }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(    
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
 // (20,27): warning CS0473: Explicit interface implementation 'Explicit.I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
 //     void I1<Int32, Int32>.Method<V>(int x, Func<int, int, V> v, int z) { }
 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Explicit.I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)"),
@@ -7204,7 +7204,7 @@ class Test
     public static void Main() { I i = new C1(); i.Finalize(); }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(    
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (4,10): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
                 //     void Finalize();
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize").WithLocation(4, 10),

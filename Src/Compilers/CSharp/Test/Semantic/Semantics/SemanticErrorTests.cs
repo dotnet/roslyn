@@ -894,7 +894,7 @@ namespace x
     }
 }";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { 
+                new ErrorDescription[] {
                     new ErrorDescription { Code = (int)ErrorCode.ERR_IntDivByZero, Line = 8, Column = 26 },
                     new ErrorDescription { Code = (int)ErrorCode.ERR_IntDivByZero, Line = 9, Column = 26 },
                     new ErrorDescription { Code = (int)ErrorCode.ERR_IntDivByZero, Line = 10, Column = 26 } });
@@ -1469,8 +1469,8 @@ namespace x
     }
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (8,20): error CS0030: Cannot convert type 'int' to 'x.iii'
-                //             return (iii)0;   // CS0030
+               // (8,20): error CS0030: Cannot convert type 'int' to 'x.iii'
+               //             return (iii)0;   // CS0030
                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(iii)0").WithArguments("int", "x.iii"));
         }
 
@@ -1551,7 +1551,7 @@ class A
     byte bt = 256;
 }
 ";
-        CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
             // (10,9): error CS0031: Constant value '240' cannot be converted to a 'sbyte'
             //     B = 0xf0, // CS0031
             Diagnostic(ErrorCode.ERR_ConstOutOfRange, "0xf0").WithArguments("240", "sbyte"),
@@ -1865,7 +1865,7 @@ class Program
 
         }
 
-        [Fact(),WorkItem(528875, "DevDiv")]
+        [Fact(), WorkItem(528875, "DevDiv")]
         public void CS0038ERR_WrongNestedThis()
         {
             var text = @"
@@ -1891,9 +1891,9 @@ class OuterClass
    }
 }";
             // Triage decided not to implement the more specific error (WrongNestedThis) and stick with ObjectRequired.
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new Dictionary<string, ReportDiagnostic>() 
-            { 
-                { MessageProvider.Instance.GetIdForErrorCode(649), ReportDiagnostic.Suppress } 
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new Dictionary<string, ReportDiagnostic>()
+            {
+                { MessageProvider.Instance.GetIdForErrorCode(649), ReportDiagnostic.Suppress }
             }));
 
             comp.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_ObjectRequired, "count").WithArguments("OuterClass.count"));
@@ -2005,10 +2005,10 @@ interface I
                 //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
                 Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"),
 
-            // CONSIDER: dev10 doesn't report these, but we report them in the parser so they're
+                // CONSIDER: dev10 doesn't report these, but we report them in the parser so they're
                 // hard to suppress.
 
-            // (4,33): error CS0073: An add or remove accessor must have a body
+                // (4,33): error CS0073: An add or remove accessor must have a body
                 //     event System.Action E1 { add; } // CS0069 on add
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
                 // (5,36): error CS0073: An add or remove accessor must have a body
@@ -2195,7 +2195,7 @@ class NamedExample
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "height").WithArguments("?", "int"),
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
         [Fact]
@@ -2895,7 +2895,7 @@ class F
   ProtectionLevel Prop { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(text, references: new[] { SystemRef}) .VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, references: new[] { SystemRef }).VerifyDiagnostics(
                 // (9,17): error CS0120: An object reference is required for the non-static field, method, or property 'F.Prop'
                 //   [DefaultValue(Prop.Privacy)] // CS0120
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Prop").WithArguments("F.Prop"),
@@ -3404,11 +3404,11 @@ namespace MyNamespace
 }";
             CreateCompilationWithMscorlib(text).
                 VerifyDiagnostics(
-                // (9,14): error CS0128: A local variable named 'i' is already defined in this scope
-                //          int i = 2;   // CS0128
+                    // (9,14): error CS0128: A local variable named 'i' is already defined in this scope
+                    //          int i = 2;   // CS0128
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i"),
-                // (9,14): warning CS0219: The variable 'i' is assigned but its value is never used
-                //          int i = 2;   // CS0128
+                    // (9,14): warning CS0219: The variable 'i' is assigned but its value is never used
+                    //          int i = 2;   // CS0128
                     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i")
                 );
         }
@@ -5794,11 +5794,11 @@ class Test
     }
 }")
                 .VerifyDiagnostics(
-                // (18,16): error CS0165: Use of unassigned local variable 'c'
+                    // (18,16): error CS0165: Use of unassigned local variable 'c'
                     Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c"),
-                // (22,18): error CS0165: Use of unassigned local variable 'unassigned1'
+                    // (22,18): error CS0165: Use of unassigned local variable 'unassigned1'
                     Diagnostic(ErrorCode.ERR_UseDefViolation, "unassigned1").WithArguments("unassigned1"),
-                // (29,18): error CS0165: Use of unassigned local variable 'unassigned2'
+                    // (29,18): error CS0165: Use of unassigned local variable 'unassigned2'
                     Diagnostic(ErrorCode.ERR_UseDefViolation, "unassigned2").WithArguments("unassigned2"));
         }
 
@@ -6084,17 +6084,17 @@ class C
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (9,9): error CS0176: Member 'C.field' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         this.field = this.Property;
+    // (9,9): error CS0176: Member 'C.field' cannot be accessed with an instance reference; qualify it with a type name instead
+    //         this.field = this.Property;
     Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.field").WithArguments("C.field"),
-                // (9,22): error CS0176: Member 'C.Property' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         this.field = this.Property;
+    // (9,22): error CS0176: Member 'C.Property' cannot be accessed with an instance reference; qualify it with a type name instead
+    //         this.field = this.Property;
     Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.Property").WithArguments("C.Property"),
-                // (10,9): error CS0176: Member 'C.Property' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         c.Property = c.field;
+    // (10,9): error CS0176: Member 'C.Property' cannot be accessed with an instance reference; qualify it with a type name instead
+    //         c.Property = c.field;
     Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.Property").WithArguments("C.Property"),
-                // (10,22): error CS0176: Member 'C.field' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         c.Property = c.field;
+    // (10,22): error CS0176: Member 'C.field' cannot be accessed with an instance reference; qualify it with a type name instead
+    //         c.Property = c.field;
     Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.field").WithArguments("C.field")
                                     );
         }
@@ -9463,41 +9463,41 @@ class B<T1, T2, T3, T4, T5, T6, T7>
     static T7 F7() { return null; }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (13,17): error CS0403: Cannot convert null to type parameter 'T1' because it could be a non-nullable value type. Consider using 'default(T1)' instead.
-                //         T1 t1 = null;
+    // (13,17): error CS0403: Cannot convert null to type parameter 'T1' because it could be a non-nullable value type. Consider using 'default(T1)' instead.
+    //         T1 t1 = null;
     Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T1"),
-                // (15,17): error CS0403: Cannot convert null to type parameter 'T3' because it could be a non-nullable value type. Consider using 'default(T3)' instead.
-                //         T3 t3 = null;
+    // (15,17): error CS0403: Cannot convert null to type parameter 'T3' because it could be a non-nullable value type. Consider using 'default(T3)' instead.
+    //         T3 t3 = null;
     Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T3"),
-                // (16,17): error CS0403: Cannot convert null to type parameter 'T4' because it could be a non-nullable value type. Consider using 'default(T4)' instead.
-                //         T4 t4 = null;
+    // (16,17): error CS0403: Cannot convert null to type parameter 'T4' because it could be a non-nullable value type. Consider using 'default(T4)' instead.
+    //         T4 t4 = null;
     Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T4"),
-                // (17,17): error CS0403: Cannot convert null to type parameter 'T5' because it could be a non-nullable value type. Consider using 'default(T5)' instead.
-                //         T5 t5 = null;
+    // (17,17): error CS0403: Cannot convert null to type parameter 'T5' because it could be a non-nullable value type. Consider using 'default(T5)' instead.
+    //         T5 t5 = null;
     Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T5"),
-                // (19,17): error CS0403: Cannot convert null to type parameter 'T7' because it could be a non-nullable value type. Consider using 'default(T7)' instead.
-                //         T7 t7 = null;
+    // (19,17): error CS0403: Cannot convert null to type parameter 'T7' because it could be a non-nullable value type. Consider using 'default(T7)' instead.
+    //         T7 t7 = null;
     Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T7"),
-                // (14,12): warning CS0219: The variable 't2' is assigned but its value is never used
-                //         T2 t2 = null;
+    // (14,12): warning CS0219: The variable 't2' is assigned but its value is never used
+    //         T2 t2 = null;
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t2").WithArguments("t2"),
-                // (18,12): warning CS0219: The variable 't6' is assigned but its value is never used
-                //         T6 t6 = null;
+    // (18,12): warning CS0219: The variable 't6' is assigned but its value is never used
+    //         T6 t6 = null;
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t6").WithArguments("t6"),
-                // (21,29): error CS0403: Cannot convert null to type parameter 'T1' because it could be a non-nullable value type. Consider using 'default(T1)' instead.
-                //     static T1 F1() { return null; }
+    // (21,29): error CS0403: Cannot convert null to type parameter 'T1' because it could be a non-nullable value type. Consider using 'default(T1)' instead.
+    //     static T1 F1() { return null; }
     Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T1"),
-                // (23,29): error CS0403: Cannot convert null to type parameter 'T3' because it could be a non-nullable value type. Consider using 'default(T3)' instead.
-                //     static T3 F3() { return null; }
+    // (23,29): error CS0403: Cannot convert null to type parameter 'T3' because it could be a non-nullable value type. Consider using 'default(T3)' instead.
+    //     static T3 F3() { return null; }
     Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T3"),
-                // (24,29): error CS0403: Cannot convert null to type parameter 'T4' because it could be a non-nullable value type. Consider using 'default(T4)' instead.
-                //     static T4 F4() { return null; }
+    // (24,29): error CS0403: Cannot convert null to type parameter 'T4' because it could be a non-nullable value type. Consider using 'default(T4)' instead.
+    //     static T4 F4() { return null; }
     Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T4"),
-                // (25,29): error CS0403: Cannot convert null to type parameter 'T5' because it could be a non-nullable value type. Consider using 'default(T5)' instead.
-                //     static T5 F5() { return null; }
+    // (25,29): error CS0403: Cannot convert null to type parameter 'T5' because it could be a non-nullable value type. Consider using 'default(T5)' instead.
+    //     static T5 F5() { return null; }
     Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T5"),
-                // (27,29): error CS0403: Cannot convert null to type parameter 'T7' because it could be a non-nullable value type. Consider using 'default(T7)' instead.
-                //     static T7 F7() { return null; }
+    // (27,29): error CS0403: Cannot convert null to type parameter 'T7' because it could be a non-nullable value type. Consider using 'default(T7)' instead.
+    //     static T7 F7() { return null; }
     Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T7")
             );
         }
@@ -10010,14 +10010,14 @@ class Test
             noWarns.Add(MessageProvider.Instance.GetIdForErrorCode(219), ReportDiagnostic.Suppress);
 
             CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(noWarns)).VerifyDiagnostics(
-                            // (8,13): error CS0118: 'b' is a variable but is used like a type
-                            //         F(a<b, c>(3));    // CS0471
+                // (8,13): error CS0118: 'b' is a variable but is used like a type
+                //         F(a<b, c>(3));    // CS0471
                 Diagnostic(ErrorCode.ERR_BadSKknown, "b").WithArguments("b", "variable", "type"),
-                            // (8,16): error CS0118: 'c' is a variable but is used like a type
-                            //         F(a<b, c>(3));    // CS0471
+                // (8,16): error CS0118: 'c' is a variable but is used like a type
+                //         F(a<b, c>(3));    // CS0471
                 Diagnostic(ErrorCode.ERR_BadSKknown, "c").WithArguments("c", "variable", "type"),
-                            // (8,11): error CS0307: The variable 'a' cannot be used with type arguments
-                            //         F(a<b, c>(3));    // CS0471
+                // (8,11): error CS0307: The variable 'a' cannot be used with type arguments
+                //         F(a<b, c>(3));    // CS0471
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "a<b, c>").WithArguments("a", "variable"));
         }
 
@@ -10689,11 +10689,11 @@ public class Test
     {
     }
 }").VerifyDiagnostics(
-                // (5,9): error CS0723: Cannot declare a variable of static type 'SC'
+            // (5,9): error CS0723: Cannot declare a variable of static type 'SC'
             Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "SC").WithArguments("SC"),
-                // (7,19): error CS0712: Cannot create an instance of the static class 'SC'
+            // (7,19): error CS0712: Cannot create an instance of the static class 'SC'
             Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new SC()").WithArguments("SC"),
-                // (7,9): error CS0723: Cannot declare a variable of static type 'SC'
+            // (7,9): error CS0723: Cannot declare a variable of static type 'SC'
             Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "var").WithArguments("SC"));
         }
 
@@ -10705,9 +10705,9 @@ static class SC {}
 
 var sc2 = new SC();
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (4,5): error CS0723: Cannot declare a variable of static type 'SC'
+            // (4,5): error CS0723: Cannot declare a variable of static type 'SC'
             Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "sc2").WithArguments("SC"),
-                // (4,11): error CS0712: Cannot create an instance of the static class 'SC'
+            // (4,11): error CS0712: Cannot create an instance of the static class 'SC'
             Diagnostic(ErrorCode.ERR_InstantiatingStaticClass, "new SC()").WithArguments("SC"));
         }
 
@@ -10852,26 +10852,26 @@ class Test
     }
     static void M() {}
 }", parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (6,13): error CS0815: Cannot assign method group to an implicitly-typed variable
-                //         var m = Main; // CS0815
+    // (6,13): error CS0815: Cannot assign method group to an implicitly-typed variable
+    //         var m = Main; // CS0815
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = Main").WithArguments("method group"),
-                // (7,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var d = s => -1; // CS0815
+    // (7,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+    //         var d = s => -1; // CS0815
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
-                // (8,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var e = (string s) => 0; // CS0815
+    // (8,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+    //         var e = (string s) => 0; // CS0815
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
-                // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
-                //         var p = null;//CS0815
+    // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
+    //         var p = null;//CS0815
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
-                // (10,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
-                //         var del = delegate(string a) { return -1; };// CS0815
+    // (10,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
+    //         var del = delegate(string a) { return -1; };// CS0815
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
-                // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
-                //         var v = M(); // CS0815
+    // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
+    //         var v = M(); // CS0815
     Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"),
-                // (9,13): warning CS0219: The variable 'p' is assigned but its value is never used
-                //         var p = null;//CS0815
+    // (9,13): warning CS0219: The variable 'p' is assigned but its value is never used
+    //         var p = null;//CS0815
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p")
                 );
         }
@@ -10999,7 +10999,7 @@ class G
             CreateCompilationWithMscorlib(@"
 var y = { 1, 2, 3 };
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (1,5): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
+            // (1,5): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
             Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, "y = { 1, 2, 3 }"));
         }
 
@@ -12304,8 +12304,8 @@ class Test
 }
 ")
                 .VerifyDiagnostics(
-                // (7,17): error CS1061: 'int' does not contain a definition for 'Select' and no extension method 'Select' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
-                //         var q = 1.Select(z => z);
+                    // (7,17): error CS1061: 'int' does not contain a definition for 'Select' and no extension method 'Select' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                    //         var q = 1.Select(z => z);
                     Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Select").WithArguments("int", "Select").WithLocation(7, 19));
         }
 
@@ -12598,7 +12598,7 @@ namespace x
     }
 }
 ",
-                //"'C' error CS1502: The best overloaded method match for 'X.C.C(int, char)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'C' error CS1502: The best overloaded method match for 'X.C.C(int, char)' has some invalid arguments",  //specifically omitted by roslyn
                  "'2' error CS1503: Argument 2: cannot convert from 'int' to 'char'");
         }
 
@@ -12623,13 +12623,13 @@ class C
     }
 }
 ",
-                //"'F' error CS1502: The best overloaded method match for 'C.F(int)' has some invalid arguments",    //specifically omitted by roslyn              
+                 //"'F' error CS1502: The best overloaded method match for 'C.F(int)' has some invalid arguments",    //specifically omitted by roslyn              
                  "'E1.A' error CS1503: Argument 1: cannot convert from 'E1' to 'int'",
-                //"'F' error CS1502: The best overloaded method match for 'C.F(int)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'F' error CS1502: The best overloaded method match for 'C.F(int)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(E2)E1.B' error CS1503: Argument 1: cannot convert from 'E2' to 'int'",
-                //"'G' error CS1502: The best overloaded method match for 'C.G(E1)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'G' error CS1502: The best overloaded method match for 'C.G(E1)' has some invalid arguments",  //specifically omitted by roslyn
                  "'E2.X' error CS1503: Argument 1: cannot convert from 'E2' to 'E1'",
-                //"'G' error CS1502: The best overloaded method match for 'C.G(E1)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'G' error CS1502: The best overloaded method match for 'C.G(E1)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(int)E2.Z' error CS1503: Argument 1: cannot convert from 'int' to 'E1'");
         }
 
@@ -13161,7 +13161,7 @@ public class C {
 ";
             //EDMAURER no need to enforce a limit here.
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);//,
-                //new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_FileNameTooLong, Line = 1, Column = 25 } });
+                                                                             //new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_FileNameTooLong, Line = 1, Column = 25 } });
         }
 
         [Fact]
@@ -13348,7 +13348,7 @@ class a
             //EDMAURER Giving errors for the individual argument problems is better than generic "delegate 'blah' has some invalid arguments"
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_BadArgType, Line = 21, Column = 15 } });
-                //new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_BadDelArgTypes, Line = 21, Column = 9 } });
+            //new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_BadDelArgTypes, Line = 21, Column = 9 } });
         }
 
         // TODO: change this to CS0051 in Roslyn?
@@ -14722,7 +14722,7 @@ class myClass
                 Diagnostic(ErrorCode.ERR_BadExternAlias, "global").WithArguments("global"),
                 // (2,1): info CS8020: Unused extern alias.
                 // extern alias global;
-                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias global;")
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias global;")
                 );
         }
 
@@ -15483,8 +15483,8 @@ static class Test
     }
 }
 ").VerifyDiagnostics(
-                // (9,27): error CS1934: Could not find an implementation of the query pattern for source type 'System.Collections.ArrayList'.  'Select' not found.  Consider explicitly specifying the type of the range variable 'x'.
-                // list
+             // (9,27): error CS1934: Could not find an implementation of the query pattern for source type 'System.Collections.ArrayList'.  'Select' not found.  Consider explicitly specifying the type of the range variable 'x'.
+             // list
              Diagnostic(ErrorCode.ERR_QueryNoProviderCastable, "list").WithArguments("System.Collections.ArrayList", "Select", "x"));
         }
 
@@ -15505,8 +15505,8 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (8,40): error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Where' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
-                // nums
+             // (8,40): error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Where' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
+             // nums
              Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, "nums").WithArguments("int[]", "Where"));
         }
 
@@ -15527,8 +15527,8 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (10,35): error CS1936: Could not find an implementation of the query pattern for source type 'object'.  'Select' not found.
-                // obj
+             // (10,35): error CS1936: Could not find an implementation of the query pattern for source type 'object'.  'Select' not found.
+             // obj
              Diagnostic(ErrorCode.ERR_QueryNoProvider, "obj").WithArguments("object", "Select"));
         }
 
@@ -16738,8 +16738,8 @@ public class D : B
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(text);
             comp.VerifyDiagnostics(
-// (14,17): error CS1972: The indexer access needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
-//         int s = base[(dynamic)o];
+                // (14,17): error CS1972: The indexer access needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
+                //         int s = base[(dynamic)o];
                 Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseIndexer, "base[(dynamic)o]"));
         }
 
@@ -16767,7 +16767,7 @@ static public class Extension
 // (8,9): error CS1973: 'B' has no applicable method named 'Foo' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
 //         b.Foo(d);
 Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "b.Foo(d)").WithArguments("B", "Foo"));
-}
+        }
 
         [Fact]
         public void CS1975ERR_NoDynamicPhantomOnBaseCtor_Base()
@@ -16964,7 +16964,7 @@ class Program
     }
 }
 ";
-            
+
             var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,15): error CS1978: Cannot use an expression of type 'int*' as an argument to a dynamically dispatched operation.
@@ -17185,7 +17185,7 @@ class MyClass
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "int"),
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "return"));
-       }
+        }
 
         [Fact, WorkItem(530037, "DevDiv")]
         public void CS0162WRN_UnreachableCode02()
@@ -17670,8 +17670,8 @@ class Derived : ByRef
     }
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (5,13): warning CS0219: The variable 'a' is assigned but its value is never used
-                //         int a = 0;   // CS0219
+    // (5,13): warning CS0219: The variable 'a' is assigned but its value is never used
+    //         int a = 0;   // CS0219
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a")
                 );
         }
@@ -20259,7 +20259,7 @@ class Test
             //EDMAURER no longer giving this low-value warning.
             CreateCompilationWithMscorlib(text).
                 VerifyDiagnostics();
-                //VerifyDiagnostics(Diagnostic(ErrorCode.WRN_EmptyFileName, @""""));
+            //VerifyDiagnostics(Diagnostic(ErrorCode.WRN_EmptyFileName, @""""));
         }
 
         [Fact]
@@ -20747,7 +20747,7 @@ class C
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T1)[1]").WithArguments("T1").WithLocation(35, 9),
                 // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9), // Incorrect? See CS0131ERR_AssgLvalueExpected03 unit test.
-                // (38,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
+                                                                                                    // (38,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T4)[1]").WithArguments("T4").WithLocation(38, 9));
         }
 
@@ -20794,8 +20794,8 @@ class Myclass
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(text);
             comp.VerifyDiagnostics(
-                // (9,9): warning CS1974: The dynamically dispatched call to method 'Foo' may fail at runtime because one or more applicable overloads are conditional methods.
-                //         Foo(d); 
+// (9,9): warning CS1974: The dynamically dispatched call to method 'Foo' may fail at runtime because one or more applicable overloads are conditional methods.
+//         Foo(d); 
 Diagnostic(ErrorCode.WRN_DynamicDispatchToConditionalMethod, "Foo(d)").WithArguments("Foo"));
         }
 
@@ -21385,7 +21385,7 @@ class C
             builder.Append(@"
 class C
 {
-");         
+");
             builder.AppendFormat("int {0}1;\n", longE);
             builder.AppendFormat("event System.Action {0}2;\n", longE);
             builder.AppendFormat("public void {0}3() {{ }}\n", longE);
@@ -21935,7 +21935,7 @@ class Program
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
                );
         }
-        
+
 
         [Fact]
         public void ConditionalElementAccess001()
@@ -22132,7 +22132,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, 
+            CreateCompilationWithMscorlib45(text,
                 new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef },
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
     // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5.  Please use language version 6 or greater.

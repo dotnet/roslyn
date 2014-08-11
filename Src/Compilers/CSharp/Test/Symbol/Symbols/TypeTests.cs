@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var x = c.GetMembers("x").Single() as FieldSymbol;
             var arr = x.Type;
 
-            Assert.DoesNotThrow(() => { arr.GetHashCode(); } );
+            Assert.DoesNotThrow(() => { arr.GetHashCode(); });
         }
 
         [Fact]
@@ -703,7 +702,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "System.Void").WithArguments("", "System.Void", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "void"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
         [WorkItem(542479, "DevDiv")]
@@ -740,7 +739,7 @@ namespace N
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "N.C").WithArguments("", "N.C", "RefAsm, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "N.C"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
         [WorkItem(542479, "DevDiv")]
@@ -1397,7 +1396,7 @@ class Program
         [Fact, WorkItem(530171, "DevDiv")]
         public void ErrorTypeTest01()
         {
-            var comp =CreateCompilationWithMscorlib(@"public void TopLevelMethod() {}");
+            var comp = CreateCompilationWithMscorlib(@"public void TopLevelMethod() {}");
 
             var errSymbol = comp.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             Assert.NotNull(errSymbol);
@@ -1465,7 +1464,7 @@ public class NullableTest
             Assert.False(memType.CanBeConst());
 
             underType = memType.StrippedType();
-            Assert.Same(comp.GetSpecialType(SpecialType.System_Byte), underType); 
+            Assert.Same(comp.GetSpecialType(SpecialType.System_Byte), underType);
             Assert.Same(underType, memType.GetNullableUnderlyingType());
             // ------------------------------
             mem = topType.GetMembers("Prop01").Single();

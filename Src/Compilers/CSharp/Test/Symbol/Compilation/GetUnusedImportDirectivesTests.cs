@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -31,7 +30,7 @@ class C
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
 
@@ -39,7 +38,7 @@ class C
         [Fact]
         public void TestUnusedExtensionMarksImportsAsUsed()
         {
-           string class1Source = @"using System;
+            string class1Source = @"using System;
 
 namespace ClassLibrary1
 {
@@ -97,7 +96,7 @@ namespace ConsoleApplication
             //result in changing ClassLibrary2's used status.
             model.GetMemberGroup(syntax);
 
-            model.GetDiagnostics().Verify(Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using ClassLibrary2;"));
+            model.GetDiagnostics().Verify(Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using ClassLibrary2;"));
         }
 
         [WorkItem(747219, "DevDiv2/DevDiv")]
@@ -129,16 +128,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Enumerable").WithArguments("Enumerable"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Linq;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (5,1): info CS8019: Unnecessary using directive.
                 // using System.Threading.Tasks;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Threading.Tasks;")
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading.Tasks;")
                 );
 
 
@@ -146,13 +145,13 @@ class Program
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;"),
                 // (5,1): info CS8019: Unnecessary using directive.
                 // using System.Threading.Tasks;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Threading.Tasks;")
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading.Tasks;")
                 );
         }
 
@@ -202,7 +201,7 @@ class C
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;")
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;")
                 );
         }
 
@@ -221,8 +220,8 @@ using System.Reflection;
             var ivtCompilation = CreateCompilationWithMscorlib(
                 assemblyName: "IVT",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()),
-                references: new[] {SystemCoreRef},
-                trees: new[] 
+                references: new[] { SystemCoreRef },
+                trees: new[]
                 {
                     Parse(@"
 using System.Runtime.CompilerServices;
@@ -283,10 +282,10 @@ class C
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;")
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;")
                 );
         }
 
@@ -302,10 +301,10 @@ using C = System.Console;
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using C = System.Console;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using C = System.Console;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using C = System.Console;"));
         }
 
         [WorkItem(747219, "DevDiv")]
@@ -321,7 +320,7 @@ extern alias A;
             comp.VerifyDiagnostics(
                 // (2,1): info CS8020: Unused extern alias.
                 // extern alias A;
-                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias A;"));
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A;"));
         }
 
         [WorkItem(747219, "DevDiv")]
@@ -339,7 +338,7 @@ public class C { }
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
 
             // Binding doc comments.
             CreateCompilationWithMscorlibAndDocumentationComments(source).VerifyDiagnostics();
@@ -356,7 +355,7 @@ using System;
             comp.VerifyEmitDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;").WithWarningAsError(false));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithWarningAsError(false));
         }
     }
 }

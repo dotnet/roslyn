@@ -3705,10 +3705,10 @@
   <data name="NotACSharpSymbol" xml:space="preserve">
     <value>Not a C# symbol.</value>
   </data>
-  <data name="INF_UnusedUsingDirective" xml:space="preserve">
+  <data name="HDN_UnusedUsingDirective" xml:space="preserve">
     <value>Unnecessary using directive.</value>
   </data>
-  <data name="INF_UnusedExternAlias" xml:space="preserve">
+  <data name="HDN_UnusedExternAlias" xml:space="preserve">
     <value>Unused extern alias.</value>
   </data>
   <data name="ElementsCannotBeNull" xml:space="preserve">

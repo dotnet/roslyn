@@ -23,7 +23,7 @@ Module Program
         outputText.AppendLine("Namespace Microsoft.CodeAnalysis.VisualBasic")
         outputText.AppendLine("    Friend Partial Module ErrorFacts")
 
-        Dim warningCodeNames, fatalCodeNames, infoCodeNames As New List(Of String)
+        Dim warningCodeNames, fatalCodeNames, infoCodeNames, hiddenCodeNames As New List(Of String)
         For Each line In From l In File.ReadAllLines(inputPath) Select l.Trim
             If line.StartsWith("WRN_", StringComparison.OrdinalIgnoreCase) Then
                 warningCodeNames.Add(line.Substring(0, line.IndexOf(" "c)))
@@ -31,6 +31,8 @@ Module Program
                 fatalCodeNames.Add(line.Substring(0, line.IndexOf(" "c)))
             ElseIf line.StartsWith("INF_", StringComparison.OrdinalIgnoreCase) Then
                 infoCodeNames.Add(line.Substring(0, line.IndexOf(" "c)))
+            ElseIf line.StartsWith("HDN_", StringComparison.OrdinalIgnoreCase) Then
+                hiddenCodeNames.Add(line.Substring(0, line.IndexOf(" "c)))
             End If
         Next
 
@@ -39,6 +41,8 @@ Module Program
         GenerateErrorFactsFunction("IsFatal", fatalCodeNames, outputText)
         outputText.AppendLine()
         GenerateErrorFactsFunction("IsInfo", infoCodeNames, outputText)
+        outputText.AppendLine()
+        GenerateErrorFactsFunction("IsHidden", hiddenCodeNames, outputText)
 
         outputText.AppendLine("    End Module")
         outputText.AppendLine("End Namespace")

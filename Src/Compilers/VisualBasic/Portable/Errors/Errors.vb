@@ -1879,9 +1879,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' // AVAILABLE                             42379 - 49998
 
 
-        '// INFOS BEGIN HERE
-        INF_UnusedImportClause = 50000
-        INF_UnusedImportStatement = 50001
+        '// HIDDENS AND INFOS BEGIN HERE
+        HDN_UnusedImportClause = 50000
+        HDN_UnusedImportStatement = 50001
         INF_UnableToLoadSomeTypesInAnalyzer = 50002
 
         ' // AVAILABLE                             50003 - 54999   

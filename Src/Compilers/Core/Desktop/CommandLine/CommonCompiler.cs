@@ -158,20 +158,20 @@ namespace Microsoft.CodeAnalysis
 
         private DiagnosticInfo ToFileReadDiagnostics(Exception e, CommandLineSourceFile file)
         {
-                DiagnosticInfo diagnosticInfo;
+            DiagnosticInfo diagnosticInfo;
 
-                if (e is FileNotFoundException || e is DirectoryNotFoundException)
-                {
-                    diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_FileNotFound, file.Path);
-                }
-                else if (e is InvalidDataException)
-                {
-                    diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_BinaryFile, file.Path);
-                }
-                else
-                {
-                    diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_NoSourceFile, file.Path, e.Message);
-                }
+            if (e is FileNotFoundException || e is DirectoryNotFoundException)
+            {
+                diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_FileNotFound, file.Path);
+            }
+            else if (e is InvalidDataException)
+            {
+                diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_BinaryFile, file.Path);
+            }
+            else
+            {
+                diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_NoSourceFile, file.Path, e.Message);
+            }
 
             return diagnosticInfo;
         }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis
                     //System.Diagnostics.Debug.Assert(diag.Severity != DiagnosticSeverity.Error);
                     continue;
                 }
-                else if (diag.Severity == DiagnosticSeverity.Info)
+                else if (diag.Severity == DiagnosticSeverity.Hidden)
                 {
                     // Not reported from the command-line compiler.
                     continue;
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var diagnostic in diagnostics)
                 {
-                    if (diagnostic.Severity == DiagnosticSeverity.Info)
+                    if (diagnostic.Severity == DiagnosticSeverity.Hidden)
                     {
                         // Not reported from the command-line compiler.
                         continue;
@@ -494,27 +494,27 @@ namespace Microsoft.CodeAnalysis
                         {
                             switch (diagnostic.Severity)
                             {
-                            case DiagnosticSeverity.Error:
-                                sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_ERRORNUMBERS, (uint)diagnostic.Code);
-                                break;
-
-                            case DiagnosticSeverity.Warning:
-                                if (diagnostic.IsWarningAsError)
-                                {
+                                case DiagnosticSeverity.Error:
                                     sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_ERRORNUMBERS, (uint)diagnostic.Code);
-                                }
-                                else
-                                {
-                                    sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNINGNUMBERS, (uint)diagnostic.Code);
-                                }
-                                break;
+                                    break;
 
-                            case DiagnosticSeverity.Hidden:
-                            case DiagnosticSeverity.Info:
-                                break;
+                                case DiagnosticSeverity.Warning:
+                                    if (diagnostic.IsWarningAsError)
+                                    {
+                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_ERRORNUMBERS, (uint)diagnostic.Code);
+                                    }
+                                    else
+                                    {
+                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNINGNUMBERS, (uint)diagnostic.Code);
+                                    }
+                                    break;
 
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(diagnostic.Severity);
+                                case DiagnosticSeverity.Hidden:
+                                case DiagnosticSeverity.Info:
+                                    break;
+
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(diagnostic.Severity);
                             }
                         }
 

@@ -1,14 +1,10 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
+Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenWinMdEvents
@@ -205,7 +201,7 @@ End Class
                 Diagnostic(ERRID.ERR_MissingRuntimeHelper, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.RemoveEventHandler"),
                 Diagnostic(ERRID.ERR_MissingRuntimeHelper, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.AddEventHandler"),
                 Diagnostic(ERRID.ERR_MissingRuntimeHelper, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.RemoveEventHandler"),
-                Diagnostic(ERRID.INF_UnusedImportStatement, "Imports System.Runtime.InteropServices.WindowsRuntime"))
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Runtime.InteropServices.WindowsRuntime"))
 
             ' Throws *test* exception, but does not assert or throw produce exception.
             Assert.Throws(Of EmitException)(Sub() CompileAndVerify(comp))

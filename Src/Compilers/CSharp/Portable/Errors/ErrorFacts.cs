@@ -27,6 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return DiagnosticSeverity.Info;
             }
+            else if (IsHidden(code))
+            {
+                return DiagnosticSeverity.Hidden;
+            }
             else
             {
                 return DiagnosticSeverity.Error;

@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
@@ -4468,7 +4466,7 @@ End Module]]>.Value.Replace("~"c, FULLWIDTH_COL))
 Imports <xmlns = ""http://xml"">
 "
         CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.ReleaseDll).VerifyDiagnostics(
-            Diagnostic(ERRID.INF_UnusedImportStatement, "Imports <xmlns = ""http://xml"">").WithLocation(2, 1))
+            Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports <xmlns = ""http://xml"">").WithLocation(2, 1))
     End Sub
 
     <WorkItem(969980)>

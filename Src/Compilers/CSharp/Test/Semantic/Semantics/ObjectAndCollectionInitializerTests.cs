@@ -1,10 +1,9 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -233,7 +232,7 @@ public dynamic list = new List<int>();
                 VerifyDiagnostics(
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"));
         }
 
         [Fact]
@@ -1268,11 +1267,11 @@ class Test
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (14,39): error CS1950: The best overloaded Add method 'TestClass.Add(int)' for the collection initializer has some invalid arguments
-                //         TestClass t = new TestClass { "hi" }; // CS1950
+    // (14,39): error CS1950: The best overloaded Add method 'TestClass.Add(int)' for the collection initializer has some invalid arguments
+    //         TestClass t = new TestClass { "hi" }; // CS1950
     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, @"""hi""").WithArguments("TestClass.Add(int)"),
-                // (14,39): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-                //         TestClass t = new TestClass { "hi" }; // CS1950
+    // (14,39): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+    //         TestClass t = new TestClass { "hi" }; // CS1950
     Diagnostic(ErrorCode.ERR_BadArgType, @"""hi""").WithArguments("1", "string", "int"));
         }
 
@@ -1347,11 +1346,11 @@ class Program
     }
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (35,56): error CS1954: The best overloaded method match 'MyList<MyClass>.Add(ref MyClass)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
-                //         MyList<MyClass> myList = new MyList<MyClass> { new MyClass { tree = "maple" } }; // CS1954
+    // (35,56): error CS1954: The best overloaded method match 'MyList<MyClass>.Add(ref MyClass)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+    //         MyList<MyClass> myList = new MyList<MyClass> { new MyClass { tree = "maple" } }; // CS1954
     Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, @"new MyClass { tree = ""maple"" }").WithArguments("MyList<MyClass>.Add(ref MyClass)"),
-                // (5,13): warning CS0649: Field 'MyList<T>._list' is never assigned to, and will always have its default value null
-                //     List<T> _list;
+    // (5,13): warning CS0649: Field 'MyList<T>._list' is never assigned to, and will always have its default value null
+    //     List<T> _list;
     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "_list").WithArguments("MyList<T>._list", "null"));
         }
 
@@ -1925,7 +1924,7 @@ class X : List<int>
             var semanticModel = compilation.GetSemanticModel(tree);
 
             var nodes = (from node in tree.GetRoot().DescendantNodes()
-                         where node.CSharpKind() == SyntaxKind.CollectionInitializerExpression 
+                         where node.CSharpKind() == SyntaxKind.CollectionInitializerExpression
                          select (InitializerExpressionSyntax)node).Single().Expressions;
 
             SymbolInfo symbolInfo;
@@ -1983,7 +1982,7 @@ class X : Base
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
-            Assert.Equal(new [] {"void X.Add(System.Collections.Generic.List<System.Byte> x)",
+            Assert.Equal(new[] {"void X.Add(System.Collections.Generic.List<System.Byte> x)",
                           "void X.Add(X x)"},
                          symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString()).Order().ToArray());
         }

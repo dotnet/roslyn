@@ -4,18 +4,17 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
-
 Imports Roslyn.Test.Utilities
 Imports CS = Microsoft.CodeAnalysis.CSharp
-Imports Microsoft.CodeAnalysis.Text
-Imports System.Text
+Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
@@ -710,7 +709,7 @@ Class C3
     End Sub
 End Class
     </file>
-    </compilation>, additionalRefs:={netModule1.EmitToImageReference(Diagnostic(ERRID.INF_UnusedImportStatement, "Imports System.Runtime.InteropServices"))})
+    </compilation>, additionalRefs:={netModule1.EmitToImageReference(Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Runtime.InteropServices"))})
 
             assembly.AssertNoDiagnostics()
         End Sub

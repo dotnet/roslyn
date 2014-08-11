@@ -462,10 +462,10 @@ public class CCC
             #endregion
 
             CompileAndVerify(
-                text, 
-                additionalRefs: new[] { SystemRef }, 
-                emitOptions: EmitOptions.CCI, 
-                expectedOutput:@"
+                text,
+                additionalRefs: new[] { SystemRef },
+                emitOptions: EmitOptions.CCI,
+                expectedOutput: @"
 (Byte)0, (Byte)128, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
 (Byte)0, (Byte)0, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
 (Byte)0, (Byte)0, (UInt32)0, (UInt32)0, (UInt32)1, True
@@ -752,7 +752,7 @@ public class C
             CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly, _) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
-                
+
                 foreach (var paramDef in metadataReader.GetParameters())
                 {
                     var param = metadataReader.GetParameter(paramDef);
@@ -1030,11 +1030,11 @@ partial class C
             Action<SourceMemberMethodSymbol> partialValidator = (SourceMemberMethodSymbol sourceMethod) =>
             {
                 Assert.True(sourceMethod.IsPartial, "Not a partial method?");
-                
+
                 MethodSymbol partialDefPart = sourceMethod.IsPartialDefinition ? sourceMethod : sourceMethod.PartialDefinitionPart;
                 var param = (SourceParameterSymbol)partialDefPart.Parameters[0];
                 Assert.True(param.HasOptionalAttribute, "No OptionalAttribute?");
-                
+
                 MethodSymbol partialImplPart = sourceMethod.IsPartialImplementation ? sourceMethod : sourceMethod.PartialImplementationPart;
                 param = (SourceParameterSymbol)partialImplPart.Parameters[0];
                 Assert.True(param.HasOptionalAttribute, "No OptionalAttribute?");
@@ -1043,7 +1043,7 @@ partial class C
             Action<ModuleSymbol> sourceValidator = (ModuleSymbol m) =>
             {
                 var typeC = m.GlobalNamespace.GetTypeMember("C");
-                
+
                 var sourceMethod = typeC.GetMember<SourceMemberMethodSymbol>("Foo");
                 partialValidator(sourceMethod);
 
@@ -1607,7 +1607,7 @@ public class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedSignatures: new[] 
+            var comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("C", "get_Item",
                     ".method public hidebysig specialname instance System.Decimal get_Item(" +
@@ -1633,7 +1633,7 @@ using System.Runtime.CompilerServices;
 
 public delegate void D([Optional, DecimalConstantAttribute(hi: 3, sign: 2, mid: 4, low: 5, scale: 1)]ref decimal a, decimal b = 2m);
 ";
-            var comp = CompileAndVerify(source, expectedSignatures: new[] 
+            var comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("D", "BeginInvoke",
                     ".method public hidebysig newslot virtual instance System.IAsyncResult BeginInvoke(" +
@@ -2319,24 +2319,24 @@ public class C
                 new { attr = MakeDllImport(cc: CallingConvention.StdCall), expected = MethodImportAttributes.CallingConventionStdCall },         // M3
                 new { attr = MakeDllImport(cc: CallingConvention.ThisCall), expected = MethodImportAttributes.CallingConventionThisCall },       // M4
                 new { attr = MakeDllImport(cc: CallingConvention.Winapi), expected = MethodImportAttributes.CallingConventionWinApi },           // M5
-                                                                                                                                          
+
                 // charset & exact spelling:                                                                                              
                 new { attr = MakeDllImport(), expected = MethodImportAttributes.CallingConventionWinApi },                         // M6
                 new { attr = MakeDllImport(charSet: CharSet.None), expected = MethodImportAttributes.CallingConventionWinApi },    // M7
                 new { attr = MakeDllImport(charSet: CharSet.Ansi), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.CharSetAnsi },       // M8
                 new { attr = MakeDllImport(charSet: CharSet.Unicode), expected =MethodImportAttributes.CallingConventionWinApi |  MethodImportAttributes.CharSetUnicode }, // M9
                 new { attr = MakeDllImport(charSet: CharSet.Auto), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.CharSetAuto },       // M10
-                                                                                                                                          
+
                 new { attr = MakeDllImport(exactSpelling: true), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.ExactSpelling },            // M11
                 new { attr = MakeDllImport(exactSpelling: false), expected = MethodImportAttributes.CallingConventionWinApi },                                      // M12
-                                                                                                                                          
+
                 new { attr = MakeDllImport(charSet: CharSet.Ansi, exactSpelling: true), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.ExactSpelling | MethodImportAttributes.CharSetAnsi },      // M13
                 new { attr = MakeDllImport(charSet: CharSet.Ansi, exactSpelling: false), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.CharSetAnsi },                                // M14
                 new { attr = MakeDllImport(charSet: CharSet.Unicode, exactSpelling: true), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.ExactSpelling | MethodImportAttributes.CharSetUnicode },// M15
                 new { attr = MakeDllImport(charSet: CharSet.Unicode, exactSpelling: false), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.CharSetUnicode },                          // M16
                 new { attr = MakeDllImport(charSet: CharSet.Auto, exactSpelling: true), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.ExactSpelling | MethodImportAttributes.CharSetAuto },      // M17
                 new { attr = MakeDllImport(charSet: CharSet.Auto, exactSpelling: false), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.CharSetAuto },                                // M18
-                
+
                 // preservesig:
                 new { attr = MakeDllImport(preserveSig: true), expected = MethodImportAttributes.CallingConventionWinApi},                                           // M19
                 new { attr = MakeDllImport(preserveSig: false), expected = MethodImportAttributes.CallingConventionWinApi},                                          // M20
@@ -2349,16 +2349,16 @@ public class C
                 new { attr = MakeDllImport(bestFitMapping: true), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.BestFitMappingEnable},       // M23
                 new { attr = MakeDllImport(bestFitMapping: false), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.BestFitMappingDisable},     // M24
 
-                 // throwOnUnmappableChar:
+                // throwOnUnmappableChar:
                 new { attr = MakeDllImport(throwOnUnmappableChar: true), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.ThrowOnUnmappableCharEnable},       // M23
                 new { attr = MakeDllImport(throwOnUnmappableChar: false), expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.ThrowOnUnmappableCharDisable},     // M24
 
                 // invalid enum values (ignored)
-                new { attr = "[DllImport(\"bar\", CharSet = (CharSet)15, SetLastError = true)]", 
+                new { attr = "[DllImport(\"bar\", CharSet = (CharSet)15, SetLastError = true)]",
                       expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.SetLastError }, // M25
 
                 // invalid enum values (ignored)
-                new { attr = "[DllImport(\"bar\", CallingConvention = (CallingConvention)15, SetLastError = true)]", 
+                new { attr = "[DllImport(\"bar\", CallingConvention = (CallingConvention)15, SetLastError = true)]",
                       expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.SetLastError }, // M26
 
             };
@@ -2563,7 +2563,7 @@ abstract class C
                 }
             };
 
-            CompileAndVerify(source,  assemblyValidator: (assembly, emitOptions) => validator(assembly, emitOptions == EmitOptions.RefEmit));
+            CompileAndVerify(source, assemblyValidator: (assembly, emitOptions) => validator(assembly, emitOptions == EmitOptions.RefEmit));
         }
 
         [Fact]
@@ -2815,7 +2815,7 @@ class C
 }";
             CompileAndVerify(source, emitOptions: EmitOptions.RefEmitUnsupported_646021);
         }
-        
+
         [Fact]
         public void MethodImplAttribute_Errors()
         {
@@ -3031,7 +3031,7 @@ delegate void D();
                 }
             });
         }
-        
+
         [Fact]
         public void DllImport_InvalidTargets()
         {
@@ -4393,7 +4393,7 @@ namespace AttributeTest
                 emitOptions: EmitOptions.CCI,
                 sourceSymbolValidator: attributeValidator,
                 symbolValidator: null,
-                expectedSignatures: new[] 
+                expectedSignatures: new[]
                 {
                     Signature("AttributeTest.MyClass", "UseParams", ".method public hidebysig static System.Void UseParams([System.ParamArrayAttribute()] System.Int32[] list) cil managed"),
                     Signature("AttributeTest.MyClass", "NoParams", ".method public hidebysig static System.Void NoParams(System.Object list) cil managed"),
@@ -6220,10 +6220,10 @@ internal sealed class C1 : I1
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using X = A;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using X = A;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = A;"),
                 // (5,1): info CS8019: Unnecessary using directive.
                 // using Y = A.B; 
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using Y = A.B;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = A.B;"));
         }
 
         [Fact]
@@ -7118,7 +7118,7 @@ public class C : B
             var comp = CreateCompilationWithMscorlib(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            
+
             var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
             // Used to assert because it depended on some lazy state being evaluated but didn't
@@ -7305,7 +7305,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] {SystemRef});
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRef });
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -7600,7 +7600,7 @@ class Test
   } // end of method Scenario1::.ctor
 
 } // end of class Scenario1
-";   
+";
 
             var cssource = @"
 public class C

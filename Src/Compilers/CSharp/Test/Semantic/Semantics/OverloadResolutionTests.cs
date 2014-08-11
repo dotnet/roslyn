@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -5597,7 +5596,7 @@ ApplicableInNormalForm: Program.M(int) [Selected Candidate]", results);
 
         [Fact]
         public void TypeInferenceFailures()
-        {          
+        {
             var source = @"
 public interface I { }
 public interface I1<T> { }
@@ -5860,7 +5859,7 @@ public class Q
         [WorkItem(545467, "DevDiv")]
         [Fact]
         public void ClassPlusLambda1()
-        {          
+        {
 
             // ACASEY: EricLi's comment provides good context on the
             // nature of the problems that arise in such situations and the behavior of the native
@@ -5874,9 +5873,9 @@ public class Q
             // rules apply.
 
             // ERICLI: This test illustrates an unfortunate situation where neither Roslyn nor the
-			// native compiler are compliant with the specification, and the native compiler's 
-		    // behaviour is unusual. In this particular situation, the native compiler is 
-			// getting the right answer completely by accident; it is the confluence of two incorrect
+            // native compiler are compliant with the specification, and the native compiler's 
+            // behaviour is unusual. In this particular situation, the native compiler is 
+            // getting the right answer completely by accident; it is the confluence of two incorrect
             // decisions adding up accidentally to a correct decision.
             //
             // Problem 1:
@@ -5988,7 +5987,7 @@ class MainClass
         [WorkItem(545467, "DevDiv")]
         [Fact]
         public void ClassPlusLambda2()
-        {          
+        {
             // Here we remove one of the operators from the previous test. Of course the
             // first one is no longer ambiguous, and the second one no longer works because
             // now the lambda contains an addition that has no applicable operator, and
@@ -6022,7 +6021,7 @@ class MainClass
         [WorkItem(545467, "DevDiv")]
         [Fact]
         public void ClassPlusLambda3()
-        {  
+        {
             // In this variation we remove the other addition operator.  The native compiler
             // disallows three of these additions, because as mentioned above, it is inconsistent
             // about when a user-defined conversion may be from a lambda. The native compiler says
@@ -6069,7 +6068,7 @@ class MainClass
         [WorkItem(545467, "DevDiv")]
         [Fact]
         public void ClassPlusLambda4()
-        {         
+        {
             // In this final variation, we remove the user-defined conversion. And now of course we cannot
             // add MainClass to the lambda at all; the native compiler and Roslyn agree.
             var source = @"
@@ -6882,7 +6881,7 @@ class Program
     Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1),
     // (2,1): info CS8019: Unnecessary using directive.
     // using System.Collections.Generic;
-    Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1)
+    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1)
 );
         }
 

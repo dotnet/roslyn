@@ -8,8 +8,6 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -361,7 +359,7 @@ namespace A.B {
                 // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
                 Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias"),
                 // (1,1): info CS8020: Unused extern alias.
-                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias Alias")
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias")
                 );
 
         }
@@ -637,7 +635,7 @@ var a = new C2();
 }"
             });
             assembly.VerifyEmitDiagnostics();
-            CompileAndVerify(assembly, emitOptions:EmitOptions.RefEmitBug);
+            CompileAndVerify(assembly, emitOptions: EmitOptions.RefEmitBug);
         }
 
         [WorkItem(713356, "DevDiv")]

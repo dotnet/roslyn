@@ -292,7 +292,7 @@ class Program { }
                 // (3,20): warning CS1574: XML comment has cref attribute 'A' that could not be resolved
                 // /// See <see cref="A"/> - only one character.
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "A").WithArguments("A"));
-            
+
             var crefSyntaxes = GetCrefSyntaxes(compilation);
             Assert.Equal(4, crefSyntaxes.Count());
 
@@ -1175,14 +1175,14 @@ static class D
             {
                 string text = crefSyntax.ToString();
                 string arguments = text.Contains("C()") ? "C()" : text.Contains("C") ? "C" : text.Contains("D()") ? "D()" : "D";
-                Assert.Null(GetReferencedSymbol(crefSyntax, compilation, 
+                Assert.Null(GetReferencedSymbol(crefSyntax, compilation,
                     Diagnostic(ErrorCode.WRN_BadXMLRef, text).WithArguments(arguments)));
             }
         }
 
         [Fact]
         public void AmbiguousReferenceWithoutParameters()
-        { 
+        {
             var source = @"
 /// <summary>
 /// See <see cref=""M""/>.
@@ -2956,7 +2956,7 @@ class A<T>
 ";
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
-            
+
             var crefSyntax = (QualifiedCrefSyntax)GetCrefSyntaxes(compilation).Single();
             var nameMemberSyntax = (NameMemberCrefSyntax)crefSyntax.Member;
             var containingTypeSyntax = (QualifiedNameSyntax)crefSyntax.Container;
@@ -2964,7 +2964,7 @@ class A<T>
             var typeA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
             var typeB = typeA.GetMember<NamedTypeSymbol>("B");
             var method = typeB.GetMember<MethodSymbol>("M");
-            
+
             var typeInt = compilation.GetSpecialType(SpecialType.System_Int32);
 
             // A{J}
@@ -3339,7 +3339,7 @@ class Outer
 
             int position = source.IndexOf("{U}");
 
-            AssertEx.SetEqual(model.LookupSymbols(position).Select(SymbolUtilities.ToTestDisplayString), 
+            AssertEx.SetEqual(model.LookupSymbols(position).Select(SymbolUtilities.ToTestDisplayString),
                 // Implicit type parameter
                 "U",
 
@@ -3382,7 +3382,7 @@ class C
                 // (3,22): warning CS1658: Unexpected character '2'. See also error CS1056.
                 // /// Error <see cref="2"/>
                 Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '2'", "1056"),
-                
+
                 // (4,22): warning CS1584: XML comment has syntactically incorrect cref attribute '3A'
                 // /// Error <see cref="3A"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "3").WithArguments("3A"),
@@ -3392,7 +3392,7 @@ class C
                 // (4,22): warning CS1658: Unexpected character '3'. See also error CS1056.
                 // /// Error <see cref="3A"/>
                 Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '3'", "1056"),
-                
+
                 // (5,22): warning CS1584: XML comment has syntactically incorrect cref attribute '@4'
                 // /// Error <see cref="@4"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "@").WithArguments("@4"),
@@ -3402,7 +3402,7 @@ class C
                 // (5,23): warning CS1658: Unexpected character '4'. See also error CS1056.
                 // /// Error <see cref="@4"/>
                 Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '4'", "1056"),
-                
+
                 // (6,22): warning CS1584: XML comment has syntactically incorrect cref attribute '&#64;5'
                 // /// Error <see cref="&#64;5"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "&#64;").WithArguments("&#64;5"),
@@ -3648,7 +3648,7 @@ partial class P
                 // (28,24): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
                 //     partial void M(int x) { }
                 Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "P.M(int)"),
-                
+
                 // (16,25): warning CS0067: The event 'C.E' is never used
                 //     event System.Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
@@ -3851,8 +3851,8 @@ class C
                 // (8,23): error CS0100: The parameter name 'x' is a duplicate
                 //     void M(int x, int x) { }
                 Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x"), // NOTE: double-reported in dev11
-                // (14,25): error CS0100: The parameter name 'x' is a duplicate
-                //     int this[int x, int x] { get { return 0; } set { } }
+                                                                                      // (14,25): error CS0100: The parameter name 'x' is a duplicate
+                                                                                      //     int this[int x, int x] { get { return 0; } set { } }
                 Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x"),
                 // (20,34): error CS0100: The parameter name 'x' is a duplicate
                 //     double this[double x, double x] { get { return 0; } set { } }
@@ -4300,8 +4300,8 @@ public class C
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "Event").WithArguments("C.Event"),
                 // (12,26): warning CS1591: Missing XML comment for publicly visible type or member 'C.Delegate'
                 //     public delegate void Delegate();
-                Diagnostic(ErrorCode.WRN_MissingXMLComment, "Delegate").WithArguments("C.Delegate"), 
-                
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "Delegate").WithArguments("C.Delegate"),
+
                 // (10,32): warning CS0067: The event 'C.FieldLikeEvent' is never used
                 //     public event System.Action FieldLikeEvent;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "FieldLikeEvent").WithArguments("C.FieldLikeEvent"));
@@ -5173,12 +5173,12 @@ class C<T>
             compilation.VerifyDiagnostics();
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            
+
             //NOTE: deterministic, since GetMembers respects syntax order.
             var m1a = type.GetMembers("M1").First();
-            var m1b = type.GetMembers("M1").Last(); 
+            var m1b = type.GetMembers("M1").Last();
             var m2a = type.GetMembers("M2").First();
-            var m2b = type.GetMembers("M2").Last(); 
+            var m2b = type.GetMembers("M2").Last();
 
             var model = compilation.GetSemanticModel(tree);
             var crefs = GetCrefSyntaxes(compilation).ToArray();
@@ -5221,7 +5221,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_ErrorOverride, ",").WithArguments("error CS1001: Identifier expected", "1001"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
@@ -5461,13 +5461,13 @@ class C<T>
                 var lookupResult = LookupResult.GetInstance();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 binder.LookupSymbolsSimpleName(
-                    lookupResult, 
-                    qualifierOpt: null, 
-                    plainName: "Q", 
-                    arity: 0, 
-                    basesBeingResolved: null, 
-                    options: LookupOptions.Default, 
-                    diagnose: false, 
+                    lookupResult,
+                    qualifierOpt: null,
+                    plainName: "Q",
+                    arity: 0,
+                    basesBeingResolved: null,
+                    options: LookupOptions.Default,
+                    diagnose: false,
                     useSiteDiagnostics: ref useSiteDiagnostics);
                 Assert.Equal(LookupResultKind.Viable, lookupResult.Kind);
                 var symbol = lookupResult.Symbols.Single();
@@ -5789,7 +5789,7 @@ class C { }
 
             var delegateConstructor = compilation.GlobalNamespace.
                 GetMember<NamespaceSymbol>("System").GetMembers("Action").OfType<NamedTypeSymbol>().
-                Single(t  => t.Arity == 1).
+                Single(t => t.Arity == 1).
                 InstanceConstructors.Single();
 
             var cref = GetCrefSyntaxes(compilation).Single();
@@ -5820,7 +5820,7 @@ enum E { }
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "RuntimeType.Equals").WithArguments("Equals"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
         [WorkItem(554086, "DevDiv")]

@@ -879,7 +879,7 @@ public class Test2
 
             var queryContinuation = tree.GetRoot().FindToken(sourceCode.IndexOf("into w")).Parent;
             var symbol = semanticModel.GetDeclaredSymbol(queryContinuation);
-            
+
             Assert.NotNull(symbol);
             Assert.Equal("w", symbol.Name);
             Assert.Equal(SymbolKind.RangeVariable, symbol.Kind);
@@ -1373,10 +1373,10 @@ class C
             compilation.VerifyDiagnostics(
                 // (9,36): error CS0718: 'System.GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "GC").WithArguments("System.GC").WithLocation(9,36),
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "GC").WithArguments("System.GC").WithLocation(9, 36),
                 // (10,23): error CS0718: 'System.GC': static types cannot be used as type arguments
                 //         var q1 = from GC x in string.Empty select x;
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "GC").WithArguments("System.GC").WithLocation(10,23)
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "GC").WithArguments("System.GC").WithLocation(10, 23)
                 );
         }
 
@@ -1397,10 +1397,10 @@ class Program
             compilation.VerifyDiagnostics(
                 // (6,28): error CS0119: 'Program.Main()' is a method, which is not valid in the given context
                 //         var q1 = from y in Main select y;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "Main").WithArguments("Program.Main()", "method").WithLocation(6,28),
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Main").WithArguments("Program.Main()", "method").WithLocation(6, 28),
                 // (7,18): error CS0119: 'Program.Main()' is a method, which is not valid in the given context
                 //         var q2 = Main.Select(y => y);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "Main").WithArguments("Program.Main()", "method").WithLocation(7,18)
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Main").WithArguments("Program.Main()", "method").WithLocation(7, 18)
                 );
         }
 
@@ -1987,7 +1987,7 @@ public class QueryExpressionTest
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Linq; // Needed for speculative code.
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Linq;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
 
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

@@ -405,12 +405,12 @@ public class C { }").WithWarningAsError(true)); // class declaration
             var infoDiagDesciptor = new DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault: true);
             var warningDiagDesciptor = new DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
             var errorDiagDesciptor = new DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Error, isEnabledByDefault: true);
-            
+
             var noneDiag = CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None);
             var infoDiag = CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None);
             var warningDiag = CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None);
             var errorDiag = CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None);
-            
+
             var diags = new[] { noneDiag, infoDiag, warningDiag, errorDiag };
 
             // Escalate all diagnostics to error.
@@ -430,7 +430,6 @@ public class C { }").WithWarningAsError(true)); // class declaration
             }
 
             // Suppress all diagnostics.
-            // NOTE: Diagnostics with default severity error cannot be suppressed and its severity cannot be lowered.
             specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
             specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Suppress);
             specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Suppress);
@@ -440,8 +439,7 @@ public class C { }").WithWarningAsError(true)); // class declaration
 
             comp = CreateCompilationWithMscorlib45("", options: options);
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
-            Assert.Equal(1, effectiveDiags.Length);
-            Assert.Equal(errorDiagDesciptor.Id, effectiveDiags[0].Id);
+            Assert.Equal(0, effectiveDiags.Length);
 
             // Shuffle diagnostic severity.
             specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
@@ -472,7 +470,7 @@ public class C { }").WithWarningAsError(true)); // class declaration
                     case DiagnosticSeverity.Warning:
                         if (!effectiveDiag.IsWarningAsError)
                         {
-                            Assert.Equal(infoDiagDesciptor.Id, effectiveDiag.Id);
+                            Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id);
                         }
                         else
                         {
@@ -506,42 +504,42 @@ public class C { }").WithWarningAsError(true)); // class declaration
             var warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None);
             var errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None);
 
-            var diags = new [] { noneDiag, infoDiag, warningDiag, errorDiag };
+            var diags = new[] { noneDiag, infoDiag, warningDiag, errorDiag };
 
             var options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Default);
-            var comp = CreateCompilationWithMscorlib45("", options:options);
+            var comp = CreateCompilationWithMscorlib45("", options: options);
             var effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
             Assert.Equal(4, effectiveDiags.Length);
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            comp = CreateCompilationWithMscorlib45("", options:options);
+            comp = CreateCompilationWithMscorlib45("", options: options);
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
             Assert.Equal(4, effectiveDiags.Length);
             Assert.Equal(1, effectiveDiags.Count(d => d.IsWarningAsError));
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn);
-            comp = CreateCompilationWithMscorlib45("", options:options);
+            comp = CreateCompilationWithMscorlib45("", options: options);
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
             Assert.Equal(4, effectiveDiags.Length);
             Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Error));
             Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Warning));
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Info);
-            comp = CreateCompilationWithMscorlib45("", options:options);
+            comp = CreateCompilationWithMscorlib45("", options: options);
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
             Assert.Equal(4, effectiveDiags.Length);
             Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Error));
             Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Info));
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Hidden);
-            comp = CreateCompilationWithMscorlib45("", options:options);
+            comp = CreateCompilationWithMscorlib45("", options: options);
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
             Assert.Equal(4, effectiveDiags.Length);
             Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Error));
             Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Hidden));
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress);
-            comp = CreateCompilationWithMscorlib45("", options:options);
+            comp = CreateCompilationWithMscorlib45("", options: options);
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
             Assert.Equal(2, effectiveDiags.Length);
             Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Error));

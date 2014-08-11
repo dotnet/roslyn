@@ -1515,7 +1515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If numClauseSpans = 1 Then
                             ' Do less work in common case (one clause per statement).
                             If Not Me.IsImportDirectiveUsed(infoTree, clauseSpans(0).Start) Then
-                                diagnostics.Add(ERRID.INF_UnusedImportStatement, infoTree.GetLocation(info.StatementSpan))
+                                diagnostics.Add(ERRID.HDN_UnusedImportStatement, infoTree.GetLocation(info.StatementSpan))
                             End If
                         Else
                             If unusedBuilder IsNot Nothing Then
@@ -1533,10 +1533,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             If unusedBuilder IsNot Nothing AndAlso unusedBuilder.Count > 0 Then
                                 If unusedBuilder.Count = numClauseSpans Then
-                                    diagnostics.Add(ERRID.INF_UnusedImportStatement, infoTree.GetLocation(info.StatementSpan))
+                                    diagnostics.Add(ERRID.HDN_UnusedImportStatement, infoTree.GetLocation(info.StatementSpan))
                                 Else
                                     For Each clauseSpan In unusedBuilder
-                                        diagnostics.Add(ERRID.INF_UnusedImportClause, infoTree.GetLocation(clauseSpan))
+                                        diagnostics.Add(ERRID.HDN_UnusedImportClause, infoTree.GetLocation(clauseSpan))
                                     Next
                                 End If
                             End If

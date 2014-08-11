@@ -1,11 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -23385,7 +23382,7 @@ End Class
                                            Diagnostic(ERRID.WRN_UndefinedOrEmptyNamespaceOrClass1, "System.Linq").WithArguments("System.Linq"),
                                            Diagnostic(ERRID.ERR_UndefinedType1, "myattribute1").WithArguments("myattribute1"),
                                            Diagnostic(ERRID.ERR_UndefinedType1, "List(Of myattribute1)").WithArguments("List"),
-                                           Diagnostic(ERRID.INF_UnusedImportStatement, "Imports System.Linq"))
+                                           Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Linq"))
         End Sub
 
         <WorkItem(543300, "DevDiv")>

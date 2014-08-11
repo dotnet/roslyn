@@ -583,11 +583,11 @@ Friend Module CompilationUtils
 
     ' Check that the compilation has no parse, declaration errors/warnings, or compilation errors/warnings.
     ''' <remarks>
-    ''' Does not consider INFO diagnostics.
+    ''' Does not consider INFO and HIDDEN diagnostics.
     ''' </remarks>
     Private Sub AssertNoDiagnostics(diags As ImmutableArray(Of Diagnostic), suppressInfos As Boolean)
         If suppressInfos Then
-            diags = diags.WhereAsArray(Function(d) d.Severity <> DiagnosticSeverity.Info)
+            diags = diags.WhereAsArray(Function(d) d.Severity > DiagnosticSeverity.Info)
         End If
 
         If diags.Length > 0 Then
@@ -826,7 +826,7 @@ Friend Module CompilationUtils
 
         Dim builder As New StringBuilder
         For Each e In diagnosticsAndIndices
-            If Not suppressInfos OrElse e.Diagnostic.Severity <> DiagnosticSeverity.Info Then
+            If Not suppressInfos OrElse e.Diagnostic.Severity > DiagnosticSeverity.Info Then
                 builder.Append(ErrorText(e.Diagnostic))
             End If
         Next

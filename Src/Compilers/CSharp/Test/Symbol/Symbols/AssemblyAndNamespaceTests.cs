@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Collections.Immutable;
+using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     class A {}
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text,assemblyName: "Test");
+            var comp = CreateCompilationWithMscorlib(text, assemblyName: "Test");
 
             var sym = comp.SourceModule;
             Assert.Equal("Test.dll", sym.Name);
@@ -369,7 +369,7 @@ namespace Foo<T>
 
             var aliasedCorlib = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib, aliases: ImmutableArray.Create("Foo"));
 
-            var comp = CreateCompilation(source, new [] { aliasedCorlib });
+            var comp = CreateCompilation(source, new[] { aliasedCorlib });
 
             // NOTE: this doesn't compile in dev11 - it reports that it cannot find System.Object.
             // However, we've already changed how special type lookup works, so this is not a major issue.
@@ -419,13 +419,13 @@ class App
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "AM"),
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Threading;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Threading;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading;"),
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Threading.Tasks;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Threading.Tasks;"),
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading.Tasks;"),
                 // (2,1): info CS8020: Unused extern alias.
                 // extern alias myTask;
-                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias myTask;"));
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias myTask;"));
 
             var taskType = comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
             Assert.Equal(TypeKind.Class, taskType.TypeKind);

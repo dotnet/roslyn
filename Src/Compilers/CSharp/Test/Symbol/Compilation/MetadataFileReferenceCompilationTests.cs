@@ -55,10 +55,10 @@ class A { }
             comp.VerifyDiagnostics(
                 // (2,1): info CS8020: Unused extern alias.
                 // extern alias Alias1;
-                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias Alias1;"),
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias1;"),
                 // (3,1): info CS8020: Unused extern alias.
                 // extern alias Alias2;
-                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias Alias2;"));
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias2;"));
         }
 
         [Fact]

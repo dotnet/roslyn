@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -666,11 +665,11 @@ class C
 
             SwitchStatementSyntax switchStmt = methodDecl.Body.Statements[1];
             SwitchLabelSyntax switchLabel = switchStmt.Sections[0].Labels[0];
-            
+
             var symbol = model.GetDeclaredSymbol(switchLabel);
             Assert.NotNull(symbol);
             Assert.IsType<SourceLabelSymbol>(symbol);
-            
+
             var labelSymbol = (SourceLabelSymbol)symbol;
             Assert.Equal(ConstantValue.Default(SpecialType.System_Int32), labelSymbol.SwitchCaseLabelConstant);
             Assert.Equal(switchLabel, labelSymbol.IdentifierNodeOrToken.AsNode());
@@ -1836,7 +1835,7 @@ static class S
         [Fact]
         public void TestLookupSymbolsGenericExtensionMethodWithConstraints()
         {
-            var source = 
+            var source =
 @"class A { }
 class B { }
 static class E
@@ -2151,7 +2150,7 @@ class Bar { }
             symbols = lookupAttributeType(position, "Foo", true);
             Assert.Equal(0, symbols.Length);
         }
-        
+
         [Fact]
         public void TestGetSemanticInfoOfInvocation()
         {
@@ -3571,7 +3570,7 @@ enum EnumX
             Assert.Equal("FieldM", fSymbol.Name);
             Assert.Equal(enumTypeSymbol, fSymbol.ContainingType);
         }
-        
+
         [Fact]
         public void TestLambdaParameterInLambda()
         {
@@ -3645,7 +3644,7 @@ class Program
     {
         public int Prop { get; set; }
     }
-}", 
+}",
 @"namespace System
 {
     public partial class PartialClass 
@@ -4173,7 +4172,7 @@ class C {
             var parentModel = compilation.GetSemanticModel(tree);
 
             var position = tree.GetText().ToString().IndexOf("class C {");
-            
+
             var attr1 = BindAttributeSyntax("[Obsolete]");
 
             SemanticModel speculativeModel;
@@ -4454,7 +4453,7 @@ class C { }
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using Alias = Foo;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using Alias = Foo;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Alias = Foo;"));
 
             var @namespace = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("Foo");
 
@@ -4491,7 +4490,7 @@ class C { }
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using Alias = Foo;
-                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using Alias = Foo;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Alias = Foo;"));
 
             var @namespace = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("Foo");
 
@@ -4664,7 +4663,7 @@ public class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib(source);
-            
+
             var tree = compilation.SyntaxTrees.Single();
             var enumDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<EnumDeclarationSyntax>().Single();
             var eventDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<EventDeclarationSyntax>().Single();
@@ -4724,12 +4723,12 @@ public class S
             Assert.Equal(SyntaxKind.IncompleteMember, node.CSharpKind());
 
             var x = tree.FindNodeOrTokenByKind(SyntaxKind.IncompleteMember);
-            Assert.Equal(SyntaxKind.IncompleteMember, x.CSharpKind() );
+            Assert.Equal(SyntaxKind.IncompleteMember, x.CSharpKind());
             Assert.Equal("C#", x.Language);
             Assert.Equal(1, x.Width);
 
             // This will call the Visitor Pattern Methods via the syntaxwalker
-            var collector = new IncompleteSyntaxWalker ();
+            var collector = new IncompleteSyntaxWalker();
             collector.Visit(root);
             int counter = collector.Incompletes.Count;
             Assert.Equal(1, counter);
@@ -4741,9 +4740,9 @@ public class S
 
             public override void VisitIncompleteMember(IncompleteMemberSyntax node)
             {
- 	            this.Incompletes.Add(node);
+                this.Incompletes.Add(node);
                 base.VisitIncompleteMember(node);
-            }            
+            }
         }
     }
 }
