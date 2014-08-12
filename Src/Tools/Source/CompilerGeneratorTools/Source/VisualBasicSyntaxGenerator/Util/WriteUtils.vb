@@ -671,9 +671,8 @@ Public MustInherit Class WriteUtils
 
     ' Generate XML comment for an child
     Protected Sub GenerateWithXmlComment(writer As TextWriter, child As ParseNodeChild, indent As Integer)
-        Dim descriptionText As String = "Creates a new node and sets the " + ChildPropertyName(child) + " property"
+        Dim descriptionText As String = "Returns a copy of this with the " + ChildPropertyName(child) + " property changed to the specified value. Returns this instance if the specified value is the same as the current value."
         Dim remarksText As String = Nothing
-        remarksText = "Returns a new node with the property set"
         GenerateXmlComment(writer, descriptionText, remarksText, indent)
     End Sub
 

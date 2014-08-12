@@ -750,14 +750,14 @@ Class RedNodeWriter
 
         _writer.WriteLine()
 
-        GenerateSummaryXmlComment(_writer, String.Format("Creates a new {0} node with the specified changes.", nodeStructure.Name))
+        GenerateSummaryXmlComment(_writer, String.Format("Returns a copy of this with the specified changes. Returns this instance if there are no actual changes.", nodeStructure.Name))
 
         If isMultiKind Then
-            GenerateParameterXmlComment(_writer, "kind", String.Format("The new kind to update this {0}Syntax node with.", nodeStructure.Name))
+            GenerateParameterXmlComment(_writer, "kind", String.Format("The new kind.", nodeStructure.Name))
         End If
 
         For Each child In GetAllChildrenOfStructure(nodeStructure)
-            GenerateParameterXmlComment(_writer, LowerFirstCharacter(OptionalChildName(child)), String.Format("The new {0} to update this {1}Syntax node with. If not specified the current {0} will be used in the new {1} node.", child.Name, nodeStructure.Name))
+            GenerateParameterXmlComment(_writer, LowerFirstCharacter(OptionalChildName(child)), String.Format("The value for the {0} property.", child.Name))
         Next
 
         _writer.Write("        Public ")
@@ -781,7 +781,6 @@ Class RedNodeWriter
         Next
 
         _writer.WriteLine(") As {0}", structureName)
-        _writer.WriteLine("            Dim green = DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0})", StructureTypeName(nodeStructure))
 
         needComma = False
         _writer.Write("            If ")
@@ -799,9 +798,9 @@ Class RedNodeWriter
             If child.IsList Then
                 _writer.Write("{0} <> Me.{1}", ChildParamName(child), ChildPropertyName(child))
             ElseIf KindTypeStructure(child.ChildKind).IsToken Then
-                _writer.Write("{0}.Node IsNot green.{1}", ChildParamName(child), ChildVarName(child))
+                _writer.Write("{0} <> Me.{1}", ChildParamName(child), ChildPropertyName(child))
             Else
-                _writer.Write("{0} IsNot Me.{1}", ChildParamName(child), ChildVarName(child))
+                _writer.Write("{0} IsNot Me.{1}", ChildParamName(child), ChildPropertyName(child))
             End If
             needComma = True
         Next
