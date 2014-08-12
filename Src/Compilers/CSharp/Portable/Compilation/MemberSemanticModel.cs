@@ -1564,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.MemberBindingExpression:
                 case SyntaxKind.ElementBindingExpression:
-                    return GetEnclosingConditionalAccess(parent);
+                    return SyntaxFactory.FindConditionalAccessNodeForBinding(bindableParent);
 
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.ElementAccessExpression:
@@ -1613,24 +1613,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.MemberBindingExpression:
                     case SyntaxKind.ElementBindingExpression:
-                        return GetEnclosingConditionalAccess(node);
+                        return SyntaxFactory.FindConditionalAccessNodeForBinding(node);
 
                     default:
                         return null;
                 }
             }
             return null;
-        }
-
-        private CSharpSyntaxNode GetEnclosingConditionalAccess(CSharpSyntaxNode parent)
-        {
-            while (!(parent is ConditionalAccessExpressionSyntax))
-            {
-                Debug.Assert(parent != null, "the node should be enclosed in a conditional access");
-                parent = parent.Parent;
-            }
-
-            return parent;
         }
 
         /// <summary>

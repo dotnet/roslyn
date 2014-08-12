@@ -7659,7 +7659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindMemberBindingExpression(MemberBindingExpressionSyntax node, bool invoked, bool indexed, DiagnosticBag diagnostics)
         {
-            BoundExpression receiver = GetReceiverForConditionalAccessor(node, diagnostics);
+            BoundExpression receiver = GetReceiverForConditionalBinding(node, diagnostics);
 
             var memberAccess = BindMemberAccessWithBoundLeft(node, receiver, node.Name, node.OperatorToken, invoked, indexed, diagnostics);
             return memberAccess;
@@ -7667,18 +7667,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindElementBindingExpression(ElementBindingExpressionSyntax node, bool invoked, bool indexed, DiagnosticBag diagnostics)
         {
-            BoundExpression receiver = GetReceiverForConditionalAccessor(node, diagnostics);
+            BoundExpression receiver = GetReceiverForConditionalBinding(node, diagnostics);
 
             var memberAccess = BindElementAccess(node, receiver, node.ArgumentList, diagnostics);
             return memberAccess;
         }
 
-        private BoundExpression GetReceiverForConditionalAccessor(ExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression GetReceiverForConditionalBinding(ExpressionSyntax binding, DiagnosticBag diagnostics)
         {
             BoundExpression receiver = null;
 
-            var conditionalAccessNode = node.Parent;
-            for (; conditionalAccessNode.Kind != SyntaxKind.ConditionalAccessExpression; conditionalAccessNode = conditionalAccessNode.Parent) { };
+            CSharpSyntaxNode conditionalAccessNode = SyntaxFactory.FindConditionalAccessNodeForBinding(binding);
 
             var currentBinder = this;
             while (currentBinder != null)

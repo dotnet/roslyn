@@ -1672,6 +1672,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Given a conditional binding expression, find corresponding conditional access node.
+        /// </summary>
+        internal static ConditionalAccessExpressionSyntax FindConditionalAccessNodeForBinding(CSharpSyntaxNode node)
+        {
+            var currentNode = node;
+
+            Debug.Assert(currentNode.Kind == SyntaxKind.MemberBindingExpression ||
+                         currentNode.Kind == SyntaxKind.ElementBindingExpression);
+
+            // In a well formed tree, the corresponding access node should be one of the ancestors
+            // and its "?" token should preceed the binding syntax.
+            while (currentNode != null)
+            {
+                currentNode = currentNode.Parent;
+                Debug.Assert(currentNode != null, "binding should be enclosed in a conditional access");
+
+                if (currentNode.Kind == SyntaxKind.ConditionalAccessExpression)
+                {
+                    var condAccess = (ConditionalAccessExpressionSyntax)currentNode;
+                    if (condAccess.OperatorToken.EndPosition == node.Position)
+                    {
+                        return condAccess;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Converts a generic name expression into one without the generic arguments.
         /// </summary>
         /// <param name="expression"></param>
