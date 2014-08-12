@@ -119,18 +119,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         private ParameterSymbol lazyThisParameter;
-        internal sealed override ParameterSymbol GetThisParameter(out bool unsupported)
+        internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
-            unsupported = false;
-
-            var thisParam = lazyThisParameter;
-            if ((object)thisParam != null || IsStatic)
+            thisParameter = lazyThisParameter;
+            if ((object)thisParameter != null || IsStatic)
             {
-                return thisParam;
+                return true;
             }
 
             Interlocked.CompareExchange(ref lazyThisParameter, new ThisParameterSymbol(this), null);
-            return lazyThisParameter;
+            thisParameter = lazyThisParameter;
+            return true;
         }
 
         public override Symbol ContainingSymbol

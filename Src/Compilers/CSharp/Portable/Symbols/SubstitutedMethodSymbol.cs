@@ -543,16 +543,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.Map; }
         }
 
-        internal sealed override ParameterSymbol GetThisParameter(out bool unsupported)
+        internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
             // Required in EE scenarios.  Specifically, the EE binds in the context of a 
             // substituted method, whereas the core compiler always binds within the
             // context of an original definition.  
             // There should never be any reason to call this in normal compilation
             // scenarios, but the behavior should be sensible if it does occur.
-            return (object)originalDefinition.GetThisParameter(out unsupported) == null || unsupported
-                ? null
-                : new ThisParameterSymbol(this);
+            ParameterSymbol originalThisParameter;
+            if (!originalDefinition.TryGetThisParameter(out originalThisParameter))
+            {
+                thisParameter = null;
+                return false;
+            }
+
+            thisParameter = (object)originalThisParameter != null
+                ? new ThisParameterSymbol(this)
+                : null;
+            return true;
         }
 
         private ImmutableArray<ParameterSymbol> SubstituteParameters()

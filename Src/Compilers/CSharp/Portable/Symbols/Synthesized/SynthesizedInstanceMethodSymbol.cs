@@ -28,13 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ParameterSymbol GetThisParameter(out bool unsupported)
+        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
-            unsupported = false;
-
             if (IsStatic)
             {
-                return null;
+                thisParameter = null;
+                return true;
             }
 
             if ((object)lazyThisParameter == null)
@@ -42,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Interlocked.CompareExchange(ref lazyThisParameter, new ThisParameterSymbol(this), null);
             }
 
-            return lazyThisParameter;
+            thisParameter = lazyThisParameter;
+            return true;
         }
 
         /// <summary>
