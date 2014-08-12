@@ -1097,42 +1097,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation).Where(s => !s.IsUnsafe());
         }
-
-        private static readonly Dictionary<string, string> OperatorNameTable = new Dictionary<string, string>()
-        {
-            { WellKnownMemberNames.AdditionOperatorName, "+" },
-            { WellKnownMemberNames.BitwiseAndOperatorName, "&" },
-            { WellKnownMemberNames.BitwiseOrOperatorName, "|" },
-            { WellKnownMemberNames.DecrementOperatorName, "--" },
-            { WellKnownMemberNames.DivisionOperatorName, "/" },
-            { WellKnownMemberNames.EqualityOperatorName, "==" },
-            { WellKnownMemberNames.ExclusiveOrOperatorName, "^" },
-            { WellKnownMemberNames.FalseOperatorName, "false" },
-            { WellKnownMemberNames.GreaterThanOperatorName, ">" },
-            { WellKnownMemberNames.GreaterThanOrEqualOperatorName, ">=" },
-            { WellKnownMemberNames.IncrementOperatorName, "++" },
-            { WellKnownMemberNames.InequalityOperatorName, "!=" },
-            { WellKnownMemberNames.LessThanOperatorName, "<" },
-            { WellKnownMemberNames.LessThanOrEqualOperatorName, "<=" },
-            { WellKnownMemberNames.LeftShiftOperatorName, "<<" },
-            { WellKnownMemberNames.LogicalNotOperatorName, "!" },
-            { WellKnownMemberNames.UnsignedLeftShiftOperatorName, "<<" },
-            { WellKnownMemberNames.ModulusOperatorName, "%" },
-            { WellKnownMemberNames.MultiplyOperatorName, "*" },
-            { WellKnownMemberNames.OnesComplementOperatorName, "~" },
-            { WellKnownMemberNames.RightShiftOperatorName, ">>" },
-            { WellKnownMemberNames.UnsignedRightShiftOperatorName, ">>" },
-            { WellKnownMemberNames.SubtractionOperatorName, "-" },
-            { WellKnownMemberNames.TrueOperatorName, "true" },
-            { WellKnownMemberNames.UnaryNegationOperatorName, "-" },
-            { WellKnownMemberNames.UnaryPlusOperatorName, "+" },
-        };
-
-        public static string GetOperatorTokenText(this ISymbol method)
-        {
-            string value = null;
-            OperatorNameTable.TryGetValue(method.Name, out value);
-            return value;
-        }
     }
 }
