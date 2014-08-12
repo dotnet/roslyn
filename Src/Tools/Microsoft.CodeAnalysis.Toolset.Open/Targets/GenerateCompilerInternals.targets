@@ -39,10 +39,10 @@
     Condition="'$(Language)' == 'VB' or '$(Language)' == 'C#'"
   >
     <PropertyGroup Condition="'$(Language)' == 'VB'">
-      <SyntaxGenerator>$(VBSyntaxGeneratorToolPath)</SyntaxGenerator>
+      <SyntaxGenerator>"$(VBSyntaxGeneratorToolPath)"</SyntaxGenerator>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Language)' == 'C#'">
-      <SyntaxGenerator Condition=" '$(OS)' == 'Windows_NT' ">$(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>
+      <SyntaxGenerator Condition=" '$(OS)' == 'Windows_NT' ">"$(CSharpSyntaxGeneratorToolPath)"</SyntaxGenerator>
       <SyntaxGenerator Condition=" '$(OS)' != 'Windows_NT' ">mono $(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>
     </PropertyGroup>
     <PropertyGroup>
@@ -75,10 +75,10 @@
     Condition="'$(Language)' == 'VB' or '$(Language)' == 'C#'"
   >
     <PropertyGroup Condition="'$(Language)' == 'VB'">
-      <SyntaxGenerator>$(VBSyntaxGeneratorToolPath)</SyntaxGenerator>
+      <SyntaxGenerator>"$(VBSyntaxGeneratorToolPath)"</SyntaxGenerator>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Language)' == 'C#'">
-      <SyntaxGenerator Condition=" '$(OS)' == 'Windows_NT' ">$(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>
+      <SyntaxGenerator Condition=" '$(OS)' == 'Windows_NT' ">"$(CSharpSyntaxGeneratorToolPath)"</SyntaxGenerator>
       <SyntaxGenerator Condition=" '$(OS)' != 'Windows_NT' ">mono $(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>      
     </PropertyGroup>
     <PropertyGroup>
@@ -112,7 +112,7 @@
     Condition="'$(Language)' == 'VB' or '$(Language)' == 'C#'"
   >
     <PropertyGroup>
-      <BoundTreeGenerator Condition=" '$(OS)' == 'Windows_NT' ">$(BoundTreeGeneratorToolPath)</BoundTreeGenerator>
+      <BoundTreeGenerator Condition=" '$(OS)' == 'Windows_NT' ">"$(BoundTreeGeneratorToolPath)"</BoundTreeGenerator>
       <BoundTreeGenerator Condition=" '$(OS)' != 'Windows_NT' ">mono $(BoundTreeGeneratorToolPath)</BoundTreeGenerator>
       <GeneratedBoundTree>@(BoundTreeDefinition -> '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedBoundTree>
     </PropertyGroup>
@@ -143,11 +143,11 @@
     Condition="'$(Language)' == 'VB' or '$(Language)' == 'C#'"
   >
     <PropertyGroup Condition="'$(Language)' == 'VB'">
-      <ErrorFactsGenerator>$(VBErrorFactsGeneratorToolPath)</ErrorFactsGenerator>
+      <ErrorFactsGenerator>"$(VBErrorFactsGeneratorToolPath)"</ErrorFactsGenerator>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Language)' == 'C#'">
-      <ErrorFactsGenerator Condition=" '$(OS)' == 'Windows_NT' ">$(CSharpErrorFactsGeneratorToolPath)</ErrorFactsGenerator>
+      <ErrorFactsGenerator Condition=" '$(OS)' == 'Windows_NT' ">"$(CSharpErrorFactsGeneratorToolPath)"</ErrorFactsGenerator>
       <ErrorFactsGenerator Condition=" '$(OS)' != 'Windows_NT' ">mono $(CSharpErrorFactsGeneratorToolPath)</ErrorFactsGenerator>
     </PropertyGroup>
 
