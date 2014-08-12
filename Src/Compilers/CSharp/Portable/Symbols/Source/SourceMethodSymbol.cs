@@ -609,19 +609,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ParameterSymbol ThisParameter
+        internal sealed override ParameterSymbol GetThisParameter(out bool unsupported)
         {
-            get
-            {
-                var thisParam = lazyThisParameter;
-                if ((object)thisParam != null || IsStatic)
-                {
-                    return thisParam;
-                }
+            unsupported = false;
 
-                Interlocked.CompareExchange(ref lazyThisParameter, new ThisParameterSymbol(this), null);
-                return lazyThisParameter;
+            var thisParam = lazyThisParameter;
+            if ((object)thisParam != null || IsStatic)
+            {
+                return thisParam;
             }
+
+            Interlocked.CompareExchange(ref lazyThisParameter, new ThisParameterSymbol(this), null);
+            return lazyThisParameter;
         }
 
         internal override TypeSymbol IteratorElementType

@@ -183,16 +183,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
         /// <summary>
-        /// Get the "this" parameter for this method.  This is only valid for original source methods.
-        /// For other methods it throws an InvalidOperationException. Returns null for a static method,
-        /// or a parameter symbol for a non-static method.
+        /// Call <see cref="GetThisParameter"/> and throw if it was unsupported.
         /// </summary>
-        internal virtual ParameterSymbol ThisParameter
+        internal ParameterSymbol ThisParameter
         {
             get
             {
-                throw ExceptionUtilities.Unreachable;
+                bool unsupported;
+                ParameterSymbol thisParameter = this.GetThisParameter(out unsupported);
+                if (unsupported)
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+                return thisParameter;
             }
+        }
+
+        /// <summary>
+        /// Get the "this" parameter for this method.
+        /// </summary>
+        /// <param name="unsupported">True indicates that the return value should be ignored.</param>
+        /// <returns>
+        /// If <paramref name="unsupported"/> is false, then returns null for static methods and
+        /// non-null for instance methods.  Otherwise, value is undefined.
+        /// </returns>
+        /// <remarks>
+        /// I've specifically flipped the signature of the usual TryGet pattern for two reasons:
+        ///   1) This way makes it easier for the batch compiler to assert that it is only called
+        ///      on supported symbols.
+        ///   2) It seemed like it would be strange for TryGetThisParameter to return true and output
+        ///      null for a static method.  The flag indicates not so much whether the method instance
+        ///      has a "this" parameter, but whether the MethodSymbol subtype representing the method
+        ///      supports requesting one.
+        /// </remarks>
+        internal virtual ParameterSymbol GetThisParameter(out bool unsupported)
+        {
+            unsupported = true;
+            return null;
         }
 
         /// <summary>

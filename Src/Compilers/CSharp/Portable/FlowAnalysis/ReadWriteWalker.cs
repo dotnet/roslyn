@@ -67,9 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (p.RefKind != RefKind.None) readOutside.Add(p);
                 }
 
-                if (!m.IsStatic && (object)m.ThisParameter != null && m.ThisParameter.RefKind != RefKind.None)
+                var thisParameter = m.ThisParameter;
+                if ((object)thisParameter != null && thisParameter.RefKind != RefKind.None)
                 {
-                    readOutside.Add(m.ThisParameter);
+                    readOutside.Add(thisParameter);
                 }
             }
 

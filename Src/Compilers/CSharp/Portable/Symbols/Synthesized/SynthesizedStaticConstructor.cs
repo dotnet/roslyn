@@ -84,12 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ParameterSymbol ThisParameter
+        internal override ParameterSymbol GetThisParameter(out bool unsupported)
         {
-            get
-            {
-                return null;
-            }
+            unsupported = false;
+            return null;
         }
 
         public override Accessibility DeclaredAccessibility
