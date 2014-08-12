@@ -143,9 +143,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
-        Public Function ValueTypeMe() As BoundValueTypeMeReference
+        Public Function ReferenceOrByrefMe() As BoundExpression
             Debug.Assert(Me.CurrentMethod IsNot Nothing AndAlso Not Me.CurrentMethod.IsShared)
-            Dim boundNode = New BoundValueTypeMeReference(_syntax, Me.CurrentMethod.MeParameter.Type)
+
+            Dim type = Me.CurrentMethod.MeParameter.Type
+
+            Dim boundNode = If(type.IsReferenceType,
+                                DirectCast(Me.Me, BoundExpression),
+                                New BoundValueTypeMeReference(_syntax, Me.CurrentMethod.MeParameter.Type))
+
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function

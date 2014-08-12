@@ -1362,9 +1362,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
             var errors = token.Errors();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
-            Assert.Equal(text, token.Text);
+            decimal d;
+            if (decimal.TryParse("0E1", System.Globalization.NumberStyles.AllowExponent, null, out d))
+            {
+                Assert.Equal(0, errors.Length);
+            }
+            else
+            {
+                Assert.Equal(1, errors.Length);
+                Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
+                Assert.Equal(text, token.Text);
+            }
         }
 
         [Fact]

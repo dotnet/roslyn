@@ -1312,6 +1312,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     CodeGen.CodeGenerator.Run(method, block, builder, [module], diagsForThisMethod, optimize, emitSequencePoints,
                                               asyncCatchHandlerOffset, asyncYieldPoints, asyncResumePoints)
 
+                    asyncKickoffMethod = If(asyncKickoffMethod.PartialDefinitionPart, asyncKickoffMethod)
+
                     asyncDebugInfo = New Cci.AsyncMethodBodyDebugInfo(asyncKickoffMethod,
                                                                       asyncCatchHandlerOffset,
                                                                       asyncYieldPoints,

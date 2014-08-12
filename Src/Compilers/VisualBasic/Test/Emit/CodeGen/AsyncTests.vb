@@ -7012,7 +7012,7 @@ End Module
 </compilation>, useLatestFramework:=True, expectedOutput:="1 3 5 7 9")
         End Sub
 
-        <Fact(Skip:="1003196"), WorkItem(1003196)>
+        <Fact, WorkItem(1003196)>
         Public Sub AsyncAndPartialMethods()
             CompileAndVerify(
 <compilation>

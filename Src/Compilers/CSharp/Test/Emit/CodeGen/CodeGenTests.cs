@@ -10022,6 +10022,13 @@ class C
         Console.WriteLine(0E100M);
     }
 }";
+            decimal d;
+            if (decimal.TryParse("0E1", System.Globalization.NumberStyles.AllowExponent, null, out d))
+            {
+                CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            }
+            else
+            { 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
                 Diagnostic(ErrorCode.ERR_FloatOverflow, "0E1M").WithArguments("decimal").WithLocation(6, 27),
@@ -10035,6 +10042,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FloatOverflow, "0.00E10M").WithArguments("decimal").WithLocation(10, 28),
                 // (11,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
                 Diagnostic(ErrorCode.ERR_FloatOverflow, "0E100M").WithArguments("decimal").WithLocation(11, 27));
+            }
         }
 
         [Fact]

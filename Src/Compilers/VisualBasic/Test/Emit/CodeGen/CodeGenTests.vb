@@ -564,7 +564,12 @@ Module Program
 End Module
     </file>
 </compilation>)
-            compilation.AssertTheseDiagnostics(<errors><![CDATA[
+
+            Dim d As Decimal = 0
+            If (Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d)) Then
+                compilation.AssertNoErrors()
+            Else
+                compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30036: Overflow.
         Console.WriteLine(0e28d)
                           ~~~~~
@@ -581,6 +586,8 @@ BC30036: Overflow.
         Console.WriteLine(0.000000e34d)
                           ~~~~~~~~~~~~
 ]]></errors>)
+            End If
+
         End Sub
 
         <WorkItem(529861, "DevDiv")>
@@ -742,7 +749,13 @@ Module M
 End Module
     ]]></file>
 </compilation>)
-            compilation.AssertTheseDiagnostics(<errors><![CDATA[
+
+
+            Dim d As Decimal = 0
+            If (Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d)) Then
+                compilation.AssertNoErrors
+            Else
+                compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30036: Overflow.
         Console.WriteLine(0E1D)
                           ~~~~
@@ -762,6 +775,7 @@ BC30036: Overflow.
         Console.WriteLine(0E100D) ' Dev11: BC30036: Overflow.
                           ~~~~~~
 ]]></errors>)
+            End If
         End Sub
 
         <Fact()>

@@ -172,16 +172,28 @@ FixedRankArray_19 = New Short() (1,
         End Sub
     End Module
             ]]>)
-        ParseAndVerify(<![CDATA[
+
+        Dim d As Decimal = 0
+        If (Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d)) Then
+            ParseAndVerify(<![CDATA[
+    Module M
+        Sub Main()
+            Dim x = 0.0e28d
+        End Sub
+    End Module
+            ]]>)
+        Else
+            ParseAndVerify(<![CDATA[
     Module M
         Sub Main()
             Dim x = 0.0e28d
         End Sub
     End Module
             ]]>,
-            <errors>
-                <error id="30036" message="Overflow."/>
-            </errors>)
+                 <errors>
+                     <error id="30036" message="Overflow."/>
+                 </errors>)
+        End If
     End Sub
 
     <WorkItem(541293, "DevDiv")>
