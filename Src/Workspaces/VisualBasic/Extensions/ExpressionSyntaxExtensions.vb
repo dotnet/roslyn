@@ -568,7 +568,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                expression.IsParentKind(SyntaxKind.XmlEmbeddedExpression) OrElse
                expression.IsParentKind(SyntaxKind.ThrowStatement) OrElse
                expression.IsParentKind(SyntaxKind.IfStatement) OrElse
-               expression.IsParentKind(SyntaxKind.WhileStatement) Then
+               expression.IsParentKind(SyntaxKind.WhileStatement) OrElse
+               expression.IsParentKind(SyntaxKind.ElseIfStatement) OrElse
+               expression.IsParentKind(SyntaxKind.ForEachStatement) OrElse
+               expression.IsParentKind(SyntaxKind.ForStatement) Then
                 Return True
             End If
 

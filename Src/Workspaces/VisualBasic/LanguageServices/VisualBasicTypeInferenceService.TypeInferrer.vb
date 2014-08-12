@@ -96,6 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(callStatement As CallStatementSyntax) InferTypeInCallStatement(),
                     Function(forEachStatement As ForEachStatementSyntax) InferTypeInForEachStatement(forEachStatement, expression),
                     Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause),
+                    Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, expression),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfStatement(),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer),
                     Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression),
@@ -149,6 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(callStatement As CallStatementSyntax) InferTypeInCallStatement(),
                     Function(forEachStatement As ForEachStatementSyntax) InferTypeInForEachStatement(forEachStatement, previousToken:=token),
                     Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause, token),
+                    Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, previousToken:=token),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfStatement(token),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer, token),
                     Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression, token),
@@ -544,6 +546,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             Dim type = Me.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
                             Return variableTypes.Select(Function(t) type.Construct(t))
+                        End If
+                    ElseIf TypeOf forEachStatement.ControlVariable Is SimpleNameSyntax Then
+                        Dim type = Me.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
+                        Return SpecializedCollections.SingletonEnumerable(type.Construct(Compilation.GetSpecialType(SpecialType.System_Object)))
+                    End If
+                End If
+
+                Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+            End Function
+
+            Private Function InferTypeInForStatement(forStatement As ForStatementSyntax,
+                                                     Optional expressionOpt As ExpressionSyntax = Nothing,
+                                                     Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
+                If (expressionOpt IsNot Nothing AndAlso expressionOpt IsNot forStatement.ControlVariable) OrElse
+                    previousToken = forStatement.ToKeyword OrElse
+                    previousToken = forStatement.EqualsToken Then
+                    If TypeOf forStatement.ControlVariable Is VariableDeclaratorSyntax Then
+                        Dim declarator = DirectCast(forStatement.ControlVariable, VariableDeclaratorSyntax)
+                        If TypeOf declarator.AsClause Is SimpleAsClauseSyntax Then
+                            Return GetTypes(DirectCast(declarator.AsClause, SimpleAsClauseSyntax).Type, objectAsDefault:=True)
                         End If
                     End If
                 End If
