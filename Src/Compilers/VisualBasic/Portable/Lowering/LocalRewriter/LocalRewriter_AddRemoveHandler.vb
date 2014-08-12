@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundTemp As BoundLocal = Nothing
             If Not eventSymbol.IsShared AndAlso EventReceiverNeedsTemp(rewrittenReceiverOpt) Then
                 Dim receiverType As TypeSymbol = rewrittenReceiverOpt.Type
-                boundTemp = New BoundLocal(syntax, New TempLocalSymbol(Me.currentMethodOrLambda, receiverType), receiverType)
+                boundTemp = New BoundLocal(syntax, New SynthesizedLocal(Me.currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp), receiverType)
                 tempAssignment = New BoundAssignmentOperator(syntax, boundTemp, GenerateObjectCloneIfNeeded(unwrappedEventAccess.ReceiverOpt, rewrittenReceiverOpt.MakeRValue), True)
             End If
 

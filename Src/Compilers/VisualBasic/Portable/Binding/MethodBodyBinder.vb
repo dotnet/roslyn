@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Note, it is an error if a parameter has the same name as the function.  
                     Dim identifier = begin.Identifier
-                    Return LocalSymbol.Create(methodSymbol, Me, identifier, LocalSymbol.LocalDeclarationKind.FunctionValue,
+                    Return LocalSymbol.Create(methodSymbol, Me, identifier, LocalDeclarationKind.FunctionValue,
                                               If(methodSymbol.ReturnType.IsVoidType(), ErrorTypeSymbol.UnknownResultType, methodSymbol.ReturnType))
 
                 Case SyntaxKind.PropertyGetBlock
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim propertySyntax As PropertyStatementSyntax = DirectCast(methodBlock.Parent, PropertyBlockSyntax).PropertyStatement
                         Dim identifier = propertySyntax.Identifier
-                        Return LocalSymbol.Create(methodSymbol, Me, identifier, LocalSymbol.LocalDeclarationKind.FunctionValue,
+                        Return LocalSymbol.Create(methodSymbol, Me, identifier, LocalDeclarationKind.FunctionValue,
                                                   If(methodSymbol.ReturnType.IsVoidType(), ErrorTypeSymbol.UnknownResultType, methodSymbol.ReturnType))
                     End If
 
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return LocalSymbol.Create(methodSymbol,
                                               GeneratedNames.MakeOperatorLocalName(methodSymbol.Name),
                                               DirectCast(methodBlock, OperatorBlockSyntax).Begin.OperatorToken,
-                                              LocalSymbol.LocalDeclarationKind.FunctionValue,
+                                              LocalDeclarationKind.FunctionValue,
                                               If(methodSymbol.ReturnType.IsVoidType(), ErrorTypeSymbol.UnknownResultType, methodSymbol.ReturnType))
 
                 Case SyntaxKind.AddHandlerBlock
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim identifier = eventSyntax.Identifier
                         ' NOTE: To avoid a breaking change, we reproduce the dev11 behavior - the name of the local is
                         ' taken from the name of the accessor, rather than the name of the event (as it would be for a property).
-                        Return LocalSymbol.Create(methodSymbol, methodSymbol.Name, identifier, LocalSymbol.LocalDeclarationKind.FunctionValue,
+                        Return LocalSymbol.Create(methodSymbol, methodSymbol.Name, identifier, LocalDeclarationKind.FunctionValue,
                                                   If(methodSymbol.ReturnType.IsVoidType(), ErrorTypeSymbol.UnknownResultType, methodSymbol.ReturnType))
                     End If
 

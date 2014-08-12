@@ -383,12 +383,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 #End If
-        Public Function SynthesizedLocal(type As TypeSymbol) As LocalSymbol
-            Return New TempLocalSymbol(Me.CurrentMethod, type)
-        End Function
-
-        Public Function SynthesizedNamedLocal(type As TypeSymbol, tempKind As TempKind, syntax As StatementSyntax) As LocalSymbol
-            Return New NamedTempLocalSymbol(Me.CurrentMethod, type, tempKind, syntax)
+        Public Function SynthesizedLocal(type As TypeSymbol, Optional kind As SynthesizedLocalKind = SynthesizedLocalKind.LoweringTemp, Optional syntax As StatementSyntax = Nothing) As LocalSymbol
+            Return New SynthesizedLocal(Me.CurrentMethod, type, kind, syntax)
         End Function
 
         Public Function SynthesizedParameter(type As TypeSymbol, name As String, Optional container As MethodSymbol = Nothing, Optional ordinal As Integer = 0) As ParameterSymbol

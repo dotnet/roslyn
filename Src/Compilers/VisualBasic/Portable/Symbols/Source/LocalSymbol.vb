@@ -18,34 +18,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits Symbol
         Implements ILocalSymbol
 
-        Friend Enum LocalDeclarationKind As Byte
-            Variable
-            ImplicitVariable
-            Constant
-            [Static]
-            [Using]
-            [Catch]
-            [For]
-            ForEach
-            FunctionValue
-            CompilerGenerated
-            ''' <summary> 
-            ''' Only used in flow analysis for the pseudo-local representing a symbol 
-            ''' of the implicit receiver in case Dim statement defines more than one 
-            ''' variable, but uses the same object initializer for all of them, like in: 
-            '''     Dim a,b As New C() With { .X = .Y } 
-            ''' </summary>
-            AmbiguousLocals
-        End Enum
-
         Friend Shared ReadOnly UseBeforeDeclarationResultType As ErrorTypeSymbol = New ErrorTypeSymbol()
 
         Private ReadOnly _container As Symbol ' the method, field or property that contains the declaration of this variable
         Friend ReadOnly DeclarationKind As LocalDeclarationKind
 
-        Friend Overridable ReadOnly Property TempKind As TempKind
+        Friend Overridable ReadOnly Property SynthesizedLocalKind As SynthesizedLocalKind
             Get
-                Return TempKind.None
+                Return SynthesizedLocalKind.None
             End Get
         End Property
 
@@ -294,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property IsCompilerGenerated As Boolean
             Get
-                Return Me.DeclarationKind = LocalDeclarationKind.CompilerGenerated
+                Return Me.DeclarationKind = LocalDeclarationKind.None
             End Get
         End Property
 
@@ -500,9 +480,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property TempKind As TempKind
+            Friend Overrides ReadOnly Property SynthesizedLocalKind As SynthesizedLocalKind
                 Get
-                    Return TempKind.None
+                    Return SynthesizedLocalKind.None
                 End Get
             End Property
 
@@ -832,7 +812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
                     Select Case DeclarationKind
-                        Case LocalDeclarationKind.CompilerGenerated, LocalDeclarationKind.FunctionValue
+                        Case LocalDeclarationKind.None, LocalDeclarationKind.FunctionValue
                             Return ImmutableArray(Of SyntaxReference).Empty
 
                         Case Else

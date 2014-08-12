@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Force unused "ForLoopObject" local here. 
             ' It will mark the start of the For loop locals in EnC
             ' The type is irrelevant since this local will not be used and in optimized builds will be removed.
-            locals.Add(New NamedTempLocalSymbol(Me.currentMethodOrLambda, rewrittenInitialValue.Type, TempKind.ForLoopObject, syntax.Begin))
+            locals.Add(New SynthesizedLocal(Me.currentMethodOrLambda, rewrittenInitialValue.Type, SynthesizedLocalKind.ForLoopObject, syntax.Begin))
 
             Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(node)
 
@@ -76,10 +76,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             'NOTE the order of the following initializations is important!!!!
             'Values are evaluated before hoisting and it must be done in the order of declaration (value, limit, step).
-            rewrittenLimit = CacheToTempIfNotConst(rewrittenLimit, locals, cacheAssignments, TempKind.ForLimit, syntax.Begin)
-            rewrittenStep = CacheToTempIfNotConst(rewrittenStep, locals, cacheAssignments, TempKind.ForStep, syntax.Begin)
+            rewrittenLimit = CacheToTempIfNotConst(rewrittenLimit, locals, cacheAssignments, SynthesizedLocalKind.ForLimit, syntax.Begin)
+            rewrittenStep = CacheToTempIfNotConst(rewrittenStep, locals, cacheAssignments, SynthesizedLocalKind.ForStep, syntax.Begin)
 
-            Dim positiveFlag As TempLocalSymbol = Nothing
+            Dim positiveFlag As SynthesizedLocal = Nothing
 
             If node.OperatorsOpt IsNot Nothing Then
                 ' calculate and cache result of a positive check := step >= (step - step).
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim greaterThanOrEqual = VisitExpressionNode(node.OperatorsOpt.GreaterThanOrEqual)
 
-                positiveFlag = New NamedTempLocalSymbol(currentMethodOrLambda, greaterThanOrEqual.Type, TempKind.ForDirection, syntax.Begin)
+                positiveFlag = New SynthesizedLocal(currentMethodOrLambda, greaterThanOrEqual.Type, SynthesizedLocalKind.ForDirection, syntax.Begin)
                 locals.Add(positiveFlag)
 
                 cacheAssignments.Add(New BoundAssignmentOperator(node.OperatorsOpt.Syntax,
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             isUp)
                     End If
 
-                    positiveFlag = New NamedTempLocalSymbol(currentMethodOrLambda, isUp.Type, TempKind.ForDirection, syntax.Begin)
+                    positiveFlag = New SynthesizedLocal(currentMethodOrLambda, isUp.Type, SynthesizedLocalKind.ForDirection, syntax.Begin)
                     locals.Add(positiveFlag)
 
                     cacheAssignments.Add(New BoundAssignmentOperator(isUp.Syntax,
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Compilation.GetSpecialType(SpecialType.System_Object) Is rewrittenControlVariable.Type)
             Dim objType = rewrittenControlVariable.Type
-            Dim loopObjLocal = New NamedTempLocalSymbol(Me.currentMethodOrLambda, objType, TempKind.ForLoopObject, syntax.Begin)
+            Dim loopObjLocal = New SynthesizedLocal(Me.currentMethodOrLambda, objType, SynthesizedLocalKind.ForLoopObject, syntax.Begin)
             locals.Add(loopObjLocal)
 
             Dim loopObj = New BoundLocal(syntax, loopObjLocal, isLValue:=True, type:=loopObjLocal.Type)
@@ -647,7 +647,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         limit As BoundExpression,
                                         stepValue As BoundExpression,
                                         operatorsOpt As BoundForToUserDefinedOperators,
-                                        positiveFlag As TempLocalSymbol) As BoundExpression
+                                        positiveFlag As SynthesizedLocal) As BoundExpression
             Debug.Assert(operatorsOpt Is Nothing OrElse positiveFlag IsNot Nothing)
 
             If operatorsOpt IsNot Nothing Then
@@ -680,7 +680,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     controlVariable.MakeRValue(),
                                                     limit,
                                                     checked:=False,
-                                                    Type:=booleanType))
+                                                    type:=booleanType))
             End If
 
             'Up/Down for numeric constants is also simple 
@@ -702,7 +702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     controlVariable.MakeRValue(),
                                                     limit,
                                                     checked:=False,
-                                                    Type:=booleanType))
+                                                    type:=booleanType))
             End If
 
             ' for signed integral steps not known at compile time
@@ -717,7 +717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     NegateIfStepNegative(controlVariable.MakeRValue(), stepValue),
                                                     NegateIfStepNegative(limit, stepValue),
                                                     checked:=False,
-                                                    Type:=booleanType))
+                                                    type:=booleanType))
             End If
 
             Dim condition As BoundExpression
@@ -743,7 +743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         controlVariable.MakeRValue(),
                                                         limit,
                                                         checked:=False,
-                                                        Type:=booleanType))
+                                                        type:=booleanType))
 
                 Dim gte = TransformRewrittenBinaryOperator(
                                 New BoundBinaryOperator(limit.Syntax,
@@ -751,7 +751,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         controlVariable.MakeRValue(),
                                                         limit,
                                                         checked:=False,
-                                                        Type:=booleanType))
+                                                        type:=booleanType))
 
                 Dim isUp As BoundExpression = New BoundLocal(limit.Syntax,
                                                              positiveFlag,
@@ -795,10 +795,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             value As BoundExpression,
                             locals As ArrayBuilder(Of LocalSymbol),
                             expressions As ArrayBuilder(Of BoundExpression),
-                            tempKind As TempKind,
+                            kind As SynthesizedLocalKind,
                             syntax As StatementSyntax) As BoundExpression
 
-            Return CacheToTempIfNotConst(Me.currentMethodOrLambda, value, locals, expressions, tempKind, syntax)
+            Return CacheToTempIfNotConst(Me.currentMethodOrLambda, value, locals, expressions, kind, syntax)
 
             'TODO: optimization for arrays/strings -
             '      does it make sense to store actual arrays/strings instead of their lengths when used as a limit?

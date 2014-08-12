@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '     skipEventRaise:
                 ' End Block
                 '
-                Dim temp As LocalSymbol = New TempLocalSymbol(Me.currentMethodOrLambda, receiver.Type)
+                Dim temp As LocalSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, receiver.Type, SynthesizedLocalKind.LoweringTemp)
                 Dim tempAccess As BoundLocal = New BoundLocal(syntax, temp, temp.Type).MakeCompilerGenerated
 
                 Dim tempInit = New BoundExpressionStatement(syntax,

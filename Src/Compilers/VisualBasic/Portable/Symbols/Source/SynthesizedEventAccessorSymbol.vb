@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim i As Integer = 0
             While i < tmps.Length
-                tmps(i) = New TempLocalSymbol(accessor, delegateType)
+                tmps(i) = New SynthesizedLocal(accessor, delegateType, SynthesizedLocalKind.LoweringTemp)
                 boundTmps(i) = New BoundLocal(syntax, tmps(i), delegateType)
                 i = i + 1
             End While

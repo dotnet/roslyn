@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function IsCompilerGeneratedTempLocal(variable As Symbol) As Boolean
-            Return TypeOf (variable) Is TempLocalSymbol
+            Return TypeOf (variable) Is SynthesizedLocal
         End Function
 
         Private Sub CheckCaptured(variable As Symbol)

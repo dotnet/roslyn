@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim submissionResultType = ctor.Parameters(1).Type
             Dim submissionResult = New BoundLocal(syntax,
-                                                  localSymbol:=New TempLocalSymbol(ctor, submissionResultType),
+                                                  localSymbol:=New SynthesizedLocal(ctor, submissionResultType, SynthesizedLocalKind.None),
                                                   isLValue:=True,
                                                   type:=submissionResultType)
 

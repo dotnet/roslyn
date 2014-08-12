@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Initialize all the parameter copies
                 Dim copySrc = InitialParameters
-                Dim copyDest = LocalProxies
+                Dim copyDest = variableProxies
                 If Not Method.IsShared Then
                     ' starting with "this"
                     Dim proxy As FieldSymbol = Nothing
@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     F.[New](StateMachineClass.Constructor.AsMember(frameType), F.Literal(initialState))))
         End Sub
 
-        Protected Overrides ReadOnly Property PreserveInitialLocals As Boolean
+        Protected Overrides ReadOnly Property PreserveInitialParameterValues As Boolean
             Get
                 Return Me.isEnumerable
             End Get
@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Sub GenerateMoveNextAndDispose(moveNextMethod As SynthesizedStateMachineMethod, disposeMethod As SynthesizedStateMachineMethod)
-            Dim rewriter = New IteratorMethodToClassRewriter(Me.Method, Me.F, Me.StateField, Me.currentField, Me.LocalProxies, Me.Diagnostics, Me.GenerateDebugInfo)
+            Dim rewriter = New IteratorMethodToClassRewriter(Me.Method, Me.F, Me.StateField, Me.currentField, Me.variableProxies, Me.Diagnostics, Me.GenerateDebugInfo)
 
             rewriter.GenerateMoveNextAndDispose(Body, moveNextMethod, disposeMethod)
         End Sub

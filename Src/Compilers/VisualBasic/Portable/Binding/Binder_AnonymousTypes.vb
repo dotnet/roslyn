@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim local = Me._locals(fieldIndex)
                     If local Is Nothing Then
                         ' create a local
-                        local = New TempLocalSymbol(Me.ContainingMember, Me._fields(fieldIndex).Type)
+                        local = New SynthesizedLocal(Me.ContainingMember, Me._fields(fieldIndex).Type, SynthesizedLocalKind.None)
                         Me._locals(fieldIndex) = local
                     End If
                 End If

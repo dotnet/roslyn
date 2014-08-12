@@ -1094,7 +1094,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The lambda rewriter will have to give it a name that matches the emitted name of the lambda.
             ' The local's type is the same as the lambdas's return type
             Dim identifier = header.Keyword
-            Dim functionValue = LocalSymbol.Create(lambdaSymbol, GeneratedNames.MakeTempLambdaLocalName, identifier, LocalSymbol.LocalDeclarationKind.FunctionValue, lambdaSymbol.ReturnType)
+            Dim functionValue = LocalSymbol.Create(lambdaSymbol, GeneratedNames.MakeTempLambdaLocalName, identifier, LocalDeclarationKind.FunctionValue, lambdaSymbol.ReturnType)
 
             Return functionValue
         End Function

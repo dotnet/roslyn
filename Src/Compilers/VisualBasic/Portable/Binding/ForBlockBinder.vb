@@ -63,8 +63,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                modifiedIdentifier.Identifier, modifiedIdentifier, declarator.AsClause,
                                                declarator.Initializer,
                                                If(_syntax.Kind = SyntaxKind.ForEachBlock,
-                                                  LocalSymbol.LocalDeclarationKind.ForEach,
-                                                  LocalSymbol.LocalDeclarationKind.For))
+                                                  LocalDeclarationKind.ForEach,
+                                                  LocalDeclarationKind.For))
 
             Else
                 Dim identifierName = TryCast(controlVariableSyntax, IdentifierNameSyntax)

@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                Nothing,
                                                asClauseOptSyntax,
                                                Nothing,
-                                               LocalSymbol.LocalDeclarationKind.Catch)
+                                               LocalDeclarationKind.Catch)
 
                 Return ImmutableArray.Create(localVar)
             End If

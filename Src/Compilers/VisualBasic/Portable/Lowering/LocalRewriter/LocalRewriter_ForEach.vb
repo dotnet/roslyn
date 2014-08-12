@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The variable will not be initialized, because a declared control variable is also not initialized when 
             ' executing the collection expression.
             If node.DeclaredOrInferredLocalOpt IsNot Nothing Then
-                Dim tempLocal = New TempLocalSymbol(Me.currentMethodOrLambda, node.ControlVariable.Type)
+                Dim tempLocal = New SynthesizedLocal(Me.currentMethodOrLambda, node.ControlVariable.Type, SynthesizedLocalKind.LoweringTemp)
                 Dim tempForControlVariable = New BoundLocal(node.Syntax, tempLocal, node.ControlVariable.Type)
 
                 Dim replacedControlVariable As Boolean = False
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      collectionExpression.MakeRValue(),
                                                                      boundCollectionLocal,
                                                                      locals,
-                                                                     TempKind.ForEachArray)
+                                                                     SynthesizedLocalKind.ForEachArray)
 
             If Not loopResumeTarget.IsDefaultOrEmpty Then
                 boundCollectionAssignment = New BoundStatementList(boundCollectionAssignment.Syntax, loopResumeTarget.Add(boundCollectionAssignment))
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                      integerType),
                                                                     boundIndex,
                                                                     locals,
-                                                                    TempKind.ForEachArrayIndex)
+                                                                    SynthesizedLocalKind.ForEachArrayIndex)
             statements.Add(boundIndexInitialization)
 
             ' build either
@@ -349,11 +349,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             initExpression As BoundExpression,
             <Out()> ByRef boundLocal As BoundLocal,
             locals As ArrayBuilder(Of LocalSymbol),
-            tempKind As TempKind
+            kind As SynthesizedLocalKind
         ) As BoundStatement
             ' Dim collectionCopy As C = c
             Dim expressionType = initExpression.Type
-            Dim collectionCopy = New NamedTempLocalSymbol(Me.currentMethodOrLambda, expressionType, tempKind, syntaxNode)
+            Dim collectionCopy = New SynthesizedLocal(Me.currentMethodOrLambda, expressionType, kind, syntaxNode)
             locals.Add(collectionCopy)
             boundLocal = New BoundLocal(syntaxNode, collectionCopy, expressionType)
 
@@ -573,7 +573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      enumeratorInfo.GetEnumerator,
                                                                      boundEnumeratorLocal,
                                                                      locals,
-                                                                     TempKind.ForEachEnumerator)
+                                                                     SynthesizedLocalKind.ForEachEnumerator)
 
             If Not loopResumeTarget.IsDefaultOrEmpty Then
                 boundEnumeratorAssignment = New BoundStatementList(boundEnumeratorAssignment.Syntax, loopResumeTarget.Add(boundEnumeratorAssignment))

@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' initialization assignment is added to 'sideEffects'.
         ''' </summary>
         Private Function CreateTempLocal(syntax As VisualBasicSyntaxNode, type As TypeSymbol, expr As BoundExpression, sideEffects As ArrayBuilder(Of BoundExpression)) As BoundLocal
-            Dim local = New BoundLocal(syntax, New TempLocalSymbol(Me.currentMethodOrLambda, type), type)
+            Dim local = New BoundLocal(syntax, New SynthesizedLocal(Me.currentMethodOrLambda, type, SynthesizedLocalKind.LoweringTemp), type)
             sideEffects.Add(New BoundAssignmentOperator(syntax, local, expr, suppressObjectClone:=True, type:=type))
             Return local.MakeRValue()
         End Function
@@ -274,10 +274,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateTempLocalInExpressionLambda(syntax As VisualBasicSyntaxNode, type As TypeSymbol, expr As BoundExpression) As BoundLocal
-            Dim tempLocal As New NamedTempLocalSymbol(Me.topMethod, type, TempKind.XmlInExpressionLambda, Me.compilationState.GenerateTempNumber)
-            Dim local = New BoundLocal(syntax, tempLocal, type)
-            Me.xmlFixupData.AddLocal(tempLocal, New BoundAssignmentOperator(syntax, local, expr, suppressObjectClone:=True, type:=type))
-            Return local.MakeRValue()
+            Dim local As New SynthesizedLocal(Me.topMethod, type, SynthesizedLocalKind.XmlInExpressionLambda, Me.compilationState.GenerateTempNumber)
+            Dim boundLocal = New BoundLocal(syntax, local, type)
+            Me.xmlFixupData.AddLocal(local, New BoundAssignmentOperator(syntax, boundLocal, expr, suppressObjectClone:=True, type:=type))
+            Return boundLocal.MakeRValue()
         End Function
 
         Private Sub CreatePrefixesAndNamespacesArrays(

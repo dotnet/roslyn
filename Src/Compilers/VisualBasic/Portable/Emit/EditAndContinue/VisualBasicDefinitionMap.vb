@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                            If previousSyntax IsNot Nothing AndAlso previousDeclaratorToOffset.TryGetValue(previousSyntax, offset) Then
                                                Dim previousType = map.MapReference(typeRef)
                                                If previousType IsNot Nothing Then
-                                                   Dim localKey = New EncLocalInfo(offset, previousType, constraints, CInt(local.TempKind), signature:=Nothing)
+                                                   Dim localKey = New EncLocalInfo(offset, previousType, constraints, CInt(local.SynthesizedLocalKind), signature:=Nothing)
                                                    Dim slot As Integer
                                                    If previousLocalInfoToSlot.TryGetValue(localKey, slot) Then
                                                        Return slot
@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     If Not syntaxRefs.IsDefaultOrEmpty Then
                         Dim syntax As SyntaxNode = syntaxRefs(0).GetSyntax()
-                        Return New EncLocalInfo(declaratorToIndex(syntax), localDef.Type, def.Constraints, CInt(local.TempKind), signature)
+                        Return New EncLocalInfo(declaratorToIndex(syntax), localDef.Type, def.Constraints, CInt(local.SynthesizedLocalKind), signature)
                     End If
                 End If
             End If

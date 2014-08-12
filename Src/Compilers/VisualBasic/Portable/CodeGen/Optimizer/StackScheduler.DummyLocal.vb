@@ -8,10 +8,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
     Partial Friend Class StackScheduler
 
         Private Class DummyLocal
-            Inherits TempLocalSymbol
+            Inherits SynthesizedLocal
 
             Public Sub New(container As Symbol)
-                MyBase.New(container, Nothing)
+                MyBase.New(container, Nothing, SynthesizedLocalKind.None)
             End Sub
 
             Friend Overrides Function ComputeType(Optional containingBinder As Binder = Nothing) As TypeSymbol

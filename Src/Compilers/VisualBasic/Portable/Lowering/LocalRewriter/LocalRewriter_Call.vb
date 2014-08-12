@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             UpdateMethodAndArgumentsIfReducedFromMethod(method, receiver, arguments)
 
-            Dim temporaries As ImmutableArray(Of TempLocalSymbol) = Nothing
+            Dim temporaries As ImmutableArray(Of SynthesizedLocal) = Nothing
             Dim copyBack As ImmutableArray(Of BoundExpression) = Nothing
             Dim suppressObjectClone As Boolean = node.SuppressObjectClone OrElse
                                                  method Is Compilation.GetWellKnownTypeMember(
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function RewriteCallArguments(
             arguments As ImmutableArray(Of BoundExpression),
             parameters As ImmutableArray(Of ParameterSymbol),
-            <Out()> ByRef temporaries As ImmutableArray(Of TempLocalSymbol),
+            <Out()> ByRef temporaries As ImmutableArray(Of SynthesizedLocal),
             <Out()> ByRef copyBack As ImmutableArray(Of BoundExpression),
             suppressObjectClone As Boolean
         ) As ImmutableArray(Of BoundExpression)
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return arguments
             End If
 
-            Dim tempsArray As ArrayBuilder(Of TempLocalSymbol) = Nothing
+            Dim tempsArray As ArrayBuilder(Of SynthesizedLocal) = Nothing
             Dim copyBackArray As ArrayBuilder(Of BoundExpression) = Nothing
             Dim rewrittenArgs = ArrayBuilder(Of BoundExpression).GetInstance
             Dim changed As Boolean = False
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function PassArgAsTempClone(
             argument As BoundExpression,
             rewrittenArgument As BoundExpression,
-            ByRef tempsArray As ArrayBuilder(Of TempLocalSymbol)
+            ByRef tempsArray As ArrayBuilder(Of SynthesizedLocal)
         ) As BoundExpression
 
             ' Need to allocate a temp of the target type,
@@ -224,10 +224,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' pass it ByRef
 
             If tempsArray Is Nothing Then
-                tempsArray = ArrayBuilder(Of TempLocalSymbol).GetInstance()
+                tempsArray = ArrayBuilder(Of SynthesizedLocal).GetInstance()
             End If
 
-            Dim temp = New TempLocalSymbol(Me.currentMethodOrLambda, rewrittenArgument.Type)
+            Dim temp = New SynthesizedLocal(Me.currentMethodOrLambda, rewrittenArgument.Type, SynthesizedLocalKind.LoweringTemp)
             tempsArray.Add(temp)
 
             Dim boundTemp = New BoundLocal(rewrittenArgument.Syntax, temp, temp.Type)
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function RewriteByRefArgumentWithCopyBack(
             argument As BoundByRefArgumentWithCopyBack,
-            ByRef tempsArray As ArrayBuilder(Of TempLocalSymbol),
+            ByRef tempsArray As ArrayBuilder(Of SynthesizedLocal),
             ByRef copyBackArray As ArrayBuilder(Of BoundExpression)
         ) As BoundExpression
             ' Need to allocate a temp of the target type,
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If tempsArray Is Nothing Then
-                tempsArray = ArrayBuilder(Of TempLocalSymbol).GetInstance()
+                tempsArray = ArrayBuilder(Of SynthesizedLocal).GetInstance()
             End If
 
             If copyBackArray Is Nothing Then
@@ -311,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim inputValue As BoundExpression = VisitAndGenerateObjectCloneIfNeeded(argument.InConversion)
             RemovePlaceholderReplacement(argument.InPlaceholder)
 
-            Dim temp = New TempLocalSymbol(Me.currentMethodOrLambda, argument.Type)
+            Dim temp = New SynthesizedLocal(Me.currentMethodOrLambda, argument.Type, SynthesizedLocalKind.LoweringTemp)
             tempsArray.Add(temp)
 
             Dim boundTemp = New BoundLocal(argument.Syntax, temp, temp.Type)

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim valueBeingAssigned As BoundExpression = New BoundArrayCreation(node.Syntax,
                                                                                node.Indices, Nothing, node.ArrayTypeOpt)
 
-            Dim temporaries As ArrayBuilder(Of TempLocalSymbol) = Nothing
+            Dim temporaries As ArrayBuilder(Of SynthesizedLocal) = Nothing
             Dim assignmentTarget = node.Operand
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' build a call to Microsoft.VisualBasic.CompilerServices.Utils.CopyArray
 
                 '  use the operand twice
-                temporaries = ArrayBuilder(Of TempLocalSymbol).GetInstance()
+                temporaries = ArrayBuilder(Of SynthesizedLocal).GetInstance()
                 Dim result As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me.currentMethodOrLambda, assignmentTarget, temporaries)
 
                 '  the first to be used as an assignment target

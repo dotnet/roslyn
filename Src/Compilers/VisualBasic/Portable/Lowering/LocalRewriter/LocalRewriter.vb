@@ -483,7 +483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             UpdateMethodAndArgumentsIfReducedFromMethod(methodSymbol, receiverOpt, arguments)
 
-            Dim temporaries As ImmutableArray(Of TempLocalSymbol) = Nothing
+            Dim temporaries As ImmutableArray(Of SynthesizedLocal) = Nothing
             Dim copyBack As ImmutableArray(Of BoundExpression) = Nothing
 
             receiverOpt = VisitExpressionNode(receiverOpt)
@@ -697,13 +697,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       value As BoundExpression,
                                                       locals As ArrayBuilder(Of LocalSymbol),
                                                       expressions As ArrayBuilder(Of BoundExpression),
-                                                      Optional tempKind As TempKind = TempKind.None,
+                                                      Optional kind As SynthesizedLocalKind = SynthesizedLocalKind.LoweringTemp,
                                                       Optional syntax As StatementSyntax = Nothing) As BoundExpression
 
             Debug.Assert(container IsNot Nothing)
             Debug.Assert(locals IsNot Nothing)
             Debug.Assert(expressions IsNot Nothing)
-            Debug.Assert(tempKind = TempKind.None OrElse syntax IsNot Nothing)
+            Debug.Assert(kind = SynthesizedLocalKind.LoweringTemp OrElse syntax IsNot Nothing)
 
             Dim constValue As ConstantValue = value.ConstantValueOpt
 
@@ -718,9 +718,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             End If
 
-            Dim temp = If(tempKind = TempKind.None,
-                                New TempLocalSymbol(container, value.Type),
-                                New NamedTempLocalSymbol(container, value.Type, tempKind, syntax))
+            Dim temp = New SynthesizedLocal(container, value.Type, kind, syntax)
 
             locals.Add(temp)
 

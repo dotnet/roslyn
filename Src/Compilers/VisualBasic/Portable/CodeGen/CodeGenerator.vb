@@ -31,6 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         'TODO: consider if it still makes sense to do these things.
         Private ReadOnly _noOptimizations As Boolean
 
+        Private ReadOnly _debugInformationKind As DebugInformationKind
+
         Private ReadOnly _emitSequencePoints As Boolean
 
         ' label used when when return is emitted in a form of store/goto
@@ -56,7 +58,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' - methods with no location (global code container)
 
             Me._noOptimizations = Not optimize
+            Me._debugInformationKind = emitModule.Compilation.Options.DebugInformationKind
             Me._emitSequencePoints = emitSequencePoints
+
+            Debug.Assert(Me._debugInformationKind.IsValid())
 
             If Not Me._noOptimizations Then
                 Me._block = Optimizer.Optimize(meth, block, Me._stackLocals)

@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '               new R?(UnliftedOp(operand)), 
             '               new R?)
             '        }
-            Dim temp As TempLocalSymbol = Nothing
+            Dim temp As SynthesizedLocal = Nothing
             Dim tempInit As BoundExpression = Nothing
 
             ' No need to capture locals in Unary since we will not eval another operand

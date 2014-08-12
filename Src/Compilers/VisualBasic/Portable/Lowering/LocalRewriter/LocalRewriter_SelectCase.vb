@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim selectExprType = rewrittenSelectExpression.Type
 
                 ' Store the select expression result in a temp
-                Dim tempLocal = New TempLocalSymbol(Me.currentMethodOrLambda, selectExprType)
+                Dim tempLocal = New SynthesizedLocal(Me.currentMethodOrLambda, selectExprType, SynthesizedLocalKind.LoweringTemp)
                 tempLocals = ImmutableArray.Create(Of LocalSymbol)(tempLocal)
 
                 Dim boundTemp = New BoundLocal(rewrittenSelectExpression.Syntax, tempLocal, selectExprType)

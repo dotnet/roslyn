@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundExpression = node
 
             If ctor IsNot Nothing Then
-                Dim temporaries As ImmutableArray(Of TempLocalSymbol) = Nothing
+                Dim temporaries As ImmutableArray(Of SynthesizedLocal) = Nothing
                 Dim copyBack As ImmutableArray(Of BoundExpression) = Nothing
 
                 result = node.Update(ctor,
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' create a temp symbol 
             '    Dim temp as CollectionType
             Dim expressionType = node.Type
-            Dim tempLocalSymbol = New TempLocalSymbol(Me.currentMethodOrLambda, expressionType)
+            Dim tempLocalSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
 
             ' rewrite the object creation expression and create assignment for the rewritten object 
             ' creation expression to the temp
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node.CreateTemporaryLocalForInitialization Then
                 ' create temporary
                 '    Dim temp as RefTypeName 
-                Dim tempLocalSymbol As LocalSymbol = New TempLocalSymbol(Me.currentMethodOrLambda, expressionType)
+                Dim tempLocalSymbol As LocalSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
                 sequenceType = expressionType
 
                 sequenceTemporaries = ImmutableArray.Create(Of LocalSymbol)(tempLocalSymbol)

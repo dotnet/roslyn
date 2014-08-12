@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              If(isNotAsNewAndHasInitializer AndAlso i = names.Count - 1,
                                                                 variableDeclarator.Initializer,
                                                                 Nothing),
-                                                             LocalSymbol.LocalDeclarationKind.Using))
+                                                             LocalDeclarationKind.Using))
                     Next
                 Next
 

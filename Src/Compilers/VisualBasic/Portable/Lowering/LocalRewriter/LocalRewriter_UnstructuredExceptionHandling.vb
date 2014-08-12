@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim nodeFactory As New SyntheticBoundNodeFactory(topMethod, currentMethodOrLambda, node.Syntax, compilationState, diagnostics)
             Dim int32 = nodeFactory.SpecialType(SpecialType.System_Int32)
-            currentLineTemporary = New NamedTempLocalSymbol(topMethod, int32, TempKind.OnErrorCurrentLine, DirectCast(nodeFactory.Syntax, StatementSyntax))
+            currentLineTemporary = New SynthesizedLocal(topMethod, int32, SynthesizedLocalKind.OnErrorCurrentLine, DirectCast(nodeFactory.Syntax, StatementSyntax))
 
             Dim body As BoundBlock
 
@@ -141,13 +141,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim int32 = nodeFactory.SpecialType(SpecialType.System_Int32)
             Dim bool = nodeFactory.SpecialType(SpecialType.System_Boolean)
 
-            unstructuredExceptionHandling.ActiveHandlerTemporary = New NamedTempLocalSymbol(topMethod, int32, TempKind.OnErrorActiveHandler, DirectCast(nodeFactory.Syntax, StatementSyntax))
+            unstructuredExceptionHandling.ActiveHandlerTemporary = New SynthesizedLocal(topMethod, int32, SynthesizedLocalKind.OnErrorActiveHandler, DirectCast(nodeFactory.Syntax, StatementSyntax))
             locals.Add(unstructuredExceptionHandling.ActiveHandlerTemporary)
-            unstructuredExceptionHandling.ResumeTargetTemporary = New NamedTempLocalSymbol(topMethod, int32, TempKind.OnErrorResumeTarget, DirectCast(nodeFactory.Syntax, StatementSyntax))
+            unstructuredExceptionHandling.ResumeTargetTemporary = New SynthesizedLocal(topMethod, int32, SynthesizedLocalKind.OnErrorResumeTarget, DirectCast(nodeFactory.Syntax, StatementSyntax))
             locals.Add(unstructuredExceptionHandling.ResumeTargetTemporary)
 
             If node.ResumeWithoutLabelOpt IsNot Nothing Then
-                unstructuredExceptionHandling.CurrentStatementTemporary = New NamedTempLocalSymbol(topMethod, int32, TempKind.OnErrorCurrentStatement, DirectCast(nodeFactory.Syntax, StatementSyntax))
+                unstructuredExceptionHandling.CurrentStatementTemporary = New SynthesizedLocal(topMethod, int32, SynthesizedLocalKind.OnErrorCurrentStatement, DirectCast(nodeFactory.Syntax, StatementSyntax))
                 locals.Add(unstructuredExceptionHandling.CurrentStatementTemporary)
                 unstructuredExceptionHandling.ResumeNextLabel = New GeneratedLabelSymbol("$VB$UnstructuredExceptionHandling_ResumeNext")
                 unstructuredExceptionHandling.ResumeLabel = New GeneratedLabelSymbol("$VB$UnstructuredExceptionHandling_Resume")

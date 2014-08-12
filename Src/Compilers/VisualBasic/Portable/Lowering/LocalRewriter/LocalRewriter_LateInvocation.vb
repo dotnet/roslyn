@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         argNames As ImmutableArray(Of String),
                                                         useLateCall As Boolean) As BoundExpression
 
-            Dim temps As ArrayBuilder(Of TempLocalSymbol) = Nothing
+            Dim temps As ArrayBuilder(Of SynthesizedLocal) = Nothing
 
             Dim rewrittenReceiver As BoundExpression = VisitExpressionNode(receiverExpression)
 
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           argNames,
                                                           useLateCall)
 
-            Dim tempArray As ImmutableArray(Of TempLocalSymbol) = Nothing
+            Dim tempArray As ImmutableArray(Of SynthesizedLocal) = Nothing
             If temps IsNot Nothing Then
                 tempArray = temps.ToImmutableAndFree
 

@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitAggregateClause(node As BoundAggregateClause) As BoundNode
             If node.CapturedGroupOpt IsNot Nothing Then
                 Debug.Assert(node.GroupPlaceholderOpt IsNot Nothing)
-                Dim groupLocal = New TempLocalSymbol(Me.currentMethodOrLambda, node.CapturedGroupOpt.Type)
+                Dim groupLocal = New SynthesizedLocal(Me.currentMethodOrLambda, node.CapturedGroupOpt.Type, SynthesizedLocalKind.LoweringTemp)
 
                 AddPlaceholderReplacement(node.GroupPlaceholderOpt,
                                               New BoundLocal(node.Syntax, groupLocal, False, groupLocal.Type))

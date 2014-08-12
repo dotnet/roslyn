@@ -112,10 +112,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
             Private Structure LocalName
                 Public ReadOnly Name As String
-                Public ReadOnly Kind As TempKind
+                Public ReadOnly Kind As SynthesizedLocalKind
                 Public ReadOnly UniqueId As Integer
 
-                Public Sub New(name As String, kind As TempKind, uniqueId As Integer)
+                Public Sub New(name As String, kind As SynthesizedLocalKind, uniqueId As Integer)
                     Me.Name = name
                     Me.Kind = kind
                     Me.UniqueId = uniqueId
@@ -173,12 +173,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Class
 
             Protected Overrides Sub VisitForEachStatementDeclarations(node As ForEachStatementSyntax)
-                Dim kindOpt As TempKind? = Me.TryGetSlotIndex(TempKind.ForEachEnumerator, TempKind.ForEachArray)
+                Dim kindOpt As SynthesizedLocalKind? = Me.TryGetSlotIndex(SynthesizedLocalKind.ForEachEnumerator, SynthesizedLocalKind.ForEachArray)
                 If kindOpt.HasValue Then
                     ' Enumerator.
-                    If kindOpt.Value = TempKind.ForEachArray Then
+                    If kindOpt.Value = SynthesizedLocalKind.ForEachArray Then
                         ' Index (VB only specialcases ForEach in single-dimensional case).
-                        Dim kind = TempKind.ForEachArrayIndex
+                        Dim kind = SynthesizedLocalKind.ForEachArrayIndex
                         If Me.IsSlotIndex(kind) Then
                             Me.AddLocal(kind)
                         End If
@@ -198,20 +198,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Sub
 
             Protected Overrides Sub VisitForStatementDeclarations(node As ForStatementSyntax)
-                Dim kindOpt As TempKind? = Me.TryGetSlotIndex(TempKind.ForLoopObject)
+                Dim kindOpt As SynthesizedLocalKind? = Me.TryGetSlotIndex(SynthesizedLocalKind.ForLoopObject)
 
                 If kindOpt.HasValue Then
-                    Dim kind = TempKind.ForLimit
+                    Dim kind = SynthesizedLocalKind.ForLimit
                     If Me.IsSlotIndex(kind) Then
                         Me.AddLocal(kind)
                     End If
 
-                    kind = TempKind.ForStep
+                    kind = SynthesizedLocalKind.ForStep
                     If Me.IsSlotIndex(kind) Then
                         Me.AddLocal(kind)
                     End If
 
-                    kind = TempKind.ForDirection
+                    kind = SynthesizedLocalKind.ForDirection
                     If Me.IsSlotIndex(kind) Then
                         Me.AddLocal(kind)
                     End If
@@ -233,11 +233,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' Expecting one or two locals depending on which overload of Monitor.Enter is used.
                 Dim expr As ExpressionSyntax = node.Expression
                 Debug.Assert(expr IsNot Nothing)
-                If Me.TryGetSlotIndex(TempKind.Lock).HasValue Then
+                If Me.TryGetSlotIndex(SynthesizedLocalKind.Lock).HasValue Then
                     ' if the next local Is LockTaken, then the lock was emitted with the two argument
                     ' overload for Monitor.Enter(). Otherwise, the single argument overload was used.
-                    If IsSlotIndex(TempKind.LockTaken) Then
-                        AddLocal(TempKind.LockTaken)
+                    If IsSlotIndex(SynthesizedLocalKind.LockTaken) Then
+                        AddLocal(SynthesizedLocalKind.LockTaken)
                     End If
                 End If
                 Me.offset += 1
@@ -246,13 +246,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Protected Overrides Sub VisitUsingStatementDeclarations(node As UsingStatementSyntax)
                 Dim expr = node.Expression
                 If expr IsNot Nothing Then
-                    Me.TryGetSlotIndex(TempKind.Using)
+                    Me.TryGetSlotIndex(SynthesizedLocalKind.Using)
                 End If
                 Me.offset += 1
             End Sub
 
             Protected Overrides Sub VisitWithStatementDeclarations(node As WithStatementSyntax)
-                Me.TryGetSlotIndex(TempKind.With)
+                Me.TryGetSlotIndex(SynthesizedLocalKind.With)
                 Me.offset += 1
             End Sub
 
@@ -281,11 +281,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private Shared Function ParseName(name As String) As LocalName
                 If name Is Nothing Then
-                    Return New LocalName(name, TempKind.None, 0)
+                    Return New LocalName(name, SynthesizedLocalKind.None, 0)
                 End If
-                Dim kind As TempKind
+                Dim kind As SynthesizedLocalKind
                 Dim uniqueId As Integer
-                GeneratedNames.TryParseTemporaryName(name, kind, uniqueId)
+                GeneratedNames.TryParseLocalName(name, kind, uniqueId)
                 Return New LocalName(name, kind, uniqueId)
             End Function
 
@@ -295,15 +295,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Private Function IsSlotIndex(name As String, slot As Integer) As Boolean
-                Return slot < Me.localNames.Length AndAlso Me.localNames(slot).Kind = TempKind.None AndAlso name = Me.localNames(slot).Name
+                Return slot < Me.localNames.Length AndAlso Me.localNames(slot).Kind = SynthesizedLocalKind.None AndAlso name = Me.localNames(slot).Name
             End Function
 
-            Private Function IsSlotIndex(kind As TempKind) As Boolean
+            Private Function IsSlotIndex(kind As SynthesizedLocalKind) As Boolean
                 Return Me.slotIndex < Me.localNames.Length AndAlso Me.localNames(Me.slotIndex).Kind = kind
             End Function
 
-            Private Function IsSlotIndex(ParamArray kinds As TempKind()) As Boolean
-                Return Me.slotIndex < Me.localNames.Length AndAlso Array.IndexOf(Of TempKind)(kinds, Me.localNames(Me.slotIndex).Kind) >= 0
+            Private Function IsSlotIndex(ParamArray kinds As SynthesizedLocalKind()) As Boolean
+                Return Me.slotIndex < Me.localNames.Length AndAlso Array.IndexOf(Of SynthesizedLocalKind)(kinds, Me.localNames(Me.slotIndex).Kind) >= 0
             End Function
 
             Private Function TryGetSlotIndex(name As String) As Boolean
@@ -317,23 +317,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return False
             End Function
 
-            Private Function TryGetSlotIndex(kind As TempKind) As TempKind?
+            Private Function TryGetSlotIndex(kind As SynthesizedLocalKind) As SynthesizedLocalKind?
                 While Me.slotIndex < Me.localNames.Length
                     If Me.IsSlotIndex(kind) Then
                         Me.AddLocal(kind)
-                        Return New TempKind?(kind)
+                        Return New SynthesizedLocalKind?(kind)
                     End If
                     Me.slotIndex += 1
                 End While
                 Return Nothing
             End Function
 
-            Private Function TryGetSlotIndex(ParamArray kinds As TempKind()) As TempKind?
+            Private Function TryGetSlotIndex(ParamArray kinds As SynthesizedLocalKind()) As SynthesizedLocalKind?
                 While Me.slotIndex < Me.localNames.Length
                     If Me.IsSlotIndex(kinds) Then
-                        Dim kind As TempKind = Me.localNames(Me.slotIndex).Kind
+                        Dim kind As SynthesizedLocalKind = Me.localNames(Me.slotIndex).Kind
                         Me.AddLocal(kind)
-                        Return New TempKind?(kind)
+                        Return New SynthesizedLocalKind?(kind)
                     End If
                     Me.slotIndex += 1
                 End While
@@ -344,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim slot = 0
                 While slot <= Me.slotIndex
                     If Me.IsSlotIndex(name, slot) Then
-                        Me.AddLocal(TempKind.None, slot, name)
+                        Me.AddLocal(SynthesizedLocalKind.None, slot, name)
                         If (slot = Me.slotIndex) Then
                             Me.slotIndex += 1
                         End If
@@ -355,27 +355,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return False
             End Function
 
-            Private Sub AddLocal(tempKind As TempKind)
-                Debug.Assert(tempKind <> TempKind.None, "None must have name")
+            Private Sub AddLocal(kind As SynthesizedLocalKind)
+                Debug.Assert(kind <> SynthesizedLocalKind.None, "None must have name")
                 Dim slot = Me.slotIndex
-                AddLocal(tempKind, slot, Nothing)
+                AddLocal(kind, slot, Nothing)
                 Me.slotIndex += 1
             End Sub
 
             Private Sub AddLocal(name As String)
                 Dim slot = Me.slotIndex
-                AddLocal(TempKind.None, slot, name)
+                AddLocal(SynthesizedLocalKind.None, slot, name)
                 Me.slotIndex += 1
             End Sub
 
-            Private Sub AddLocal(tempKind As TempKind, slot As Integer, name As String)
+            Private Sub AddLocal(kind As SynthesizedLocalKind, slot As Integer, name As String)
                 Dim info As MetadataDecoder.LocalInfo = Me.localInfo(slot)
 
                 ' We do not emit custom modifiers on locals so ignore the
                 ' previous version of the local if it had custom modifiers.
                 If info.CustomModifiers.IsDefaultOrEmpty Then
                     Dim constraints = GetConstraints(info)
-                    Dim local As EncLocalInfo = New EncLocalInfo(Me.offset, CType(info.Type, Cci.ITypeReference), constraints, CInt(tempKind), info.Signature)
+                    Dim local As EncLocalInfo = New EncLocalInfo(Me.offset, CType(info.Type, Cci.ITypeReference), constraints, CInt(kind), info.Signature)
                     Me.locals.Add(local, slot)
                     If name IsNot Nothing Then
                         Me.knownDeclaredLocals.Add(name)

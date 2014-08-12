@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' create a new temp local for the lock object
-            Dim tempLockObjectLocal As LocalSymbol = New NamedTempLocalSymbol(Me.currentMethodOrLambda, objectType, TempKind.Lock, syntaxNode.SyncLockStatement)
+            Dim tempLockObjectLocal As LocalSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, objectType, SynthesizedLocalKind.Lock, syntaxNode.SyncLockStatement)
             Dim boundLockObjectLocal = New BoundLocal(syntaxNode,
                                                       tempLockObjectLocal,
                                                       objectType)
@@ -172,9 +172,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' create local for the lockTaken boolean and initialize it with "False"
                 Dim tempLockTaken As LocalSymbol
                 If syntaxNode.Parent.Kind = SyntaxKind.SyncLockStatement Then
-                    tempLockTaken = New NamedTempLocalSymbol(Me.currentMethodOrLambda, enterMethod.Parameters(1).Type, TempKind.LockTaken, DirectCast(syntaxNode.Parent, SyncLockStatementSyntax))
+                    tempLockTaken = New SynthesizedLocal(Me.currentMethodOrLambda, enterMethod.Parameters(1).Type, SynthesizedLocalKind.LockTaken, DirectCast(syntaxNode.Parent, SyncLockStatementSyntax))
                 Else
-                    tempLockTaken = New TempLocalSymbol(Me.currentMethodOrLambda, enterMethod.Parameters(1).Type)
+                    tempLockTaken = New SynthesizedLocal(Me.currentMethodOrLambda, enterMethod.Parameters(1).Type, SynthesizedLocalKind.LoweringTemp)
                 End If
 
                 Debug.Assert(tempLockTaken.Type.IsBooleanType())

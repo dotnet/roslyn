@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          Not node.Left.IsConstant OrElse
                          Not DirectCast(node.Left, BoundFieldAccess).FieldSymbol.IsConstButNotMetadataConstant)
 
-            Dim temps = ImmutableArray(Of TempLocalSymbol).Empty
+            Dim temps = ImmutableArray(Of SynthesizedLocal).Empty
             Dim assignmentTarget As BoundExpression
 
             If node.LeftOnTheRightOpt IsNot Nothing Then
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     assignmentTarget = nodeLeft
                 End If
 
-                Dim temporaries = ArrayBuilder(Of TempLocalSymbol).GetInstance()
+                Dim temporaries = ArrayBuilder(Of SynthesizedLocal).GetInstance()
                 Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me.currentMethodOrLambda, assignmentTarget, temporaries)
                 temps = temporaries.ToImmutableAndFree()
 
@@ -197,13 +197,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(((accessKind And LateBoundAccessKind.Get) = 0) = (node.LeftOnTheRightOpt Is Nothing))
 #End If
 
-            Dim temps = ImmutableArray(Of TempLocalSymbol).Empty
+            Dim temps = ImmutableArray(Of SynthesizedLocal).Empty
 
             If node.LeftOnTheRightOpt IsNot Nothing Then
                 ' Make sure side effects are evaluated only once.
                 assignmentTarget = assignmentTarget.SetLateBoundAccessKind(LateBoundAccessKind.Unknown)
 
-                Dim temporaries = ArrayBuilder(Of TempLocalSymbol).GetInstance()
+                Dim temporaries = ArrayBuilder(Of SynthesizedLocal).GetInstance()
                 Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me.currentMethodOrLambda, assignmentTarget, temporaries)
                 temps = temporaries.ToImmutableAndFree()
 
@@ -419,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         node.Type)
             End If
 
-            Dim temporaries As ImmutableArray(Of TempLocalSymbol) = Nothing
+            Dim temporaries As ImmutableArray(Of SynthesizedLocal) = Nothing
             Dim copyBack As ImmutableArray(Of BoundExpression) = Nothing
 
             ' If the length is omitted, it is implicitly the full length of the string.
@@ -450,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Need to allocate a temp, store original string in it, pass it by ref to MidStmtStr and return its value after the call.
             ' We will achieve this by synthesizing and rewriting trivial Mid assignment with the temp as the target.
 
-            Dim temp = New TempLocalSymbol(Me.currentMethodOrLambda, node.Type)
+            Dim temp = New SynthesizedLocal(Me.currentMethodOrLambda, node.Type, SynthesizedLocalKind.LoweringTemp)
             Dim localRef = New BoundLocal(node.Syntax, temp, node.Type)
             Dim placeholder = New BoundCompoundAssignmentTargetPlaceholder(node.Syntax, node.Type)
 

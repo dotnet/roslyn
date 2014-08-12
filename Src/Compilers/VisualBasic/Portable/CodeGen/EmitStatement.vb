@@ -1263,8 +1263,8 @@ OtherExpressions:
                 _Module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, _diagnostics)
 
                 Dim constraints = If(local.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None)
-                Dim isCompilerGeneratedName As Boolean = local.TempKind <> TempKind.None
-                Debug.Assert(Not isCompilerGeneratedName OrElse Not String.IsNullOrEmpty(name), "compiler generated names must be nonempty")
+                Dim isCompilerGeneratedName As Boolean = local.SynthesizedLocalKind <> SynthesizedLocalKind.None
+                Debug.Assert(Not local.SynthesizedLocalKind.IsNamed(Me._debugInformationKind) OrElse Not String.IsNullOrEmpty(name), "compiler generated names must be nonempty")
 
                 Dim localDef = _builder.LocalSlotManager.DeclareLocal(
                         type:=translatedType,

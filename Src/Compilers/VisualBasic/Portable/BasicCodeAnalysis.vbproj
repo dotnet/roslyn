@@ -745,6 +745,7 @@
     <Compile Include="Symbols\Source\ImplicitNamedTypeSymbol.vb" />
     <Compile Include="Symbols\Source\LambdaParameterSymbol.vb" />
     <Compile Include="Symbols\Source\LambdaSymbol.vb" />
+    <Compile Include="Symbols\Source\LocalDeclarationKind.vb" />
     <Compile Include="Symbols\Source\LocalSymbol.vb" />
     <Compile Include="Symbols\Source\MeParameterSymbol.vb" />
     <Compile Include="Symbols\Source\OverloadingHelper.vb" />
@@ -786,6 +787,7 @@
     <Compile Include="Symbols\Source\SynthesizedEventBackingFieldSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedFieldSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedLambdaSymbol.vb" />
+    <Compile Include="Symbols\Source\SynthesizedLocalKind.vb" />
     <Compile Include="Symbols\Source\SynthesizedMainTypeEntryPoint.vb" />
     <Compile Include="Symbols\Source\SynthesizedMyGroupCollectionPropertyAccessorSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedMyGroupCollectionPropertyBackingFieldSymbol.vb" />
@@ -822,6 +824,7 @@
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedInterfaceImplementationStubSymbol.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedIntrinsicOperatorSymbol.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedMethod.vb" />
+    <Compile Include="Symbols\SynthesizedSymbols\SynthesizedLocal.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedMethodBase.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedOverridingWitheventsProperty.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedParameterSymbol.vb" />
@@ -830,8 +833,6 @@
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedRegularMethodBase.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedSimpleConstructorSymbol.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedSimpleMethodSymbol.vb" />
-    <Compile Include="Symbols\TempKind.vb" />
-    <Compile Include="Symbols\TempLocalSymbol.vb" />
     <Compile Include="Symbols\TypedConstant.vb" />
     <Compile Include="Symbols\TypeKind.vb" />
     <Compile Include="Symbols\TypeParameterConstraint.vb" />

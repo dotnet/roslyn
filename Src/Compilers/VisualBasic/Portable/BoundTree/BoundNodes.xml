@@ -1244,7 +1244,7 @@
       <Field Name="OriginalArgument" Type="BoundExpression"  Null="disallow"/>
       
       <!-- The value should be captured in this local -->
-      <Field Name="LocalSymbol" Type="TempLocalSymbol" Null="disallow"/>
+      <Field Name="LocalSymbol" Type="SynthesizedLocal" Null="disallow"/>
     </Node>
   
     <Node Name="BoundLabelStatement" Base="BoundStatement">

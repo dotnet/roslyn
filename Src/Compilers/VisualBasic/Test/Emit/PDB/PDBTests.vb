@@ -1370,13 +1370,13 @@ End Module
                 <entry il_offset="0x3f" start_row="27" start_column="17" end_row="27" end_column="24" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="$VB$Closure_5" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
+                <local name="$VB$Closure_5" il_index="0" il_start="0x0" il_end="0x40" attributes="1"/>
                 <local name="iii" il_index="1" il_start="0x0" il_end="0x40" attributes="0"/>
                 <local name="d2" il_index="2" il_start="0x0" il_end="0x40" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x40">
                 <importsforward declaringType="M1" methodName="Main" parameterNames=""/>
-                <local name="$VB$Closure_5" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
+                <local name="$VB$Closure_5" il_index="0" il_start="0x0" il_end="0x40" attributes="1"/>
                 <local name="iii" il_index="1" il_start="0x0" il_end="0x40" attributes="0"/>
                 <local name="d2" il_index="2" il_start="0x0" il_end="0x40" attributes="0"/>
             </scope>
@@ -2746,12 +2746,12 @@ End Module
                 <entry il_offset="0x1d" start_row="11" start_column="5" end_row="11" end_column="17" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="$VB$Closure_2" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
+                <local name="$VB$Closure_2" il_index="0" il_start="0x0" il_end="0x1f" attributes="1"/>
                 <local name="MakeIncrementer" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames=""/>
-                <local name="$VB$Closure_2" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
+                <local name="$VB$Closure_2" il_index="0" il_start="0x0" il_end="0x1f" attributes="1"/>
                 <local name="MakeIncrementer" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
             </scope>
         </method>
@@ -2870,12 +2870,12 @@ End Module
                 <entry il_offset="0xe" start_row="5" start_column="96" end_row="5" end_column="112" file_ref="0"/>
             </sequencepoints>
             <locals>
-                <local name="$VB$Closure_6" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
+                <local name="$VB$Closure_6" il_index="0" il_start="0x0" il_end="0x1f" attributes="1"/>
                 <local name="_Lambda$__5" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="M" methodName=".cctor" parameterNames=""/>
-                <local name="$VB$Closure_6" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
+                <local name="$VB$Closure_6" il_index="0" il_start="0x0" il_end="0x1f" attributes="1"/>
                 <local name="_Lambda$__5" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
             </scope>
         </method>
@@ -6367,14 +6367,14 @@ End Class
             </sequencepoints>
             <locals>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xd3" attributes="1"/>
-                <local name="$VB$Closure_2" il_index="1" il_start="0xa" il_end="0x98" attributes="0"/>
+                <local name="$VB$Closure_2" il_index="1" il_start="0xa" il_end="0x98" attributes="1"/>
                 <local name="$ex" il_index="4" il_start="0x99" il_end="0xbc" attributes="1"/>
             </locals>
             <scope startOffset="0x0" endOffset="0xd3">
                 <importsforward declaringType="C" methodName="Async_Lambda_NotHoisted" parameterNames=""/>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xd3" attributes="1"/>
                 <scope startOffset="0xa" endOffset="0x98">
-                    <local name="$VB$Closure_2" il_index="1" il_start="0xa" il_end="0x98" attributes="0"/>
+                    <local name="$VB$Closure_2" il_index="1" il_start="0xa" il_end="0x98" attributes="1"/>
                 </scope>
                 <scope startOffset="0x99" endOffset="0xbc">
                     <local name="$ex" il_index="4" il_start="0x99" il_end="0xbc" attributes="1"/>

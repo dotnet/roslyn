@@ -193,8 +193,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim booleanType As TypeSymbol = Me.AnonymousType.Manager.System_Boolean
 
                 ' Locals
-                Dim localMyFieldBoxed As LocalSymbol = LocalSymbol.Create(Me, Nothing, LocalSymbol.LocalDeclarationKind.Variable, objectType)
-                Dim localOtherFieldBoxed As LocalSymbol = LocalSymbol.Create(Me, Nothing, LocalSymbol.LocalDeclarationKind.Variable, objectType)
+                Dim localMyFieldBoxed As LocalSymbol = LocalSymbol.Create(Me, Nothing, LocalDeclarationKind.Variable, objectType)
+                Dim localOtherFieldBoxed As LocalSymbol = LocalSymbol.Create(Me, Nothing, LocalDeclarationKind.Variable, objectType)
 
                 ' 'Me' reference
                 Dim boundMeReference As BoundMeReference = New BoundMeReference(syntax, AnonymousType)

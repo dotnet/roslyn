@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim type As TypeSymbol = value.Type
             Debug.Assert(type IsNot Nothing AndAlso Not type.IsVoidType())
 
-            Dim local As New NamedTempLocalSymbol(state.ContainingMember, type, TempKind.With, withSyntax)
+            Dim local As New SynthesizedLocal(state.ContainingMember, type, SynthesizedLocalKind.With, withSyntax)
 
             Dim boundLocal = New BoundLocal(value.Syntax, local, isLValue:=True, type:=type).MakeCompilerGenerated()
 
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim type As TypeSymbol = value.Type
             Debug.Assert(type IsNot Nothing AndAlso Not type.IsVoidType())
 
-            Dim local As New NamedTempLocalSymbol(state.ContainingMember, type, TempKind.With, withSyntax, isByRef:=True)
+            Dim local As New SynthesizedLocal(state.ContainingMember, type, SynthesizedLocalKind.With, withSyntax, isByRef:=True)
 
             Dim boundLocal = New BoundLocal(value.Syntax, local, isLValue:=True, type:=type).MakeCompilerGenerated()
 

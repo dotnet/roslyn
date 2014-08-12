@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function UseTwice(
             containingMember As Symbol,
             value As BoundExpression,
-            temporaries As ArrayBuilder(Of TempLocalSymbol)
+            temporaries As ArrayBuilder(Of SynthesizedLocal)
         ) As Result
             Debug.Assert(value.IsValue())
 
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function UseTwiceLateBoundReceiver(
             containingMember As Symbol,
             receiverOpt As BoundExpression,
-            temporaries As ArrayBuilder(Of TempLocalSymbol)
+            temporaries As ArrayBuilder(Of SynthesizedLocal)
         ) As Result
 
             Dim receiver As Result
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function UseTwiceExpression(
             containingMember As Symbol,
             value As BoundExpression,
-            temporaries As ArrayBuilder(Of TempLocalSymbol)
+            temporaries As ArrayBuilder(Of SynthesizedLocal)
         ) As Result
 
             If Not value.IsLValue Then
@@ -130,12 +130,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             containingMember As Symbol,
             value As BoundExpression,
             type As TypeSymbol,
-            temporaries As ArrayBuilder(Of TempLocalSymbol),
+            temporaries As ArrayBuilder(Of SynthesizedLocal),
             ByRef referToTemp As BoundLocal
         ) As BoundAssignmentOperator
             Debug.Assert(type IsNot Nothing AndAlso Not type.IsVoidType() AndAlso value.Type Is type)
 
-            Dim temp = New TempLocalSymbol(containingMember, type)
+            Dim temp = New SynthesizedLocal(containingMember, type, SynthesizedLocalKind.LoweringTemp)
             temporaries.Add(temp)
 
             referToTemp = New BoundLocal(value.Syntax, temp, type)
@@ -150,13 +150,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function CaptureInATemp(
             containingMember As Symbol,
             value As BoundExpression,
-            temporaries As ArrayBuilder(Of TempLocalSymbol),
+            temporaries As ArrayBuilder(Of SynthesizedLocal),
             ByRef referToTemp As BoundLocal
         ) As BoundAssignmentOperator
             Return CaptureInATemp(containingMember, value, value.Type, temporaries, referToTemp)
         End Function
 
-        Private Shared Function UseTwiceRValue(containingMember As Symbol, value As BoundExpression, arg As ArrayBuilder(Of TempLocalSymbol)) As Result
+        Private Shared Function UseTwiceRValue(containingMember As Symbol, value As BoundExpression, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
             Dim kind As BoundKind = value.Kind
 
             If kind = BoundKind.BadVariable OrElse
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Private Shared Function UseTwiceArrayAccess(containingMember As Symbol, node As BoundArrayAccess, arg As ArrayBuilder(Of TempLocalSymbol)) As Result
+        Private Shared Function UseTwiceArrayAccess(containingMember As Symbol, node As BoundArrayAccess, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
 
             Debug.Assert(node.IsLValue)
 
@@ -228,9 +228,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
         End Function
 
-        Private Shared Function UseTwiceLValue(containingMember As Symbol, lvalue As BoundExpression, temporaries As ArrayBuilder(Of TempLocalSymbol)) As Result
+        Private Shared Function UseTwiceLValue(containingMember As Symbol, lvalue As BoundExpression, temporaries As ArrayBuilder(Of SynthesizedLocal)) As Result
             Debug.Assert(lvalue.IsLValue)
-            Dim temp = New ByRefTempLocalSymbol(containingMember, lvalue.Type)
+            Dim temp = New SynthesizedLocal(containingMember, lvalue.Type, SynthesizedLocalKind.LoweringTemp, isByRef:=True)
             Dim first = New BoundReferenceAssignment(lvalue.Syntax,
                                                   New BoundLocal(lvalue.Syntax, temp, temp.Type).MakeCompilerGenerated(),
                                                   lvalue, isLValue:=True, type:=lvalue.Type).MakeCompilerGenerated()
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New Result(first, second)
         End Function
 
-        Private Shared Function UseTwiceFieldAccess(containingMember As Symbol, node As BoundFieldAccess, arg As ArrayBuilder(Of TempLocalSymbol)) As Result
+        Private Shared Function UseTwiceFieldAccess(containingMember As Symbol, node As BoundFieldAccess, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
 
             Debug.Assert(node.IsLValue)
 
@@ -279,7 +279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' We only want to rewrite property access at the top of the expression, not within
         ' the expression. (For instance, P1 should not be rewritten in M(x.P1.P2).)
-        Private Shared Function UseTwicePropertyAccess(containingMember As Symbol, node As BoundPropertyAccess, arg As ArrayBuilder(Of TempLocalSymbol)) As Result
+        Private Shared Function UseTwicePropertyAccess(containingMember As Symbol, node As BoundPropertyAccess, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
             Dim propertySymbol = node.PropertySymbol
 
             ' Visit receiver.
@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New Result(first, second)
         End Function
 
-        Private Shared Function UseTwiceLateInvocation(containingMember As Symbol, node As BoundLateInvocation, arg As ArrayBuilder(Of TempLocalSymbol)) As Result
+        Private Shared Function UseTwiceLateInvocation(containingMember As Symbol, node As BoundLateInvocation, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
             ' Visit receiver.
             Dim receiver As Result
             If node.Member.Kind = BoundKind.LateMemberAccess Then
@@ -376,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not boundArgument.IsSupportingAssignment Then
                         UseTwiceRegularArgument(containingMember, boundArgument, arg, firstArgsArray(i), secondArgsArray(i))
                     Else
-                        Dim temp = New TempLocalSymbol(containingMember, boundArgument.Type)
+                        Dim temp = New SynthesizedLocal(containingMember, boundArgument.Type, SynthesizedLocalKind.LoweringTemp)
                         arg.Add(temp)
 
                         firstArgsArray(i) = New BoundLateBoundArgumentSupportingAssignmentWithCapture(boundArgument.Syntax,
@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New Result(first, second)
         End Function
 
-        Private Shared Function UseTwiceLateMember(containingMember As Symbol, node As BoundLateMemberAccess, arg As ArrayBuilder(Of TempLocalSymbol)) As Result
+        Private Shared Function UseTwiceLateMember(containingMember As Symbol, node As BoundLateMemberAccess, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
             ' Visit receiver.
             Dim receiver As Result = UseTwiceLateBoundReceiver(containingMember, node.ReceiverOpt, arg)
 
@@ -433,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New Result(first, second)
         End Function
 
-        Private Shared Sub UseTwiceRegularArgument(containingMember As Symbol, boundArgument As BoundExpression, arg As ArrayBuilder(Of TempLocalSymbol),
+        Private Shared Sub UseTwiceRegularArgument(containingMember As Symbol, boundArgument As BoundExpression, arg As ArrayBuilder(Of SynthesizedLocal),
                                                    ByRef first As BoundExpression, ByRef second As BoundExpression)
 
             Debug.Assert(Not boundArgument.IsLValue)
@@ -453,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             second = result.Second
         End Sub
 
-        Private Shared Sub UseTwiceParamArrayArgument(containingMember As Symbol, boundArray As BoundArrayCreation, arg As ArrayBuilder(Of TempLocalSymbol),
+        Private Shared Sub UseTwiceParamArrayArgument(containingMember As Symbol, boundArray As BoundArrayCreation, arg As ArrayBuilder(Of SynthesizedLocal),
                                                       ByRef first As BoundExpression, ByRef second As BoundExpression)
 
             Debug.Assert(Not boundArray.IsLValue)

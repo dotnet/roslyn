@@ -175,110 +175,127 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Shared Function GenerateTempName(tempKind As TempKind) As String
-            Select Case tempKind
-                Case TempKind.Lock
-                    Return StringConstants.TempKindLock
-                Case TempKind.Using
-                    Return StringConstants.TempKindUsing
-                Case TempKind.ForEachEnumerator
-                    Return StringConstants.TempKindForEachEnumerator
-                Case TempKind.ForEachArray
-                    Return StringConstants.TempKindForEachArray
-                Case TempKind.ForEachArrayIndex
-                    Return StringConstants.TempKindForEachArrayIndex
-                Case TempKind.LockTaken
-                    Return StringConstants.TempKindLockTaken
-                Case TempKind.With
-                    Return StringConstants.TempKindWith
+        Friend Shared Function GenerateTempName(kind As SynthesizedLocalKind) As String
+            Select Case kind
 
-                Case TempKind.ForLimit
+                Case SynthesizedLocalKind.LoweringTemp,
+                     SynthesizedLocalKind.None
+                    Return Nothing
+
+                Case SynthesizedLocalKind.Lock
+                    Return StringConstants.SynthesizedLocalKindLock
+                Case SynthesizedLocalKind.Using
+                    Return StringConstants.SynthesizedLocalKindUsing
+                Case SynthesizedLocalKind.ForEachEnumerator
+                    Return StringConstants.SynthesizedLocalKindForEachEnumerator
+                Case SynthesizedLocalKind.ForEachArray
+                    Return StringConstants.SynthesizedLocalKindForEachArray
+                Case SynthesizedLocalKind.ForEachArrayIndex
+                    Return StringConstants.SynthesizedLocalKindForEachArrayIndex
+                Case SynthesizedLocalKind.LockTaken
+                    Return StringConstants.SynthesizedLocalKindLockTaken
+                Case SynthesizedLocalKind.With
+                    Return StringConstants.SynthesizedLocalKindWith
+
+                Case SynthesizedLocalKind.ForLimit
                     Return StringConstants.ForLimit
-                Case TempKind.ForStep
+                Case SynthesizedLocalKind.ForStep
                     Return StringConstants.ForStep
-                Case TempKind.ForLoopObject
+                Case SynthesizedLocalKind.ForLoopObject
                     Return StringConstants.ForLoopObject
-                Case TempKind.ForDirection
+                Case SynthesizedLocalKind.ForDirection
                     Return StringConstants.ForDirection
 
-                Case TempKind.OnErrorActiveHandler
-                    Return StringConstants.OnErrorActiveHandler
-                Case TempKind.OnErrorResumeTarget
-                    Return StringConstants.OnErrorResumeTarget
-                Case TempKind.OnErrorCurrentStatement
-                    Return StringConstants.OnErrorCurrentStatement
-                Case TempKind.OnErrorCurrentLine
-                    Return StringConstants.OnErrorCurrentLine
-                Case TempKind.StateMachineCachedState
-                    Return StringConstants.StateMachineCachedState
-                Case TempKind.StateMachineException
-                    Return StringConstants.StateMachineExceptionLocalName
-                Case TempKind.StateMachineReturnValue
+                Case SynthesizedLocalKind.StateMachineReturnValue
                     Return StringConstants.StateMachineReturnValueLocalName
+                Case SynthesizedLocalKind.StateMachineException
+                    Return StringConstants.StateMachineExceptionLocalName
+                Case SynthesizedLocalKind.StateMachineCachedState
+                    Return StringConstants.StateMachineCachedState
+
+                Case SynthesizedLocalKind.OnErrorActiveHandler
+                    Return StringConstants.OnErrorActiveHandler
+                Case SynthesizedLocalKind.OnErrorResumeTarget
+                    Return StringConstants.OnErrorResumeTarget
+                Case SynthesizedLocalKind.OnErrorCurrentStatement
+                    Return StringConstants.OnErrorCurrentStatement
+                Case SynthesizedLocalKind.OnErrorCurrentLine
+                    Return StringConstants.OnErrorCurrentLine
+
             End Select
 
-            Throw ExceptionUtilities.UnexpectedValue(tempKind)
+            Throw ExceptionUtilities.UnexpectedValue(kind)
         End Function
 
-        Private Const TemporaryNamePrefix As String = "VB$"
+        Private Const SynthesizedLocalNamePrefix As String = "VB$"
 
-        Friend Shared Function GenerateTempName(tempKind As TempKind, type As TypeSymbol, index As Integer) As String
-            Select Case tempKind
-                Case TempKind.XmlInExpressionLambda
-                    Return TemporaryNamePrefix & type.GetNativeCompilerVType() & "$L" & index
+        Friend Shared Function GenerateTempName(kind As SynthesizedLocalKind, type As TypeSymbol, index As Integer) As String
+            Select Case kind
+                Case SynthesizedLocalKind.XmlInExpressionLambda
+                    Return SynthesizedLocalNamePrefix & type.GetNativeCompilerVType() & "$L" & index
+
+                Case SynthesizedLocalKind.LambdaDisplayClass
+                    'TODO: VB10 adds line/column numbers in hex here. Not sure if that is important or always meaningful.
+                    Return StringConstants.ClosureVariablePrefix & index
             End Select
 
-            Throw ExceptionUtilities.UnexpectedValue(tempKind)
+            Throw ExceptionUtilities.UnexpectedValue(kind)
         End Function
 
-        Friend Shared Function TryParseTemporaryName(name As String, ByRef kind As TempKind, ByRef uniqueId As Integer) As Boolean
+        Friend Shared Function TryParseLocalName(name As String, ByRef kind As SynthesizedLocalKind, ByRef uniqueId As Integer) As Boolean
 
             'TODO: are we using this for anything?
             uniqueId = 0
 
             Select Case name
 
-                Case StringConstants.TempKindLock
-                    kind = TempKind.Lock
-                Case StringConstants.TempKindUsing
-                    kind = TempKind.Using
-                Case StringConstants.TempKindForEachEnumerator
-                    kind = TempKind.ForEachEnumerator
-                Case StringConstants.TempKindForEachArray
-                    kind = TempKind.ForEachArray
-                Case StringConstants.TempKindForEachArrayIndex
-                    kind = TempKind.ForEachArrayIndex
-                Case StringConstants.TempKindLockTaken
-                    kind = TempKind.LockTaken
-                Case StringConstants.TempKindWith
-                    kind = TempKind.With
+                Case StringConstants.SynthesizedLocalKindLock
+                    kind = SynthesizedLocalKind.Lock
+                Case StringConstants.SynthesizedLocalKindUsing
+                    kind = SynthesizedLocalKind.Using
+                Case StringConstants.SynthesizedLocalKindForEachEnumerator
+                    kind = SynthesizedLocalKind.ForEachEnumerator
+                Case StringConstants.SynthesizedLocalKindForEachArray
+                    kind = SynthesizedLocalKind.ForEachArray
+                Case StringConstants.SynthesizedLocalKindForEachArrayIndex
+                    kind = SynthesizedLocalKind.ForEachArrayIndex
+                Case StringConstants.SynthesizedLocalKindLockTaken
+                    kind = SynthesizedLocalKind.LockTaken
+                Case StringConstants.SynthesizedLocalKindWith
+                    kind = SynthesizedLocalKind.With
 
                 Case StringConstants.OnErrorActiveHandler
-                    kind = TempKind.OnErrorActiveHandler
+                    kind = SynthesizedLocalKind.OnErrorActiveHandler
                 Case StringConstants.OnErrorResumeTarget
-                    kind = TempKind.OnErrorResumeTarget
+                    kind = SynthesizedLocalKind.OnErrorResumeTarget
                 Case StringConstants.OnErrorCurrentStatement
-                    kind = TempKind.OnErrorCurrentStatement
+                    kind = SynthesizedLocalKind.OnErrorCurrentStatement
                 Case StringConstants.OnErrorCurrentLine
-                    kind = TempKind.OnErrorCurrentLine
+                    kind = SynthesizedLocalKind.OnErrorCurrentLine
                 Case StringConstants.StateMachineCachedState
-                    kind = TempKind.StateMachineCachedState
+                    kind = SynthesizedLocalKind.StateMachineCachedState
                 Case StringConstants.StateMachineExceptionLocalName
-                    kind = TempKind.StateMachineException
+                    kind = SynthesizedLocalKind.StateMachineException
                 Case StringConstants.StateMachineReturnValueLocalName
-                    kind = TempKind.StateMachineReturnValue
+                    kind = SynthesizedLocalKind.StateMachineReturnValue
 
                 Case StringConstants.ForLimit
-                    kind = TempKind.ForLimit
+                    kind = SynthesizedLocalKind.ForLimit
                 Case StringConstants.ForStep
-                    kind = TempKind.ForStep
+                    kind = SynthesizedLocalKind.ForStep
                 Case StringConstants.ForLoopObject
-                    kind = TempKind.ForLoopObject
+                    kind = SynthesizedLocalKind.ForLoopObject
                 Case StringConstants.ForDirection
-                    kind = TempKind.ForDirection
+                    kind = SynthesizedLocalKind.ForDirection
 
                 Case Else
-                    kind = TempKind.None
+
+                    If name.StartsWith(StringConstants.ClosureVariablePrefix, StringComparison.Ordinal) Then
+                        kind = SynthesizedLocalKind.LambdaDisplayClass
+                        Return True
+                    End If
+
+                    kind = SynthesizedLocalKind.None
                     Return False
             End Select
             Return True

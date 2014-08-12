@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim initialState As Integer = initialStateInfo.Number
                 Dim initialLabel As GeneratedLabelSymbol = initialStateInfo.ResumeLabel
 
-                Me._methodValue = Me.F.SynthesizedNamedLocal(F.CurrentMethod.ReturnType, TempKind.StateMachineReturnValue, Nothing)
+                Me._methodValue = Me.F.SynthesizedLocal(F.CurrentMethod.ReturnType, SynthesizedLocalKind.StateMachineReturnValue, Nothing)
 
                 Dim newBody = DirectCast(Visit(Body), BoundStatement)
                 ' Select Me.state

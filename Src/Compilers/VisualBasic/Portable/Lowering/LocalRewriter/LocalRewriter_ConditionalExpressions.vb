@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' NOTE: we create a temp variable if only it is really needed; 
             '       locals and parameters don't need it
-            Dim tempVariableSymbol As TempLocalSymbol = Nothing
+            Dim tempVariableSymbol As SynthesizedLocal = Nothing
             Dim placeholderSubstitute As BoundExpression = Nothing
 
             Select Case rewrittenTestExpression.Kind
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case Else
                     '  create a temp variable
-                    tempVariableSymbol = New TempLocalSymbol(Me.currentMethodOrLambda, rewrittenTestExpressionType)
+                    tempVariableSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, rewrittenTestExpressionType, SynthesizedLocalKind.LoweringTemp)
                     '  temp variable reference
                     placeholderSubstitute = New BoundLocal(rewrittenTestExpression.Syntax,
                                                       tempVariableSymbol,
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             '=== Rewrite binary conditional expression using ternary conditional expression
-            Dim temp As TempLocalSymbol = Nothing
+            Dim temp As SynthesizedLocal = Nothing
             Dim tempInit As BoundExpression = Nothing
 
             ' no need to capture locals since we will not 

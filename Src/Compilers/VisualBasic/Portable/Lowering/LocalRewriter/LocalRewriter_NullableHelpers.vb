@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' are returned in temp/init
         ''' </summary>
         Private Function CaptureNullableIfNeeded(operand As BoundExpression,
-                                                        <Out> ByRef temp As TempLocalSymbol,
+                                                        <Out> ByRef temp As SynthesizedLocal,
                                                         <Out> ByRef init As BoundExpression,
                                                         doNotCaptureLocals As Boolean) As BoundExpression
 
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' capture into local.
-            temp = New TempLocalSymbol(Me.currentMethodOrLambda, operand.Type)
+            temp = New SynthesizedLocal(Me.currentMethodOrLambda, operand.Type, SynthesizedLocalKind.LoweringTemp)
             Dim localAccess = New BoundLocal(operand.Syntax, temp, True, temp.Type)
             init = New BoundAssignmentOperator(operand.Syntax, localAccess, operand, True, operand.Type)
             Return localAccess.MakeRValue
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             doNotCaptureLocals As Boolean
         ) As BoundExpression
 
-            Dim temp As TempLocalSymbol = Nothing
+            Dim temp As SynthesizedLocal = Nothing
             Dim init As BoundExpression = Nothing
             Dim captured = CaptureNullableIfNeeded(operand, temp, init, doNotCaptureLocals)
 

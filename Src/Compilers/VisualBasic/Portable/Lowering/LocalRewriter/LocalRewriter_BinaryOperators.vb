@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The rewrite that should happen here is:
             '     If(LeftTest(temp = left), temp, BitwiseOperator)
 
-            Dim temp As New TempLocalSymbol(currentMethodOrLambda, node.LeftOperand.Type)
+            Dim temp As New SynthesizedLocal(currentMethodOrLambda, node.LeftOperand.Type, SynthesizedLocalKind.LoweringTemp)
 
             Dim tempAccess As New BoundLocal(node.Syntax, temp, True, temp.Type)
 
@@ -883,7 +883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' so it makes sense to use And and avoid branching.
                     ' reduce "Operand [And | AndAlso] NULL" --> "If(Operand.HasValue And Not Operand.GetValueOrDefault, Operand, NULL)".
                     ' reduce "Operand [Or | OrElse]   NULL" --> "If(Operand.GetValueOrDefault,                          Operand, NULL)".
-                    Dim temp As TempLocalSymbol = Nothing
+                    Dim temp As SynthesizedLocal = Nothing
                     Dim tempInit As BoundExpression = Nothing
 
                     ' we have only one operand to evaluate, do not capture locals.
@@ -942,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim IsShortCircuited = (op = BinaryOperatorKind.AndAlso Or op = BinaryOperatorKind.OrElse)
 
-            Dim leftTemp As TempLocalSymbol = Nothing
+            Dim leftTemp As SynthesizedLocal = Nothing
             Dim leftInit As BoundExpression = Nothing
             Dim capturedLeft As BoundExpression = left
 
@@ -953,7 +953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 capturedLeft = CaptureNullableIfNeeded(left, leftTemp, leftInit, RightCanChangeLeftLocal(left, right))
             End If
 
-            Dim rightTemp As TempLocalSymbol = Nothing
+            Dim rightTemp As SynthesizedLocal = Nothing
             Dim rightInit As BoundExpression = Nothing
             Dim capturedRight As BoundExpression = right
 

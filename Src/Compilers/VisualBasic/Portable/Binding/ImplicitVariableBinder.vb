@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim localVar = LocalSymbol.Create(_containerOfLocals,
                                            Me,
                                            nameSyntax.Identifier,
-                                           LocalSymbol.LocalDeclarationKind.ImplicitVariable,
+                                           LocalDeclarationKind.ImplicitVariable,
                                            GetSpecialType(localSpecialType, nameSyntax, diagnostics))
 
             If _implicitLocals Is Nothing Then

@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bounds As BoundExpression = New BoundLiteral(node, ConstantValue.Create(rewrittenArguments.Length), intType)
 
             Dim arrayCreation = New BoundArrayCreation(node, ImmutableArray.Create(bounds), Nothing, objectArrayType)
-            Dim arrayTemp As LocalSymbol = New TempLocalSymbol(Me.currentMethodOrLambda, arrayCreation.Type)
+            Dim arrayTemp As LocalSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, arrayCreation.Type, SynthesizedLocalKind.LoweringTemp)
             Dim arrayTempRef = New BoundLocal(node, arrayTemp, arrayTemp.Type)
 
             Dim arrayInit = New BoundAssignmentOperator(node, arrayTempRef, arrayCreation, suppressObjectClone:=True)
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bounds As BoundExpression = New BoundLiteral(node, ConstantValue.Create(rewrittenArguments.Length + 1), intType)
 
             Dim arrayCreation = New BoundArrayCreation(node, ImmutableArray.Create(bounds), Nothing, objectArrayType)
-            Dim arrayTemp As LocalSymbol = New TempLocalSymbol(Me.currentMethodOrLambda, arrayCreation.Type)
+            Dim arrayTemp As LocalSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, arrayCreation.Type, SynthesizedLocalKind.LoweringTemp)
             Dim arrayTempRef = New BoundLocal(node, arrayTemp, arrayTemp.Type)
 
             Dim arrayInit = New BoundAssignmentOperator(node, arrayTempRef, arrayCreation, suppressObjectClone:=True)
@@ -672,10 +672,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' temp will be used only if we have copybacks
-            Dim valueArrayTemp As TempLocalSymbol = Nothing
+            Dim valueArrayTemp As SynthesizedLocal = Nothing
             Dim valueArrayRef As BoundLocal = Nothing
 
-            Dim copyBackFlagArrayTemp As TempLocalSymbol = Nothing
+            Dim copyBackFlagArrayTemp As SynthesizedLocal = Nothing
             Dim copyBackFlagArrayRef As BoundLocal = Nothing
 
             ' passed as an array that represents "arguments of the call" 
@@ -722,11 +722,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If copyBackFlagArrayTemp Is Nothing Then
                         ' since we may have copybacks, we need a temp for the flags array to examine its content after the call
-                        copyBackFlagArrayTemp = New TempLocalSymbol(Me.currentMethodOrLambda, copyBackFlagArray.Type)
+                        copyBackFlagArrayTemp = New SynthesizedLocal(Me.currentMethodOrLambda, copyBackFlagArray.Type, SynthesizedLocalKind.LoweringTemp)
                         copyBackFlagArrayRef = (New BoundLocal(syntax, copyBackFlagArrayTemp, copyBackFlagArrayTemp.Type)).MakeRValue
 
                         ' since we may have copybacks, we need a temp for the arguments array to access it after the call
-                        valueArrayTemp = New TempLocalSymbol(Me.currentMethodOrLambda, argumentsArray.Type)
+                        valueArrayTemp = New SynthesizedLocal(Me.currentMethodOrLambda, argumentsArray.Type, SynthesizedLocalKind.LoweringTemp)
                         valueArrayRef = New BoundLocal(syntax, valueArrayTemp, valueArrayTemp.Type)
                         argumentsArray = (New BoundAssignmentOperator(syntax, valueArrayRef, argumentsArray, suppressObjectClone:=True)).MakeRValue
                         valueArrayRef = valueArrayRef.MakeRValue
@@ -801,7 +801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' process copybacks
             If copyBackFlagArrayTemp IsNot Nothing Then
-                Dim valueTemp = New TempLocalSymbol(Me.currentMethodOrLambda, callerInvocation.Type)
+                Dim valueTemp = New SynthesizedLocal(Me.currentMethodOrLambda, callerInvocation.Type, SynthesizedLocalKind.LoweringTemp)
                 Dim valueRef = New BoundLocal(syntax, valueTemp, valueTemp.Type)
                 Dim store = New BoundAssignmentOperator(syntax, valueRef, callerInvocation, suppressObjectClone:=True)
 
@@ -820,14 +820,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' and does not produce reReadable arguments - just 
         ' argument (that includes initialization of captures if needed) and a no-sideeffect writeable.
         ' NOTE: writeables are not rewritten. They will be rewritten when they are combined with values into assignments.
-        Private Sub LateCaptureArgsComplex(ByRef temps As ArrayBuilder(Of TempLocalSymbol),
+        Private Sub LateCaptureArgsComplex(ByRef temps As ArrayBuilder(Of SynthesizedLocal),
                            ByRef arguments As ImmutableArray(Of BoundExpression),
                            <Out> ByRef writeTargets As ImmutableArray(Of BoundExpression))
 
             Dim container = Me.currentMethodOrLambda
 
             If temps Is Nothing Then
-                temps = ArrayBuilder(Of TempLocalSymbol).GetInstance
+                temps = ArrayBuilder(Of SynthesizedLocal).GetInstance
             End If
 
             If Not arguments.IsDefaultOrEmpty Then

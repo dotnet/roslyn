@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
-                           localProxies As Dictionary(Of Symbol, TProxy),
+                           initialProxies As Dictionary(Of Symbol, TProxy),
                            diagnostics As DiagnosticBag,
                            generateDebugInfo As Boolean)
 
@@ -69,9 +69,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Me.F = F
                 Me.StateField = stateField
-                Me.CachedState = F.SynthesizedNamedLocal(F.SpecialType(SpecialType.System_Int32), TempKind.StateMachineCachedState, Nothing)
+                Me.CachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), SynthesizedLocalKind.StateMachineCachedState, Nothing)
 
-                For Each p In localProxies
+                For Each p In initialProxies
                     Me.Proxies.Add(p.Key, p.Value)
                 Next
             End Sub

@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If accessor.MethodKind = MethodKind.PropertyGet Then
                 ' Declare local variable for function return.
-                Dim local = LocalSymbol.Create(accessor, Nothing, LocalSymbol.LocalDeclarationKind.FunctionValue, accessor.ReturnType)
+                Dim local = LocalSymbol.Create(accessor, Nothing, LocalDeclarationKind.FunctionValue, accessor.ReturnType)
 
                 Dim returnValue As BoundExpression
                 If isOverride Then
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         eventsToHookup.Add(New ValueTuple(Of EventSymbol, PropertySymbol)(
                                                            DirectCast(handledEvent.EventSymbol, EventSymbol),
                                                            DirectCast(handledEvent.WithEventsSourceProperty, PropertySymbol)))
-                                        Dim handlerLocal = New TempLocalSymbol(accessor, handledEvent.delegateCreation.Type)
+                                        Dim handlerLocal = New SynthesizedLocal(accessor, handledEvent.delegateCreation.Type, SynthesizedLocalKind.None)
                                         temps.Add(handlerLocal)
 
                                         Dim localAccess = New BoundLocal(syntax, handlerLocal, handlerLocal.Type)
@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         withEventsValue = fieldAccess.MakeRValue()
                     End If
 
-                    Dim withEventsLocal = New TempLocalSymbol(accessor, withEventsValue.Type)
+                    Dim withEventsLocal = New SynthesizedLocal(accessor, withEventsValue.Type, SynthesizedLocalKind.None)
                     temps.Add(withEventsLocal)
 
                     withEventsLocalAccess = New BoundLocal(syntax, withEventsLocal, withEventsLocal.Type)

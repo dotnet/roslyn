@@ -24,13 +24,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
 
                 Dim placeholderOpt As BoundRValuePlaceholder = node.RelaxationReceiverPlaceholderOpt
-                Dim captureTemp As TempLocalSymbol = Nothing
+                Dim captureTemp As SynthesizedLocal = Nothing
 
                 If placeholderOpt IsNot Nothing Then
                     If Me.inExpressionLambda Then
                         Me.AddPlaceholderReplacement(placeholderOpt, VisitExpression(node.ReceiverOpt))
                     Else
-                        captureTemp = New TempLocalSymbol(Me.currentMethodOrLambda, placeholderOpt.Type)
+                        captureTemp = New SynthesizedLocal(Me.currentMethodOrLambda, placeholderOpt.Type, SynthesizedLocalKind.LoweringTemp)
                         Dim actualReceiver = New BoundLocal(placeholderOpt.Syntax, captureTemp, captureTemp.Type).MakeRValue
                         Me.AddPlaceholderReplacement(placeholderOpt, actualReceiver)
                     End If

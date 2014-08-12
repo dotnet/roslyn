@@ -278,13 +278,13 @@ End Class
             </sequencepoints>
             <locals>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x56" attributes="1"/>
-                <local name="$VB$Closure_2" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
+                <local name="$VB$Closure_2" il_index="1" il_start="0x19" il_end="0x55" attributes="1"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x56">
                 <importsforward declaringType="C" methodName="Iterator_Lambda_NotHoisted" parameterNames=""/>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x56" attributes="1"/>
                 <scope startOffset="0x19" endOffset="0x55">
-                    <local name="$VB$Closure_2" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
+                    <local name="$VB$Closure_2" il_index="1" il_start="0x19" il_end="0x55" attributes="1"/>
                 </scope>
             </scope>
         </method>

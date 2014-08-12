@@ -440,7 +440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim inputToOperatorMethod As BoundExpression
 
             Dim condition As BoundExpression = Nothing
-            Dim temp As TempLocalSymbol = Nothing
+            Dim temp As SynthesizedLocal = Nothing
 
             If operandHasValue Then
                 ' just pass the operand, no need to capture

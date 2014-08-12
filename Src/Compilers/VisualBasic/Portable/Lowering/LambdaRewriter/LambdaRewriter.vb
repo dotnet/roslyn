@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                Dim proxy As LambdaCapturedVariable = New LambdaCapturedVariable(frame, captured)
+                Dim proxy = LambdaCapturedVariable.Create(frame, captured)
                 Proxies.Add(captured, proxy)
                 If CompilationState.EmitModule IsNot Nothing Then
                     frame.m_captured_locals.Add(proxy)
@@ -362,10 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         Optional origLambda As LambdaSymbol = Nothing) As BoundNode
 
             Dim frameType As NamedTypeSymbol = ConstructFrameType(frame, currentTypeParameters)
-            Dim framePointer As LocalSymbol = LocalSymbol.Create(Me._topLevelMethod,
-                                                                 StringConstants.ClosureVariablePrefix & CompilationState.GenerateTempNumber(), 'TODO: VB10 adds line/column numbers in hex here. Not sure if that is important or always meaningful.
-                                                                 LocalSymbol.LocalDeclarationKind.CompilerGenerated,
-                                                                 frameType)
+            Dim framePointer = New SynthesizedLocal(Me._topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, CompilationState.GenerateTempNumber())
 
             CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
             Dim prologue = ArrayBuilder(Of BoundExpression).GetInstance()
@@ -394,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Proxies.TryGetValue(innermostFramePointer, oldInnermostFrameProxy)
 
                 If _analysis.needsParentFrame.Contains(node) Then
-                    Dim capturedFrame = New LambdaCapturedVariable(frame, innermostFramePointer)
+                    Dim capturedFrame = LambdaCapturedVariable.Create(frame, innermostFramePointer)
                     Dim frameParent = capturedFrame.AsMember(frameType)
                     Dim left As BoundExpression = New BoundFieldAccess(syntaxNode,
                                                                        New BoundLocal(syntaxNode, framePointer, frameType),

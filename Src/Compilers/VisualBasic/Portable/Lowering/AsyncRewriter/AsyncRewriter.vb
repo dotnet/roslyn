@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.F.Null(stateMachineLocal.Type)))
         End Sub
 
-        Protected Overrides ReadOnly Property PreserveInitialLocals As Boolean
+        Protected Overrides ReadOnly Property PreserveInitialParameterValues As Boolean
             Get
                 Return False
             End Get
@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           F:=Me.F,
                                                           state:=Me.StateField,
                                                           builder:=Me._builderField,
-                                                          localProxies:=Me.LocalProxies,
+                                                          variableProxies:=Me.variableProxies,
                                                           owner:=Me,
                                                           diagnostics:=Diagnostics,
                                                           generateDebugInfo:=Me.GenerateDebugInfo)
