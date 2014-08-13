@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a project that is part of a solution.
+    /// Represents a project that is part of a <see cref="Solution"/>.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public partial class Project
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The ID of the project. Multiple IProject instances may share the same ID. However, only
+        /// The ID of the project. Multiple <see cref="Project"/> instances may share the same ID. However, only
         /// one project may have this ID in any given solution.
         /// </summary>
         public ProjectId Id
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// <code>true</code> if this Project supports providing data through the
+        /// <code>true</code> if this <see cref="Project"/> supports providing data through the
         /// <see cref="GetCompilationAsync(CancellationToken)"/> method.
         /// 
         /// If <code>false</code> then this method will return <code>null</code> instead.
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Get the compilation for this project if it is available.
+        /// Get the <see cref="Compilation"/> for this project if it is available.
         /// </summary>
         public bool TryGetCompilation(out Compilation compilation)
         {
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Get the compilation for this project asynchronously.
+        /// Get the <see cref="Compilation"/> for this project asynchronously.
         /// </summary>
         public Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -392,13 +392,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException("oldProject");
             }
 
-            var op = oldProject as Project;
-            if (op == null)
-            {
-                throw new ArgumentException("oldProject");
-            }
-
-            return new ProjectChanges(this, op);
+            return new ProjectChanges(this, oldProject);
         }
 
         private void CheckContainsDocument(DocumentId documentId)

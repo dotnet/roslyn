@@ -10,17 +10,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// An identifier that can be used to refer to the same Project across versions.
+    /// An identifier that can be used to refer to the same <see cref="Project"/> across versions.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     [Serializable]
     public class ProjectId : IEquatable<ProjectId>
     {
-        /// <summary>
-        /// The SolutionId this project id is relative to.
-        /// </summary>
-        //// private SolutionId SolutionId { get; private set; }
-
         private string debugName;
 
         /// <summary>

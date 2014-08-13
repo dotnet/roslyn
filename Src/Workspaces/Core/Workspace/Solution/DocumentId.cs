@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// An identifier that can be used to retrieve the same Document across versions of the
+    /// An identifier that can be used to retrieve the same <see cref="Document"/> across versions of the
     /// workspace.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new DocumentId instance.
+        /// Creates a new <see cref="DocumentId"/> instance.
         /// </summary>
         /// <param name="projectId">The project id this document id is relative to.</param>
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>

@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the SyntaxTree for this document asynchronously.
+        /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
         /// </summary>
         public Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {

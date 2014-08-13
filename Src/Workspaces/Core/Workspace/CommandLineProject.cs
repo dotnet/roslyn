@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     public static class CommandLineProject
     {
         /// <summary>
-        /// Create a ProjectInfo structure initialized from a compilers command line arguments.
+        /// Create a <see cref="ProjectInfo"/> structure initialized from a compilers command line arguments.
         /// </summary>
         public static ProjectInfo CreateProjectInfo(Workspace workspace, string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory)
         {
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Create a ProjectInfo structure initialized with data from a compiler command line.
+        /// Create a <see cref="ProjectInfo"/> structure initialized with data from a compiler command line.
         /// </summary>
         public static ProjectInfo CreateProjectInfo(Workspace workspace, string projectName, string language, string commandLine, string baseDirectory)
         {

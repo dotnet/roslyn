@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         public bool IsGenerated { get; private set; }
 
         /// <summary>
-        /// Create a new instance of a DocumentInfo.
+        /// Create a new instance of a <see cref="DocumentInfo"/>.
         /// </summary>
         private DocumentInfo(
             DocumentId id,
