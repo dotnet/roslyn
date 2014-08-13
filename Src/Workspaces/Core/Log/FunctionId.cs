@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         // for our other scenarios.
         TestEvent_NotUsed = 1,
 
-        Run_Environment,
-
         WorkCoordinator_DocumentWorker_Enqueue,
         WorkCoordinator_ProcessProjectAsync,
         WorkCoordinator_ProcessDocumentAsync,
@@ -31,6 +29,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Diagnostics_DocumentOpen,
         Diagnostics_RemoveDocument,
         Diagnostics_RemoveProject,
+
+        // add new values after this
+        Run_Environment,
+        Run_Environment_Options,
 
         Tagger_AdornmentManager_OnLayoutChanged,
         Tagger_AdornmentManager_UpdateInvalidSpans,
