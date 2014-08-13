@@ -14999,22 +14999,22 @@ public class C
 {
     static void Main()
     {
-        var dummy1 = /*<bind>*/((string)null) ?.ToString().Length/*</bind>*/ ?.ToString();
-        var dummy2 = ""qqq"" ?.ToString().Length.ToString();
-        var dummy3 = 1.ToString() ?.ToString().Length.ToString();
+        var dummy1 = ((string)null)?.ToString()./*<bind>*/Length/*</bind>*/?.ToString();
+        var dummy2 = ""qqq""?.ToString().Length.ToString();
+        var dummy3 = 1.ToString()?.ToString().Length.ToString();
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<ConditionalAccessExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("int?", semanticInfo.ConvertedType.ToDisplayString());
-            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal("?", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal("string.Length", semanticInfo.Symbol.ToDisplayString());
+            Assert.Equal(SymbolKind.Property, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -15030,7 +15030,7 @@ public class C
 {
     static void Main()
     {
-        var dummy1 = ((string)null) ?.ToString()./*<bind>*/Length/*</bind>*/ ?.ToString();
+        var dummy1 = ((string)null) ?.ToString()./*<bind>*/Length/*</bind>*/ .ToString();
         var dummy2 = ""qqq"" ?.ToString().Length.ToString();
         var dummy3 = 1.ToString() ?.ToString().Length.ToString();
     }
@@ -15061,7 +15061,7 @@ public class C
 {
     static void Main()
     {
-        var dummy1 = ((string)null) ?.ToString() ?/*<bind>*/[1]/*</bind>*/ ?.ToString();
+        var dummy1 = ((string)null) ?.ToString() ?/*<bind>*/[1]/*</bind>*/ .ToString();
         var dummy2 = ""qqq"" ?.ToString().Length.ToString();
         var dummy3 = 1.ToString() ?.ToString().Length.ToString();
     }

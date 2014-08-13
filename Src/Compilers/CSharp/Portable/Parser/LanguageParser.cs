@@ -8726,6 +8726,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         expr = syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
                         break;
 
+                    case SyntaxKind.QuestionToken:
+                        if (CanStartConsequenceExpression(this.PeekToken(1).Kind))
+                        {
+                            var qToken = this.EatToken();
+                            var consequence = ParseConsequenceSyntax();
+                            expr = syntaxFactory.ConditionalAccessExpression(expr, qToken, consequence);
+                        }
+                        return expr;
+
                     default:
                         return expr;
                 }

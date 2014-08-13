@@ -1091,7 +1091,7 @@ public static class C
   IL_005f:  ldarg.0
   IL_0060:  brtrue.s   IL_0068
   IL_0062:  ldnull
-  IL_0063:  br         IL_00ff
+  IL_0063:  br         IL_0152
   IL_0068:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> C.<Test>o__SiteContainer0.<>p__Site2""
   IL_006d:  brtrue.s   IL_009f
   IL_006f:  ldc.i4.0
@@ -1494,7 +1494,75 @@ public class C
 {
     static void Main()
     {
-        var dummy1 = ((string)null)?.ToString().Length?.ToString();
+        var dummy1 = ((string)null)?.ToString().NullableLength()?.ToString();
+        var dummy2 = ""qqq""?.ToString().NullableLength().ToString();
+        var dummy3 = 1.ToString()?.ToString().NullableLength()?.ToString();
+        }
+    }
+
+    public static class C1
+    {
+        public static int? NullableLength(this string self)
+        {
+            return self.Length;
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       83 (0x53)
+  .maxstack  2
+  .locals init (int? V_0,
+                int V_1,
+                int? V_2)
+  IL_0000:  ldstr      ""qqq""
+  IL_0005:  callvirt   ""string object.ToString()""
+  IL_000a:  call       ""int? C1.NullableLength(string)""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  constrained. ""int?""
+  IL_0018:  callvirt   ""string object.ToString()""
+  IL_001d:  pop
+  IL_001e:  ldc.i4.1
+  IL_001f:  stloc.1
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  call       ""string int.ToString()""
+  IL_0027:  dup
+  IL_0028:  brtrue.s   IL_002c
+  IL_002a:  pop
+  IL_002b:  ret
+  IL_002c:  callvirt   ""string object.ToString()""
+  IL_0031:  call       ""int? C1.NullableLength(string)""
+  IL_0036:  dup
+  IL_0037:  stloc.0
+  IL_0038:  stloc.2
+  IL_0039:  ldloca.s   V_2
+  IL_003b:  call       ""bool int?.HasValue.get""
+  IL_0040:  brfalse.s  IL_0052
+  IL_0042:  ldloca.s   V_0
+  IL_0044:  call       ""int int?.GetValueOrDefault()""
+  IL_0049:  stloc.1
+  IL_004a:  ldloca.s   V_1
+  IL_004c:  call       ""string int.ToString()""
+  IL_0051:  pop
+  IL_0052:  ret
+}
+
+");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccessUnused2a()
+        {
+            var source = @"
+
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null)?.ToString()?.Length.ToString();
         var dummy2 = ""qqq""?.ToString().Length.ToString();
         var dummy3 = 1.ToString()?.ToString().Length.ToString();
     }
@@ -1503,49 +1571,33 @@ public class C
             var comp = CompileAndVerify(source, expectedOutput: "");
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       95 (0x5f)
+  // Code size       58 (0x3a)
   .maxstack  2
-  .locals init (int? V_0,
-  int? V_1,
-  int V_2)
-  IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    ""int?""
-  IL_0008:  ldloc.1
-  IL_0009:  dup
-  IL_000a:  stloc.0
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  call       ""bool int?.HasValue.get""
-  IL_0013:  brfalse.s  IL_0025
-  IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""int int?.GetValueOrDefault()""
-  IL_001c:  stloc.2
-  IL_001d:  ldloca.s   V_2
-  IL_001f:  call       ""string int.ToString()""
+  .locals init (int V_0)
+  IL_0000:  ldstr      ""qqq""
+  IL_0005:  callvirt   ""string object.ToString()""
+  IL_000a:  callvirt   ""int string.Length.get""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""string int.ToString()""
+  IL_0017:  pop
+  IL_0018:  ldc.i4.1
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       ""string int.ToString()""
+  IL_0021:  dup
+  IL_0022:  brtrue.s   IL_0026
   IL_0024:  pop
-  IL_0025:  ldstr      ""qqq""
-  IL_002a:  callvirt   ""string object.ToString()""
-  IL_002f:  callvirt   ""int string.Length.get""
-  IL_0034:  stloc.2
-  IL_0035:  ldloca.s   V_2
-  IL_0037:  call       ""string int.ToString()""
-  IL_003c:  pop
-  IL_003d:  ldc.i4.1
-  IL_003e:  stloc.2
-  IL_003f:  ldloca.s   V_2
-  IL_0041:  call       ""string int.ToString()""
-  IL_0046:  dup
-  IL_0047:  brtrue.s   IL_004b
-  IL_0049:  pop
-  IL_004a:  ret
-  IL_004b:  callvirt   ""string object.ToString()""
-  IL_0050:  callvirt   ""int string.Length.get""
-  IL_0055:  stloc.2
-  IL_0056:  ldloca.s   V_2
-  IL_0058:  call       ""string int.ToString()""
-  IL_005d:  pop
-  IL_005e:  ret
+  IL_0025:  ret
+  IL_0026:  callvirt   ""string object.ToString()""
+  IL_002b:  callvirt   ""int string.Length.get""
+  IL_0030:  stloc.0
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  call       ""string int.ToString()""
+  IL_0038:  pop
+  IL_0039:  ret
 }
+
 ");
         }
 
@@ -1558,13 +1610,100 @@ public class C
 {
     static void Main()
     {
-        var dummy1 = ((string)null)?.ToString().Length?.ToString();
+        var dummy1 = ((string)null)?.ToString().NullableLength()?.ToString();
         System.Console.WriteLine(dummy1);
 
-        var dummy2 = ""qqq""?.ToString().Length?.ToString();
+        var dummy2 = ""qqq""?.ToString().NullableLength()?.ToString();
         System.Console.WriteLine(dummy2);
 
-        var dummy3 = 1.ToString()?.ToString().Length?.ToString();
+        var dummy3 = 1.ToString()?.ToString().NullableLength()?.ToString();
+        System.Console.WriteLine(dummy3);
+    }
+}
+
+public static class C1
+{
+    public static int? NullableLength(this string self)
+    {
+        return self.Length;
+    }
+}";
+
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"3
+1");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      118 (0x76)
+  .maxstack  2
+  .locals init (int? V_0,
+                int? V_1,
+                int V_2)
+  IL_0000:  ldnull
+  IL_0001:  call       ""void System.Console.WriteLine(string)""
+  IL_0006:  ldstr      ""qqq""
+  IL_000b:  callvirt   ""string object.ToString()""
+  IL_0010:  call       ""int? C1.NullableLength(string)""
+  IL_0015:  dup
+  IL_0016:  stloc.0
+  IL_0017:  stloc.1
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  call       ""bool int?.HasValue.get""
+  IL_001f:  brtrue.s   IL_0024
+  IL_0021:  ldnull
+  IL_0022:  br.s       IL_0033
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""int int?.GetValueOrDefault()""
+  IL_002b:  stloc.2
+  IL_002c:  ldloca.s   V_2
+  IL_002e:  call       ""string int.ToString()""
+  IL_0033:  call       ""void System.Console.WriteLine(string)""
+  IL_0038:  ldc.i4.1
+  IL_0039:  stloc.2
+  IL_003a:  ldloca.s   V_2
+  IL_003c:  call       ""string int.ToString()""
+  IL_0041:  dup
+  IL_0042:  brtrue.s   IL_0048
+  IL_0044:  pop
+  IL_0045:  ldnull
+  IL_0046:  br.s       IL_0070
+  IL_0048:  callvirt   ""string object.ToString()""
+  IL_004d:  call       ""int? C1.NullableLength(string)""
+  IL_0052:  dup
+  IL_0053:  stloc.0
+  IL_0054:  stloc.1
+  IL_0055:  ldloca.s   V_1
+  IL_0057:  call       ""bool int?.HasValue.get""
+  IL_005c:  brtrue.s   IL_0061
+  IL_005e:  ldnull
+  IL_005f:  br.s       IL_0070
+  IL_0061:  ldloca.s   V_0
+  IL_0063:  call       ""int int?.GetValueOrDefault()""
+  IL_0068:  stloc.2
+  IL_0069:  ldloca.s   V_2
+  IL_006b:  call       ""string int.ToString()""
+  IL_0070:  call       ""void System.Console.WriteLine(string)""
+  IL_0075:  ret
+}
+");
+        }
+
+
+        [Fact]
+        public void TestConditionalMemberAccessUsed2a()
+        {
+            var source = @"
+
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null)?.ToString()?.Length.ToString();
+        System.Console.WriteLine(dummy1);
+
+        var dummy2 = ""qqq""?.ToString()?.Length.ToString();
+        System.Console.WriteLine(dummy2);
+
+        var dummy3 = 1.ToString()?.ToString()?.Length.ToString();
         System.Console.WriteLine(dummy3);
     }
 }";
@@ -1573,75 +1712,44 @@ public class C
 1");
             comp.VerifyIL("C.Main", @"
 {
-  // Code size      174 (0xae)
+  // Code size       88 (0x58)
   .maxstack  2
-  .locals init (int? V_0,
-  int? V_1,
-  int V_2)
-  IL_0000:  ldloca.s   V_1
-  IL_0002:  initobj    ""int?""
-  IL_0008:  ldloc.1
-  IL_0009:  dup
-  IL_000a:  stloc.0
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  call       ""bool int?.HasValue.get""
-  IL_0013:  brtrue.s   IL_0018
-  IL_0015:  ldnull
-  IL_0016:  br.s       IL_0027
-  IL_0018:  ldloca.s   V_0
-  IL_001a:  call       ""int int?.GetValueOrDefault()""
-  IL_001f:  stloc.2
-  IL_0020:  ldloca.s   V_2
-  IL_0022:  call       ""string int.ToString()""
-  IL_0027:  call       ""void System.Console.WriteLine(string)""
-  IL_002c:  ldstr      ""qqq""
-  IL_0031:  callvirt   ""string object.ToString()""
-  IL_0036:  callvirt   ""int string.Length.get""
-  IL_003b:  newobj     ""int?..ctor(int)""
-  IL_0040:  dup
-  IL_0041:  stloc.0
-  IL_0042:  stloc.1
-  IL_0043:  ldloca.s   V_1
-  IL_0045:  call       ""bool int?.HasValue.get""
-  IL_004a:  brtrue.s   IL_004f
-  IL_004c:  ldnull
-  IL_004d:  br.s       IL_005e
-  IL_004f:  ldloca.s   V_0
-  IL_0051:  call       ""int int?.GetValueOrDefault()""
-  IL_0056:  stloc.2
-  IL_0057:  ldloca.s   V_2
-  IL_0059:  call       ""string int.ToString()""
-  IL_005e:  call       ""void System.Console.WriteLine(string)""
-  IL_0063:  ldc.i4.1
-  IL_0064:  stloc.2
-  IL_0065:  ldloca.s   V_2
-  IL_0067:  call       ""string int.ToString()""
-  IL_006c:  dup
-  IL_006d:  brtrue.s   IL_007b
-  IL_006f:  pop
-  IL_0070:  ldloca.s   V_1
-  IL_0072:  initobj    ""int?""
-  IL_0078:  ldloc.1
-  IL_0079:  br.s       IL_008a
-  IL_007b:  callvirt   ""string object.ToString()""
-  IL_0080:  callvirt   ""int string.Length.get""
-  IL_0085:  newobj     ""int?..ctor(int)""
-  IL_008a:  dup
-  IL_008b:  stloc.0
-  IL_008c:  stloc.1
-  IL_008d:  ldloca.s   V_1
-  IL_008f:  call       ""bool int?.HasValue.get""
-  IL_0094:  brtrue.s   IL_0099
-  IL_0096:  ldnull
-  IL_0097:  br.s       IL_00a8
-  IL_0099:  ldloca.s   V_0
-  IL_009b:  call       ""int int?.GetValueOrDefault()""
-  IL_00a0:  stloc.2
-  IL_00a1:  ldloca.s   V_2
-  IL_00a3:  call       ""string int.ToString()""
-  IL_00a8:  call       ""void System.Console.WriteLine(string)""
-  IL_00ad:  ret
+  .locals init (int V_0)
+  IL_0000:  ldnull
+  IL_0001:  call       ""void System.Console.WriteLine(string)""
+  IL_0006:  ldstr      ""qqq""
+  IL_000b:  callvirt   ""string object.ToString()""
+  IL_0010:  dup
+  IL_0011:  brtrue.s   IL_0017
+  IL_0013:  pop
+  IL_0014:  ldnull
+  IL_0015:  br.s       IL_0024
+  IL_0017:  callvirt   ""int string.Length.get""
+  IL_001c:  stloc.0
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       ""string int.ToString()""
+  IL_0024:  call       ""void System.Console.WriteLine(string)""
+  IL_0029:  ldc.i4.1
+  IL_002a:  stloc.0
+  IL_002b:  ldloca.s   V_0
+  IL_002d:  call       ""string int.ToString()""
+  IL_0032:  dup
+  IL_0033:  brtrue.s   IL_0039
+  IL_0035:  pop
+  IL_0036:  ldnull
+  IL_0037:  br.s       IL_0052
+  IL_0039:  callvirt   ""string object.ToString()""
+  IL_003e:  dup
+  IL_003f:  brtrue.s   IL_0045
+  IL_0041:  pop
+  IL_0042:  ldnull
+  IL_0043:  br.s       IL_0052
+  IL_0045:  callvirt   ""int string.Length.get""
+  IL_004a:  stloc.0
+  IL_004b:  ldloca.s   V_0
+  IL_004d:  call       ""string int.ToString()""
+  IL_0052:  call       ""void System.Console.WriteLine(string)""
+  IL_0057:  ret
 }
 ");
         }
@@ -1811,7 +1919,7 @@ print1
 print2");
             comp.VerifyIL("Program.M(Program.S1?)", @"
 {
-  // Code size      105 (0x69)
+  // Code size      100 (0x64)
   .maxstack  2
   .locals init (Program.S1 V_0)
   IL_0000:  ldarga.s   V_0
@@ -1833,28 +1941,25 @@ print2");
   IL_0030:  pop
   IL_0031:  ldarga.s   V_0
   IL_0033:  call       ""bool Program.S1?.HasValue.get""
-  IL_0038:  brtrue.s   IL_003d
-  IL_003a:  ldnull
-  IL_003b:  br.s       IL_004c
-  IL_003d:  ldarga.s   V_0
-  IL_003f:  call       ""Program.S1 Program.S1?.GetValueOrDefault()""
-  IL_0044:  stloc.0
-  IL_0045:  ldloca.s   V_0
-  IL_0047:  call       ""object Program.S1.Print2()""
-  IL_004c:  dup
-  IL_004d:  brtrue.s   IL_0053
-  IL_004f:  pop
-  IL_0050:  ldnull
-  IL_0051:  br.s       IL_005d
+  IL_0038:  brfalse.s  IL_0063
+  IL_003a:  ldarga.s   V_0
+  IL_003c:  call       ""Program.S1 Program.S1?.GetValueOrDefault()""
+  IL_0041:  stloc.0
+  IL_0042:  ldloca.s   V_0
+  IL_0044:  call       ""object Program.S1.Print2()""
+  IL_0049:  dup
+  IL_004a:  brtrue.s   IL_004e
+  IL_004c:  pop
+  IL_004d:  ret
+  IL_004e:  callvirt   ""string object.ToString()""
   IL_0053:  callvirt   ""string object.ToString()""
-  IL_0058:  callvirt   ""string object.ToString()""
-  IL_005d:  dup
-  IL_005e:  brtrue.s   IL_0062
-  IL_0060:  pop
-  IL_0061:  ret
-  IL_0062:  callvirt   ""string object.ToString()""
-  IL_0067:  pop
-  IL_0068:  ret
+  IL_0058:  dup
+  IL_0059:  brtrue.s   IL_005d
+  IL_005b:  pop
+  IL_005c:  ret
+  IL_005d:  callvirt   ""string object.ToString()""
+  IL_0062:  pop
+  IL_0063:  ret
 }
 ");
         }

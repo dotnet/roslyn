@@ -22055,9 +22055,9 @@ class Program
     // (13,43): error CS8072: An expression tree lambda may not contain a null propagating operator.
     //         Expression<Func<int?>> c2 = () => x?.ToString()?.Length;
     Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x?.ToString()?.Length").WithLocation(13, 43),
-    // (13,43): error CS8072: An expression tree lambda may not contain a null propagating operator.
+    // (13,45): error CS8072: An expression tree lambda may not contain a null propagating operator.
     //         Expression<Func<int?>> c2 = () => x?.ToString()?.Length;
-    Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x?.ToString()").WithLocation(13, 43)
+    Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, ".ToString()?.Length").WithLocation(13, 45)
                );
         }
 

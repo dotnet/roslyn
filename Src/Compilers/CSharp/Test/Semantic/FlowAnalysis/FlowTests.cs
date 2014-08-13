@@ -2170,11 +2170,7 @@ class C
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
-    // (20,38): error CS0165: Use of unassigned local variable 'o'
-    //         var v = d ?. M1(out o) ?. M2(o);
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(20, 38)
-    );
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
         [Fact]
