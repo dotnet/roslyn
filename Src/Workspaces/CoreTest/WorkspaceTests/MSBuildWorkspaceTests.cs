@@ -1802,7 +1802,7 @@ class C1
         }
 
         [WorkItem(918072, "DevDiv")]
-        [Fact(Skip = "996321"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAnalyzerReferenceLoadStandalone()
         {
 #if !MSBUILD12
@@ -1825,6 +1825,30 @@ class C1
 
                 // prove that project gets opened instead.
                 Assert.Equal(2, ws.CurrentSolution.Projects.Count());
+            }
+#endif
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestAdditionalFilesStandalone()
+        {
+#if !MSBUILD12
+            var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
+            var files = GetAnalyzerReferenceSolutionFiles();
+
+            CreateFiles(files);
+
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                foreach (var projectPath in projPaths)
+                {
+                    var projectFullPath = Path.Combine(this.SolutionDirectory.Path, projectPath);
+                    var proj = ws.OpenProjectAsync(projectFullPath).Result;
+                    Assert.Equal(1, proj.AdditionalDocuments.Count());
+                    var doc = proj.AdditionalDocuments.First();
+                    Assert.Equal("XamlFile.xaml", doc.Name);
+                    Assert.Contains("Window", doc.GetTextAsync().WaitAndGetResult(CancellationToken.None).ToString());
+                }
             }
 #endif
         }

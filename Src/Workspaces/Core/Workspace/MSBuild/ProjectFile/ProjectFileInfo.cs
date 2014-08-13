@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public IReadOnlyList<DocumentFileInfo> Documents { get; private set; }
 
         /// <summary>
+        /// The additional documents.
+        /// </summary>
+        public IReadOnlyList<DocumentFileInfo> AdditionalDocuments { get; private set; }
+
+        /// <summary>
         /// References to other projects.
         /// </summary>
         public IReadOnlyList<ProjectFileReference> ProjectReferences { get; private set; }
@@ -64,6 +69,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             IEnumerable<DocumentFileInfo> documents,
+            IEnumerable<DocumentFileInfo> additionalDocuments,
             IEnumerable<ProjectFileReference> projectReferences,
             IEnumerable<MetadataReference> metadataReferences,
             IEnumerable<AnalyzerReference> analyzerReferences)
@@ -74,6 +80,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.CompilationOptions = compilationOptions;
             this.ParseOptions = parseOptions;
             this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
+            this.AdditionalDocuments = additionalDocuments.ToImmutableReadOnlyListOrEmpty();
             this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
             this.MetadataReferences = metadataReferences.ToImmutableReadOnlyListOrEmpty();
             this.AnalyzerReferences = analyzerReferences.ToImmutableReadOnlyListOrEmpty();

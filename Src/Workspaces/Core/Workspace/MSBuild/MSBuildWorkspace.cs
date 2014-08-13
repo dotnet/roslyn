@@ -580,6 +580,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     docFileInfo.IsGenerated));
             }
 
+            var additonalDocs = new List<DocumentInfo>();
+            foreach (var docFileInfo in projectFileInfo.AdditionalDocuments)
+            {
+                additonalDocs.Add(DocumentInfo.Create(
+                    DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
+                    Path.GetFileName(docFileInfo.LogicalPath),
+                    GetDocumentFolders(docFileInfo.LogicalPath),
+                    SourceCodeKind.Regular,
+                    new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
+                    docFileInfo.FilePath,
+                    defaultEncoding,
+                    docFileInfo.IsGenerated));
+            }
+
             // project references
             var resolvedReferences = await this.ResolveProjectReferencesAsync(
                 projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
@@ -617,6 +631,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     resolvedReferences.ProjectReferences,
                     metadataReferences,
                     analyzerReferences: projectFileInfo.AnalyzerReferences,
+                    additionalDocuments: additonalDocs, 
                     isSubmission: false,
                     hostObjectType: null));
 

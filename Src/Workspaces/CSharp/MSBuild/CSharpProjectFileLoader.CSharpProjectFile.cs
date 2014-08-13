@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Execution;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -93,6 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
                        .ToImmutableArray();
 
+                var additionalDocs = compilerInputs.AdditionalFiles
+                                     .Select(s => MakeDocumentFileInfo(projectDirectory, s))
+                                     .ToImmutableArray();
+
                 IEnumerable<MetadataReference> metadataRefs;
                 IEnumerable<AnalyzerReference> analyzerRefs;
                 this.GetReferences(compilerInputs, executedProject, out metadataRefs, out analyzerRefs);
@@ -107,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     compilerInputs.CompilationOptions,
                     compilerInputs.ParseOptions,
                     docs,
+                    additionalDocs,
                     this.GetProjectReferences(executedProject),
                     metadataRefs,
                     analyzerRefs);
@@ -254,9 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private class CSharpCompilerInputs :
 #if !MSBUILD12
-                MSB.Tasks.Hosting.ICscHostObject4
-            //// ' TODO : Remove this after the next base drop update (once we get a new IAnalyzerHostObject interface)
-            //// , MSB.Tasks.Hosting.IAnalyzerHostObject
+                MSB.Tasks.Hosting.ICscHostObject4,
+                MSB.Tasks.Hosting.IAnalyzerHostObject
 #else
                 MSB.Tasks.Hosting.ICscHostObject4
 #endif
@@ -269,6 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal IEnumerable<MSB.Framework.ITaskItem> Sources { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> References { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> AnalyzerReferences { get; private set; }
+                internal IEnumerable<MSB.Framework.ITaskItem> AdditionalFiles { get; private set; }
                 internal IReadOnlyList<string> LibPaths { get; private set; }
                 internal bool NoStandardLib { get; private set; }
                 internal Dictionary<string, ReportDiagnostic> Warnings { get; private set; }
@@ -295,6 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.Sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.References = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.AnalyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    this.AdditionalFiles = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.LibPaths = SpecializedCollections.EmptyReadOnlyList<string>();
                 }
 
@@ -638,6 +645,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public bool SetAnalyzers(MSB.Framework.ITaskItem[] analyzerReferences)
                 {
                     this.AnalyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    return true;
+                }
+
+                public bool SetAdditionalFiles(ITaskItem[] additionalFiles)
+                {
+                    this.AdditionalFiles = additionalFiles ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     return true;
                 }
 

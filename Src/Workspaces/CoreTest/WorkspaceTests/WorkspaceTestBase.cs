@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 { @"AnalyzerSolution\CSharpProject.dll", GetResourceText("CSharpProject.dll") },
                 { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", GetResourceText("CSharpProject_CSharpProject_AnalyzerReference.csproj") },
                 { @"AnalyzerSolution\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
+                { @"AnalyzerSolution\XamlFile.xaml", GetResourceText("CSharpProject_MainWindow.xaml") },
                 { @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_AnalyzerReference.vbproj") },
                 { @"AnalyzerSolution\VisualBasicClass.vb", GetResourceText("VisualBasicProject_VisualBasicClass.vb") },
                 { @"AnalyzerSolution\My Project\Application.Designer.vb", GetResourceText("VisualBasicProject_Application.Designer.vb") },
