@@ -1724,7 +1724,7 @@ public class C
   IL_0013:  pop
   IL_0014:  ldnull
   IL_0015:  br.s       IL_0024
-  IL_0017:  callvirt   ""int string.Length.get""
+  IL_0017:  call       ""int string.Length.get""
   IL_001c:  stloc.0
   IL_001d:  ldloca.s   V_0
   IL_001f:  call       ""string int.ToString()""
@@ -1744,7 +1744,7 @@ public class C
   IL_0041:  pop
   IL_0042:  ldnull
   IL_0043:  br.s       IL_0052
-  IL_0045:  callvirt   ""int string.Length.get""
+  IL_0045:  call       ""int string.Length.get""
   IL_004a:  stloc.0
   IL_004b:  ldloca.s   V_0
   IL_004d:  call       ""string int.ToString()""
@@ -1857,16 +1857,16 @@ print2");
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_0009
   IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""void Program.C1.Print0()""
+  IL_0004:  call       ""void Program.C1.Print0()""
   IL_0009:  ldarg.0
   IL_000a:  brfalse.s  IL_0013
   IL_000c:  ldarg.0
-  IL_000d:  callvirt   ""int Program.C1.Print1()""
+  IL_000d:  call       ""int Program.C1.Print1()""
   IL_0012:  pop
   IL_0013:  ldarg.0
   IL_0014:  brfalse.s  IL_001d
   IL_0016:  ldarg.0
-  IL_0017:  callvirt   ""object Program.C1.Print2()""
+  IL_0017:  call       ""object Program.C1.Print2()""
   IL_001c:  pop
   IL_001d:  ret
 }

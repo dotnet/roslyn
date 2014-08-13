@@ -1126,6 +1126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.FieldAccess:
                     return ((BoundFieldAccess)receiver).FieldSymbol.IsCapturedFrame;
 
+                case BoundKind.ConditionalReceiver:
+                    return true;
+
                     //TODO: there could be more cases where we can be sure that receiver is not a null.
             }
 
