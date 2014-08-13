@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                
+
                 this.initializer = initializer;
             }
 
@@ -367,47 +367,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (initializerOpt != null)
                 {
                     return initializerOpt.Type;
-        }
+                }
 
                 return null;
             }
 
-        /// <summary>
-        /// Determine the constant value of this local and the corresponding diagnostics.
-        /// Set both to constantTuple in a single operation for thread safety.
-        /// </summary>
-        /// <param name="inProgress">Null for the initial call, non-null if we are in the process of evaluating a constant.</param>
-        /// <param name="boundInitValue">If we already have the bound node for the initial value, pass it in to avoid recomputing it.</param>
-        private void MakeConstantTuple(LocalSymbol inProgress, BoundExpression boundInitValue)
-        {
-                if (this.IsConst && this.constantTuple == null)
+            /// <summary>
+            /// Determine the constant value of this local and the corresponding diagnostics.
+            /// Set both to constantTuple in a single operation for thread safety.
+            /// </summary>
+            /// <param name="inProgress">Null for the initial call, non-null if we are in the process of evaluating a constant.</param>
+            /// <param name="boundInitValue">If we already have the bound node for the initial value, pass it in to avoid recomputing it.</param>
+            private void MakeConstantTuple(LocalSymbol inProgress, BoundExpression boundInitValue)
             {
-                var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
-                var initValueNodeLocation = this.initializer.Value.Location;
-                var diagnostics = DiagnosticBag.GetInstance();
-                if (inProgress == this)
+                if (this.IsConst && this.constantTuple == null)
                 {
-                    // The problem is circularity, but Dev12 reports ERR_NotConstantExpression instead of ERR_CircConstValue.
-                    // Also, the native compiler squiggles the RHS for ERR_CircConstValue but the LHS for ERR_CircConstValue.
-                    diagnostics.Add(ErrorCode.ERR_NotConstantExpression, initValueNodeLocation, this);
-                }
-                else
-                {
-                    var type = this.Type;
-                    if (boundInitValue == null)
+                    var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
+                    var initValueNodeLocation = this.initializer.Value.Location;
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    if (inProgress == this)
                     {
-                        var inProgressBinder = new LocalInProgressBinder(this, this.binder);
-                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(this.initializer, type, diagnostics);
+                        // The problem is circularity, but Dev12 reports ERR_NotConstantExpression instead of ERR_CircConstValue.
+                        // Also, the native compiler squiggles the RHS for ERR_CircConstValue but the LHS for ERR_CircConstValue.
+                        diagnostics.Add(ErrorCode.ERR_NotConstantExpression, initValueNodeLocation, this);
                     }
+                    else
+                    {
+                        var type = this.Type;
+                        if (boundInitValue == null)
+                        {
+                            var inProgressBinder = new LocalInProgressBinder(this, this.binder);
+                            boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(this.initializer, type, diagnostics);
+                        }
 
-                    value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
+                        value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
+                    }
+                    Interlocked.CompareExchange(ref this.constantTuple, new EvaluatedConstant(value, diagnostics.ToReadOnlyAndFree()), null);
                 }
-                Interlocked.CompareExchange(ref this.constantTuple, new EvaluatedConstant(value, diagnostics.ToReadOnlyAndFree()), null);
             }
-        }
 
             internal override ConstantValue GetConstantValue(LocalSymbol inProgress)
-        {
+            {
                 MakeConstantTuple(inProgress, boundInitValue: null);
                 return this.constantTuple == null ? null : this.constantTuple.Value;
             }
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 this.scopeSegmentRoot = scopeSegmentRoot;
-        }
+            }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
@@ -477,9 +477,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // Skip parenthesized and checked/unchecked expressions
                 while (node != scopeSegmentRoot && node.Parent != null)
-        {
+                {
                     switch (node.Parent.CSharpKind())
-            {
+                    {
                         case SyntaxKind.ParenthesizedExpression:
                         case SyntaxKind.CheckedExpression:
                         case SyntaxKind.UncheckedExpression:
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     break;
-            }
+                }
 
                 if (node != scopeSegmentRoot && node.Parent != null && node.Parent.CSharpKind() == SyntaxKind.Argument)
                 {
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         return result;
                                 }
                             }
-        }
+                        }
                         else if (node.Parent != null)
                         {
                             Debug.Assert(node.CSharpKind() == SyntaxKind.ArgumentList);
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // This could be an argument list for a constructor initializer
 
                             switch (node.Parent.CSharpKind())
-        {
+                            {
                                 case SyntaxKind.ThisConstructorInitializer:
                                 case SyntaxKind.BaseConstructorInitializer:
                                     this.binder.BindConstructorInitializer((ArgumentListSyntax)node, (MethodSymbol)this.binder.ContainingMember(), diagnostics);
