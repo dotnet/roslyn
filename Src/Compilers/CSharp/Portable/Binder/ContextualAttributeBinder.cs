@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Method, property, event, or null.
         /// A virtual property on Binder (i.e. our usual pattern) would be more robust, but the applicability
-        /// of this property is so narrow that it doesn't seem worthwile.
+        /// of this property is so narrow that it doesn't seem worthwhile.
         /// </remarks>
         internal Symbol AttributedMember
         {

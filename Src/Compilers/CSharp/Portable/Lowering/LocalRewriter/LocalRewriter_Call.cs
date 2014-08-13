@@ -3,9 +3,9 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -336,13 +336,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Rewrites arguments of an invocation according to the receiving method or indexer.
-        /// It is assumed that the each argument has already been lowered, but we may need
+        /// It is assumed that each argument has already been lowered, but we may need
         /// additional rewriting for the arguments, such as generating a params array, re-ordering
-        /// arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
-        /// 'optionalParametersMethod' is the method used for values of any optional parameters.
+        /// arguments based on <paramref name="argsToParamsOpt"/> map, inserting arguments for optional parameters, etc.
+        /// <paramref name="optionalParametersMethod"/> is the method used for values of any optional parameters.
         /// For indexers, this method must be an accessor, and for methods it must be the method
-        /// itself. 'optionalParametersMethod' is needed for indexers since the getter and setter
+        /// itself. <paramref name="optionalParametersMethod"/> is needed for indexers since getter and setter
         /// may have distinct optional parameter values.
+        /// The parameter <paramref name="enableCallerInfoInImplicitInvocation"/>
+        /// indicates if caller info should be enabled even when processing an implicit invocation (such as an invocation
+        /// of an <c>Add</c> method generated for an element-initializer in a collection-initializer).
         /// </summary>
         private ImmutableArray<BoundExpression> MakeArguments(
             CSharpSyntaxNode syntax,
@@ -353,7 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
             out ImmutableArray<LocalSymbol> temps,
-            bool invokedAsExtensionMethod = false)
+            bool invokedAsExtensionMethod = false,
+            bool enableCallerInfoInImplicitInvocation = false)
         {
             // Either the methodOrIndexer is a property, in which case the method used
             // for optional parameters is an accessor of that property (or an overridden
@@ -466,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Step three: Now fill in the optional arguments.
-            InsertMissingOptionalArguments(syntax, optionalParametersMethod.Parameters, actualArguments);
+            InsertMissingOptionalArguments(syntax, optionalParametersMethod.Parameters, actualArguments, enableCallerInfoInImplicitInvocation);
 
             // Step four: all the arguments are now in place. Optimize away unnecessary temporaries.
             // Necessary temporaries have their store instructions merged into the appropriate 
@@ -752,9 +756,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return tempsRemainedInUse;
         }
 
+        /// <summary>
+        /// Inserts expressions for missing optional arguments.
+        /// The parameter <paramref name="enableCallerInfoInImplicitInvocation"/>
+        /// indicates if caller info should be enabled even when processing an implicit invocation (such as an invocation
+        /// of an <c>Add</c> method generated for an element-initializer in a collection-initializer).
+        /// </summary>
         private void InsertMissingOptionalArguments(CSharpSyntaxNode syntax,
             ImmutableArray<ParameterSymbol> parameters,
-            BoundExpression[] arguments)
+            BoundExpression[] arguments,
+            bool enableCallerInfoInImplicitInvocation = false)
         {
             for (int p = 0; p < arguments.Length; ++p)
             {
@@ -762,14 +773,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ParameterSymbol parameter = parameters[p];
                     Debug.Assert(parameter.IsOptional);
-                    arguments[p] = GetDefaultParameterValue(syntax, parameter);
+                    arguments[p] = GetDefaultParameterValue(syntax, parameter, enableCallerInfoInImplicitInvocation);
                     Debug.Assert(arguments[p].Type == parameter.Type);
                 }
             }
         }
 
-        private static SourceLocation GetCallerLocation(CSharpSyntaxNode syntax)
+        /// <summary>
+        /// Gets caller location to fill optional parameters annotated with
+        /// <see cref="CallerLineNumberAttribute"/>, <see cref="CallerFilePathAttribute"/> or <see cref="CallerMemberNameAttribute"/>.
+        /// </summary>
+        /// <param name="syntax">The syntax node that represents the call (method invocation, constructor invocation, etc.)</param>
+        /// <param name="enableCallerInfoInImplicitInvocation">
+        /// A boolean value indicating if caller info should be enabled even when processing an implicit invocation 
+        /// (such as an invocation of an <c>Add</c> method generated for an element-initializer in a collection-initializer).
+        /// If <c>true</c>, then <paramref name="syntax"/> represents an argument list or an argument itself,
+        /// so the location of its first token is returned regardless of its kind.
+        /// </param>
+        private static SourceLocation GetCallerLocation(CSharpSyntaxNode syntax, bool enableCallerInfoInImplicitInvocation)
         {
+            if (enableCallerInfoInImplicitInvocation)
+            {
+                return new SourceLocation(syntax.GetFirstToken());
+            }
+
             switch (syntax.Kind)
             {
                 case SyntaxKind.InvocationExpression:
@@ -793,7 +820,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression GetDefaultParameterValue(CSharpSyntaxNode syntax, ParameterSymbol parameter)
+        /// <summary>
+        /// Gets the default value for the <paramref name="parameter"/>.
+        /// </summary>
+        /// <param name="syntax">
+        /// A syntax node corresponding to the invocation.
+        /// </param>
+        /// <param name="parameter">
+        /// A parameter to get the default value for.
+        /// </param>
+        /// <param name="enableCallerInfoInImplicitInvocation">
+        /// A boolean value indicating if caller info should be enabled even when processing an implicit invocation 
+        /// (such as an invocation of an <c>Add</c> method generated for an element-initializer in a collection-initializer).
+        /// </param>
+        /// <remarks>
+        /// DELIBERATE SPEC VIOLATION: When processing an implicit invocation of an <c>Add</c> method generated
+        /// for an element-initializer in a collection-initializer, the parameter <paramref name="enableCallerInfoInImplicitInvocation"/> 
+        /// is set to <c>true</c>. It means that if the optional parameter being processed is annotated with <see cref="CallerLineNumberAttribute"/>,
+        /// <see cref="CallerFilePathAttribute"/> or <see cref="CallerMemberNameAttribute"/>, we will provide caller information as its default value.
+        /// This is done to match the native compiler behavior and user requests (see http://roslyn.codeplex.com/workitem/171). This behavior
+        /// does not match the C# spec that currently requires to provide caller information only in explicit invocations and query expressions.
+        /// </remarks>
+        private BoundExpression GetDefaultParameterValue(CSharpSyntaxNode syntax, ParameterSymbol parameter, bool enableCallerInfoInImplicitInvocation)
         {
             TypeSymbol parameterType = parameter.Type;
             ConstantValue defaultConstantValue = parameter.ExplicitDefaultConstantValue;
@@ -801,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SourceLocation callerSourceLocation;
 
-            if (parameter.IsCallerLineNumber && ((callerSourceLocation = GetCallerLocation(syntax)) != null))
+            if (parameter.IsCallerLineNumber && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfoInImplicitInvocation)) != null))
             {
                 int line = callerSourceLocation.SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
                 BoundExpression lineLiteral = MakeLiteral(syntax, ConstantValue.Create(line), compilation.GetSpecialType(SpecialType.System_Int32));
@@ -821,13 +869,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultValue = MakeConversion(lineLiteral, parameterType, false);
                 }
             }
-            else if (parameter.IsCallerFilePath && ((callerSourceLocation = GetCallerLocation(syntax)) != null))
+            else if (parameter.IsCallerFilePath && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfoInImplicitInvocation)) != null))
             {
                 string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, compilation.Options.SourceReferenceResolver);
                 BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(path), compilation.GetSpecialType(SpecialType.System_String));
                 defaultValue = MakeConversion(memberNameLiteral, parameterType, false);
             }
-            else if (parameter.IsCallerMemberName && ((callerSourceLocation = GetCallerLocation(syntax)) != null))
+            else if (parameter.IsCallerMemberName && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfoInImplicitInvocation)) != null))
             {
                 string memberName;
 

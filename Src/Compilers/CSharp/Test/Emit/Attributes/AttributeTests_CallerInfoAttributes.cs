@@ -2685,5 +2685,126 @@ public class Foo : I1
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
+        /// <summary>
+        /// DELIBERATE SPEC VIOLATION: The C# spec currently requires to provide caller information only in explicit invocations and query expressions.
+        /// We also provide caller information to an invocation of an <c>Add</c> method generated for an element-initializer in a collection-initializer
+        /// to match the native compiler behavior and user requests. 
+        /// </summary>
+        [WorkItem(991476, "DevDiv")]
+        [WorkItem(171, "CodePlex")]
+        [Fact]
+        public void Bug991476_1()
+        {
+            const string source =
+@"using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+public class MyCollectionWithInitializer : IEnumerable<DBNull>
+{
+    public string LastCallerFilePath { get; set; }
+
+    public void Add<T>(T something, [CallerFilePath] string callerFilePath = """") where T : struct
+    {
+        LastCallerFilePath = callerFilePath;
+        Console.WriteLine(""Caller file path: "" + (!string.IsNullOrEmpty(callerFilePath) ? callerFilePath : ""(nothing)""));
+    }
+
+    public IEnumerator<DBNull> GetEnumerator()
+    {
+        throw new NotSupportedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new NotSupportedException();
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var coll1 = new MyCollectionWithInitializer();
+        coll1.Add(123);
+        Console.WriteLine(coll1.LastCallerFilePath);
+
+        var coll2 = new MyCollectionWithInitializer { 345 };
+        Console.WriteLine(coll2.LastCallerFilePath);
+    }
+}";
+
+            const string expected = @"Caller file path: C:\filename
+C:\filename
+Caller file path: C:\filename
+C:\filename";
+
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
+                new[] { SystemCoreRef },
+                TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [WorkItem(991476, "DevDiv")]
+        [WorkItem(171, "CodePlex")]
+        [Fact]
+        public void Bug991476_2()
+        {
+            const string source =
+@"using System;
+using System.Collections;
+using System.Runtime.CompilerServices;
+
+class C : Stack
+{
+    static void Main()
+    {
+        new C
+        {
+            1, // line 11
+            2  // line 12
+        };
+
+        new C
+        {
+            {  // line 17
+                1,
+                true
+            },
+            {  // line 21
+                ""Hi""
+            }
+        };
+
+
+    }
+
+    public void Add(int x, [CallerLineNumber] int n = -1) { Console.WriteLine(n); }
+    public void Add(int x, bool y, [CallerLineNumber] int n = -1) { Console.WriteLine(n); }
+}
+
+static class E
+{
+    public static void Add(this C c, string s, [CallerMemberName] string m = ""Default"", [CallerLineNumber] int n = -1)
+    {
+        Console.WriteLine(m);
+        Console.WriteLine(n);
+    }
+}";
+
+            const string expected = @"11
+12
+17
+Main
+21";
+
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
+                new[] { SystemCoreRef },
+                TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
     }
 }

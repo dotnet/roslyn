@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // 
                         // C().Collection[z : Z(), x : X(), y : Y()] += 1;
                         // 
-                        // because we have to ensure not just that Z() happens first, but in additioan that X() and Y() are only 
+                        // because we have to ensure not just that Z() happens first, but in addition that X() and Y() are only 
                         // called once.  We have to generate this as
                         // 
                         // tempc = C().Collection

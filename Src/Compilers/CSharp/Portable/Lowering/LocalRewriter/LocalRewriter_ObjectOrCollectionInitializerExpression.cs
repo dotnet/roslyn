@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
             var argumentRefKindsOpt = default(ImmutableArray<RefKind>);
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps);
+            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps, enableCallerInfoInImplicitInvocation: true);
             Debug.Assert(argumentRefKindsOpt.IsDefault);
 
             if (initializer.InvokedAsExtensionMethod)
