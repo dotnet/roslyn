@@ -177,6 +177,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Parse a debugger expression (e.g. possibly including pseudo-variables).
+        ''' </summary>
+        ''' <param name="text">The input string</param>
+        ''' <param name="offset">The starting offset in the string</param>
+        ''' TODO (acasey): pseudo-locals, etc
+        Public Shared Function ParseDebuggerExpression(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As ExpressionSyntax
+            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
+                p.GetNextToken()
+                Dim node = p.ParseExpression()
+                If consumeFullText Then node = p.ConsumeUnexpectedTokens(node)
+                ' NOTE: In C#, we wrap the expression in an ExpressionStatementSyntax.  We can't do that in
+                ' VB because an array index expression wrapped in an expression statement will be bound as
+                ' an invocation.
+                Dim syntaxTree = VisualBasicSyntaxTree.Create(DirectCast(node.CreateRed(Nothing, 0), ExpressionSyntax))
+                Return DirectCast(syntaxTree.GetRoot(), ExpressionSyntax)
+            End Using
+        End Function
+
+        ''' <summary>
         ''' Parse an executable statement.
         ''' </summary>
         ''' <param name="text">The input string</param>

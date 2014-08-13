@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var node = parser.ParseExpression();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 var parent = InternalSyntax.SyntaxFactory.ExpressionStatement(node, InternalSyntax.SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-                var syntaxTree = CSharpSyntaxTree.Create((ExpressionStatementSyntax)parent.CreateRed(), text: text);
+                var syntaxTree = CSharpSyntaxTree.Create((ExpressionStatementSyntax)parent.CreateRed());
                 return ((ExpressionStatementSyntax)syntaxTree.GetRoot()).Expression;
             }
         }
