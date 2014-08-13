@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task AddDeclarationsAsync(Project project, IAssemblySymbol assembly, string name, bool ignoreCase, List<ISymbol> list, CancellationToken cancellationToken)
         {
             var info = await SymbolTreeInfo.GetInfoForProjectAsync(project, cancellationToken).ConfigureAwait(false);
-            if (info.HasSymbols(name, ignoreCase))
+            if (info != null && info.HasSymbols(name, ignoreCase))
             {
                 list.AddRange(info.Find(assembly, name, ignoreCase, cancellationToken));
             }
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var info = await SymbolTreeInfo.GetInfoForProjectAsync(project, cancellationToken).ConfigureAwait(false);
 
-            if (info.HasSymbols(name, ignoreCase))
+            if (info != null && info.HasSymbols(name, ignoreCase))
             {
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 return info.Find(compilation.Assembly, name, ignoreCase, cancellationToken);
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             cancellationToken.ThrowIfCancellationRequested();
 
             var info = await SymbolTreeInfo.GetInfoForProjectAsync(project, cancellationToken).ConfigureAwait(false);
-            if (info.HasSymbols(predicate, cancellationToken))
+            if (info != null && info.HasSymbols(predicate, cancellationToken))
             {
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 return info.Search(compilation.Assembly, predicate, cancellationToken);
