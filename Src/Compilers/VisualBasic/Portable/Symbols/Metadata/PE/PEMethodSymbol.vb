@@ -10,6 +10,7 @@ Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -343,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     Select Case contender.m_lazyMethodKind
                         Case UninitializedMethodKind, MethodKind.Ordinary
-                            ' Need to check against our method
+                        ' Need to check against our method
                         Case potentialMethodKind
                             If i = 0 OrElse adjustContendersOfAdditionalName Then
                                 ' Contender was already cleared, so it cannot conflict with this operator.
@@ -722,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedProperty(propertySymbol As PEPropertySymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = methodKind.PropertyGet) OrElse (methodKind = methodKind.PropertySet))
+            Debug.Assert((methodKind = MethodKind.PropertyGet) OrElse (methodKind = MethodKind.PropertySet))
             Return Me.SetAssociatedPropertyOrEvent(propertySymbol, methodKind)
         End Function
 
@@ -731,7 +732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedEvent(eventSymbol As PEEventSymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = methodKind.EventAdd) OrElse (methodKind = methodKind.EventRemove) OrElse (methodKind = methodKind.EventRaise))
+            Debug.Assert((methodKind = MethodKind.EventAdd) OrElse (methodKind = MethodKind.EventRemove) OrElse (methodKind = MethodKind.EventRaise))
             Return Me.SetAssociatedPropertyOrEvent(eventSymbol, methodKind)
         End Function
 
@@ -962,17 +963,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property MeParameter As ParameterSymbol
-            Get
-                Dim meParam = m_lazyMeParameter
-                If meParam IsNot Nothing OrElse Me.IsShared Then
-                    Return meParam
-                End If
+        Friend Overrides Function TryGetMeParameter(<Out> ByRef meParameter As ParameterSymbol) As Boolean
+            meParameter = m_lazyMeParameter
+            If meParameter IsNot Nothing OrElse Me.IsShared Then
+                Return True
+            End If
 
-                Interlocked.CompareExchange(m_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
-                Return m_lazyMeParameter
-            End Get
-        End Property
+            Interlocked.CompareExchange(m_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
+            meParameter = m_lazyMeParameter
+            Return True
+        End Function
     End Class
 
 End Namespace

@@ -4,6 +4,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
 Imports System.Globalization
+Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -332,6 +333,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend NotOverridable Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
             Return OriginalDefinition.IsMetadataNewSlot(ignoreInterfaceImplementationChanges)
+        End Function
+
+        Friend NotOverridable Overrides Function TryGetMeParameter(<Out> ByRef meParameter As ParameterSymbol) As Boolean
+            ' Required in EE scenarios.  Specifically, the EE binds in the context of a 
+            ' substituted method, whereas the core compiler always binds within the
+            ' context of an original definition.  
+            ' There should never be any reason to call this in normal compilation
+            ' scenarios, but the behavior should be sensible if it does occur.
+            Dim originalMeParameter As ParameterSymbol = Nothing
+            If Not OriginalDefinition.TryGetMeParameter(originalMeParameter) Then
+                meParameter = Nothing
+                Return False
+            End If
+            meParameter = If(originalMeParameter IsNot Nothing,
+                New MeParameterSymbol(Me),
+                Nothing)
+            Return True
         End Function
 
         Public Overrides Function GetHashCode() As Integer

@@ -784,24 +784,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim boundBody = method.GetBoundMethodBody(diagnosticsThisMethod)
 
-                    Dim rewrittenBody = Rewriter.Rewrite(
-                        method,
-                        boundBody,
-                        diagnosticsThisMethod,
-                        _generateDebugInfo,
-                        compilationState,
-                        previousSubmissionFields:=Nothing)
-
                     Dim emittedBody As MethodBody = Nothing
 
                     If Not diagnosticsThisMethod.HasAnyErrors Then
-                        emittedBody = GenerateMethodBody(_moduleBeingBuilt,
-                                                         method,
-                                                         rewrittenBody,
-                                                         optimize:=_optimize,
-                                                         debugDocumentProvider:=Nothing,
-                                                         diagsForThisMethod:=diagnosticsThisMethod,
-                                                         namespaceScopes:=Nothing)
+                        Dim rewrittenBody = Rewriter.Rewrite(
+                            method,
+                            boundBody,
+                            diagnosticsThisMethod,
+                            _generateDebugInfo,
+                            compilationState,
+                            previousSubmissionFields:=Nothing)
+
+                        If Not diagnosticsThisMethod.HasAnyErrors Then
+                            emittedBody = GenerateMethodBody(_moduleBeingBuilt,
+                                                             method,
+                                                             rewrittenBody,
+                                                             optimize:=_optimize,
+                                                             debugDocumentProvider:=Nothing,
+                                                             diagsForThisMethod:=diagnosticsThisMethod,
+                                                             namespaceScopes:=Nothing)
+                        End If
                     End If
 
                     _diagnostics.AddRange(diagnosticsThisMethod)

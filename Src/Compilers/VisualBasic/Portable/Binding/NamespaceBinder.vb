@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
+        Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
                                                       name As String,
                                                       arity As Integer,
                                                       options As LookupOptions,
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             m_nsSymbol.AddExtensionMethodLookupSymbolsInfo(nameSet, options, originalBinder)
         End Sub
 
-        Protected Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo, options As LookupOptions, originalBinder As Binder)
+        Friend Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo, options As LookupOptions, originalBinder As Binder)
             ' Get names from the associated namespace
             originalBinder.AddMemberLookupSymbolsInfo(nameSet, m_nsSymbol, options Or LookupOptions.IgnoreExtensionMethods)
         End Sub

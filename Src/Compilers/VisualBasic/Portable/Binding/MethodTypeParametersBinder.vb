@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' a) type parameters in this type (but not outer or base types)
         ''' Returns all members of that name, or empty list if none.
         ''' </summary>
-        Protected Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
+        Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
                                                       name As String,
                                                       arity As Integer,
                                                       options As LookupOptions,
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Protected Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
+        Friend Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
                                                                     options As LookupOptions,
                                                                     originalBinder As Binder)
             ' UNDONE: check options to see if type parameters should be found.

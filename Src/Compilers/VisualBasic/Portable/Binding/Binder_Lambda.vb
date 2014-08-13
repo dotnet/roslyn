@@ -1115,7 +1115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Protected Overrides Sub LookupInSingleBinder(lookupResult As LookupResult, name As String, arity As Integer, options As LookupOptions, originalBinder As Binder,
+        Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult, name As String, arity As Integer, options As LookupOptions, originalBinder As Binder,
                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
             MyBase.LookupInSingleBinder(lookupResult, name, arity, options, originalBinder, useSiteDiagnostics)
 

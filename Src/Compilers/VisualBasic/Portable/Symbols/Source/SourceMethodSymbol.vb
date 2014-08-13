@@ -1256,19 +1256,18 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property MeParameter As ParameterSymbol
-            Get
-                If IsShared Then
-                    Return Nothing
-                Else
-                    If m_lazyMeParameter Is Nothing Then
-                        Interlocked.CompareExchange(Of ParameterSymbol)(m_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
-                    End If
-
-                    Return m_lazyMeParameter
+        Friend NotOverridable Overrides Function TryGetMeParameter(<Out> ByRef meParameter As ParameterSymbol) As Boolean
+            If IsShared Then
+                meParameter = Nothing
+            Else
+                If m_lazyMeParameter Is Nothing Then
+                    Interlocked.CompareExchange(m_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
                 End If
-            End Get
-        End Property
+
+                meParameter = m_lazyMeParameter
+            End If
+            Return True
+        End Function
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get

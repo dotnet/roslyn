@@ -540,15 +540,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend MustOverride ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
 
         ''' <summary>
-        ''' Get the "this" parameter for this method.  This is only valid for source methods.
-        ''' Returns Nothing for a Shared method, the Me parameter for a non-shared method, and throws
-        ''' InvalidOperationException for a symbol that isn't a original source method.
+        ''' Call <see cref="TryGetMeParameter"/> and throw if it returns false.
         ''' </summary>
-        Friend Overridable ReadOnly Property MeParameter As ParameterSymbol
+        ''' <returns></returns>
+        Friend ReadOnly Property MeParameter As ParameterSymbol
             Get
-                Throw ExceptionUtilities.Unreachable
+                Dim parameter As ParameterSymbol = Nothing
+                If Not Me.TryGetMeParameter(parameter) Then
+                    Throw ExceptionUtilities.Unreachable
+                End If
+                Return parameter
             End Get
         End Property
+
+        ''' <returns>
+        ''' True if this <see cref="MethodSymbol"/> type supports retrieving the this parameter
+        ''' And false otherwise.  Note that a return value of true does Not guarantee a non-null
+        ''' <paramref name="meParameter"/> (e.g. fails for static methods).
+        ''' </returns>
+        Friend Overridable Function TryGetMeParameter(<Out> ByRef meParameter As ParameterSymbol) As Boolean
+            meParameter = Nothing
+            Return False
+        End Function
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
             If Me.IsDefinition Then

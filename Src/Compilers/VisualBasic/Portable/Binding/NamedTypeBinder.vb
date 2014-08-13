@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 
         ''' Returns all members of that name, or empty list if none.
         ''' </summary>
-        Protected Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
+        Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
                                                       name As String,
                                                       arity As Integer,
                                                       options As LookupOptions,
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' 2. Lookup type parameter.
-            Dim typeParameterLookupResult = lookupResult.GetInstance()
+            Dim typeParameterLookupResult = LookupResult.GetInstance()
             LookupTypeParameter(typeParameterLookupResult, name, arity, options, originalBinder, useSiteDiagnostics)
             lookupResult.MergePrioritized(typeParameterLookupResult)
             typeParameterLookupResult.Free()
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             m_typeSymbol.AddExtensionMethodLookupSymbolsInfo(nameSet, options, originalBinder)
         End Sub
 
-        Protected Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
+        Friend Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
                                                                     options As LookupOptions,
                                                                     originalBinder As Binder)
             ' 1. Add all type parameters.

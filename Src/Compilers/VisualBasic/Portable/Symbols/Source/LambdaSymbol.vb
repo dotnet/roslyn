@@ -3,6 +3,7 @@
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
+Imports System.Runtime.InteropServices
 Imports System.Threading
 
 Imports Microsoft.CodeAnalysis.Text
@@ -172,21 +173,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' "Me" parameter for this lambda will be that of the containing symbol
         ''' </summary>
-        Friend Overrides ReadOnly Property MeParameter As ParameterSymbol
-            Get
-                Debug.Assert(ContainingSymbol IsNot Nothing)
-                Select Case ContainingSymbol.Kind
-                    Case SymbolKind.Field
-                        Return DirectCast(ContainingSymbol, FieldSymbol).MeParameter
-                    Case SymbolKind.Property
-                        Return DirectCast(ContainingSymbol, PropertySymbol).MeParameter
-                    Case SymbolKind.Method
-                        Return DirectCast(ContainingSymbol, MethodSymbol).MeParameter
-                    Case Else
-                        Return Nothing
-                End Select
-            End Get
-        End Property
+        Friend Overrides Function TryGetMeParameter(<Out> ByRef meParameter As ParameterSymbol) As Boolean
+            Debug.Assert(ContainingSymbol IsNot Nothing)
+            Select Case ContainingSymbol.Kind
+                Case SymbolKind.Field
+                    meParameter = DirectCast(ContainingSymbol, FieldSymbol).MeParameter
+                Case SymbolKind.Property
+                    meParameter = DirectCast(ContainingSymbol, PropertySymbol).MeParameter
+                Case SymbolKind.Method
+                    meParameter = DirectCast(ContainingSymbol, MethodSymbol).MeParameter
+                Case Else
+                    meParameter = Nothing
+            End Select
+            Return True
+        End Function
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get

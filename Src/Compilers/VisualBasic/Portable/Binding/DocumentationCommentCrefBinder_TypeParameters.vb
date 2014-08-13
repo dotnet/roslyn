@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._typeParameters = typeParameters
             End Sub
 
-            Protected Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
+            Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
                                                          name As String,
                                                          arity As Integer,
                                                          options As LookupOptions,
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Sub
 
-            Protected Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
+            Friend Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
                                                                        options As LookupOptions,
                                                                        originalBinder As Binder)
 

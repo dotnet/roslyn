@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -166,19 +167,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property MeParameter As ParameterSymbol
-            Get
-                If IsShared Then
-                    Return Nothing
-                Else
-                    If m_lazyMeParameter Is Nothing Then
-                        Interlocked.CompareExchange(Of ParameterSymbol)(m_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
-                    End If
-
-                    Return m_lazyMeParameter
+        Friend NotOverridable Overrides Function TryGetMeParameter(<Out> ByRef meParameter As ParameterSymbol) As Boolean
+            If IsShared Then
+                meParameter = Nothing
+            Else
+                If m_lazyMeParameter Is Nothing Then
+                    Interlocked.CompareExchange(m_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
                 End If
-            End Get
-        End Property
+
+                meParameter = m_lazyMeParameter
+            End If
+            Return True
+        End Function
 
         Friend Overrides Function GetAppliedConditionalSymbols() As ImmutableArray(Of String)
             Return ImmutableArray(Of String).Empty

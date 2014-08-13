@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Lookup in just a single binder, without delegating to containing binder. The original
         ''' binder passed in is used for accessibility checking and so forth.
         ''' </summary>
-        Protected Overridable Sub LookupInSingleBinder(lookupResult As LookupResult,
+        Friend Overridable Sub LookupInSingleBinder(lookupResult As LookupResult,
                                                        name As String,
                                                        arity As Integer,
                                                        options As LookupOptions,
@@ -270,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Names that are available are inserted into "nameSet". This is a hashSet that accumulates
         ''' names, and should be created with the VB identifierComparer.
         ''' </summary>
-        Protected Overridable Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
+        Friend Overridable Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
                                                                       options As LookupOptions,
                                                                       originalBinder As Binder)
             ' overridden in derived binders that introduce names.
