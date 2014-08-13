@@ -238,7 +238,6 @@ public class Test : Class2
                     stream,
                     pdbWriter: null,
                     allowMissingMethodBodies: false,
-                    foldDuplicateMethodBodies: false,
                     deterministic: false,
                     cancellationToken: CancellationToken.None);
 

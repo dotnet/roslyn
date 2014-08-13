@@ -58,9 +58,14 @@ namespace Microsoft.CodeAnalysis
         public string OutputFileName { get; internal set; }
 
         /// <summary>
-        /// Path of the PDB file or null if not specified.
+        /// Path of the PDB file or null if same as output binary path with .pdb extension.
         /// </summary>
         public string PdbPath { get; internal set; }
+
+        /// <summary>
+        /// True to emit PDB file.
+        /// </summary>
+        public bool EmitPdb { get; internal set; }
 
         /// <summary>
         /// Absolute path of the output directory.

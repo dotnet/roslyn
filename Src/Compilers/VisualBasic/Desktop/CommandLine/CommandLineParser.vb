@@ -87,8 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim optimize As Boolean = False
                 Dim checkOverflow As Boolean = True
                 Dim concurrentBuild As Boolean = True
-                Dim emitDebugInformation As Boolean = False
-                Dim emitDebugInformationKind = DebugInformationKind.Full
+                Dim emitPdb As Boolean = False
                 Dim noStdLib As Boolean = False
                 Dim utf8output As Boolean = False
                 Dim outputFileName As String = Nothing
@@ -519,19 +518,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
 
                             Case "debug"
+
+                                ' parse only for backwards compat
                                 If value IsNot Nothing Then
                                     If String.IsNullOrEmpty(value) Then
                                         AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "debug", ":pdbonly|full")
-                                    ElseIf String.Equals(value, "full", StringComparison.OrdinalIgnoreCase) Then
-                                        emitDebugInformationKind = DebugInformationKind.Full
-                                    ElseIf String.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase) Then
-                                        emitDebugInformationKind = DebugInformationKind.PdbOnly
-                                    Else
+                                    ElseIf Not String.Equals(value, "full", StringComparison.OrdinalIgnoreCase) AndAlso
+                                           Not String.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase) Then
                                         AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, value, "debug")
                                     End If
                                 End If
 
-                                emitDebugInformation = True
+                                emitPdb = True
                                 Continue For
 
                             Case "debug+"
@@ -539,7 +537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
                                 End If
 
-                                emitDebugInformation = True
+                                emitPdb = True
                                 Continue For
 
                             Case "debug-"
@@ -547,7 +545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
                                 End If
 
-                                emitDebugInformation = False
+                                emitPdb = False
                                 Continue For
 
                             Case "optimize", "optimize+"
@@ -1062,10 +1060,6 @@ lVbRuntimePlus:
                     keyFileSearchPaths.Add(outputDirectory)
                 End If
 
-                If Not emitDebugInformation Then
-                    emitDebugInformationKind = DebugInformationKind.None
-                End If
-
                 Dim compilationName As String = Nothing
                 GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)
 
@@ -1108,8 +1102,7 @@ lVbRuntimePlus:
                         generalDiagnosticOption:=generalDiagnosticOption,
                         specificDiagnosticOptions:=specificDiagnosticOptions,
                         highEntropyVirtualAddressSpace:=highEntropyVA,
-                        debugInformationKind:=emitDebugInformationKind,
-                        optimize:=optimize,
+                        optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
                         subsystemVersion:=ssVersion,
                         parseOptions:=parseOptions).WithFeatures(features.AsImmutable())
 
@@ -1151,6 +1144,7 @@ lVbRuntimePlus:
                     .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                     .TouchedFilesPath = touchedFilesPath,
                     .OutputLevel = outputLevel,
+                    .EmitPdb = emitPdb,
                     .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                     .PreferredUILang = preferredUILang,
                     .SqmSessionGuid = sqmsessionguid

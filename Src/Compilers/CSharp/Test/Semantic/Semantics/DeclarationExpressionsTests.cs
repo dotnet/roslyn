@@ -7845,7 +7845,7 @@ public class Cls
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1004724"), WorkItem(1004724)]
         public void InitializationScope_01()
         {
             var text = @"
@@ -7865,14 +7865,14 @@ class Test
     public int z = x;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "10 12 11").VerifyDiagnostics();
 
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1004724"), WorkItem(1004724)]
         public void InitializationScope_02()
         {
             var text = @"
@@ -7911,7 +7911,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1004724"), WorkItem(1004724)]
         public void InitializationScope_03()
         {
             var text = @"
@@ -7950,7 +7950,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1004724"), WorkItem(1004724)]
         public void InitializationScope_04()
         {
             var text = @"
@@ -7989,7 +7989,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1004724"), WorkItem(1004724)]
         public void InitializationScope_05()
         {
             var text = @"
@@ -8015,7 +8015,7 @@ class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1004724"), WorkItem(1004724)]
         public void InitializationScope_06()
         {
             var text = @"
@@ -8050,7 +8050,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1004724"), WorkItem(1004724)]
         public void InitializationScope_07()
         {
             var text = @"
@@ -8083,7 +8083,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1004724"), WorkItem(1004724)]
         public void InitializationScope_08()
         {
             var text = @"
@@ -8118,7 +8118,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1004724"), WorkItem(1004724)]
         public void InitializationScope_09()
         {
             var text = @"
@@ -8149,7 +8149,7 @@ partial class Test
             TestSemanticModelAPI(compilation);
         }
 
-        [Fact]
+        [Fact(Skip = "1004724"), WorkItem(1004724)]
         public void InitializationScope_10()
         {
             var text = @"

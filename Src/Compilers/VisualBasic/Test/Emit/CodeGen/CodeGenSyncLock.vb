@@ -1136,7 +1136,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime:=True, optimize:=True)).VerifyIL("Module1.Main",
+            CompileAndVerify(source, options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True)).VerifyIL("Module1.Main",
             <![CDATA[
 {
   // Code size       29 (0x1d)
@@ -1182,7 +1182,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime:=False, optimize:=True)).VerifyIL("Module1.Main",
+            CompileAndVerify(source, options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(False)).VerifyIL("Module1.Main",
             <![CDATA[
 {
   // Code size       35 (0x23)
@@ -1237,7 +1237,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimize:=True)).VerifyIL("Module1.Main",
+            CompileAndVerify(source, options:=TestOptions.ReleaseExe).VerifyIL("Module1.Main",
             <![CDATA[
 {
   // Code size       39 (0x27)

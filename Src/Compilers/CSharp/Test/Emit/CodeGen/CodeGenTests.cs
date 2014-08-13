@@ -60,9 +60,9 @@ class Program
   // Code size       76 (0x4c)
   .maxstack  4
   .locals init (object V_0, //trackArg1
-                object V_1, //trackArg2
-                DoubleAndStruct V_2, //localArg1
-                DoubleAndStruct V_3) //localArg2
+  object V_1, //trackArg2
+  DoubleAndStruct V_2, //localArg1
+  DoubleAndStruct V_3) //localArg2
   IL_0000:  nop
   IL_0001:  ldloca.s   V_2
   IL_0003:  initobj    ""DoubleAndStruct""
@@ -585,7 +585,7 @@ class C
   // Code size       26 (0x1a)
   .maxstack  1
   .locals init (B V_0, //b
-                bool V_1) //x
+  bool V_1) //x
   IL_0000:  nop
   IL_0001:  newobj     ""B..ctor()""
   IL_0006:  stloc.0
@@ -12356,21 +12356,9 @@ class C
 
             var compRelease = CreateCompilationWithMscorlib(source, options:TestOptions.ReleaseExe);
             var compDebug = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
-            var compDebuggableRelease = CreateCompilationWithMscorlib(source, options: TestOptions.DebuggableReleaseExe);
 
             // (2) is not met.
             CompileAndVerify(compRelease).VerifyIL("C.Main", @"
-{
-  // Code size       12 (0xc)
-  .maxstack  1
-  IL_0000:  call       ""void C.Void()""
-  IL_0005:  call       ""int C.NonVoid()""
-  IL_000a:  pop
-  IL_000b:  ret
-}");
-
-            // (2) is not met.
-            CompileAndVerify(compDebuggableRelease).VerifyIL("C.Main", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -12419,15 +12407,15 @@ class C
   .maxstack  2
   .locals init (int V_0, //i
                 bool V_1) //CS$4$0000
-  IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
+  IL_0000:  nop       
+  IL_0001:  ldc.i4.0  
+  IL_0002:  stloc.0   
   IL_0003:  br.s       IL_000d
-  IL_0005:  nop
-  IL_0006:  nop
+  IL_0005:  nop       
+  IL_0006:  nop       
   IL_0007:  call       ""void System.Diagnostics.Debugger.Break()""
-  IL_000c:  nop
-  IL_000d:  ldloc.0
+  IL_000c:  nop       
+  IL_000d:  ldloc.0   
   IL_000e:  ldc.i4.s   10
   IL_0010:  clt
   IL_0012:  stloc.1

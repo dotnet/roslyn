@@ -3876,7 +3876,7 @@ unsafe class C
   // Code size       31 (0x1f)
   .maxstack  2
   .locals init (char V_0, //ch
-                char* V_1) //p
+      char* V_1) //p
   IL_0000:  ldc.i4.s   97
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
@@ -5428,7 +5428,7 @@ unsafe class C
   // Code size       50 (0x32)
   .maxstack  2
   .locals init (byte V_0, //b
-                byte* V_1) //p
+  byte* V_1) //p
   IL_0000:  nop
   IL_0001:  nop
   IL_0002:  ldc.i4.3
@@ -5515,7 +5515,7 @@ unsafe class C
   // Code size       50 (0x32)
   .maxstack  2
   .locals init (byte V_0, //b
-                byte* V_1) //p
+  byte* V_1) //p
   IL_0000:  nop
   IL_0001:  nop
   IL_0002:  ldc.i4.3
@@ -5969,7 +5969,7 @@ unsafe struct S
   // Code size       39 (0x27)
   .maxstack  2
   .locals init (S* V_0, //p
-                S* V_1) //q
+  S* V_1) //q
   IL_0000:  ldc.i4.8
   IL_0001:  conv.i
   IL_0002:  stloc.0
@@ -6027,7 +6027,7 @@ unsafe struct S
   // Code size       39 (0x27)
   .maxstack  2
   .locals init (S* V_0, //p
-                S* V_1) //q
+      S* V_1) //q
   IL_0000:  ldc.i4.8
   IL_0001:  conv.i
   IL_0002:  stloc.0
@@ -6083,7 +6083,7 @@ unsafe struct S
   // Code size       29 (0x1d)
   .maxstack  2
   .locals init (int* V_0, //p
-                int* V_1) //q
+      int* V_1) //q
   IL_0000:  ldc.i4.8
   IL_0001:  conv.i
   IL_0002:  stloc.0
@@ -6142,8 +6142,8 @@ unsafe struct S
   // Code size       43 (0x2b)
   .maxstack  2
   .locals init (S* V_0, //p1
-                S* V_1, //p2
-                S* V_2) //q
+      S* V_1, //p2
+      S* V_2) //q
   IL_0000:  ldc.i4.7
   IL_0001:  conv.i
   IL_0002:  stloc.0
@@ -7607,7 +7607,7 @@ unsafe struct S
   // Code size      133 (0x85)
   .maxstack  2
   .locals init (S* V_0, //p
-                S* V_1) //q
+      S* V_1) //q
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i
   IL_0002:  stloc.0
@@ -8549,7 +8549,7 @@ unsafe class Test
   // Code size       10 (0xa)
   .maxstack  1
   .locals init (S1* V_0, //structPointer
-                int* V_1, //intPointer
+  int* V_1, //intPointer
                 void* V_2) //voidPointer
   IL_0000:  ldc.i4.0
   IL_0001:  conv.u

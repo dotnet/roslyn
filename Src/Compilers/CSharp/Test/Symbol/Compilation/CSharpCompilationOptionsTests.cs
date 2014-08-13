@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Foo.Bar");
             TestProperty((old, value) => old.WithScriptClassName(value), opt => opt.ScriptClassName, "<Script>");
             TestProperty((old, value) => old.WithUsings(value), opt => opt.Usings, ImmutableArray.Create("A", "B"));
-            TestProperty((old, value) => old.WithOptimizations(value), opt => opt.Optimize, true);
+            TestProperty((old, value) => old.WithOptimizationLevel(value), opt => opt.OptimizationLevel, OptimizationLevel.Release);
             TestProperty((old, value) => old.WithOverflowChecks(value), opt => opt.CheckOverflow, true);
             TestProperty((old, value) => old.WithAllowUnsafe(value), opt => opt.AllowUnsafe, true);
             TestProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "foo");
@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new Dictionary<string, ReportDiagnostic> { { "CS0001", ReportDiagnostic.Error } }.ToImmutableDictionary());
 
             TestProperty((old, value) => old.WithHighEntropyVirtualAddressSpace(value), opt => opt.HighEntropyVirtualAddressSpace, true);
-            TestProperty((old, value) => old.WithDebugInformationKind(value), opt => opt.DebugInformationKind, DebugInformationKind.PdbOnly);
             TestProperty((old, value) => old.WithSubsystemVersion(value), opt => opt.SubsystemVersion, SubsystemVersion.Windows2000);
             TestProperty((old, value) => old.WithRuntimeMetadataVersion(value), opt => opt.RuntimeMetadataVersion, "v12345");
             TestProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);
@@ -125,13 +124,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS7088: Invalid 'OutputKind' value: 'Int32.MinValue'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OutputKind", Int32.MinValue.ToString()));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDebugInformationKind((DebugInformationKind)Int32.MaxValue).VerifyErrors(
-                // error CS7088: Invalid 'DebugInformationKind' value: 'Int32.MaxValue'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("DebugInformationKind", Int32.MaxValue.ToString()));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel((OptimizationLevel)Int32.MaxValue).VerifyErrors(
+                // error CS7088: Invalid 'OptimizationLevel' value: 'Int32.MaxValue'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OptimizationLevel", Int32.MaxValue.ToString()));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDebugInformationKind((DebugInformationKind)Int32.MinValue).VerifyErrors(
-                // error CS7088: Invalid 'DebugInformationKind' value: 'Int32.MinValue'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("DebugInformationKind", Int32.MinValue.ToString()));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel((OptimizationLevel)Int32.MinValue).VerifyErrors(
+                // error CS7088: Invalid 'OptimizationLevel' value: 'Int32.MinValue'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OptimizationLevel", Int32.MinValue.ToString()));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithFileAlignment(513).VerifyErrors(
                 // error CS2024: Invalid file section alignment number '513'
@@ -255,63 +254,53 @@ Parameter name: ModuleName")
         public void ConstructorValidation()
         {
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, usings: new string[] { null }).VerifyErrors(
-    // error CS7088: Invalid 'Usings' value: 'null'.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "null")
-                );
+                // error CS7088: Invalid 'Usings' value: 'null'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "null"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, usings: new string[] { "" }).VerifyErrors(
-    // error CS7088: Invalid 'Usings' value: ''.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "")
-                );
+                // error CS7088: Invalid 'Usings' value: ''.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ""));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, usings: new string[] { "blah\0foo" }).VerifyErrors(
-    // error CS7088: Invalid 'Usings' value: 'blah\0foo'.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0foo")
-                );
+                // error CS7088: Invalid 'Usings' value: 'blah\0foo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0foo"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: null).VerifyErrors(
-    // error CS7088: Invalid 'ScriptClassName' value: 'null'.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "null")
-                );
+                // error CS7088: Invalid 'ScriptClassName' value: 'null'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "null"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: "blah\0foo").VerifyErrors(
-    // error CS7088: Invalid 'ScriptClassName' value: 'blah\0foo'.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "blah\0foo")
-                );
+                // error CS7088: Invalid 'ScriptClassName' value: 'blah\0foo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "blah\0foo"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: "").VerifyErrors(
-    // error CS7088: Invalid 'ScriptClassName' value: ''.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "")
-                );
+                // error CS7088: Invalid 'ScriptClassName' value: ''.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", ""));
 
             Assert.Equal(0, new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: null).Errors.Length);
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: "blah\0foo").VerifyErrors(
-    // error CS7088: Invalid 'MainTypeName' value: 'blah\0foo'.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "blah\0foo")
-                );
+                // error CS7088: Invalid 'MainTypeName' value: 'blah\0foo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "blah\0foo"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: "").VerifyErrors(
-    // error CS7088: Invalid 'MainTypeName' value: ''.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "")
-                );
+                // error CS7088: Invalid 'MainTypeName' value: ''.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", ""));
 
             new CSharpCompilationOptions(outputKind: (OutputKind)Int32.MaxValue).VerifyErrors(
-    // error CS7088: Invalid 'OutputKind' value: 'Int32.MaxValue'.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OutputKind", Int32.MaxValue.ToString())
-                );
+                // error CS7088: Invalid 'OutputKind' value: 'Int32.MaxValue'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OutputKind", Int32.MaxValue.ToString()));
 
             new CSharpCompilationOptions(outputKind: (OutputKind)Int32.MinValue).VerifyErrors(
-    // error CS7088: Invalid 'OutputKind' value: 'Int32.MinValue'.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OutputKind", Int32.MinValue.ToString())
-                );
+                // error CS7088: Invalid 'OutputKind' value: 'Int32.MinValue'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OutputKind", Int32.MinValue.ToString()));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, debugInformationKind: (DebugInformationKind)Int32.MaxValue).VerifyErrors(
-                // error CS7088: Invalid 'DebugInformationKind' value: 'Int32.MaxValue'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("DebugInformationKind", Int32.MaxValue.ToString()));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: (OptimizationLevel)Int32.MaxValue).VerifyErrors(
+                // error CS7088: Invalid 'OptimizationLevel' value: 'Int32.MaxValue'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OptimizationLevel", Int32.MaxValue.ToString()));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, debugInformationKind: (DebugInformationKind)Int32.MinValue).VerifyErrors(
-                // error CS7088: Invalid 'DebugInformationKind' value: 'Int32.MinValue'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("DebugInformationKind", Int32.MinValue.ToString()));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: (OptimizationLevel)Int32.MinValue).VerifyErrors(
+                // error CS7088: Invalid 'OptimizationLevel' value: 'Int32.MinValue'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("OptimizationLevel", Int32.MinValue.ToString()));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, fileAlignment: 513).VerifyErrors(
                 // error CS2024: Invalid file section alignment number '513'
@@ -372,7 +361,7 @@ Parameter name: ModuleName")
             string mainTypeName = null;
             string scriptClassName = null;
             IEnumerable<string> usings = null;
-            bool optimize = false;
+            OptimizationLevel optimizationLevel = OptimizationLevel.Debug;
             bool checkOverflow = false;
             bool allowUnsafe = false;
             string cryptoKeyContainer = null;
@@ -385,7 +374,6 @@ Parameter name: ModuleName")
             int warningLevel = 0;
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null;
             bool highEntropyVirtualAddressSpace = false;
-            DebugInformationKind debugInformationKind = 0;
             SubsystemVersion subsystemVersion = default(SubsystemVersion);
             string runtimeMetadataVersion = null;
             bool concurrentBuild = false;
@@ -398,8 +386,8 @@ Parameter name: ModuleName")
             MetadataImportOptions metadataImportOptions = 0;
             ImmutableArray<string> features = ImmutableArray<string>.Empty;
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, moduleName, mainTypeName, scriptClassName, usings,
-                optimize, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, delaySign, fileAlignment, baseAddress,
-                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind,
+                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, delaySign, fileAlignment, baseAddress,
+                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, highEntropyVirtualAddressSpace, 
                 subsystemVersion, runtimeMetadataVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features);
         }

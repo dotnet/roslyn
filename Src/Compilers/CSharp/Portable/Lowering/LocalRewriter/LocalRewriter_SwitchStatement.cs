@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Create the sequence point if generating debug info and
             // node is not compiler generated
-            if (this.generateDebugInfo && !node.WasCompilerGenerated)
+            if (this.GenerateDebugInfo && !node.WasCompilerGenerated)
             {
                 SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)syntax;
                 TextSpan switchSequencePointSpan = TextSpan.FromBounds(

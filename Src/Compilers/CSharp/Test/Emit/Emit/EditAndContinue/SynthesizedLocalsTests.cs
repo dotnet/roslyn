@@ -37,24 +37,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     }
 }";
             var debug = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var debuggableRelease = CreateCompilationWithMscorlib(source, options: TestOptions.DebuggableReleaseDll);
             var release = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             CompilationTestData testData;
             ImmutableArray<string> names;
 
             testData = new CompilationTestData();
-            debug.EmitToArray(debug: true, testData: testData);
+            debug.EmitToArray(testData: testData);
             names = GetLocalNames(testData.GetMethodData("C.M"));
             AssertEx.Equal(new string[] { "CS$2$0000", "CS$520$0001", "CS$3$0002" }, names);
 
             testData = new CompilationTestData();
-            debuggableRelease.EmitToArray(debug: true, testData: testData);
-            names = GetLocalNames(testData.GetMethodData("C.M"));
-            AssertEx.Equal(new string[] { "CS$2$0000", "CS$520$0001", "CS$3$0002" }, names);
-
-            testData = new CompilationTestData();
-            release.EmitToArray(debug: true, testData: testData);
+            release.EmitToArray(testData: testData);
             names = GetLocalNames(testData.GetMethodData("C.M"));
             AssertEx.Equal(new string[] { null, null }, names);
         }
@@ -89,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -188,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -280,17 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
     }
 }";
-            var compilation0 = CreateCompilation(
-                source,
-                options: TestOptions.DebugDll,
-                references: new[] { MscorlibRef_v20 });
-            var compilation1 = CreateCompilation(
-                source,
-                options: TestOptions.DebugDll,
-                references: new[] { MscorlibRef_v20 });
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { MscorlibRef_v20 });
+            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { MscorlibRef_v20 });
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -353,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeDebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -471,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeDebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -646,7 +634,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -911,7 +899,7 @@ class C
 }", sequencePoints: "C.M");
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -1024,7 +1012,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -1190,7 +1178,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -1251,7 +1239,7 @@ class C
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -1379,7 +1367,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -1517,7 +1505,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -1698,7 +1686,7 @@ class C
 ", sequencePoints: "C.M");
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
@@ -1830,7 +1818,7 @@ class C
 </symbols>");
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
@@ -1950,7 +1938,7 @@ class C
 </symbols>");
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
@@ -2063,7 +2051,7 @@ class C
 </symbols>");
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
@@ -2176,7 +2164,7 @@ class C
 </symbols>");
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
@@ -2269,7 +2257,7 @@ class C
 }", sequencePoints: "C.M");
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");

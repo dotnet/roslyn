@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal boundLockTemp = this.factory.StoreToTemp(rewrittenArgument, out assignmentToLockTemp, kind: SynthesizedLocalKind.Lock);
 
             BoundStatement boundLockTempInit = new BoundExpressionStatement(lockSyntax, assignmentToLockTemp);
-            if (this.generateDebugInfo)
+            if (this.GenerateDebugInfo)
             {
                 boundLockTempInit = new BoundSequencePointWithSpan( // NOTE: the lock temp is uninitialized at this sequence point.
                     lockSyntax,
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     store: out assignmentToTemp);
 
                 BoundStatement boundFlagTempInit = new BoundExpressionStatement(lockSyntax, assignmentToTemp);
-                if (this.generateDebugInfo)
+                if (this.GenerateDebugInfo)
                 {
                     // hide the preamble code, we should not stop until we get to " locked = `argument`; "
                     boundFlagTempInit = new BoundSequencePoint(null, boundFlagTempInit);

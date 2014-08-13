@@ -580,11 +580,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal override bool GenerateDebugInfo
-        {
-            get { return true; }
-        }
-
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
         {
             get

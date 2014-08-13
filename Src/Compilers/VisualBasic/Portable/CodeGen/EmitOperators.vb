@@ -527,7 +527,7 @@ BinaryOperatorKindEqual:
 
             Debug.Assert(condition.Type.SpecialType = SpecialType.System_Boolean)
 
-            If Not _noOptimizations AndAlso condition.IsConstant Then
+            If _optimizations = OptimizationLevel.Release AndAlso condition.IsConstant Then
                 Dim constValue = condition.ConstantValueOpt
                 Debug.Assert(constValue.IsBoolean)
                 Dim constant = constValue.BooleanValue

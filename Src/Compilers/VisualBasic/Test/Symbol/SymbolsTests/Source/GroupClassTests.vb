@@ -156,9 +156,8 @@ DefaultInstanceTest2 None
             verifier.VerifyIL("MyTests.get_DefaultInstanceTest1",
             <![CDATA[
 {
-  // Code size       28 (0x1c)
+  // Code size       26 (0x1a)
   .maxstack  2
-  .locals init (DefaultInstanceTest1 V_0) //DefaultInstanceTest1
   IL_0000:  ldarg.0
   IL_0001:  ldarg.0
   IL_0002:  ldfld      "MyTests.m_DefaultInstanceTest1 As DefaultInstanceTest1"
@@ -166,42 +165,30 @@ DefaultInstanceTest2 None
   IL_000c:  stfld      "MyTests.m_DefaultInstanceTest1 As DefaultInstanceTest1"
   IL_0011:  ldarg.0
   IL_0012:  ldfld      "MyTests.m_DefaultInstanceTest1 As DefaultInstanceTest1"
-  IL_0017:  stloc.0
-  IL_0018:  br.s       IL_001a
-  IL_001a:  ldloc.0
-  IL_001b:  ret
+  IL_0017:  br.s       IL_0019
+  IL_0019:  ret
 }
 ]]>)
 
             verifier.VerifyIL("MyTests.set_DefaultInstanceTest1",
             <![CDATA[
 {
-  // Code size       49 (0x31)
+  // Code size       37 (0x25)
   .maxstack  2
-  .locals init (Boolean V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldarg.0
   IL_0002:  ldfld      "MyTests.m_DefaultInstanceTest1 As DefaultInstanceTest1"
-  IL_0007:  ceq
-  IL_0009:  ldc.i4.0
-  IL_000a:  ceq
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
-  IL_000e:  brtrue.s   IL_0012
-  IL_0010:  br.s       IL_0030
-  IL_0012:  ldarg.1
-  IL_0013:  ldnull
-  IL_0014:  ceq
-  IL_0016:  stloc.0
-  IL_0017:  ldloc.0
-  IL_0018:  brtrue.s   IL_0025
-  IL_001a:  ldstr      "Property can only be set to Nothing"
-  IL_001f:  newobj     "Sub System.ArgumentException..ctor(String)"
-  IL_0024:  throw
-  IL_0025:  ldarg.0
-  IL_0026:  ldflda     "MyTests.m_DefaultInstanceTest1 As DefaultInstanceTest1"
-  IL_002b:  call       "Sub MyTests.Dispose(Of DefaultInstanceTest1)(ByRef DefaultInstanceTest1)"
-  IL_0030:  ret
+  IL_0007:  bne.un.s   IL_000b
+  IL_0009:  br.s       IL_0024
+  IL_000b:  ldarg.1
+  IL_000c:  brfalse.s  IL_0019
+  IL_000e:  ldstr      "Property can only be set to Nothing"
+  IL_0013:  newobj     "Sub System.ArgumentException..ctor(String)"
+  IL_0018:  throw
+  IL_0019:  ldarg.0
+  IL_001a:  ldflda     "MyTests.m_DefaultInstanceTest1 As DefaultInstanceTest1"
+  IL_001f:  call       "Sub MyTests.Dispose(Of DefaultInstanceTest1)(ByRef DefaultInstanceTest1)"
+  IL_0024:  ret
 }
 ]]>)
         End Sub

@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceConstructorSymbol : SourceMethodSymbol
     {
+        private ImmutableArray<ParameterSymbol> lazyParameters;
+        private TypeSymbol lazyReturnType;
+        private bool lazyIsVararg;
+
         public static SourceConstructorSymbol CreateConstructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             ConstructorDeclarationSyntax syntax,
@@ -31,10 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new SourceConstructorSymbol(containingType, syntax.GetLocation(), syntax, diagnostics);
         }
 
-        private ImmutableArray<ParameterSymbol> lazyParameters;
-        private TypeSymbol lazyReturnType;
-        private bool lazyIsVararg;
-
         private SourceConstructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             Location location,
@@ -45,19 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarationModifiers = (containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public) | DeclarationModifiers.PrimaryCtor;
             this.flags = MakeFlags(MethodKind.Constructor, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
             this.CheckModifiers(MethodKind.Constructor, location, diagnostics);
-        }
-
-        private static SyntaxReference GetPrimaryConstructorBlockSyntaxReferenceOrNull(ParameterListSyntax syntax)
-        {
-            foreach (var m in ((TypeDeclarationSyntax)syntax.Parent).Members)
-            {
-                if (m.Kind == SyntaxKind.PrimaryConstructorBody)
-                {
-                    return ((PrimaryConstructorBodySyntax)m).Body.GetReference();
-                }
-            }
-
-            return null;
         }
 
         private SourceConstructorSymbol(
@@ -91,6 +78,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 this.CheckModifiers(methodKind, location, diagnostics);
             }
+        }
+
+        private static SyntaxReference GetPrimaryConstructorBlockSyntaxReferenceOrNull(ParameterListSyntax syntax)
+        {
+            foreach (var m in ((TypeDeclarationSyntax)syntax.Parent).Members)
+            {
+                if (m.Kind == SyntaxKind.PrimaryConstructorBody)
+                {
+                    return ((PrimaryConstructorBodySyntax)m).Body.GetReference();
+                }
+            }
+
+            return null;
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
@@ -294,6 +294,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsExpressionBodied
         {
             get { return false; }
+        }
+
+        internal override bool GenerateDebugInfo
+        {
+            get { return true; }
         }
     }
 }

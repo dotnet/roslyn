@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        override protected ParameterListSyntax ParameterListSyntax
+        protected override ParameterListSyntax ParameterListSyntax
         {
             get
             {
@@ -59,13 +59,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        override protected TypeSyntax ReturnTypeSyntax
+        protected override TypeSyntax ReturnTypeSyntax
         {
             get
             {
                 var syntax = (ConversionOperatorDeclarationSyntax)syntaxReference.GetSyntax();
                 return syntax.Type;
             }
+        }
+
+        internal override bool GenerateDebugInfo
+        {
+            get { return true; }
         }
     }
 }

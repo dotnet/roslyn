@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal SynthesizedAttributeData SynthesizeDebuggerBrowsableNeverAttribute()
         {
-            if (Options.DebugInformationKind != DebugInformationKind.Full)
+            if (Options.OptimizationLevel != OptimizationLevel.Debug)
             {
                 return null;
             }
@@ -353,6 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            // IgnoreSymbolStoreDebuggingMode flag is checked by the CLR, it is not referred to by the debugger.
+            // It tells the JIT that it doesn't need to load the PDB at the time it generates jitted code. 
+            // The PDB would still be used by a debugger, or even by the runtime for putting source line information 
+            // on exception stack traces. We always set this flag to avoid overhead of JIT loading the PDB. 
+            // The theoretical scenario for not setting it would be a language compiler that wants their sequence points 
+            // at specific places, but those places don't match what CLR's heuristics calculate when scanning the IL.
             var ignoreSymbolStoreDebuggingMode = (FieldSymbol)GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_DebuggableAttribute_DebuggingModes__IgnoreSymbolStoreSequencePoints);
             if ((object)ignoreSymbolStoreDebuggingMode == null || !ignoreSymbolStoreDebuggingMode.HasConstantValue)
             {
@@ -367,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Default                                      JIT optimizations enabled
             // DisableOptimizations                         JIT optimizations enabled
             // Default | DisableOptimizations               JIT optimizations disabled
-            if (!options.Optimize)
+            if (options.OptimizationLevel == OptimizationLevel.Debug)
             {
                 var defaultDebuggingMode = (FieldSymbol)GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_DebuggableAttribute_DebuggingModes__Default);
                 if ((object)defaultDebuggingMode == null || !defaultDebuggingMode.HasConstantValue)

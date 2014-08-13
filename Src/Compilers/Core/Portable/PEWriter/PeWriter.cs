@@ -73,7 +73,6 @@ namespace Microsoft.Cci
             CommonMessageProvider messageProvider,
             PdbWriter pdbWriter,
             bool allowMissingMethodBodies,
-            bool foldIdenticalMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
         {
@@ -101,10 +100,7 @@ namespace Microsoft.Cci
                 pdbWriter.SetMetadataEmitter(this);
             }
 
-            if (foldIdenticalMethodBodies)
-            {
-                possiblyDuplicateMethodBodies = new Dictionary<byte[], uint>(ByteSequenceComparer.Instance);
-            }
+            this.smallMethodBodies = new Dictionary<byte[], uint>(ByteSequenceComparer.Instance);
 
             // Add zero-th entry to heaps. 
             // Delta metadata requires these to avoid nil generation-relative handles, 
@@ -506,8 +502,9 @@ namespace Microsoft.Cci
         private readonly Dictionary<IMarshallingInformation, uint> marshallingDescriptorIndex = new Dictionary<IMarshallingInformation, uint>();
         protected readonly List<MethodImplementation> methodImplList = new List<MethodImplementation>();
         private readonly Dictionary<IGenericMethodInstanceReference, uint> methodInstanceSignatureIndex = new Dictionary<IGenericMethodInstanceReference, uint>();
-        // A map of method body to RVA. 
-        private readonly Dictionary<byte[], uint> possiblyDuplicateMethodBodies;
+        
+        // A map of method body to RVA. Used for deduplication of small bodies.
+        private readonly Dictionary<byte[], uint> smallMethodBodies;
 
         private readonly NtHeader ntHeader = new NtHeader();
         private readonly PdbWriter pdbWriter;
@@ -651,11 +648,10 @@ namespace Microsoft.Cci
             Stream stream,
             PdbWriter pdbWriter,
             bool allowMissingMethodBodies,
-            bool foldDuplicateMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
         {
-            var writer = new FullPeWriter(context, messageProvider, pdbWriter, allowMissingMethodBodies, foldDuplicateMethodBodies, deterministic, cancellationToken);
+            var writer = new FullPeWriter(context, messageProvider, pdbWriter, allowMissingMethodBodies, deterministic, cancellationToken);
             writer.WritePeToStream(stream);
 
             if (pdbWriter != null)
@@ -5014,60 +5010,50 @@ namespace Microsoft.Cci
             int ilLength = methodBody.IL.Length;
             uint numberOfExceptionHandlers = (uint)methodBody.ExceptionRegions.Length;
             bool isSmallBody = ilLength < 64 && methodBody.MaxStack <= 8 && localSignatureToken == 0 && numberOfExceptionHandlers == 0;
-            uint bodyRva = 0;
 
             byte[] il = this.SerializeMethodBodyIL(methodBody);
 
             // serialization only replaces fake tokens with real tokens, it doesn't remove/insert bytecodes:
             Debug.Assert(il.Length == ilLength);
 
+            uint bodyRva;
             if (isSmallBody)
             {
-                // If 'possiblyDuplicateMethodBodies' is not null, check if an identical
-                // method body has already been serialized. If so, use the RVA
-                // of the already serialized one. 
-                if (possiblyDuplicateMethodBodies != null)
+                // Check if an identical method body has already been serialized. 
+                // If so, use the RVA of the already serialized one.
+                if (!smallMethodBodies.TryGetValue(il, out bodyRva))
                 {
-                    if (!possiblyDuplicateMethodBodies.TryGetValue(il, out bodyRva))
-                    {
-                        possiblyDuplicateMethodBodies.Add(il, writer.BaseStream.Position);
-                    }
+                    bodyRva = writer.BaseStream.Position;
+                    smallMethodBodies.Add(il, bodyRva);
                 }
+
+                writer.WriteByte((byte)((ilLength << 2) | 2));
             }
-
-            if (bodyRva == 0)
+            else
             {
-                if (isSmallBody)
-                {
-                    bodyRva = writer.BaseStream.Position;
-                    writer.WriteByte((byte)((ilLength << 2) | 2));
-                }
-                else
-                {
-                    writer.Align(4);
-                    bodyRva = writer.BaseStream.Position;
-                    ushort flags = (3 << 12) | 0x3;
-                    if (numberOfExceptionHandlers > 0)
-                    {
-                        flags |= 0x08;
-                    }
-
-                    if (methodBody.LocalsAreZeroed)
-                    {
-                        flags |= 0x10;
-                    }
-
-                    writer.WriteUshort(flags);
-                    writer.WriteUshort(methodBody.MaxStack);
-                    writer.WriteUint((uint)ilLength);
-                    writer.WriteUint(localSignatureToken);
-                }
-
-                writer.WriteBytes(il);
+                writer.Align(4);
+                bodyRva = writer.BaseStream.Position;
+                ushort flags = (3 << 12) | 0x3;
                 if (numberOfExceptionHandlers > 0)
                 {
-                    this.SerializeMethodBodyExceptionHandlerTable(methodBody, numberOfExceptionHandlers, writer);
+                    flags |= 0x08;
                 }
+
+                if (methodBody.LocalsAreZeroed)
+                {
+                    flags |= 0x10;
+                }
+
+                writer.WriteUshort(flags);
+                writer.WriteUshort(methodBody.MaxStack);
+                writer.WriteUint((uint)ilLength);
+                writer.WriteUint(localSignatureToken);
+            }
+
+            writer.WriteBytes(il);
+            if (numberOfExceptionHandlers > 0)
+            {
+                this.SerializeMethodBodyExceptionHandlerTable(methodBody, numberOfExceptionHandlers, writer);
             }
 
             return bodyRva;

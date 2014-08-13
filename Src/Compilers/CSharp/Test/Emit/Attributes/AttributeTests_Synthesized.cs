@@ -79,7 +79,7 @@ class Test
     public event Func<int> MyEvent;
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebuggableReleaseDll, TestOptions.ReleaseDll })
+            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
             {
                 var comp = CreateCompilationWithMscorlib(source, options: options);
 
@@ -88,18 +88,18 @@ class Test
                 var e = c.GetMember<EventSymbol>("MyEvent");
 
                 var expectedAttrs =
-                    options.DebugInformationKind == DebugInformationKind.Full
+                    options.OptimizationLevel == OptimizationLevel.Debug
                     ? new[] { "CompilerGeneratedAttribute", "DebuggerBrowsableAttribute" }
                     : new[] { "CompilerGeneratedAttribute" };
 
                 var attrs = ((SourcePropertySymbol)p).BackingField.GetSynthesizedAttributes();
                 AssertEx.SetEqual(expectedAttrs, GetAttributeNames(attrs));
-                if (options.DebugInformationKind == DebugInformationKind.Full)
+                if (options.OptimizationLevel == OptimizationLevel.Debug)
                     Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs));
 
                 attrs = e.AssociatedField.GetSynthesizedAttributes();
                 AssertEx.SetEqual(expectedAttrs, GetAttributeNames(attrs));
-                if (options.DebugInformationKind == DebugInformationKind.Full)
+                if (options.OptimizationLevel == OptimizationLevel.Debug)
                     Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs));
             }
         }
@@ -117,7 +117,7 @@ abstract class C
     public event Func<int> E;
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebuggableReleaseDll, TestOptions.ReleaseDll })
+            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
             {
                 var comp = CreateCompilationWithMscorlib(source, options: options);
 
@@ -165,7 +165,7 @@ class C
     }
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebuggableReleaseDll, TestOptions.ReleaseDll })
+            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
             {
                 var comp = CreateCompilationWithMscorlib(source, options: options);
 
@@ -194,7 +194,7 @@ class C
     }
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebuggableReleaseDll, TestOptions.ReleaseDll })
+            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
             {
                 var comp = CreateCompilationWithMscorlib(source, options: options);
 
@@ -203,7 +203,7 @@ class C
                     var anon = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousType0`2");
 
                     string[] expected;
-                    if (options.DebugInformationKind == DebugInformationKind.Full)
+                    if (options.OptimizationLevel == OptimizationLevel.Debug)
                     {
                         expected = new[] { "DebuggerDisplayAttribute", "CompilerGeneratedAttribute" };
                     }
@@ -334,7 +334,7 @@ public class C
     }
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebuggableReleaseDll, TestOptions.ReleaseDll })
+            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
             {
                 var comp = CreateCompilationWithMscorlib(source, options: options);
 
@@ -390,7 +390,7 @@ class C
     }
 }
 ";
-            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebuggableReleaseDll, TestOptions.ReleaseDll })
+            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
             {
                 var comp = CreateCompilationWithMscorlib45(source, options: options);
 
@@ -486,17 +486,18 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind));
+                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
                 var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
 
-                if (!outputKind.IsNetModule())
+                if (outputKind != OutputKind.NetModule)
                 {
                     // Verify synthesized CompilationRelaxationsAttribute and RuntimeCompatibilityAttribute
-                    Assert.Equal(2, synthesizedAttributes.Length);
+                    Assert.Equal(3, synthesizedAttributes.Length);
                     VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
                     VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
+                    VerifyDebuggableAttribute(synthesizedAttributes[2], sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints);
                 }
                 else
                 {
@@ -524,7 +525,7 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind));
+                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
 
@@ -535,10 +536,11 @@ public class Test
 
                 // Verify synthesized RuntimeCompatibilityAttribute
                 var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                if (!outputKind.IsNetModule())
+                if (outputKind != OutputKind.NetModule)
                 {
-                    Assert.Equal(1, synthesizedAttributes.Length);
+                    Assert.Equal(2, synthesizedAttributes.Length);
                     VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
+                    VerifyDebuggableAttribute(synthesizedAttributes[1], sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints);
                 }
                 else
                 {
@@ -566,7 +568,7 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind));
+                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
 
@@ -577,10 +579,11 @@ public class Test
 
                 // Verify synthesized CompilationRelaxationsAttribute
                 var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                if (!outputKind.IsNetModule())
+                if (outputKind != OutputKind.NetModule)
                 {
-                    Assert.Equal(1, synthesizedAttributes.Length);
+                    Assert.Equal(2, synthesizedAttributes.Length);
                     VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
+                    VerifyDebuggableAttribute(synthesizedAttributes[1], sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints);
                 }
                 else
                 {
@@ -609,7 +612,7 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind));
+                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
 
@@ -621,7 +624,15 @@ public class Test
 
                 // Verify no synthesized attributes
                 var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
-                Assert.Equal(0, synthesizedAttributes.Length);
+                if (outputKind != OutputKind.NetModule)
+                {
+                    Assert.Equal(1, synthesizedAttributes.Length);
+                    VerifyDebuggableAttribute(synthesizedAttributes[0], sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints);
+                }
+                else
+                {
+                    Assert.Equal(0, synthesizedAttributes.Length);
+                }                
             }
         }
 
@@ -647,7 +658,7 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind));
+                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
 
@@ -665,9 +676,10 @@ public class Test
                 var synthesizedAssemblyAttributes = sourceAssembly.GetSynthesizedAttributes();
                 if (!outputKind.IsNetModule())
                 {
-                    Assert.Equal(2, synthesizedAssemblyAttributes.Length);
+                    Assert.Equal(3, synthesizedAssemblyAttributes.Length);
                     VerifyCompilationRelaxationsAttribute(synthesizedAssemblyAttributes[0], sourceAssembly, isSynthesized: true);
                     VerifyRuntimeCompatibilityAttribute(synthesizedAssemblyAttributes[1], sourceAssembly, isSynthesized: true);
+                    VerifyDebuggableAttribute(synthesizedAssemblyAttributes[2], sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints);
                 }
                 else
                 {
@@ -683,7 +695,7 @@ public class Test
 
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilation("", options: new CSharpCompilationOptions(outputKind));
+                var compilation = CreateCompilation("", options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 if (outputKind.IsApplication())
                 {
@@ -729,7 +741,7 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind));
+                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 if (!outputKind.IsNetModule())
                 {
@@ -777,19 +789,16 @@ public class Test
             Assert.Equal(0, attribute.CommonNamedArguments.Length);
         }
 
-        private void VerifySynthesizedDebuggableAttribute(CSharpAttributeData attribute, SourceAssemblySymbol sourceAssembly, DebugInformationKind emitDebugInfoKind, bool optimizationsEnabled)
+        private void VerifySynthesizedDebuggableAttribute(CSharpAttributeData attribute, SourceAssemblySymbol sourceAssembly, OptimizationLevel optimizations)
         {
             var expectedDebuggingMode = DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints;
-            bool emittingFullDebugInfo = emitDebugInfoKind == DebugInformationKind.Full;
-
-            if (!optimizationsEnabled)
+            
+            if (optimizations == OptimizationLevel.Debug)
             {
-                expectedDebuggingMode |= DebuggableAttribute.DebuggingModes.Default | DebuggableAttribute.DebuggingModes.DisableOptimizations;
-            }
-
-            if (!optimizationsEnabled && emittingFullDebugInfo)
-            {
-                expectedDebuggingMode |= DebuggableAttribute.DebuggingModes.EnableEditAndContinue;
+                expectedDebuggingMode |= 
+                    DebuggableAttribute.DebuggingModes.Default | 
+                    DebuggableAttribute.DebuggingModes.DisableOptimizations |
+                    DebuggableAttribute.DebuggingModes.EnableEditAndContinue;
             }
 
             VerifyDebuggableAttribute(attribute, sourceAssembly, expectedDebuggingMode);
@@ -801,13 +810,12 @@ public class Test
             bool includeMscorlibRef,
             bool compileAndVerify,
             OutputKind outputKind,
-            DebugInformationKind emitDebugInfoKind,
-            bool optimizationsEnabled)
+            OptimizationLevel optimizations)
         {
             var compilation = CSharpCompilation.Create("comp", 
                 new[] { Parse(source) },
                 includeMscorlibRef ? new[] { MscorlibRef } : null,
-                new CSharpCompilationOptions(outputKind, debugInformationKind: emitDebugInfoKind, optimize: optimizationsEnabled));
+                new CSharpCompilationOptions(outputKind, optimizationLevel: optimizations));
 
             validator(compilation);
 
@@ -824,10 +832,9 @@ public class Test
         {
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                foreach (DebugInformationKind debugInfoKind in Enum.GetValues(typeof(DebugInformationKind)))
+                foreach (OptimizationLevel optimizations in Enum.GetValues(typeof(OptimizationLevel)))
                 {
-                    TestDebuggableAttributeCommon(source, validator, includeMscorlibRef, compileAndVerify, outputKind, debugInfoKind, optimizationsEnabled: true);
-                    TestDebuggableAttributeCommon(source, validator, includeMscorlibRef, compileAndVerify, outputKind, debugInfoKind, optimizationsEnabled: false);
+                    TestDebuggableAttributeCommon(source, validator, includeMscorlibRef, compileAndVerify, outputKind, optimizations);
                 }
             }
         }
@@ -852,22 +859,10 @@ public class Test
 
                 if (!options.OutputKind.IsNetModule())
                 {
-                    // Verify synthesized DebuggableAttribute based on compilation options.
-
-                    DebugInformationKind emitDebugInformationKind = options.DebugInformationKind;
-                    if (emitDebugInformationKind != DebugInformationKind.None)
-                    {
-                        Assert.Equal(3, synthesizedAttributes.Length);
-                        VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                        VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                        VerifySynthesizedDebuggableAttribute(synthesizedAttributes[2], sourceAssembly, emitDebugInformationKind, options.Optimize);
-                    }
-                    else
-                    {
-                        Assert.Equal(2, synthesizedAttributes.Length);
-                        VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                        VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                    }
+                    Assert.Equal(3, synthesizedAttributes.Length);
+                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
+                    VerifySynthesizedDebuggableAttribute(synthesizedAttributes[2], sourceAssembly, options.OptimizationLevel);
                 }
                 else
                 {
@@ -944,24 +939,12 @@ public class Test
                 var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
                 CSharpCompilationOptions options = compilation.Options;
 
-                if (!options.OutputKind.IsNetModule())
+                if (options.OutputKind != OutputKind.NetModule)
                 {
-                    // Verify synthesized DebuggableAttribute based on compilation options.
-
-                    DebugInformationKind emitDebugInformationKind = options.DebugInformationKind;
-                    if (emitDebugInformationKind != DebugInformationKind.None)
-                    {
-                        Assert.Equal(3, synthesizedAttributes.Length);
-                        VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                        VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                        VerifySynthesizedDebuggableAttribute(synthesizedAttributes[2], sourceAssembly, emitDebugInformationKind, options.Optimize);
-                    }
-                    else
-                    {
-                        Assert.Equal(2, synthesizedAttributes.Length);
-                        VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
-                        VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                    }
+                    Assert.Equal(3, synthesizedAttributes.Length);
+                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
+                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
+                    VerifySynthesizedDebuggableAttribute(synthesizedAttributes[2], sourceAssembly, options.OptimizationLevel);                    
                 }
                 else
                 {

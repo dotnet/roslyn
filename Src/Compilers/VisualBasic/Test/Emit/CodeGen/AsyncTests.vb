@@ -7801,10 +7801,9 @@ End Module
 </compilation>, useLatestFramework:=True, expectedOutput:="6 11 1 12 13 8 10 12 13 8 10 0 12 13 8 10 13 8 10 0")
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub LiftApparentlyEmptyStructs()
-            Dim csCompilation = CreateCSharpCompilation("Empty_cs",
-            <![CDATA[
+            Dim csCompilation = CreateCSharpCompilation("Empty_cs", <![CDATA[
 /// <summary>
 /// An apparently empty struct that actually encapsulates a byte. Used to see how
 /// the compiler treats empty structs.
@@ -7838,10 +7837,11 @@ public struct Empty
         }
     }
 }]]>,
-                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(True))
+                compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release, allowUnsafe:=True))
+
             csCompilation.VerifyDiagnostics()
-            Dim vbexeCompilation = CreateVisualBasicCompilation("VBExe",
-            <![CDATA[Imports System
+            Dim vbexeCompilation = CreateVisualBasicCompilation("VBExe", <![CDATA[
+Imports System
 Imports System.Threading.Tasks
 
 Module Module1
@@ -7858,11 +7858,11 @@ Module Module1
     End Function
 
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=TestOptions.ReleaseExe,
                 referencedCompilations:={csCompilation},
                 referencedAssemblies:=LatestReferences)
-            Dim vbexeVerifier = CompileAndVerify(vbexeCompilation,
-                expectedOutput:=<![CDATA[12]]>)
+
+            Dim vbexeVerifier = CompileAndVerify(vbexeCompilation, expectedOutput:="12")
             vbexeVerifier.VerifyDiagnostics()
         End Sub
 

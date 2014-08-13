@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private void AddForEachExpressionSequencePoint(ForEachStatementSyntax forEachSyntax, ref BoundStatement collectionVarDecl)
         {
-            if (this.generateDebugInfo)
+            if (this.GenerateDebugInfo)
             {
                 // NOTE: This is slightly different from Dev10.  In Dev10, when you stop the debugger
                 // on the collection expression, you can see the (uninitialized) iteration variable.
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private void AddForEachIterationVariableSequencePoint(ForEachStatementSyntax forEachSyntax, ref BoundStatement iterationVarDecl)
         {
-            if (this.generateDebugInfo)
+            if (this.GenerateDebugInfo)
             {
                 TextSpan iterationVarDeclSpan = TextSpan.FromBounds(forEachSyntax.Type.SpanStart, forEachSyntax.Identifier.Span.End);
                 iterationVarDecl = new BoundSequencePointWithSpan(forEachSyntax, iterationVarDecl, iterationVarDeclSpan);
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private void AddForEachKeywordSequencePoint(ForEachStatementSyntax forEachSyntax, ref BoundStatement result)
         {
-            if (this.generateDebugInfo)
+            if (this.GenerateDebugInfo)
             {
                 BoundSequencePointWithSpan foreachKeywordSequencePoint = new BoundSequencePointWithSpan(forEachSyntax, null, forEachSyntax.ForEachKeyword.Span);
                 result = new BoundStatementList(forEachSyntax, ImmutableArray.Create<BoundStatement>(foreachKeywordSequencePoint, result));

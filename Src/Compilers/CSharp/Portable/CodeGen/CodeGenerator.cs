@@ -21,19 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly ILBuilder builder;
         private readonly PEModuleBuilder module;
         private readonly DiagnosticBag diagnostics;
+        private readonly OptimizationLevel optimizations;
+        private readonly bool emitPdbSequencePoints;
 
         private readonly HashSet<LocalSymbol> stackLocals;
 
         // not 0 when in a protected region with a handler. 
         private int tryNestingLevel = 0;
-
-        //Native compiler does a number of special things when this flag is set.
-        private readonly bool noOptimizations;
-
-        private readonly DebugInformationKind debugInformationKind;
-
-        // Emit sequence points?
-        private readonly bool emitSequencePoints;
 
         // Unique id for generated local names.
         private int uniqueId;
@@ -73,37 +67,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private CodeGenerator(MethodSymbol method,
+        private CodeGenerator(
+            MethodSymbol method,
             BoundStatement block,
             ILBuilder builder,
-            PEModuleBuilder module,
+            PEModuleBuilder moduleBuilder,
             DiagnosticBag diagnostics,
-            bool optimize,
-            bool emitSequencePoints)
+            OptimizationLevel optimizations,
+            bool emittingPdbs)
         {
             this.method = method;
             this.block = block;
             this.builder = builder;
-            this.module = module;
+            this.module = moduleBuilder;
             this.diagnostics = diagnostics;
 
-            this.noOptimizations = !optimize;
-            this.debugInformationKind = module.Compilation.Options.DebugInformationKind;
-
-            Debug.Assert(this.debugInformationKind.IsValid());
-
-            // Special case: always optimize synthesized explicit interface implementation methods
+            // Always optimize synthesized methods that don't contain user code.
+            // 
+            // Specifically, always optimize synthesized explicit interface implementation methods
             // (aka bridge methods) with by-ref returns because peverify produces errors if we
             // return a ref local (which the return local will be in such cases).
-            if (this.noOptimizations && method.ReturnType is ByRefReturnErrorTypeSymbol)
-            {
-                Debug.Assert(method is SynthesizedExplicitImplementationForwardingMethod);
-                this.noOptimizations = false;
-            }
 
-            this.emitSequencePoints = emitSequencePoints;
+            this.optimizations = method.GenerateDebugInfo ? optimizations : OptimizationLevel.Release;
 
-            if (!this.noOptimizations)
+            // Emit sequence points unless
+            // - the PDBs are not being generated
+            // - debug information for the method is not generated since the method does not contain
+            //   user code that can be stepped thru, or changed during EnC.
+            // 
+            // This setting only affects generating PDB sequence points, it shall not affect generated IL in any way.
+            this.emitPdbSequencePoints = emittingPdbs && method.GenerateDebugInfo;
+
+            if (this.optimizations == OptimizationLevel.Release)
             {
                 this.block = Optimizer.Optimize(block, out stackLocals);
             }
@@ -111,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert((object)method != null);
             Debug.Assert(block != null);
             Debug.Assert(builder != null);
-            Debug.Assert(module != null);
+            Debug.Assert(moduleBuilder != null);
 
             var asSourceMethod = method as SourceMethodSymbol;
             if ((object)asSourceMethod != null)
@@ -125,9 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return stackLocals != null && stackLocals.Contains(local);
         }
 
-        public static void Run(MethodSymbol method, BoundStatement block, ILBuilder builder, PEModuleBuilder module, DiagnosticBag diagnostics, bool optimize, bool emitSequencePoints)
+        public static void Run(MethodSymbol method, BoundStatement block, ILBuilder builder, PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics, OptimizationLevel optimizations, bool emittingPdbs)
         {
-            CodeGenerator generator = new CodeGenerator(method, block, builder, module, diagnostics, optimize, emitSequencePoints);
+            CodeGenerator generator = new CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs);
             generator.Generate();
             Debug.Assert(generator.asyncCatchHandlerOffset < 0);
             Debug.Assert(generator.asyncYieldPoints == null);
@@ -139,10 +134,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        public static void Run(MethodSymbol method, BoundStatement block, ILBuilder builder, PEModuleBuilder module, DiagnosticBag diagnostics, bool optimize, bool emitSequencePoints,
+        public static void Run(MethodSymbol method, BoundStatement block, ILBuilder builder, PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics, OptimizationLevel optimizations, bool emittingPdbs,
             out int asyncCatchHandlerOffset, out ImmutableArray<int> asyncYieldPoints, out ImmutableArray<int> asyncResumePoints)
         {
-            CodeGenerator generator = new CodeGenerator(method, block, builder, module, diagnostics, optimize, emitSequencePoints);
+            CodeGenerator generator = new CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs);
             generator.Generate();
 
             if (!diagnostics.HasAnyErrors())
@@ -194,9 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // Synthesized methods should have a sequence point
             // at offset 0 to ensure correct stepping behavior.
-            if (this.emitSequencePoints && this.method.IsImplicitlyDeclared)
+            if (this.emitPdbSequencePoints && this.method.IsImplicitlyDeclared)
             {
-                this.builder.DefineInitialHiddenSeqPoint();
+                this.builder.DefineInitialHiddenSequencePoint();
             }
 
             EmitStatement(block);
@@ -227,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 blockSyntax = sourceMethod.BlockSyntax;
             }
 
-            if (blockSyntax != null && this.emitSequencePoints)
+            if (blockSyntax != null && this.emitPdbSequencePoints)
             {
                 EmitSequencePoint(block.SyntaxTree ?? sourceMethod.SyntaxTree, blockSyntax.CloseBraceToken.Span);
             }
@@ -262,10 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSequencePointStatement(BoundSequencePoint node)
         {
-            AssertExplicitSequencePointAllowed();
-
             CSharpSyntaxNode syntax = node.Syntax;
-            if (this.emitSequencePoints)
+            if (this.emitPdbSequencePoints)
             {
                 if (syntax == null) //Null syntax indicates hidden sequence point (not equivalent to WasCompilerGenerated)
                 {
@@ -287,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 instructionsEmitted += builder.InstructionsEmitted;
             }
 
-            if (instructionsEmitted == 0 && syntax != null && noOptimizations)
+            if (instructionsEmitted == 0 && syntax != null && optimizations == OptimizationLevel.Debug)
             {
                 // if there was no code emitted, then emit nop 
                 // otherwise this point could get associated with some random statement, possibly in a wrong scope
@@ -297,10 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSequencePointStatement(BoundSequencePointWithSpan node)
         {
-            AssertExplicitSequencePointAllowed();
-
             TextSpan span = node.Span;
-            if (span != default(TextSpan) && this.emitSequencePoints)
+            if (span != default(TextSpan) && this.emitPdbSequencePoints)
             {
                 this.EmitSequencePoint(node.SyntaxTree, span);
             }
@@ -315,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 instructionsEmitted += builder.InstructionsEmitted;
             }
 
-            if (instructionsEmitted == 0 && span != default(TextSpan) && noOptimizations)
+            if (instructionsEmitted == 0 && span != default(TextSpan) && optimizations == OptimizationLevel.Debug)
             {
                 // if there was no code emitted, then emit nop 
                 // otherwise this point could get associated with some random statement, possibly in a wrong scope
@@ -325,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void SetInitialDebugDocument()
         {
-            if (emitSequencePoints && this.methodBlockSyntax != null)
+            if (emitPdbSequencePoints && this.methodBlockSyntax != null)
             {
                 // If methodBlockSyntax is available (i.e. we're in a SourceMethodSymbol), then
                 // provide the IL builder with our best guess at the appropriate debug document.
@@ -339,8 +330,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitHiddenSequencePoint()
         {
-            Debug.Assert(emitSequencePoints);
-            builder.DefineHiddenSeqPoint();
+            Debug.Assert(emitPdbSequencePoints);
+            builder.DefineHiddenSequencePoint();
         }
 
         private void EmitSequencePoint(CSharpSyntaxNode syntax)
@@ -351,17 +342,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private TextSpan EmitSequencePoint(SyntaxTree syntaxTree, TextSpan span)
         {
             Debug.Assert(syntaxTree != null);
-            Debug.Assert(emitSequencePoints);
+            Debug.Assert(emitPdbSequencePoints);
 
-            builder.DefineSeqPoint(syntaxTree, span);
+            builder.DefineSequencePoint(syntaxTree, span);
             return span;
-        }
-
-        [Conditional("DEBUG")]
-        private void AssertExplicitSequencePointAllowed()
-        {
-            // If we are not going to emit debug info for the method we shouldn't be creating sequence points.
-            Debug.Assert(method.GenerateDebugInfo);
         }
     }
 }

@@ -15,14 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="method">The method's identity</param>
         /// <param name="compilationState">The collection of generated methods that result from this transformation and which must be emitted</param>
         /// <param name="diagnostics">Diagnostic bag for diagnostics.</param>
-        /// <param name="generateDebugInfo"></param>
         /// <param name="stateMachineType"></param>
         internal static BoundStatement Rewrite(
             BoundStatement body,
             MethodSymbol method,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            bool generateDebugInfo,
             out AsyncStateMachine stateMachineType)
         {
             if (!method.IsAsync)
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stateMachineType = new AsyncStateMachine(method, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
-            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, stateMachineType, compilationState, diagnostics, generateDebugInfo);
+            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, stateMachineType, compilationState, diagnostics);
             if (!rewriter.constructedSuccessfully)
             {
                 return body;
@@ -57,9 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             AsyncStateMachine stateMachineClass,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
-            bool generateDebugInfo)
-            : base(body, method, stateMachineClass, compilationState, diagnostics, generateDebugInfo)
+            DiagnosticBag diagnostics)
+            : base(body, method, stateMachineClass, compilationState, diagnostics)
         {
             try
             {
@@ -211,8 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder: builderField,
                 variablesCaptured: variablesCaptured,
                 nonReusableLocalProxies: nonReusableLocalProxies,
-                diagnostics: diagnostics,
-                generateDebugInfo: generateDebugInfo);
+                diagnostics: diagnostics);
 
             rewriter.GenerateMoveNext(body, moveNextMethod);
         }

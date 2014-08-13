@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, Manager.Compilation.SynthesizeAttribute(
                     WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
-                if (Manager.Compilation.Options.DebugInformationKind == DebugInformationKind.Full)
+                if (Manager.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
                 {
                     AddSynthesizedAttribute(ref attributes, SynthesizeDebuggerDisplayAttribute());
                 }

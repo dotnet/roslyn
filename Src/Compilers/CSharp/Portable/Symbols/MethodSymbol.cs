@@ -897,12 +897,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If true and <see cref="CompilationOptions.DebugInformationKind"/> is not <see cref="DebugInformationKind.None"/>, 
-        /// the compiler generates debug information for this method. 
+        /// Return true iff the method contains user code.
         /// </summary>
-        /// <remarks>
-        /// Generally should return true iff the method contains user code.
-        /// </remarks>
         internal abstract bool GenerateDebugInfo { get; }
 
         /// <summary>

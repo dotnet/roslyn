@@ -731,12 +731,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        ''' <summary>
-        ''' If true and <see cref="CompilationOptions.DebugInformationKind"/> is not <see cref="DebugInformationKind.None"/>, 
-        ''' the compiler generates debug information for this method. 
-        ''' </summary>
         ''' <remarks>
-        ''' Generally should return true iff the method contains user code.
+        ''' True iff the method contains user code.
         ''' </remarks>
         Friend MustOverride ReadOnly Property GenerateDebugInfoImpl As Boolean
 
@@ -750,7 +746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
-                Return Me.ContainingSymbol.EmbeddedSymbolKind
+                Return If(Me.ContainingSymbol Is Nothing, EmbeddedSymbolKind.None, Me.ContainingSymbol.EmbeddedSymbolKind)
             End Get
         End Property
 

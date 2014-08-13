@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundStatement expressionStatement = new BoundExpressionStatement(expressionSyntax, tempAssignment);
-            if (this.generateDebugInfo)
+            if (this.GenerateDebugInfo)
             {
                 expressionStatement = AddSequencePoint(usingSyntax, expressionStatement);
             }

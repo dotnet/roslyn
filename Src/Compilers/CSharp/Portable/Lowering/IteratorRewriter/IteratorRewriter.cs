@@ -16,14 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="method">The method's identity</param>
         /// <param name="compilationState">The collection of generated methods that result from this transformation and which must be emitted</param>
         /// <param name="diagnostics">Diagnostic bag for diagnostics.</param>
-        /// <param name="generateDebugInfo"></param>
         /// <param name="stateMachineType"></param>
         internal static BoundStatement Rewrite(
             BoundStatement body,
             MethodSymbol method,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            bool generateDebugInfo,
             out IteratorStateMachine stateMachineType)
         {
             TypeSymbol elementType = method.IteratorElementType;
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stateMachineType = new IteratorStateMachine(method, isEnumerable, elementType, compilationState);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
-            return new IteratorRewriter(body, method, isEnumerable, stateMachineType, compilationState, diagnostics, generateDebugInfo).Rewrite();
+            return new IteratorRewriter(body, method, isEnumerable, stateMachineType, compilationState, diagnostics).Rewrite();
         }
 
         private readonly TypeSymbol elementType;
@@ -71,9 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isEnumerable,
             IteratorStateMachine iteratorClass,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
-            bool generateDebugInfo)
-            : base(body, method, iteratorClass, compilationState, diagnostics, generateDebugInfo)
+            DiagnosticBag diagnostics)
+            : base(body, method, iteratorClass, compilationState, diagnostics)
         {
             // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
             this.elementType = iteratorClass.ElementType;
@@ -317,8 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentField,
                 variablesCaptured,
                 nonReusableLocalProxies,
-                diagnostics,
-                generateDebugInfo);
+                diagnostics);
 
             rewriter.GenerateMoveNextAndDispose(body, moveNextMethod, disposeMethod);
         }

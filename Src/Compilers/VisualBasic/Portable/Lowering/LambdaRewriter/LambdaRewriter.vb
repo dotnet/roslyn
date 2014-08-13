@@ -88,8 +88,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> WARNING: used ONLY in DEBUG </summary>
         Private rewrittenNodes As HashSet(Of BoundNode) = Nothing
 
-        Private Sub New(analysis As Analysis, method As MethodSymbol, diagnostics As DiagnosticBag, compilationState As TypeCompilationState, generateDebugInfo As Boolean)
-            MyBase.New(compilationState, diagnostics, generateDebugInfo)
+        Private Sub New(analysis As Analysis, method As MethodSymbol, diagnostics As DiagnosticBag, compilationState As TypeCompilationState)
+            MyBase.New(compilationState, diagnostics)
 
             Me._topLevelMethod = method
             Me._currentMethod = method
@@ -116,13 +116,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="compilationState">The caller's buffer into which we produce additional methods to be emitted by the caller</param>
         ''' <param name="symbolsCapturedWithoutCopyCtor">Set of symbols that should not be captured using a copy constructor</param>
         ''' <param name="diagnostics">The caller's buffer into which we place any diagnostics for problems encountered</param>
-        ''' <param name="generateDebugInfo"></param>
         Public Shared Function Rewrite(node As BoundBlock,
                                        method As MethodSymbol,
                                        compilationState As TypeCompilationState,
                                        symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
                                        diagnostics As DiagnosticBag,
-                                       generateDebugInfo As Boolean,
                                        rewrittenNodes As HashSet(Of BoundNode)) As BoundBlock
 
             Dim analysis = LambdaRewriter.Analysis.AnalyzeMethodBody(node, method, symbolsCapturedWithoutCopyCtor, diagnostics)
@@ -130,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return node
             End If
 
-            Dim rewriter = New LambdaRewriter(analysis, method, diagnostics, compilationState, generateDebugInfo)
+            Dim rewriter = New LambdaRewriter(analysis, method, diagnostics, compilationState)
 #If DEBUG Then
             Debug.Assert(rewrittenNodes IsNot Nothing)
             rewriter.rewrittenNodes = rewrittenNodes
@@ -195,15 +193,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim containingType As NamedTypeSymbol = _topLevelMethod.ContainingType
                     frame = New LambdaFrame(node.Syntax, containingType, _topLevelMethod, copyConstructor AndAlso Not _analysis.symbolsCapturedWithoutCopyCtor.Contains(captured), CompilationState.GenerateTempNumber())
                     frames(node) = frame
-                    If CompilationState.EmitModule IsNot Nothing Then
-                        CompilationState.EmitModule.AddSynthesizedDefinition(containingType, frame)
-                        CompilationState.EmitModule.AddSynthesizedDefinition(frame, frame.Constructor)
+                    If CompilationState.ModuleBuilderOpt IsNot Nothing Then
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, frame)
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, frame.Constructor)
                     End If
                 End If
 
                 Dim proxy = LambdaCapturedVariable.Create(frame, captured)
                 Proxies.Add(captured, proxy)
-                If CompilationState.EmitModule IsNot Nothing Then
+                If CompilationState.ModuleBuilderOpt IsNot Nothing Then
                     frame.m_captured_locals.Add(proxy)
                 End If
             Next
@@ -410,8 +408,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         prologue.Add(assignment)
                     End If
 
-                    If CompilationState.EmitModule IsNot Nothing Then
-                        CompilationState.EmitModule.AddSynthesizedDefinition(frame, capturedFrame)
+                    If CompilationState.ModuleBuilderOpt IsNot Nothing Then
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame)
                     End If
 
                     Proxies(innermostFramePointer) = capturedFrame
@@ -706,10 +704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="method">Method symbol for the rewritten lambda body.</param>
         ''' <param name="lambda">Original lambda node.</param>
         ''' <returns>Lambda body rewritten as a body of the given method symbol.</returns>
-        Public Function RewriteLambdaAsMethod(
-                            method As MethodSymbol,
-                            lambda As BoundLambda) As BoundBlock
-
+        Public Function RewriteLambdaAsMethod(method As MethodSymbol, lambda As BoundLambda) As BoundBlock
 
             ' report use site errors for attributes that are needed later on in the rewriter
             Dim lambdaSyntax = lambda.Syntax
@@ -731,18 +726,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Rewrite Iterator lambdas
-            Dim iteratorRewritten = IteratorRewriter.Rewrite(rewrittenBody,
-                                                       method,
-                                                       CompilationState,
-                                                       Diagnostics,
-                                                       Me.GenerateDebugInfo)
+            Dim iteratorRewritten = IteratorRewriter.Rewrite(rewrittenBody, method, CompilationState, Diagnostics)
 
             ' Rewrite Async Lambdas
-            rewrittenBody = AsyncRewriter.Rewrite(iteratorRewritten,
-                                                  method,
-                                                  Me.CompilationState,
-                                                  Me.Diagnostics,
-                                                  Me.GenerateDebugInfo)
+            rewrittenBody = AsyncRewriter.Rewrite(iteratorRewritten, method, CompilationState, Diagnostics)
 
             Return rewrittenBody
         End Function
@@ -813,7 +800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not wasInExpressionLambda Then
                     ' Rewritten outermost lambda as expression tree
                     Dim delegateType = type.ExpressionTargetDelegate(CompilationState.Compilation)
-                    rewrittenNode = ExpressionLambdaRewriter.RewriteLambda(node, Me._currentMethod, delegateType, Me.CompilationState, Me.TypeMap, Me.GenerateDebugInfo, Me.Diagnostics, Me.rewrittenNodes)
+                    rewrittenNode = ExpressionLambdaRewriter.RewriteLambda(node, Me._currentMethod, delegateType, Me.CompilationState, Me.TypeMap, Me.Diagnostics, Me.rewrittenNodes)
                 End If
 
                 inExpressionLambda = wasInExpressionLambda
@@ -832,8 +819,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lambdaIsStatic As Boolean = _analysis.captures(node.LambdaSymbol).IsEmpty()
             Dim generatedMethod = New SynthesizedLambdaMethod(translatedLambdaContainer, _topLevelMethod, node, lambdaIsStatic, CompilationState.GenerateTempNumber(), Me.Diagnostics)
 
-            If CompilationState.EmitModule IsNot Nothing Then
-                CompilationState.EmitModule.AddSynthesizedDefinition(translatedLambdaContainer, generatedMethod)
+            If CompilationState.ModuleBuilderOpt IsNot Nothing Then
+                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, generatedMethod)
             End If
 
             For Each parameter In node.LambdaSymbol.Parameters
@@ -932,8 +919,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             type:=cachedFieldType, name:=cacheFieldName,
                                                             accessibility:=If(Not lambdaIsStatic, Accessibility.Public, Accessibility.Private),
                                                             isShared:=lambdaIsStatic)
-                If CompilationState.EmitModule IsNot Nothing Then
-                    CompilationState.EmitModule.AddSynthesizedDefinition(translatedLambdaContainer, cacheField)
+                If CompilationState.ModuleBuilderOpt IsNot Nothing Then
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField)
                 End If
 
                 Dim F = New SyntheticBoundNodeFactory(Me._topLevelMethod, Me._currentMethod, node.Syntax, CompilationState, Diagnostics)

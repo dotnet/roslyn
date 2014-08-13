@@ -28,10 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                isEnumerable As Boolean,
                iteratorClass As IteratorStateMachineTypeSymbol,
                compilationState As TypeCompilationState,
-               diagnostics As DiagnosticBag,
-               generateDebugInfo As Boolean)
+               diagnostics As DiagnosticBag)
 
-            MyBase.New(body, method, compilationState, diagnostics, generateDebugInfo)
+            MyBase.New(body, method, compilationState, diagnostics)
 
             Me.isEnumerable = isEnumerable
             Me.iteratorClass = iteratorClass
@@ -51,8 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function Rewrite(body As BoundBlock,
                                                  method As MethodSymbol,
                                                  compilationState As TypeCompilationState,
-                                                 diagnostics As DiagnosticBag,
-                                                 generateDebugInfo As Boolean) As BoundBlock
+                                                 diagnostics As DiagnosticBag) As BoundBlock
 
             If body.HasErrors Or Not method.IsIterator Then
                 Return body
@@ -73,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim iteratorClass = New IteratorStateMachineTypeSymbol(method, compilationState.GenerateTempNumber(), elementType, isEnumerable)
 
-            Dim rewriter As New IteratorRewriter(body, method, isEnumerable, iteratorClass, compilationState, diagnostics, generateDebugInfo)
+            Dim rewriter As New IteratorRewriter(body, method, isEnumerable, iteratorClass, compilationState, diagnostics)
 
             ' check if we have all the types we need
             If rewriter.EnsureAllSymbolsAndSignature() Then
@@ -266,24 +264,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 F.CloseMethod(F.Return(F.Call(F.[Me](), getEnumeratorGeneric)))
             End If
 
-                ' Add T IEnumerator<T>.Current
-                Dim name =
-                Me.StartPropertyGetImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(elementType),
-                                                                 SpecialMember.System_Collections_Generic_IEnumerator_T__Current,
-                                                                 "Current",
-                                                                 DebugAttributes.DebuggerNonUserCodeAttribute,
-                                                                 Accessibility.Private,
-                                                                 False)
+            ' Add T IEnumerator<T>.Current
+            Dim name =
+            Me.StartPropertyGetImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(elementType),
+                                                             SpecialMember.System_Collections_Generic_IEnumerator_T__Current,
+                                                             "Current",
+                                                             DebugAttributes.DebuggerNonUserCodeAttribute,
+                                                             Accessibility.Private,
+                                                             False)
 
-                F.CloseMethod(F.Return(F.Field(F.[Me](), currentField, False)))
+            F.CloseMethod(F.Return(F.Field(F.[Me](), currentField, False)))
 
-                ' Add void IEnumerator.Reset()
-                Me.StartMethodImplementation(SpecialMember.System_Collections_IEnumerator__Reset,
-                                "Reset",
-                                DebugAttributes.DebuggerNonUserCodeAttribute,
-                                Accessibility.Private,
-                                False)
-                F.CloseMethod(F.Throw(F.[New](F.WellKnownType(WellKnownType.System_NotSupportedException))))
+            ' Add void IEnumerator.Reset()
+            Me.StartMethodImplementation(SpecialMember.System_Collections_IEnumerator__Reset,
+                            "Reset",
+                            DebugAttributes.DebuggerNonUserCodeAttribute,
+                            Accessibility.Private,
+                            False)
+            F.CloseMethod(F.Throw(F.[New](F.WellKnownType(WellKnownType.System_NotSupportedException))))
 
             ' Add object IEnumerator.Current
             ' NOTE: this is a private implementing property. Its name is irrelevant
@@ -297,24 +295,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 DebugAttributes.DebuggerNonUserCodeAttribute,
                                 Accessibility.Private,
                                 False)
-                F.CloseMethod(F.Return(F.Field(F.[Me](), currentField, False)))
+            F.CloseMethod(F.Return(F.Field(F.[Me](), currentField, False)))
 
-                ' Add a body for the constructor
-                If True Then
-                    F.CurrentMethod = StateMachineClass.Constructor
-                    Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
-                    bodyBuilder.Add(F.BaseInitialization())
-                    bodyBuilder.Add(F.Assignment(F.Field(F.[Me](), StateField, True), F.Parameter(F.CurrentMethod.Parameters(0)).MakeRValue))    ' this.state = state
+            ' Add a body for the constructor
+            If True Then
+                F.CurrentMethod = StateMachineClass.Constructor
+                Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
+                bodyBuilder.Add(F.BaseInitialization())
+                bodyBuilder.Add(F.Assignment(F.Field(F.[Me](), StateField, True), F.Parameter(F.CurrentMethod.Parameters(0)).MakeRValue))    ' this.state = state
 
-                    If isEnumerable Then
-                        ' this.initialThreadId = Thread.CurrentThread.ManagedThreadId;
-                        bodyBuilder.Add(F.Assignment(F.Field(F.[Me](), initialThreadIdField, True), managedThreadId))
-                    End If
-
-                    bodyBuilder.Add(F.Return())
-                    F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()))
-                    bodyBuilder = Nothing
+                If isEnumerable Then
+                    ' this.initialThreadId = Thread.CurrentThread.ManagedThreadId;
+                    bodyBuilder.Add(F.Assignment(F.Field(F.[Me](), initialThreadIdField, True), managedThreadId))
                 End If
+
+                bodyBuilder.Add(F.Return())
+                F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()))
+                bodyBuilder = Nothing
+            End If
 
         End Sub
 
@@ -351,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Sub GenerateMoveNextAndDispose(moveNextMethod As SynthesizedStateMachineMethod, disposeMethod As SynthesizedStateMachineMethod)
-            Dim rewriter = New IteratorMethodToClassRewriter(Me.Method, Me.F, Me.StateField, Me.currentField, Me.variableProxies, Me.Diagnostics, Me.GenerateDebugInfo)
+            Dim rewriter = New IteratorMethodToClassRewriter(Me.Method, Me.F, Me.StateField, Me.currentField, Me.variableProxies, Me.Diagnostics)
 
             rewriter.GenerateMoveNextAndDispose(Body, moveNextMethod, disposeMethod)
         End Sub

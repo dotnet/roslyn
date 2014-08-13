@@ -285,7 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.ParseOptions = defaultParseOptions;
                     this.CompilationOptions = new CSharpCompilationOptions(
                         OutputKind.ConsoleApplication,
-                        debugInformationKind: DebugInformationKind.None,
                         xmlReferenceResolver: new XmlFileResolver(projectDirectory),
                         sourceReferenceResolver: new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory),
                         metadataReferenceResolver: new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, projectDirectory),
@@ -447,17 +446,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetDebugType(string debugType)
                 {
-                    if (!string.IsNullOrEmpty(debugType))
-                    {
-                        DebugInformationKind kind;
-                        if (Enum.TryParse<DebugInformationKind>(debugType, ignoreCase: true, result: out kind))
-                        {
-                            this.CompilationOptions = this.CompilationOptions.WithDebugInformationKind(kind);
-                            return true;
-                        }
-                    }
-
-                    return false;
+                    // ignore, just check for expected values for backwards compat
+                    return string.Equals(debugType, "none", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(debugType, "pdbonly", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(debugType, "full", StringComparison.OrdinalIgnoreCase);
                 }
 
                 public bool SetDefineConstants(string defineConstants)
@@ -605,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetOptimize(bool optimize)
                 {
-                    this.CompilationOptions = this.CompilationOptions.WithOptimizations(optimize);
+                    this.CompilationOptions = this.CompilationOptions.WithOptimizationLevel(optimize ? OptimizationLevel.Release : OptimizationLevel.Debug);
                     return true;
                 }
 

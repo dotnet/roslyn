@@ -68,10 +68,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            builder As FieldSymbol,
                            variableProxies As Dictionary(Of Symbol, CapturedSymbolOrExpression),
                            owner As AsyncRewriter,
-                           diagnostics As DiagnosticBag,
-                           generateDebugInfo As Boolean)
+                           diagnostics As DiagnosticBag)
 
-                MyBase.New(F, state, variableProxies, diagnostics, generateDebugInfo)
+                MyBase.New(F, state, variableProxies, diagnostics)
 
                 Me._method = method
                 Me._builder = builder
@@ -144,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.F.Try(
                         Me.F.Block(
                             ImmutableArray(Of LocalSymbol).Empty,
-                            Me.F.HiddenSequencePoint(Me.GenerateDebugInfo),
+                            Me.F.HiddenSequencePoint(),
                             Me.Dispatch(),
                             rewrittenBody
                         ),
@@ -153,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 exceptionLocal,
                                 Me.F.Block(
                                     Me.F.NoOp(If(Me._asyncMethodKind = AsyncMethodKind.Sub, NoOpStatementFlavor.AsyncMethodCatchHandler, NoOpStatementFlavor.Default)),
-                                    Me.F.HiddenSequencePoint(Me.GenerateDebugInfo),
+                                    Me.F.HiddenSequencePoint(),
                                     Me.F.Assignment(Me.F.Field(Me.F.Me(), Me.StateField, True), Me.F.Literal(StateMachineStates.FinishedStateMachine)),
                                     Me.F.ExpressionStatement(
                                         Me._owner.GenerateMethodCall(
@@ -174,8 +173,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If (block Is Nothing) Then
                     bodyBuilder.Add(stateDone)
                 Else
-                    bodyBuilder.Add(Me.F.SequencePointWithSpan(Me.GenerateDebugInfo, block, block.End.Span, stateDone))
-                    bodyBuilder.Add(Me.F.HiddenSequencePoint(Me.GenerateDebugInfo))
+                    bodyBuilder.Add(Me.F.SequencePointWithSpan(block, block.End.Span, stateDone))
+                    bodyBuilder.Add(Me.F.HiddenSequencePoint())
                 End If
 
                 ' STMT: builder.SetResult([RetVal])

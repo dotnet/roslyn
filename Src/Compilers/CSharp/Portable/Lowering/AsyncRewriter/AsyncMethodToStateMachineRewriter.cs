@@ -60,11 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol builder,
             HashSet<Symbol> variablesCaptured,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
-            DiagnosticBag diagnostics,
-            bool generateDebugInfo)
-            : base(F, method, state, variablesCaptured, nonReusableLocalProxies, diagnostics,
-                   useFinalizerBookkeeping: false,
-                   generateDebugInfo: generateDebugInfo)
+            DiagnosticBag diagnostics)
+            : base(F, method, state, variablesCaptured, nonReusableLocalProxies, diagnostics, useFinalizerBookkeeping: false)
         {
             this.method = method;
             this.asyncMethodBuilderMemberCollection = asyncMethodBuilderMemberCollection;

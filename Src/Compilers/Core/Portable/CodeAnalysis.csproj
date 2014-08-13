@@ -120,10 +120,10 @@
     <Compile Include="Compilation\CompilationStage.cs" />
     <Compile Include="Compilation\ControlFlowAnalysis.cs" />
     <Compile Include="Compilation\DataFlowAnalysis.cs" />
-    <Compile Include="Compilation\DebugInformationKind.cs" />
     <Compile Include="Compilation\EmitResult.cs" />
     <Compile Include="Compilation\Extensions.cs" />
     <Compile Include="Compilation\MetadataOnlyEmitOptions.cs" />
+    <Compile Include="Compilation\OptimizationLevel.cs" />
     <Compile Include="Compilation\ParseOptions.cs" />
     <Compile Include="Compilation\Platform.cs" />
     <Compile Include="Compilation\PreprocessingSymbolInfo.cs" />

@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter : BoundTreeRewriter
     {
-        private readonly bool generateDebugInfo;
         private readonly CSharpCompilation compilation;
         private readonly SyntheticBoundNodeFactory factory;
         private readonly SynthesizedSubmissionFields previousSubmissionFields;
@@ -26,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private LocalRewriter(
             CSharpCompilation compilation,
-            bool generateDebugInfo,
             MethodSymbol containingMethod,
             NamedTypeSymbol containingType,
             SyntheticBoundNodeFactory factory,
@@ -34,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool includeConditionalCalls,
             DiagnosticBag diagnostics)
         {
-            this.generateDebugInfo = generateDebugInfo && containingMethod.GenerateDebugInfo;
             this.compilation = compilation;
             this.factory = factory;
             this.factory.CurrentMethod = containingMethod;
@@ -50,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static BoundStatement Rewrite(
             CSharpCompilation compilation,
-            bool generateDebugInfo,
             MethodSymbol containingSymbol,
             NamedTypeSymbol containingType,
             BoundStatement statement,
@@ -68,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-                var localRewriter = new LocalRewriter(compilation, generateDebugInfo, containingSymbol, containingType, factory, previousSubmissionFields, includeConditionalCalls, diagnostics);
+                var localRewriter = new LocalRewriter(compilation, containingSymbol, containingType, factory, previousSubmissionFields, includeConditionalCalls, diagnostics);
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
                 sawLambdas = localRewriter.sawLambdas;
                 sawAwaitInExceptionHandler = localRewriter.sawAwaitInExceptionHandler;
@@ -84,6 +80,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);
             }
         }
+
+        private bool GenerateDebugInfo
+        {
+            get
+            {
+                return !inExpressionLambda;
+            }
+        }
+
 
         // TODO(ngafter): This is a workaround.  Any piece of code that inserts a prologue
         // should be careful to insert any necessary sequence points too.
@@ -119,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement AddSequencePoint(BoundStatement node)
         {
-            if (this.generateDebugInfo && !node.WasCompilerGenerated)
+            if (this.GenerateDebugInfo && !node.WasCompilerGenerated)
             {
                 node = new BoundSequencePoint(node.Syntax, node);
             }
@@ -307,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundStatement> rewrittenStatements = (ImmutableArray<BoundStatement>)this.VisitList(node.Statements);
             ImmutableArray<BoundStatement> optimizedStatements = ImmutableArray<BoundStatement>.Empty;
 
-            if (compilation.Options.Optimize)
+            if (compilation.Options.OptimizationLevel == OptimizationLevel.Release)
             {
                 // TODO: this part may conflict with InitializerRewriter.Rewrite in how it handles 
                 //       the first field initializer (see 'if (i == 0)'...) which seems suspicious

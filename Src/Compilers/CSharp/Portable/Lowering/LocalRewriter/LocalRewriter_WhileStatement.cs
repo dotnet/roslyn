@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenBody = (BoundStatement)Visit(node.Body);
 
             TextSpan conditionSequencePointSpan = default(TextSpan);
-            if (this.generateDebugInfo)
+            if (this.GenerateDebugInfo)
             {
                 if (!node.WasCompilerGenerated)
                 {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     BoundStatement ifNotConditionGotoBreak = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, breakLabel);
 
-                    if (this.generateDebugInfo)
+                    if (this.GenerateDebugInfo)
                     {
                         ifNotConditionGotoBreak = new BoundSequencePointWithSpan(syntax, ifNotConditionGotoBreak, conditionSequencePointSpan);
                     }
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var startLabel = new GeneratedLabelSymbol("start");
             BoundStatement ifConditionGotoStart = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, true, startLabel);
 
-            if (this.generateDebugInfo)
+            if (this.GenerateDebugInfo)
             {
                 ifConditionGotoStart = new BoundSequencePointWithSpan(syntax, ifConditionGotoStart, conditionSequencePointSpan);
             }
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // break:
 
             BoundStatement gotoContinue = new BoundGotoStatement(syntax, continueLabel);
-            if (this.generateDebugInfo)
+            if (this.GenerateDebugInfo)
             {
                 // mark the initial jump as hidden. We do it to tell that this is not a part of previous statement. This
                 // jump may be a target of another jump (for example if loops are nested) and that would give the

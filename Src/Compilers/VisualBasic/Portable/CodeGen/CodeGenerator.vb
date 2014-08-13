@@ -1,15 +1,11 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
     Friend NotInheritable Class CodeGenerator
@@ -18,6 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private ReadOnly _builder As ILBuilder
         Private ReadOnly _module As PEModuleBuilder
         Private ReadOnly _diagnostics As DiagnosticBag
+        Private ReadOnly _optimizations As OptimizationLevel
+        Private ReadOnly _emitPdbSequencePoints As Boolean
 
         Private ReadOnly _stackLocals As HashSet(Of LocalSymbol) = Nothing
 
@@ -26,14 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         ''' <summary> Current enclosing Catch block if there is any. </summary>
         Private _currentCatchBlock As BoundCatchBlock = Nothing
-
-        'native compiler does a number of special things when this flag is set.
-        'TODO: consider if it still makes sense to do these things.
-        Private ReadOnly _noOptimizations As Boolean
-
-        Private ReadOnly _debugInformationKind As DebugInformationKind
-
-        Private ReadOnly _emitSequencePoints As Boolean
 
         ' label used when when return is emitted in a form of store/goto
         Private Shared ReadOnly ReturnLabel As New Object
@@ -46,45 +36,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private _asyncYieldPoints As ArrayBuilder(Of Integer) = Nothing
         Private _asyncResumePoints As ArrayBuilder(Of Integer) = Nothing
 
-        Private Sub New(meth As MethodSymbol, block As BoundStatement, builder As ILBuilder, emitModule As PEModuleBuilder, diagnostics As DiagnosticBag, optimize As Boolean, emitSequencePoints As Boolean)
-            Me._method = meth
+        Private Sub New(method As MethodSymbol,
+                        block As BoundStatement,
+                        builder As ILBuilder,
+                        moduleBuilder As PEModuleBuilder,
+                        diagnostics As DiagnosticBag,
+                        optimizations As OptimizationLevel,
+                        emittingPdbs As Boolean)
+
+            Me._method = method
             Me._block = block
             Me._builder = builder
-            Me._module = emitModule
+            Me._module = moduleBuilder
             Me._diagnostics = diagnostics
 
-            ' TODO: this doesn't work for
-            ' - partial methods
-            ' - methods with no location (global code container)
+            ' Always optimize synthesized methods that don't contain user code.
+            Me._optimizations = If(method.GenerateDebugInfo, optimizations, OptimizationLevel.Release)
 
-            Me._noOptimizations = Not optimize
-            Me._debugInformationKind = emitModule.Compilation.Options.DebugInformationKind
-            Me._emitSequencePoints = emitSequencePoints
+            ' Emit sequence points unless
+            ' - the PDBs are not being generated
+            ' - debug information for the method is not generated since the method does not contain
+            '   user code that can be stepped thru, or changed during EnC.
+            ' 
+            ' This setting only affects generating PDB sequence points, it shall Not affect generated IL in any way.
+            Me._emitPdbSequencePoints = emittingPdbs AndAlso method.GenerateDebugInfo
 
-            Debug.Assert(Me._debugInformationKind.IsValid())
-
-            If Not Me._noOptimizations Then
-                Me._block = Optimizer.Optimize(meth, block, Me._stackLocals)
+            If Me._optimizations = OptimizationLevel.Release Then
+                Me._block = Optimizer.Optimize(method, block, Me._stackLocals)
             End If
 
-            Me._checkCallsForUnsafeJITOptimization = ((Me._method.ImplementationAttributes And
-                                                        MethodSymbol.DisableJITOptimizationFlags) <> MethodSymbol.DisableJITOptimizationFlags)
+            Me._checkCallsForUnsafeJITOptimization = (Me._method.ImplementationAttributes And MethodSymbol.DisableJITOptimizationFlags) <> MethodSymbol.DisableJITOptimizationFlags
             Debug.Assert(Not Me._module.JITOptimizationIsDisabled(Me._method))
 
-            Debug.Assert(meth IsNot Nothing)
+            Debug.Assert(method IsNot Nothing)
             Debug.Assert(block IsNot Nothing)
             Debug.Assert(builder IsNot Nothing)
-            Debug.Assert(emitModule IsNot Nothing)
+            Debug.Assert(moduleBuilder IsNot Nothing)
         End Sub
 
-        Public Shared Sub Run(meth As MethodSymbol,
+        Public Shared Sub Run(method As MethodSymbol,
                               block As BoundStatement,
                               builder As ILBuilder,
-                              [module] As PEModuleBuilder,
+                              moduleBuilder As PEModuleBuilder,
                               diagnostics As DiagnosticBag,
-                              optimize As Boolean,
-                              emitSequencePoints As Boolean)
-            Dim generator As CodeGenerator = New CodeGenerator(meth, block, builder, [module], diagnostics, optimize, emitSequencePoints)
+                              optimizations As OptimizationLevel,
+                              emittingPdbs As Boolean)
+            Dim generator As CodeGenerator = New CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs)
             generator.Generate()
             Debug.Assert(generator._asyncYieldPoints Is Nothing)
             Debug.Assert(generator._asyncResumePoints Is Nothing)
@@ -96,17 +93,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         End Sub
 
-        Public Shared Sub Run(meth As MethodSymbol,
+        Public Shared Sub Run(method As MethodSymbol,
                               block As BoundStatement,
                               builder As ILBuilder,
-                              [module] As PEModuleBuilder,
+                              moduleBuilder As PEModuleBuilder,
                               diagnostics As DiagnosticBag,
-                              optimize As Boolean,
-                              emitSequencePoints As Boolean,
+                              optimizations As OptimizationLevel,
+                              emittingPdbs As Boolean,
                               <Out> ByRef asyncCatchHandlerOffset As Integer,
                               <Out> ByRef asyncYieldPoints As ImmutableArray(Of Integer),
                               <Out> ByRef asyncResumePoints As ImmutableArray(Of Integer))
-            Dim generator As CodeGenerator = New CodeGenerator(meth, block, builder, [module], diagnostics, optimize, emitSequencePoints)
+            Dim generator As CodeGenerator = New CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs)
             generator.Generate()
 
             If Not diagnostics.HasAnyErrors Then
@@ -158,8 +155,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ' Synthesized methods should have a sequence point
             ' at offset 0 to ensure correct stepping behavior.
-            If _emitSequencePoints AndAlso _method.IsImplicitlyDeclared Then
-                _builder.DefineInitialHiddenSeqPoint()
+            If _emitPdbSequencePoints AndAlso _method.IsImplicitlyDeclared Then
+                _builder.DefineInitialHiddenSequencePoint()
             End If
 
             EmitStatement(_block)
@@ -212,10 +209,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitSequencePointExpression(node As BoundSequencePointExpression, used As Boolean)
-            AssertExplicitSequencePointAllowed(node.Expression)
-
             Dim syntax = node.Syntax
-            If _emitSequencePoints Then
+            If _emitPdbSequencePoints Then
                 If syntax Is Nothing Then
                     EmitHiddenSequencePoint()
                 Else
@@ -229,10 +224,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitSequencePointExpressionAddress(node As BoundSequencePointExpression, addressKind As AddressKind)
-            AssertExplicitSequencePointAllowed(node.Expression)
-
             Dim syntax = node.Syntax
-            If _emitSequencePoints Then
+            If _emitPdbSequencePoints Then
                 If syntax Is Nothing Then
                     EmitHiddenSequencePoint()
                 Else
@@ -245,10 +238,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitSequencePointStatement(node As BoundSequencePoint)
-            AssertExplicitSequencePointAllowed(node.StatementOpt)
-
             Dim syntax = node.Syntax
-            If _emitSequencePoints Then
+            If _emitPdbSequencePoints Then
                 If syntax Is Nothing Then
                     EmitHiddenSequencePoint()
                 Else
@@ -265,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 instructionsEmitted += _builder.InstructionsEmitted
             End If
 
-            If instructionsEmitted = 0 AndAlso syntax IsNot Nothing AndAlso _noOptimizations Then
+            If instructionsEmitted = 0 AndAlso syntax IsNot Nothing AndAlso _optimizations = OptimizationLevel.Debug Then
                 ' if there was no code emitted, then emit nop 
                 ' otherwise this point could get associated with some random statement, possibly in a wrong scope
                 _builder.EmitOpCode(ILOpCode.Nop)
@@ -273,10 +264,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitSequencePointStatement(node As BoundSequencePointWithSpan)
-            AssertExplicitSequencePointAllowed(node.StatementOpt)
-
             Dim span = node.SequenceSpan
-            If span <> Nothing AndAlso _emitSequencePoints Then
+            If span <> Nothing AndAlso _emitPdbSequencePoints Then
                 EmitSequencePoint(node.SyntaxTree, span)
             End If
 
@@ -289,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 instructionsEmitted += _builder.InstructionsEmitted
             End If
 
-            If instructionsEmitted = 0 AndAlso span <> Nothing AndAlso _noOptimizations Then
+            If instructionsEmitted = 0 AndAlso span <> Nothing AndAlso _optimizations = OptimizationLevel.Debug Then
                 ' if there was no code emitted, then emit nop 
                 ' otherwise this point could get associated with some random statement, possibly in a wrong scope
                 _builder.EmitOpCode(ILOpCode.Nop)
@@ -298,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Sub SetInitialDebugDocument()
             Dim methodBlockSyntax = Me._method.Syntax
-            If _emitSequencePoints AndAlso methodBlockSyntax IsNot Nothing Then
+            If _emitPdbSequencePoints AndAlso methodBlockSyntax IsNot Nothing Then
                 ' If methodBlockSyntax is available (i.e. we're in a SourceMethodSymbol), then
                 ' provide the IL builder with our best guess at the appropriate debug document.
                 ' If we don't and this is hidden sequence point precedes all non-hidden sequence
@@ -310,33 +299,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitHiddenSequencePoint()
-            Debug.Assert(_emitSequencePoints)
-            _builder.DefineHiddenSeqPoint()
+            Debug.Assert(_emitPdbSequencePoints)
+            _builder.DefineHiddenSequencePoint()
         End Sub
 
         Private Sub EmitSequencePoint(syntax As VisualBasicSyntaxNode)
-            Dim tree = syntax.SyntaxTree
-            Dim span = syntax.Span
-
-            span = EmitSequencePoint(tree, span)
+            EmitSequencePoint(syntax.SyntaxTree, syntax.Span)
         End Sub
 
         Private Function EmitSequencePoint(tree As SyntaxTree, span As TextSpan) As TextSpan
             Debug.Assert(tree IsNot Nothing)
-            Debug.Assert(_emitSequencePoints)
+            Debug.Assert(_emitPdbSequencePoints)
             If Not tree.IsMyTemplate Then
-                _builder.DefineSeqPoint(tree, span)
+                _builder.DefineSequencePoint(tree, span)
             End If
             Return span
         End Function
-
-        <Conditional("DEBUG")>
-        Private Sub AssertExplicitSequencePointAllowed(underlyingNode As BoundNode)
-            ' If we are not going to emit debug info for the method we shouldn't be creating sequence points.
-            ' We allow them for embedded methods even though we are not emitting debug info for them to avoid complicating the code.
-            ' We also allow sequence points without underlying nodes (typically hidden points).
-            ' When SP wraps something caller could just have used what was wrapped, it is not so easy when there was nothing to wrap.
-            Debug.Assert(_method.GenerateDebugInfo OrElse underlyingNode Is Nothing OrElse _method.IsEmbedded)
-        End Sub
     End Class
 End Namespace

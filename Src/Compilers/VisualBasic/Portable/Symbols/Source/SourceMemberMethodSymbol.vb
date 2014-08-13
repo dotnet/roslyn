@@ -1,16 +1,10 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Globalization
-Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Cci = Microsoft.Cci
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -140,6 +134,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
+        Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
+            Get
+                Return MyBase.GenerateDebugInfoImpl AndAlso Not IsAsync
+            End Get
+        End Property
+
         Protected Overrides Function GetAttributeDeclarations() As OneOrMany(Of SyntaxList(Of AttributeListSyntax))
             If Me.SourcePartialImplementation IsNot Nothing Then
                 Return OneOrMany.Create(ImmutableArray.Create(AttributeDeclarationSyntaxList, Me.SourcePartialImplementation.AttributeDeclarationSyntaxList))
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim sourceType = TryCast(container, SourceNamedTypeSymbol)
 
                     If sourceType IsNot Nothing AndAlso sourceType.HasSecurityCriticalAttributes Then
-                        Dim location As location = methodImpl.NonMergedLocation
+                        Dim location As Location = methodImpl.NonMergedLocation
 
                         If location IsNot Nothing Then
                             Binder.ReportDiagnostic(diagnostics, location, ERRID.ERR_SecurityCriticalAsyncInClassOrStruct)
@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Loop While container IsNot Nothing
 
                 If methodImpl.IsAsync AndAlso (methodImpl.ImplementationAttributes And Reflection.MethodImplAttributes.Synchronized) <> 0 Then
-                    Dim location As location = methodImpl.NonMergedLocation
+                    Dim location As Location = methodImpl.NonMergedLocation
 
                     If location IsNot Nothing Then
                         Binder.ReportDiagnostic(diagnostics, location, ERRID.ERR_SynchronizedAsyncMethod)
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                                                 SymbolComparisonResults.ParamArrayMismatch)
 
                 If result <> Nothing Then
-                    Dim location As location = methodImpl.NonMergedLocation
+                    Dim location As Location = methodImpl.NonMergedLocation
 
                     If location IsNot Nothing Then
                         If (result And SymbolComparisonResults.ParamArrayMismatch) <> 0 Then

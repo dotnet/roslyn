@@ -43,7 +43,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim reader0 = md0.MetadataReader
                 CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "M1", "M2")
@@ -128,7 +128,7 @@ End Class
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, TestOptions.DebugDll)
             Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntime(source3, TestOptions.DebugDll)
 
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim reader0 = md0.MetadataReader
 
@@ -260,7 +260,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
 
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim reader0 = md0.MetadataReader
 
@@ -315,7 +315,7 @@ End Namespace
 ]]></file>
 </compilation>)
 
-            Dim bytes = compilation0.EmitToArray(debug:=True)
+            Dim bytes = compilation0.EmitToArray()
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes), EmptyLocalsProvider)
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(options:=TestOptions.DebugDll, sources:=
 <compilation>
@@ -451,7 +451,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources1, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Dim methodData0 = testData0.GetMethodData("C.M")
             methodData0.VerifyIL(<![CDATA[
 {
@@ -550,7 +550,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Dim methodData0 = testData0.GetMethodData("C.F")
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), Function(m) GetLocalNames(methodData0))
@@ -618,7 +618,7 @@ End Module
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources1, TestOptions.DebugDll)
 
             ' Verify full metadata contains expected rows.
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim reader0 = md0.MetadataReader
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "M")
@@ -769,7 +769,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Dim methodData0 = testData0.GetMethodData("C.M")
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
@@ -865,7 +865,7 @@ End Class
             Dim compilation1B = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1B, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Dim methodData0 = testData0.GetMethodData("C(Of T).M1")
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim reader0 = md0.MetadataReader
@@ -948,7 +948,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
 
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
@@ -1004,7 +1004,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugDll)
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugDll)
 
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim reader0 = md0.MetadataReader
                 CheckNames(reader0, reader0.GetAssemblyRefNames(), "mscorlib", "Microsoft.VisualBasic")
@@ -1092,7 +1092,7 @@ End Module</file>
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim reader0 = md0.MetadataReader
@@ -1159,7 +1159,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
@@ -1314,7 +1314,7 @@ End Class
             Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.DebugDll)
 
             ' Verify full metadata contains expected rows.
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("B.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("B.M")
             Dim methodN = compilation0.GetMember(Of MethodSymbol)("B.N")
@@ -1536,7 +1536,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
             Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.DebugDll)
 
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
 
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
@@ -1621,7 +1621,7 @@ End Class
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
             Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.Main")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.Main")
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), Function(m) GetLocalNames(method0))
@@ -1675,7 +1675,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
             Dim expectedIL0 =
@@ -1753,7 +1753,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             testData0.GetMethodData("C.M").VerifyIL("
 {
@@ -1866,7 +1866,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
             Dim expectedIL0 =
@@ -1958,7 +1958,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
             Dim expectedIL0 =
@@ -2050,7 +2050,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
             Dim expectedIL0 =
@@ -2256,7 +2256,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
             Dim expectedIL0 = "
@@ -2439,10 +2439,9 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
-            Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
-            Dim expectedIL0 = "
+            testData0.GetMethodData("C.M").VerifyIL("
 {
   // Code size       98 (0x62)
   .maxstack  1
@@ -2507,9 +2506,7 @@ End Class
 }
   IL_0061:  ret
 }
-"
-
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL0, actualIL0)
+")
 
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
@@ -2622,25 +2619,24 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
-            Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
-            Dim expectedIL0 = "
+            testData0.GetMethodData("C.M").VerifyIL("
 {
   // Code size      158 (0x9e)
   .maxstack  2
   .locals init (Double V_0, //VB$LoopObject
-  Double V_1, //VB$ForLimit
-  Double V_2, //VB$ForStep
-  Boolean V_3, //VB$LoopDirection
-  Double V_4, //i
-  Double V_5,
-  Double V_6, //VB$LoopObject
-  Double V_7, //VB$ForLimit
-  Double V_8, //VB$ForStep
-  Boolean V_9, //VB$LoopDirection
-  Double V_10, //j
-  Boolean V_11)
+                Double V_1, //VB$ForLimit
+                Double V_2, //VB$ForStep
+                Boolean V_3, //VB$LoopDirection
+                Double V_4, //i
+                Double V_5,
+                Double V_6, //VB$LoopObject
+                Double V_7, //VB$ForLimit
+                Double V_8, //VB$ForStep
+                Boolean V_9, //VB$LoopDirection
+                Double V_10, //j
+                Boolean V_11)
   IL_0000:  nop
   IL_0001:  call       ""Function C.foo() As Double""
   IL_0006:  stloc.s    V_5
@@ -2714,10 +2710,7 @@ End Class
   IL_009b:  brtrue.s   IL_002a
   IL_009d:  ret
 }
-"
-
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL0, actualIL0)
-
+")
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
@@ -2854,7 +2847,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
             Dim expectedIL0 = "
@@ -2959,7 +2952,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
             Dim expectedIL0 = "
@@ -3061,7 +3054,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             testData0.GetMethodData("C.M").VerifyIL("
 {
@@ -3164,7 +3157,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
 
             Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
             Dim expectedIL0 =
@@ -3301,7 +3294,7 @@ End Namespace
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
             Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
 
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), Function(m) ImmutableArray.Create("x", "y", "z"))
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.B.M")
@@ -3380,7 +3373,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
             Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
 
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), Function(m) ImmutableArray.Create("x", "s", "t", "u"))
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.N")
@@ -3523,7 +3516,7 @@ End Class
             Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.DebugDll)
             Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.DebugDll)
 
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), Function(m) ImmutableArray.Create("x"))
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("B.G")
@@ -3701,7 +3694,7 @@ End Class
             Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.DebugDll)
             Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.DebugDll)
 
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), Function(m) ImmutableArray.Create("x"))
                 Dim method0F = compilation0.GetMember(Of MethodSymbol)("C.F")
@@ -3870,7 +3863,7 @@ End Module
 </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.F")
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
@@ -3906,7 +3899,7 @@ End Module
 </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.F")
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
@@ -3956,7 +3949,7 @@ End Module
             Dim compilation1 = CreateCompilationWithMscorlib(source1, TestOptions.DebugDll)
 
             ' Verify full metadata contains expected rows.
-            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
 
                 Dim diff1 = compilation1.EmitDifference(

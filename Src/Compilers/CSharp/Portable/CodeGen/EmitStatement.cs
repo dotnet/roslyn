@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (statement.Flavor)
             {
                 case NoOpStatementFlavor.Default:
-                    if (this.noOptimizations)
+                    if (this.optimizations == OptimizationLevel.Debug)
                     {
                         builder.EmitOpCode(ILOpCode.Nop);
                     }
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // this function is a stub for the logic that decides that.
         private bool ShouldUseIndirectReturn()
         {
-            return noOptimizations || builder.InExceptionHandler;
+            return optimizations == OptimizationLevel.Debug || builder.InExceptionHandler;
         }
 
         // compiler generated return mapped to a block is very likely the synthetic return
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Also in Dev12 the exception variable scope span starts right after the stloc instruction and 
                 // ends right before leave instruction. So when stopped at the sequence point Dev12 inserts,
                 // the exception variable is not visible. 
-                if (this.emitSequencePoints)
+                if (this.emitPdbSequencePoints)
                 {
                     var syntax = catchBlock.Syntax as CatchClauseSyntax;
                     if (syntax != null)
@@ -1338,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool HasDebugName(LocalSymbol local)
         {
-            return local.Name != null || local.SynthesizedLocalKind.IsNamed(this.debugInformationKind);
+            return local.Name != null || local.SynthesizedLocalKind.IsNamed(this.optimizations);
         }
 
         /// <summary>

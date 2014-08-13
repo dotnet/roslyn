@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property EmitModule As PEModuleBuilder
             Get
-                Return If(Me.CompilationState IsNot Nothing, Me.CompilationState.EmitModule, Nothing)
+                Return If(Me.CompilationState IsNot Nothing, Me.CompilationState.ModuleBuilderOpt, Nothing)
             End Get
         End Property
 
@@ -758,12 +758,8 @@ nextm:
             Return boundNode
         End Function
 
-        Public Function HiddenSequencePoint(isEmittingDebugInfo As Boolean) As BoundStatement
-            If isEmittingDebugInfo Then
-                Return New BoundSequencePoint(Nothing, Nothing).MakeCompilerGenerated
-            Else
-                Return NoOp()
-            End If
+        Public Function HiddenSequencePoint() As BoundStatement
+            Return New BoundSequencePoint(Nothing, Nothing).MakeCompilerGenerated
         End Function
 
         Public Function Null() As BoundExpression
@@ -952,32 +948,20 @@ nextm:
             Return New BoundCatchBlock(Syntax, local, Me.Local(local, False), Nothing, Nothing, block)
         End Function
 
-        Public Function SequencePoint(isEmittingDebugInfo As Boolean, syntax As VisualBasicSyntaxNode, statement As BoundStatement) As BoundStatement
-            If isEmittingDebugInfo Then
-                Return New BoundSequencePoint(syntax, statement)
-            Else
-                Return statement
-            End If
+        Public Function SequencePoint(syntax As VisualBasicSyntaxNode, statement As BoundStatement) As BoundStatement
+            Return New BoundSequencePoint(syntax, statement)
         End Function
 
-        Public Function SequencePoint(isEmittingDebugInfo As Boolean, syntax As VisualBasicSyntaxNode) As BoundStatement
-            If isEmittingDebugInfo Then
-                Return New BoundSequencePoint(syntax, Nothing).MakeCompilerGenerated
-            Else
-                Return NoOp()
-            End If
+        Public Function SequencePoint(syntax As VisualBasicSyntaxNode) As BoundStatement
+            Return New BoundSequencePoint(syntax, Nothing).MakeCompilerGenerated
+        End Function
+
+        Function SequencePointWithSpan(syntax As VisualBasicSyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
+            Return New BoundSequencePointWithSpan(syntax, boundStatement, textSpan)
         End Function
 
         Public Function NoOp(Optional flavor As NoOpStatementFlavor = NoOpStatementFlavor.Default) As BoundStatement
             Return New BoundNoOpStatement(Me.Syntax, flavor).MakeCompilerGenerated
-        End Function
-
-        Public Function SequencePoint(isEmittingDebugInfo As Boolean, syntax As VisualBasicSyntaxNode, ParamArray statements() As BoundStatement) As BoundStatement
-            Return SequencePoint(isEmittingDebugInfo, syntax, Me.Block(statements))
-        End Function
-
-        Function SequencePointWithSpan(isEmittingDebugInfo As Boolean, syntax As VisualBasicSyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
-            Return If(isEmittingDebugInfo, New BoundSequencePointWithSpan(syntax, boundStatement, textSpan), boundStatement)
         End Function
 
         Public Sub CloseMethod(body As BoundStatement)

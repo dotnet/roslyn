@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -62,10 +57,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
                            initialProxies As Dictionary(Of Symbol, TProxy),
-                           diagnostics As DiagnosticBag,
-                           generateDebugInfo As Boolean)
+                           diagnostics As DiagnosticBag)
 
-                MyBase.New(F.CompilationState, diagnostics, generateDebugInfo)
+                MyBase.New(F.CompilationState, diagnostics)
 
                 Me.F = F
                 Me.StateField = stateField
@@ -246,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.Dispatches.Add(finalizer, New List(Of Integer)() From {Me.CurrentFinalizerState})
 
                         Dim skipFinalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("skipFinalizer")
-                        tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(Me.GenerateDebugInfo),
+                        tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(),
                                               Me.Dispatch(),
                                               Me.F.Goto(skipFinalizer),
                                               Me.F.Label(finalizer),
@@ -257,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               Me.F.Label(skipFinalizer),
                                               tryBlock)
                     Else
-                        tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(Me.GenerateDebugInfo), Me.Dispatch(), tryBlock)
+                        tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(), Me.Dispatch(), tryBlock)
                     End If
 
                     If oldDispatches Is Nothing Then
@@ -275,17 +269,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim catchBlocks As ImmutableArray(Of BoundCatchBlock) = Me.VisitList(node.CatchBlocks)
                 Dim finallyBlockOpt As BoundBlock = If(node.FinallyBlockOpt Is Nothing, Nothing,
                                                        Me.F.Block(
-                                                           Me.F.HiddenSequencePoint(Me.GenerateDebugInfo),
+                                                           Me.F.HiddenSequencePoint(),
                                                            Me.F.If(
                                                                condition:=Me.F.IntLessThan(
                                                                    Me.F.Local(Me.CachedState, False),
                                                                    Me.F.Literal(StateMachineStates.FirstUnusedState)),
                                                                thenClause:=DirectCast(Me.Visit(node.FinallyBlockOpt), BoundBlock)),
-                                                           Me.F.HiddenSequencePoint(Me.GenerateDebugInfo)))
+                                                           Me.F.HiddenSequencePoint()))
 
                 Dim result As BoundStatement = node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.ExitLabelOpt)
                 If dispatchLabel IsNot Nothing Then
-                    result = Me.F.Block(Me.F.HiddenSequencePoint(Me.GenerateDebugInfo), Me.F.Label(dispatchLabel), result)
+                    result = Me.F.Block(Me.F.HiddenSequencePoint(), Me.F.Label(dispatchLabel), result)
                 End If
 
                 Return result

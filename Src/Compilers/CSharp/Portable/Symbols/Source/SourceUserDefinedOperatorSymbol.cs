@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceUserDefinedOperatorSymbol : SourceUserDefinedOperatorSymbolBase
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        override protected ParameterListSyntax ParameterListSyntax
+        protected override ParameterListSyntax ParameterListSyntax
         {
             get
             {
@@ -54,13 +54,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        override protected TypeSyntax ReturnTypeSyntax
+        protected override TypeSyntax ReturnTypeSyntax
         {
             get
             {
                 var syntax = (OperatorDeclarationSyntax)syntaxReference.GetSyntax();
                 return syntax.ReturnType;
             }
+        }
+
+        internal override bool GenerateDebugInfo
+        {
+            get { return true; }
         }
     }
 }

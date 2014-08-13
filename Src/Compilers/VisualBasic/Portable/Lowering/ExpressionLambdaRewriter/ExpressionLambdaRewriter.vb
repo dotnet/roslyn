@@ -94,7 +94,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              delegateType As NamedTypeSymbol,
                                              compilationState As TypeCompilationState,
                                              typeMap As TypeSubstitution,
-                                             generateDebugInfo As Boolean,
                                              diagnostics As DiagnosticBag,
                                              rewrittenNodes As HashSet(Of BoundNode)) As BoundExpression
 
@@ -102,7 +101,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim expressionTree As BoundExpression = r.VisitLambdaInternal(node, delegateType)
 
             If Not expressionTree.HasErrors Then
-                expressionTree = LocalRewriter.Rewrite(expressionTree, currentMethod, compilationState, Nothing, generateDebugInfo, diagnostics, rewrittenNodes)
+                expressionTree = LocalRewriter.RewriteExpressionTree(expressionTree,
+                                                                     currentMethod,
+                                                                     compilationState,
+                                                                     previousSubmissionFields:=Nothing,
+                                                                     diagnostics:=diagnostics,
+                                                                     rewrittenNodes:=rewrittenNodes)
             End If
 
             Return expressionTree

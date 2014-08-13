@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -34,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -142,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -213,7 +216,7 @@ class C
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugExe);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -306,7 +309,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -385,7 +388,7 @@ class B
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -543,7 +546,7 @@ class B
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -772,7 +775,7 @@ class B
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -874,7 +877,7 @@ class B
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -934,7 +937,7 @@ class B
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -1020,7 +1023,7 @@ class C : I
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -1089,7 +1092,7 @@ class B : I
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -1161,7 +1164,7 @@ class C : I
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -1229,7 +1232,7 @@ delegate void D();
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -1394,7 +1397,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -1459,7 +1462,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -1567,7 +1570,7 @@ class C
             var compilation2 = CreateCompilationWithMscorlib(Parse(source2, "a.cs"), options: TestOptions.DebugDll);
             var compilation3 = CreateCompilationWithMscorlib(Parse(source3, "a.cs"), options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1605,12 +1608,9 @@ class C
                     Row(26, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                    Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                    Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                     Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(8, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(9, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(10, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
                     Row(2, TableIndex.PropertyMap, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
@@ -1718,12 +1718,9 @@ class C
                     Handle(17, TableIndex.CustomAttribute),
                     Handle(18, TableIndex.CustomAttribute),
                     Handle(19, TableIndex.CustomAttribute),
+                    Handle(4, TableIndex.StandAloneSig),
+                    Handle(5, TableIndex.StandAloneSig),
                     Handle(6, TableIndex.StandAloneSig),
-                    Handle(7, TableIndex.StandAloneSig),
-                    Handle(8, TableIndex.StandAloneSig),
-                    Handle(9, TableIndex.StandAloneSig),
-                    Handle(10, TableIndex.StandAloneSig),
-                    Handle(11, TableIndex.StandAloneSig),
                     Handle(2, TableIndex.PropertyMap),
                     Handle(3, TableIndex.Property),
                     Handle(4, TableIndex.Property),
@@ -1834,7 +1831,7 @@ class C
 }";
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var diff1 = compilation1.EmitDifference(
@@ -1901,7 +1898,7 @@ class C
 }";
             var compilation0 = CreateCompilationWithMscorlib(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(Parse(source1, "a.cs"), options: TestOptions.DebugDll);
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
 
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), token => ImmutableArray.Create("a"));
 
@@ -2004,7 +2001,7 @@ class C
 }";
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var diff1 = compilation1.EmitDifference(
@@ -2063,7 +2060,7 @@ class B
 }";
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var diff1 = compilation1.EmitDifference(
@@ -2125,7 +2122,7 @@ namespace M
 
             var method0 = compilation0.GetMember<MethodSymbol>("M.C.M2");
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var compilation1 = CreateCompilationWithMscorlib(options: TestOptions.DebugDll, text:
@@ -2290,9 +2287,9 @@ class C
         M((A<int>.B<B>)null);
     }
 }";
-            var options = TestOptions.DebugDll.WithAllowUnsafe(true);
+            var options = TestOptions.UnsafeDebugDll;
             var compilation0 = CreateCompilationWithMscorlib(options: options, references: new[] { SystemCoreRef, CSharpRef }, text: source);
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var n = compilation0.GetMembers("C.M").Length;
@@ -2691,7 +2688,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.Main");
             var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(methodData0));
@@ -2761,7 +2758,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -2837,7 +2834,7 @@ class C
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
 
             methodData0.VerifyIL(
@@ -2986,7 +2983,7 @@ class C
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var diff1 = compilation1.EmitDifference(
@@ -3152,7 +3149,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.F");
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(methodData0));
@@ -3241,7 +3238,7 @@ class C
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var diff1 = compilation1.EmitDifference(
@@ -3326,7 +3323,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -3476,7 +3473,7 @@ class B : A<B>
                     }
                 };
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), getLocalNames);
 
             #region Gen1 
@@ -3686,7 +3683,7 @@ class B : A<B>
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
@@ -3774,7 +3771,7 @@ class B : A<B>
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
             var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
             var method1 = compilation1.GetMember<MethodSymbol>("C.Main");
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(method0));
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3819,7 +3816,7 @@ class B : A<B>
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(testData0.GetMethodData("C.M")));
 
@@ -4014,7 +4011,7 @@ class C
             var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M1");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M1");
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => GetLocalNames(methodData0));
@@ -4153,11 +4150,11 @@ namespace M
         }
     }
 }";
-            var compOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize: false, concurrentBuild: false);
+            var compOptions = TestOptions.DebugDll;
             var compilation0 = CreateCompilationWithMscorlib(source0, options: compOptions);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: compOptions);
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -4379,7 +4376,7 @@ class B
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
             var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -4558,7 +4555,7 @@ class B
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
             var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -4666,7 +4663,7 @@ class B
             var compilation3 = CreateCompilationWithMscorlib(source3, options: TestOptions.DebugDll);
             var compilation4 = CreateCompilationWithMscorlib(source4, options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -5032,7 +5029,7 @@ class B
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -5074,6 +5071,7 @@ class B
   IL_0024:  ret
 }");
         }
+
         /// Local names array (from PDB) may have fewer slots than method
         /// signature (from metadata) if the trailing slots are unnamed.
         /// </summary>
@@ -5099,7 +5097,7 @@ class B
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -5281,7 +5279,7 @@ class B
             var compilation1 = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
 
@@ -5349,7 +5347,7 @@ class B
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 // Source method with dynamic operations.
@@ -5467,7 +5465,7 @@ public interface I
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA });
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
@@ -5564,7 +5562,7 @@ public struct S
             var compilation1B = CreateCompilationWithMscorlib(source1B, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C<T>.M1");
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
@@ -5648,7 +5646,7 @@ public interface IB
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
 
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, m => ImmutableArray.Create<string>());
@@ -5706,7 +5704,7 @@ class C
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -5792,7 +5790,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
             var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var reader0 = md0.MetadataReader;
@@ -5862,7 +5860,7 @@ class C
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray(debug: true);
+            var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var diff1 = compilation1.EmitDifference(

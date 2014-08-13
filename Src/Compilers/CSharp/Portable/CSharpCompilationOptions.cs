@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string mainTypeName = null,
             string scriptClassName = WellKnownMemberNames.DefaultScriptClassName,
             IEnumerable<string> usings = null,
-            bool optimize = false,
+            OptimizationLevel optimizationLevel = OptimizationLevel.Debug,
             bool checkOverflow = false,
             bool allowUnsafe = false,
             string cryptoKeyContainer = null,
@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             int warningLevel = 4,
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null,
             bool highEntropyVirtualAddressSpace = false,
-            DebugInformationKind debugInformationKind = DebugInformationKind.None,
             SubsystemVersion subsystemVersion = default(SubsystemVersion),
             string runtimeMetadataVersion = null,
             bool concurrentBuild = true,
@@ -59,9 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MetadataReferenceProvider metadataReferenceProvider = null,
             AssemblyIdentityComparer assemblyIdentityComparer = null,
             StrongNameProvider strongNameProvider = null)
-            : this(outputKind, moduleName, mainTypeName, scriptClassName, usings, optimize, checkOverflow, allowUnsafe,
+            : this(outputKind, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
                    cryptoKeyContainer, cryptoKeyFile, delaySign, fileAlignment, baseAddress, platform, generalDiagnosticOption, warningLevel,
-                   specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind, subsystemVersion, runtimeMetadataVersion, concurrentBuild,
+                   specificDiagnosticOptions, highEntropyVirtualAddressSpace, subsystemVersion, runtimeMetadataVersion, concurrentBuild,
                    xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, MetadataImportOptions.Public, features: ImmutableArray<string>.Empty)
         {
         }
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string mainTypeName,
             string scriptClassName,
             IEnumerable<string> usings,
-            bool optimize,
+            OptimizationLevel optimizationLevel,
             bool checkOverflow,
             bool allowUnsafe,
             string cryptoKeyContainer,
@@ -86,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             int warningLevel,
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
             bool highEntropyVirtualAddressSpace,
-            DebugInformationKind debugInformationKind,
             SubsystemVersion subsystemVersion,
             string runtimeMetadataVersion,
             bool concurrentBuild,
@@ -98,8 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             StrongNameProvider strongNameProvider,
             MetadataImportOptions metadataImportOptions,
             ImmutableArray<string> features)
-            : base(outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimize, checkOverflow, fileAlignment, baseAddress,
-                   platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(), highEntropyVirtualAddressSpace, debugInformationKind,
+            : base(outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimizationLevel, checkOverflow, fileAlignment, baseAddress,
+                   platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(), highEntropyVirtualAddressSpace,
                    subsystemVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features)
         {
             this.Usings = usings.AsImmutableOrEmpty();
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             mainTypeName: other.MainTypeName,
             scriptClassName: other.ScriptClassName,
             usings: other.Usings,
-            optimize: other.Optimize,
+            optimizationLevel: other.OptimizationLevel,
             checkOverflow: other.CheckOverflow,
             allowUnsafe: other.AllowUnsafe,
             cryptoKeyContainer: other.CryptoKeyContainer,
@@ -126,7 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             warningLevel: other.WarningLevel,
             specificDiagnosticOptions: other.SpecificDiagnosticOptions,
             highEntropyVirtualAddressSpace: other.HighEntropyVirtualAddressSpace,
-            debugInformationKind: other.DebugInformationKind,
             subsystemVersion: other.SubsystemVersion,
             runtimeMetadataVersion: other.RuntimeMetadataVersion,
             concurrentBuild: other.ConcurrentBuild,
@@ -241,24 +238,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithUsings((IEnumerable<string>)usings);
         }
 
-        public CSharpCompilationOptions WithDebugInformationKind(DebugInformationKind kind)
+        public new CSharpCompilationOptions WithOptimizationLevel(OptimizationLevel value)
         {
-            if (kind == this.DebugInformationKind)
+            if (value == this.OptimizationLevel)
             {
                 return this;
             }
 
-            return new CSharpCompilationOptions(this) { DebugInformationKind = kind };
-        }
-
-        public new CSharpCompilationOptions WithOptimizations(bool enabled)
-        {
-            if (enabled == this.Optimize)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { Optimize = enabled };
+            return new CSharpCompilationOptions(this) { OptimizationLevel = value };
         }
 
         public CSharpCompilationOptions WithOverflowChecks(bool enabled)
@@ -492,9 +479,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithPlatform(platform);
         }
 
-        protected override CompilationOptions CommonWithOptimizations(bool enabled)
+        protected override CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value)
         {
-            return WithOptimizations(enabled);
+            return WithOptimizationLevel(value);
         }
 
         protected override CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer)
@@ -572,9 +559,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "OutputKind", OutputKind.ToString()));
             }
 
-            if (!DebugInformationKind.IsValid())
+            if (!OptimizationLevel.IsValid())
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "DebugInformationKind", DebugInformationKind.ToString()));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "OptimizationLevel", OptimizationLevel.ToString()));
             }
 
             if (!SubsystemVersion.Equals(SubsystemVersion.None) && !SubsystemVersion.IsValid)

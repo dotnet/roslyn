@@ -29,10 +29,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        method As MethodSymbol,
                        asyncKind As AsyncMethodKind,
                        compilationState As TypeCompilationState,
-                       diagnostics As DiagnosticBag,
-                       generateDebugInfo As Boolean)
+                       diagnostics As DiagnosticBag)
 
-            MyBase.New(body, method, compilationState, diagnostics, generateDebugInfo)
+            MyBase.New(body, method, compilationState, diagnostics)
 
             Me._binder = CreateMethodBinder(method)
             Me._stateMachineType = DirectCast(Me.Method.GetAsyncStateMachineType(), AsyncStateMachine)
@@ -132,8 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function Rewrite(body As BoundBlock,
                                                  method As MethodSymbol,
                                                  compilationState As TypeCompilationState,
-                                                 diagnostics As DiagnosticBag,
-                                                 generateDebugInfo As Boolean) As BoundBlock
+                                                 diagnostics As DiagnosticBag) As BoundBlock
 
             If body.HasErrors Then
                 Return body
@@ -144,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return body
             End If
 
-            Dim rewriter As New AsyncRewriter(body, method, asyncMethodKind, compilationState, diagnostics, generateDebugInfo)
+            Dim rewriter As New AsyncRewriter(body, method, asyncMethodKind, compilationState, diagnostics)
 
             ' check if we have all the types we need
             If rewriter.EnsureAllSymbolsAndSignature() Then
@@ -236,8 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           builder:=Me._builderField,
                                                           variableProxies:=Me.variableProxies,
                                                           owner:=Me,
-                                                          diagnostics:=Diagnostics,
-                                                          generateDebugInfo:=Me.GenerateDebugInfo)
+                                                          diagnostics:=Diagnostics)
 
             rewriter.GenerateMoveNext(Me.Body, moveNextMethod)
         End Sub
@@ -260,9 +257,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 LocalRewriter.RewritingFlags.AllowEndOfMethodReturnWithExpression Or
                 LocalRewriter.RewritingFlags.AllowCatchWithErrorLineNumberReference
 
-            Return LocalRewriter.Rewrite(DirectCast(body, BoundBlock), topMethod, Me.CompilationState, Nothing,
-                                         False, Me.Diagnostics, rewrittenNodes, hasLambdas, symbolsCapturedWithoutCtor,
-                                         flags:=rewritingFlags, currentMethod:=currentMethod)
+            Return LocalRewriter.Rewrite(DirectCast(body, BoundBlock),
+                                         topMethod,
+                                         Me.CompilationState,
+                                         previousSubmissionFields:=Nothing,
+                                         diagnostics:=Me.Diagnostics,
+                                         rewrittenNodes:=rewrittenNodes,
+                                         hasLambdas:=hasLambdas,
+                                         symbolsCapturedWithoutCopyCtor:=symbolsCapturedWithoutCtor,
+                                         flags:=rewritingFlags,
+                                         currentMethod:=currentMethod)
         End Function
 
         Friend Overrides Function EnsureAllSymbolsAndSignature() As Boolean

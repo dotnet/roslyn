@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or if they are expression-bodied properties.
             // We do this to ensure that expression lambdas and expression-bodied
             // properties have sequence points.
-            if (this.generateDebugInfo &&
+            if (this.GenerateDebugInfo &&
                 (!rewritten.WasCompilerGenerated || 
                  (node.ExpressionOpt != null && IsLambdaOrExpressionBodiedMember)))
             {

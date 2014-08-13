@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                          New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive))
 
             TestProperty(Function(old, value) old.WithEmbedVbCoreRuntime(value), Function(opt) opt.EmbedVbCoreRuntime, True)
-            TestProperty(Function(old, value) old.WithOptimizations(value), Function(opt) opt.Optimize, True)
+            TestProperty(Function(old, value) old.WithOptimizationLevel(value), Function(opt) opt.OptimizationLevel, OptimizationLevel.Release)
             TestProperty(Function(old, value) old.WithOverflowChecks(value), Function(opt) opt.CheckOverflow, False)
             TestProperty(Function(old, value) old.WithCryptoKeyContainer(value), Function(opt) opt.CryptoKeyContainer, "foo")
             TestProperty(Function(old, value) old.WithCryptoKeyFile(value), Function(opt) opt.CryptoKeyFile, "foo")
@@ -77,7 +77,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 New Dictionary(Of String, ReportDiagnostic) From {{"VB0001", ReportDiagnostic.Error}}.ToImmutableDictionary())
 
             TestProperty(Function(old, value) old.WithHighEntropyVirtualAddressSpace(value), Function(opt) opt.HighEntropyVirtualAddressSpace, True)
-            TestProperty(Function(old, value) old.WithDebugInformationKind(value), Function(opt) opt.DebugInformationKind, DebugInformationKind.PdbOnly)
             TestProperty(Function(old, value) old.WithSubsystemVersion(value), Function(opt) opt.SubsystemVersion, SubsystemVersion.Windows2000)
             TestProperty(Function(old, value) old.WithConcurrentBuild(value), Function(opt) opt.ConcurrentBuild, False)
 
@@ -137,12 +136,12 @@ BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'OutputKind'
 BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OutputKind'
 </expected>)
 
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithDebugInformationKind(CType(Int32.MaxValue, DebugInformationKind)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(CType(Int32.MaxValue, OptimizationLevel)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'DebugInformationKind'
 </expected>)
 
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithDebugInformationKind(CType(Int32.MinValue, DebugInformationKind)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(CType(Int32.MinValue, OptimizationLevel)).Errors,
 <expected>
 BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'DebugInformationKind'
 </expected>)
@@ -256,14 +255,14 @@ BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OutputKind'
 </expected>)
 
 
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, debugInformationKind:=CType(Int32.MaxValue, DebugInformationKind)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=CType(Int32.MaxValue, OptimizationLevel)).Errors,
 <expected>
-BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'DebugInformationKind'
+BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'OptimizationLevel'
 </expected>)
 
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, debugInformationKind:=CType(Int32.MinValue, DebugInformationKind)).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=CType(Int32.MinValue, OptimizationLevel)).Errors,
 <expected>
-BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'DebugInformationKind'
+BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OptimizationLevel'
 </expected>)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optionStrict:=CType(3, OptionStrict)).Errors,

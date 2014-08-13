@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool GenerateDebugInfo
         {
-            get { return true; }
+            get { return !this.IsAsync; }
         }
 
         internal override bool IsExpressionBodied

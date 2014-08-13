@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             rewrittenCondition As BoundExpression,
             rewrittenConsequence As BoundStatement,
             rewrittenAlternative As BoundStatement,
-            Optional generateDebugInfo As Boolean = True,
+            generateDebugInfo As Boolean,
             Optional unstructuredExceptionHandlingResumeTarget As ImmutableArray(Of BoundStatement) = Nothing
         ) As BoundStatement
             Debug.Assert(unstructuredExceptionHandlingResumeTarget.IsDefaultOrEmpty OrElse generateDebugInfo)
@@ -150,12 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                Return New BoundStatementList(syntaxNode, ImmutableArray.Create(Of BoundStatement)(
-                                              condGoto,
-                                              rewrittenConsequence,
-                                              afterIfStatement
-                                          ))
-
+                Return New BoundStatementList(syntaxNode, ImmutableArray.Create(condGoto, rewrittenConsequence, afterIfStatement))
             Else
                 ' if (condition)
                 '     consequence;

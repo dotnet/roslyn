@@ -285,7 +285,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     rewrittenCondition:=rewrittenCaseCondition,
                     rewrittenConsequence:=rewrittenBody,
                     rewrittenAlternative:=RewriteCaseBlocks(generateUnstructuredExceptionHandlingResumeCode, caseBlocks, startFrom + 1),
-                    unstructuredExceptionHandlingResumeTarget:=unstructuredExceptionHandlingResumeTarget)
+                    unstructuredExceptionHandlingResumeTarget:=unstructuredExceptionHandlingResumeTarget,
+                    generateDebugInfo:=True)
             End If
 
             Return rewrittenStatement

@@ -11746,7 +11746,6 @@ End Module
 
             Dim compRelease = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe)
             Dim compDebug = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugExe)
-            Dim compDebuggableRelease = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebuggableReleaseExe)
 
             ' (2) is not met.
             CompileAndVerify(compRelease).VerifyIL("C.Main",
@@ -11760,18 +11759,6 @@ End Module
   IL_000b:  ret
 }
 ]]>)
-
-            ' (2) is not met.
-            CompileAndVerify(compDebuggableRelease).VerifyIL("C.Main",
-            <![CDATA[
-{
-  // Code size       12 (0xc)
-  .maxstack  1
-  IL_0000:  call       "Sub C.S()"
-  IL_0005:  call       "Function C.F() As Integer"
-  IL_000a:  pop
-  IL_000b:  ret
-}]]>)
 
             ' S meets (1), but F does not (it doesn't need a nop since it has a pop).
             CompileAndVerify(compDebug).VerifyIL("C.Main",

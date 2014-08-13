@@ -48,14 +48,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     End Enum
 
     Module SynthesizedLocalKindExtensions
-        <Extension()>
+        <Extension>
         Friend Function IsLongLived(ByVal kind As SynthesizedLocalKind) As Boolean
             Return kind >= SynthesizedLocalKind.FirstLongLived
         End Function
 
-        <Extension()>
-        Friend Function IsNamed(ByVal kind As SynthesizedLocalKind, debugInformationKind As DebugInformationKind) As Boolean
-            If debugInformationKind = DebugInformationKind.Full Then
+        <Extension>
+        Friend Function IsNamed(ByVal kind As SynthesizedLocalKind, optimizations As OptimizationLevel) As Boolean
+            If optimizations = OptimizationLevel.Debug Then
                 Return IsLongLived(kind)
             End If
 

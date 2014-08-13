@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement labelStatement = new BoundLabelStatement(node.Syntax, node.Label);
 
-            if (this.generateDebugInfo)
+            if (this.GenerateDebugInfo)
             {
                 var labeledSyntax = node.Syntax as LabeledStatementSyntax;
                 if (labeledSyntax != null)

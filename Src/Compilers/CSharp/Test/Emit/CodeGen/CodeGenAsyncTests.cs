@@ -78,16 +78,6 @@ class Test
             }, expectedOutput: "123");
 
 
-            options = TestOptions.DebuggableReleaseExe;
-            Assert.False(options.EnableEditAndContinue);
-
-            CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
-            {
-                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__1");
-                Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
-            }, expectedOutput: "123");
-
-
             options = TestOptions.DebugExe;
             Assert.True(options.EnableEditAndContinue);
 
@@ -5343,8 +5333,7 @@ class Driver
         Console.WriteLine(Result);
     }
 }";
-            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false, concurrentBuild: false, allowUnsafe: true);
-            CompileAndVerify(source, "0", compOptions: compOptions);
+            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeReleaseExe);
         }
 
         [Fact]
@@ -5416,8 +5405,7 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false, concurrentBuild: false, allowUnsafe: true);
-            CompileAndVerify(source, "0", compOptions: compOptions);
+            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -5478,8 +5466,7 @@ class Driver
         Console.Write(Driver.Result);
     }
 }";
-            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false, concurrentBuild: false, allowUnsafe: true);
-            CompileAndVerify(source, "0", compOptions: compOptions);
+            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -5520,8 +5507,7 @@ class Driver
 
     public static int Result = -1;
 }";
-            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false, concurrentBuild: false, allowUnsafe: true);
-            CompileAndVerify(source, "0", compOptions: compOptions);
+            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -5580,8 +5566,7 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false, concurrentBuild: false, allowUnsafe: true);
-            CompileAndVerify(source, "0", compOptions: compOptions);
+            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -5665,8 +5650,7 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false, concurrentBuild: false, allowUnsafe: true);
-            CompileAndVerify(source, "0", compOptions: compOptions);
+            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -5728,8 +5712,7 @@ class Driver
         return ret;
     }
 }";
-            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: false, concurrentBuild: false, allowUnsafe: true);
-            CompileAndVerify(source, "0", compOptions: compOptions);
+            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -7119,11 +7102,10 @@ class Test
 
             c.VerifyIL("Test.F", @"
 {
-  // Code size       54 (0x36)
+  // Code size       52 (0x34)
   .maxstack  2
   .locals init (Test.<F>d__1 V_0,
-  System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> V_1,
-  System.Threading.Tasks.Task<int> V_2)
+                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> V_1)
   IL_0000:  newobj     ""Test.<F>d__1..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -7141,9 +7123,7 @@ class Test
   IL_0028:  ldloc.0
   IL_0029:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__1.<>t__builder""
   IL_002e:  call       ""System.Threading.Tasks.Task<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Task.get""
-  IL_0033:  stloc.2
-  IL_0034:  ldloc.2
-  IL_0035:  ret
+  IL_0033:  ret
 }
 ");
 

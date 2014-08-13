@@ -510,10 +510,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSequencePoint(BoundSequencePointExpression node)
         {
-            AssertExplicitSequencePointAllowed();
-
             var syntax = node.Syntax;
-            if (emitSequencePoints)
+            if (emitPdbSequencePoints)
             {
                 if (syntax == null)
                 {
@@ -1330,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 EmitPopIfUnused(used);
             }
-            else if (this.noOptimizations && this.emitSequencePoints)
+            else if (this.optimizations == OptimizationLevel.Debug)
             {
                 // The only void methods with usable return values are constructors and we represent those
                 // as BoundObjectCreationExpressions, not BoundCalls.

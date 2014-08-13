@@ -460,7 +460,7 @@ Public MustInherit Class BasicTestBaseBase
 
     Protected Overrides ReadOnly Property CompilationOptionsReleaseDll As CompilationOptions
         Get
-            Return New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimize:=True)
+            Return TestOptions.ReleaseDll
         End Get
     End Property
 

@@ -1696,13 +1696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // CONSIDER: Native VB compiler and Roslyn VB compiler also have an additional requirement: There is no applied DebuggableAttribute *module* attribute in source.
             // CONSIDER: Should we check for module DebuggableAttribute?
-
-            bool emitDebuggableAttribute = 
-                !isBuildingNetModule &&
-                options.DebugInformationKind != DebugInformationKind.None &&
-                !this.HasDebuggableAttribute;
-
-            if (emitDebuggableAttribute)
+            if (!isBuildingNetModule && !this.HasDebuggableAttribute)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggableAttribute());
             }
@@ -1712,7 +1706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // If the attribute is applied in source, do not add synthetic one.
                 // If its value is different from the supplied through options, an error should have been reported by now.
 
-                if (!String.IsNullOrEmpty(compilation.Options.CryptoKeyContainer) &&
+                if (!string.IsNullOrEmpty(compilation.Options.CryptoKeyContainer) &&
                     (object)AssemblyKeyContainerAttributeSetting == (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
                 {
                     var stringType = this.compilation.GetSpecialType(SpecialType.System_String);

@@ -29,7 +29,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected ReadOnly CompilationState As TypeCompilationState
         Protected ReadOnly Diagnostics As DiagnosticBag
         Protected ReadOnly F As SyntheticBoundNodeFactory
-        Protected ReadOnly GenerateDebugInfo As Boolean
 
         Protected StateField As FieldSymbol
         Protected variableProxies As Dictionary(Of Symbol, TProxy)
@@ -41,14 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(body As BoundStatement,
                           method As MethodSymbol,
                           compilationState As TypeCompilationState,
-                          diagnostics As DiagnosticBag,
-                          generateDebugInfo As Boolean)
+                          diagnostics As DiagnosticBag)
 
             Me.Body = body
             Me.Method = method
             Me.CompilationState = compilationState
             Me.Diagnostics = diagnostics
-            Me.GenerateDebugInfo = generateDebugInfo
             Me.F = New SyntheticBoundNodeFactory(method, method, method.ContainingType, body.Syntax, compilationState, diagnostics)
         End Sub
 
@@ -120,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ReplaceOriginalMethod() As BoundBlock
             Me.F.CurrentMethod = Me.Method
             Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
-            bodyBuilder.Add(Me.F.HiddenSequencePoint(Me.GenerateDebugInfo))
+            bodyBuilder.Add(Me.F.HiddenSequencePoint())
 
             Dim frameType As NamedTypeSymbol = SubstituteTypeIfNeeded(Me.StateMachineClass)
 

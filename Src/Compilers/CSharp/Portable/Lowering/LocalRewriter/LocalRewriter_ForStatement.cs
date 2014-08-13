@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BoundStatement ifNotConditionGotoBreak = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, breakLabel);
 
-                        if (this.generateDebugInfo)
+                        if (this.GenerateDebugInfo)
                         {
                             if (!conditionSpanOpt.IsEmpty)
                             {
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 branchBack = new BoundGotoStatement(syntax, startLabel);
             }
 
-            if (this.generateDebugInfo)
+            if (this.GenerateDebugInfo)
             {
                 if (!conditionSpanOpt.IsEmpty)
                 {   

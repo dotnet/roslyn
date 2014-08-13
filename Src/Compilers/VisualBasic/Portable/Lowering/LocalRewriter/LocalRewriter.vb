@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.topMethod = topMethod
             Me.currentMethodOrLambda = currentMethod
             Me.globalGenerateDebugInfo = generateDebugInfo
-            Me.emitModule = compilationState.EmitModule
+            Me.emitModule = compilationState.ModuleBuilderOpt
             Me.compilationState = compilationState
             Me.previousSubmissionFields = previousSubmissionFields
             Me.diagnostics = diagnostics
@@ -141,9 +141,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             previousSubmissionFields As SynthesizedSubmissionFields,
                                             generateDebugInfo As Boolean,
                                             diagnostics As DiagnosticBag,
-                                            <[In](), Out()> ByRef rewrittenNodes As HashSet(Of BoundNode),
-                                            <Out()> ByRef hasLambdas As Boolean,
-                                            <Out()> ByRef symbolsCapturedWithoutCtor As ISet(Of Symbol),
+                                            <[In], Out> ByRef rewrittenNodes As HashSet(Of BoundNode),
+                                            <Out> ByRef hasLambdas As Boolean,
+                                            <Out> ByRef symbolsCapturedWithoutCtor As ISet(Of Symbol),
                                             flags As RewritingFlags) As BoundNode
 
             Debug.Assert(node Is Nothing OrElse Not node.HasErrors, "node has errors")
@@ -193,28 +193,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        topMethod As MethodSymbol,
                                        compilationState As TypeCompilationState,
                                        previousSubmissionFields As SynthesizedSubmissionFields,
-                                       generateDebugInfo As Boolean,
                                        diagnostics As DiagnosticBag,
-                                       <Out()> ByRef rewrittenNodes As HashSet(Of BoundNode),
-                                       <Out()> ByRef hasLambdas As Boolean,
-                                       <Out()> ByRef symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
-                                       Optional flags As RewritingFlags = RewritingFlags.Default,
-                                       Optional currentMethod As MethodSymbol = Nothing) As BoundBlock
+                                       <Out> ByRef rewrittenNodes As HashSet(Of BoundNode),
+                                       <Out> ByRef hasLambdas As Boolean,
+                                       <Out> ByRef symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
+                                       flags As RewritingFlags,
+                                       currentMethod As MethodSymbol) As BoundBlock
 
             Debug.Assert(rewrittenNodes Is Nothing)
+
+            ' if the node already contains debug info, don't generate more debug info
+            Dim generateDebugInfo = (flags And RewritingFlags.AllowSequencePoints) = 0
+
             Return DirectCast(RewriteNode(node, topMethod, If(currentMethod, topMethod), compilationState, previousSubmissionFields, generateDebugInfo, diagnostics, rewrittenNodes, hasLambdas, symbolsCapturedWithoutCopyCtor, flags), BoundBlock)
         End Function
 
-        Public Shared Function Rewrite(node As BoundExpression,
-                                       method As MethodSymbol,
-                                       compilationState As TypeCompilationState,
-                                       previousSubmissionFields As SynthesizedSubmissionFields,
-                                       generateDebugInfo As Boolean,
-                                       diagnostics As DiagnosticBag,
-                                       rewrittenNodes As HashSet(Of BoundNode)) As BoundExpression
+        Public Shared Function RewriteExpressionTree(node As BoundExpression,
+                                                     method As MethodSymbol,
+                                                     compilationState As TypeCompilationState,
+                                                     previousSubmissionFields As SynthesizedSubmissionFields,
+                                                     diagnostics As DiagnosticBag,
+                                                     rewrittenNodes As HashSet(Of BoundNode)) As BoundExpression
 
             Debug.Assert(rewrittenNodes IsNot Nothing)
             Dim hasLambdas As Boolean = False
+            Const generateDebugInfo = False ' don't generate debug information in expression tree lambdas
             Dim result = DirectCast(RewriteNode(node, method, method, compilationState, previousSubmissionFields, generateDebugInfo, diagnostics, rewrittenNodes, hasLambdas, SpecializedCollections.EmptySet(Of Symbol), RewritingFlags.Default), BoundExpression)
             Debug.Assert(Not hasLambdas)
             Return result
@@ -307,8 +310,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          BoundKind.RValuePlaceholder,
                          BoundKind.WithLValueExpressionPlaceholder,
                          BoundKind.WithRValueExpressionPlaceholder
-                        ' do not clone these as they have special semantics and may 
-                        ' be used for identity search after local rewriter is finished
+                    ' do not clone these as they have special semantics and may 
+                    ' be used for identity search after local rewriter is finished
 
                     Case Else
                         result = result.MemberwiseClone(Of BoundExpression)()
@@ -335,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property GenerateDebugInfo As Boolean
             Get
-                Return globalGenerateDebugInfo AndAlso currentMethodOrLambda.GenerateDebugInfo AndAlso Not inExpressionLambda
+                Return globalGenerateDebugInfo AndAlso Not inExpressionLambda
             End Get
         End Property
 
@@ -390,11 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function InsertBlockEpilogue(statement As BoundStatement, endBlockResumeTargetOpt As BoundStatement, sequencePointSyntax As VisualBasicSyntaxNode) As BoundStatement
-            If Not GenerateDebugInfo Then
-                Return Concat(statement, endBlockResumeTargetOpt)
-            End If
-
-            Return Concat(statement, New BoundSequencePoint(sequencePointSyntax, endBlockResumeTargetOpt))
+            Return Concat(statement, If(GenerateDebugInfo, New BoundSequencePoint(sequencePointSyntax, endBlockResumeTargetOpt), endBlockResumeTargetOpt))
         End Function
 
         ' adds a sequence point before stepping on the statement

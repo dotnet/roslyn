@@ -54,11 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol current,
             HashSet<Symbol> variablesCaptured,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> initialProxies,
-            DiagnosticBag diagnostics,
-            bool generateDebugInfo)
-            : base(F, originalMethod, state, variablesCaptured, initialProxies, diagnostics,
-                  useFinalizerBookkeeping: false,
-                  generateDebugInfo: generateDebugInfo)
+            DiagnosticBag diagnostics)
+            : base(F, originalMethod, state, variablesCaptured, initialProxies, diagnostics, useFinalizerBookkeeping: false)
         {
             this.current = current;
         }

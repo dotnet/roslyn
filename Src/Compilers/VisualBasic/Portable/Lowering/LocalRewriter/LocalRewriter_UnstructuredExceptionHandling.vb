@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             statements.Add(DirectCast(Visit(node.Body), BoundBlock))
 
             ' We reach this statement if there were no exceptions. 
-            statements.Add(nodeFactory.HiddenSequencePoint(Me.GenerateDebugInfo))
+            statements.Add(nodeFactory.HiddenSequencePoint())
 
             If unstructuredExceptionHandling.CurrentStatementTemporary IsNot Nothing Then
                 RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, False, statements)
@@ -223,11 +223,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 onErrorSwitchJumps(ActiveHandler_FirstNonReservedOnErrorGotoIndex + i) = unstructuredExceptionHandling.ExceptionHandlers(i)
             Next
 
-            ' When resume is present and debug info is generated:
+            ' When resume is present and we are not optimizing:
             ' Determine if the handler index is less than or equal to -2 (ActiveHandler_FirstOnErrorResumeNextIndex):
             ' If so, replace it with ActiveHandler_ResumeNext and jump to the switch.
             statements.Add(New BoundUnstructuredExceptionOnErrorSwitch(node.Syntax,
-                                                                       If(node.ResumeWithoutLabelOpt IsNot Nothing AndAlso Not Compilation.Options.Optimize,
+                                                                       If(node.ResumeWithoutLabelOpt IsNot Nothing AndAlso Me.Compilation.Options.OptimizationLevel = OptimizationLevel.Debug,
                                                                           nodeFactory.Conditional(nodeFactory.Binary(BinaryOperatorKind.GreaterThan,
                                                                                                                      bool,
                                                                                                                      nodeFactory.Local(unstructuredExceptionHandling.ActiveHandlerTemporary, isLValue:=False),
@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     unstructuredExceptionHandling.ExceptionHandlers.Add(nodeFactory.Goto(node.LabelOpt, setWasCompilerGenerated:=False))
 
                 Case OnErrorStatementKind.ResumeNext
-                    If Not Compilation.Options.Optimize Then
+                    If Compilation.Options.OptimizationLevel = OptimizationLevel.Debug Then
                         newErrorHandlerIndex = ActiveHandler_FirstOnErrorResumeNextIndex - unstructuredExceptionHandling.OnErrorResumeNextCount
                     Else
                         newErrorHandlerIndex = ActiveHandler_ResumeNext

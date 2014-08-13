@@ -277,7 +277,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim projectDirectory = Path.GetDirectoryName(projectFile.FilePath)
                     Dim outputDirectory = projectFile.GetOutputDirectory()
                     Me._compilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication,
-                        debugInformationKind:=DebugInformationKind.None,
                         xmlReferenceResolver:=New XmlFileResolver(projectDirectory),
                         sourceReferenceResolver:=New SourceFileResolver(ImmutableArray(Of String).Empty, projectDirectory),
                         metadataReferenceResolver:=New MetadataFileReferenceResolver(ImmutableArray(Of String).Empty, projectDirectory),
@@ -410,19 +409,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetDebugType(emitDebugInformation As Boolean, debugType As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetDebugType
-                    Dim newKind As DebugInformationKind
-                    If String.Equals(debugType, "none", comparisonType:=StringComparison.OrdinalIgnoreCase) Then
-                        newKind = DebugInformationKind.None
-                    ElseIf String.Equals(debugType, "pdbonly", comparisonType:=StringComparison.OrdinalIgnoreCase) Then
-                        newKind = DebugInformationKind.PdbOnly
-                    ElseIf String.Equals(debugType, "full", comparisonType:=StringComparison.OrdinalIgnoreCase) Then
-                        newKind = DebugInformationKind.Full
-                    Else
-                        Return False
-                    End If
-
-                    Me._compilationOptions = Me._compilationOptions.WithDebugInformationKind(newKind)
-                    Return True
+                    ' ignore, just check for expected values for backwards compat
+                    Return String.Equals(debugType, "none", StringComparison.OrdinalIgnoreCase) OrElse
+                           String.Equals(debugType, "pdbonly", StringComparison.OrdinalIgnoreCase) OrElse
+                           String.Equals(debugType, "full", StringComparison.OrdinalIgnoreCase)
                 End Function
 
                 Public Function SetDefineConstants(defineConstants As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetDefineConstants
@@ -519,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetOptimize(optimize As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetOptimize
-                    Me._compilationOptions = Me._compilationOptions.WithOptimizations(optimize)
+                    Me._compilationOptions = Me._compilationOptions.WithOptimizationLevel(If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug))
                     Return True
                 End Function
 

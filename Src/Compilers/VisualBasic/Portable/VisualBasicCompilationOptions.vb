@@ -32,13 +32,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Initializes a new instance of the VisualBasicCompilationOptions type with various options.
         ''' </summary>
-        ''' <param name="outputKind">The compilation output kind. <see cref="Microsoft.CodeAnalysis.OutputKind"/></param>
+        ''' <param name="outputKind">The compilation output kind. <see cref="CodeAnalysis.OutputKind"/></param>
         ''' <param name="moduleName">An optional parameter to specify the name of the assembly that this module will be a part of.</param>
         ''' <param name="mainTypeName">An optional parameter to specify the class or module that contains the Sub Main procedure.</param>
         ''' <param name="scriptClassName">An optional parameter to specify an alteranate DefaultScriptClassName object to be used.</param>
         ''' <param name="globalImports">An optional collection of GlobalImports <see cref="GlobalImports"/> .</param>
         ''' <param name="rootNamespace">An optional parameter to specify the name of the default root namespace.</param>
-        ''' <param name="optionStrict">An optional parameter to specify the default Option Strict behavior. <see cref="Microsoft.CodeAnalysis.VisualBasic.OptionStrict"/></param>
+        ''' <param name="optionStrict">An optional parameter to specify the default Option Strict behavior. <see cref="VisualBasic.OptionStrict"/></param>
         ''' <param name="optionInfer">An optional parameter to specify default Option Infer behavior.</param>
         ''' <param name="optionExplicit">An optional parameter to specify the default Option Explicit behavior.</param>
         ''' <param name="optionCompareText">An optional parameter to specify the default Option Compare Text behavior.</param>
@@ -50,20 +50,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="delaySign">An optional parameter to specify whether the assembly will be fully or partially signed.</param>
         ''' <param name="baseAddress">An optional parameter to specify a default base address when creating a DLL.</param>
         ''' <param name="fileAlignment">An optional parameter to specify where to align the sections of the output file.</param>
-        ''' <param name="platform">An optional parameter to specify which platform version of common language runtime (CLR) can run compilation. <see cref="Microsoft.CodeAnalysis.Platform"/></param>
+        ''' <param name="platform">An optional parameter to specify which platform version of common language runtime (CLR) can run compilation. <see cref="CodeAnalysis.Platform"/></param>
         ''' <param name="generalDiagnosticOption">An optional parameter to specify the general warning level.</param>
         ''' <param name="specificDiagnosticOptions">An optional collection representing specific warnings that differ from general warning behavior.</param>
         ''' <param name="highEntropyVirtualAddressSpace">An optional parameter to specify whether a 64-bit executable supports high entropy Address Space Layout Randomization (ASLR).</param>
-        ''' <param name="debugInformationKind">An optional parameter to specify the level of debugging information to be generated. <see cref="Microsoft.CodeAnalysis.DebugInformationKind "/></param>
-        ''' <param name="optimize">An optional parameter to enabled/disable optimization. </param>
-        ''' <param name="subsystemVersion">An optional parameter to specify an alternate subsystem version. <see cref="Microsoft.CodeAnalysis.SubsystemVersion"/> Specifies the minimum version of the subsystem on which the generated executable file can run, thereby determining the versions of Windows on which the executable file can run. Most commonly, this option ensures that the executable file can leverage particular security features that aren�t available with older versions of Windows.</param>
+        ''' <param name="optimizationLevel">An optional parameter to enabled/disable optimizations. </param>
+        ''' <param name="subsystemVersion">An optional parameter to specify an alternate subsystem version. <see cref="CodeAnalysis.SubsystemVersion"/> Specifies the minimum version of the subsystem on which the generated executable file can run, thereby determining the versions of Windows on which the executable file can run. Most commonly, this option ensures that the executable file can leverage particular security features that aren�t available with older versions of Windows.</param>
         ''' <param name="parseOptions">An optional parameter to specify the parse options. <see cref="VisualBasicParseOptions"/></param>
         ''' <param name="xmlReferenceResolver">An optional parameter to specify the XML file resolver.</param>
         ''' <param name="sourceReferenceResolver">An optional parameter to specify the source file resolver.</param>
-        ''' <param name="metadataReferenceResolver">An optional parameter the <see cref="MetadataReferenceResolver"/>.</param>
-        ''' <param name="metadataReferenceProvider">An optional parameter the <see cref="MetadataReferenceProvider"/>.</param>
-        ''' <param name="assemblyIdentityComparer">An optional parameter the <see cref="AssemblyIdentityComparer"/>.</param>
-        ''' <param name="strongNameProvider">An optional parameter the <see cref="StrongNameProvider"/>.</param>
+        ''' <param name="metadataReferenceResolver">An optional parameter to specify <see cref="CodeAnalysis.MetadataReferenceResolver"/>.</param>
+        ''' <param name="metadataReferenceProvider">An optional parameter to specify <see cref="CodeAnalysis.MetadataReferenceProvider"/>.</param>
+        ''' <param name="assemblyIdentityComparer">An optional parameter to specify <see cref="CodeAnalysis.AssemblyIdentityComparer"/>.</param>
+        ''' <param name="strongNameProvider">An optional parameter to specify <see cref="CodeAnalysis.StrongNameProvider"/>.</param>
         Public Sub New(
             outputKind As OutputKind,
             Optional moduleName As String = Nothing,
@@ -77,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional optionCompareText As Boolean = False,
             Optional parseOptions As VisualBasicParseOptions = Nothing,
             Optional embedVbCoreRuntime As Boolean = False,
-            Optional optimize As Boolean = False,
+            Optional optimizationLevel As OptimizationLevel = OptimizationLevel.Debug,
             Optional checkOverflow As Boolean = True,
             Optional cryptoKeyContainer As String = Nothing,
             Optional cryptoKeyFile As String = Nothing,
@@ -88,7 +87,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional generalDiagnosticOption As ReportDiagnostic = ReportDiagnostic.Default,
             Optional specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)) = Nothing,
             Optional highEntropyVirtualAddressSpace As Boolean = False,
-            Optional debugInformationKind As DebugInformationKind = DebugInformationKind.None,
             Optional subsystemVersion As SubsystemVersion = Nothing,
             Optional concurrentBuild As Boolean = True,
             Optional xmlReferenceResolver As XmlReferenceResolver = Nothing,
@@ -111,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optionCompareText,
                 parseOptions,
                 embedVbCoreRuntime,
-                optimize,
+                optimizationLevel,
                 checkOverflow,
                 cryptoKeyContainer,
                 cryptoKeyFile,
@@ -122,7 +120,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption,
                 specificDiagnosticOptions,
                 highEntropyVirtualAddressSpace,
-                debugInformationKind,
                 subsystemVersion,
                 concurrentBuild,
                 xmlReferenceResolver,
@@ -149,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             optionCompareText As Boolean,
             parseOptions As VisualBasicParseOptions,
             embedVbCoreRuntime As Boolean,
-            optimize As Boolean,
+            optimizationLevel As OptimizationLevel,
             checkOverflow As Boolean,
             cryptoKeyContainer As String,
             cryptoKeyFile As String,
@@ -160,7 +157,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             generalDiagnosticOption As ReportDiagnostic,
             specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
             highEntropyVirtualAddressSpace As Boolean,
-            debugInformationKind As DebugInformationKind,
             subsystemVersion As SubsystemVersion,
             concurrentBuild As Boolean,
             xmlReferenceResolver As XmlReferenceResolver,
@@ -180,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoKeyContainer:=cryptoKeyContainer,
                 cryptoKeyFile:=cryptoKeyFile,
                 delaySign:=delaySign,
-                optimize:=optimize,
+                optimizationLevel:=optimizationLevel,
                 checkOverflow:=checkOverflow,
                 fileAlignment:=fileAlignment,
                 baseAddress:=baseAddress,
@@ -189,7 +185,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 warningLevel:=1,
                 specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
                 highEntropyVirtualAddressSpace:=highEntropyVirtualAddressSpace,
-                debugInformationKind:=debugInformationKind,
                 subsystemVersion:=subsystemVersion,
                 concurrentBuild:=concurrentBuild,
                 xmlReferenceResolver:=xmlReferenceResolver,
@@ -225,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optionCompareText:=other.OptionCompareText,
                 parseOptions:=other.ParseOptions,
                 embedVbCoreRuntime:=other.EmbedVbCoreRuntime,
-                optimize:=other.Optimize,
+                optimizationLevel:=other.OptimizationLevel,
                 checkOverflow:=other.CheckOverflow,
                 cryptoKeyContainer:=other.CryptoKeyContainer,
                 cryptoKeyFile:=other.CryptoKeyFile,
@@ -236,7 +231,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption:=other.GeneralDiagnosticOption,
                 specificDiagnosticOptions:=other.SpecificDiagnosticOptions,
                 highEntropyVirtualAddressSpace:=other.HighEntropyVirtualAddressSpace,
-                debugInformationKind:=other.DebugInformationKind,
                 subsystemVersion:=other.SubsystemVersion,
                 concurrentBuild:=other.ConcurrentBuild,
                 xmlReferenceResolver:=other.XmlReferenceResolver,
@@ -647,7 +641,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a new VisualBasicCompilationOptions instance with a different report warning specified.
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a different report warning specified.
         ''' </summary>
         ''' <param name="value">The Report Warning setting. <see cref="Microsoft.CodeAnalysis.ReportDiagnostic"/></param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the report warning is different; otherwise current instance.</returns>        
@@ -660,7 +654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a new VisualBasicCompilationOptions instance with different specific warnings specified.
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with different specific warnings specified.
         ''' </summary>
         ''' <param name="value">Specific report warnings. <see cref="Microsoft.CodeAnalysis.ReportDiagnostic"/></param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the dictionary of report warning is different; otherwise current instance.</returns>        
@@ -677,7 +671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a new VisualBasicCompilationOptions instance with different specific warnings specified.
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with different specific warnings specified.
         ''' </summary>
         ''' <param name="value">Specific report warnings. <see cref="Microsoft.CodeAnalysis.ReportDiagnostic"/></param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the dictionary of report warning is different; otherwise current instance.</returns>        
@@ -686,7 +680,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a new VisualBasicCompilationOptions instance with a different high entropy virtual address space specified
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a different high entropy virtual address space specified
         ''' </summary>
         ''' <param name="value">The high entropy virtual address space setting.</param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the high entropy virtual address space is different; otherwise current instance.</returns>        
@@ -699,16 +693,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a new VisualBasicCompilationOptions instance with a different optimize specified.
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a specified <see cref="VisualBasicCompilationOptions.OptimizationLevel"/>.
         ''' </summary>
-        ''' <param name="enabled">The optimize setting.</param>        
-        ''' <returns>A new instance of VisualBasicCompilationOptions, if the optimize kind is different; otherwise current instance.</returns>        
-        Public Shadows Function WithOptimizations(enabled As Boolean) As VisualBasicCompilationOptions
-            If enabled = Me.Optimize Then
+        ''' <returns>A new instance of <see cref="VisualBasicCompilationOptions"/>, if the value is different; otherwise the current instance.</returns>        
+        Public Shadows Function WithOptimizationLevel(value As OptimizationLevel) As VisualBasicCompilationOptions
+            If value = Me.OptimizationLevel Then
                 Return Me
             End If
 
-            Return New VisualBasicCompilationOptions(Me) With {.Optimize = enabled}
+            Return New VisualBasicCompilationOptions(Me) With {.OptimizationLevel = value}
         End Function
 
         Friend Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
@@ -720,20 +713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a new VisualBasicCompilationOptions instance with a different Debug info type specified.
-        ''' </summary>
-        ''' <param name="kind">The Debug setting. <see cref="Microsoft.CodeAnalysis.DebugInformationKind "/></param>        
-        ''' <returns>A new instance of VisualBasicCompilationOptions, if the debug kind is different; otherwise current instance.</returns>        
-        Public Shadows Function WithDebugInformationKind(kind As DebugInformationKind) As VisualBasicCompilationOptions
-            If kind = Me.DebugInformationKind Then
-                Return Me
-            End If
-
-            Return New VisualBasicCompilationOptions(Me) With {.DebugInformationKind = kind}
-        End Function
-
-        ''' <summary>
-        ''' Creates a new VisualBasicCompilationOptions instance with a different parse option specified.
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a different parse option specified.
         ''' </summary>
         ''' <param name="options">The parse option setting. <see cref="Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions"/></param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the parse options is different; otherwise current instance.</returns>        
@@ -803,8 +783,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithPlatform(platform)
         End Function
 
-        Protected Overrides Function CommonWithOptimizations(enabled As Boolean) As CompilationOptions
-            Return WithOptimizations(enabled)
+        Protected Overrides Function CommonWithOptimizationLevel(value As OptimizationLevel) As CompilationOptions
+            Return WithOptimizationLevel(value)
         End Function
 
         Protected Overrides Function CommonWithAssemblyIdentityComparer(comparer As AssemblyIdentityComparer) As CompilationOptions
@@ -855,8 +835,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, OutputKind.ToString(), "OutputKind"))
             End If
 
-            If Not DebugInformationKind.IsValid() Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, DebugInformationKind.ToString(), "DebugInformationKind"))
+            If Not OptimizationLevel.IsValid() Then
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, OptimizationLevel.ToString(), "OptimizationLevel"))
             End If
 
             If Not SubsystemVersion.Equals(SubsystemVersion.None) AndAlso Not SubsystemVersion.IsValid Then

@@ -2199,9 +2199,7 @@ class Program
     }
 }
 ";
-            var opt = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimize: true);
-
-            var comp = CreateCompilationWithMscorlib(text, options: opt).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (7,18): warning CS0665: Assignment in conditional expression is always constant; did you mean to use == instead of = ?
                 //         int s = (b = false) ? 5 : 100; 		// Warning
                 Diagnostic(ErrorCode.WRN_IncorrectBooleanAssg, "b = false"),

@@ -1,12 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -16,7 +10,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             method As MethodSymbol,
             block As BoundBlock,
             diagnostics As DiagnosticBag,
-            generateDebugInfo As Boolean,
             compilationState As TypeCompilationState,
             previousSubmissionFields As SynthesizedSubmissionFields
         ) As BoundBlock
@@ -26,8 +19,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim hasLambdas As Boolean
             Dim symbolsCapturedWithoutCopyCtor As ISet(Of Symbol) = Nothing
             Dim rewrittenNodes As HashSet(Of BoundNode) = Nothing
-            Dim locallyRewritten = LocalRewriter.Rewrite(block, method, compilationState, previousSubmissionFields, generateDebugInfo,
-                                                         diagnostics, rewrittenNodes, hasLambdas, symbolsCapturedWithoutCopyCtor)
+
+            Dim locallyRewritten = LocalRewriter.Rewrite(block,
+                                                         method,
+                                                         compilationState,
+                                                         previousSubmissionFields,
+                                                         diagnostics:=diagnostics,
+                                                         rewrittenNodes:=rewrittenNodes,
+                                                         hasLambdas:=hasLambdas,
+                                                         symbolsCapturedWithoutCopyCtor:=symbolsCapturedWithoutCopyCtor,
+                                                         flags:=LocalRewriter.RewritingFlags.Default,
+                                                         currentMethod:=Nothing)
 
             If locallyRewritten.HasErrors Then
                 Return locallyRewritten
@@ -49,7 +51,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          compilationState,
                                                          If(symbolsCapturedWithoutCopyCtor, SpecializedCollections.EmptySet(Of Symbol)),
                                                          diagnostics,
-                                                         generateDebugInfo,
                                                          rewrittenNodes)
             End If
 
@@ -61,8 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim iteratorRewritten = IteratorRewriter.Rewrite(lambdaRewritten,
                                                        method,
                                                        compilationState,
-                                                       diagnostics,
-                                                       generateDebugInfo)
+                                                       diagnostics)
 
             If iteratorRewritten.HasErrors Then
                 Return iteratorRewritten
@@ -72,8 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim asyncRewritten = AsyncRewriter.Rewrite(iteratorRewritten,
                                                        method,
                                                        compilationState,
-                                                       diagnostics,
-                                                       generateDebugInfo)
+                                                       diagnostics)
 
             Dim rewrittenBody As BoundBlock = asyncRewritten
 

@@ -33,10 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            state As FieldSymbol,
                            current As FieldSymbol,
                            localProxies As Dictionary(Of Symbol, FieldSymbol),
-                           diagnostics As DiagnosticBag,
-                           generateDebugInfo As Boolean)
+                           diagnostics As DiagnosticBag)
 
-                MyBase.New(F, state, localProxies, diagnostics, generateDebugInfo)
+                MyBase.New(F, state, localProxies, diagnostics)
 
                 Me._current = current
 
@@ -72,13 +71,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 F.CloseMethod(
                     F.Block(
                         ImmutableArray.Create(Of LocalSymbol)(Me._methodValue, Me.CachedState),
-                        F.HiddenSequencePoint(Me.GenerateDebugInfo),
+                        F.HiddenSequencePoint(),
                         F.Assignment(Me.F.Local(Me.CachedState, True), F.Field(F.[Me](), Me.StateField, False)),
                         Dispatch(),
                         GenerateReturn(finished:=True),
                         F.Label(initialLabel),
                         F.Assignment(F.Field(F.[Me](), Me.StateField, True), Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineStates.NotStartedStateMachine))),
-                        F.SequencePoint(GenerateDebugInfo, _originalMethodDeclaration),
+                        F.SequencePoint(_originalMethodDeclaration),
                         newBody,
                         HandleReturn()
                     ))
@@ -121,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' exitlabel:
                     '  Return _methodValue
                     Return F.Block(
-                            F.HiddenSequencePoint(Me.GenerateDebugInfo),
+                            F.HiddenSequencePoint(),
                             F.Assignment(F.Local(Me._methodValue, True), F.Literal(True)),
                             F.Label(Me._exitLabel),
                             F.Return(Me.F.Local(Me._methodValue, False))
@@ -186,7 +185,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '     Me.state = -1
                 Dim newState = AddState()
                 Return F.SequencePoint(
-                    Me.GenerateDebugInfo,
                     node.Syntax,
                     F.Block(
                         F.Assignment(F.Field(F.[Me](), Me._current, True), DirectCast(Visit(node.Expression), BoundExpression)),

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = RewriteIfStatement(syntax, node.Locals, AddConditionSequencePoint(rewrittenCondition, node), rewrittenConsequence, rewrittenAlternative, node.HasErrors);
 
             // add sequence point before the whole statement
-            if (this.generateDebugInfo && !node.WasCompilerGenerated)
+            if (this.GenerateDebugInfo && !node.WasCompilerGenerated)
             {
                 result = new BoundSequencePointWithSpan(
                     syntax,

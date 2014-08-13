@@ -5561,15 +5561,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The /pdb option requires that the /debug option also be used.
-        /// </summary>
-        internal static string ERR_MissingDebugSwitch {
-            get {
-                return ResourceManager.GetString("ERR_MissingDebugSwitch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Command-line syntax error: Missing Guid for option &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_MissingGuidForOption {

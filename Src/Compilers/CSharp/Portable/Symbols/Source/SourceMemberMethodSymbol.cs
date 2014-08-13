@@ -1087,5 +1087,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return base.CallsAreOmitted(syntaxTree);
         }
+
+        internal override bool GenerateDebugInfo
+        {
+            get { return !IsAsync; }
+        }
     }
 }

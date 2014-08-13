@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool checkOverflow = false;
                 bool allowUnsafe = false;
                 bool concurrentBuild = true;
-                bool emitDebugInformation = false;
-                var debugInformationKind = DebugInformationKind.Full;
+                bool emitPdb = false;
                 string pdbPath = null;
                 bool noStdLib = false;
                 string outputDirectory = baseDirectory;
@@ -428,22 +427,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
 
                             case "debug":
-                                emitDebugInformation = true;
+                                emitPdb = true;
+
+                                // unused, parsed for backward compat only
                                 if (value != null)
                                 {
-                                    if (string.IsNullOrEmpty(value))
+                                    if (value.IsEmpty())
                                     {
                                         AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
                                     }
-                                    else if (string.Equals(value, "full", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        debugInformationKind = DebugInformationKind.Full;
-                                    }
-                                    else if (string.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        debugInformationKind = DebugInformationKind.PdbOnly;
-                                    }
-                                    else
+                                    else if (!string.Equals(value, "full", StringComparison.OrdinalIgnoreCase) && 
+                                             !string.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase))
                                     {
                                         AddDiagnostic(diagnostics, ErrorCode.ERR_BadDebugType, value);
                                     }
@@ -455,14 +449,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (value != null)
                                     break;
 
-                                emitDebugInformation = true;
+                                emitPdb = true;
                                 continue;
 
                             case "debug-":
                                 if (value != null)
                                     break;
 
-                                emitDebugInformation = false;
+                                emitPdb = false;
                                 continue;
 
                             case "o":
@@ -948,14 +942,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     keyFileSearchPaths.Add(outputDirectory);
                 }
 
-                if (!emitDebugInformation)
+                if (!emitPdb)
                 {
                     if (pdbPath != null)
                     {
                         // Can't give a PDB file name and turn off debug information
                         AddDiagnostic(diagnostics, ErrorCode.ERR_MissingDebugSwitch);
                     }
-                    debugInformationKind = DebugInformationKind.None;
                 }
 
                 string compilationName;
@@ -978,8 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     mainTypeName: mainTypeName,
                     scriptClassName: WellKnownMemberNames.DefaultScriptClassName,
                     usings: usings,
-                    debugInformationKind: debugInformationKind,
-                    optimize: optimize,
+                    optimizationLevel: optimize ? OptimizationLevel.Release : OptimizationLevel.Debug,
                     checkOverflow: checkOverflow,
                     allowUnsafe: allowUnsafe,
                     concurrentBuild: concurrentBuild,
@@ -1009,6 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CompilationName = compilationName,
                     OutputFileName = outputFileName,
                     PdbPath = pdbPath,
+                    EmitPdb = emitPdb,
                     OutputDirectory = outputDirectory,
                     DocumentationPath = documentationPath,
                     AppConfigPath = appConfigPath,

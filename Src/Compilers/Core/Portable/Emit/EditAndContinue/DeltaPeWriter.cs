@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Emit
             Guid encId,
             DefinitionMap definitionMap,
             SymbolChanges changes,
-            CancellationToken cancellationToken) :
-            base(context, messageProvider, pdbWriter, false, false, false, cancellationToken)
+            CancellationToken cancellationToken) 
+            : base(context, messageProvider, pdbWriter, false, false, cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));

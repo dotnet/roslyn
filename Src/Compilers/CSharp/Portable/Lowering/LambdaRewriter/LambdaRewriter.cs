@@ -113,9 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            bool generateDebugInfo,
             bool assignLocals)
-            : base(compilationState, analysis.variablesCaptured, diagnostics, generateDebugInfo)
+            : base(compilationState, analysis.variablesCaptured, diagnostics)
         {
             Debug.Assert(analysis != null);
             Debug.Assert(thisType != null);
@@ -148,7 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="compilationState">The caller's buffer into which we produce additional methods to be emitted by the caller</param>
         /// <param name="diagnostics">Diagnostic bag for diagnostics</param>
         /// <param name="analysis">A caller-provided analysis of the node's lambdas</param>
-        /// <param name="generateDebugInfo"></param>
         /// <param name="assignLocals">The rewritten tree should include assignments of the original locals to the lifted proxies</param>
         public static BoundStatement Rewrite(
             BoundStatement node,
@@ -158,7 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
             Analysis analysis,
-            bool generateDebugInfo,
             bool assignLocals = false)
         {
             Debug.Assert((object)thisType != null);
@@ -172,7 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method,
                 compilationState,
                 diagnostics,
-                generateDebugInfo,
                 assignLocals);
 
             analysis.ComputeLambdaScopesAndFrameCaptures();
@@ -569,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newStatements = ArrayBuilder<BoundStatement>.GetInstance();
 
-            if (GenerateDebugInfo && prologue.Count > 0)
+            if (prologue.Count > 0)
             {
                 newStatements.Add(new BoundSequencePoint(null, null) { WasCompilerGenerated = true });
             }

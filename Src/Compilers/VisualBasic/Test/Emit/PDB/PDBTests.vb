@@ -751,19 +751,10 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences)
 
+            ' kick-off method doesn't have any user code and hence doesn't need debug info
             AssertXmlEqual(
 <symbols>
-    <methods>
-        <method containingType="Module1" name="F" parameterNames="a">
-            <sequencepoints total="1">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-            </sequencepoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3f">
-                <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
-            </scope>
-        </method>
-    </methods>
+    <methods/>
 </symbols>,
 GetPdbXml(compilation, "Module1.F"))
 
@@ -803,19 +794,10 @@ GetPdbXml(compilation, "Module1.F"))
 </symbols>,
             GetPdbXml(compilation, "Module1+VB$StateMachine_0_F.MoveNext"))
 
+            ' kick-off method doesn't have any user code and hence doesn't need debug info
             AssertXmlEqual(
 <symbols>
-    <methods>
-        <method containingType="Module1" name="Test" parameterNames="">
-            <sequencepoints total="1">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-            </sequencepoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x37">
-                <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
-            </scope>
-        </method>
-    </methods>
+    <methods/>
 </symbols>,
 GetPdbXml(compilation, "Module1.Test"))
 
@@ -864,19 +846,10 @@ GetPdbXml(compilation, "Module1.Test"))
 </symbols>,
             GetPdbXml(compilation, "Module1+VB$StateMachine_1_Test.MoveNext"))
 
+            ' kick-off method doesn't have any user code and hence doesn't need debug info
             AssertXmlEqual(
 <symbols>
-    <methods>
-        <method containingType="Module1" name="S" parameterNames="">
-            <sequencepoints total="1">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-            </sequencepoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2b">
-                <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
-            </scope>
-        </method>
-    </methods>
+    <methods/>
 </symbols>,
 GetPdbXml(compilation, "Module1.S"))
 
@@ -6299,7 +6272,7 @@ End Class
                 <local name="$ex" il_index="3" il_start="0xd7" il_end="0xf8" attributes="1"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x10f">
-                <importsforward declaringType="C" methodName="Async_Lambda_Hoisted" parameterNames=""/>
+                <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__3" parameterNames=""/>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0x10f" attributes="1"/>
                 <scope startOffset="0xa" endOffset="0xd6">
                     <local name="$VB$ResumableLocal_$VB$Closure_2$1" il_index="0" il_start="0xa" il_end="0xd6" attributes="1"/>
@@ -6371,7 +6344,7 @@ End Class
                 <local name="$ex" il_index="4" il_start="0x99" il_end="0xbc" attributes="1"/>
             </locals>
             <scope startOffset="0x0" endOffset="0xd3">
-                <importsforward declaringType="C" methodName="Async_Lambda_NotHoisted" parameterNames=""/>
+                <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__3" parameterNames=""/>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xd3" attributes="1"/>
                 <scope startOffset="0xa" endOffset="0x98">
                     <local name="$VB$Closure_2" il_index="1" il_start="0xa" il_end="0x98" attributes="1"/>
@@ -6445,7 +6418,9 @@ End Class
                 <local name="$ex" il_index="3" il_start="0xab" il_end="0xcc" attributes="1"/>
             </locals>
             <scope startOffset="0x0" endOffset="0xe3">
-                <importsforward declaringType="C" methodName="Async_NoLambda_Hoisted" parameterNames=""/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xe3" attributes="1"/>
                 <scope startOffset="0xa" endOffset="0xaa">
                     <local name="$VB$ResumableLocal_x$1" il_index="0" il_start="0xa" il_end="0xaa" attributes="1"/>
@@ -6516,7 +6491,9 @@ End Class
                 <local name="$ex" il_index="5" il_start="0x80" il_end="0xa3" attributes="1"/>
             </locals>
             <scope startOffset="0x0" endOffset="0xba">
-                <importsforward declaringType="C" methodName="Async_NoLambda_NotHoisted" parameterNames=""/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
                 <local name="VB$cachedState" il_index="0" il_start="0x0" il_end="0xba" attributes="1"/>
                 <scope startOffset="0xa" endOffset="0x7f">
                     <local name="x" il_index="1" il_start="0xa" il_end="0x7f" attributes="0"/>

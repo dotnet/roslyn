@@ -128,18 +128,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return kind >= SynthesizedLocalKind.FirstLongLived;
         }
 
-        public static bool IsNamed(this SynthesizedLocalKind kind, DebugInformationKind debugInformationKind)
+        public static bool IsNamed(this SynthesizedLocalKind kind, OptimizationLevel optimizations)
         {
-            if (debugInformationKind == DebugInformationKind.Full)
+            if (optimizations == OptimizationLevel.Debug)
             {
                 return IsLongLived(kind);
             }
 
             switch (kind)
             {
-                // TODO: The following variables should be named whenever we emit any debugging information,
-                // so that EE can recognize these variables by name. Synthesized variables that EE doesn't 
-                // need to know about don't need to be named unless we are emitting debug info for EnC.
+                // The following variables should always be named so that EE can recognize these variables by name. 
                 case SynthesizedLocalKind.LambdaDisplayClass:
                     return true;
 

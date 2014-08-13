@@ -1400,12 +1400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' (c) There is no applied DebuggableAttribute assembly attribute in source.
             ' (d) There is no applied DebuggableAttribute module attribute in source (NOTE: Native C# compiler and Roslyn C# compiler doesn't check this).
 
-            Dim emitDebuggableAttribute As Boolean =
-                Not isBuildingNetModule AndAlso
-                options.DebugInformationKind <> DebugInformationKind.None AndAlso
-                Not Me.HasAssemblyOrModuleDebuggableAttribute
-
-            If emitDebuggableAttribute Then
+            If Not isBuildingNetModule AndAlso Not Me.HasAssemblyOrModuleDebuggableAttribute Then
                 ' Synthesize attribute: <DebuggableAttribute(DebuggableAttribute.DebuggingMode.<Value>)>
 
                 Dim int32Type = Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32)
@@ -1418,7 +1413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Default                                      JIT optimizations enabled
                     ' DisableOptimizations                         JIT optimizations enabled
                     ' Default | DisableOptimizations               JIT optimizations disabled
-                    If Not options.Optimize Then
+                    If options.OptimizationLevel = OptimizationLevel.Debug Then
                         debuggingMode = debuggingMode Or DebuggableAttribute.DebuggingModes.Default Or
                                                          DebuggableAttribute.DebuggingModes.DisableOptimizations
                     End If

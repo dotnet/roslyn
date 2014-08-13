@@ -115,11 +115,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If GenerateDebugInfo Then
-                Dim doSpNop = New BoundSequencePoint(syntax.DoStatement, Nothing)
-
-                Return New BoundStatementList(node.Syntax, ImmutableArray.Create(Of BoundStatement)(
+                Return New BoundStatementList(node.Syntax, ImmutableArray.Create(
                         start,
-                        doSpNop,
+                        New BoundSequencePoint(syntax.DoStatement, Nothing),
                         rewrittenBody,
                         New BoundLabelStatement(syntax.DoStatement, node.ContinueLabel),
                         ifConditionGotoStart,
@@ -127,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ))
             End If
 
-            Return New BoundStatementList(node.Syntax, ImmutableArray.Create(Of BoundStatement)(
+            Return New BoundStatementList(node.Syntax, ImmutableArray.Create(
                     start,
                     rewrittenBody,
                     New BoundLabelStatement(node.Syntax, node.ContinueLabel),
@@ -189,11 +187,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' exit:
 
             If GenerateDebugInfo Then
-                Dim doSpNop = New BoundSequencePoint(syntax.DoStatement, Nothing)
-
-                Return New BoundStatementList(syntax, ImmutableArray.Create(Of BoundStatement)(
+                Return New BoundStatementList(syntax, ImmutableArray.Create(
                         start,
-                        doSpNop,
+                        New BoundSequencePoint(syntax.DoStatement, Nothing),
                         rewrittenBody,
                         New BoundLabelStatement(syntax.DoStatement, node.ContinueLabel),
                         New BoundGotoStatement(syntax.DoStatement, startLabel, Nothing),
@@ -201,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ))
             End If
 
-            Return New BoundStatementList(syntax, ImmutableArray.Create(Of BoundStatement)(
+            Return New BoundStatementList(syntax, ImmutableArray.Create(
                 start,
                 rewrittenBody,
                 New BoundLabelStatement(node.Syntax, node.ContinueLabel),

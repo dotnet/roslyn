@@ -21,16 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class MethodCompiler : CSharpSymbolVisitor<TypeCompilationState, object>
     {
-        // The moduleBeingBuilt can be null. This indicates that we are compiling the method bodies solely
-        // for the purpose of getting diagnostics.
         private readonly CSharpCompilation compilation;
         private readonly bool generateDebugInfo;
         private readonly CancellationToken cancellationToken;
         private readonly DiagnosticBag diagnostics;
         private readonly bool hasDeclarationErrors;
         private readonly NamespaceScopeBuilder namespaceScopeBuilder;
-        private readonly PEModuleBuilder moduleBeingBuiltOpt;
-        private readonly Predicate<Symbol> filterOpt; // if not null, limit analysis to specific symbols
+        private readonly PEModuleBuilder moduleBeingBuiltOpt; // Null if compiling for diagnostics
+        private readonly Predicate<Symbol> filterOpt;         // If not null, limit analysis to specific symbols
         private readonly DebugDocumentProvider debugDocumentProvider;
 
         //
@@ -234,7 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body,
                     stateMachineTypeOpt: null,
                     diagnostics: diagnostics,
-                    optimize: compilation.Options.Optimize,
                     debugDocumentProvider: null,
                     namespaceScopes: default(ImmutableArray<Cci.NamespaceScope>));
 
@@ -579,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var method = methodWithBody.Method;
                 AsyncStateMachine stateMachineType;
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, compilationState, diagnosticsThisMethod, generateDebugInfo, out stateMachineType);
+                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, compilationState, diagnosticsThisMethod, out stateMachineType);
 
                 MethodBody emittedBody = null;
 
@@ -591,7 +588,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bodyWithoutAsync,
                         stateMachineType,
                         diagnosticsThisMethod,
-                        compilation.Options.Optimize,
                         debugDocumentProvider,
                         GetNamespaceScopes(method, methodWithBody.DebugImports));
                 }
@@ -687,7 +683,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundBody,
                         default(NamedTypeSymbol),
                         diagnosticsThisMethod,
-                        compilation.Options.Optimize,
                         debugDocumentProvider,
                         default(ImmutableArray<Cci.NamespaceScope>));
 
@@ -987,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 NamedTypeSymbol stateMachineType = null;
                 BoundStatement loweredBody = (flowAnalyzedBody == null) ? null :
-                    LowerBodyOrInitializer(this.generateDebugInfo, methodSymbol, flowAnalyzedBody, previousSubmissionFields, compilationState, diagsForCurrentMethod, out stateMachineType);
+                    LowerBodyOrInitializer(methodSymbol, flowAnalyzedBody, previousSubmissionFields, compilationState, diagsForCurrentMethod, out stateMachineType);
 
                 bool hasBody = loweredBody != null;
 
@@ -1014,7 +1009,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (analyzedInitializers != null)
                         {
                             processedInitializers.LoweredInitializers = (BoundStatementList)LowerBodyOrInitializer(
-                                this.generateDebugInfo,
                                 methodSymbol,
                                 analyzedInitializers,
                                 previousSubmissionFields,
@@ -1059,7 +1053,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundBody,
                         stateMachineType,
                         diagsForCurrentMethod,
-                        compilation.Options.Optimize,
                         debugDocumentProvider,
                         GetNamespaceScopes(methodSymbol, debugImports));
 
@@ -1077,7 +1070,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // internal for testing
         internal static BoundStatement LowerBodyOrInitializer(
-            bool generateDebugInfo,
             MethodSymbol method,
             BoundStatement body,
             SynthesizedSubmissionFields previousSubmissionFields,
@@ -1098,7 +1090,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool sawAwaitInExceptionHandler;
             var loweredBody = LocalRewriter.Rewrite(
                 method.DeclaringCompilation,
-                generateDebugInfo,
                 method,
                 method.ContainingType,
                 body,
@@ -1132,7 +1123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if these locals are captured into closures (possibly nested ones).
                 Debug.Assert(method.IteratorElementType == null);
                 loweredBody = AsyncExceptionHandlerRewriter.Rewrite(
-                    generateDebugInfo,
                     method,
                     method.ContainingType,
                     loweredBody,
@@ -1151,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lambdaAnalysis = LambdaRewriter.Analysis.Analyze(loweredBody, method);
                 if (lambdaAnalysis.SeenLambda)
                 {
-                    bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody, method.ContainingType, method.ThisParameter, method, compilationState, diagnostics, lambdaAnalysis, generateDebugInfo);
+                    bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody, method.ContainingType, method.ThisParameter, method, compilationState, diagnostics, lambdaAnalysis);
                 }
             }
 
@@ -1161,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             IteratorStateMachine iteratorStateMachine;
-            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, compilationState, diagnostics, generateDebugInfo, out iteratorStateMachine);
+            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, compilationState, diagnostics, out iteratorStateMachine);
 
             if (bodyWithoutIterators.HasErrors)
             {
@@ -1169,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AsyncStateMachine asyncStateMachine;
-            BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics, generateDebugInfo, out asyncStateMachine);
+            BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics, out asyncStateMachine);
 
             Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
             stateMachineType = (NamedTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
@@ -1183,19 +1173,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement block, 
             NamedTypeSymbol stateMachineTypeOpt,
             DiagnosticBag diagnostics,
-            bool optimize, 
             DebugDocumentProvider debugDocumentProvider,
             ImmutableArray<Cci.NamespaceScope> namespaceScopes)
         {
             // Note: don't call diagnostics.HasAnyErrors() in release; could be expensive if compilation has many warnings.
             Debug.Assert(!diagnostics.HasAnyErrors(), "Running code generator when errors exist might be dangerous; code generator not expecting errors");
 
-            bool emitSequencePoints = !namespaceScopes.IsDefault && !method.IsAsync;
-            var module = compilationState.ModuleBuilderOpt;
-            var compilation = module.Compilation;
-            var localSlotManager = module.CreateLocalSlotManager(method);
+            bool emittingPdbs = !namespaceScopes.IsDefault;
+            var moduleBuilder = compilationState.ModuleBuilderOpt;
+            var compilation = moduleBuilder.Compilation;
+            var localSlotManager = moduleBuilder.CreateLocalSlotManager(method);
+            var optimizations = compilation.Options.OptimizationLevel;
 
-            ILBuilder builder = new ILBuilder(module, localSlotManager, optimize);
+            ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations);
             DiagnosticBag diagnosticsForThisMethod = DiagnosticBag.GetInstance();
             try
             {
@@ -1203,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)method.AsyncKickoffMethod == null) // is this the MoveNext of an async method?
                 {
                     CodeGen.CodeGenerator.Run(
-                        method, block, builder, module, diagnosticsForThisMethod, optimize, emitSequencePoints);
+                        method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdbs);
                 }
                 else
                 {
@@ -1211,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<int> asyncYieldPoints;
                     ImmutableArray<int> asyncResumePoints;
                     CodeGen.CodeGenerator.Run(
-                        method, block, builder, module, diagnosticsForThisMethod, optimize, emitSequencePoints,
+                        method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdbs, 
                         out asyncCatchHandlerOffset, out asyncYieldPoints, out asyncResumePoints);
                     asyncDebugInfo = new Cci.AsyncMethodBodyDebugInfo(method.AsyncKickoffMethod, asyncCatchHandlerOffset, asyncYieldPoints, asyncResumePoints);
                 }
@@ -1230,9 +1220,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // We will only save the IL builders when running tests.
-                if (module.SaveTestData)
+                if (moduleBuilder.SaveTestData)
                 {
-                    module.SetMethodTestData(method, builder.GetSnapshot());
+                    moduleBuilder.SetMethodTestData(method, builder.GetSnapshot());
                 }
 
                 // Only compiler-generated MoveNext methods have iterator scopes.  See if this is one.

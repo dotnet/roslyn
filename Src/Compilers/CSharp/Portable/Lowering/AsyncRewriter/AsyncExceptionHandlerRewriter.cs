@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         AwaitFinallyFrame currentAwaitFinallyFrame = new AwaitFinallyFrame(null, null);
 
         private AsyncExceptionHandlerRewriter(
-            bool generateDebugInfo,
             MethodSymbol containingMethod,
             NamedTypeSymbol containingType,
             SyntheticBoundNodeFactory factory,
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             AwaitInFinallyAnalysis analysis)
         {
-            this.generateDebugInfo = generateDebugInfo && containingMethod.GenerateDebugInfo;
+            this.generateDebugInfo = containingMethod.GenerateDebugInfo;
             this.compilation = compilation;
             this.F = factory;
             this.F.CurrentMethod = containingMethod;
@@ -108,7 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     }
         /// </summary>
         public static BoundStatement Rewrite(
-            bool generateDebugInfo,
             MethodSymbol containingSymbol,
             NamedTypeSymbol containingType,
             BoundStatement statement,
@@ -129,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compilation = containingType.DeclaringCompilation;
             var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-            var rewriter = new AsyncExceptionHandlerRewriter(generateDebugInfo, containingSymbol, containingType, factory, compilation, diagnostics, analysis);
+            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, compilation, diagnostics, analysis);
             var loweredStatement = (BoundStatement)rewriter.Visit(statement);
 
             return loweredStatement;

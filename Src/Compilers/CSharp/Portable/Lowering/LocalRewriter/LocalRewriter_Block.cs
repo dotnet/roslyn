@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            if (node.WasCompilerGenerated || !this.generateDebugInfo)
+            if (node.WasCompilerGenerated || !this.GenerateDebugInfo)
             {
                 return node.Update(node.Locals, VisitList(node.Statements));
             }
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNoOpStatement(BoundNoOpStatement node)
         {
-            return (node.WasCompilerGenerated || !this.generateDebugInfo)
+            return (node.WasCompilerGenerated || !this.GenerateDebugInfo)
                 ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
                 : AddSequencePoint(node);
         }

@@ -1,11 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Cci = Microsoft.Cci;
-
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -26,10 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly MethodSymbol implementingMethod;
 
-        public SynthesizedExplicitImplementationForwardingMethod(
-            MethodSymbol interfaceMethod,
-            MethodSymbol implementingMethod,
-            NamedTypeSymbol implementingType) : base(interfaceMethod, implementingType)
+        public SynthesizedExplicitImplementationForwardingMethod(MethodSymbol interfaceMethod, MethodSymbol implementingMethod, NamedTypeSymbol implementingType) 
+            : base(interfaceMethod, implementingType, generateDebugInfo: false)
         {
             this.implementingMethod = implementingMethod;
         }

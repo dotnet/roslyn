@@ -21,22 +21,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
         protected HashSet<Symbol> variablesCaptured;
         protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
-        protected readonly bool generateDebugInfo;
 
         protected StateMachineRewriter(
             BoundStatement body,
             MethodSymbol method,
             SynthesizedContainer stateMachineClass,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
-            bool generateDebugInfo)
+            DiagnosticBag diagnostics)
         {
             this.body = body;
             this.method = method;
             this.stateMachineClass = stateMachineClass;
             this.compilationState = compilationState;
             this.diagnostics = diagnostics;
-            this.generateDebugInfo = generateDebugInfo;
             this.F = new SyntheticBoundNodeFactory(method, body.Syntax, compilationState, diagnostics);
             Debug.Assert(F.CurrentClass == method.ContainingType);
             Debug.Assert(F.Syntax == body.Syntax);

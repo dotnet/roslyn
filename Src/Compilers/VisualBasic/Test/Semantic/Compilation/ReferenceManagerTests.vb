@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private Shared ReadOnly SignedDll As VisualBasicCompilationOptions =
             New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                                              optimize:=True,
+                                              optimizationLevel:=OptimizationLevel.Release,
                                               cryptoKeyFile:=SigningTestHelpers.KeyPairFile,
                                               strongNameProvider:=New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create(Of String)()))
 

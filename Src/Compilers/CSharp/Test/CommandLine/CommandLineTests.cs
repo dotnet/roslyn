@@ -1194,59 +1194,45 @@ d.cs
         {
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.None, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug-", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.None, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.Full, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug+", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.Full, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug+", "/debug-", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.None, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:full", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.Full, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:FULL", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.Full, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:pdbonly", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.PdbOnly, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:PDBONLY", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.PdbOnly, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:full", "/debug:pdbonly", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.PdbOnly, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:pdbonly", "/debug:full", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.Full, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:pdbonly", "/debug-", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.None, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:pdbonly", "/debug-", "/debug", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.PdbOnly, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:pdbonly", "/debug-", "/debug+", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(DebugInformationKind.PdbOnly, parsedArgs.CompilationOptions.DebugInformationKind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "debug"));
@@ -1266,7 +1252,6 @@ d.cs
         public void Pdb()
         {
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/pdb:something", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_MissingDebugSwitch));
 
             // No pdb
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/debug", "a.cs" }, baseDirectory);
@@ -1374,23 +1359,23 @@ d.cs
         {
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(new CSharpCompilationOptions(OutputKind.ConsoleApplication).Optimize, parsedArgs.CompilationOptions.Optimize);
+            Assert.Equal(new CSharpCompilationOptions(OutputKind.ConsoleApplication).OptimizationLevel, parsedArgs.CompilationOptions.OptimizationLevel);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/optimize-", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.False(parsedArgs.CompilationOptions.Optimize);
+            Assert.Equal(OptimizationLevel.Debug, parsedArgs.CompilationOptions.OptimizationLevel);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/optimize", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.True(parsedArgs.CompilationOptions.Optimize);
+            Assert.Equal(OptimizationLevel.Release, parsedArgs.CompilationOptions.OptimizationLevel);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/optimize+", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.True(parsedArgs.CompilationOptions.Optimize);
+            Assert.Equal(OptimizationLevel.Release, parsedArgs.CompilationOptions.OptimizationLevel);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/optimize+", "/optimize-", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.False(parsedArgs.CompilationOptions.Optimize);
+            Assert.Equal(OptimizationLevel.Debug, parsedArgs.CompilationOptions.OptimizationLevel);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/optimize:+", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/optimize:+"));
@@ -1402,16 +1387,16 @@ d.cs
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/optimize-:"));
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/o-", "a.cs" }, baseDirectory);
-            Assert.False(parsedArgs.CompilationOptions.Optimize);
+            Assert.Equal(OptimizationLevel.Debug, parsedArgs.CompilationOptions.OptimizationLevel);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { "/o", "a.cs" }, baseDirectory);
-            Assert.True(parsedArgs.CompilationOptions.Optimize);
+            Assert.Equal(OptimizationLevel.Release, parsedArgs.CompilationOptions.OptimizationLevel);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { "/o+", "a.cs" }, baseDirectory);
-            Assert.True(parsedArgs.CompilationOptions.Optimize);
+            Assert.Equal(OptimizationLevel.Release, parsedArgs.CompilationOptions.OptimizationLevel);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { "/o+", "/optimize-", "a.cs" }, baseDirectory);
-            Assert.False(parsedArgs.CompilationOptions.Optimize);
+            Assert.Equal(OptimizationLevel.Debug, parsedArgs.CompilationOptions.OptimizationLevel);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { "/o:+", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/o:+"));

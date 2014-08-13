@@ -453,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Enum
 
         Private Sub EmitConditionalGoto(boundConditionalGoto As BoundConditionalGoto)
-            If _noOptimizations Then
+            If _optimizations = OptimizationLevel.Debug Then
                 'TODO: what is the point of this?
                 'native compiler does intentional dead-store here. Does it still help debugging?
                 Dim boolTemp = AllocateTemp(boundConditionalGoto.Condition.Type, boundConditionalGoto.Condition.Syntax)
@@ -1185,18 +1185,19 @@ OtherExpressions:
                 cur = cur + 1
 
                 ' Emit case statement sequence point
-                If _emitSequencePoints Then
+                If _emitPdbSequencePoints Then
                     Dim caseStatement = caseBlock.CaseStatement
-
                     If Not caseStatement.WasCompilerGenerated Then
                         Debug.Assert(caseStatement.Syntax IsNot Nothing)
                         EmitSequencePoint(caseStatement.Syntax)
-
-                        ' Emit nop for the case statement otherwise the above sequence point
-                        ' will get associated with the first statement in subsequent case block.
-                        ' This matches the native compiler codegen.
-                        _builder.EmitOpCode(ILOpCode.Nop)
                     End If
+                End If
+
+                If _optimizations = OptimizationLevel.Debug Then
+                    ' Emit nop for the case statement otherwise the above sequence point
+                    ' will get associated with the first statement in subsequent case block.
+                    ' This matches the native compiler codegen.
+                    _builder.EmitOpCode(ILOpCode.Nop)
                 End If
 
                 ' Emit case block body
@@ -1264,7 +1265,7 @@ OtherExpressions:
 
                 Dim constraints = If(local.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None)
                 Dim isCompilerGeneratedName As Boolean = local.SynthesizedLocalKind <> SynthesizedLocalKind.None
-                Debug.Assert(Not local.SynthesizedLocalKind.IsNamed(Me._debugInformationKind) OrElse Not String.IsNullOrEmpty(name), "compiler generated names must be nonempty")
+                Debug.Assert(Not local.SynthesizedLocalKind.IsNamed(_optimizations) OrElse Not String.IsNullOrEmpty(name), "compiler generated names must be nonempty")
 
                 Dim localDef = _builder.LocalSlotManager.DeclareLocal(
                         type:=translatedType,

@@ -128,13 +128,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Add InitializeComponent call, if need to.
-            If Not constructorMethod.IsShared AndAlso compilationState.InitializeComponent IsNot Nothing AndAlso constructorMethod.IsImplicitlyDeclared Then
+            If Not constructorMethod.IsShared AndAlso compilationState.InitializeComponentOpt IsNot Nothing AndAlso constructorMethod.IsImplicitlyDeclared Then
                 boundStatements.Add(New BoundCall(constructorMethod.Syntax,
-                                                  compilationState.InitializeComponent, Nothing,
-                                                  New BoundMeReference(constructorMethod.Syntax, compilationState.InitializeComponent.ContainingType),
+                                                  compilationState.InitializeComponentOpt, Nothing,
+                                                  New BoundMeReference(constructorMethod.Syntax, compilationState.InitializeComponentOpt.ContainingType),
                                                   ImmutableArray(Of BoundExpression).Empty,
                                                   Nothing,
-                                                  compilationState.InitializeComponent.ReturnType).
+                                                  compilationState.InitializeComponentOpt.ReturnType).
                                         MakeCompilerGenerated().ToStatement().MakeCompilerGenerated())
             End If
 

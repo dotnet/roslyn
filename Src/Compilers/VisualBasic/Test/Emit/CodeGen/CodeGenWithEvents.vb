@@ -1101,7 +1101,7 @@ End Interface
         RaiseEvent loo()
     End Sub
 End Class]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=TestOptions.ReleaseDll)
 
             ' Verify that "AccessedThroughPropertyAttribute" is being emitted for WithEvents field.
             Dim assembly1Verifier = CompileAndVerify(assembly1Compilation, expectedSignatures:=
@@ -1128,11 +1128,10 @@ Public Module Program
         Console.WriteLine(c.res)
     End Sub
 End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                compilationOptions:=TestOptions.ReleaseExe,
                 referencedCompilations:={assembly1Compilation})
 
-            CompileAndVerify(assembly2Compilation, <![CDATA[True
-]]>).VerifyDiagnostics()
+            CompileAndVerify(assembly2Compilation, <![CDATA[True]]>).VerifyDiagnostics()
         End Sub
 
         <WorkItem(545185, "DevDiv")>

@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 NamedTypeSymbol stateMachineType;
                 var body = MethodCompiler.LowerBodyOrInitializer(
-                    generateDebugInfo: true,
                     method: method,
                     body: block,
                     previousSubmissionFields: null,

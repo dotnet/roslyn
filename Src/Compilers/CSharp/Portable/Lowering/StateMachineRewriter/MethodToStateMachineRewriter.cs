@@ -19,9 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<Symbol> variablesCaptured,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             DiagnosticBag diagnostics,
-            bool useFinalizerBookkeeping,
-            bool generateDebugInfo)
-            : base(F.CompilationState, variablesCaptured, diagnostics, generateDebugInfo)
+            bool useFinalizerBookkeeping)
+            : base(F.CompilationState, variablesCaptured, diagnostics)
         {
             Debug.Assert(F != null);
             Debug.Assert(originalMethod != null);

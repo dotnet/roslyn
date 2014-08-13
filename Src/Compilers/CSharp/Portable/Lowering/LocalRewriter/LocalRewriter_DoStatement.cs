@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement ifConditionGotoStart = new BoundConditionalGoto(syntax, AddConditionSequencePoint(rewrittenCondition, node), true, startLabel);
 
-            if (this.generateDebugInfo)
+            if (this.GenerateDebugInfo)
             {
                 var doSyntax = (DoStatementSyntax)syntax;
                 var span = TextSpan.FromBounds(

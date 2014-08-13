@@ -56,20 +56,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected ReadOnly Diagnostics As DiagnosticBag
 
-        Private ReadOnly globalGenerateDebugInfo As Boolean
-
-        Protected Sub New(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, generateDebugInfo As Boolean)
+        Protected Sub New(compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
             Debug.Assert(compilationState IsNot Nothing)
             Me.CompilationState = compilationState
-            Me.globalGenerateDebugInfo = generateDebugInfo
             Me.Diagnostics = diagnostics
         End Sub
-
-        Protected ReadOnly Property GenerateDebugInfo As Boolean
-            Get
-                Return globalGenerateDebugInfo AndAlso CurrentMethod.GenerateDebugInfo
-            End Get
-        End Property
 
 #Region "Visitors"
 
@@ -361,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim start As Integer = 0
             Dim nodeStatements = node.Statements
 
-            If GenerateDebugInfo AndAlso prologue.Count > 0 Then
+            If prologue.Count > 0 Then
                 ' Add hidden sequence point, prolog doesn't map to source, but if 
                 ' the first statement in the block is a non-hidden sequence point
                 ' (for example, sequence point for a method block), keep it first. 

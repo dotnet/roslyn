@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -95,10 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
-            get
-            {
-                return this.explicitInterfaceImplementations;
-            }
+            get { return this.explicitInterfaceImplementations; }
         }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
@@ -108,18 +104,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name
         {
-            get
-            {
-                return name;
-            }
+            get { return name; }
         }
 
         public override bool IsImplicitlyDeclared
         {
-            get
-            {
-                return false;
-            }
+            get { return false; }
+        }
+
+        internal override bool GenerateDebugInfo
+        {
+            get { return true; }
         }
     }
 }

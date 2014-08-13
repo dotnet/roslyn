@@ -36,10 +36,9 @@ namespace Microsoft.Cci
             CommonMessageProvider messageProvider,
             PdbWriter pdbWriter,
             bool allowMissingMethodBodies,
-            bool foldIdenticalMethodBodies,
             bool deterministic,
-            CancellationToken cancellationToken) :
-            base(context, messageProvider, pdbWriter, allowMissingMethodBodies, foldIdenticalMethodBodies, deterministic, cancellationToken)
+            CancellationToken cancellationToken)
+            : base(context, messageProvider, pdbWriter, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;

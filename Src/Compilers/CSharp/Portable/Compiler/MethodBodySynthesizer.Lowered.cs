@@ -205,6 +205,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {
+            internal sealed override bool GenerateDebugInfo
+            {
+                get { return false; }
+            }
+
             internal override bool SynthesizesLoweredBoundBody
             {
                 get { return true; }
@@ -217,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
                 SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                F.CurrentMethod = (MethodSymbol)this.OriginalDefinition;
+                F.CurrentMethod = this.OriginalDefinition;
 
                 try
                 {

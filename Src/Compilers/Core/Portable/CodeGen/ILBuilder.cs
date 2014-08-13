@@ -12,11 +12,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed partial class ILBuilder
     {
-        private EmitState emitState;
-        private readonly bool isOptimizing;
-
+        private readonly OptimizationLevel optimizations;
         internal readonly LocalSlotManager LocalSlotManager;
-
         private readonly LocalScopeManager scopeManager;
 
         // internal for testing
@@ -24,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         //leader block is the entry point of the method body
         internal readonly BasicBlock leaderBlock;
+
+        private EmitState emitState;
         private BasicBlock lastCompleteBlock;
         private BasicBlock currentBlock;
 
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // created, in particular for leader blocks in exception handlers.
         private bool pendingBlockCreate = false;
 
-        internal ILBuilder(ITokenDeferral module, LocalSlotManager localSlotManager, bool isOptimizing)
+        internal ILBuilder(ITokenDeferral module, LocalSlotManager localSlotManager, OptimizationLevel optimizations)
         {
             Debug.Assert(BitConverter.IsLittleEndian);
 
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             leaderBlock = currentBlock = this.scopeManager.CreateBlock(this);
 
             labelInfos = new SmallDictionary<object, LabelInfo>(ReferenceEqualityComparer.Instance);
-            this.isOptimizing = isOptimizing;
+            this.optimizations = optimizations;
         }
 
         private BasicBlock GetCurrentBlock()
@@ -803,7 +802,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// ret;    
         /// 
         /// </summary>
-        /// <returns></returns>
         private bool ComputeOffsetsAndAdjustBranches()
         {
             ComputeOffsets();
@@ -818,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 {
                     current.AdjustForDelta(delta);
 
-                    if (isOptimizing)
+                    if (this.optimizations == OptimizationLevel.Release)
                     {
                         branchesOptimized |= current.OptimizeBranches(ref delta);
                     }
@@ -843,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             RewriteSpecialBlocks();
             DropUnreachableBlocks();
 
-            if (isOptimizing && OptimizeLabels())
+            if (this.optimizations == OptimizationLevel.Release && OptimizeLabels())
             {
                 // redo unreachable code elimination if some labels were optimized
                 // as that could result in more more dead code. 
@@ -975,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         {
                             Debug.Assert(lastOffset < offset);
                             // if there are any sequence points, there must
-                            // be a sequence point at offset 0
+                            // be a sequence point at offset 0.
                             Debug.Assert((lastOffset >= 0) || (offset == 0));
                             // the first sequence point on tree/offset location
                             lastOffset = offset;
@@ -1001,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Define a sequence point with the given syntax tree and span within it.
         /// </summary>
-        internal void DefineSeqPoint(SyntaxTree syntaxTree, TextSpan span)
+        internal void DefineSequencePoint(SyntaxTree syntaxTree, TextSpan span)
         {
             var curBlock = GetCurrentBlock();
             this.lastSeqPointTree = syntaxTree;
@@ -1039,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// NOTE: Also inserted as the first statement of a method that would not otherwise have a leading
         /// sequence point so that step-into will find the method body.
         /// </summary>
-        internal void DefineHiddenSeqPoint()
+        internal void DefineHiddenSequencePoint()
         {
             var lastDebugDocument = this.lastSeqPointTree;
 
@@ -1047,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // CCI will not emit it anyways.
             if (lastDebugDocument != null)
             {
-                this.DefineSeqPoint(lastDebugDocument, RawSequencePoint.HiddenSequencePointSpan);
+                this.DefineSequencePoint(lastDebugDocument, RawSequencePoint.HiddenSequencePointSpan);
             }
         }
 
@@ -1055,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Define a hidden sequence point at the first statement of
         /// the method so that step-into will find the method body.
         /// </summary>
-        internal void DefineInitialHiddenSeqPoint()
+        internal void DefineInitialHiddenSequencePoint()
         {
             Debug.Assert(this.initialHiddenSequencePointMarker < 0);
             // Create a marker for the sequence point. The actual sequence point
@@ -1092,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             if (scopeType == ScopeType.TryCatchFinally && IsJustPastLabel())
             {
-                DefineHiddenSeqPoint();
+                DefineHiddenSequencePoint();
                 EmitOpCode(ILOpCode.Nop);
             }
 
@@ -1129,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     // since it is reachable by an implicit jump (via exception handling) 
                     // we need to put a hidden point to ensure that debugger does not associate
                     // this location with some previous sequence point
-                    DefineHiddenSeqPoint();
+                    DefineHiddenSequencePoint();
 
                     break;
                 case ScopeType.Variable:
@@ -1157,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // since it is reachable by an implicit jump (via exception handling) 
             // we need to put a hidden point to ensure that debugger does not associate
             // this location with some previous sequence point 
-            DefineHiddenSeqPoint();
+            DefineHiddenSequencePoint();
         }
 
         internal void CloseLocalScope()

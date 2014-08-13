@@ -1004,21 +1004,21 @@ class C1
         public void TTestCompilationOptions_CSharp_DebugType_Full()
         {
             CreateCSharpFilesWith("DebugType", "full");
-            AssertOptions(DebugInformationKind.Full, options => options.DebugInformationKind);
+            AssertOptions(0, options => options.Errors.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCompilationOptions_CSharp_DebugType_None()
         {
             CreateCSharpFilesWith("DebugType", "none");
-            AssertOptions(DebugInformationKind.None, options => options.DebugInformationKind);
+            AssertOptions(0, options => options.Errors.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCompilationOptions_CSharp_DebugType_PDBOnly()
         {
             CreateCSharpFilesWith("DebugType", "pdbonly");
-            AssertOptions(DebugInformationKind.PdbOnly, options => options.DebugInformationKind);
+            AssertOptions(0, options => options.Errors.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1064,17 +1064,17 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestCompilationOptions_CSharp_Optimize_True()
+        public void TestCompilationOptions_CSharp_OptimizationLevel_Release()
         {
             CreateCSharpFilesWith("Optimize", "True");
-            AssertOptions(true, options => options.Optimize);
+            AssertOptions(OptimizationLevel.Release, options => options.OptimizationLevel);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestCompilationOptions_CSharp_Optimize_False()
+        public void TestCompilationOptions_CSharp_OptimizationLevel_Debug()
         {
             CreateCSharpFilesWith("Optimize", "False");
-            AssertOptions(false, options => options.Optimize);
+            AssertOptions(OptimizationLevel.Debug, options => options.OptimizationLevel);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1193,21 +1193,21 @@ class C1
         public void TestCompilationOptions_VisualBasic_DebugType_Full()
         {
             CreateVBFilesWith("DebugType", "full");
-            AssertVBOptions(DebugInformationKind.Full, options => options.DebugInformationKind);
+            AssertVBOptions(0, options => options.Errors.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCompilationOptions_VisualBasic_DebugType_None()
         {
             CreateVBFilesWith("DebugType", "none");
-            AssertVBOptions(DebugInformationKind.None, options => options.DebugInformationKind);
+            AssertVBOptions(0, options => options.Errors.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCompilationOptions_VisualBasic_DebugType_PDBOnly()
         {
             CreateVBFilesWith("DebugType", "pdbonly");
-            AssertVBOptions(DebugInformationKind.PdbOnly, options => options.DebugInformationKind);
+            AssertVBOptions(0, options => options.Errors.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

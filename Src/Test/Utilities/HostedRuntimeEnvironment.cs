@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string pdbFilePath;
 
                 // Automatically emit PDB if we are emitting in debug.
-                if (emitPdb || !c.Options.Optimize)
+                if (emitPdb || c.Options.OptimizationLevel == OptimizationLevel.Debug)
                 {
                     pdbStream = new MemoryStream();
                     pdbFilePath = c.AssemblyName + ".pdb";

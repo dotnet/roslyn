@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool GenerateDebugInfo
+        internal sealed override bool GenerateDebugInfo
         {
             get { return generateDebugInfo; }
         }

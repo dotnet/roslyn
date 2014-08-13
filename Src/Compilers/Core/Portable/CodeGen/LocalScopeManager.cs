@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 builder.MarkLabel(this.endLabel);
 
                 // hide the following code, since it could be reached through the label above.
-                builder.DefineHiddenSeqPoint();
+                builder.DefineHiddenSequencePoint();
 
                 Debug.Assert(builder.currentBlock == builder.labelInfos[this.endLabel].bb);
 

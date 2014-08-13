@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (Arguments.CompilationOptions.DebugInformationKind != DebugInformationKind.None)
+                    if (Arguments.EmitPdb)
                     {
                         tempPdbFilename = CreateTempFile(consoleOutput);
 
@@ -352,6 +352,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             return Failed;
                         }
+
                         xml.SetLength(0);
                     }
 

@@ -823,9 +823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(method, [call].Syntax)
             If Not method.IsSub Then
                 EmitPopIfUnused(used)
-            ElseIf _noOptimizations AndAlso _emitSequencePoints AndAlso Not [call].WasCompilerGenerated Then
-                Debug.Assert(_method.GenerateDebugInfo, "Implied by _emitSequencePoints")
-
+            ElseIf _optimizations = OptimizationLevel.Debug AndAlso Not [call].WasCompilerGenerated Then
                 ' DevDiv #15135.  When a method like System.Diagnostics.Debugger.Break() is called, the
                 ' debugger sees an event indicating that a user break (vs a breakpoint) has occurred.
                 ' When this happens, it uses ICorDebugILFrame.GetIP(out uint, out CorDebugMappingResult)

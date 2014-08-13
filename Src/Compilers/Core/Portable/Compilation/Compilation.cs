@@ -1524,7 +1524,6 @@ namespace Microsoft.CodeAnalysis
                     (testData != null) ? testData.SymWriterFactory : null,
                     diagnostics,
                     metadataOnly,
-                    Options.Optimize,
                     cancellationToken);
 
                 return ToEmitResultAndFree(diagnostics, success);
@@ -1544,7 +1543,6 @@ namespace Microsoft.CodeAnalysis
             Func<object> testSymWriterFactory,
             DiagnosticBag diagnostics,
             bool metadataOnly,
-            bool foldIdenticalMethodBodies,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Common_Compilation_SerializeToPeStream, message: this.AssemblyName, cancellationToken: cancellationToken))
@@ -1598,7 +1596,6 @@ namespace Microsoft.CodeAnalysis
                             streamToWrite,
                             pdbWriter,
                             metadataOnly,
-                            foldIdenticalMethodBodies,
                             deterministic,
                             cancellationToken);
 

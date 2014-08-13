@@ -4660,42 +4660,42 @@ End Module
   // Code size      208 (0xd0)
   .maxstack  3
   .locals init (Integer V_0, //VB$ActiveHandler
-                Integer V_1, //VB$ResumeTarget
-                Integer V_2) //VB$CurrentStatement
+  Integer V_1, //VB$ResumeTarget
+  Integer V_2) //VB$CurrentStatement
   .try
-  {
-    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0005:  ldc.i4.2
-    IL_0006:  stloc.0
-    IL_0007:  br.s       IL_0012
-    IL_0009:  ldc.i4.4
-    IL_000a:  stloc.2
-    IL_000b:  ldc.i4.1
-    IL_000c:  call       "Function Program.M(Integer) As Integer"
-    IL_0011:  pop
-    IL_0012:  ldc.i4.3
-    IL_0013:  stloc.2
-    IL_0014:  ldc.i4.0
-    IL_0015:  call       "Function Program.M(Integer) As Integer"
-    IL_001a:  brtrue.s   IL_0009
-    IL_001c:  ldc.i4.6
-    IL_001d:  stloc.2
-    IL_001e:  ldc.i4.2
-    IL_001f:  call       "Function Program.M(Integer) As Integer"
-    IL_0024:  pop
+{
+  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0005:  ldc.i4.2
+  IL_0006:  stloc.0
+  IL_0007:  br.s       IL_0012
+  IL_0009:  ldc.i4.4
+  IL_000a:  stloc.2
+  IL_000b:  ldc.i4.1
+  IL_000c:  call       "Function Program.M(Integer) As Integer"
+  IL_0011:  pop
+  IL_0012:  ldc.i4.3
+  IL_0013:  stloc.2
+  IL_0014:  ldc.i4.0
+  IL_0015:  call       "Function Program.M(Integer) As Integer"
+  IL_001a:  brtrue.s   IL_0009
+  IL_001c:  ldc.i4.6
+  IL_001d:  stloc.2
+  IL_001e:  ldc.i4.2
+  IL_001f:  call       "Function Program.M(Integer) As Integer"
+  IL_0024:  pop
     IL_0025:  leave      IL_00c7
-    IL_002a:  ldc.i4.8
-    IL_002b:  stloc.2
-    IL_002c:  ldstr      "OnError"
-    IL_0031:  call       "Sub System.Console.WriteLine(String)"
-    IL_0036:  ldc.i4.s   9
-    IL_0038:  stloc.2
-    IL_0039:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_003e:  ldloc.1
+  IL_002a:  ldc.i4.8
+  IL_002b:  stloc.2
+  IL_002c:  ldstr      "OnError"
+  IL_0031:  call       "Sub System.Console.WriteLine(String)"
+  IL_0036:  ldc.i4.s   9
+  IL_0038:  stloc.2
+  IL_0039:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_003e:  ldloc.1
     IL_003f:  brtrue.s   IL_004e
-    IL_0041:  ldc.i4     0x800a0014
-    IL_0046:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-    IL_004b:  throw
+  IL_0041:  ldc.i4     0x800a0014
+  IL_0046:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_004b:  throw
     IL_004c:  leave.s    IL_00c7
     IL_004e:  ldloc.1
     IL_004f:  ldc.i4.1
@@ -4704,16 +4704,16 @@ End Module
     IL_0052:  stloc.1
     IL_0053:  switch    (
         IL_0084,
-        IL_0000,
-        IL_0012,
-        IL_0012,
-        IL_0009,
-        IL_0012,
-        IL_001c,
-        IL_004c,
-        IL_002a,
-        IL_0036,
-        IL_004c)
+  IL_0000,
+  IL_0012,
+  IL_0012,
+  IL_0009,
+  IL_0012,
+  IL_001c,
+  IL_004c,
+  IL_002a,
+  IL_0036,
+  IL_004c)
     IL_0084:  leave.s    IL_00bc
     IL_0086:  ldloc.2
     IL_0087:  stloc.1
@@ -4721,11 +4721,11 @@ End Module
     IL_0089:  switch    (
         IL_009a,
         IL_004e,
-        IL_002a)
+  IL_002a)
     IL_009a:  leave.s    IL_00bc
-  }
+}
   filter
-  {
+{
     IL_009c:  isinst     "System.Exception"
     IL_00a1:  ldnull
     IL_00a2:  cgt.un
@@ -4738,12 +4738,12 @@ End Module
     IL_00ab:  ceq
     IL_00ad:  and
     IL_00ae:  endfilter
-  }  // end filter
-  {  // handler
+}  // end filter
+{  // handler
     IL_00b0:  castclass  "System.Exception"
     IL_00b5:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
     IL_00ba:  leave.s    IL_0086
-  }
+}
   IL_00bc:  ldc.i4     0x800a0033
   IL_00c1:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
   IL_00c6:  throw
@@ -5742,70 +5742,70 @@ End Module
   // Code size      201 (0xc9)
   .maxstack  3
   .locals init (Integer V_0, //VB$ActiveHandler
-                Integer V_1, //VB$ResumeTarget
-                Integer V_2) //VB$CurrentStatement
+  Integer V_1, //VB$ResumeTarget
+  Integer V_2) //VB$CurrentStatement
   .try
-  {
-    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0005:  ldc.i4.2
-    IL_0006:  stloc.0
-    IL_0007:  ldc.i4.3
-    IL_0008:  stloc.2
-    IL_0009:  ldc.i4.0
-    IL_000a:  call       "Function Program.M(Integer) As Integer"
-    IL_000f:  pop
-    IL_0010:  ldc.i4.4
-    IL_0011:  stloc.2
-    IL_0012:  ldc.i4.1
-    IL_0013:  call       "Function Program.M(Integer) As Integer"
-    IL_0018:  brtrue.s   IL_0007
-    IL_001a:  ldc.i4.5
-    IL_001b:  stloc.2
-    IL_001c:  ldc.i4.2
-    IL_001d:  call       "Function Program.M(Integer) As Integer"
-    IL_0022:  pop
+{
+  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0005:  ldc.i4.2
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.3
+  IL_0008:  stloc.2
+  IL_0009:  ldc.i4.0
+  IL_000a:  call       "Function Program.M(Integer) As Integer"
+  IL_000f:  pop
+  IL_0010:  ldc.i4.4
+  IL_0011:  stloc.2
+  IL_0012:  ldc.i4.1
+  IL_0013:  call       "Function Program.M(Integer) As Integer"
+  IL_0018:  brtrue.s   IL_0007
+  IL_001a:  ldc.i4.5
+  IL_001b:  stloc.2
+  IL_001c:  ldc.i4.2
+  IL_001d:  call       "Function Program.M(Integer) As Integer"
+  IL_0022:  pop
     IL_0023:  leave      IL_00c0
-    IL_0028:  ldc.i4.7
-    IL_0029:  stloc.2
-    IL_002a:  ldstr      "OnError"
-    IL_002f:  call       "Sub System.Console.WriteLine(String)"
-    IL_0034:  ldc.i4.8
-    IL_0035:  stloc.2
-    IL_0036:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_003b:  ldloc.1
-    IL_003c:  brtrue.s   IL_004b
-    IL_003e:  ldc.i4     0x800a0014
-    IL_0043:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-    IL_0048:  throw
+  IL_0028:  ldc.i4.7
+  IL_0029:  stloc.2
+  IL_002a:  ldstr      "OnError"
+  IL_002f:  call       "Sub System.Console.WriteLine(String)"
+  IL_0034:  ldc.i4.8
+  IL_0035:  stloc.2
+  IL_0036:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_003b:  ldloc.1
+  IL_003c:  brtrue.s   IL_004b
+  IL_003e:  ldc.i4     0x800a0014
+  IL_0043:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_0048:  throw
     IL_0049:  leave.s    IL_00c0
-    IL_004b:  ldloc.1
-    IL_004c:  ldc.i4.1
-    IL_004d:  add
-    IL_004e:  ldc.i4.0
-    IL_004f:  stloc.1
-    IL_0050:  switch    (
-        IL_007d,
-        IL_0000,
-        IL_0007,
-        IL_0007,
-        IL_0010,
-        IL_001a,
-        IL_0049,
-        IL_0028,
-        IL_0034,
-        IL_0049)
+  IL_004b:  ldloc.1
+  IL_004c:  ldc.i4.1
+  IL_004d:  add
+  IL_004e:  ldc.i4.0
+  IL_004f:  stloc.1
+  IL_0050:  switch    (
+  IL_007d,
+  IL_0000,
+  IL_0007,
+  IL_0007,
+  IL_0010,
+  IL_001a,
+  IL_0049,
+  IL_0028,
+  IL_0034,
+  IL_0049)
     IL_007d:  leave.s    IL_00b5
-    IL_007f:  ldloc.2
-    IL_0080:  stloc.1
-    IL_0081:  ldloc.0
+  IL_007f:  ldloc.2
+  IL_0080:  stloc.1
+  IL_0081:  ldloc.0
     IL_0082:  switch    (
         IL_0093,
-        IL_004b,
-        IL_0028)
+  IL_004b,
+  IL_0028)
     IL_0093:  leave.s    IL_00b5
-  }
+}
   filter
-  {
+{
     IL_0095:  isinst     "System.Exception"
     IL_009a:  ldnull
     IL_009b:  cgt.un
@@ -5818,12 +5818,12 @@ End Module
     IL_00a4:  ceq
     IL_00a6:  and
     IL_00a7:  endfilter
-  }  // end filter
-  {  // handler
+}  // end filter
+{  // handler
     IL_00a9:  castclass  "System.Exception"
     IL_00ae:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
     IL_00b3:  leave.s    IL_007f
-  }
+}
   IL_00b5:  ldc.i4     0x800a0033
   IL_00ba:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
   IL_00bf:  throw
@@ -6219,11 +6219,53 @@ End Module
   IL_00a9:  ret
 }
 ]]>)
+        End Sub
 
+        <Fact>
+        Sub Resume_in_Do_Loop_Until_1_Debug()
+            Dim source =
+<compilation name="ErrorHandling">
+    <file name="a.vb">
+        <![CDATA[
+Module Program
 
-            compilation = compilation.WithOptions(TestOptions.DebugExe)
+    Sub Main()
+        On Error Resume Next
+        M0()
+        Do 
+            If M4()
+                Continue Do
+            End If
+            M1()
+ContinueLabel:
+        Loop Until M2()
+        M3()
+    End Sub
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+    Sub M0()
+    End Sub
+
+    Sub M1()
+    End Sub
+
+    Function M2() As Boolean
+        Return False
+    End Function
+
+    Sub M3()
+    End Sub
+
+    Function M4() As Boolean
+        Return False
+    End Function
+End Module
+    ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+
+            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -6545,37 +6587,37 @@ End Module
   // Code size      204 (0xcc)
   .maxstack  3
   .locals init (Integer V_0, //VB$ActiveHandler
-                Integer V_1, //VB$ResumeTarget
-                Integer V_2) //VB$CurrentStatement
+  Integer V_1, //VB$ResumeTarget
+  Integer V_2) //VB$CurrentStatement
   .try
-  {
-    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0005:  ldc.i4.2
-    IL_0006:  stloc.0
-    IL_0007:  ldc.i4.3
-    IL_0008:  stloc.2
-    IL_0009:  ldc.i4.0
-    IL_000a:  call       "Function Program.M(Integer) As Integer"
-    IL_000f:  brtrue.s   IL_0016
+{
+  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0005:  ldc.i4.2
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.3
+  IL_0008:  stloc.2
+  IL_0009:  ldc.i4.0
+  IL_000a:  call       "Function Program.M(Integer) As Integer"
+  IL_000f:  brtrue.s   IL_0016
     IL_0011:  leave      IL_00c3
-    IL_0016:  ldc.i4.6
-    IL_0017:  stloc.2
-    IL_0018:  ldc.i4.1
-    IL_0019:  call       "Function Program.M(Integer) As Integer"
-    IL_001e:  pop
-    IL_001f:  br.s       IL_0007
-    IL_0021:  ldc.i4.s   9
-    IL_0023:  stloc.2
-    IL_0024:  ldstr      "OnError"
-    IL_0029:  call       "Sub System.Console.WriteLine(String)"
-    IL_002e:  ldc.i4.s   10
-    IL_0030:  stloc.2
-    IL_0031:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0036:  ldloc.1
+  IL_0016:  ldc.i4.6
+  IL_0017:  stloc.2
+  IL_0018:  ldc.i4.1
+  IL_0019:  call       "Function Program.M(Integer) As Integer"
+  IL_001e:  pop
+  IL_001f:  br.s       IL_0007
+  IL_0021:  ldc.i4.s   9
+  IL_0023:  stloc.2
+  IL_0024:  ldstr      "OnError"
+  IL_0029:  call       "Sub System.Console.WriteLine(String)"
+  IL_002e:  ldc.i4.s   10
+  IL_0030:  stloc.2
+  IL_0031:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0036:  ldloc.1
     IL_0037:  brtrue.s   IL_0046
-    IL_0039:  ldc.i4     0x800a0014
-    IL_003e:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-    IL_0043:  throw
+  IL_0039:  ldc.i4     0x800a0014
+  IL_003e:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_0043:  throw
     IL_0044:  leave.s    IL_00c3
     IL_0046:  ldloc.1
     IL_0047:  ldc.i4.1
@@ -6584,17 +6626,17 @@ End Module
     IL_004a:  stloc.1
     IL_004b:  switch    (
         IL_0080,
-        IL_0000,
-        IL_0007,
-        IL_0007,
-        IL_0044,
-        IL_0016,
-        IL_0016,
-        IL_0007,
-        IL_0044,
-        IL_0021,
-        IL_002e,
-        IL_0044)
+  IL_0000,
+  IL_0007,
+  IL_0007,
+  IL_0044,
+  IL_0016,
+  IL_0016,
+  IL_0007,
+  IL_0044,
+  IL_0021,
+  IL_002e,
+  IL_0044)
     IL_0080:  leave.s    IL_00b8
     IL_0082:  ldloc.2
     IL_0083:  stloc.1
@@ -6602,11 +6644,11 @@ End Module
     IL_0085:  switch    (
         IL_0096,
         IL_0046,
-        IL_0021)
+  IL_0021)
     IL_0096:  leave.s    IL_00b8
-  }
+}
   filter
-  {
+{
     IL_0098:  isinst     "System.Exception"
     IL_009d:  ldnull
     IL_009e:  cgt.un
@@ -6619,12 +6661,12 @@ End Module
     IL_00a7:  ceq
     IL_00a9:  and
     IL_00aa:  endfilter
-  }  // end filter
-  {  // handler
+}  // end filter
+{  // handler
     IL_00ac:  castclass  "System.Exception"
     IL_00b1:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
     IL_00b6:  leave.s    IL_0082
-  }
+}
   IL_00b8:  ldc.i4     0x800a0033
   IL_00bd:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
   IL_00c2:  throw
@@ -7910,93 +7952,93 @@ End Module
   // Code size      268 (0x10c)
   .maxstack  3
   .locals init (Integer V_0, //VB$ActiveHandler
-                Integer V_1, //VB$ResumeTarget
-                Integer V_2, //VB$CurrentStatement
-                System.Collections.IEnumerator V_3) //VB$ForEachEnumerator
+  Integer V_1, //VB$ResumeTarget
+  Integer V_2, //VB$CurrentStatement
+  System.Collections.IEnumerator V_3) //VB$ForEachEnumerator
   .try
-  {
-    IL_0000:  ldc.i4.1
-    IL_0001:  stloc.2
-    IL_0002:  ldstr      "3"
-    IL_0007:  call       "Function Program.M(String) As Integer"
-    IL_000c:  pop
-    .try
-    {
-      IL_000d:  call       "Function Program.GetEnumerable() As System.Collections.IEnumerable"
-      IL_0012:  callvirt   "Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator"
-      IL_0017:  stloc.3
-      IL_0018:  br.s       IL_003c
-      IL_001a:  ldloc.3
-      IL_001b:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
-      IL_0020:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-      IL_0025:  pop
-      IL_0026:  ldstr      "0"
-      IL_002b:  call       "Function Program.M(String) As Integer"
-      IL_0030:  pop
-      IL_0031:  ldstr      "1"
-      IL_0036:  call       "Function Program.M(String) As Integer"
-      IL_003b:  pop
-      IL_003c:  ldloc.3
-      IL_003d:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
-      IL_0042:  brtrue.s   IL_001a
-      IL_0044:  leave.s    IL_005a
-    }
-    finally
-    {
-      IL_0046:  ldloc.3
-      IL_0047:  isinst     "System.IDisposable"
-      IL_004c:  brfalse.s  IL_0059
-      IL_004e:  ldloc.3
-      IL_004f:  isinst     "System.IDisposable"
-      IL_0054:  callvirt   "Sub System.IDisposable.Dispose()"
-      IL_0059:  endfinally
-    }
-    IL_005a:  ldc.i4.2
-    IL_005b:  stloc.2
-    IL_005c:  ldstr      "2"
-    IL_0061:  call       "Function Program.M(String) As Integer"
-    IL_0066:  pop
+{
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.2
+  IL_0002:  ldstr      "3"
+  IL_0007:  call       "Function Program.M(String) As Integer"
+  IL_000c:  pop
+  .try
+{
+  IL_000d:  call       "Function Program.GetEnumerable() As System.Collections.IEnumerable"
+  IL_0012:  callvirt   "Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator"
+  IL_0017:  stloc.3
+  IL_0018:  br.s       IL_003c
+  IL_001a:  ldloc.3
+  IL_001b:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
+  IL_0020:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0025:  pop
+  IL_0026:  ldstr      "0"
+  IL_002b:  call       "Function Program.M(String) As Integer"
+  IL_0030:  pop
+  IL_0031:  ldstr      "1"
+  IL_0036:  call       "Function Program.M(String) As Integer"
+  IL_003b:  pop
+  IL_003c:  ldloc.3
+  IL_003d:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+  IL_0042:  brtrue.s   IL_001a
+  IL_0044:  leave.s    IL_005a
+}
+  finally
+{
+  IL_0046:  ldloc.3
+  IL_0047:  isinst     "System.IDisposable"
+  IL_004c:  brfalse.s  IL_0059
+  IL_004e:  ldloc.3
+  IL_004f:  isinst     "System.IDisposable"
+  IL_0054:  callvirt   "Sub System.IDisposable.Dispose()"
+  IL_0059:  endfinally
+}
+  IL_005a:  ldc.i4.2
+  IL_005b:  stloc.2
+  IL_005c:  ldstr      "2"
+  IL_0061:  call       "Function Program.M(String) As Integer"
+  IL_0066:  pop
     IL_0067:  leave      IL_0103
-    IL_006c:  ldc.i4.4
-    IL_006d:  stloc.2
-    IL_006e:  ldstr      "OnError - {0}"
-    IL_0073:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
-    IL_0078:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
-    IL_007d:  callvirt   "Function System.Exception.GetType() As System.Type"
-    IL_0082:  call       "Sub System.Console.WriteLine(String, Object)"
-    IL_0087:  ldc.i4.5
-    IL_0088:  stloc.2
-    IL_0089:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_008e:  ldloc.1
-    IL_008f:  brtrue.s   IL_009e
-    IL_0091:  ldc.i4     0x800a0014
-    IL_0096:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-    IL_009b:  throw
+  IL_006c:  ldc.i4.4
+  IL_006d:  stloc.2
+  IL_006e:  ldstr      "OnError - {0}"
+  IL_0073:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
+  IL_0078:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
+  IL_007d:  callvirt   "Function System.Exception.GetType() As System.Type"
+  IL_0082:  call       "Sub System.Console.WriteLine(String, Object)"
+  IL_0087:  ldc.i4.5
+  IL_0088:  stloc.2
+  IL_0089:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_008e:  ldloc.1
+  IL_008f:  brtrue.s   IL_009e
+  IL_0091:  ldc.i4     0x800a0014
+  IL_0096:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_009b:  throw
     IL_009c:  leave.s    IL_0103
-    IL_009e:  ldloc.1
-    IL_009f:  ldc.i4.1
-    IL_00a0:  add
-    IL_00a1:  ldc.i4.0
-    IL_00a2:  stloc.1
-    IL_00a3:  switch    (
-        IL_00c4,
-        IL_0000,
-        IL_005a,
-        IL_009c,
-        IL_006c,
-        IL_0087,
-        IL_009c)
+  IL_009e:  ldloc.1
+  IL_009f:  ldc.i4.1
+  IL_00a0:  add
+  IL_00a1:  ldc.i4.0
+  IL_00a2:  stloc.1
+  IL_00a3:  switch    (
+  IL_00c4,
+  IL_0000,
+  IL_005a,
+  IL_009c,
+  IL_006c,
+  IL_0087,
+  IL_009c)
     IL_00c4:  leave.s    IL_00f8
-    IL_00c6:  ldloc.2
-    IL_00c7:  stloc.1
-    IL_00c8:  ldloc.0
+  IL_00c6:  ldloc.2
+  IL_00c7:  stloc.1
+  IL_00c8:  ldloc.0
     IL_00c9:  switch    (
         IL_00d6,
-        IL_009e)
+  IL_009e)
     IL_00d6:  leave.s    IL_00f8
-  }
+}
   filter
-  {
+{
     IL_00d8:  isinst     "System.Exception"
     IL_00dd:  ldnull
     IL_00de:  cgt.un
@@ -8009,12 +8051,12 @@ End Module
     IL_00e7:  ceq
     IL_00e9:  and
     IL_00ea:  endfilter
-  }  // end filter
-  {  // handler
+}  // end filter
+{  // handler
     IL_00ec:  castclass  "System.Exception"
     IL_00f1:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
     IL_00f6:  leave.s    IL_00c6
-  }
+}
   IL_00f8:  ldc.i4     0x800a0033
   IL_00fd:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
   IL_0102:  throw
@@ -9696,72 +9738,72 @@ End Module
   // Code size      302 (0x12e)
   .maxstack  6
   .locals init (Integer V_0, //VB$ActiveHandler
-                Integer V_1, //VB$ResumeTarget
-                Integer V_2, //VB$CurrentStatement
-                Object V_3, //VB$LoopObject
-                Object V_4) //i
+  Integer V_1, //VB$ResumeTarget
+  Integer V_2, //VB$CurrentStatement
+  Object V_3, //VB$LoopObject
+  Object V_4) //i
   .try
-  {
-    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0005:  ldc.i4.2
-    IL_0006:  stloc.0
-    IL_0007:  ldc.i4.2
-    IL_0008:  stloc.2
-    IL_0009:  ldstr      "0"
-    IL_000e:  call       "Function Program.M(String) As Integer"
-    IL_0013:  pop
-    IL_0014:  ldc.i4.3
-    IL_0015:  stloc.2
-    IL_0016:  ldloc.s    V_4
-    IL_0018:  ldc.i4.0
-    IL_0019:  call       "Function Program.LoopType.op_Implicit(Integer) As Program.LoopType"
-    IL_001e:  box        "Program.LoopType"
-    IL_0023:  ldc.i4.1
-    IL_0024:  box        "Integer"
-    IL_0029:  ldc.i4.1
-    IL_002a:  box        "Integer"
-    IL_002f:  ldloca.s   V_3
-    IL_0031:  ldloca.s   V_4
-    IL_0033:  call       "Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Object, Object, Object, Object, ByRef Object, ByRef Object) As Boolean"
-    IL_0038:  brfalse.s  IL_0062
-    IL_003a:  ldc.i4.4
-    IL_003b:  stloc.2
-    IL_003c:  ldstr      "1"
-    IL_0041:  call       "Function Program.M(String) As Integer"
-    IL_0046:  pop
-    IL_0047:  ldc.i4.5
-    IL_0048:  stloc.2
-    IL_0049:  ldstr      "2"
-    IL_004e:  call       "Function Program.M(String) As Integer"
-    IL_0053:  pop
-    IL_0054:  ldc.i4.6
-    IL_0055:  stloc.2
-    IL_0056:  ldloc.s    V_4
-    IL_0058:  ldloc.3
-    IL_0059:  ldloca.s   V_4
-    IL_005b:  call       "Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Object, Object, ByRef Object) As Boolean"
-    IL_0060:  brtrue.s   IL_003a
-    IL_0062:  ldc.i4.7
-    IL_0063:  stloc.2
-    IL_0064:  ldstr      "3"
-    IL_0069:  call       "Function Program.M(String) As Integer"
-    IL_006e:  pop
+{
+  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0005:  ldc.i4.2
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.2
+  IL_0008:  stloc.2
+  IL_0009:  ldstr      "0"
+  IL_000e:  call       "Function Program.M(String) As Integer"
+  IL_0013:  pop
+  IL_0014:  ldc.i4.3
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.s    V_4
+  IL_0018:  ldc.i4.0
+  IL_0019:  call       "Function Program.LoopType.op_Implicit(Integer) As Program.LoopType"
+  IL_001e:  box        "Program.LoopType"
+  IL_0023:  ldc.i4.1
+  IL_0024:  box        "Integer"
+  IL_0029:  ldc.i4.1
+  IL_002a:  box        "Integer"
+  IL_002f:  ldloca.s   V_3
+  IL_0031:  ldloca.s   V_4
+  IL_0033:  call       "Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Object, Object, Object, Object, ByRef Object, ByRef Object) As Boolean"
+  IL_0038:  brfalse.s  IL_0062
+  IL_003a:  ldc.i4.4
+  IL_003b:  stloc.2
+  IL_003c:  ldstr      "1"
+  IL_0041:  call       "Function Program.M(String) As Integer"
+  IL_0046:  pop
+  IL_0047:  ldc.i4.5
+  IL_0048:  stloc.2
+  IL_0049:  ldstr      "2"
+  IL_004e:  call       "Function Program.M(String) As Integer"
+  IL_0053:  pop
+  IL_0054:  ldc.i4.6
+  IL_0055:  stloc.2
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  ldloc.3
+  IL_0059:  ldloca.s   V_4
+  IL_005b:  call       "Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Object, Object, ByRef Object) As Boolean"
+  IL_0060:  brtrue.s   IL_003a
+  IL_0062:  ldc.i4.7
+  IL_0063:  stloc.2
+  IL_0064:  ldstr      "3"
+  IL_0069:  call       "Function Program.M(String) As Integer"
+  IL_006e:  pop
     IL_006f:  leave      IL_0125
-    IL_0074:  ldc.i4.s   9
-    IL_0076:  stloc.2
-    IL_0077:  ldstr      "OnError - {0}"
-    IL_007c:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
-    IL_0081:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
-    IL_0086:  callvirt   "Function System.Exception.GetType() As System.Type"
-    IL_008b:  call       "Sub System.Console.WriteLine(String, Object)"
-    IL_0090:  ldc.i4.s   10
-    IL_0092:  stloc.2
-    IL_0093:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0098:  ldloc.1
+  IL_0074:  ldc.i4.s   9
+  IL_0076:  stloc.2
+  IL_0077:  ldstr      "OnError - {0}"
+  IL_007c:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
+  IL_0081:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
+  IL_0086:  callvirt   "Function System.Exception.GetType() As System.Type"
+  IL_008b:  call       "Sub System.Console.WriteLine(String, Object)"
+  IL_0090:  ldc.i4.s   10
+  IL_0092:  stloc.2
+  IL_0093:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0098:  ldloc.1
     IL_0099:  brtrue.s   IL_00a8
-    IL_009b:  ldc.i4     0x800a0014
-    IL_00a0:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-    IL_00a5:  throw
+  IL_009b:  ldc.i4     0x800a0014
+  IL_00a0:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00a5:  throw
     IL_00a6:  leave.s    IL_0125
     IL_00a8:  ldloc.1
     IL_00a9:  ldc.i4.1
@@ -9770,17 +9812,17 @@ End Module
     IL_00ac:  stloc.1
     IL_00ad:  switch    (
         IL_00e2,
-        IL_0000,
-        IL_0007,
-        IL_0014,
-        IL_003a,
-        IL_0047,
-        IL_0054,
-        IL_0062,
-        IL_00a6,
-        IL_0074,
-        IL_0090,
-        IL_00a6)
+  IL_0000,
+  IL_0007,
+  IL_0014,
+  IL_003a,
+  IL_0047,
+  IL_0054,
+  IL_0062,
+  IL_00a6,
+  IL_0074,
+  IL_0090,
+  IL_00a6)
     IL_00e2:  leave.s    IL_011a
     IL_00e4:  ldloc.2
     IL_00e5:  stloc.1
@@ -9788,11 +9830,11 @@ End Module
     IL_00e7:  switch    (
         IL_00f8,
         IL_00a8,
-        IL_0074)
+  IL_0074)
     IL_00f8:  leave.s    IL_011a
-  }
+}
   filter
-  {
+{
     IL_00fa:  isinst     "System.Exception"
     IL_00ff:  ldnull
     IL_0100:  cgt.un
@@ -9805,12 +9847,12 @@ End Module
     IL_0109:  ceq
     IL_010b:  and
     IL_010c:  endfilter
-  }  // end filter
-  {  // handler
+}  // end filter
+{  // handler
     IL_010e:  castclass  "System.Exception"
     IL_0113:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
     IL_0118:  leave.s    IL_00e4
-  }
+}
   IL_011a:  ldc.i4     0x800a0033
   IL_011f:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
   IL_0124:  throw
@@ -10428,111 +10470,111 @@ End Module
   // Code size      317 (0x13d)
   .maxstack  3
   .locals init (Integer V_0, //VB$ActiveHandler
-                Integer V_1, //VB$ResumeTarget
-                Integer V_2, //VB$CurrentStatement
-                String V_3, //VB$ForEachArray
-                Integer V_4, //VB$ForEachArrayIndex
-                Char V_5) //c
+  Integer V_1, //VB$ResumeTarget
+  Integer V_2, //VB$CurrentStatement
+  String V_3, //VB$ForEachArray
+  Integer V_4, //VB$ForEachArrayIndex
+  Char V_5) //c
   .try
-  {
-    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0005:  ldc.i4.2
-    IL_0006:  stloc.0
-    IL_0007:  ldc.i4.2
-    IL_0008:  stloc.2
-    IL_0009:  ldstr      "0"
-    IL_000e:  call       "Function Program.M(String) As Integer"
-    IL_0013:  pop
-    IL_0014:  ldc.i4.3
-    IL_0015:  stloc.2
-    IL_0016:  call       "Function Program.GetString() As String"
-    IL_001b:  stloc.3
-    IL_001c:  ldc.i4.0
-    IL_001d:  stloc.s    V_4
-    IL_001f:  br.s       IL_0060
-    IL_0021:  ldloc.3
-    IL_0022:  ldloc.s    V_4
-    IL_0024:  callvirt   "Function String.get_Chars(Integer) As Char"
-    IL_0029:  stloc.s    V_5
-    IL_002b:  ldc.i4.4
-    IL_002c:  stloc.2
-    IL_002d:  ldstr      "c={0}"
-    IL_0032:  ldloc.s    V_5
-    IL_0034:  box        "Integer"
-    IL_0039:  call       "Sub System.Console.WriteLine(String, Object)"
-    IL_003e:  ldc.i4.5
-    IL_003f:  stloc.2
-    IL_0040:  ldstr      "1"
-    IL_0045:  call       "Function Program.M(String) As Integer"
-    IL_004a:  pop
-    IL_004b:  ldc.i4.6
-    IL_004c:  stloc.2
-    IL_004d:  ldstr      "2"
-    IL_0052:  call       "Function Program.M(String) As Integer"
-    IL_0057:  pop
-    IL_0058:  ldc.i4.7
-    IL_0059:  stloc.2
-    IL_005a:  ldloc.s    V_4
-    IL_005c:  ldc.i4.1
-    IL_005d:  add.ovf
-    IL_005e:  stloc.s    V_4
-    IL_0060:  ldloc.s    V_4
-    IL_0062:  ldloc.3
-    IL_0063:  callvirt   "Function String.get_Length() As Integer"
-    IL_0068:  blt.s      IL_0021
-    IL_006a:  ldc.i4.8
-    IL_006b:  stloc.2
-    IL_006c:  ldstr      "3"
-    IL_0071:  call       "Function Program.M(String) As Integer"
-    IL_0076:  pop
+{
+  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0005:  ldc.i4.2
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.2
+  IL_0008:  stloc.2
+  IL_0009:  ldstr      "0"
+  IL_000e:  call       "Function Program.M(String) As Integer"
+  IL_0013:  pop
+  IL_0014:  ldc.i4.3
+  IL_0015:  stloc.2
+  IL_0016:  call       "Function Program.GetString() As String"
+  IL_001b:  stloc.3
+  IL_001c:  ldc.i4.0
+  IL_001d:  stloc.s    V_4
+  IL_001f:  br.s       IL_0060
+  IL_0021:  ldloc.3
+  IL_0022:  ldloc.s    V_4
+  IL_0024:  callvirt   "Function String.get_Chars(Integer) As Char"
+  IL_0029:  stloc.s    V_5
+  IL_002b:  ldc.i4.4
+  IL_002c:  stloc.2
+  IL_002d:  ldstr      "c={0}"
+  IL_0032:  ldloc.s    V_5
+  IL_0034:  box        "Integer"
+  IL_0039:  call       "Sub System.Console.WriteLine(String, Object)"
+  IL_003e:  ldc.i4.5
+  IL_003f:  stloc.2
+  IL_0040:  ldstr      "1"
+  IL_0045:  call       "Function Program.M(String) As Integer"
+  IL_004a:  pop
+  IL_004b:  ldc.i4.6
+  IL_004c:  stloc.2
+  IL_004d:  ldstr      "2"
+  IL_0052:  call       "Function Program.M(String) As Integer"
+  IL_0057:  pop
+  IL_0058:  ldc.i4.7
+  IL_0059:  stloc.2
+  IL_005a:  ldloc.s    V_4
+  IL_005c:  ldc.i4.1
+  IL_005d:  add.ovf
+  IL_005e:  stloc.s    V_4
+  IL_0060:  ldloc.s    V_4
+  IL_0062:  ldloc.3
+  IL_0063:  callvirt   "Function String.get_Length() As Integer"
+  IL_0068:  blt.s      IL_0021
+  IL_006a:  ldc.i4.8
+  IL_006b:  stloc.2
+  IL_006c:  ldstr      "3"
+  IL_0071:  call       "Function Program.M(String) As Integer"
+  IL_0076:  pop
     IL_0077:  leave      IL_0134
-    IL_007c:  ldc.i4.s   10
-    IL_007e:  stloc.2
-    IL_007f:  ldstr      "OnError - {0}"
-    IL_0084:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
-    IL_0089:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
-    IL_008e:  callvirt   "Function System.Exception.GetType() As System.Type"
-    IL_0093:  call       "Sub System.Console.WriteLine(String, Object)"
-    IL_0098:  ldc.i4.s   11
-    IL_009a:  stloc.2
-    IL_009b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_00a0:  ldloc.1
-    IL_00a1:  brtrue.s   IL_00b3
-    IL_00a3:  ldc.i4     0x800a0014
-    IL_00a8:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-    IL_00ad:  throw
+  IL_007c:  ldc.i4.s   10
+  IL_007e:  stloc.2
+  IL_007f:  ldstr      "OnError - {0}"
+  IL_0084:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
+  IL_0089:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
+  IL_008e:  callvirt   "Function System.Exception.GetType() As System.Type"
+  IL_0093:  call       "Sub System.Console.WriteLine(String, Object)"
+  IL_0098:  ldc.i4.s   11
+  IL_009a:  stloc.2
+  IL_009b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_00a0:  ldloc.1
+  IL_00a1:  brtrue.s   IL_00b3
+  IL_00a3:  ldc.i4     0x800a0014
+  IL_00a8:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00ad:  throw
     IL_00ae:  leave      IL_0134
-    IL_00b3:  ldloc.1
-    IL_00b4:  ldc.i4.1
-    IL_00b5:  add
-    IL_00b6:  ldc.i4.0
-    IL_00b7:  stloc.1
-    IL_00b8:  switch    (
-        IL_00f1,
-        IL_0000,
-        IL_0007,
-        IL_0014,
-        IL_002b,
-        IL_003e,
-        IL_004b,
-        IL_0058,
-        IL_006a,
-        IL_00ae,
-        IL_007c,
-        IL_0098,
-        IL_00ae)
+  IL_00b3:  ldloc.1
+  IL_00b4:  ldc.i4.1
+  IL_00b5:  add
+  IL_00b6:  ldc.i4.0
+  IL_00b7:  stloc.1
+  IL_00b8:  switch    (
+  IL_00f1,
+  IL_0000,
+  IL_0007,
+  IL_0014,
+  IL_002b,
+  IL_003e,
+  IL_004b,
+  IL_0058,
+  IL_006a,
+  IL_00ae,
+  IL_007c,
+  IL_0098,
+  IL_00ae)
     IL_00f1:  leave.s    IL_0129
-    IL_00f3:  ldloc.2
-    IL_00f4:  stloc.1
-    IL_00f5:  ldloc.0
+  IL_00f3:  ldloc.2
+  IL_00f4:  stloc.1
+  IL_00f5:  ldloc.0
     IL_00f6:  switch    (
         IL_0107,
-        IL_00b3,
-        IL_007c)
+  IL_00b3,
+  IL_007c)
     IL_0107:  leave.s    IL_0129
-  }
+}
   filter
-  {
+{
     IL_0109:  isinst     "System.Exception"
     IL_010e:  ldnull
     IL_010f:  cgt.un
@@ -10545,12 +10587,12 @@ End Module
     IL_0118:  ceq
     IL_011a:  and
     IL_011b:  endfilter
-  }  // end filter
-  {  // handler
+}  // end filter
+{  // handler
     IL_011d:  castclass  "System.Exception"
     IL_0122:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
     IL_0127:  leave.s    IL_00f3
-  }
+}
   IL_0129:  ldc.i4     0x800a0033
   IL_012e:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
   IL_0133:  throw
@@ -13058,106 +13100,106 @@ End Module
   // Code size      330 (0x14a)
   .maxstack  4
   .locals init (Integer V_0, //VB$ActiveHandler
-                Integer V_1, //VB$ResumeTarget
-                Integer V_2, //VB$CurrentStatement
-                System.Exception V_3) //ex
+  Integer V_1, //VB$ResumeTarget
+  Integer V_2, //VB$CurrentStatement
+  System.Exception V_3) //ex
   .try
-  {
-    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0005:  ldc.i4.2
-    IL_0006:  stloc.0
-    IL_0007:  br.s       IL_0033
-    IL_0009:  ldc.i4.4
-    IL_000a:  stloc.2
-    IL_000b:  ldstr      "1"
-    IL_0010:  call       "Function Program.M(String) As Integer"
-    IL_0015:  brfalse.s  IL_0026
-    IL_0017:  ldc.i4.5
-    IL_0018:  stloc.2
-    IL_0019:  ldstr      "2"
-    IL_001e:  call       "Function Program.M(String) As Integer"
-    IL_0023:  pop
-    IL_0024:  br.s       IL_0033
-    IL_0026:  ldc.i4.8
-    IL_0027:  stloc.2
-    IL_0028:  ldstr      "3"
-    IL_002d:  call       "Function Program.M(String) As Integer"
-    IL_0032:  pop
-    IL_0033:  ldc.i4.3
-    IL_0034:  stloc.2
-    IL_0035:  ldstr      "0"
-    IL_003a:  call       "Function Program.M(String) As Integer"
-    IL_003f:  brtrue.s   IL_0009
-    IL_0041:  ldc.i4.s   10
-    IL_0043:  stloc.2
-    IL_0044:  ldstr      "4"
-    IL_0049:  call       "Function Program.M(String) As Integer"
-    IL_004e:  pop
+{
+  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0005:  ldc.i4.2
+  IL_0006:  stloc.0
+  IL_0007:  br.s       IL_0033
+  IL_0009:  ldc.i4.4
+  IL_000a:  stloc.2
+  IL_000b:  ldstr      "1"
+  IL_0010:  call       "Function Program.M(String) As Integer"
+  IL_0015:  brfalse.s  IL_0026
+  IL_0017:  ldc.i4.5
+  IL_0018:  stloc.2
+  IL_0019:  ldstr      "2"
+  IL_001e:  call       "Function Program.M(String) As Integer"
+  IL_0023:  pop
+  IL_0024:  br.s       IL_0033
+  IL_0026:  ldc.i4.8
+  IL_0027:  stloc.2
+  IL_0028:  ldstr      "3"
+  IL_002d:  call       "Function Program.M(String) As Integer"
+  IL_0032:  pop
+  IL_0033:  ldc.i4.3
+  IL_0034:  stloc.2
+  IL_0035:  ldstr      "0"
+  IL_003a:  call       "Function Program.M(String) As Integer"
+  IL_003f:  brtrue.s   IL_0009
+  IL_0041:  ldc.i4.s   10
+  IL_0043:  stloc.2
+  IL_0044:  ldstr      "4"
+  IL_0049:  call       "Function Program.M(String) As Integer"
+  IL_004e:  pop
     IL_004f:  leave      IL_0141
-    IL_0054:  ldc.i4.s   12
-    IL_0056:  stloc.2
-    IL_0057:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
-    IL_005c:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
-    IL_0061:  stloc.3
-    IL_0062:  ldc.i4.s   13
-    IL_0064:  stloc.2
-    IL_0065:  ldstr      "OnError - {0}{1}"
-    IL_006a:  ldloc.3
-    IL_006b:  callvirt   "Function System.Exception.GetType() As System.Type"
-    IL_0070:  ldloc.3
-    IL_0071:  isinst     "Program.TestException"
-    IL_0076:  brtrue.s   IL_007f
-    IL_0078:  ldsfld     "String.Empty As String"
-    IL_007d:  br.s       IL_0094
-    IL_007f:  ldstr      " - {0}"
-    IL_0084:  ldloc.3
-    IL_0085:  castclass  "Program.TestException"
-    IL_008a:  ldfld      "Program.TestException.Value As String"
-    IL_008f:  call       "Function String.Format(String, Object) As String"
-    IL_0094:  call       "Sub System.Console.WriteLine(String, Object, Object)"
-    IL_0099:  ldc.i4.s   14
-    IL_009b:  stloc.2
-    IL_009c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_00a1:  ldloc.1
-    IL_00a2:  brtrue.s   IL_00b4
-    IL_00a4:  ldc.i4     0x800a0014
-    IL_00a9:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-    IL_00ae:  throw
+  IL_0054:  ldc.i4.s   12
+  IL_0056:  stloc.2
+  IL_0057:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
+  IL_005c:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
+  IL_0061:  stloc.3
+  IL_0062:  ldc.i4.s   13
+  IL_0064:  stloc.2
+  IL_0065:  ldstr      "OnError - {0}{1}"
+  IL_006a:  ldloc.3
+  IL_006b:  callvirt   "Function System.Exception.GetType() As System.Type"
+  IL_0070:  ldloc.3
+  IL_0071:  isinst     "Program.TestException"
+  IL_0076:  brtrue.s   IL_007f
+  IL_0078:  ldsfld     "String.Empty As String"
+  IL_007d:  br.s       IL_0094
+  IL_007f:  ldstr      " - {0}"
+  IL_0084:  ldloc.3
+  IL_0085:  castclass  "Program.TestException"
+  IL_008a:  ldfld      "Program.TestException.Value As String"
+  IL_008f:  call       "Function String.Format(String, Object) As String"
+  IL_0094:  call       "Sub System.Console.WriteLine(String, Object, Object)"
+  IL_0099:  ldc.i4.s   14
+  IL_009b:  stloc.2
+  IL_009c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_00a1:  ldloc.1
+  IL_00a2:  brtrue.s   IL_00b4
+  IL_00a4:  ldc.i4     0x800a0014
+  IL_00a9:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00ae:  throw
     IL_00af:  leave      IL_0141
-    IL_00b4:  ldloc.1
-    IL_00b5:  ldc.i4.1
-    IL_00b6:  add
-    IL_00b7:  ldc.i4.0
-    IL_00b8:  stloc.1
-    IL_00b9:  switch    (
-        IL_00fe,
-        IL_0000,
-        IL_0033,
-        IL_0033,
-        IL_0009,
-        IL_0017,
-        IL_0033,
-        IL_0026,
-        IL_0026,
-        IL_0033,
-        IL_0041,
-        IL_00af,
-        IL_0054,
-        IL_0062,
-        IL_0099,
-        IL_00af)
+  IL_00b4:  ldloc.1
+  IL_00b5:  ldc.i4.1
+  IL_00b6:  add
+  IL_00b7:  ldc.i4.0
+  IL_00b8:  stloc.1
+  IL_00b9:  switch    (
+  IL_00fe,
+  IL_0000,
+  IL_0033,
+  IL_0033,
+  IL_0009,
+  IL_0017,
+  IL_0033,
+  IL_0026,
+  IL_0026,
+  IL_0033,
+  IL_0041,
+  IL_00af,
+  IL_0054,
+  IL_0062,
+  IL_0099,
+  IL_00af)
     IL_00fe:  leave.s    IL_0136
-    IL_0100:  ldloc.2
-    IL_0101:  stloc.1
-    IL_0102:  ldloc.0
+  IL_0100:  ldloc.2
+  IL_0101:  stloc.1
+  IL_0102:  ldloc.0
     IL_0103:  switch    (
         IL_0114,
-        IL_00b4,
-        IL_0054)
+  IL_00b4,
+  IL_0054)
     IL_0114:  leave.s    IL_0136
-  }
+}
   filter
-  {
+{
     IL_0116:  isinst     "System.Exception"
     IL_011b:  ldnull
     IL_011c:  cgt.un
@@ -13170,12 +13212,12 @@ End Module
     IL_0125:  ceq
     IL_0127:  and
     IL_0128:  endfilter
-  }  // end filter
-  {  // handler
+}  // end filter
+{  // handler
     IL_012a:  castclass  "System.Exception"
     IL_012f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
     IL_0134:  leave.s    IL_0100
-  }
+}
   IL_0136:  ldc.i4     0x800a0033
   IL_013b:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
   IL_0140:  throw
@@ -17581,8 +17623,8 @@ End Module
             'IF statement / ELSEIF and also and multiple condition IF With ANDALSO
             Dim source =
     <compilation name="ErrorHandling">
-                                                                                                                                                                                                <file name="a.vb">
-                                                                                                                                                                                                    <![CDATA[
+        <file name="a.vb">
+            <![CDATA[
 Imports System
 
 Module Module1
@@ -17661,8 +17703,8 @@ Module Module1
 End Module
 
         ]]>
-                                                                                                                                                                                                </file>
-                                                                                                                                                                                            </compilation>
+        </file>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[*********************************************
@@ -17996,8 +18038,8 @@ End]]>, emitPdb:=True)
             'This verifies that resume next will resumes outside the select caser block rather than at the next case statement or within the block            
             Dim source =
     <compilation name="ErrorHandling">
-                                                                                                                                                                                                    <file name="a.vb">
-                                                                                                                                                                                                        <![CDATA[
+        <file name="a.vb">
+            <![CDATA[
 Imports System
 
 Module Module1
@@ -18024,8 +18066,8 @@ handler:
     End Function
 End Module
         ]]>
-                                                                                                                                                                                                    </file>
-                                                                                                                                                                                                </compilation>
+        </file>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
@@ -18170,8 +18212,8 @@ After Case]]>, emitPdb:=True)
             'This verifies that resume next will resumes 
             Dim source =
     <compilation name="ErrorHandling">
-                                                                                                                                                                                                        <file name="a.vb">
-                                                                                                                                                                                                            <![CDATA[Imports System
+        <file name="a.vb">
+            <![CDATA[Imports System
 
         Module Module1
             Sub Main()
@@ -18201,8 +18243,8 @@ handler:
 
 
         ]]>
-                                                                                                                                                                                                        </file>
-                                                                                                                                                                                                    </compilation>
+        </file>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
@@ -18216,8 +18258,8 @@ After Case]]>, emitPdb:=True)
         Sub OnError_ResumeWithSelectCase_Error_On_Case_Condition()
             Dim source =
     <compilation name="ErrorHandling">
-                                                                                                                                                                                                            <file name="a.vb">
-                                                                                                                                                                                                                <![CDATA[Imports System
+        <file name="a.vb">
+            <![CDATA[Imports System
 
         Module Module1
             Sub Main()
@@ -18247,8 +18289,8 @@ handler:
 
 
         ]]>
-                                                                                                                                                                                                            </file>
-                                                                                                                                                                                                        </compilation>
+        </file>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
@@ -18262,8 +18304,8 @@ After Case]]>, emitPdb:=True)
 
             Dim source =
     <compilation name="ErrorHandling">
-                                                                                                                                                                                                                <file name="a.vb">
-                                                                                                                                                                                                                    <![CDATA[
+        <file name="a.vb">
+            <![CDATA[
 Imports System
 
 Module Module1
@@ -18293,8 +18335,8 @@ handler:
     End Function
 End Module
         ]]>
-                                                                                                                                                                                                                </file>
-                                                                                                                                                                                                            </compilation>
+        </file>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
@@ -18309,8 +18351,8 @@ After Case]]>, emitPdb:=True)
             'We are causing the error by throwing an exception or by using the Error or Err.Raise
             Dim source =
     <compilation name="ErrorHandling">
-                                                                                                                                                                                                                    <file name="a.vb">
-                                                                                                                                                                                                                        <![CDATA[
+        <file name="a.vb">
+            <![CDATA[
 Imports System
 Imports Microsoft.VisualBasic
 
@@ -18356,8 +18398,8 @@ Handler:
 End Module
 
         ]]>
-                                                                                                                                                                                                                    </file>
-                                                                                                                                                                                                                </compilation>
+        </file>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[StartHandler11Attempted to divide by zero.StartHandler11Division by zero.StartHandler12Application-defined or object-defined error.]]>, emitPdb:=True)
@@ -18367,7 +18409,7 @@ End Module
         Sub ErrorHandler_ResumeNext_ErrorObjectFunctionality()
             Dim compilationDef =
     <compilation name="ErrorHandlerTest">
-                                                                                                                                                                                                                        <file name="a.vb">
+        <file name="a.vb">
 Imports System
 Imports Microsoft.VisualBasic
 
@@ -18395,7 +18437,7 @@ Module Module1
     End Sub
 End Module
 </file>
-                                                                                                                                                                                                                    </compilation>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Error #  6 was generated by ErrorHandlerTest
@@ -18413,7 +18455,7 @@ Procedure call or argument is not valid.
             'In other collection initializer we would result in all or nothing behaviour
             Dim compilationDef =
     <compilation name="ErrorHandlerTest">
-                                                                                                                                                                                                                            <file name="a.vb">
+        <file name="a.vb">
 Imports System
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
@@ -18446,7 +18488,7 @@ handler:
     End Sub
 End Module
         </file>
-                                                                                                                                                                                                                        </compilation>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="2", emitPdb:=True)
@@ -18485,7 +18527,7 @@ End Module
             'This should result in Nothing - All or nothing 
             Dim compilationDef =
     <compilation name="ErrorHandlerTest">
-                                                                                                                                                                                                                                    <file name="a.vb">
+        <file name="a.vb">
 Imports System
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
@@ -18502,7 +18544,7 @@ Handler:
     End Sub
 End Module
         </file>
-                                                                                                                                                                                                                                </compilation>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="Nothing", emitPdb:=True)
@@ -18656,8 +18698,8 @@ GetException:Nothing]]>, emitPdb:=True)
         Sub ErrorObject_Properties()
             Dim source =
     <compilation name="ErrorHandling">
-                                                                                                                                                                                                                                        <file name="a.vb">
-                                                                                                                                                                                                                                            <![CDATA[
+        <file name="a.vb">
+            <![CDATA[
 Imports System
 Imports  Microsoft.VisualBasic
 
@@ -18697,8 +18739,8 @@ handler:
         Resume Next
     End Sub
 End Module]]>
-                                                                                                                                                                                                                                        </file>
-                                                                                                                                                                                                                                    </compilation>
+        </file>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[*****************************************
@@ -18730,8 +18772,8 @@ GetException:Nothing]]>, emitPdb:=True)
         Sub ErrorObject_Properties_AfterGeneratedInDifferentWays()
             Dim source =
     <compilation name="ErrorHandling">
-                                                                                                                                                                                                                                            <file name="a.vb">
-                                                                                                                                                                                                                                                <![CDATA[
+        <file name="a.vb">
+            <![CDATA[
 Imports System
 Imports  Microsoft.VisualBasic
 
@@ -18778,8 +18820,8 @@ handler:
         Resume Next
     End Sub
 End Module]]>
-                                                                                                                                                                                                                                            </file>
-                                                                                                                                                                                                                                        </compilation>
+        </file>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[   *****************************************
@@ -18849,8 +18891,8 @@ GetException:Nothing]]>, emitPdb:=True)
             'Unsure why...
             Dim source =
     <compilation name="ErrorHandling">
-                                                                                                                                                                                                                                                <file name="a.vb">
-                                                                                                                                                                                                                                                    <![CDATA[
+        <file name="a.vb">
+            <![CDATA[
 Imports System
 Imports  Microsoft.VisualBasic
 
@@ -18889,8 +18931,8 @@ Module Module1
         End If
     End Sub
 End Module]]>
-                                                                                                                                                                                                                                                </file>
-                                                                                                                                                                                                                                            </compilation>
+        </file>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[1400
@@ -18902,8 +18944,8 @@ Invalid window handle.    Error!
         Public Sub ERL_01()
             Dim source =
 <compilation>
-                                                                                                                                                                                                                                                    <file name="a.vb">
-                                                                                                                                                                                                                                                        <![CDATA[
+    <file name="a.vb">
+        <![CDATA[
 Imports System
 Imports Microsoft.VisualBasic
 
@@ -18932,8 +18974,8 @@ Module Program
     End Sub
 End Module
     ]]>
-                                                                                                                                                                                                                                                    </file>
-                                                                                                                                                                                                                                                </compilation>
+    </file>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
@@ -18949,8 +18991,8 @@ End Module
         Public Sub ERL_02()
             Dim source =
 <compilation>
-                                                                                                                                                                                                                                                        <file name="a.vb">
-                                                                                                                                                                                                                                                            <![CDATA[
+    <file name="a.vb">
+        <![CDATA[
 Imports System
 Imports Microsoft.VisualBasic
 
@@ -18977,8 +19019,8 @@ Handler:
     End Sub
 End Module
     ]]>
-                                                                                                                                                                                                                                                        </file>
-                                                                                                                                                                                                                                                    </compilation>
+    </file>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
@@ -18997,8 +19039,8 @@ L500
         Public Sub ERL_03()
             Dim source =
 <compilation>
-                                                                                                                                                                                                                                                            <file name="a.vb">
-                                                                                                                                                                                                                                                                <![CDATA[
+    <file name="a.vb">
+        <![CDATA[
 Imports System
 Imports System.Collections.Generic
 Imports Microsoft.VisualBasic
@@ -19020,8 +19062,8 @@ Module Program
     End Function
 End Module
     ]]>
-                                                                                                                                                                                                                                                            </file>
-                                                                                                                                                                                                                                                        </compilation>
+    </file>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
@@ -19036,8 +19078,8 @@ End Module
         Public Sub ERL_04()
             Dim source =
 <compilation>
-                                                                                                                                                                                                                                                                <file name="a.vb">
-                                                                                                                                                                                                                                                                    <![CDATA[
+    <file name="a.vb">
+        <![CDATA[
 Imports System
 Imports Microsoft.VisualBasic
 
@@ -19064,8 +19106,8 @@ Handler:
     End Sub
 End Module
     ]]>
-                                                                                                                                                                                                                                                                </file>
-                                                                                                                                                                                                                                                            </compilation>
+    </file>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
@@ -19084,8 +19126,8 @@ L500
         Public Sub ERL_05()
             Dim source =
 <compilation>
-                                                                                                                                                                                                                                                                    <file name="a.vb">
-                                                                                                                                                                                                                                                                        <![CDATA[
+    <file name="a.vb">
+        <![CDATA[
 Imports System
 Imports Microsoft.VisualBasic
 
@@ -19103,8 +19145,8 @@ Handler:
     End Sub
 End Module
     ]]>
-                                                                                                                                                                                                                                                                    </file>
-                                                                                                                                                                                                                                                                </compilation>
+    </file>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 

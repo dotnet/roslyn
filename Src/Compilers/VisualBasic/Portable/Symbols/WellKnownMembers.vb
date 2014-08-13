@@ -1,15 +1,10 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -172,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function SynthesizeDebuggerBrowsableNeverAttribute() As SynthesizedAttributeData
-            If Options.DebugInformationKind <> DebugInformationKind.Full Then
+            If Options.OptimizationLevel <> OptimizationLevel.Debug Then
                 Return Nothing
             End If
 
@@ -184,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function SynthesizeDebuggerHiddenAttribute() As SynthesizedAttributeData
-            If Options.DebugInformationKind <> DebugInformationKind.Full Then
+            If Options.OptimizationLevel <> OptimizationLevel.Debug Then
                 Return Nothing
             End If
 
@@ -200,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function SynthesizeDebuggerNonUserCodeAttribute() As SynthesizedAttributeData
-            If Options.DebugInformationKind <> DebugInformationKind.Full Then
+            If Options.OptimizationLevel <> OptimizationLevel.Debug Then
                 Return Nothing
             End If
 
@@ -208,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function SynthesizeOptionalDebuggerStepThroughAttribute() As SynthesizedAttributeData
-            If Options.DebugInformationKind <> DebugInformationKind.Full Then
+            If Options.OptimizationLevel <> OptimizationLevel.Debug Then
                 Return Nothing
             End If
 

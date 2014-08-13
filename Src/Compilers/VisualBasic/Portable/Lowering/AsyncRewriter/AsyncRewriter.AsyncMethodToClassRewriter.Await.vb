@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim awaiterTemp As LocalSymbol = Me.F.SynthesizedLocal(awaiterType)
                 builder.AddLocal(awaiterTemp)
 
-                builder.AddStatement(Me.F.SequencePoint(Me.GenerateDebugInfo, If(Me._enclosingSequencePointSyntax, node.Syntax)))
+                builder.AddStatement(Me.F.SequencePoint(If(Me._enclosingSequencePointSyntax, node.Syntax)))
 
                 ' Replace 'awaiter' with the local
                 Dim awaiterInstancePlaceholder As BoundLValuePlaceholder = node.AwaiterInstancePlaceholder

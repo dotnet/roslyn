@@ -32,12 +32,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Compilation As VisualBasicCompilation
 
         ' Can be Nothing if we're not emitting.
-        Public ReadOnly EmitModule As PEModuleBuilder
+        Public ReadOnly ModuleBuilderOpt As PEModuleBuilder
 
         ''' <summary> Flat array of created methods, non-empty if not-nothing </summary>
         Private _synthesizedMethods As ArrayBuilder(Of MethodWithBody) = Nothing
 
-        Public ReadOnly InitializeComponent As MethodSymbol
+        Public ReadOnly InitializeComponentOpt As MethodSymbol
 
         ''' <summary>
         ''' A mapping from (source) iterator or async methods to the compiler-generated classes that implement them.
@@ -58,10 +58,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private _initializeComponentCallTree As Dictionary(Of MethodSymbol, ImmutableArray(Of MethodSymbol)) = Nothing
 
-        Public Sub New(compilation As VisualBasicCompilation, emitModule As PEModuleBuilder, initializeComponent As MethodSymbol)
+        Public Sub New(compilation As VisualBasicCompilation, moduleBuilderOpt As PEModuleBuilder, initializeComponentOpt As MethodSymbol)
             Me.Compilation = compilation
-            Me.EmitModule = emitModule
-            Me.InitializeComponent = initializeComponent
+            Me.ModuleBuilderOpt = moduleBuilderOpt
+            Me.InitializeComponentOpt = initializeComponentOpt
         End Sub
 
         ''' <summary>
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If _initializeComponentCallTree.TryGetValue(method, callees) Then
                 For Each m In callees
-                    If m Is InitializeComponent Then
+                    If m Is InitializeComponentOpt Then
                         Return True
                     ElseIf Not visited.Contains(m) AndAlso CallsInitializeComponent(m, visited) Then
                         Return True

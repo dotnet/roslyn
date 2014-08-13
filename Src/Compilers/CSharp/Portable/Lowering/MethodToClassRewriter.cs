@@ -50,25 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected readonly DiagnosticBag Diagnostics;
 
-        private readonly bool globalGenerateDebugInfo;
-
-        protected MethodToClassRewriter(TypeCompilationState compilationState, HashSet<Symbol> variablesCaptured, DiagnosticBag diagnostics, bool generateDebugInfo)
+        protected MethodToClassRewriter(TypeCompilationState compilationState, HashSet<Symbol> variablesCaptured, DiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
 
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
-            this.globalGenerateDebugInfo = generateDebugInfo;
             this.variablesCaptured = variablesCaptured;
-        }
-
-        protected bool GenerateDebugInfo
-        {
-            get
-            {
-                return globalGenerateDebugInfo && CurrentMethod.GenerateDebugInfo;
-            }
         }
 
         protected bool IsCaptured(Symbol localOrParameter)

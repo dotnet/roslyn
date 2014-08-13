@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis
             info.AddValue(WarningLevelString, options.WarningLevel);
             info.AddValue(SpecificDiagnosticOptionsString, new Dictionary<string, ReportDiagnostic>(options.SpecificDiagnosticOptions));
             info.AddValue(HighEntropyVirtualAddressSpaceString, options.HighEntropyVirtualAddressSpace);
-            info.AddValue(DebugInformationKindString, (int)options.DebugInformationKind);
-            info.AddValue(OptimizeString, options.Optimize);
+            info.AddValue(OptimizeString, (int)options.OptimizationLevel);
             info.AddValue(SubsystemVersionMajorString, options.SubsystemVersion.Major);
             info.AddValue(SubsystemVersionMinorString, options.SubsystemVersion.Minor);
             info.AddValue(ConcurrentBuildString, options.ConcurrentBuild);
