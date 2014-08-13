@@ -2473,7 +2473,7 @@ End Enum
 Imports Microsoft.VisualBasic
 
 Class C 
-    Sub M(Optional s As String = ChrW(&amp;HABCD) &amp; "a" &amp; ChrW(0) &amp; vbCrLf)
+    Sub M(Optional s As String = ChrW(&amp;HFFFE) &amp; "a" &amp; ChrW(0) &amp; vbCrLf)
     End Sub
 End Class
             </file>
@@ -2496,7 +2496,7 @@ End Class
                 text,
                 findSymbol,
                 format,
-                "M(s As String = ChrW(&HABCD) & ""a"" & vbNullChar & vbCrLf)",
+                "M(s As String = ChrW(&HFFFE) & ""a"" & vbNullChar & vbCrLf)",
                 {
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
@@ -2535,7 +2535,7 @@ End Class
 Imports Microsoft.VisualBasic
 
 Class C 
-    Sub M(Optional a As Char = ChrW(&amp;HABCD), Optional b As Char = ChrW(8))
+    Sub M(Optional a As Char = ChrW(&amp;HFFFE), Optional b As Char = ChrW(8))
     End Sub
 End Class
             </file>
@@ -2558,7 +2558,7 @@ End Class
                 text,
                 findSymbol,
                 format,
-                "M(a As Char = ChrW(&HABCD), b As Char = vbBack)",
+                "M(a As Char = ChrW(&HFFFE), b As Char = vbBack)",
                 {
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
