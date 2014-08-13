@@ -229,18 +229,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal static string GenerateDataFieldName(ImmutableArray<byte> data)
         {
             var hash = CryptographicHashProvider.ComputeSha1(data);
-            // create a hex string from the hash data, using black magic from
-            // http://stackoverflow.com/questions/311165/how-do-you-convert-byte-array-to-hexadecimal-string-and-vice-versa/14333437#14333437
             char[] c = new char[hash.Length * 2];
-            for (int i = 0; i < hash.Length; i++)
+            int i = 0;
+            foreach (var b in hash)
             {
-                var bite = hash[i];
-                int nibble = bite >> 4;
-                c[i * 2] = (char)(55 + nibble + (((nibble - 10) >> 31) & -7));
-                nibble = bite & 0xF;
-                c[i * 2 + 1] = (char)(55 + nibble + (((nibble - 10) >> 31) & -7));
+                c[i++] = Hexchar(b >> 4);
+                c[i++] = Hexchar(b & 0xF);
             }
+
             return MemberNamePrefix + new string(c);
+        }
+
+        private static char Hexchar(int x)
+        {
+            return (char)((x <= 9) ? (x + '0') : (x + ('A' - 10)));
         }
     }
 
