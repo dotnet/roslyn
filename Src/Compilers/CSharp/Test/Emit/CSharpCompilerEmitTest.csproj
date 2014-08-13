@@ -111,6 +111,9 @@
     <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.cs" />
     <Compile Include="Attributes\WellKnownAttributesTestBase.cs" />
     <Compile Include="BreakingChanges.cs" />
+    <Compile Include="CodeGen\CodeGenAsyncEHTests.cs" />
+    <Compile Include="CodeGen\CodeGenAsyncLocalsTests.cs" />
+    <Compile Include="CodeGen\CodeGenAsyncSpillTests.cs" />
     <Compile Include="CodeGen\CodeGenAsyncTests.cs" />
     <Compile Include="CodeGen\CodeGenCheckedTests.cs" />
     <Compile Include="CodeGen\CodeGenClosureLambdaTests.cs" />
