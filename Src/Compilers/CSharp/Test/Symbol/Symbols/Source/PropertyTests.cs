@@ -1706,7 +1706,7 @@ class C
 {
     object P { get; set; }
 }";
-            CompileAndVerify(text, emitPdb: true).VerifyDiagnostics();
+            CompileAndVerify(text).VerifyDiagnostics();
         }
 
         [WorkItem(541688, "DevDiv")]

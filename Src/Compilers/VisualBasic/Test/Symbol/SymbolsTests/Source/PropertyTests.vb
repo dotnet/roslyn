@@ -1320,9 +1320,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source,
-                             emitPdb:=True,
-                             expectedOutput:=<![CDATA[
+            CompileAndVerify(source, expectedOutput:=<![CDATA[
 23
 ]]>)
         End Sub
@@ -5675,7 +5673,7 @@ Module Cobj010mod
     End Sub
 End Module
 </file>
-</compilation>, emitPdb:=True, expectedOutput:="")
+</compilation>, expectedOutput:="")
         End Sub
 
         <WorkItem(540342, "DevDiv")>
@@ -5689,7 +5687,7 @@ Class C
 End Class
     </file>
 </compilation>
-            CompileAndVerify(source, options:=TestOptions.ReleaseDll, emitPdb:=True).VerifyDiagnostics()
+            CompileAndVerify(source, options:=TestOptions.ReleaseDll).VerifyDiagnostics()
         End Sub
 
         <Fact>

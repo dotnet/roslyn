@@ -561,7 +561,7 @@ Structure s1
 End Structure
 
     </file>
-    </compilation>, expectedOutput:="", emitPdb:=True)
+    </compilation>, expectedOutput:="")
 
             c.VerifyIL("s1..ctor", <![CDATA[
 {

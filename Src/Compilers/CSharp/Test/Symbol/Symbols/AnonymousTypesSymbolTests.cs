@@ -1391,7 +1391,6 @@ class Class3
                         Assert.Equal("<>f__AnonymousType2", types[2]);
                         Assert.Equal("<>f__AnonymousType3<<b>j__TPar, <a>j__TPar>", types[3]);
                     },
-                    emitPdb:true,
                     verify:false
                 );
 
@@ -1418,7 +1417,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(source, emitPdb: true);
+            CompileAndVerify(source);
         }
 
         [Fact()]

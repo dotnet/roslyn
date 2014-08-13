@@ -2528,7 +2528,6 @@ End Module
 </file>
 </compilation>,
             additionalRefs:={LinqAssemblyRef},
-            emitPdb:=True,
             expectedOutput:="123")
 
         End Sub

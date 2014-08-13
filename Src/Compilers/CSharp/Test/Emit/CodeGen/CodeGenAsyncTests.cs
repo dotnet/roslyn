@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CreateCompilationWithMscorlib45(source, options: compOptions, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions compOptions = null, bool emitPdb = false)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions compOptions = null)
         {
             SynchronizationContext.SetSynchronizationContext(null);
 
             var compilation = this.CreateCompilation(source, references: references, compOptions: compOptions);
-            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: emitOptions, emitPdb: emitPdb);
+            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: emitOptions);
         }
 
         private string GetFieldLoadsAndStores(CompilationVerifier c, string qualifiedMethodName)
@@ -1196,7 +1196,7 @@ class Test
             var expected = @"
 2
 ";
-            var v = CompileAndVerify(source, compOptions: TestOptions.DebugExe, emitPdb: true, expectedOutput: expected);
+            var v = CompileAndVerify(source, compOptions: TestOptions.DebugExe, expectedOutput: expected);
 
             v.VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -2823,7 +2823,7 @@ public class Test
     }
 }
 ";
-            var v = CompileAndVerify(source, null, compOptions: TestOptions.DebugDll, emitPdb: true);
+            var v = CompileAndVerify(source, null, compOptions: TestOptions.DebugDll);
 
             v.VerifyIL("Test.<F>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -3002,7 +3002,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source, null, compOptions: TestOptions.DebugDll, emitPdb: true);
+            CompileAndVerify(source, null, compOptions: TestOptions.DebugDll);
         }
 
         [Fact]
@@ -3035,7 +3035,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source, null, compOptions: TestOptions.DebugDll, emitPdb: true);
+            CompileAndVerify(source, null, compOptions: TestOptions.DebugDll);
         }
 
         [Fact]
@@ -3068,7 +3068,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source, null, compOptions: TestOptions.DebugDll, emitPdb: true);
+            CompileAndVerify(source, null, compOptions: TestOptions.DebugDll);
         }
 
         [Fact]
@@ -4335,7 +4335,7 @@ class Test<U>
         foreach (var x in GetEnum<U>()) await F(5);
     }
 }";
-            var c = CompileAndVerify(source, expectedOutput: null, compOptions: TestOptions.ReleaseDll, emitPdb: false);
+            var c = CompileAndVerify(source, expectedOutput: null, compOptions: TestOptions.ReleaseDll);
 
             var actual = GetFieldLoadsAndStores(c, "Test<U>.<M>d__1<S, T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext");
 
@@ -7098,7 +7098,7 @@ class Test
             var expected = @"
 42
 ";
-            var c = CompileAndVerify(source, expectedOutput: expected, compOptions: TestOptions.DebugExe, emitPdb: true);
+            var c = CompileAndVerify(source, expectedOutput: expected, compOptions: TestOptions.DebugExe);
 
             c.VerifyIL("Test.F", @"
 {
@@ -8085,7 +8085,7 @@ class Test
         return array[1].Mutate(await G());
     }
 }";
-            var v = CompileAndVerify(source, null, compOptions: TestOptions.DebugDll, emitPdb: true);
+            var v = CompileAndVerify(source, null, compOptions: TestOptions.DebugDll);
 
             v.VerifyIL("Test.<F>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {

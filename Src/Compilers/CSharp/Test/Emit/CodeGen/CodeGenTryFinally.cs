@@ -245,7 +245,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "", emitPdb: true);
+            var compilation = CompileAndVerify(source, expectedOutput: "");
             compilation.VerifyIL("C.M",
 @"{
   // Code size       24 (0x18)
@@ -313,7 +313,7 @@ class C
         ;
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "", emitPdb: true);
+            var compilation = CompileAndVerify(source, expectedOutput: "");
             compilation.VerifyIL("C.M", @"
 {
   // Code size       24 (0x18)

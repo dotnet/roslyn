@@ -121,8 +121,7 @@ Namespace Global
 End Namespace
 </expected>.Value)
                              End Sub,
-                options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
-                emitPdb:=True)
+                options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
             compilationVerifier.Compilation.AssertNoErrors()
         End Sub
 
@@ -148,8 +147,7 @@ Namespace Global
 End Namespace
 </expected>.Value)
                              End Sub,
-                options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
-                emitPdb:=True)
+                options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
             compilationVerifier.Compilation.AssertNoErrors()
         End Sub
 
@@ -197,8 +195,7 @@ End Class
             allReferences:=NoVbRuntimeReferences.Concat(XmlReferences),
             sourceSymbolValidator:=Sub([module]) ValidateSourceSymbols([module]),
             symbolValidator:=Sub([module]) ValidateSymbols([module], symbols),
-            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
-            emitPdb:=True)
+            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
             compilationVerifier.Compilation.AssertNoErrors()
         End Sub
 
@@ -252,8 +249,7 @@ End Class
             allReferences:=NoVbRuntimeReferences.Concat(XmlReferences),
             symbolValidator:=Sub([module]) ValidateSymbols([module], symbols),
             sourceSymbolValidator:=Sub([module]) ValidateSourceSymbols([module]),
-            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
-            emitPdb:=True)
+            options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
             compilationVerifier.Compilation.AssertNoErrors()
         End Sub
 
@@ -476,8 +472,7 @@ End Class
   End Namespace
 </expected>.Value)
                              End Sub,
-                options:=TestOptions.DebugExe.WithEmbedVbCoreRuntime(True).WithMetadataImportOptions(MetadataImportOptions.Internal),
-                emitPdb:=True)
+                options:=TestOptions.DebugExe.WithEmbedVbCoreRuntime(True).WithMetadataImportOptions(MetadataImportOptions.Internal))
         End Sub
 
         <Fact()>
@@ -2494,8 +2489,7 @@ End Class
   End Namespace
 </expected>.Value)
                              End Sub,
-                options:=TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal),
-                emitPdb:=True)
+                options:=TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal))
         End Sub
 
         <Fact()>
@@ -3078,7 +3072,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, emitPdb:=True).VerifyIL("Module1.Main", <![CDATA[
+</compilation>).VerifyIL("Module1.Main", <![CDATA[
 {
   // Code size       29 (0x1d)
   .maxstack  2
@@ -3301,8 +3295,7 @@ End Module
             Optional expectedOutput As String = Nothing,
             Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
             Optional validator As Action(Of PEAssembly) = Nothing,
-            Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
-            Optional emitPdb As Boolean = True
+            Optional symbolValidator As Action(Of ModuleSymbol) = Nothing
         ) As CompilationVerifier
 
             Dim options = If(expectedOutput IsNot Nothing, TestOptions.ReleaseExe, TestOptions.ReleaseDll).
@@ -3315,8 +3308,7 @@ End Module
                                            sourceSymbolValidator:=sourceSymbolValidator,
                                            validator:=Translate(validator),
                                            symbolValidator:=symbolValidator,
-                                           options:=options,
-                                           emitPdb:=emitPdb)
+                                           options:=options)
         End Function
 
         Private Function Translate(action As Action(Of PEAssembly)) As Action(Of PEAssembly, EmitOptions)

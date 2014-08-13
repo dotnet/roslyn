@@ -10223,7 +10223,7 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            var verifier = CompileAndVerify(comp, emitPdb: true, expectedOutput: @"10").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: @"10").VerifyDiagnostics();
 
             TestSemanticModelAPI(comp);
         }
@@ -10252,7 +10252,7 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            var verifier = CompileAndVerify(comp, emitPdb: true, expectedOutput: @"11").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: @"11").VerifyDiagnostics();
 
             TestSemanticModelAPI(comp);
         }
@@ -10285,7 +10285,7 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            var verifier = CompileAndVerify(comp, emitPdb: true, expectedOutput: @"9
+            var verifier = CompileAndVerify(comp, expectedOutput: @"9
 10
 11").VerifyDiagnostics();
 

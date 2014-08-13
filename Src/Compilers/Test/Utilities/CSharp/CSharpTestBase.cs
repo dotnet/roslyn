@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string expectedOutput = null,
             CompilationOptions options = null,
             bool collectEmittedAssembly = true,
-            bool emitPdb = false,
             bool verify = true)
         {
             return base.CompileAndVerify(
@@ -88,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 expectedOutput: expectedOutput,
                 options: options,
                 collectEmittedAssembly: collectEmittedAssembly,
-                emitPdb: emitPdb,
                 verify: verify);
         }
 
@@ -103,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             bool collectEmittedAssembly = true,
-            bool emitPdb = false,
             bool verify = true)
         {
             var options = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
@@ -120,7 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 expectedSignatures: expectedSignatures,
                 expectedOutput: expectedOutput,
                 collectEmittedAssembly: collectEmittedAssembly,
-                emitPdb: emitPdb,
                 verify: verify);
         }
 
@@ -136,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string expectedOutput = null,
             CompilationOptions options = null,
             bool collectEmittedAssembly = true,
-            bool emitPdb = false,
             bool verify = true)
         {
             return base.CompileAndVerify(
@@ -151,7 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 expectedOutput,
                 options,
                 collectEmittedAssembly,
-                emitPdb,
                 verify);
         }
 
@@ -166,7 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
             bool collectEmittedAssembly = true,
-            bool emitPdb = false,
             bool verify = true)
         {
             return base.CompileAndVerify(
@@ -180,7 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 expectedSignatures,
                 expectedOutput,
                 collectEmittedAssembly,
-                emitPdb,
                 verify);
         }
 
@@ -195,8 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
             CompilationOptions options = null,
-            bool collectEmittedAssembly = true,
-            bool emitPdb = false)
+            bool collectEmittedAssembly = true)
         {
             return base.CompileAndVerifyOnWin8Only(
                 source,
@@ -209,8 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 expectedSignatures,
                 expectedOutput,
                 options,
-                collectEmittedAssembly,
-                emitPdb);
+                collectEmittedAssembly);
         }
 
         internal CompilationVerifier CompileAndVerifyOnWin8Only(
@@ -222,8 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
-            bool collectEmittedAssembly = true,
-            bool emitPdb = false)
+            bool collectEmittedAssembly = true)
         {
             return base.CompileAndVerifyOnWin8Only(
                 compilation,
@@ -234,8 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 Translate(symbolValidator),
                 expectedSignatures,
                 expectedOutput,
-                collectEmittedAssembly,
-                emitPdb);
+                collectEmittedAssembly);
         }
 
         internal CompilationVerifier CompileAndVerifyOnWin8Only(
@@ -250,7 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string expectedOutput = null,
             CompilationOptions options = null,
             bool collectEmittedAssembly = true,
-            bool emitPdb = false,
             bool verify = true)
         {
             return base.CompileAndVerifyOnWin8Only(
@@ -265,7 +252,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 expectedOutput,
                 options,
                 collectEmittedAssembly,
-                emitPdb,
                 verify);
         }
     }

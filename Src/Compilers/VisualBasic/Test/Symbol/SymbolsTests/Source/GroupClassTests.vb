@@ -3554,7 +3554,7 @@ End Module
 
             compilation.MyTemplate = WindowsFormsMyTemplateTree
 
-            Dim verifier = CompileAndVerify(compilation, expectedOutput:="disposed", emitPdb:=True).VerifyDiagnostics()
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="disposed").VerifyDiagnostics()
         End Sub
 
         <Fact, WorkItem(560657, "DevDiv")>

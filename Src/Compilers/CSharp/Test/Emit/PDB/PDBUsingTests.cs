@@ -1558,7 +1558,7 @@ public class Test : IDisposable
     public void Dispose() { }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll, emitPdb: true);
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Test.Main", @"
 {

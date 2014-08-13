@@ -7113,8 +7113,7 @@ End Module
             </file>
 </compilation>,
                 options:=TestOptions.DebugExe,
-                expectedOutput:="",
-                emitPdb:=True)
+                expectedOutput:="")
 
             c.VerifyIL("M1.Main",
             <![CDATA[
@@ -10058,7 +10057,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, emitPdb:=True, options:=TestOptions.DebugDll)
+</compilation>, options:=TestOptions.DebugDll)
 
             comp.VerifyIL("Module1.Main", <![CDATA[
 {
@@ -10141,7 +10140,6 @@ Module Module1
 End Module
     </file>
 </compilation>,
-            emitPdb:=True,
             options:=TestOptions.DebugExe,
             expectedOutput:="Pass")
 
@@ -10714,7 +10712,7 @@ Class HasAutoProps
 End Class
 ]]>
     </file>
-</compilation>, emitPdb:=True)
+</compilation>)
         End Sub
 
         <Fact(), WorkItem(544182, "DevDiv")>

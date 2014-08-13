@@ -25,7 +25,7 @@ End Class
 1
 2
 3
-]]>, emitPdb:=True)
+]]>)
         End Sub
 
         <Fact>

@@ -48,7 +48,6 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional emitPdb As Boolean = False,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
@@ -64,7 +63,6 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             options,
             collectEmittedAssembly,
-            emitPdb,
             parseOptions,
             verify)
     End Function
@@ -81,7 +79,6 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional expectedOutput As String = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional emitPdb As Boolean = False,
         Optional verify As Boolean = True) As CompilationVerifier
 
         Return MyBase.CompileAndVerify(
@@ -95,7 +92,6 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             expectedOutput,
             collectEmittedAssembly,
-            emitPdb,
             verify)
     End Function
 
@@ -109,7 +105,6 @@ Public MustInherit Class BasicTestBase
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional emitPdb As Boolean = False,
         Optional verify As Boolean = True) As CompilationVerifier
 
         Return CompileAndVerify(
@@ -123,7 +118,6 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             If(expectedOutput IsNot Nothing, expectedOutput.Value.Replace(vbLf, Environment.NewLine), Nothing),
             collectEmittedAssembly,
-            emitPdb,
             verify)
     End Function
 
@@ -140,7 +134,6 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional emitPdb As Boolean = False,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True,
         Optional useLatestFramework As Boolean = False
@@ -160,7 +153,6 @@ Public MustInherit Class BasicTestBase
                                    expectedSignatures,
                                    options,
                                    collectEmittedAssembly,
-                                   emitPdb,
                                    parseOptions,
                                    verify)
 
@@ -179,7 +171,6 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional emitPdb As Boolean = False,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
@@ -201,7 +192,6 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             expectedOutput,
             collectEmittedAssembly,
-            emitPdb,
             verify)
     End Function
 
@@ -217,7 +207,6 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional emitPdb As Boolean = False,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
@@ -233,7 +222,6 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             options,
             collectEmittedAssembly,
-            emitPdb,
             parseOptions,
             verify:=OSVersion.IsWin8)
     End Function
@@ -251,7 +239,6 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional emitPdb As Boolean = False,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
@@ -267,7 +254,6 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             options,
             collectEmittedAssembly,
-            emitPdb,
             parseOptions,
             verify)
     End Function
@@ -284,7 +270,6 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional collectEmittedAssembly As Boolean = True,
-        Optional emitPdb As Boolean = False,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True,
         Optional useLatestFramework As Boolean = False
@@ -301,7 +286,6 @@ Public MustInherit Class BasicTestBase
             expectedSignatures:=expectedSignatures,
             options:=options,
             collectEmittedAssembly:=collectEmittedAssembly,
-            emitPdb:=emitPdb,
             parseOptions:=parseOptions,
             verify:=OSVersion.IsWin8 AndAlso verify,
             useLatestFramework:=useLatestFramework)

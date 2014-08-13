@@ -764,7 +764,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
 
-            var v = CompileAndVerify(comp, emitPdb: true);
+            var v = CompileAndVerify(comp);
             
             v.VerifyIL("C.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {

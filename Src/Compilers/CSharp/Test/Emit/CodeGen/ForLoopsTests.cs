@@ -1927,7 +1927,7 @@ class Program
   IL_0011:  stloc.0
   IL_0012:  br.s       IL_0003
 }";
-            CompileAndVerify(text, options: TestOptions.DebugExe, emitPdb: true).
+            CompileAndVerify(text, options: TestOptions.DebugExe).
                 VerifyIL("Program.Main", expectedIL);
         }
 

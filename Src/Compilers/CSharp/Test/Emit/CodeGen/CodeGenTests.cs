@@ -1769,7 +1769,7 @@ public class D
 }
 ");
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugExe, emitPdb: true, expectedOutput: "42123");
+            var v = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "42123");
 
             v.VerifyIL("D.M",
 @"{
@@ -5169,7 +5169,7 @@ public class D
 }
 ");
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugExe, emitPdb: true, expectedOutput: @"1");
+            var v = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"1");
 
             v.VerifyIL("D.Main",
 @"{
@@ -7231,7 +7231,7 @@ class A
 }
 
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe, emitPdb: true);
+            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
 
             compilation.VerifyIL("A.Main",
 @"{
@@ -9847,7 +9847,7 @@ partial class program
     static partial void foo(string name, int age, bool gender);
 }
 ";
-            CompileAndVerify(source, emitPdb: true);
+            CompileAndVerify(source);
         }
 
         [WorkItem(538544, "DevDiv")]
@@ -10884,7 +10884,7 @@ OverflowException
     void Foo(decimal x = 10) { }
 }
 ";
-            CompileAndVerify(source, emitPdb: true);
+            CompileAndVerify(source);
         }
 
         [WorkItem(542742, "DevDiv")]
@@ -10898,7 +10898,7 @@ OverflowException
         ;
     }
 }";
-            CompileAndVerify(source, emitPdb: true);
+            CompileAndVerify(source);
         }
 
         [WorkItem(542458, "DevDiv")]
@@ -11487,7 +11487,7 @@ class Program
         Console.Write(SB.ToString());
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"123", emitPdb: true);
+            var compilation = CompileAndVerify(source, expectedOutput: @"123");
 
             // Dev10
             compilation.VerifyIL("Program.Main",
@@ -11545,7 +11545,7 @@ static class Test
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"", emitPdb: true);
+            var compilation = CompileAndVerify(source, expectedOutput: @"");
 
             // Dev10
             compilation.VerifyIL("Test.M1<T>(T)",

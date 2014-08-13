@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var unoptimizedCompilation = CreateCompilationWithMscorlib45(source, references, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
             var optimizedCompilation = CreateCompilationWithMscorlib45(source, references, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
 
-            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation, emitPdb: true);
-            var optimizedVerifier = CompileAndVerify(optimizedCompilation, emitPdb: false);
+            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation);
+            var optimizedVerifier = CompileAndVerify(optimizedCompilation);
 
             // check what IL we emit exactly:
             if (expectedUnoptimizedIL != null)

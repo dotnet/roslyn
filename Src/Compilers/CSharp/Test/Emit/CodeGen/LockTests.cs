@@ -1206,7 +1206,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text, emitPdb: true).VerifyIL("Test.Values", @"
+            CompileAndVerify(text).VerifyIL("Test.Values", @"
 {
   // Code size       15 (0xf)
   .maxstack  3

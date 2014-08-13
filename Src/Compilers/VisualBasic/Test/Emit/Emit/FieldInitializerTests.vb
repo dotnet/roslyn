@@ -68,7 +68,6 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                             emitPdb:=True,
                              expectedOutput:=<![CDATA[
 42
 23

@@ -2984,7 +2984,7 @@ class MyClass
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugExe, emitPdb: true, expectedOutput: @"True
+            var comp = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"True
 True
 ");
 
@@ -3165,7 +3165,7 @@ public static class Test
 
 ";
 
-            var comp = CompileAndVerify(text, emitPdb: true, expectedOutput: @"
+            var comp = CompileAndVerify(text, expectedOutput: @"
 -1
 -1
 255

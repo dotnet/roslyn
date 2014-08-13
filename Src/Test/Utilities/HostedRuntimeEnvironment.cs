@@ -116,20 +116,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return null;
         }
 
-        private static void EmitDependentCompilation(Compilation compilation, List<ModuleData> dependencies, DiagnosticBag diagnostics, bool emitPdb)
+        private static void EmitDependentCompilation(Compilation compilation, List<ModuleData> dependencies, DiagnosticBag diagnostics)
         {
             ImmutableArray<byte> assembly, pdb;
-            if (EmitCompilation(compilation, null, dependencies, diagnostics, emitPdb, null, out assembly, out pdb))
+            if (EmitCompilation(compilation, null, dependencies, diagnostics, null, out assembly, out pdb))
             {
                 dependencies.Add(new ModuleData(compilation.Assembly.Identity, OutputKind.DynamicallyLinkedLibrary, assembly, pdb, inMemoryModule: true));
             }
         }
 
-        internal static void EmitReferences(Compilation compilation, List<ModuleData> dependencies, DiagnosticBag diagnostics, bool emitPdb)
+        internal static void EmitReferences(Compilation compilation, List<ModuleData> dependencies, DiagnosticBag diagnostics)
         {
             if (compilation.PreviousSubmission != null)
             {
-                EmitDependentCompilation(compilation.PreviousSubmission, dependencies, diagnostics, emitPdb);
+                EmitDependentCompilation(compilation.PreviousSubmission, dependencies, diagnostics);
             }
 
             foreach (MetadataReference r in compilation.References)
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if ((compilationRef = r as CompilationReference) != null)
                 {
-                    EmitDependentCompilation(compilationRef.Compilation, dependencies, diagnostics, emitPdb);
+                    EmitDependentCompilation(compilationRef.Compilation, dependencies, diagnostics);
                 }
                 else if ((peRef = r as PortableExecutableReference) != null)
                 {
@@ -173,11 +173,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         internal static bool EmitCompilation(
-            Compilation c,
+            Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources,
             List<ModuleData> dependencies,
             DiagnosticBag diagnostics,
-            bool emitPdb,
             CompilationTestData testData,
             out ImmutableArray<byte> assembly,
             out ImmutableArray<byte> pdb
@@ -186,29 +185,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             assembly = default(ImmutableArray<byte>);
             pdb = default(ImmutableArray<byte>);
 
-            EmitReferences(c, dependencies, diagnostics, emitPdb);
+            EmitReferences(compilation, dependencies, diagnostics);
 
             using (var executableStream = new MemoryStream())
             {
+                MemoryStream pdbStream = new MemoryStream();
+                string pdbFilePath = compilation.AssemblyName + ".pdb";
+
                 EmitResult result;
-                MemoryStream pdbStream;
-                string pdbFilePath;
-
-                // Automatically emit PDB if we are emitting in debug.
-                if (emitPdb || c.Options.OptimizationLevel == OptimizationLevel.Debug)
-                {
-                    pdbStream = new MemoryStream();
-                    pdbFilePath = c.AssemblyName + ".pdb";
-                }
-                else
-                {
-                    pdbStream = null;
-                    pdbFilePath = null;
-                }
-
                 try
                 {
-                    result = c.Emit(
+                    result = compilation.Emit(
                         executableStream,
                         outputName: null,
                         pdbFilePath: pdbFilePath,
@@ -236,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, bool emitPdb)
+        public void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var dependencies = new List<ModuleData>();
@@ -244,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             testData.Methods.Clear();
 
             ImmutableArray<byte> mainImage, mainPdb;
-            bool succeeded = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, emitPdb, testData, out mainImage, out mainPdb);
+            bool succeeded = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, testData, out mainImage, out mainPdb);
 
             this.lazyDiagnostics = diagnostics.ToReadOnlyAndFree();
 

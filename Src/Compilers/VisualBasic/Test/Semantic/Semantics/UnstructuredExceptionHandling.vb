@@ -29,7 +29,7 @@ End Module
                          expectedOutput:=
             <![CDATA[
 1
-]]>, emitPdb:=True)
+]]>)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -90,7 +90,7 @@ End Module
                          expectedOutput:=
             <![CDATA[
 1
-]]>, emitPdb:=True)
+]]>)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -178,7 +178,7 @@ End Module
                          expectedOutput:=
             <![CDATA[
 1
-]]>, emitPdb:=True)
+]]>)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -262,7 +262,7 @@ End Module
 1
 2
 3
-]]>, emitPdb:=True)
+]]>)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -349,7 +349,7 @@ End Module
 1
 2
 3
-]]>, emitPdb:=True)
+]]>)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -457,7 +457,7 @@ End Module
 2
 3
 4
-]]>, emitPdb:=True)
+]]>)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -595,7 +595,7 @@ End Module
                          expectedOutput:=
             <![CDATA[
 1
-]]>, emitPdb:=True)
+]]>)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -709,7 +709,7 @@ End Module
                          expectedOutput:=
             <![CDATA[
 1
-]]>, emitPdb:=True)
+]]>)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -822,7 +822,7 @@ End Module
                          expectedOutput:=
             <![CDATA[
 1
-]]>, emitPdb:=True)
+]]>)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -923,7 +923,7 @@ End Class
             <![CDATA[
 2
 1
-]]>, emitPdb:=True)
+]]>)
 
             compilationVerifier.VerifyIL("Base..ctor(Integer)",
             <![CDATA[
@@ -1334,7 +1334,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -1823,11 +1823,11 @@ M4 - 2
 M5 - 1
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
         End Sub
 
 
@@ -1933,7 +1933,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Test1",
             <![CDATA[
@@ -2474,7 +2474,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Test1",
             <![CDATA[
@@ -3261,11 +3261,11 @@ M0 - -2
 M5 - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
         End Sub
 
         <Fact(Skip:="1005639"), WorkItem(1005639)>
@@ -3320,7 +3320,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -3432,7 +3432,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -3658,11 +3658,11 @@ M0 - -2
 M3 - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
         End Sub
 
         <Fact()>
@@ -3707,7 +3707,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=False)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -3806,7 +3806,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -4053,11 +4053,11 @@ OnError
 M6 - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
         End Sub
 
         <Fact()>
@@ -4115,7 +4115,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -4225,7 +4225,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -4427,11 +4427,11 @@ M1 - -1
 OnError
 M2 - 0]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
         End Sub
 
         <Fact()>
@@ -4493,7 +4493,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      241 (0xf1)
@@ -4654,7 +4654,7 @@ End Module
             ']]>
 
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      208 (0xd0)
@@ -4800,7 +4800,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -4893,7 +4893,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -5057,7 +5057,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -5150,7 +5150,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -5314,7 +5314,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -5407,7 +5407,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -5587,7 +5587,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      232 (0xe8)
@@ -5736,7 +5736,7 @@ End Module
             ']]>
 
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      201 (0xc9)
@@ -5878,7 +5878,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -5969,7 +5969,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -6132,7 +6132,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -6265,7 +6265,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -6443,7 +6443,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      242 (0xf2)
@@ -6581,7 +6581,7 @@ End Module
             'M0 - 0]]>
 
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      204 (0xcc)
@@ -6717,7 +6717,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -6805,7 +6805,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -7028,7 +7028,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            CompileAndVerify(compilation, emitPdb:=True).
+            CompileAndVerify(compilation).
                 VerifyIL("Program.Test", <![CDATA[
 {
   // Code size      315 (0x13b)
@@ -7163,7 +7163,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, emitPdb:=True).
+            CompileAndVerify(compilation).
                 VerifyIL("Program.Test", <![CDATA[
 {
   // Code size      356 (0x164)
@@ -7372,7 +7372,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -7483,7 +7483,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -7739,7 +7739,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      308 (0x134)
@@ -7946,7 +7946,7 @@ End Module
             ']]>
 
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      268 (0x10c)
@@ -8103,7 +8103,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -8209,7 +8209,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -8456,7 +8456,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      374 (0x176)
@@ -8778,7 +8778,7 @@ End Module
             ']]>
 
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      374 (0x176)
@@ -9022,7 +9022,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -9146,7 +9146,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -9413,7 +9413,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      344 (0x158)
@@ -9732,7 +9732,7 @@ End Module
             ']]>
 
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      302 (0x12e)
@@ -9932,7 +9932,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -10041,7 +10041,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -10259,7 +10259,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
@@ -10464,7 +10464,7 @@ End Module
             ']]>
 
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
   // Code size      317 (0x13d)
@@ -10647,7 +10647,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -10756,7 +10756,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -10972,11 +10972,11 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            CompileAndVerify(compilation, emitPdb:=True)
+            CompileAndVerify(compilation)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, emitPdb:=True)
+            CompileAndVerify(compilation)
 
         End Sub
 
@@ -11024,7 +11024,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -11134,7 +11134,7 @@ End Module
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
@@ -11375,11 +11375,11 @@ OnError - Program+TestException
 M(3) - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -11527,11 +11527,11 @@ M(Dispose) - 0
 M(3) - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -11712,11 +11712,11 @@ M(Dispose 1) - 0
 M(3) - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -11894,11 +11894,11 @@ M(13) - 0
 M(14) - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -12028,11 +12028,11 @@ M(3) - 0
 M(4) - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -12183,11 +12183,11 @@ M(4) - 0
 x is not Changed = System.Int32[]; Content is preserved
 y(0) is Changed = System.Int32[]; Content is preserved]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -12318,11 +12318,11 @@ M(3) - 0
 y(0) is Changed = System.Int32[]
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -12480,11 +12480,11 @@ x(0) is Nothing
 y(0) is Nothing
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -12594,11 +12594,11 @@ M(2) - 0
 x(0) is Nothing
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -12703,11 +12703,11 @@ M(2) - 0
 M(3) - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -12806,11 +12806,11 @@ OnError - Program+TestException - 2
 M(4) - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -12899,7 +12899,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.TestInstance.Test",
             <![CDATA[{
@@ -13093,7 +13093,7 @@ End Module
 
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.TestInstance.Test",
             <![CDATA[{
@@ -13406,11 +13406,11 @@ M(GetDelegate 5) - 0
 M(6) - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -13564,11 +13564,11 @@ TestInstance.New(x As Integer) OnError - Program+TestException - TestInstance.Ne
 M(TestInstance.New(x As Integer) 2) - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -13692,11 +13692,11 @@ TestInstance.New OnError - Program+TestException - TestInstance.New 1
 M(TestInstance.New 2) - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -13811,11 +13811,11 @@ M(V) - -1
 Exception - System.TypeInitializationException
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -14108,11 +14108,11 @@ M(14) - -1
 M(15) - 0
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -14562,7 +14562,7 @@ End Module
 System.InvalidOperationException: Resume without error.
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -14836,7 +14836,7 @@ hello
 after throw
 ]]>
 
-            CompileAndVerify(compilation, expectedOutput:=expected, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
 
@@ -14872,10 +14872,10 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="Test2foo", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="Test2foo")
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
-            CompileAndVerify(compilation, expectedOutput:="Test2foo", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="Test2foo")
         End Sub
 
         <Fact()>
@@ -14910,10 +14910,10 @@ End Module
 
             'Just to verify with/without optimizations
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="Test3foofooReturn", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="Test3foofooReturn")
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
-            CompileAndVerify(compilation, expectedOutput:="Test3foofooReturn", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="Test3foofooReturn")
         End Sub
 
         <Fact()>
@@ -14948,11 +14948,11 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start
-End]]>, emitPdb:=True)
+End]]>)
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start
-End]]>, emitPdb:=True)
+End]]>)
         End Sub
 
         <Fact()>
@@ -14987,7 +14987,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size       87 (0x57)
   .maxstack  3
@@ -15072,7 +15072,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size       87 (0x57)
@@ -15174,7 +15174,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[foo
 bar
 zoo
-EndSection]]>, emitPdb:=True)
+EndSection]]>)
         End Sub
 
         <Fact()>
@@ -15219,7 +15219,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      184 (0xb8)
   .maxstack  3
@@ -15340,7 +15340,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      163 (0xa3)
   .maxstack  3
@@ -15438,7 +15438,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="StartHandler", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="StartHandler")
         End Sub
 
         <Fact()>
@@ -15465,7 +15465,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="StartHandler", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="StartHandler")
         End Sub
 
         <Fact()>
@@ -15492,7 +15492,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="Start", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="Start")
         End Sub
 
         <Fact()>
@@ -15520,7 +15520,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start]]>, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start]]>)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      151 (0x97)
   .maxstack  3
@@ -15623,7 +15623,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start]]>, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start]]>)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      151 (0x97)
   .maxstack  3
@@ -15727,7 +15727,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start]]>, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start]]>)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      166 (0xa6)
   .maxstack  3
@@ -15915,7 +15915,7 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
 
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             'Verify the IL for each loop construct
             compilationVerifier.VerifyIL("Module1.ForEach", <![CDATA[
@@ -16397,7 +16397,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Module1.GotoMinus0", <![CDATA[{
   // Code size      189 (0xbd)
@@ -16523,7 +16523,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Module1.GotoMinus0", <![CDATA[{
   // Code size      187 (0xbb)
@@ -16670,7 +16670,7 @@ Foo
 In Foo Before Reset
 In Foo After Reset
 Foo
-]]>, emitPdb:=True)
+]]>)
 
             compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[{
   // Code size      298 (0x12a)
@@ -16859,9 +16859,10 @@ Foo
 In Main Block Before Reset
 In Main Block After Reset
 Before 2nd Error
-Foo]]>, emitPdb:=True)
+Foo]]>)
 
-            compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[{
+            compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[
+{
   // Code size      298 (0x12a)
   .maxstack  3
   .locals init (Integer V_0, //VB$ActiveHandler
@@ -17036,7 +17037,7 @@ Foo
 After 1 Exception
 Before 2 Exception
 Foo
-After 2 Exception]]>, emitPdb:=True)
+After 2 Exception]]>)
 
 
             compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[{
@@ -17190,7 +17191,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:="Before Exception" & Environment.NewLine & "Before Exception", emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:="Before Exception" & Environment.NewLine & "Before Exception")
 
 
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[
@@ -17362,7 +17363,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation, emitPdb:=True)
+            Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[
 {
@@ -17509,7 +17510,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:="Before Exception", emitPdb:=True)
+            Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:="Before Exception")
 
             CompilationVerifier.VerifyIL("Module1.Main", <![CDATA[
 {
@@ -17718,7 +17719,7 @@ End
 *********************************************
 ELSEIF Block Test
 ElseIf Block
-End]]>, emitPdb:=True)
+End]]>)
 
             'Check IF For the resume points
             CompilationVerifier.VerifyIL("Module1.IFBlock_1", <![CDATA[{
@@ -18072,7 +18073,7 @@ End Module
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
 In Handler
-After Case]]>, emitPdb:=True)
+After Case]]>)
 
             'Check IF For the resume points
             CompilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
@@ -18250,7 +18251,7 @@ handler:
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
 In Handler
 1
-After Case]]>, emitPdb:=True)
+After Case]]>)
 
         End Sub
 
@@ -18296,7 +18297,7 @@ handler:
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
 In Handler
 1
-After Case]]>, emitPdb:=True)
+After Case]]>)
         End Sub
 
         <Fact()>
@@ -18342,7 +18343,7 @@ End Module
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
 In Handler
 1
-After Case]]>, emitPdb:=True)
+After Case]]>)
 
         End Sub
 
@@ -18402,7 +18403,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:=<![CDATA[StartHandler11Attempted to divide by zero.StartHandler11Division by zero.StartHandler12Application-defined or object-defined error.]]>, emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:=<![CDATA[StartHandler11Attempted to divide by zero.StartHandler11Division by zero.StartHandler12Application-defined or object-defined error.]]>)
         End Sub
 
         <Fact()>
@@ -18446,7 +18447,7 @@ Error #  0 was generated by
 
 Error #  5 was generated by ErrorHandlerTest
 Procedure call or argument is not valid.
-]]>, emitPdb:=True)
+]]>)
         End Sub
 
         <Fact()>
@@ -18491,7 +18492,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="2", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="2")
         End Sub
 
         <Fact()>
@@ -18518,7 +18519,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="Nothing", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="Nothing")
         End Sub
 
         <Fact()>
@@ -18547,7 +18548,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="Nothing", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="Nothing")
         End Sub
 
         'As we are handling the error in the Add, we should handle two items to the collection
@@ -18691,7 +18692,7 @@ Number:0
 Source:
 Description:
 Erl:0
-GetException:Nothing]]>, emitPdb:=True)
+GetException:Nothing]]>)
         End Sub
 
         <Fact()>
@@ -18765,7 +18766,7 @@ Number:0
 Source:
 Description:
 Erl:0
-GetException:Nothing]]>, emitPdb:=True)
+GetException:Nothing]]>)
         End Sub
 
         <Fact()>
@@ -18882,7 +18883,7 @@ Number:0
 Source:
 Description:
 Erl:0
-GetException:Nothing]]>, emitPdb:=True)
+GetException:Nothing]]>)
         End Sub
 
         <Fact()>
@@ -18937,7 +18938,7 @@ End Module]]>
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[1400
 Invalid window handle.    Error!
-1400]]>, emitPdb:=True)
+1400]]>)
         End Sub
 
         <Fact>
@@ -18984,7 +18985,7 @@ End Module
             <![CDATA[
 0
 200
-]]>, emitPdb:=True)
+]]>)
         End Sub
 
         <Fact>
@@ -19032,7 +19033,7 @@ End Module
 300
 L500
 400
-]]>, emitPdb:=True)
+]]>)
         End Sub
 
         <Fact>
@@ -19071,7 +19072,7 @@ End Module
                          expectedOutput:=
             <![CDATA[
 100
-]]>, emitPdb:=True)
+]]>)
         End Sub
 
         <Fact>
@@ -19119,7 +19120,7 @@ End Module
 300
 L500
 0
-]]>, emitPdb:=True)
+]]>)
         End Sub
 
         <Fact>

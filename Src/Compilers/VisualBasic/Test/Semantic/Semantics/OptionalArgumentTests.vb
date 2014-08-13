@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -1858,10 +1859,10 @@ End Module
 "
             Dim compilation = CreateCompilationWithReferences(
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename"),
-                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d"),
-                    SyntaxFactory.ParseSyntaxTree(source3, path:="*"),
-                    SyntaxFactory.ParseSyntaxTree(source4, path:="       ")
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="       ", encoding:=Encoding.UTF8)
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default))
@@ -1938,11 +1939,11 @@ End Module
 
             Dim compilation = CreateCompilationWithReferences(
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename"),
-                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb"),
-                    SyntaxFactory.ParseSyntaxTree(source3, path:="*"),
-                    SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb"),
-                    SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb")
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8)
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver({}, baseDirectory:="C:\A\B")))

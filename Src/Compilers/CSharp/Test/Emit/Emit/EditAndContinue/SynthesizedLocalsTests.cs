@@ -821,7 +821,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var v0 = CompileAndVerify(compilation0, emitPdb: true);
+            var v0 = CompileAndVerify(compilation0);
 
             v0.VerifyIL("C.M", @"
 {
@@ -1653,7 +1653,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
-            var v0 = CompileAndVerify(compilation0, emitPdb: true);
+            var v0 = CompileAndVerify(compilation0);
 
             // Validate presence of a hidden sequence point @IL_0007 that is required for proper function remapping.
             v0.VerifyIL("C.M", @"
@@ -1759,7 +1759,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
-            var v0 = CompileAndVerify(compilation0, emitPdb: true);
+            var v0 = CompileAndVerify(compilation0);
 
             v0.VerifyIL("C.M", @"
 {
@@ -1888,7 +1888,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
-            var v0 = CompileAndVerify(compilation0, emitPdb: true);
+            var v0 = CompileAndVerify(compilation0);
 
             v0.VerifyIL("C.M", @"
 {
@@ -1999,7 +1999,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
-            var v0 = CompileAndVerify(compilation0, emitPdb: true);
+            var v0 = CompileAndVerify(compilation0);
 
             v0.VerifyIL("C.M", @"
 {
@@ -2115,7 +2115,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
-            var v0 = CompileAndVerify(compilation0, emitPdb: true);
+            var v0 = CompileAndVerify(compilation0);
 
             v0.VerifyIL("C.M", @"
 {
@@ -2227,7 +2227,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
 
-            var v0 = CompileAndVerify(compilation0, emitPdb: true);
+            var v0 = CompileAndVerify(compilation0);
 
             // Validate presence of a hidden sequence point @IL_001c that is required for proper function remapping.
             v0.VerifyIL("C.M", @"

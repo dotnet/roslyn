@@ -3338,7 +3338,7 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            CompileAndVerify(comp, emitPdb: true, expectedOutput: "5").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "5").VerifyDiagnostics();
         }
 
         [Fact(Skip = "1003200"), WorkItem(1003200)]
@@ -3363,7 +3363,7 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            CompileAndVerify(comp, emitPdb: true, expectedOutput: "6").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "6").VerifyDiagnostics();
         }
 
         [Fact(Skip = "1003200"), WorkItem(1003200)]
@@ -3388,7 +3388,7 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            var verifier = CompileAndVerify(comp, emitPdb: true, expectedOutput: "6").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "6").VerifyDiagnostics();
         }
 
         [Fact]
@@ -3574,7 +3574,7 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            var verifier = CompileAndVerify(comp, emitPdb: true, expectedOutput: @"6
+            var verifier = CompileAndVerify(comp, expectedOutput: @"6
 5").VerifyDiagnostics();
         }
 
@@ -3606,7 +3606,7 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            var verifier = CompileAndVerify(comp, emitPdb: true, expectedOutput: @"7
+            var verifier = CompileAndVerify(comp, expectedOutput: @"7
 5").VerifyDiagnostics();
         }
 
@@ -3646,7 +3646,7 @@ class Program
 }
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            var verifier = CompileAndVerify(comp, emitPdb: true, expectedOutput: @"7
+            var verifier = CompileAndVerify(comp, expectedOutput: @"7
 6
 5").VerifyDiagnostics();
         }

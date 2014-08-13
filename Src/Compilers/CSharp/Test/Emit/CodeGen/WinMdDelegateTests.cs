@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     libSrc,
                     sourceSymbolValidator: validator,
                     symbolValidator: validator,
-                    options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll,
-                    emitPdb: true);
+                    options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);
                 verifier.VerifyDiagnostics();
             };
 

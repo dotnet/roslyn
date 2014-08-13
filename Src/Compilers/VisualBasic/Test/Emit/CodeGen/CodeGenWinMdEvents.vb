@@ -540,7 +540,7 @@ End Namespace
                 display:="System.Runtime.Serialization.dll")
 
             Dim comp2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
-            CompileAndVerify(comp2, emitOptions:=EmitOptions.RefEmitBug, emitPdb:=True, expectedOutput:=<![CDATA[
+            CompileAndVerify(comp2, emitOptions:=EmitOptions.RefEmitBug, expectedOutput:=<![CDATA[
 A
 False
 
@@ -944,7 +944,7 @@ End Class
 </compilation>
 
             Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
-            Dim verifier = CompileAndVerify(comp, emitPdb:=True)
+            Dim verifier = CompileAndVerify(comp)
 
             verifier.VerifyIL("Test..ctor", <![CDATA[
 {

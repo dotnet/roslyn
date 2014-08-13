@@ -41,7 +41,6 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                            emitPdb:=True,
                             expectedOutput:=<![CDATA[
 23
 42
@@ -75,7 +74,6 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                            emitPdb:=True,
                             expectedOutput:=<![CDATA[
 23
 42
@@ -108,7 +106,6 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                            emitPdb:=True,
                             expectedOutput:=<![CDATA[
 23
 23
@@ -142,7 +139,6 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                            emitPdb:=True,
                 expectedOutput:=<![CDATA[
 23
 23
@@ -179,7 +175,6 @@ Imports System
 </compilation>
 
                 CompileAndVerify(source,
-                            emitPdb:=True,
                 expectedOutput:=<![CDATA[
 23
 42
@@ -255,7 +250,6 @@ End Class
     </compilation>
 
                 CompileAndVerify(source,
-                            emitPdb:=True,
                 expectedOutput:=<![CDATA[
 23
 42
@@ -289,7 +283,6 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                            emitPdb:=True,
                 expectedOutput:=<![CDATA[
 23
 42
@@ -324,7 +317,6 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                            emitPdb:=True,
                 expectedOutput:=<![CDATA[
 23
 42
@@ -398,7 +390,6 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                            emitPdb:=True,
                 expectedOutput:=<![CDATA[
 23
 42
@@ -517,7 +508,6 @@ Imports System
 </compilation>
 
                 CompileAndVerify(source,
-                            emitPdb:=True,
                 expectedOutput:=<![CDATA[
 23
 42
@@ -772,7 +762,6 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                            emitPdb:=True,
                 expectedOutput:=<![CDATA[
 23
 42
@@ -1549,7 +1538,6 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                            emitPdb:=True,
                 expectedOutput:=<![CDATA[
 H
 e
@@ -1586,7 +1574,6 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                            emitPdb:=True,
                 expectedOutput:=<![CDATA[
 23
 42

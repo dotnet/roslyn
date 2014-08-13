@@ -854,7 +854,7 @@ public class C
     }
 }
 ";
-            var v = CompileAndVerify(text, options: TestOptions.DebugDll, emitPdb: true);
+            var v = CompileAndVerify(text, options: TestOptions.DebugDll);
 
             // Sequence points:
             // 1) Open brace at start of method
@@ -957,7 +957,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(text, options: TestOptions.DebugDll, emitPdb: true);
+            var v = CompileAndVerify(text, options: TestOptions.DebugDll);
 
             // Stepping:
             //   After "continue", step to "in".
@@ -1085,7 +1085,7 @@ public class C
 }
 ";
 
-            var v = CompileAndVerify(text, options: TestOptions.DebugDll, emitPdb: true);
+            var v = CompileAndVerify(text, options: TestOptions.DebugDll);
 
             // Sequence points:
             // 1) Open brace at start of method

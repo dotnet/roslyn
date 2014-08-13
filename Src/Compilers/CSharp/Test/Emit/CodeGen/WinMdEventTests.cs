@@ -175,7 +175,7 @@ class C
     event System.Action E;
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitPdb: true, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
 
             verifier.VerifyIL("C.E.add", @"
 {
@@ -211,7 +211,7 @@ class C
     static event System.Action<int> E;
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitPdb: true, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: EmitOptions.RefEmitBug, additionalRefs: WinRtRefs);
 
             verifier.VerifyIL("C.E.add", @"
 {
@@ -624,7 +624,7 @@ namespace EventDeserialization
                 display: "System.Runtime.Serialization.dll");
             
             var comp2 = CreateCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef}), TestOptions.ReleaseExe);
-            CompileAndVerify(comp2, emitOptions: EmitOptions.RefEmitBug, emitPdb: true, expectedOutput: @"A
+            CompileAndVerify(comp2, emitOptions: EmitOptions.RefEmitBug, expectedOutput: @"A
 False
 null
 B");

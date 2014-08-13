@@ -193,7 +193,6 @@ public class Test : Class2
         {
             CompileAndVerify(
                 "public class C { }",
-                emitPdb: true,
                 verify: false,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
@@ -1515,7 +1514,7 @@ class TC3<T8>
 
 ";
 
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, emitPdb: true, expectedOutput:
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"TC1
 TC2`1[System.Byte]
 TC3`1+TC4[System.Byte]

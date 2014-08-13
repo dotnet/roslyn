@@ -5358,7 +5358,7 @@ Interface IPropTest
 End Interface
     </file>
 </compilation>, expectedOutput:=<![CDATA[3
-]]>, emitPdb:=True)
+]]>)
         End Sub
 
         <Fact(), WorkItem(758861, "DevDiv")>

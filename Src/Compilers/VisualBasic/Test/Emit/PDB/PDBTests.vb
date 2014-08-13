@@ -1537,7 +1537,7 @@ End Module
 
             AssertXmlEqual(expected, actual)
 
-            CompileAndVerify(compilation, expectedOutput:="", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
         <Fact()>
@@ -1595,7 +1595,7 @@ End Module
 
             AssertXmlEqual(expected, actual)
 
-            CompileAndVerify(compilation, expectedOutput:="", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
         <Fact()>
@@ -1651,7 +1651,7 @@ End Module
 </symbols>
 
             AssertXmlEqual(expected, actual)
-            CompileAndVerify(compilation, expectedOutput:="", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
         <Fact()>
@@ -1714,7 +1714,7 @@ End Module
 
             AssertXmlEqual(expected, actual)
 
-            CompileAndVerify(compilation, expectedOutput:="", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
         <Fact()>
@@ -1779,7 +1779,7 @@ End Module
 
             AssertXmlEqual(expected, actual)
 
-            CompileAndVerify(compilation, expectedOutput:="", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
         <Fact()>
@@ -1841,7 +1841,7 @@ End Module
 
             AssertXmlEqual(expected, actual)
 
-            CompileAndVerify(compilation, expectedOutput:="", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
         <Fact()>
@@ -1905,7 +1905,7 @@ End Module
 
             AssertXmlEqual(expected, actual)
 
-            CompileAndVerify(compilation, expectedOutput:="", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
         <Fact()>
@@ -1968,7 +1968,7 @@ End Module
 
             AssertXmlEqual(expected, actual)
 
-            CompileAndVerify(compilation, expectedOutput:="", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
         <Fact()>
@@ -2029,7 +2029,7 @@ End Module
 
             AssertXmlEqual(expected, actual)
 
-            CompileAndVerify(compilation, expectedOutput:="00", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="00")
         End Sub
 
         <Fact()>
@@ -2088,7 +2088,7 @@ End Module
 
             AssertXmlEqual(expected, actual)
 
-            CompileAndVerify(compilation, expectedOutput:="00", emitPdb:=True)
+            CompileAndVerify(compilation, expectedOutput:="00")
         End Sub
 
         <Fact()>

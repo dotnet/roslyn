@@ -7044,7 +7044,7 @@ Partial Class C
     End Sub
 End Class
     </file>
-</compilation>, useLatestFramework:=True, expectedOutput:="", emitPdb:=True)
+</compilation>, useLatestFramework:=True, expectedOutput:="")
         End Sub
 
         <Fact()>

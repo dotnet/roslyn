@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return modules;
             }
 
-            public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, bool emitPdb, bool peVerify, SignatureDescription[] expectedSignatures)
+            public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, bool peVerify, SignatureDescription[] expectedSignatures)
             {
                 bool doExecute = expectedOutput != null;
 
                 using (var testEnvironment = new HostedRuntimeEnvironment(dependencies))
                 {
-                    string mainModuleName = Emit(testEnvironment, manifestResources, emitPdb);
+                    string mainModuleName = Emit(testEnvironment, manifestResources);
 
                     allModuleData = testEnvironment.GetAllModuleData();
 
@@ -116,15 +116,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 using (var testEnvironment = new HostedRuntimeEnvironment(dependencies))
                 {
-                    string mainModuleName = Emit(testEnvironment, null, emitPdb: false);
+                    string mainModuleName = Emit(testEnvironment, null);
                     string[] actualOutput = testEnvironment.PeVerifyModules(new[] { mainModuleName }, throwOnError: false);
                     Assert.Equal(expectedPeVerifyOutput, actualOutput);
                 }
             }
 
-            private string Emit(HostedRuntimeEnvironment testEnvironment, IEnumerable<ResourceDescription> manifestResources, bool emitPdb)
+            private string Emit(HostedRuntimeEnvironment testEnvironment, IEnumerable<ResourceDescription> manifestResources)
             {
-                testEnvironment.Emit(compilation, manifestResources, emitPdb);
+                testEnvironment.Emit(compilation, manifestResources);
 
                 diagnostics = testEnvironment.GetDiagnostics();
                 EmittedAssemblyData = testEnvironment.GetMainImage();
