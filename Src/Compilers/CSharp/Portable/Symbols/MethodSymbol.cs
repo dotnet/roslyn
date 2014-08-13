@@ -704,17 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns></returns>
         public MethodSymbol Construct(params TypeSymbol[] typeArguments)
         {
-            return this.Construct(typeArguments.AsImmutableOrNull());
-        }
-
-        /// <summary>
-        /// Apply type substitution to a generic method to create an method symbol with the given type parameters supplied.
-        /// </summary>
-        /// <param name="typeArguments"></param>
-        /// <returns></returns>
-        public MethodSymbol Construct(IEnumerable<TypeSymbol> typeArguments)
-        {
-            return this.Construct(typeArguments.AsImmutableOrNull());
+            return this.Construct(ImmutableArray.Create(typeArguments));
         }
 
         /// <summary>

@@ -702,7 +702,7 @@ End Class
             Assert.Same(alphaConstructedM1.TypeArguments(1), m1.TypeParameters(0))
             Assert.NotSame(alphaConstructedM1.TypeArguments(1), m1_1.TypeParameters(0))
 
-            alphaConstructedM1 = m1.Construct(New List(Of TypeSymbol) From {m1_1.TypeParameters(0), constructedC})
+            alphaConstructedM1 = m1.Construct(m1_1.TypeParameters(0), constructedC)
 
             Assert.Same(m1, alphaConstructedM1.ConstructedFrom)
             Assert.Same(alphaConstructedM1.TypeArguments(0), m1.TypeParameters(0))

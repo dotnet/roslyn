@@ -2061,9 +2061,9 @@ lReportErrorOnTwoTokens:
                                                                             isOverrides:=True))
                 End If
 
-                Dim overriden = overriddenMembers.OverriddenMember
+                Dim overridden = overriddenMembers.OverriddenMember
 
-                If overriden IsNot Nothing Then
+                If overridden IsNot Nothing Then
                     ' Copy custom modifiers
 
                     ' For the most part, we will copy custom modifiers by copying types.
@@ -2075,9 +2075,9 @@ lReportErrorOnTwoTokens:
                     Dim constructedMethodWithCustomModifiers As MethodSymbol
 
                     If Me.Arity > 0 Then
-                        constructedMethodWithCustomModifiers = overriden.Construct(Me.TypeParameters)
+                        constructedMethodWithCustomModifiers = overridden.Construct(Me.TypeParameters.As(Of TypeSymbol))
                     Else
-                        constructedMethodWithCustomModifiers = overriden
+                        constructedMethodWithCustomModifiers = overridden
                     End If
 
                     Dim returnTypeWithCustomModifiers As TypeSymbol = constructedMethodWithCustomModifiers.ReturnType

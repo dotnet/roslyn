@@ -530,11 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Function Construct(ParamArray typeArguments() As TypeSymbol) As MethodSymbol
-            Return Construct(typeArguments.AsImmutableOrNull())
-        End Function
-
-        Public Function Construct(typeArguments As IEnumerable(Of TypeSymbol)) As MethodSymbol
-            Return Construct(typeArguments.AsImmutableOrNull())
+            Return Construct(ImmutableArray.Create(typeArguments))
         End Function
 
         Friend MustOverride ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
@@ -554,9 +550,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <returns>
-        ''' True if this <see cref="MethodSymbol"/> type supports retrieving the this parameter
-        ''' And false otherwise.  Note that a return value of true does Not guarantee a non-null
-        ''' <paramref name="meParameter"/> (e.g. fails for static methods).
+        ''' True if this <see cref="MethodSymbol"/> type supports retrieving the Me parameter
+        ''' and false otherwise.  Note that a return value of true does not guarantee a non-Nothing
+        ''' <paramref name="meParameter"/> (e.g. fails for shared methods).
         ''' </returns>
         Friend Overridable Function TryGetMeParameter(<Out> ByRef meParameter As ParameterSymbol) As Boolean
             meParameter = Nothing
