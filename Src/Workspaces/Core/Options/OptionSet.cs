@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
         {
+            // make sure we first load this in current optionset
+            this.GetOption(optionAndLanguage);
+
             return new OptionSet(this.service, this.values.SetItem(optionAndLanguage, value));
         }
 
@@ -88,9 +91,15 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         internal IEnumerable<OptionKey> GetAccessedOptions()
         {
+            var optionSet = this.service.GetOptions();
+            return GetChangedOptions(optionSet);
+        }
+
+        internal IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+        {
             foreach (var kvp in this.values)
             {
-                var currentValue = this.service.GetOption(kvp.Key);
+                var currentValue = optionSet.GetOption(kvp.Key);
                 if (!object.Equals(currentValue, kvp.Value))
                 {
                     yield return kvp.Key;
