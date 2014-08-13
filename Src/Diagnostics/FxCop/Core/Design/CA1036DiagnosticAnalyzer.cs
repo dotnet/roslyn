@@ -7,7 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
+namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 {
     [DiagnosticAnalyzer]
     [ExportDiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                                   FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterface,
                                                                                   FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterface,
-                                                                                  FxCopDiagnosticCategory.Usage,
+                                                                                  FxCopDiagnosticCategory.Design,
                                                                                   DiagnosticSeverity.Warning,
                                                                                   isEnabledByDefault: true,
                                                                                   customTags: DiagnosticCustomTags.Microsoft);

@@ -125,7 +125,7 @@
     <Compile Include="Performance\CodeFixes\CA1813FixerTests.cs" />
     <Compile Include="Performance\CodeFixes\CA1821FixerTests.cs" />
     <Compile Include="Reliability\CA2002Tests.cs" />
-    <Compile Include="Usage\CA1036Tests.cs" />
+    <Compile Include="Design\CA1036Tests.cs" />
     <Compile Include="Usage\CA2200Tests.cs" />
     <Compile Include="Usage\CA2213Tests.cs" />
     <Compile Include="Usage\CA2214Tests.cs" />
