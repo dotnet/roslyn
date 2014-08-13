@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     /// associated syntax trees, compilations and semantic models. A workspace has a current solution
     /// that is an immutable snapshot of the projects and documents. This property may change over time 
     /// as the workspace is updated either from live interactions in the environment or via call to the
-    /// workspace's ApplyChanges method.
+    /// workspace's <see cref="TryApplyChanges"/> method.
     /// </summary>
     public abstract partial class Workspace : IDisposable
     {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis
         /// It provides access to source text, syntax trees and semantics.
         /// 
         /// This property may change as the workspace reacts to changes in the environment or 
-        /// after ApplyChanges is called.
+        /// after <see cref="TryApplyChanges"/> is called.
         /// </summary>
         public virtual Solution CurrentSolution
         {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Set's the current solution of this workspace. This method does not raise a workspace change event.
+        /// Set's the <see cref="CurrentSolution"/> of this workspace. This method does not raise a workspace change event.
         /// </summary>
         protected Solution SetCurrentSolution(Solution solution)
         {
@@ -806,8 +806,9 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Apply Changes
+
         /// <summary>
-        /// Determines if the specific kind of change is supported by the ApplyChanges method.
+        /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges"/> method.
         /// </summary>
         public virtual bool CanApplyChange(ApplyChangesKind feature)
         {
@@ -881,7 +882,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges for each project that has been added, removed or changed.
+        /// This method is called during <see cref="TryApplyChanges"/> for each project that has been added, removed or changed.
         /// 
         /// Override this method if you want to modify how project changes are applied.
         /// </summary>
@@ -1003,7 +1004,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to add a project reference to a project.
+        /// This method is called during <see cref="TryApplyChanges"/> to add a project reference to a project.
         /// 
         /// Override this method to implement the capability of adding project references.
         /// </summary>
@@ -1013,7 +1014,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to remove a project reference from a project.
+        /// This method is called during <see cref="TryApplyChanges"/> to remove a project reference from a project.
         /// 
         /// Override this method to implement the capability of removing project references.
         /// </summary>
@@ -1023,7 +1024,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to add a metadata reference to a project.
+        /// This method is called during <see cref="TryApplyChanges"/> to add a metadata reference to a project.
         /// 
         /// Override this method to implement the capability of adding metadata references.
         /// </summary>
@@ -1033,7 +1034,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to remove a metadata reference from a project.
+        /// This method is called during <see cref="TryApplyChanges"/> to remove a metadata reference from a project.
         /// 
         /// Override this method to implement the capability of removing metadata references.
         /// </summary>
@@ -1043,7 +1044,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to add an analyzer reference to a project.
+        /// This method is called during <see cref="TryApplyChanges"/> to add an analyzer reference to a project.
         /// 
         /// Override this method to implement the capability of adding analyzer references.
         /// </summary>
@@ -1053,7 +1054,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to remove an analyzer reference from a project.
+        /// This method is called during <see cref="TryApplyChanges"/> to remove an analyzer reference from a project.
         /// 
         /// Override this method to implement the capability of removing analyzer references.
         /// </summary>
@@ -1063,7 +1064,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to add a new document to a project.
+        /// This method is called during <see cref="TryApplyChanges"/> to add a new document to a project.
         /// 
         /// Override this method to implement the capability of adding documents.
         /// </summary>
@@ -1073,7 +1074,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to remove a document from a project.
+        /// This method is called during <see cref="TryApplyChanges"/> to remove a document from a project.
         /// 
         /// Override this method to implement the capability of removing documents.
         /// </summary>
@@ -1093,7 +1094,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to add a new additional document to a project.
+        /// This method is called during <see cref="TryApplyChanges"/> to add a new additional document to a project.
         /// 
         /// Override this method to implement the capability of adding additional documents.
         /// </summary>
@@ -1103,7 +1104,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to remove an additional document from a project.
+        /// This method is called during <see cref="TryApplyChanges"/> to remove an additional document from a project.
         /// 
         /// Override this method to implement the capability of removing additional documents.
         /// </summary>
