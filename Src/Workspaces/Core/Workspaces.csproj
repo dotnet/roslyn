@@ -348,6 +348,8 @@
     <Compile Include="Log\KeyValueLogMessage.cs" />
     <Compile Include="Log\Logger.LogBlock.cs" />
     <Compile Include="Log\LogMessage.cs" />
+    <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
+    <Compile Include="Simplification\SimplifyTypeNameFixAllCodeAction.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Workspace\Host\Caching\AbstractCacheServiceFactory.cs" />
     <Compile Include="Workspace\Host\Caching\CacheOptions.cs" />

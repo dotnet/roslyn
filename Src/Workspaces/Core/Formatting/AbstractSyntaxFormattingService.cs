@@ -41,15 +41,15 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // check what kind of formatting strategy to use
-            if (ShouldUseCollapsedFormattingSpan(spansToFormat))
+            if (AllowDisjointSpanMerging(spansToFormat, options.GetOption(FormattingOptions.AllowDisjointSpanMerging)))
             {
-                return FormatCollapsedSpan(node, options, rules, spansToFormat, cancellationToken);
+                return FormatMergedSpan(node, options, rules, spansToFormat, cancellationToken);
             }
 
             return FormatIndividually(node, options, rules, spansToFormat, cancellationToken);
         }
 
-        private IFormattingResult FormatCollapsedSpan(
+        private IFormattingResult FormatMergedSpan(
             SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
         {
             var spanToFormat = TextSpan.FromBounds(spansToFormat[0].Start, spansToFormat[spansToFormat.Count - 1].End);
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // more expensive case
             var result = Format(node, options, rules, pair.Item1, pair.Item2, cancellationToken);
-            return CreateAggregatedFormattingResult(node, new List<AbstractFormattingResult>(1) { result }, SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, spansToFormat));
+            return CreateAggregatedFormattingResult(node, new List<AbstractFormattingResult>(1) { result }, SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, spanToFormat));
         }
 
         private IFormattingResult FormatIndividually(
@@ -95,8 +95,14 @@ namespace Microsoft.CodeAnalysis.Formatting
             return CreateAggregatedFormattingResult(node, results);
         }
 
-        private bool ShouldUseCollapsedFormattingSpan(IList<TextSpan> list)
+        private bool AllowDisjointSpanMerging(IList<TextSpan> list, bool shouldUseFormattingSpanCollapse)
         {
+            // If the user is specific about the formatting specific spans then honor users settings
+            if (!shouldUseFormattingSpanCollapse)
+            {
+                return false;
+            }
+
             // most common case. it is either just formatting a whole file, a selection or some generate XXX refactoring.
             if (list.Count <= 3)
             {

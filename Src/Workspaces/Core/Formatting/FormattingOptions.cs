@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         internal const string TabFeatureName = "Tab";
         internal const string InternalTabFeatureName = "InternalTab";
+        internal const string FormattingFeatureName = "Formatting";
 
         // All Languages
 #if MEF
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 #if MEF
         [ExportOption]
 #endif
-        public static readonly PerLanguageOption<IndentStyle> SmartIndent = new PerLanguageOption<IndentStyle>(TabFeatureName, "SmartIndent", defaultValue: IndentStyle.Smart);
+        public static readonly PerLanguageOption<IndentStyle> SmartIndent = new PerLanguageOption<IndentStyle>(FormattingFeatureName, "SmartIndent", defaultValue: IndentStyle.Smart);
 
 #if MEF
         [ExportOption]
@@ -38,12 +39,17 @@ namespace Microsoft.CodeAnalysis.Formatting
 #if MEF
         [ExportOption]
 #endif
-        public static readonly PerLanguageOption<string> NewLine = new PerLanguageOption<string>(TabFeatureName, "NewLine", defaultValue: "\r\n");
+        public static readonly PerLanguageOption<string> NewLine = new PerLanguageOption<string>(FormattingFeatureName, "NewLine", defaultValue: "\r\n");
 
 #if MEF
         [ExportOption]
 #endif
-        internal static readonly PerLanguageOption<bool> DebugMode = new PerLanguageOption<bool>(InternalTabFeatureName, "DebugMode", defaultValue: false);
+        internal static readonly PerLanguageOption<bool> DebugMode = new PerLanguageOption<bool>(FormattingFeatureName, "DebugMode", defaultValue: false);
+
+#if MEF
+        [ExportOption]
+#endif
+        internal static readonly Option<bool> AllowDisjointSpanMerging = new Option<bool>(FormattingFeatureName, "ShouldUseFormattingSpanCollapse", defaultValue: false);
 
         public enum IndentStyle
         {
