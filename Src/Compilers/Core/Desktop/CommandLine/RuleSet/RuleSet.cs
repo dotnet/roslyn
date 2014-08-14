@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get the effective ruleset after resolving all the included rulesets.
         /// </summary>
-        private RuleSet GetEffectiveRuleSet()
+        private RuleSet GetEffectiveRuleSet(HashSet<string> includedRulesetPaths)
         {
             var effectiveGeneralOption = generalDiagnosticOption;
             var effectiveSpecificOptions = new Dictionary<string, ReportDiagnostic>();
@@ -127,9 +127,17 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
+                // If the ruleset has already been included then just ignore it.
+                if (includedRulesetPaths.Contains(ruleSet.FilePath.ToLowerInvariant()))
+                {
+                    continue;
+                }
+
+                includedRulesetPaths.Add(ruleSet.FilePath.ToLowerInvariant());
+
                 // Recursively get the effective ruleset of the included file, in case they in turn
                 // contain includes.
-                var effectiveRuleset = ruleSet.GetEffectiveRuleSet();
+                var effectiveRuleset = ruleSet.GetEffectiveRuleSet(includedRulesetPaths);
 
                 // Apply the includeAction on this ruleset.
                 effectiveRuleset = effectiveRuleset.WithEffectiveAction(ruleSetInclude.Action);
@@ -241,7 +249,7 @@ namespace Microsoft.CodeAnalysis
             var ruleSet = RuleSetProcessor.LoadFromFile(filePath);
             if (ruleSet != null)
             {
-                return ruleSet.GetEffectiveRuleSet();
+                return ruleSet.GetEffectiveRuleSet(new HashSet<string>());
             }
 
             return null;

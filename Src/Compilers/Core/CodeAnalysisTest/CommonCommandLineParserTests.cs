@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
         }
 
-        [Fact (Skip = "899271")]
+        [Fact]
         public void TestRuleSetParsingWithIncludeOfSameFile()
         {
             string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -203,6 +203,64 @@ namespace Microsoft.CodeAnalysis.UnitTests
 </RuleSet>
 ";
             var ruleSet = ParseRuleSet(source, new string[] { "" });
+            Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
+        }
+
+        [Fact]
+        public void TestRuleSetParsingWithMutualIncludes()
+        {
+            string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <Include Path=""file1.ruleset"" Action=""Warning"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1012"" Action=""Error"" />
+  </Rules>
+</RuleSet>
+";
+
+            string source1 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <Include Path=""a.ruleset"" Action=""Warning"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1012"" Action=""Error"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSet = ParseRuleSet(source, source1);
+            Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
+        }
+
+        [Fact]
+        public void TestRuleSetParsingWithSiblingIncludes()
+        {
+            string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <Include Path=""file1.ruleset"" Action=""Warning"" />
+  <Include Path=""file2.ruleset"" Action=""Warning"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1012"" Action=""Error"" />
+  </Rules>
+</RuleSet>
+";
+
+            string source1 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <Include Path=""file2.ruleset"" Action=""Warning"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1012"" Action=""Error"" />
+  </Rules>
+</RuleSet>
+";
+
+            string source2 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <Include Path=""file1.ruleset"" Action=""Warning"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1012"" Action=""Error"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSet = ParseRuleSet(source, source1, source2);
             Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
         }
 
@@ -1014,7 +1072,5 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: include1.Path, actual: includePaths[1]);
             Assert.Equal(expected: include2.Path, actual: includePaths[2]);
         }
-
-        
     }
 }
