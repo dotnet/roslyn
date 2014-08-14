@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var equalityComparerType = compilation.EqualityComparerOfTType();
             var constructedType = equalityComparerType.Construct(GetType(compilation, member));
             return factory.MemberAccessExpression(
-                factory.NamedTypeExpression(constructedType),
+                factory.TypeExpression(constructedType),
                 factory.IdentifierName(DefaultName));
         }
 

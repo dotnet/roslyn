@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
         internal SyntaxNode CreateMarshalAsArgument(SyntaxGenerator syntaxFactoryService, INamedTypeSymbol unmanagedType)
         {
             return syntaxFactoryService.MemberAccessExpression(
-                syntaxFactoryService.NamedTypeExpression(unmanagedType), syntaxFactoryService.IdentifierName(LPWStrText));
+                syntaxFactoryService.TypeExpression(unmanagedType), syntaxFactoryService.IdentifierName(LPWStrText));
         }
 
         internal SyntaxNode CreateCharSetArgument(SyntaxGenerator syntaxFactoryService, INamedTypeSymbol charSetType)
         {
             return syntaxFactoryService.MemberAccessExpression(
-                syntaxFactoryService.NamedTypeExpression(charSetType), syntaxFactoryService.IdentifierName(UnicodeText));
+                syntaxFactoryService.TypeExpression(charSetType), syntaxFactoryService.IdentifierName(UnicodeText));
         }
     }
 }

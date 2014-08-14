@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
@@ -30,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Creates a field declaration.
         /// </summary>
         public abstract SyntaxNode FieldDeclaration(
-            Accessibility accessibility,
-            SymbolModifiers modifiers,
+            string name,
             SyntaxNode type,
-            string identifier,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            SymbolModifiers modifiers = default(SymbolModifiers),
             SyntaxNode initializer = null);
 
         /// <summary>
@@ -41,25 +42,31 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public SyntaxNode FieldDeclaration(IFieldSymbol field, SyntaxNode initializer = null)
         {
-            return AddAttributes(
-                    FieldDeclaration(
-                        field.DeclaredAccessibility,
-                        SymbolModifiers.From(field),
-                        TypeExpression(field.Type),
-                        field.Name,
-                        initializer),
-                GetSymbolAttributes(field));
+            return FieldDeclaration(
+                field.Name,
+                TypeExpression(field.Type),
+                field.DeclaredAccessibility,
+                SymbolModifiers.From(field),
+                initializer);
         }
+
+        protected static SymbolModifiers fieldModifiers = SymbolModifiers.Const | SymbolModifiers.ReadOnly | SymbolModifiers.Static;
+        protected static SymbolModifiers methodModifiers = SymbolModifiers.Abstract | SymbolModifiers.Async | SymbolModifiers.New | SymbolModifiers.Override | SymbolModifiers.Partial | SymbolModifiers.Sealed | SymbolModifiers.Static | SymbolModifiers.Virtual;
+        protected static SymbolModifiers constructorModifers = SymbolModifiers.Static;
+        protected static SymbolModifiers propertyModifiers = SymbolModifiers.Abstract | SymbolModifiers.New | SymbolModifiers.Override | SymbolModifiers.ReadOnly | SymbolModifiers.Sealed | SymbolModifiers.Static | SymbolModifiers.Virtual;
+        protected static SymbolModifiers indexerModifiers = SymbolModifiers.Abstract | SymbolModifiers.New | SymbolModifiers.Override | SymbolModifiers.ReadOnly | SymbolModifiers.Sealed | SymbolModifiers.Static | SymbolModifiers.Virtual;
+        protected static SymbolModifiers typeModifiers = SymbolModifiers.Abstract | SymbolModifiers.Partial | SymbolModifiers.Sealed | SymbolModifiers.Static;
 
         /// <summary>
         /// Creates a method declaration.
         /// </summary>
         public abstract SyntaxNode MethodDeclaration(
-            Accessibility accessibility,
-            SymbolModifiers modifiers,
-            SyntaxNode returnType,
-            string identifier,
+            string name,
             IEnumerable<SyntaxNode> parameters = null,
+            IEnumerable<string> typeParameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            SymbolModifiers modifiers = default(SymbolModifiers),
             IEnumerable<SyntaxNode> statements = null);
 
         /// <summary>
@@ -67,59 +74,51 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public SyntaxNode MethodDeclaration(IMethodSymbol method, IEnumerable<SyntaxNode> statements = null)
         {
-            return AddAttributes(
-                    MethodDeclaration(
-                        method.DeclaredAccessibility,
-                        SymbolModifiers.From(method),
-                        TypeExpression(method.ReturnType),
-                        method.Name,
-                        method.Parameters.Select(p => ParameterDeclaration(p)),
-                        statements),
-                    GetSymbolAttributes(method));
+            var decl = MethodDeclaration(
+                method.Name,
+                parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
+                returnType: TypeExpression(method.ReturnType),
+                accessibility: method.DeclaredAccessibility,
+                modifiers: SymbolModifiers.From(method),
+                statements: statements);
+
+            if (method.TypeParameters.Length > 0)
+            {
+                decl = this.WithTypeParametersAndConstraints(decl, method.TypeParameters);
+            }
+
+            return decl;
         }
 
         /// <summary>
         /// Creates a parameter declaration.
         /// </summary>
         public abstract SyntaxNode ParameterDeclaration(
-            RefKind refKind,
-            SyntaxNode type,
-            string identifier,
-            SyntaxNode initializer = null);
-
-        /// <summary>
-        /// Creates a parameter declaration.
-        /// </summary>
-        public SyntaxNode ParameterDeclaration(
-            SyntaxNode type,
-            string identifier,
-            SyntaxNode initializer = null)
-        {
-            return ParameterDeclaration(RefKind.None, type, identifier, initializer);
-        }
+            string name,
+            SyntaxNode type = null,
+            SyntaxNode initializer = null,
+            RefKind refKind = RefKind.None);
 
         /// <summary>
         /// Creates a parameter declaration matching an existing parameter symbol.
         /// </summary>
         public SyntaxNode ParameterDeclaration(IParameterSymbol symbol, SyntaxNode initializer = null)
         {
-            return AddAttributes(
-                ParameterDeclaration(
-                    symbol.RefKind,
-                    TypeExpression(symbol.Type),
-                    symbol.Name,
-                    initializer),
-                GetSymbolAttributes(symbol));
+            return ParameterDeclaration(
+                symbol.Name,
+                TypeExpression(symbol.Type),
+                initializer,
+                symbol.RefKind);
         }
 
         /// <summary>
         /// Creates a property declaration.
         /// </summary>
         public abstract SyntaxNode PropertyDeclaration(
-            Accessibility accessibility,
-            SymbolModifiers modifiers,
+            string name,
             SyntaxNode type,
-            string identifier,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            SymbolModifiers modifiers = default(SymbolModifiers),
             IEnumerable<SyntaxNode> getterStatements = null,
             IEnumerable<SyntaxNode> setterStatements = null);
 
@@ -128,25 +127,23 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public SyntaxNode PropertyDeclaration(IPropertySymbol property, IEnumerable<SyntaxNode> getterStatements = null, IEnumerable<SyntaxNode> setterStatements = null)
         {
-            return AddAttributes(
-                PropertyDeclaration(
+            return PropertyDeclaration(
+                    property.Name,
+                    TypeExpression(property.Type),
                     property.DeclaredAccessibility,
                     SymbolModifiers.From(property),
-                    TypeExpression(property.Type),
-                    property.Name,
                     getterStatements,
-                    setterStatements),
-                GetSymbolAttributes(property));
+                    setterStatements);
         }
 
         /// <summary>
         /// Creates an indexer declaration.
         /// </summary>
         public abstract SyntaxNode IndexerDeclaration(
-            Accessibility accessibility,
-            SymbolModifiers modifiers,
-            SyntaxNode type,
             IEnumerable<SyntaxNode> parameters,
+            SyntaxNode type,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            SymbolModifiers modifiers = default(SymbolModifiers),
             IEnumerable<SyntaxNode> getterStatements = null,
             IEnumerable<SyntaxNode> setterStatements = null);
 
@@ -155,25 +152,23 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public SyntaxNode IndexerDeclaration(IPropertySymbol indexer, IEnumerable<SyntaxNode> getterStatements = null, IEnumerable<SyntaxNode> setterStatements = null)
         {
-            return AddAttributes(
-                IndexerDeclaration(
-                    indexer.DeclaredAccessibility,
-                    SymbolModifiers.From(indexer),
-                    TypeExpression(indexer.Type),
-                    indexer.Parameters.Select(p => this.ParameterDeclaration(p)),
-                    getterStatements,
-                    setterStatements),
-                GetSymbolAttributes(indexer));
+            return IndexerDeclaration(
+                indexer.Parameters.Select(p => this.ParameterDeclaration(p)),
+                TypeExpression(indexer.Type),
+                indexer.DeclaredAccessibility,
+                SymbolModifiers.From(indexer),
+                getterStatements,
+                setterStatements);
         }
 
         /// <summary>
         /// Creates a constructor declaration.
         /// </summary>
         public abstract SyntaxNode ConstructorDeclaration(
-            Accessibility accessibility,
-            SymbolModifiers modifiers,
-            string identifier,
+            string containingTypeName = null,
             IEnumerable<SyntaxNode> parameters = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            SymbolModifiers modifiers = default(SymbolModifiers),
             IEnumerable<SyntaxNode> baseConstructorArguments = null,
             IEnumerable<SyntaxNode> statements = null);
 
@@ -185,15 +180,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IEnumerable<SyntaxNode> baseConstructorArguments = null,
             IEnumerable<SyntaxNode> statements = null)
         {
-            return AddAttributes(
-                ConstructorDeclaration(
-                    constructorMethod.DeclaredAccessibility,
-                    SymbolModifiers.From(constructorMethod),
-                    constructorMethod.ContainingType != null ? constructorMethod.ContainingType.Name : "New",
-                    constructorMethod.Parameters.Select(p => ParameterDeclaration(p)),
-                    baseConstructorArguments,
-                    statements),
-                GetSymbolAttributes(constructorMethod));
+            return ConstructorDeclaration(
+                constructorMethod.ContainingType != null ? constructorMethod.ContainingType.Name : "New",
+                constructorMethod.Parameters.Select(p => ParameterDeclaration(p)),
+                constructorMethod.DeclaredAccessibility,
+                SymbolModifiers.From(constructorMethod),
+                baseConstructorArguments,
+                statements);
         }
 
         /// <summary>
@@ -212,66 +205,47 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Creates a class declaration.
         /// </summary>
         public abstract SyntaxNode ClassDeclaration(
-            Accessibility accessibility,
-            SymbolModifiers modifiers,
-            string identifier,
+            string name,
+            IEnumerable<string> typeParameters = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            SymbolModifiers modifiers = default(SymbolModifiers),
             SyntaxNode baseType = null,
             IEnumerable<SyntaxNode> interfaceTypes = null,
-            IEnumerable<SyntaxNode> memberDeclarations = null);
-
-        /// <summary>
-        /// Creates a class declaration.
-        /// </summary>
-        public SyntaxNode ClassDeclaration(
-            Accessibility accessibility,
-            SymbolModifiers modifiers,
-            string identifier,
-            ITypeSymbol baseType,
-            IEnumerable<ITypeSymbol> interfaceTypes,
-            IEnumerable<SyntaxNode> memberDeclarations = null)
-        {
-            return ClassDeclaration(
-                accessibility, 
-                modifiers, 
-                identifier, 
-                baseType != null ? TypeExpression(baseType) : null,
-                interfaceTypes != null ? interfaceTypes.Select(t => TypeExpression(t)) : null, 
-                memberDeclarations);
-        }
+            IEnumerable<SyntaxNode> members = null);
 
         /// <summary>
         /// Creates a struct declaration.
         /// </summary>
         public abstract SyntaxNode StructDeclaration(
-            Accessibility accessibility,
-            SymbolModifiers modifiers,
-            string identifier,
+            string name,
+            IEnumerable<string> typeParameters = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            SymbolModifiers modifiers = default(SymbolModifiers),
             IEnumerable<SyntaxNode> interfaceTypes = null,
-            IEnumerable<SyntaxNode> memberDeclarations = null);
+            IEnumerable<SyntaxNode> members = null);
 
         /// <summary>
         /// Creates a interface declaration.
         /// </summary>
         public abstract SyntaxNode InterfaceDeclaration(
-            Accessibility accessibility,
-            SymbolModifiers modifiers,
-            string identifier,
+            string name,
+            IEnumerable<string> typeParameters = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
             IEnumerable<SyntaxNode> interfaceTypes = null,
-            IEnumerable<SyntaxNode> memberDeclarations = null);
+            IEnumerable<SyntaxNode> members = null);
 
         /// <summary>
         /// Creates an enum declaration.
         /// </summary>
         public abstract SyntaxNode EnumDeclaration(
-            Accessibility accessibility,
-            SymbolModifiers modifiers,
-            string identifier,
-            IEnumerable<SyntaxNode> enumMemberDeclarations = null);
+            string name,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            IEnumerable<SyntaxNode> members = null);
 
         /// <summary>
         /// Creates an enum member
         /// </summary>
-        public abstract SyntaxNode EnumMember(string identifier, SyntaxNode expression = null);
+        public abstract SyntaxNode EnumMember(string name, SyntaxNode expression = null);
 
         /// <summary>
         /// Creates a declaration matching an existing symbol.
@@ -313,50 +287,107 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
                 case SymbolKind.NamedType:
                     var type = (INamedTypeSymbol)symbol;
+                    SyntaxNode declaration = null;
+
                     switch (type.TypeKind)
                     {
                         case TypeKind.Class:
-                            return AddAttributes(
-                                ClassDeclaration(
-                                    type.DeclaredAccessibility,
-                                    SymbolModifiers.From(type),
-                                    type.Name,
-                                    TypeExpression(type.BaseType),
-                                    type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
-                                    type.GetMembers().Select(m => Declaration(m))),
-                                GetSymbolAttributes(type));
+                            declaration = ClassDeclaration(
+                                type.Name,
+                                accessibility: type.DeclaredAccessibility,
+                                modifiers: SymbolModifiers.From(type),
+                                baseType: TypeExpression(type.BaseType),
+                                interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
+                                members: type.GetMembers().Select(m => Declaration(m)));
+                            break;
                         case TypeKind.Struct:
-                            return AddAttributes(
-                                StructDeclaration(
-                                    type.DeclaredAccessibility,
-                                    SymbolModifiers.From(type),
-                                    type.Name,
-                                    type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
-                                    type.GetMembers().Select(m => Declaration(m))),
-                                GetSymbolAttributes(type));
+                            declaration = StructDeclaration(
+                                type.Name,
+                                accessibility: type.DeclaredAccessibility,
+                                modifiers: SymbolModifiers.From(type),
+                                interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
+                                members: type.GetMembers().Select(m => Declaration(m)));
+                            break;
                         case TypeKind.Interface:
-                            return AddAttributes(
-                                InterfaceDeclaration(
-                                    type.DeclaredAccessibility,
-                                    SymbolModifiers.From(type),
-                                    type.Name,
-                                    type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
-                                    type.GetMembers().Select(m => Declaration(m))),
-                                GetSymbolAttributes(type));
+                            declaration = InterfaceDeclaration(
+                                type.Name,
+                                accessibility: type.DeclaredAccessibility,
+                                interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
+                                members: type.GetMembers().Select(m => Declaration(m)));
+                            break;
                         case TypeKind.Enum:
-                            return AddAttributes(
-                                EnumDeclaration(
-                                    type.DeclaredAccessibility,
-                                    SymbolModifiers.From(type),
-                                    type.Name,
-                                    type.GetMembers().Select(m => Declaration(m))),
-                                GetSymbolAttributes(type));
+                            declaration = EnumDeclaration(
+                                type.Name,
+                                accessibility: type.DeclaredAccessibility,
+                                members: type.GetMembers().Select(m => Declaration(m)));
+                            break;
+                    }
+
+                    if (declaration != null)
+                    {
+                        return WithTypeParametersAndConstraints(declaration, type.TypeParameters);
                     }
 
                     break;
             }
 
             throw new ArgumentException("Symbol cannot be converted to a declaration");
+        }
+
+        private SyntaxNode WithTypeParametersAndConstraints(SyntaxNode declaration, ImmutableArray<ITypeParameterSymbol> typeParameters)
+        {
+            if (typeParameters.Length > 0)
+            {
+                declaration = WithTypeParameters(declaration, typeParameters.Select(tp => tp.Name));
+
+                foreach (var tp in typeParameters)
+                {
+                    if (tp.HasConstructorConstraint || tp.HasReferenceTypeConstraint || tp.HasValueTypeConstraint || tp.ConstraintTypes.Length > 0)
+                    {
+                        declaration = this.WithTypeConstraint(declaration, tp.Name,
+                            kinds: (tp.HasConstructorConstraint ? SpecialTypeConstraintKind.Constructor : SpecialTypeConstraintKind.None)
+                                   | (tp.HasReferenceTypeConstraint ? SpecialTypeConstraintKind.ReferenceType : SpecialTypeConstraintKind.None)
+                                   | (tp.HasValueTypeConstraint ? SpecialTypeConstraintKind.ValueType : SpecialTypeConstraintKind.None),
+                            types: tp.ConstraintTypes.Select(t => TypeExpression(t)));
+                    }
+                }
+            }
+
+            return declaration;
+        }
+
+        /// <summary>
+        /// Converts a declaration (method, class, etc) into a declaration with type parameters.
+        /// </summary>
+        public abstract SyntaxNode WithTypeParameters(SyntaxNode declaration, IEnumerable<string> typeParameterNames);
+
+        /// <summary>
+        /// Converts a declaration (method, class, etc) into a declaration with type parameters.
+        /// </summary>
+        public SyntaxNode WithTypeParameters(SyntaxNode declaration, params string[] typeParameterNames)
+        {
+            return WithTypeParameters(declaration, (IEnumerable<string>)typeParameterNames);
+        }
+
+        /// <summary>
+        /// Adds a type constraint to a type parameter of a declaration.
+        /// </summary>
+        public abstract SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode> types = null);
+
+        /// <summary>
+        /// Adds a type constraint to a type parameter of a declaration.
+        /// </summary>
+        public SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, params SyntaxNode[] types)
+        {
+            return WithTypeConstraint(declaration, typeParameterName, kinds, (IEnumerable<SyntaxNode>)types);
+        }
+
+        /// <summary>
+        /// Adds a type constraint to a type parameter of a declaration.
+        /// </summary>
+        public SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, params SyntaxNode[] types)
+        {
+            return WithTypeConstraint(declaration, typeParameterName, SpecialTypeConstraintKind.None, (IEnumerable<SyntaxNode>)types);
         }
 
         /// <summary>
@@ -466,12 +497,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// Creates a new instance of a declaration node with attributes added.
+        /// Creates a new instance of a declaration node with the specified attributes added.
         /// </summary>
         public abstract SyntaxNode AddAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes);
 
         /// <summary>
-        /// Creates a new instance of a declaration node with attributes added.
+        /// Creates a new instance of a declaration node with the specified attributes added.
         /// </summary>
         public SyntaxNode AddAttributes(SyntaxNode declaration, params SyntaxNode[] attributes)
         {
@@ -735,15 +766,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Converts an expression that ends in a name into an expression that ends in a generic name.
         /// If the expression already ends in a generic name, the new type arguments are used instead.
         /// </summary>
-        public abstract SyntaxNode WithGenericArguments(SyntaxNode expression, IEnumerable<SyntaxNode> typeArguments);
+        public abstract SyntaxNode WithTypeArguments(SyntaxNode expression, IEnumerable<SyntaxNode> typeArguments);
 
         /// <summary>
         /// Converts an expression that ends in a name into an expression that ends in a generic name.
         /// If the expression already ends in a generic name, the new type arguments are used instead.
         /// </summary>
-        public SyntaxNode WithGenericArguments(SyntaxNode expression, params SyntaxNode[] typeArguments)
+        public SyntaxNode WithTypeArguments(SyntaxNode expression, params SyntaxNode[] typeArguments)
         {
-            return WithGenericArguments(expression, (IEnumerable<SyntaxNode>)typeArguments);
+            return WithTypeArguments(expression, (IEnumerable<SyntaxNode>)typeArguments);
         }
 
         /// <summary>
@@ -792,11 +823,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Creates an expression that denotes a special type name.
         /// </summary>
         public abstract SyntaxNode TypeExpression(SpecialType specialType);
-
-        /// <summary>
-        /// Creates an expression that denotes a named type.
-        /// </summary>
-        public abstract SyntaxNode NamedTypeExpression(INamedTypeSymbol typeSymbol);
 
         /// <summary>
         /// Creates an expression that denotes an array type.

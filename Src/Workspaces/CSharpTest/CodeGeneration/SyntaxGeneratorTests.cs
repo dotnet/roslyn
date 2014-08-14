@@ -104,18 +104,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
             VerifySyntax<GenericNameSyntax>(g.GenericName("x", g.IdentifierName("y"), g.IdentifierName("z")), "x<y, z>");
 
             // convert identifer name into generic name
-            VerifySyntax<GenericNameSyntax>(g.WithGenericArguments(g.IdentifierName("x"), g.IdentifierName("y")), "x<y>");
+            VerifySyntax<GenericNameSyntax>(g.WithTypeArguments(g.IdentifierName("x"), g.IdentifierName("y")), "x<y>");
 
             // convert qualified name into qualified generic name
-            VerifySyntax<QualifiedNameSyntax>(g.WithGenericArguments(g.DottedName("x.y"), g.IdentifierName("z")), "x.y<z>");
+            VerifySyntax<QualifiedNameSyntax>(g.WithTypeArguments(g.DottedName("x.y"), g.IdentifierName("z")), "x.y<z>");
 
             // convert member access expression into generic member access expression
-            VerifySyntax<MemberAccessExpressionSyntax>(g.WithGenericArguments(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "x.y<z>");
+            VerifySyntax<MemberAccessExpressionSyntax>(g.WithTypeArguments(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "x.y<z>");
 
             // convert existing generic name into a different generic name
-            var gname = g.WithGenericArguments(g.IdentifierName("x"), g.IdentifierName("y"));
+            var gname = g.WithTypeArguments(g.IdentifierName("x"), g.IdentifierName("y"));
             VerifySyntax<GenericNameSyntax>(gname, "x<y>");
-            VerifySyntax<GenericNameSyntax>(g.WithGenericArguments(gname, g.IdentifierName("z")), "x<z>");
+            VerifySyntax<GenericNameSyntax>(g.WithTypeArguments(gname, g.IdentifierName("z")), "x<z>");
         }
 
         [Fact]
@@ -216,6 +216,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         {
             VerifySyntax<MemberAccessExpressionSyntax>(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), "x.y");
             VerifySyntax<MemberAccessExpressionSyntax>(g.MemberAccessExpression(g.IdentifierName("x"), "y"), "x.y");
+            VerifySyntax<MemberAccessExpressionSyntax>(g.MemberAccessExpression(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "x.y.z");
+            VerifySyntax<MemberAccessExpressionSyntax>(g.MemberAccessExpression(g.InvocationExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "x(y).z");
+            VerifySyntax<MemberAccessExpressionSyntax>(g.MemberAccessExpression(g.ElementAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "x[y].z");
+            VerifySyntax<MemberAccessExpressionSyntax>(g.MemberAccessExpression(g.AddExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "((x) + (y)).z");
+            VerifySyntax<MemberAccessExpressionSyntax>(g.MemberAccessExpression(g.NegateExpression(g.IdentifierName("x")), g.IdentifierName("y")), "(-(x)).y");
         }
 
         [Fact]
@@ -226,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
                 "new x()");
 
             VerifySyntax<ObjectCreationExpressionSyntax>(
-                g.ObjectCreationExpression(g.IdentifierName("x"), g.IdentifierName("y")), 
+                g.ObjectCreationExpression(g.IdentifierName("x"), g.IdentifierName("y")),
                 "new x(y)");
 
             var intType = emptyCompilation.GetSpecialType(SpecialType.System_Int32);
@@ -248,6 +253,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
             VerifySyntax<ElementAccessExpressionSyntax>(
                 g.ElementAccessExpression(g.IdentifierName("x"), g.IdentifierName("y"), g.IdentifierName("z")),
                 "x[y, z]");
+
+            VerifySyntax<ElementAccessExpressionSyntax>(
+                g.ElementAccessExpression(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")),
+                "x.y[z]");
+
+            VerifySyntax<ElementAccessExpressionSyntax>(
+                g.ElementAccessExpression(g.ElementAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")),
+                "x[y][z]");
+
+            VerifySyntax<ElementAccessExpressionSyntax>(
+                g.ElementAccessExpression(g.InvocationExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")),
+                "x(y)[z]");
+
+            VerifySyntax<ElementAccessExpressionSyntax>(
+                g.ElementAccessExpression(g.AddExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")),
+                "((x) + (y))[z]");
         }
 
         [Fact]
@@ -276,6 +297,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
             VerifySyntax<InvocationExpressionSyntax>(g.InvocationExpression(g.IdentifierName("x"), g.Argument(g.IdentifierName("y"))), "x(y)");
             VerifySyntax<InvocationExpressionSyntax>(g.InvocationExpression(g.IdentifierName("x"), g.Argument(RefKind.Ref, g.IdentifierName("y"))), "x(ref y)");
             VerifySyntax<InvocationExpressionSyntax>(g.InvocationExpression(g.IdentifierName("x"), g.Argument(RefKind.Out, g.IdentifierName("y"))), "x(out y)");
+
+            // auto parenthesizing
+            VerifySyntax<InvocationExpressionSyntax>(g.InvocationExpression(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y"))), "x.y()");
+            VerifySyntax<InvocationExpressionSyntax>(g.InvocationExpression(g.ElementAccessExpression(g.IdentifierName("x"), g.IdentifierName("y"))), "x[y]()");
+            VerifySyntax<InvocationExpressionSyntax>(g.InvocationExpression(g.InvocationExpression(g.IdentifierName("x"), g.IdentifierName("y"))), "x(y)()");
+            VerifySyntax<InvocationExpressionSyntax>(g.InvocationExpression(g.AddExpression(g.IdentifierName("x"), g.IdentifierName("y"))), "((x) + (y))()");
         }
 
         [Fact]
@@ -316,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
             VerifySyntax<ThrowStatementSyntax>(g.ThrowStatement(), "throw;");
             VerifySyntax<ThrowStatementSyntax>(g.ThrowStatement(g.IdentifierName("x")), "throw x;");
         }
-        
+
         [Fact]
         public void TestIfStatements()
         {
@@ -412,17 +439,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         {
             VerifySyntax<TryStatementSyntax>(
                 g.TryCatchStatement(
-                    new[] { g.IdentifierName("x") }, 
-                    g.CatchClause(g.IdentifierName("y"), "z", 
+                    new[] { g.IdentifierName("x") },
+                    g.CatchClause(g.IdentifierName("y"), "z",
                         new[] { g.IdentifierName("a") })),
                 "try\r\n{\r\n    x;\r\n}\r\ncatch (y z)\r\n{\r\n    a;\r\n}");
 
             VerifySyntax<TryStatementSyntax>(
                 g.TryCatchStatement(
-                    new[] { g.IdentifierName("s") }, 
-                    g.CatchClause(g.IdentifierName("x"), "y", 
+                    new[] { g.IdentifierName("s") },
+                    g.CatchClause(g.IdentifierName("x"), "y",
                         new[] { g.IdentifierName("z") }),
-                    g.CatchClause(g.IdentifierName("a"), "b", 
+                    g.CatchClause(g.IdentifierName("a"), "b",
                         new[] { g.IdentifierName("c") })),
                 "try\r\n{\r\n    s;\r\n}\r\ncatch (x y)\r\n{\r\n    z;\r\n}\r\ncatch (a b)\r\n{\r\n    c;\r\n}");
 
@@ -444,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         public void TestWhileStatements()
         {
             VerifySyntax<WhileStatementSyntax>(
-                g.WhileStatement(g.IdentifierName("x"), 
+                g.WhileStatement(g.IdentifierName("x"),
                     new[] { g.IdentifierName("y") }),
                 "while (x)\r\n{\r\n    y;\r\n}");
 
@@ -525,19 +552,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         public void TestFieldDeclarations()
         {
             VerifySyntax<FieldDeclarationSyntax>(
-                g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.TypeExpression(SpecialType.System_Int32), "fld"),
+                g.FieldDeclaration("fld", g.TypeExpression(SpecialType.System_Int32)),
                 "int fld;");
 
             VerifySyntax<FieldDeclarationSyntax>(
-                g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.TypeExpression(SpecialType.System_Int32), "fld", initializer: g.LiteralExpression(0)),
+                g.FieldDeclaration("fld", g.TypeExpression(SpecialType.System_Int32), initializer: g.LiteralExpression(0)),
                 "int fld = 0;");
 
             VerifySyntax<FieldDeclarationSyntax>(
-                g.FieldDeclaration(Accessibility.Public, SymbolModifiers.None, g.TypeExpression(SpecialType.System_Int32), "fld"),
+                g.FieldDeclaration("fld", g.TypeExpression(SpecialType.System_Int32), accessibility: Accessibility.Public),
                 "public int fld;");
 
             VerifySyntax<FieldDeclarationSyntax>(
-                g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.Static | SymbolModifiers.ReadOnly, g.TypeExpression(SpecialType.System_Int32), "fld"),
+                g.FieldDeclaration("fld", g.TypeExpression(SpecialType.System_Int32), accessibility: Accessibility.NotApplicable, modifiers: SymbolModifiers.Static | SymbolModifiers.ReadOnly),
                 "static readonly int fld;");
         }
 
@@ -545,53 +572,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         public void TestMethodDeclarations()
         {
             VerifySyntax<MethodDeclarationSyntax>(
-                g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, null, "m"),
+                g.MethodDeclaration("m"),
                 "void m()\r\n{\r\n}");
 
             VerifySyntax<MethodDeclarationSyntax>(
-                g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "m"),
+                g.MethodDeclaration("m", typeParameters: new[] { "x", "y" }),
+                "void m<x, y>()\r\n{\r\n}");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.MethodDeclaration("m", returnType: g.IdentifierName("x")),
                 "x m()\r\n{\r\n}");
 
             VerifySyntax<MethodDeclarationSyntax>(
-                g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "m", statements: new[] { g.IdentifierName("y") }),
+                g.MethodDeclaration("m", returnType: g.IdentifierName("x"), statements: new[] { g.IdentifierName("y") }),
                 "x m()\r\n{\r\n    y;\r\n}");
 
             VerifySyntax<MethodDeclarationSyntax>(
-                g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "m", parameters: new[] { g.ParameterDeclaration(g.IdentifierName("y"), "z") }),
+                g.MethodDeclaration("m", parameters: new[] { g.ParameterDeclaration("z", g.IdentifierName("y")) }, returnType: g.IdentifierName("x")),
                 "x m(y z)\r\n{\r\n}");
 
             VerifySyntax<MethodDeclarationSyntax>(
-                g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "m", parameters: new[] { g.ParameterDeclaration(g.IdentifierName("y"), "z", g.IdentifierName("a")) }),
+                g.MethodDeclaration("m", parameters: new[] { g.ParameterDeclaration("z", g.IdentifierName("y"), g.IdentifierName("a")) }, returnType: g.IdentifierName("x")),
                 "x m(y z = a)\r\n{\r\n}");
 
             VerifySyntax<MethodDeclarationSyntax>(
-                g.MethodDeclaration(Accessibility.Public, SymbolModifiers.None, g.IdentifierName("x"), "m"),
+                g.MethodDeclaration("m", returnType: g.IdentifierName("x"), accessibility: Accessibility.Public),
                 "public x m()\r\n{\r\n}");
 
             VerifySyntax<MethodDeclarationSyntax>(
-                g.MethodDeclaration(Accessibility.Public, SymbolModifiers.Abstract, g.IdentifierName("x"), "m"),
+                g.MethodDeclaration("m", returnType: g.IdentifierName("x"), accessibility: Accessibility.Public, modifiers: SymbolModifiers.Abstract),
                 "public abstract x m();");
         }
 
         [Fact]
         public void TestConstructorDeclaration()
-        {
+        {           
             VerifySyntax<ConstructorDeclarationSyntax>(
-                g.ConstructorDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"),
+                g.ConstructorDeclaration(),
+                "ctor()\r\n{\r\n}");
+
+            VerifySyntax<ConstructorDeclarationSyntax>(
+                g.ConstructorDeclaration("c"),
                 "c()\r\n{\r\n}");
 
             VerifySyntax<ConstructorDeclarationSyntax>(
-                g.ConstructorDeclaration(Accessibility.Public, SymbolModifiers.Static, "c"),
+                g.ConstructorDeclaration("c", accessibility: Accessibility.Public, modifiers: SymbolModifiers.Static),
                 "public static c()\r\n{\r\n}");
 
             VerifySyntax<ConstructorDeclarationSyntax>(
-                g.ConstructorDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c", new[] { g.ParameterDeclaration(g.IdentifierName("t"), "p") }),
+                g.ConstructorDeclaration("c", new[] { g.ParameterDeclaration("p", g.IdentifierName("t")) }),
                 "c(t p)\r\n{\r\n}");
 
             VerifySyntax<ConstructorDeclarationSyntax>(
-                g.ConstructorDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c", 
-                    parameters: new[] { g.ParameterDeclaration(g.IdentifierName("t"), "p") },
-                    baseConstructorArguments: new[] { g.IdentifierName("p") }),                   
+                g.ConstructorDeclaration("c", 
+                    parameters: new[] { g.ParameterDeclaration("p", g.IdentifierName("t")) },
+                    baseConstructorArguments: new[] { g.IdentifierName("p") }),
                 "c(t p): base (p)\r\n{\r\n}");
         }
 
@@ -599,24 +634,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         public void TestPropertyDeclarations()
         {
             VerifySyntax<PropertyDeclarationSyntax>(
-                g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract | SymbolModifiers.ReadOnly, g.IdentifierName("x"), "p"),
+                g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers: SymbolModifiers.Abstract | SymbolModifiers.ReadOnly),
                 "abstract x p\r\n{\r\n    get;\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
-                g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.ReadOnly, g.IdentifierName("x"), "p"),
+                g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers: SymbolModifiers.ReadOnly),
                 "x p\r\n{\r\n    get\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
-                g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("x"), "p"),
+                g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers: SymbolModifiers.Abstract),
                 "abstract x p\r\n{\r\n    get;\r\n    set;\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
-                g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.ReadOnly, g.IdentifierName("x"), "p", getterStatements: new[] { g.IdentifierName("y") }),
+                g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers: SymbolModifiers.ReadOnly, getterStatements: new[] { g.IdentifierName("y") }),
                 "x p\r\n{\r\n    get\r\n    {\r\n        y;\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
-                g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "p", 
-                    getterStatements: null, setterStatements: new[] { g.IdentifierName("y") }),
+                g.PropertyDeclaration("p", g.IdentifierName("x"), setterStatements: new[] { g.IdentifierName("y") }),
                 "x p\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n        y;\r\n    }\r\n}");
         }
 
@@ -624,33 +658,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         public void TestIndexerDeclarations()
         {
             VerifySyntax<IndexerDeclarationSyntax>(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract | SymbolModifiers.ReadOnly, g.IdentifierName("x"), new[] { g.ParameterDeclaration(g.IdentifierName("y"), "z") }),
+                g.IndexerDeclaration(new[] { g.ParameterDeclaration("z", g.IdentifierName("y")) }, g.IdentifierName("x"), modifiers: SymbolModifiers.Abstract | SymbolModifiers.ReadOnly),
                 "abstract x this[y z]\r\n{\r\n    get;\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("x"), new[] { g.ParameterDeclaration(g.IdentifierName("y"), "z") }),
+                g.IndexerDeclaration(new[] { g.ParameterDeclaration("z", g.IdentifierName("y")) }, g.IdentifierName("x"), modifiers: SymbolModifiers.Abstract),
                 "abstract x this[y z]\r\n{\r\n    get;\r\n    set;\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.ReadOnly, g.IdentifierName("x"), new[] { g.ParameterDeclaration(g.IdentifierName("y"), "z") }),
+                g.IndexerDeclaration(new[] { g.ParameterDeclaration("z", g.IdentifierName("y")) }, g.IdentifierName("x"), modifiers: SymbolModifiers.ReadOnly),
                 "x this[y z]\r\n{\r\n    get\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.ReadOnly, g.IdentifierName("x"), new[] { g.ParameterDeclaration(g.IdentifierName("y"), "z") }, 
+                g.IndexerDeclaration(new[] { g.ParameterDeclaration("z", g.IdentifierName("y")) }, g.IdentifierName("x"), modifiers: SymbolModifiers.ReadOnly,
                     getterStatements: new[] { g.IdentifierName("a") }),
                 "x this[y z]\r\n{\r\n    get\r\n    {\r\n        a;\r\n    }\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), new[] { g.ParameterDeclaration(g.IdentifierName("y"), "z") }),
+                g.IndexerDeclaration(new[] { g.ParameterDeclaration("z", g.IdentifierName("y")) }, g.IdentifierName("x")),
                 "x this[y z]\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), new[] { g.ParameterDeclaration(g.IdentifierName("y"), "z") },
+                g.IndexerDeclaration(new[] { g.ParameterDeclaration("z", g.IdentifierName("y")) }, g.IdentifierName("x"),
                     setterStatements: new[] { g.IdentifierName("a") }),
                 "x this[y z]\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n        a;\r\n    }\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), new[] { g.ParameterDeclaration(g.IdentifierName("y"), "z") },
+                g.IndexerDeclaration(new[] { g.ParameterDeclaration("z", g.IdentifierName("y")) }, g.IdentifierName("x"),
                     getterStatements: new[] { g.IdentifierName("a") }, setterStatements: new[] { g.IdentifierName("b") }),
                 "x this[y z]\r\n{\r\n    get\r\n    {\r\n        a;\r\n    }\r\n\r\n    set\r\n    {\r\n        b;\r\n    }\r\n}");
         }
@@ -660,19 +694,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         {
             VerifySyntax<MethodDeclarationSyntax>(
                 g.AsPublicInterfaceImplementation(
-                    g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("t"), "m"),
+                    g.MethodDeclaration("m", returnType: g.IdentifierName("t"), modifiers: SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
                 "public t m()\r\n{\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 g.AsPublicInterfaceImplementation(
-                    g.PropertyDeclaration(Accessibility.Private, SymbolModifiers.Abstract, g.IdentifierName("t"), "p"),
+                    g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility: Accessibility.Private, modifiers: SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
                 "public t p\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 g.AsPublicInterfaceImplementation(
-                    g.IndexerDeclaration(Accessibility.Internal, SymbolModifiers.Abstract, g.IdentifierName("t"), new[] { g.ParameterDeclaration(g.IdentifierName("a"), "p") }),
+                    g.IndexerDeclaration(parameters: new[] { g.ParameterDeclaration("p", g.IdentifierName("a")) }, type: g.IdentifierName("t"), accessibility: Accessibility.Internal, modifiers: SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
                 "public t this[a p]\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n}");
         }
@@ -682,19 +716,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         {
             VerifySyntax<MethodDeclarationSyntax>(
                 g.AsPrivateInterfaceImplementation(
-                    g.MethodDeclaration(Accessibility.Private, SymbolModifiers.Abstract, g.IdentifierName("t"), "m"),
+                    g.MethodDeclaration("m", returnType: g.IdentifierName("t"), accessibility: Accessibility.Private, modifiers: SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
                 "t i.m()\r\n{\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 g.AsPrivateInterfaceImplementation(
-                    g.PropertyDeclaration(Accessibility.Internal, SymbolModifiers.Abstract, g.IdentifierName("t"), "p"),
+                    g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility: Accessibility.Internal, modifiers: SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
                 "t i.p\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 g.AsPrivateInterfaceImplementation(
-                    g.IndexerDeclaration(Accessibility.Protected, SymbolModifiers.Abstract, g.IdentifierName("t"), new[] { g.ParameterDeclaration(g.IdentifierName("a"), "p") }),
+                    g.IndexerDeclaration(parameters: new[] { g.ParameterDeclaration("p", g.IdentifierName("a")) }, type: g.IdentifierName("t"), accessibility: Accessibility.Protected, modifiers: SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
                 "t i.this[a p]\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n}");
         }
@@ -703,38 +737,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         public void TestClassDeclarations()
         {
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"),
+                g.ClassDeclaration("c"),
                 "class c\r\n{\r\n}");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c", baseType: g.IdentifierName("x")),
+                g.ClassDeclaration("c", typeParameters: new[] { "x", "y" }),
+                "class c<x, y>\r\n{\r\n}");
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.ClassDeclaration("c", baseType: g.IdentifierName("x")),
                 "class c : x\r\n{\r\n}");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c", interfaceTypes: new[] { g.IdentifierName("x") }),
+                g.ClassDeclaration("c", interfaceTypes: new[] { g.IdentifierName("x") }),
                 "class c : x\r\n{\r\n}");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c", baseType: g.IdentifierName("x"), interfaceTypes: new[] { g.IdentifierName("y") }),
+                g.ClassDeclaration("c", baseType: g.IdentifierName("x"), interfaceTypes: new[] { g.IdentifierName("y") }),
                 "class c : x, y\r\n{\r\n}");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c", interfaceTypes: new SyntaxNode[] { }),
+                g.ClassDeclaration("c", interfaceTypes: new SyntaxNode[] { }),
                 "class c\r\n{\r\n}");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c", 
-                    memberDeclarations: new[] { g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "y") }),
+                g.ClassDeclaration("c", members: new[] { g.FieldDeclaration("y", type: g.IdentifierName("x")) }),
                 "class c\r\n{\r\n    x y;\r\n}");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c",
-                    memberDeclarations: new[] { g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("t"), "m") }),
+                g.ClassDeclaration("c", members: new[] { g.MethodDeclaration("m", returnType: g.IdentifierName("t")) }),
                 "class c\r\n{\r\n    t m()\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c",
-                    memberDeclarations: new[] { g.ConstructorDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "xxx") }),
+                g.ClassDeclaration("c", members: new[] { g.ConstructorDeclaration() }),
                 "class c\r\n{\r\n    c()\r\n    {\r\n    }\r\n}");
         }
 
@@ -742,34 +777,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         public void TestStructDeclarations()
         {
             VerifySyntax<StructDeclarationSyntax>(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s"),
+                g.StructDeclaration("s"),
                 "struct s\r\n{\r\n}");
 
             VerifySyntax<StructDeclarationSyntax>(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s", interfaceTypes: new[] { g.IdentifierName("x") }),
+                g.StructDeclaration("s", typeParameters: new[] { "x", "y" }),
+                "struct s<x, y>\r\n{\r\n}");
+
+            VerifySyntax<StructDeclarationSyntax>(
+                g.StructDeclaration("s", interfaceTypes: new[] { g.IdentifierName("x") }),
                 "struct s : x\r\n{\r\n}");
 
             VerifySyntax<StructDeclarationSyntax>(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s", interfaceTypes: new[] { g.IdentifierName("x"), g.IdentifierName("y") }),
+                g.StructDeclaration("s", interfaceTypes: new[] { g.IdentifierName("x"), g.IdentifierName("y") }),
                 "struct s : x, y\r\n{\r\n}");
 
             VerifySyntax<StructDeclarationSyntax>(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s", interfaceTypes: new SyntaxNode[] { }),
+                g.StructDeclaration("s", interfaceTypes: new SyntaxNode[] { }),
                 "struct s\r\n{\r\n}");
 
             VerifySyntax<StructDeclarationSyntax>(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s",
-                    memberDeclarations: new[] { g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "y") }),
+                g.StructDeclaration("s", members: new[] { g.FieldDeclaration("y", g.IdentifierName("x")) }),
                 "struct s\r\n{\r\n    x y;\r\n}");
 
             VerifySyntax<StructDeclarationSyntax>(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s",
-                    memberDeclarations: new[] { g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("t"), "m") }),
+                g.StructDeclaration("s", members: new[] { g.MethodDeclaration("m", returnType: g.IdentifierName("t")) }),
                 "struct s\r\n{\r\n    t m()\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<StructDeclarationSyntax>(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s",
-                    memberDeclarations: new[] { g.ConstructorDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "xxx") }),
+                g.StructDeclaration("s", members: new[] { g.ConstructorDeclaration("xxx") }),
                 "struct s\r\n{\r\n    s()\r\n    {\r\n    }\r\n}");
         }
 
@@ -777,67 +813,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         public void TestInterfaceDeclarations()
         {
             VerifySyntax<InterfaceDeclarationSyntax>(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i"),
+                g.InterfaceDeclaration("i"),
                 "interface i\r\n{\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i", interfaceTypes: new[] { g.IdentifierName("a") }),
-                "interface i : a\r\n{\r\n}");
+                g.InterfaceDeclaration("i", typeParameters: new[] { "x", "y" }),
+                "interface i<x, y>\r\n{\r\n}");
 
-            VerifySyntax<InterfaceDeclarationSyntax>(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i", interfaceTypes: new[] { g.IdentifierName("a"), g.IdentifierName("b") }),
-                "interface i : a, b\r\n{\r\n}");
+                VerifySyntax<InterfaceDeclarationSyntax>(
+                    g.InterfaceDeclaration("i", interfaceTypes: new[] { g.IdentifierName("a") }),
+                    "interface i : a\r\n{\r\n}");
 
-            VerifySyntax<InterfaceDeclarationSyntax>(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i", interfaceTypes: new SyntaxNode[] { }),
-                "interface i\r\n{\r\n}");
+                VerifySyntax<InterfaceDeclarationSyntax>(
+                    g.InterfaceDeclaration("i", interfaceTypes: new[] { g.IdentifierName("a"), g.IdentifierName("b") }),
+                    "interface i : a, b\r\n{\r\n}");
 
-            VerifySyntax<InterfaceDeclarationSyntax>(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i",
-                    memberDeclarations: new[] { g.MethodDeclaration(Accessibility.Public, SymbolModifiers.Sealed, g.IdentifierName("t"), "m") }),
-                "interface i\r\n{\r\n    t m();\r\n}");
+                VerifySyntax<InterfaceDeclarationSyntax>(
+                    g.InterfaceDeclaration("i", interfaceTypes: new SyntaxNode[] { }),
+                    "interface i\r\n{\r\n}");
 
-            VerifySyntax<InterfaceDeclarationSyntax>(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i",
-                    memberDeclarations: new[] { g.PropertyDeclaration(Accessibility.Public, SymbolModifiers.Sealed, g.IdentifierName("t"), "p") }),
-                "interface i\r\n{\r\n    t p\r\n    {\r\n        get;\r\n        set;\r\n    }\r\n}");
+                VerifySyntax<InterfaceDeclarationSyntax>(
+                    g.InterfaceDeclaration("i", members: new[] { g.MethodDeclaration("m", returnType: g.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: SymbolModifiers.Sealed) }),
+                    "interface i\r\n{\r\n    t m();\r\n}");
 
-            VerifySyntax<InterfaceDeclarationSyntax>(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i",
-                    memberDeclarations: new[] { g.PropertyDeclaration(Accessibility.Public, SymbolModifiers.ReadOnly, g.IdentifierName("t"), "p") }),
-                "interface i\r\n{\r\n    t p\r\n    {\r\n        get;\r\n    }\r\n}");
+                VerifySyntax<InterfaceDeclarationSyntax>(
+                    g.InterfaceDeclaration("i", members: new[] { g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: SymbolModifiers.Sealed) }),
+                    "interface i\r\n{\r\n    t p\r\n    {\r\n        get;\r\n        set;\r\n    }\r\n}");
 
-            VerifySyntax<InterfaceDeclarationSyntax>(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i",
-                    memberDeclarations: new[] { g.IndexerDeclaration(Accessibility.Public, SymbolModifiers.Sealed, g.IdentifierName("t"), new[] { g.ParameterDeclaration(g.IdentifierName("x"), "y") }) }),
-                "interface i\r\n{\r\n    t this[x y]\r\n    {\r\n        get;\r\n        set;\r\n    }\r\n}");
+                VerifySyntax<InterfaceDeclarationSyntax>(
+                    g.InterfaceDeclaration("i", members: new[] { g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: SymbolModifiers.ReadOnly) }),
+                    "interface i\r\n{\r\n    t p\r\n    {\r\n        get;\r\n    }\r\n}");
 
-            VerifySyntax<InterfaceDeclarationSyntax>(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i",
-                    memberDeclarations: new[] { g.IndexerDeclaration(Accessibility.Public, SymbolModifiers.ReadOnly, g.IdentifierName("t"), new[] { g.ParameterDeclaration(g.IdentifierName("x"), "y") }) }),
-                "interface i\r\n{\r\n    t this[x y]\r\n    {\r\n        get;\r\n    }\r\n}");
-        }
+                VerifySyntax<InterfaceDeclarationSyntax>(
+                    g.InterfaceDeclaration("i", members: new[] { g.IndexerDeclaration(new[] { g.ParameterDeclaration("y", g.IdentifierName("x")) }, g.IdentifierName("t"), Accessibility.Public, SymbolModifiers.Sealed) }),
+                    "interface i\r\n{\r\n    t this[x y]\r\n    {\r\n        get;\r\n        set;\r\n    }\r\n}");
+
+                VerifySyntax<InterfaceDeclarationSyntax>(
+                    g.InterfaceDeclaration("i", members: new[] { g.IndexerDeclaration(new[] { g.ParameterDeclaration("y", g.IdentifierName("x")) }, g.IdentifierName("t"), Accessibility.Public, SymbolModifiers.ReadOnly) }),
+                    "interface i\r\n{\r\n    t this[x y]\r\n    {\r\n        get;\r\n    }\r\n}");
+            }
 
         [Fact]
         public void TestEnumDeclarations()
         {
             VerifySyntax<EnumDeclarationSyntax>(
-                g.EnumDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "e"),
+                g.EnumDeclaration("e"),
                 "enum e\r\n{\r\n}");
 
             VerifySyntax<EnumDeclarationSyntax>(
-                g.EnumDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "e",
-                    new[] { g.EnumMember("a"), g.EnumMember("b"), g.EnumMember("c") }),
+                g.EnumDeclaration("e", members: new[] { g.EnumMember("a"), g.EnumMember("b"), g.EnumMember("c") }),
                 "enum e\r\n{\r\n    a,\r\n    b,\r\n    c\r\n}");
 
             VerifySyntax<EnumDeclarationSyntax>(
-                g.EnumDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "e",
-                    new[] { g.IdentifierName("a"), g.EnumMember("b"), g.IdentifierName("c") }),
+                g.EnumDeclaration("e", members: new[] { g.IdentifierName("a"), g.EnumMember("b"), g.IdentifierName("c") }),
                 "enum e\r\n{\r\n    a,\r\n    b,\r\n    c\r\n}");
 
             VerifySyntax<EnumDeclarationSyntax>(
-                g.EnumDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "e",
-                    new[] { g.EnumMember("a", g.LiteralExpression(0)), g.EnumMember("b"), g.EnumMember("c", g.LiteralExpression(5)) }),
+                g.EnumDeclaration("e", members: new[] { g.EnumMember("a", g.LiteralExpression(0)), g.EnumMember("b"), g.EnumMember("c", g.LiteralExpression(5)) }),
                 "enum e\r\n{\r\n    a = 0,\r\n    b,\r\n    c = 5\r\n}");
         }
 
@@ -875,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 
             VerifySyntax<NamespaceDeclarationSyntax>(
                 g.NamespaceDeclaration("n",
-                    g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"),
+                    g.ClassDeclaration("c"),
                     g.NamespaceImportDeclaration("m")),
                 "namespace n\r\n{\r\n    using m;\r\n\r\n    class c\r\n    {\r\n    }\r\n}");
         }
@@ -899,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 
             VerifySyntax<CompilationUnitSyntax>(
                 g.CompilationUnit(
-                    g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"),
+                    g.ClassDeclaration("c"),
                     g.NamespaceImportDeclaration("m")),
                 "using m;\r\n\r\nclass c\r\n{\r\n}");
 
@@ -908,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
                     g.NamespaceImportDeclaration("n"),
                     g.NamespaceDeclaration("n",
                         g.NamespaceImportDeclaration("m"),
-                        g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"))),
+                        g.ClassDeclaration("c"))),
                 "using n;\r\n\r\nnamespace n\r\n{\r\n    using m;\r\n\r\n    class c\r\n    {\r\n    }\r\n}");
         }
 
@@ -953,51 +985,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         {
             VerifySyntax<FieldDeclarationSyntax>(
                 g.AddAttributes(
-                    g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "y"),
+                    g.FieldDeclaration("y", g.IdentifierName("x")),
                     g.Attribute("a")),
                 "[a]\r\nx y;");
 
             VerifySyntax<FieldDeclarationSyntax>(
                 g.AddAttributes(
                     g.AddAttributes(
-                        g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "y"),
+                        g.FieldDeclaration("y", g.IdentifierName("x")),
                         g.Attribute("a")),
                     g.Attribute("b")),
                 "[a]\r\n[b]\r\nx y;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 g.AddAttributes(
-                    g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("t"), "m"),
+                    g.MethodDeclaration("m", returnType: g.IdentifierName("t"), modifiers: SymbolModifiers.Abstract),
                     g.Attribute("a")),
                 "[a]\r\nabstract t m();");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 g.AddReturnAttributes(
-                    g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("t"), "m"),
+                    g.MethodDeclaration("m", returnType: g.IdentifierName("t"), modifiers: SymbolModifiers.Abstract),
                     g.Attribute("a")),
                 "[return: a]\r\nabstract t m();");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 g.AddAttributes(
-                    g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("x"), "p"),
+                    g.PropertyDeclaration("p", g.IdentifierName("x"), accessibility: Accessibility.NotApplicable, modifiers: SymbolModifiers.Abstract),
                     g.Attribute("a")),
                 "[a]\r\nabstract x p\r\n{\r\n    get;\r\n    set;\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 g.AddAttributes(
-                    g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("x"), new[] { g.ParameterDeclaration(g.IdentifierName("y"), "z") }),
+                    g.IndexerDeclaration(new[] { g.ParameterDeclaration("z", g.IdentifierName("y")) }, g.IdentifierName("x"), modifiers: SymbolModifiers.Abstract),
                     g.Attribute("a")),
                 "[a]\r\nabstract x this[y z]\r\n{\r\n    get;\r\n    set;\r\n}");
 
             VerifySyntax<ClassDeclarationSyntax>(
                 g.AddAttributes(
-                    g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"),
+                    g.ClassDeclaration("c"),
                     g.Attribute("a")),
                 "[a]\r\nclass c\r\n{\r\n}");
 
             VerifySyntax<ParameterSyntax>(
                 g.AddAttributes(
-                    g.ParameterDeclaration(g.IdentifierName("t"), "p"),
+                    g.ParameterDeclaration("p", g.IdentifierName("t")),
                     g.Attribute("a")),
                 "[a]\r\nt p");
 
@@ -1006,6 +1038,148 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
                     g.CompilationUnit(g.NamespaceDeclaration("n")),
                     g.Attribute("a")),
                 "[assembly: a]\r\nnamespace n\r\n{\r\n}");
+        }
+
+        [Fact]
+        public void TestWithTypeParameters()
+        {
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeParameters(
+                    g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract),
+                    "a"),
+            "abstract void m<a>();");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeParameters(
+                    g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract)),
+            "abstract void m();");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeParameters(
+                    g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract),
+                    "a", "b"),
+            "abstract void m<a, b>();");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeParameters(g.WithTypeParameters(
+                    g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract),
+                    "a", "b")),
+            "abstract void m();");
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.WithTypeParameters(
+                    g.ClassDeclaration("c"),
+                    "a", "b"),
+            "class c<a, b>\r\n{\r\n}");
+
+            VerifySyntax<StructDeclarationSyntax>(
+                g.WithTypeParameters(
+                    g.StructDeclaration("s"),
+                    "a", "b"),
+            "struct s<a, b>\r\n{\r\n}");
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                g.WithTypeParameters(
+                    g.InterfaceDeclaration("i"),
+                    "a", "b"),
+            "interface i<a, b>\r\n{\r\n}");
+        }
+
+        [Fact]
+        public void TestWithTypeConstraint()
+        {
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract), "a"),
+                    "a", g.IdentifierName("b")),
+                "abstract void m<a>()where a : b;");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract), "a"),
+                    "a", g.IdentifierName("b"), g.IdentifierName("c")),
+                "abstract void m<a>()where a : b, c;");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract), "a"),
+                    "a"),
+                "abstract void m<a>();");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeConstraint(g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract), "a"),
+                    "a", g.IdentifierName("b"), g.IdentifierName("c")), "a"),
+                "abstract void m<a>();");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeConstraint(
+                        g.WithTypeParameters(g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract), "a", "x"),
+                        "a", g.IdentifierName("b"), g.IdentifierName("c")),
+                    "x", g.IdentifierName("y")),
+                "abstract void m<a, x>()where a : b, c where x : y;");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.Constructor),
+                "abstract void m<a>()where a : new ();");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.ReferenceType),
+                "abstract void m<a>()where a : class;");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.ValueType),
+                "abstract void m<a>()where a : struct;");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.ReferenceType | SpecialTypeConstraintKind.Constructor),
+                "abstract void m<a>()where a : class, new ();");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.ReferenceType | SpecialTypeConstraintKind.ValueType),
+                "abstract void m<a>()where a : class;");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers: SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.ReferenceType, g.IdentifierName("b"), g.IdentifierName("c")),
+                "abstract void m<a>()where a : class, b, c;");
+
+            // type declarations
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(
+                        g.ClassDeclaration("c"),
+                        "a", "b"),
+                    "a", g.IdentifierName("x")),
+            "class c<a, b>\r\n    where a : x\r\n{\r\n}");
+
+            VerifySyntax<StructDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(
+                        g.StructDeclaration("s"),
+                        "a", "b"),
+                    "a", g.IdentifierName("x")),
+            "struct s<a, b>\r\n    where a : x\r\n{\r\n}");
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(
+                        g.InterfaceDeclaration("i"),
+                        "a", "b"),
+                    "a", g.IdentifierName("x")),
+            "interface i<a, b>\r\n    where a : x\r\n{\r\n}");
         }
     }
 }

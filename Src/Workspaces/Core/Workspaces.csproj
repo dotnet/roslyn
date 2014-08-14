@@ -342,6 +342,7 @@
     <Compile Include="CodeGeneration\Symbols\CodeGenerationTypeParameterSymbol.cs" />
     <Compile Include="CodeGeneration\Symbols\CodeGenerationTypeSymbol.cs" />
     <Compile Include="CodeGeneration\SyntaxAnnotationExtensions.cs" />
+    <Compile Include="CodeGeneration\TypeConstraintKind.cs" />
     <Compile Include="CodeGeneration\TypeGenerator.cs" />
     <Compile Include="Log\AggregateLogger.cs" />
     <Compile Include="Log\KeyValueLogMessage.cs" />

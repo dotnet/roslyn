@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             {
                 var syntaxFactory = GetSyntaxGenerator();
                 return syntaxFactory.MemberAccessExpression(
-                    syntaxFactory.NamedTypeExpression(enumType),
+                    syntaxFactory.TypeExpression(enumType),
                     syntaxFactory.IdentifierName(field.Name));
             }
             else

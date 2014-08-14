@@ -53,15 +53,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode FieldDeclaration(
+            string identifier,
+            SyntaxNode type,
             Accessibility accessibility,
             SymbolModifiers modifiers,
-            SyntaxNode type,
-            string identifier,
             SyntaxNode initializer)
         {
             return SyntaxFactory.FieldDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, modifiers),
+                GetModifiers(accessibility, modifiers & fieldModifiers),
                 SyntaxFactory.VariableDeclaration(
                     (TypeSyntax)type,
                     SyntaxFactory.SingletonSeparatedList(
@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null))));
         }
 
-        public override SyntaxNode ParameterDeclaration(RefKind refKind, SyntaxNode type, string identifier, SyntaxNode initializer)
+        public override SyntaxNode ParameterDeclaration(string name, SyntaxNode type, SyntaxNode initializer, RefKind refKind)
         {
             return SyntaxFactory.Parameter(
                 default(SyntaxList<AttributeListSyntax>),
                 GetParameterModifiers(refKind),
                 (TypeSyntax)type,
-                SyntaxFactory.Identifier(identifier),
+                SyntaxFactory.Identifier(name),
                 initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null);
         }
 
@@ -96,46 +96,58 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode MethodDeclaration(
-            Accessibility accessibility,
-            SymbolModifiers modifiers,
-            SyntaxNode returnType,
             string identifier,
             IEnumerable<SyntaxNode> parameters,
+            IEnumerable<string> typeParameters,
+            SyntaxNode returnType,
+            Accessibility accessibility,
+            SymbolModifiers modifiers,
             IEnumerable<SyntaxNode> statements)
         {
             bool hasBody = !modifiers.IsAbstract;
 
             return SyntaxFactory.MethodDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, modifiers),
+                GetModifiers(accessibility, modifiers & methodModifiers),
                 returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
                 default(ExplicitInterfaceSpecifierSyntax),
                 SyntaxFactory.Identifier(identifier),
-                default(TypeParameterListSyntax),
-                parameters != null
-                    ? SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters.Cast<ParameterSyntax>()))
-                    : SyntaxFactory.ParameterList(),
+                GetTypeParameters(typeParameters),
+                GetParameters(parameters),
                 default(SyntaxList<TypeParameterConstraintClauseSyntax>),
                 hasBody ? CreateBlock(statements) : null,
                 !hasBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken));
         }
 
-        public override SyntaxNode ConstructorDeclaration(Accessibility accessibility, SymbolModifiers modifiers, string identifier, IEnumerable<SyntaxNode> parameters = null, IEnumerable<SyntaxNode> baseConstructorArguments = null, IEnumerable<SyntaxNode> statements = null)
+        private ParameterListSyntax GetParameters(IEnumerable<SyntaxNode> parameters)
+        {
+            return parameters != null
+                ? SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters.Cast<ParameterSyntax>()))
+                : SyntaxFactory.ParameterList();
+        }
+
+        public override SyntaxNode ConstructorDeclaration(
+            string name, 
+            IEnumerable<SyntaxNode> parameters, 
+            Accessibility accessibility, 
+            SymbolModifiers modifiers, 
+            IEnumerable<SyntaxNode> baseConstructorArguments, 
+            IEnumerable<SyntaxNode> statements)
         {
             return SyntaxFactory.ConstructorDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, modifiers),
-                SyntaxFactory.Identifier(identifier),
+                GetModifiers(accessibility, modifiers & constructorModifers),
+                SyntaxFactory.Identifier(name ?? "ctor"),
                 SyntaxFactory.ParameterList(parameters != null ? SyntaxFactory.SeparatedList(parameters.Cast<ParameterSyntax>()) : default(SeparatedSyntaxList<ParameterSyntax>)),
                 baseConstructorArguments != null ? SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(baseConstructorArguments.Select(AsArgument)))) : null,
                 CreateBlock(statements));
         }
 
         public override SyntaxNode PropertyDeclaration(
+            string identifier,
+            SyntaxNode type,
             Accessibility accessibility,
             SymbolModifiers modifiers,
-            SyntaxNode type,
-            string identifier,
             IEnumerable<SyntaxNode> getterStatements,
             IEnumerable<SyntaxNode> setterStatements)
         {
@@ -169,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return SyntaxFactory.PropertyDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, modifiers - SymbolModifiers.ReadOnly),
+                GetModifiers(accessibility, (modifiers & propertyModifiers) - SymbolModifiers.ReadOnly),
                 (TypeSyntax)type,
                 default(ExplicitInterfaceSpecifierSyntax),
                 SyntaxFactory.Identifier(identifier),
@@ -177,10 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode IndexerDeclaration(
+            IEnumerable<SyntaxNode> parameters,
+            SyntaxNode type,
             Accessibility accessibility,
             SymbolModifiers modifiers,
-            SyntaxNode type,
-            IEnumerable<SyntaxNode> parameters,
             IEnumerable<SyntaxNode> getterStatements,
             IEnumerable<SyntaxNode> setterStatements)
         {
@@ -214,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return SyntaxFactory.IndexerDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, modifiers - SymbolModifiers.ReadOnly),
+                GetModifiers(accessibility, (modifiers & indexerModifiers) - SymbolModifiers.ReadOnly),
                 (TypeSyntax)type,
                 default(ExplicitInterfaceSpecifierSyntax),
                 SyntaxFactory.BracketedParameterList(SyntaxFactory.SeparatedList<ParameterSyntax>(parameters.Cast<ParameterSyntax>())),
@@ -344,12 +356,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode ClassDeclaration(
+            string name,
+            IEnumerable<string> typeParameters,
             Accessibility accessibility,
             SymbolModifiers modifiers,
-            string identifier,
             SyntaxNode baseType,
             IEnumerable<SyntaxNode> interfaceTypes,
-            IEnumerable<SyntaxNode> memberDeclarations)
+            IEnumerable<SyntaxNode> members)
         {
             List<SyntaxNode> baseTypes = null;
             if (baseType != null || interfaceTypes != null)
@@ -374,12 +387,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return SyntaxFactory.ClassDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, modifiers),
-                SyntaxFactory.Identifier(identifier),
-                default(TypeParameterListSyntax),
+                GetModifiers(accessibility, modifiers & typeModifiers),
+                SyntaxFactory.Identifier(name),
+                GetTypeParameters(typeParameters),
                 baseTypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(baseTypes.Cast<TypeSyntax>())) : null,
                 default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                memberDeclarations != null ? SyntaxFactory.List(memberDeclarations.Select(m => AsClassMember(m, identifier))) : default(SyntaxList<MemberDeclarationSyntax>));
+                GetClassMembers(name, members));
+        }
+
+        private SyntaxList<MemberDeclarationSyntax> GetClassMembers(string className, IEnumerable<SyntaxNode> members)
+        {
+            return members != null
+                ? SyntaxFactory.List(members.Select(m => AsClassMember(m, className)))
+                : default(SyntaxList<MemberDeclarationSyntax>);
         }
 
         private MemberDeclarationSyntax AsClassMember(SyntaxNode node, string className)
@@ -394,11 +414,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode StructDeclaration(
+            string name,
+            IEnumerable<string> typeParameters,
             Accessibility accessibility,
             SymbolModifiers modifiers,
-            string identifier,
             IEnumerable<SyntaxNode> interfaceTypes,
-            IEnumerable<SyntaxNode> memberDeclarations)
+            IEnumerable<SyntaxNode> members)
         {
             var itypes = interfaceTypes != null ? interfaceTypes.Cast<TypeSyntax>().ToList() : null;
             if (itypes != null && itypes.Count == 0)
@@ -408,20 +429,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return SyntaxFactory.StructDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, modifiers),
-                SyntaxFactory.Identifier(identifier),
-                default(TypeParameterListSyntax),
+                GetModifiers(accessibility, modifiers & typeModifiers),
+                SyntaxFactory.Identifier(name),
+                GetTypeParameters(typeParameters),
                 itypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(itypes)) : null,
                 default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                memberDeclarations != null ? SyntaxFactory.List(memberDeclarations.Select(m => AsClassMember(m, identifier))) : default(SyntaxList<MemberDeclarationSyntax>));
+                GetClassMembers(name, members));
         }
 
         public override SyntaxNode InterfaceDeclaration(
-            Accessibility accessibility, 
-            SymbolModifiers modifiers, 
-            string identifier, 
-            IEnumerable<SyntaxNode> interfaceTypes = null, 
-            IEnumerable<SyntaxNode> memberDeclarations = null)
+            string name,
+            IEnumerable<string> typeParameters,
+            Accessibility accessibility,
+            IEnumerable<SyntaxNode> interfaceTypes = null,
+            IEnumerable<SyntaxNode> members = null)
         {
             var itypes = interfaceTypes != null ? interfaceTypes.Cast<TypeSyntax>().ToList() : null;
             if (itypes != null && itypes.Count == 0)
@@ -431,12 +452,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return SyntaxFactory.InterfaceDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, modifiers),
-                SyntaxFactory.Identifier(identifier),
-                default(TypeParameterListSyntax),
+                GetModifiers(accessibility, SymbolModifiers.None),
+                SyntaxFactory.Identifier(name),
+                GetTypeParameters(typeParameters),
                 itypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(itypes)) : null,
                 default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                memberDeclarations != null ? SyntaxFactory.List(memberDeclarations.Cast<MemberDeclarationSyntax>().Select(AsInterfaceMember)) : default(SyntaxList<MemberDeclarationSyntax>));
+                GetInterfaceMembers(members));
+        }
+
+        private SyntaxList<MemberDeclarationSyntax> GetInterfaceMembers(IEnumerable<SyntaxNode> members)
+        {
+            return members != null
+                ? SyntaxFactory.List(members.Cast<MemberDeclarationSyntax>().Select(AsInterfaceMember))
+                : default(SyntaxList<MemberDeclarationSyntax>);
         }
 
         private MemberDeclarationSyntax AsInterfaceMember(MemberDeclarationSyntax member)
@@ -469,14 +497,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             throw new ArgumentException("Declaration is not valid interface member.");
         }
 
-        public override SyntaxNode EnumDeclaration(Accessibility accessibility, SymbolModifiers modifiers, string identifier, IEnumerable<SyntaxNode> enumMemberDeclarations = null)
+        public override SyntaxNode EnumDeclaration(
+            string name, 
+            Accessibility accessibility, 
+            IEnumerable<SyntaxNode> members)
         {
             return SyntaxFactory.EnumDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
-                GetModifiers(accessibility, modifiers),
-                SyntaxFactory.Identifier(identifier),
+                GetModifiers(accessibility, SymbolModifiers.None),
+                SyntaxFactory.Identifier(name),
                 default(BaseListSyntax),
-                enumMemberDeclarations != null ? SyntaxFactory.SeparatedList(enumMemberDeclarations.Select(AsEnumMember)) : default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>));
+                members != null ? SyntaxFactory.SeparatedList(members.Select(AsEnumMember)) : default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>));
         }
 
         public override SyntaxNode EnumMember(string identifier, SyntaxNode expression)
@@ -579,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (compUnit != null)
             {
                 var attributesWithAssemblyTarget = lists
-                .Select(list => list.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword))));
+                    .Select(list => list.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword))));
 
                 return compUnit.WithAttributeLists(compUnit.AttributeLists.AddRange(attributesWithAssemblyTarget));
             }
@@ -793,6 +824,111 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
+        private TypeParameterListSyntax GetTypeParameters(IEnumerable<string> typeParameterNames)
+        { 
+            var typeParameters = typeParameterNames != null
+                ? SyntaxFactory.TypeParameterList(SyntaxFactory.SeparatedList(typeParameterNames.Select(name => SyntaxFactory.TypeParameter(name))))
+                : null;
+
+            if (typeParameters != null && typeParameters.Parameters.Count == 0)
+            {
+                typeParameters = null;
+            }
+
+            return typeParameters;
+        }
+
+        public override SyntaxNode WithTypeParameters(SyntaxNode declaration, IEnumerable<string> typeParameterNames)
+        {
+            var typeParameters = this.GetTypeParameters(typeParameterNames);
+
+            switch (declaration.CSharpKind())
+            {
+                case SyntaxKind.MethodDeclaration:
+                    return ((MethodDeclarationSyntax)declaration).WithTypeParameterList(typeParameters);
+
+                case SyntaxKind.ClassDeclaration:
+                    return ((ClassDeclarationSyntax)declaration).WithTypeParameterList(typeParameters);
+
+                case SyntaxKind.StructDeclaration:
+                    return ((StructDeclarationSyntax)declaration).WithTypeParameterList(typeParameters);
+
+                case SyntaxKind.InterfaceDeclaration:
+                    return ((InterfaceDeclarationSyntax)declaration).WithTypeParameterList(typeParameters);
+
+                default:
+                    return declaration;
+            }
+        }
+
+        public override SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode> types)
+        {
+            switch (declaration.CSharpKind())
+            {
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    return method.WithConstraintClauses(WithTypeConstraints(method.ConstraintClauses, typeParameterName, kinds, types));
+
+                case SyntaxKind.ClassDeclaration:
+                    var cls = (ClassDeclarationSyntax)declaration;
+                    return cls.WithConstraintClauses(WithTypeConstraints(cls.ConstraintClauses, typeParameterName, kinds, types));
+
+                case SyntaxKind.StructDeclaration:
+                    var str = (StructDeclarationSyntax)declaration;
+                    return str.WithConstraintClauses(WithTypeConstraints(str.ConstraintClauses, typeParameterName, kinds, types));
+
+                case SyntaxKind.InterfaceDeclaration:
+                    var iface = (InterfaceDeclarationSyntax)declaration;
+                    return iface.WithConstraintClauses(WithTypeConstraints(iface.ConstraintClauses, typeParameterName, kinds, types));
+
+                default:
+                    return declaration;
+            }
+        }
+
+        private SyntaxList<TypeParameterConstraintClauseSyntax> WithTypeConstraints(
+            SyntaxList<TypeParameterConstraintClauseSyntax> clauses, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode> types)
+        {
+            var constraints = types != null
+                ? SyntaxFactory.SeparatedList<TypeParameterConstraintSyntax>(types.Select(t => SyntaxFactory.TypeConstraint((TypeSyntax)t)))
+                : SyntaxFactory.SeparatedList<TypeParameterConstraintSyntax>();
+
+            if ((kinds & SpecialTypeConstraintKind.Constructor) != 0)
+            {
+                constraints = constraints.Add(SyntaxFactory.ConstructorConstraint());
+            }
+
+            var isReferenceType = (kinds & SpecialTypeConstraintKind.ReferenceType) != 0;
+            var isValueType = (kinds & SpecialTypeConstraintKind.ValueType) != 0;
+
+            if (isReferenceType || isValueType)
+            {
+                constraints = constraints.Insert(0, SyntaxFactory.ClassOrStructConstraint(isReferenceType ? SyntaxKind.ClassConstraint : SyntaxKind.StructConstraint));
+            }
+
+            var clause = clauses.FirstOrDefault(c => c.Name.Identifier.ToString() == typeParameterName);
+
+            if (clause == null)
+            {
+                if (constraints.Count > 0)
+                {
+                    return clauses.Add(SyntaxFactory.TypeParameterConstraintClause(SyntaxFactory.IdentifierName(typeParameterName), constraints));
+                }
+                else
+                {
+                    return clauses;
+                }
+            }
+            else if (constraints.Count == 0)
+            {
+                return clauses.Remove(clause);
+            }
+            else
+            {
+                return clauses.Replace(clause, clause.WithConstraints(constraints));
+            }
+        }
+
         public override SyntaxNode ReturnStatement(SyntaxNode expressionOpt = null)
         {
             return SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);
@@ -859,8 +995,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode MemberAccessExpression(SyntaxNode expression, SyntaxNode simpleName)
         {
-            return SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                (ExpressionSyntax)expression, (SimpleNameSyntax)simpleName);
+            return SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                ParenthesizeLeft((ExpressionSyntax)expression), 
+                (SimpleNameSyntax)simpleName);
+        }
+
+        // parenthesize the left hand size of a member access, invocation or element access expression
+        private ExpressionSyntax ParenthesizeLeft(ExpressionSyntax expression)
+        {
+            if (expression is TypeSyntax
+                || expression.IsKind(SyntaxKind.ThisExpression)
+                || expression.IsKind(SyntaxKind.BaseExpression)
+                || expression.IsKind(SyntaxKind.ParenthesizedExpression)
+                || expression.IsKind(SyntaxKind.SimpleMemberAccessExpression)
+                || expression.IsKind(SyntaxKind.InvocationExpression)
+                || expression.IsKind(SyntaxKind.ElementAccessExpression))
+            {
+                return expression;
+            }
+            else
+            {
+                return this.Parenthesize(expression);
+            }
         }
 
         public override SyntaxNode ObjectCreationExpression(SyntaxNode type, IEnumerable<SyntaxNode> arguments)
@@ -893,13 +1050,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InvocationExpression(SyntaxNode expression, IEnumerable<SyntaxNode> arguments)
         {
-            return SyntaxFactory.InvocationExpression((ExpressionSyntax)expression, CreateArgumentList(arguments));
+            return SyntaxFactory.InvocationExpression(ParenthesizeLeft((ExpressionSyntax)expression), CreateArgumentList(arguments));
         }
 
         public override SyntaxNode ElementAccessExpression(SyntaxNode expression, IEnumerable<SyntaxNode> arguments)
         {
-            return SyntaxFactory.ElementAccessExpression(
-                (ExpressionSyntax)expression, SyntaxFactory.BracketedArgumentList(CreateArguments(arguments)));
+            return SyntaxFactory.ElementAccessExpression(ParenthesizeLeft((ExpressionSyntax)expression), SyntaxFactory.BracketedArgumentList(CreateArguments(arguments)));
         }
 
         public override SyntaxNode DefaultExpression(SyntaxNode type)
@@ -1113,33 +1269,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
         }
 
-        public override SyntaxNode WithGenericArguments(SyntaxNode name, IEnumerable<SyntaxNode> typeArguments)
+        public override SyntaxNode WithTypeArguments(SyntaxNode expression, IEnumerable<SyntaxNode> typeArguments)
         {
-            if (name.IsKind(SyntaxKind.IdentifierName)
-                || name.IsKind(SyntaxKind.GenericName))
+            switch (expression.CSharpKind())
             {
-                var sname = (SimpleNameSyntax)name;
-                return SyntaxFactory.GenericName(sname.Identifier,
-                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
-            }
-            else if (name.IsKind(SyntaxKind.QualifiedName))
-            {
-                var qname = (QualifiedNameSyntax)name;
-                return SyntaxFactory.QualifiedName(qname.Left, (SimpleNameSyntax)WithGenericArguments(qname.Right, typeArguments));
-            }
-            else if (name.IsKind(SyntaxKind.AliasQualifiedName))
-            {
-                var aname = (AliasQualifiedNameSyntax)name;
-                return SyntaxFactory.AliasQualifiedName(aname.Alias, (SimpleNameSyntax)WithGenericArguments(aname.Name, typeArguments));
-            }
-            else if (name.IsKind(SyntaxKind.SimpleMemberAccessExpression)
-                || name.IsKind(SyntaxKind.PointerMemberAccessExpression))
-            {
-                var sma = (MemberAccessExpressionSyntax)name;
-                return SyntaxFactory.MemberAccessExpression(name.CSharpKind(), sma.Expression, (SimpleNameSyntax)WithGenericArguments(sma.Name, typeArguments));
-            }
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.GenericName:
+                    var sname = (SimpleNameSyntax)expression;
+                    return SyntaxFactory.GenericName(sname.Identifier, SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
 
-            throw new NotImplementedException();
+                case SyntaxKind.QualifiedName:
+                    var qname = (QualifiedNameSyntax)expression;
+                    return SyntaxFactory.QualifiedName(qname.Left, (SimpleNameSyntax)WithTypeArguments(qname.Right, typeArguments));
+
+                case SyntaxKind.AliasQualifiedName:
+                    var aname = (AliasQualifiedNameSyntax)expression;
+                    return SyntaxFactory.AliasQualifiedName(aname.Alias, (SimpleNameSyntax)WithTypeArguments(aname.Name, typeArguments));
+
+                case SyntaxKind.SimpleMemberAccessExpression:
+                case SyntaxKind.PointerMemberAccessExpression:
+                    var sma = (MemberAccessExpressionSyntax)expression;
+                    return SyntaxFactory.MemberAccessExpression(expression.CSharpKind(), sma.Expression, (SimpleNameSyntax)WithTypeArguments(sma.Name, typeArguments));
+
+                default:
+                    return expression;
+            }
         }
 
         public override SyntaxNode QualifiedName(SyntaxNode left, SyntaxNode right)
@@ -1191,11 +1345,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        public override SyntaxNode NamedTypeExpression(INamedTypeSymbol typeSymbol)
-        {
-            return typeSymbol.GenerateExpressionSyntax();
-        }
-
         public override SyntaxNode ArrayTypeExpression(SyntaxNode type)
         {
             return SyntaxFactory.ArrayType((TypeSyntax)type, SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier()));
@@ -1215,13 +1364,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode Argument(string nameOpt, RefKind refKind, SyntaxNode expression)
         {
-#if false
-            if (expression is ArgumentSyntax)
-            {
-                return expression;
-            }
-#endif
-
             return SyntaxFactory.Argument(
                 nameOpt == null ? null : SyntaxFactory.NameColon(nameOpt),
                 refKind == RefKind.Ref ? SyntaxFactory.Token(SyntaxKind.RefKeyword) :
@@ -1353,7 +1495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode LambdaParameter(string identifier, SyntaxNode type = null)
         {
-            return ParameterDeclaration(RefKind.None, type, identifier, null);
+            return ParameterDeclaration(identifier, type, null, RefKind.None);
         }
 
         private IReadOnlyList<T> AsReadOnlyList<T>(IEnumerable<T> sequence)

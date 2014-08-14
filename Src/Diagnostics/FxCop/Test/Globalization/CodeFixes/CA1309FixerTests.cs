@@ -81,11 +81,11 @@ End Class
 ", @"
 Class C
     Sub M(a As String, b As String)
-        If (String).Equals(a, b, System.StringComparison.Ordinal) Then
+        If String.Equals(a, b, System.StringComparison.Ordinal) Then
         End If
-        If Not (String).Equals(a, b, System.StringComparison.Ordinal) Then
+        If Not String.Equals(a, b, System.StringComparison.Ordinal) Then
         End If
-        Dim c = (String).Equals(a, b, System.StringComparison.Ordinal) 'comment
+        Dim c = String.Equals(a, b, System.StringComparison.Ordinal) 'comment
     End Sub
 End Class
 ");

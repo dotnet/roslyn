@@ -99,18 +99,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGeneration
             VerifySyntax(Of GenericNameSyntax)(g.GenericName("x", g.IdentifierName("y"), g.IdentifierName("z")), "x(Of y, z)")
 
             ' convert identifer name into generic name
-            VerifySyntax(Of GenericNameSyntax)(g.WithGenericArguments(g.IdentifierName("x"), g.IdentifierName("y")), "x(Of y)")
+            VerifySyntax(Of GenericNameSyntax)(g.WithTypeArguments(g.IdentifierName("x"), g.IdentifierName("y")), "x(Of y)")
 
             ' convert qualified name into qualified generic name
-            VerifySyntax(Of QualifiedNameSyntax)(g.WithGenericArguments(g.DottedName("x.y"), g.IdentifierName("z")), "x.y(Of z)")
+            VerifySyntax(Of QualifiedNameSyntax)(g.WithTypeArguments(g.DottedName("x.y"), g.IdentifierName("z")), "x.y(Of z)")
 
             ' convert member access expression into generic member access expression
-            VerifySyntax(Of MemberAccessExpressionSyntax)(g.WithGenericArguments(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "(x).y(Of z)")
+            VerifySyntax(Of MemberAccessExpressionSyntax)(g.WithTypeArguments(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "x.y(Of z)")
 
             ' convert existing generic name into a different generic name
-            Dim gname = g.WithGenericArguments(g.IdentifierName("x"), g.IdentifierName("y"))
+            Dim gname = g.WithTypeArguments(g.IdentifierName("x"), g.IdentifierName("y"))
             VerifySyntax(Of GenericNameSyntax)(gname, "x(Of y)")
-            VerifySyntax(Of GenericNameSyntax)(g.WithGenericArguments(gname, g.IdentifierName("z")), "x(Of z)")
+            VerifySyntax(Of GenericNameSyntax)(g.WithTypeArguments(gname, g.IdentifierName("z")), "x(Of z)")
         End Sub
 
         <Fact>
@@ -202,8 +202,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGeneration
 
         <Fact>
         Public Sub TestMemberAccessExpressions()
-            VerifySyntax(Of MemberAccessExpressionSyntax)(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), "(x).y")
-            VerifySyntax(Of MemberAccessExpressionSyntax)(g.MemberAccessExpression(g.IdentifierName("x"), "y"), "(x).y")
+            VerifySyntax(Of MemberAccessExpressionSyntax)(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), "x.y")
+            VerifySyntax(Of MemberAccessExpressionSyntax)(g.MemberAccessExpression(g.IdentifierName("x"), "y"), "x.y")
+            VerifySyntax(Of MemberAccessExpressionSyntax)(g.MemberAccessExpression(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "x.y.z")
+            VerifySyntax(Of MemberAccessExpressionSyntax)(g.MemberAccessExpression(g.InvocationExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "x(y).z")
+            VerifySyntax(Of MemberAccessExpressionSyntax)(g.MemberAccessExpression(g.ElementAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "x(y).z")
+            VerifySyntax(Of MemberAccessExpressionSyntax)(g.MemberAccessExpression(g.AddExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")), "((x) + (y)).z")
+            VerifySyntax(Of MemberAccessExpressionSyntax)(g.MemberAccessExpression(g.NegateExpression(g.IdentifierName("x")), g.IdentifierName("y")), "(-(x)).y")
         End Sub
 
         <Fact>
@@ -229,11 +234,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGeneration
         Public Sub TestElementAccessExpressions()
             VerifySyntax(Of InvocationExpressionSyntax)(
                 g.ElementAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")),
-                "(x)(y)")
+                "x(y)")
 
             VerifySyntax(Of InvocationExpressionSyntax)(
                 g.ElementAccessExpression(g.IdentifierName("x"), g.IdentifierName("y"), g.IdentifierName("z")),
-                "(x)(y, z)")
+                "x(y, z)")
+
+            VerifySyntax(Of InvocationExpressionSyntax)(
+                g.ElementAccessExpression(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")),
+                "x.y(z)")
+
+            VerifySyntax(Of InvocationExpressionSyntax)(
+                g.ElementAccessExpression(g.ElementAccessExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")),
+                "x(y)(z)")
+
+            VerifySyntax(Of InvocationExpressionSyntax)(
+                g.ElementAccessExpression(g.InvocationExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")),
+                "x(y)(z)")
+
+            VerifySyntax(Of InvocationExpressionSyntax)(
+                g.ElementAccessExpression(g.AddExpression(g.IdentifierName("x"), g.IdentifierName("y")), g.IdentifierName("z")),
+                "((x) + (y))(z)")
         End Sub
 
         <Fact>
@@ -259,6 +280,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGeneration
             VerifySyntax(Of InvocationExpressionSyntax)(g.InvocationExpression(g.IdentifierName("x"), g.Argument(g.IdentifierName("y"))), "x(y)")
             VerifySyntax(Of InvocationExpressionSyntax)(g.InvocationExpression(g.IdentifierName("x"), g.Argument(RefKind.Ref, g.IdentifierName("y"))), "x(y)")
             VerifySyntax(Of InvocationExpressionSyntax)(g.InvocationExpression(g.IdentifierName("x"), g.Argument(RefKind.Out, g.IdentifierName("y"))), "x(y)")
+
+            VerifySyntax(Of InvocationExpressionSyntax)(g.InvocationExpression(g.MemberAccessExpression(g.IdentifierName("x"), g.IdentifierName("y"))), "x.y()")
+            VerifySyntax(Of InvocationExpressionSyntax)(g.InvocationExpression(g.ElementAccessExpression(g.IdentifierName("x"), g.IdentifierName("y"))), "x(y)()")
+            VerifySyntax(Of InvocationExpressionSyntax)(g.InvocationExpression(g.InvocationExpression(g.IdentifierName("x"), g.IdentifierName("y"))), "x(y)()")
+            VerifySyntax(Of InvocationExpressionSyntax)(g.InvocationExpression(g.AddExpression(g.IdentifierName("x"), g.IdentifierName("y"))), "((x) + (y))()")
         End Sub
 
         <Fact>
@@ -587,79 +613,84 @@ End Sub</x>.Value)
         <Fact>
         Public Sub TestFieldDeclarations()
             VerifySyntax(Of FieldDeclarationSyntax)(
-                g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.TypeExpression(SpecialType.System_Int32), "fld"),
-                <x>fld As Integer</x>.Value)
+                g.FieldDeclaration("fld", g.TypeExpression(SpecialType.System_Int32)),
+                <x>Dim fld As Integer</x>.Value)
 
             VerifySyntax(Of FieldDeclarationSyntax)(
-                g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.TypeExpression(SpecialType.System_Int32), "fld", initializer:=g.LiteralExpression(0)),
-                <x>fld As Integer = 0</x>.Value)
+                g.FieldDeclaration("fld", g.TypeExpression(SpecialType.System_Int32), initializer:=g.LiteralExpression(0)),
+                <x>Dim fld As Integer = 0</x>.Value)
 
             VerifySyntax(Of FieldDeclarationSyntax)(
-                g.FieldDeclaration(Accessibility.Public, SymbolModifiers.None, g.TypeExpression(SpecialType.System_Int32), "fld"),
+                g.FieldDeclaration("fld", g.TypeExpression(SpecialType.System_Int32), accessibility:=Accessibility.Public),
                 <x>Public fld As Integer</x>.Value)
 
             VerifySyntax(Of FieldDeclarationSyntax)(
-                g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.Static Or SymbolModifiers.ReadOnly, g.TypeExpression(SpecialType.System_Int32), "fld"),
+                g.FieldDeclaration("fld", g.TypeExpression(SpecialType.System_Int32), modifiers:=SymbolModifiers.Static Or SymbolModifiers.ReadOnly),
                 <x>Shared ReadOnly fld As Integer</x>.Value)
         End Sub
 
         <Fact>
         Public Sub TestMethodDeclarations()
             VerifySyntax(Of MethodBlockSyntax)(
-                g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, Nothing, "m"),
+                g.MethodDeclaration("m"),
 <x>Sub m()
 End Sub</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
-                g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "m"),
+                g.MethodDeclaration("m", typeParameters:={"x", "y"}),
+<x>Sub m(Of x, y)()
+End Sub</x>.Value)
+
+            VerifySyntax(Of MethodBlockSyntax)(
+                g.MethodDeclaration("m", returnType:=g.IdentifierName("x")),
 <x>Function m() As x
 End Function</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
-                g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "m", statements:={g.ReturnStatement(g.IdentifierName("y"))}),
+                g.MethodDeclaration("m", returnType:=g.IdentifierName("x"), statements:={g.ReturnStatement(g.IdentifierName("y"))}),
 <x>Function m() As x
     Return y
 End Function</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
-                g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "m", parameters:={g.ParameterDeclaration(g.IdentifierName("y"), "z")}),
+                g.MethodDeclaration("m", parameters:={g.ParameterDeclaration("z", g.IdentifierName("y"))}, returnType:=g.IdentifierName("x")),
 <x>Function m(z As y) As x
 End Function</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
-                g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "m", parameters:={g.ParameterDeclaration(g.IdentifierName("y"), "z", g.IdentifierName("a"))}),
+                g.MethodDeclaration("m", parameters:={g.ParameterDeclaration("z", g.IdentifierName("y"), g.IdentifierName("a"))}, returnType:=g.IdentifierName("x")),
 <x>Function m(Optional z As y = a) As x
 End Function</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
-                g.MethodDeclaration(Accessibility.Public, SymbolModifiers.None, g.IdentifierName("x"), "m"),
+                g.MethodDeclaration("m", returnType:=g.IdentifierName("x"), accessibility:=Accessibility.Public, modifiers:=SymbolModifiers.None),
 <x>Public Function m() As x
 End Function</x>.Value)
 
             VerifySyntax(Of MethodStatementSyntax)(
-                g.MethodDeclaration(Accessibility.Public, SymbolModifiers.Abstract, g.IdentifierName("x"), "m"),
+                g.MethodDeclaration("m", returnType:=g.IdentifierName("x"), accessibility:=Accessibility.Public, modifiers:=SymbolModifiers.Abstract),
 <x>Public MustInherit Function m() As x</x>.Value)
         End Sub
 
         <Fact>
         Public Sub TestPropertyDeclarations()
             VerifySyntax(Of PropertyStatementSyntax)(
-                g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract + SymbolModifiers.ReadOnly, g.IdentifierName("x"), "p"),
+                g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers:=SymbolModifiers.Abstract + SymbolModifiers.ReadOnly),
 <x>MustInherit ReadOnly Property p As x</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
-                g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.ReadOnly, g.IdentifierName("x"), "p"),
+                g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers:=SymbolModifiers.ReadOnly),
 <x>ReadOnly Property p As x
     Get
     End Get
 End Property</x>.Value)
 
             VerifySyntax(Of PropertyStatementSyntax)(
-                g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("x"), "p"),
+                g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers:=SymbolModifiers.Abstract),
 <x>MustInherit Property p As x</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
-                g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.ReadOnly, g.IdentifierName("x"), "p", getterStatements:={g.IdentifierName("y")}),
+                g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers:=SymbolModifiers.ReadOnly, getterStatements:={g.IdentifierName("y")}),
 <x>ReadOnly Property p As x
     Get
         y
@@ -667,8 +698,7 @@ End Property</x>.Value)
 End Property</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
-                g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "p",
-                    getterStatements:=Nothing, setterStatements:={g.IdentifierName("y")}),
+                g.PropertyDeclaration("p", g.IdentifierName("x"), setterStatements:={g.IdentifierName("y")}),
 <x>Property p As x
     Get
     End Get
@@ -682,22 +712,22 @@ End Property</x>.Value)
         <Fact>
         Public Sub TestIndexerDeclarations()
             VerifySyntax(Of PropertyStatementSyntax)(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract + SymbolModifiers.ReadOnly, g.IdentifierName("x"), {g.ParameterDeclaration(g.IdentifierName("y"), "z")}),
+                g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"), modifiers:=SymbolModifiers.Abstract + SymbolModifiers.ReadOnly),
 <x>Default MustInherit ReadOnly Property Item(z As y) As x</x>.Value)
 
             VerifySyntax(Of PropertyStatementSyntax)(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("x"), {g.ParameterDeclaration(g.IdentifierName("y"), "z")}),
+                g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"), modifiers:=SymbolModifiers.Abstract),
 <x>Default MustInherit Property Item(z As y) As x</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.ReadOnly, g.IdentifierName("x"), {g.ParameterDeclaration(g.IdentifierName("y"), "z")}),
+                g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"), modifiers:=SymbolModifiers.ReadOnly),
 <x>Default ReadOnly Property Item(z As y) As x
     Get
     End Get
 End Property</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.ReadOnly, g.IdentifierName("x"), {g.ParameterDeclaration(g.IdentifierName("y"), "z")},
+                g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"), modifiers:=SymbolModifiers.ReadOnly,
                     getterStatements:={g.IdentifierName("a")}),
 <x>Default ReadOnly Property Item(z As y) As x
     Get
@@ -706,7 +736,7 @@ End Property</x>.Value)
 End Property</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), {g.ParameterDeclaration(g.IdentifierName("y"), "z")}),
+                g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"), modifiers:=SymbolModifiers.None),
 <x>Default Property Item(z As y) As x
     Get
     End Get
@@ -716,7 +746,7 @@ End Property</x>.Value)
 End Property</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), {g.ParameterDeclaration(g.IdentifierName("y"), "z")},
+                g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"),
                     setterStatements:={g.IdentifierName("a")}),
 <x>Default Property Item(z As y) As x
     Get
@@ -728,7 +758,7 @@ End Property</x>.Value)
 End Property</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
-                g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), {g.ParameterDeclaration(g.IdentifierName("y"), "z")},
+                g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"),
                     getterStatements:={g.IdentifierName("a")}, setterStatements:={g.IdentifierName("b")}),
 <x>Default Property Item(z As y) As x
     Get
@@ -745,24 +775,23 @@ End Property</x>.Value)
         <Fact>
         Public Sub TestConstructorDeclaration()
             VerifySyntax(Of ConstructorBlockSyntax)(
-                g.ConstructorDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"),
+                g.ConstructorDeclaration("c"),
 <x>Sub New()
 End Sub</x>.Value)
 
             VerifySyntax(Of ConstructorBlockSyntax)(
-                g.ConstructorDeclaration(Accessibility.Public, SymbolModifiers.Static, "c"),
+                g.ConstructorDeclaration("c", accessibility:=Accessibility.Public, modifiers:=SymbolModifiers.Static),
 <x>Public Shared Sub New()
 End Sub</x>.Value)
 
             VerifySyntax(Of ConstructorBlockSyntax)(
-                g.ConstructorDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c",
-                    parameters:={g.ParameterDeclaration(g.IdentifierName("t"), "p")}),
+                g.ConstructorDeclaration("c", parameters:={g.ParameterDeclaration("p", g.IdentifierName("t"))}),
 <x>Sub New(p As t)
 End Sub</x>.Value)
 
             VerifySyntax(Of ConstructorBlockSyntax)(
-                g.ConstructorDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c",
-                    parameters:={g.ParameterDeclaration(g.IdentifierName("t"), "p")},
+                g.ConstructorDeclaration("c",
+                    parameters:={g.ParameterDeclaration("p", g.IdentifierName("t"))},
                     baseConstructorArguments:={g.IdentifierName("p")}),
 <x>Sub New(p As t)
     MyBase.New(p)
@@ -772,31 +801,36 @@ End Sub</x>.Value)
         <Fact>
         Public Sub TestClassDeclarations()
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"),
+                g.ClassDeclaration("c"),
 <x>Class c
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ClassDeclaration(Accessibility.Public, SymbolModifiers.None, "c"),
+                g.ClassDeclaration("c", typeParameters:={"x", "y"}),
+<x>Class c(Of x, y)
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.ClassDeclaration("c", accessibility:=Accessibility.Public),
 <x>Public Class c
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c", baseType:=g.IdentifierName("x")),
+                g.ClassDeclaration("c", baseType:=g.IdentifierName("x")),
 <x>Class c
     Inherits x
 
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c", interfaceTypes:={g.IdentifierName("x")}),
+                g.ClassDeclaration("c", interfaceTypes:={g.IdentifierName("x")}),
 <x>Class c
     Implements x
 
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c", baseType:=g.IdentifierName("x"), interfaceTypes:={g.IdentifierName("y"), g.IdentifierName("z")}),
+                g.ClassDeclaration("c", baseType:=g.IdentifierName("x"), interfaceTypes:={g.IdentifierName("y"), g.IdentifierName("z")}),
 <x>Class c
     Inherits x
     Implements y, z
@@ -804,16 +838,15 @@ End Class</x>.Value)
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c", interfaceTypes:={}),
+                g.ClassDeclaration("c", interfaceTypes:={}),
 <x>Class c
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c",
-                    memberDeclarations:={g.FieldDeclaration(Accessibility.Private, SymbolModifiers.None, g.IdentifierName("x"), "y")}),
+                g.ClassDeclaration("c", members:={g.FieldDeclaration("y", type:=g.IdentifierName("x"))}),
 <x>Class c
 
-    Private y As x
+    Dim y As x
 End Class</x>.Value)
 
         End Sub
@@ -821,45 +854,48 @@ End Class</x>.Value)
         <Fact>
         Public Sub TestStructDeclarations()
             VerifySyntax(Of StructureBlockSyntax)(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s"),
+                g.StructDeclaration("s"),
 <x>Structure s
 End Structure</x>.Value)
 
             VerifySyntax(Of StructureBlockSyntax)(
-                g.StructDeclaration(Accessibility.Public, SymbolModifiers.Partial, "s"),
+                g.StructDeclaration("s", typeParameters:={"x", "y"}),
+<x>Structure s(Of x, y)
+End Structure</x>.Value)
+
+            VerifySyntax(Of StructureBlockSyntax)(
+                g.StructDeclaration("s", accessibility:=Accessibility.Public, modifiers:=SymbolModifiers.Partial),
 <x>Public Partial Structure s
 End Structure</x>.Value)
 
             VerifySyntax(Of StructureBlockSyntax)(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s", interfaceTypes:={g.IdentifierName("x")}),
+                g.StructDeclaration("s", interfaceTypes:={g.IdentifierName("x")}),
 <x>Structure s
     Implements x
 
 End Structure</x>.Value)
 
             VerifySyntax(Of StructureBlockSyntax)(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s", interfaceTypes:={g.IdentifierName("x"), g.IdentifierName("y")}),
+                g.StructDeclaration("s", interfaceTypes:={g.IdentifierName("x"), g.IdentifierName("y")}),
 <x>Structure s
     Implements x, y
 
 End Structure</x>.Value)
 
             VerifySyntax(Of StructureBlockSyntax)(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s", interfaceTypes:={}),
+                g.StructDeclaration("s", interfaceTypes:={}),
 <x>Structure s
 End Structure</x>.Value)
 
             VerifySyntax(Of StructureBlockSyntax)(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s",
-                    memberDeclarations:={g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "y")}),
+                g.StructDeclaration("s", members:={g.FieldDeclaration("y", g.IdentifierName("x"))}),
 <x>Structure s
 
-    y As x
+    Dim y As x
 End Structure</x>.Value)
 
             VerifySyntax(Of StructureBlockSyntax)(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s",
-                    memberDeclarations:={g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("t"), "m")}),
+                g.StructDeclaration("s", members:={g.MethodDeclaration("m", returnType:=g.IdentifierName("t"))}),
 <x>Structure s
 
     Function m() As t
@@ -867,8 +903,8 @@ End Structure</x>.Value)
 End Structure</x>.Value)
 
             VerifySyntax(Of StructureBlockSyntax)(
-                g.StructDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "s",
-                    memberDeclarations:={g.ConstructorDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "xxx")}),
+                g.StructDeclaration("s",
+                    members:={g.ConstructorDeclaration(accessibility:=Accessibility.NotApplicable, modifiers:=SymbolModifiers.None)}),
 <x>Structure s
 
     Sub New()
@@ -879,32 +915,36 @@ End Structure</x>.Value)
         <Fact>
         Public Sub TestInterfaceDeclarations()
             VerifySyntax(Of InterfaceBlockSyntax)(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i"),
+                g.InterfaceDeclaration("i"),
 <x>Interface i
 End Interface</x>.Value)
 
             VerifySyntax(Of InterfaceBlockSyntax)(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i", interfaceTypes:={g.IdentifierName("a")}),
+                g.InterfaceDeclaration("i", typeParameters:={"x", "y"}),
+<x>Interface i(Of x, y)
+End Interface</x>.Value)
+
+            VerifySyntax(Of InterfaceBlockSyntax)(
+                g.InterfaceDeclaration("i", interfaceTypes:={g.IdentifierName("a")}),
 <x>Interface i
     Inherits a
 
 End Interface</x>.Value)
 
             VerifySyntax(Of InterfaceBlockSyntax)(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i", interfaceTypes:={g.IdentifierName("a"), g.IdentifierName("b")}),
+                g.InterfaceDeclaration("i", interfaceTypes:={g.IdentifierName("a"), g.IdentifierName("b")}),
 <x>Interface i
     Inherits a, b
 
 End Interface</x>.Value)
 
             VerifySyntax(Of InterfaceBlockSyntax)(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i", interfaceTypes:={}),
+                g.InterfaceDeclaration("i", interfaceTypes:={}),
 <x>Interface i
 End Interface</x>.Value)
 
             VerifySyntax(Of InterfaceBlockSyntax)(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i",
-                    memberDeclarations:={g.MethodDeclaration(Accessibility.Public, SymbolModifiers.Sealed, g.IdentifierName("t"), "m")}),
+                g.InterfaceDeclaration("i", members:={g.MethodDeclaration("m", returnType:=g.IdentifierName("t"), accessibility:=Accessibility.Public, modifiers:=SymbolModifiers.Sealed)}),
 <x>Interface i
 
     Function m() As t
@@ -912,8 +952,7 @@ End Interface</x>.Value)
 End Interface</x>.Value)
 
             VerifySyntax(Of InterfaceBlockSyntax)(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i",
-                    memberDeclarations:={g.PropertyDeclaration(Accessibility.Public, SymbolModifiers.Sealed, g.IdentifierName("t"), "p")}),
+                g.InterfaceDeclaration("i", members:={g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility:=Accessibility.Public, modifiers:=SymbolModifiers.Sealed)}),
 <x>Interface i
 
     Property p As t
@@ -921,8 +960,7 @@ End Interface</x>.Value)
 End Interface</x>.Value)
 
             VerifySyntax(Of InterfaceBlockSyntax)(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i",
-                    memberDeclarations:={g.PropertyDeclaration(Accessibility.Public, SymbolModifiers.ReadOnly, g.IdentifierName("t"), "p")}),
+                g.InterfaceDeclaration("i", members:={g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility:=Accessibility.Public, modifiers:=SymbolModifiers.ReadOnly)}),
 <x>Interface i
 
     ReadOnly Property p As t
@@ -930,8 +968,7 @@ End Interface</x>.Value)
 End Interface</x>.Value)
 
             VerifySyntax(Of InterfaceBlockSyntax)(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i",
-                    memberDeclarations:={g.IndexerDeclaration(Accessibility.Public, SymbolModifiers.Sealed, g.IdentifierName("t"), {g.ParameterDeclaration(g.IdentifierName("x"), "y")})}),
+                g.InterfaceDeclaration("i", members:={g.IndexerDeclaration({g.ParameterDeclaration("y", g.IdentifierName("x"))}, g.IdentifierName("t"), Accessibility.Public, SymbolModifiers.Sealed)}),
 <x>Interface i
 
     Default Property Item(y As x) As t
@@ -939,8 +976,7 @@ End Interface</x>.Value)
 End Interface</x>.Value)
 
             VerifySyntax(Of InterfaceBlockSyntax)(
-                g.InterfaceDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "i",
-                    memberDeclarations:={g.IndexerDeclaration(Accessibility.Public, SymbolModifiers.ReadOnly, g.IdentifierName("t"), {g.ParameterDeclaration(g.IdentifierName("x"), "y")})}),
+                g.InterfaceDeclaration("i", members:={g.IndexerDeclaration({g.ParameterDeclaration("y", g.IdentifierName("x"))}, g.IdentifierName("t"), Accessibility.Public, SymbolModifiers.ReadOnly)}),
 <x>Interface i
 
     Default ReadOnly Property Item(y As x) As t
@@ -951,22 +987,12 @@ End Interface</x>.Value)
         <Fact>
         Public Sub TestEnumDeclarations()
             VerifySyntax(Of EnumBlockSyntax)(
-                g.EnumDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "e"),
+                g.EnumDeclaration("e"),
 <x>Enum e
 End Enum</x>.Value)
 
             VerifySyntax(Of EnumBlockSyntax)(
-                g.EnumDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "e",
-                    {g.EnumMember("a"), g.EnumMember("b"), g.EnumMember("c")}),
-<x>Enum e
-    a
-    b
-    c
-End Enum</x>.Value)
-
-            VerifySyntax(Of EnumBlockSyntax)(
-                g.EnumDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "e",
-                    {g.IdentifierName("a"), g.EnumMember("b"), g.IdentifierName("c")}),
+                g.EnumDeclaration("e", members:={g.EnumMember("a"), g.EnumMember("b"), g.EnumMember("c")}),
 <x>Enum e
     a
     b
@@ -974,8 +1000,15 @@ End Enum</x>.Value)
 End Enum</x>.Value)
 
             VerifySyntax(Of EnumBlockSyntax)(
-                g.EnumDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "e",
-                    {g.EnumMember("a", g.LiteralExpression(0)), g.EnumMember("b"), g.EnumMember("c", g.LiteralExpression(5))}),
+                g.EnumDeclaration("e", members:={g.IdentifierName("a"), g.EnumMember("b"), g.IdentifierName("c")}),
+<x>Enum e
+    a
+    b
+    c
+End Enum</x>.Value)
+
+            VerifySyntax(Of EnumBlockSyntax)(
+                g.EnumDeclaration("e", members:={g.EnumMember("a", g.LiteralExpression(0)), g.EnumMember("b"), g.EnumMember("c", g.LiteralExpression(5))}),
 <x>Enum e
     a = 0
     b
@@ -1020,7 +1053,7 @@ End Namespace</x>.Value)
 
             VerifySyntax(Of NamespaceBlockSyntax)(
                 g.NamespaceDeclaration("n",
-                    g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"),
+                    g.ClassDeclaration("c"),
                     g.NamespaceImportDeclaration("m")),
 <x>Namespace n
 
@@ -1053,7 +1086,7 @@ End Namespace
 
             VerifySyntax(Of CompilationUnitSyntax)(
                 g.CompilationUnit(
-                    g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"),
+                    g.ClassDeclaration("c"),
                     g.NamespaceImportDeclaration("m")),
 <x>Imports m
 
@@ -1066,7 +1099,7 @@ End Class
                     g.NamespaceImportDeclaration("n"),
                     g.NamespaceDeclaration("n",
                         g.NamespaceImportDeclaration("m"),
-                        g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"))),
+                        g.ClassDeclaration("c"))),
 <x>Imports n
 
 Namespace n
@@ -1118,37 +1151,37 @@ End Namespace
         Public Sub TestAddAttributes()
             VerifySyntax(Of FieldDeclarationSyntax)(
                 g.AddAttributes(
-                    g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "y"),
+                    g.FieldDeclaration("y", g.IdentifierName("x")),
                     g.Attribute("a")),
 <x>&lt;a&gt;
-y As x</x>.Value)
+Dim y As x</x>.Value)
 
             VerifySyntax(Of FieldDeclarationSyntax)(
                 g.AddAttributes(
                     g.AddAttributes(
-                        g.FieldDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "y"),
+                        g.FieldDeclaration("y", g.IdentifierName("x")),
                         g.Attribute("a")),
                     g.Attribute("b")),
 <x>&lt;a&gt;
 &lt;b&gt;
-y As x</x>.Value)
+Dim y As x</x>.Value)
 
             VerifySyntax(Of MethodStatementSyntax)(
                 g.AddAttributes(
-                    g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("t"), "m"),
+                    g.MethodDeclaration("m", returnType:=g.IdentifierName("t"), modifiers:=SymbolModifiers.Abstract),
                     g.Attribute("a")),
 <x>&lt;a&gt;
 MustInherit Function m() As t</x>.Value)
 
             VerifySyntax(Of MethodStatementSyntax)(
                 g.AddReturnAttributes(
-                    g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("t"), "m"),
+                    g.MethodDeclaration("m", returnType:=g.IdentifierName("t"), modifiers:=SymbolModifiers.Abstract),
                     g.Attribute("a")),
 <x>MustInherit Function m() As &lt;a&gt; t</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 g.AddAttributes(
-                    g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("t"), "m"),
+                    g.MethodDeclaration("m", returnType:=g.IdentifierName("t"), modifiers:=SymbolModifiers.None),
                     g.Attribute("a")),
 <x>&lt;a&gt;
 Function m() As t
@@ -1156,21 +1189,21 @@ End Function</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 g.AddReturnAttributes(
-                    g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("t"), "m"),
+                    g.MethodDeclaration("m", returnType:=g.IdentifierName("t"), modifiers:=SymbolModifiers.None),
                     g.Attribute("a")),
 <x>Function m() As &lt;a&gt; t
 End Function</x>.Value)
 
             VerifySyntax(Of PropertyStatementSyntax)(
                 g.AddAttributes(
-                    g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("x"), "p"),
+                    g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers:=SymbolModifiers.Abstract),
                     g.Attribute("a")),
 <x>&lt;a&gt;
 MustInherit Property p As x</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
                 g.AddAttributes(
-                    g.PropertyDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), "p"),
+                    g.PropertyDeclaration("p", g.IdentifierName("x")),
                     g.Attribute("a")),
 <x>&lt;a&gt;
 Property p As x
@@ -1183,14 +1216,14 @@ End Property</x>.Value)
 
             VerifySyntax(Of PropertyStatementSyntax)(
                 g.AddAttributes(
-                    g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("x"), {g.ParameterDeclaration(g.IdentifierName("y"), "z")}),
+                    g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"), modifiers:=SymbolModifiers.Abstract),
                     g.Attribute("a")),
 <x>&lt;a&gt;
 Default MustInherit Property Item(z As y) As x</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
                 g.AddAttributes(
-                    g.IndexerDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, g.IdentifierName("x"), {g.ParameterDeclaration(g.IdentifierName("y"), "z")}),
+                    g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x")),
                     g.Attribute("a")),
 <x>&lt;a&gt;
 Default Property Item(z As y) As x
@@ -1203,7 +1236,7 @@ End Property</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
                 g.AddAttributes(
-                    g.ClassDeclaration(Accessibility.NotApplicable, SymbolModifiers.None, "c"),
+                    g.ClassDeclaration("c"),
                     g.Attribute("a")),
 <x>&lt;a&gt;
 Class c
@@ -1211,7 +1244,7 @@ End Class</x>.Value)
 
             VerifySyntax(Of ParameterSyntax)(
                 g.AddAttributes(
-                    g.ParameterDeclaration(g.IdentifierName("t"), "p"),
+                    g.ParameterDeclaration("p", g.IdentifierName("t")),
                     g.Attribute("a")),
 <x>&lt;a&gt; p As t</x>.Value)
 
@@ -1229,14 +1262,14 @@ End Namespace
         Public Sub TestAsPublicInterfaceImplementation()
             VerifySyntax(Of MethodBlockBaseSyntax)(
                 g.AsPublicInterfaceImplementation(
-                    g.MethodDeclaration(Accessibility.NotApplicable, SymbolModifiers.Abstract, g.IdentifierName("t"), "m"),
+                    g.MethodDeclaration("m", returnType:=g.IdentifierName("t"), modifiers:=SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
 <x>Public Function m() As t Implements i.m
 End Function</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
                 g.AsPublicInterfaceImplementation(
-                    g.PropertyDeclaration(Accessibility.Private, SymbolModifiers.Abstract, g.IdentifierName("t"), "p"),
+                    g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility:=Accessibility.Private, modifiers:=SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
 <x>Public Property p As t Implements i.p
     Get
@@ -1248,7 +1281,7 @@ End Property</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
                 g.AsPublicInterfaceImplementation(
-                    g.IndexerDeclaration(Accessibility.Internal, SymbolModifiers.Abstract, g.IdentifierName("t"), {g.ParameterDeclaration(g.IdentifierName("a"), "p")}),
+                    g.IndexerDeclaration({g.ParameterDeclaration("p", g.IdentifierName("a"))}, g.IdentifierName("t"), Accessibility.Internal, SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
 <x>Default Public Property Item(p As a) As t Implements i.Item
     Get
@@ -1263,21 +1296,21 @@ End Property</x>.Value)
         Public Sub TestAsPrivateInterfaceImplementation()
             VerifySyntax(Of MethodBlockBaseSyntax)(
                 g.AsPrivateInterfaceImplementation(
-                    g.MethodDeclaration(Accessibility.Private, SymbolModifiers.Abstract, g.IdentifierName("t"), "m"),
+                    g.MethodDeclaration("m", returnType:=g.IdentifierName("t"), accessibility:=Accessibility.Private, modifiers:=SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
 <x>Private Function i_m() As t Implements i.m
 End Function</x>.Value)
 
             VerifySyntax(Of MethodBlockBaseSyntax)(
                 g.AsPrivateInterfaceImplementation(
-                    g.MethodDeclaration(Accessibility.Private, SymbolModifiers.Abstract, g.IdentifierName("t"), "m"),
+                    g.MethodDeclaration("m", returnType:=g.IdentifierName("t"), accessibility:=Accessibility.Private, modifiers:=SymbolModifiers.Abstract),
                     g.TypeExpression(Me.ienumerableInt)),
 <x>Private Function IEnumerable_Int32_m() As t Implements Global.System.Collections.Generic.IEnumerable(Of System.Int32).m
 End Function</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
                 g.AsPrivateInterfaceImplementation(
-                    g.PropertyDeclaration(Accessibility.Internal, SymbolModifiers.Abstract, g.IdentifierName("t"), "p"),
+                    g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility:=Accessibility.Internal, modifiers:=SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
 <x>Private Property i_p As t Implements i.p
     Get
@@ -1289,7 +1322,7 @@ End Property</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
                 g.AsPrivateInterfaceImplementation(
-                    g.IndexerDeclaration(Accessibility.Protected, SymbolModifiers.Abstract, g.IdentifierName("t"), {g.ParameterDeclaration(g.IdentifierName("a"), "p")}),
+                    g.IndexerDeclaration({g.ParameterDeclaration("p", g.IdentifierName("a"))}, g.IdentifierName("t"), Accessibility.Protected, SymbolModifiers.Abstract),
                     g.IdentifierName("i")),
 <x>Private Property i_Item(p As a) As t Implements i.Item
     Get
@@ -1298,6 +1331,225 @@ End Property</x>.Value)
     Set(value As t)
     End Set
 End Property</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestWithTypeParameters()
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeParameters(
+                    g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract),
+                    "a"),
+<x>MustInherit Sub m(Of a)()</x>.Value)
+
+            VerifySyntax(Of MethodBlockSyntax)(
+                g.WithTypeParameters(
+                    g.MethodDeclaration("m", modifiers:=SymbolModifiers.None),
+                    "a"),
+<x>Sub m(Of a)()
+End Sub</x>.Value)
+
+            ' assigning no type parameters is legal
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeParameters(
+                    g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract)),
+<x>MustInherit Sub m()</x>.Value)
+
+            VerifySyntax(Of MethodBlockSyntax)(
+                g.WithTypeParameters(
+                    g.MethodDeclaration("m", modifiers:=SymbolModifiers.None)),
+<x>Sub m()
+End Sub</x>.Value)
+
+            ' removing type parameters
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeParameters(g.WithTypeParameters(
+                    g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract),
+                    "a")),
+<x>MustInherit Sub m()</x>.Value)
+
+            VerifySyntax(Of MethodBlockSyntax)(
+                g.WithTypeParameters(g.WithTypeParameters(
+                    g.MethodDeclaration("m"),
+                    "a")),
+<x>Sub m()
+End Sub</x>.Value)
+
+            ' multiple type parameters
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeParameters(
+                    g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract),
+                    "a", "b"),
+<x>MustInherit Sub m(Of a, b)()</x>.Value)
+
+            VerifySyntax(Of MethodBlockSyntax)(
+                g.WithTypeParameters(
+                    g.MethodDeclaration("m"),
+                    "a", "b"),
+<x>Sub m(Of a, b)()
+End Sub</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.WithTypeParameters(
+                    g.ClassDeclaration("c"),
+                    "a", "b"),
+<x>Class c(Of a, b)
+End Class</x>.Value)
+
+            VerifySyntax(Of StructureBlockSyntax)(
+                g.WithTypeParameters(
+                    g.StructDeclaration("s"),
+                    "a", "b"),
+<x>Structure s(Of a, b)
+End Structure</x>.Value)
+
+            VerifySyntax(Of InterfaceBlockSyntax)(
+                g.WithTypeParameters(
+                    g.InterfaceDeclaration("i"),
+                    "a", "b"),
+<x>Interface i(Of a, b)
+End Interface</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestWithTypeConstraint()
+            ' single type constraint
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract), "a"),
+                    "a", g.IdentifierName("b")),
+<x>MustInherit Sub m(Of a As b)()</x>.Value)
+
+            VerifySyntax(Of MethodBlockSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m"), "a"),
+                    "a", g.IdentifierName("b")),
+<x>Sub m(Of a As b)()
+End Sub</x>.Value)
+
+            ' multiple type constraints
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract), "a"),
+                    "a", g.IdentifierName("b"), g.IdentifierName("c")),
+<x>MustInherit Sub m(Of a As {b, c})()</x>.Value)
+
+            VerifySyntax(Of MethodBlockSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m"), "a"),
+                    "a", g.IdentifierName("b"), g.IdentifierName("c")),
+<x>Sub m(Of a As {b, c})()
+End Sub</x>.Value)
+
+            ' no type constraints
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract), "a"),
+                    "a"),
+<x>MustInherit Sub m(Of a)()</x>.Value)
+
+            VerifySyntax(Of MethodBlockSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m"), "a"),
+                    "a"),
+<x>Sub m(Of a)()
+End Sub</x>.Value)
+
+            ' removed type constraints
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeConstraint(g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract), "a"),
+                    "a", g.IdentifierName("b"), g.IdentifierName("c")), "a"),
+<x>MustInherit Sub m(Of a)()</x>.Value)
+
+            VerifySyntax(Of MethodBlockSyntax)(
+                g.WithTypeConstraint(g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m"), "a"),
+                    "a", g.IdentifierName("b"), g.IdentifierName("c")), "a"),
+<x>Sub m(Of a)()
+End Sub</x>.Value)
+
+            ' multipe type parameters with constraints
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeConstraint(
+                        g.WithTypeParameters(g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract), "a", "x"),
+                        "a", g.IdentifierName("b"), g.IdentifierName("c")),
+                    "x", g.IdentifierName("y")),
+<x>MustInherit Sub m(Of a As {b, c}, x As y)()</x>.Value)
+
+            ' with constructor constraint
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.Constructor),
+<x>MustInherit Sub m(Of a As New)()</x>.Value)
+
+            ' with reference constraint
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.ReferenceType),
+<x>MustInherit Sub m(Of a As Class)()</x>.Value)
+
+            ' with value type constraint
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.ValueType),
+<x>MustInherit Sub m(Of a As Structure)()</x>.Value)
+
+            ' with reference constraint and constructor constraint
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.ReferenceType Or SpecialTypeConstraintKind.Constructor),
+<x>MustInherit Sub m(Of a As {Class, New})()</x>.Value)
+
+            ' with value type constraint and constructor constraint
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.ValueType Or SpecialTypeConstraintKind.Constructor),
+<x>MustInherit Sub m(Of a As {Structure, New})()</x>.Value)
+
+            ' with reference constraint and type constraints
+            VerifySyntax(Of MethodStatementSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(g.MethodDeclaration("m", modifiers:=SymbolModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.ReferenceType, g.IdentifierName("b"), g.IdentifierName("c")),
+<x>MustInherit Sub m(Of a As {Class, b, c})()</x>.Value)
+
+            ' class declarations
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(
+                        g.ClassDeclaration("c"),
+                        "a", "b"),
+                    "a", g.IdentifierName("x")),
+<x>Class c(Of a As x, b)
+End Class</x>.Value)
+
+            ' structure declarations
+            VerifySyntax(Of StructureBlockSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(
+                        g.StructDeclaration("s"),
+                        "a", "b"),
+                    "a", g.IdentifierName("x")),
+<x>Structure s(Of a As x, b)
+End Structure</x>.Value)
+
+            ' interface delcarations
+            VerifySyntax(Of InterfaceBlockSyntax)(
+                g.WithTypeConstraint(
+                    g.WithTypeParameters(
+                        g.InterfaceDeclaration("i"),
+                        "a", "b"),
+                    "a", g.IdentifierName("x")),
+<x>Interface i(Of a As x, b)
+End Interface</x>.Value)
+
         End Sub
 
     End Class

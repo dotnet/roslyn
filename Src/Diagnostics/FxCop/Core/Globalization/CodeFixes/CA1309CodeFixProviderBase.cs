@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
         {
             var stringType = model.Compilation.GetSpecialType(SpecialType.System_String);
             var memberAccess = syntaxFactoryService.MemberAccessExpression(
-                        syntaxFactoryService.NamedTypeExpression(stringType),
+                        syntaxFactoryService.TypeExpression(stringType),
                         syntaxFactoryService.IdentifierName(CA1309DiagnosticAnalyzer.EqualsMethodName));
             var ordinal = CreateOrdinalMemberAccess(syntaxFactoryService, model);
             var invocation = syntaxFactoryService.InvocationExpression(
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
         {
             var stringComparisonType = WellKnownTypes.StringComparison(model.Compilation);
             return syntaxFactoryService.MemberAccessExpression(
-                syntaxFactoryService.NamedTypeExpression(stringComparisonType),
+                syntaxFactoryService.TypeExpression(stringComparisonType),
                 syntaxFactoryService.IdentifierName(CA1309DiagnosticAnalyzer.OrdinalText));
         }
 
