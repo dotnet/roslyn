@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly MethodSymbol topLevelMethod;
 
             private MethodSymbol currentParent;
-            private BoundNode currentBlock;
+            private BoundNode currentScope;
 
             // Some syntactic forms have an "implicit" receiver.  When we encounter them, we set this to the
             // syntax.  That way, in case we need to report an error about the receiver, we can use this
@@ -39,36 +39,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             public bool SeenLambda { get; private set; }
 
             /// <summary>
-            /// For each statement that defines variables, identifies the nearest enclosing statement that defines variables.
+            /// For each scope that defines variables, identifies the nearest enclosing scope that defines variables.
             /// </summary>
-            public readonly Dictionary<BoundNode, BoundNode> blockParent = new Dictionary<BoundNode, BoundNode>();
+            public readonly Dictionary<BoundNode, BoundNode> scopeParent = new Dictionary<BoundNode, BoundNode>();
 
             /// <summary>
-            /// For each captured variable, identifies the statement in which it will be moved to a frame class.  This is
-            /// normally the block where the variable is introduced, but method parameters are moved
+            /// For each captured variable, identifies the scope in which it will be moved to a frame class. This is
+            /// normally the node where the variable is introduced, but method parameters are moved
             /// to a frame class within the body of the method.
             /// </summary>
-            public readonly Dictionary<Symbol, BoundNode> variableBlock = new Dictionary<Symbol, BoundNode>();
-
-            /// <summary>
-            /// The set of captured variables seen in the method body.
-            /// </summary>
-            public readonly HashSet<Symbol> variablesCaptured = new HashSet<Symbol>();
-
+            public readonly Dictionary<Symbol, BoundNode> variableScope = new Dictionary<Symbol, BoundNode>();
+            
             /// <summary>
             /// The syntax nodes associated with each captured variable.
             /// </summary>
-            public readonly MultiDictionary<Symbol, CSharpSyntaxNode> capturedSyntax = new MultiDictionary<Symbol, CSharpSyntaxNode>();
-
-            /// <summary>
-            /// The set of variables that were declared anywhere inside an expression lambda.
-            /// </summary>
-            public readonly HashSet<Symbol> declaredInsideExpressionLambda = new HashSet<Symbol>();
-
+            public readonly MultiDictionary<Symbol, CSharpSyntaxNode> capturedVariables = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+            
             /// <summary>
             /// For each lambda in the code, the set of variables that it captures.
             /// </summary>
-            public readonly MultiDictionary<LambdaSymbol, Symbol> captures = new MultiDictionary<LambdaSymbol, Symbol>();
+            public readonly MultiDictionary<LambdaSymbol, Symbol> capturedVariablesByLambda = new MultiDictionary<LambdaSymbol, Symbol>();
 
             /// <summary>
             /// Blocks that are positioned between a block declaring some lifted variables
@@ -97,6 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private Analysis(MethodSymbol method)
             {
+                Debug.Assert((object)method != null);
+
                 this.currentParent = this.topLevelMethod = method;
             }
 
@@ -109,16 +101,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void Analyze(BoundNode node)
             {
-                currentBlock = FindNodeToAnalyze(node);
+                currentScope = FindNodeToAnalyze(node);
 
-                if ((object)topLevelMethod != null)
+                Debug.Assert(!inExpressionLambda);
+                Debug.Assert((object)topLevelMethod != null);
+
+                foreach (ParameterSymbol parameter in topLevelMethod.Parameters)
                 {
-                    foreach (ParameterSymbol parameter in topLevelMethod.Parameters)
-                    {
-                        // parameters are counted as if they are inside the block
-                        variableBlock[parameter] = currentBlock;
-                        if (inExpressionLambda) declaredInsideExpressionLambda.Add(parameter);
-                    }
+                    // parameters are counted as if they are inside the block
+                    variableScope[parameter] = currentScope;
                 }
 
                 Visit(node);
@@ -161,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaScopes = new Dictionary<LambdaSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
                 needsParentFrame = new HashSet<BoundNode>();
 
-                foreach (var lambda in captures.Keys)
+                foreach (var lambda in capturedVariablesByLambda.Keys)
                 {
                     // get innermost and outermost scopes from which a lambda captures
 
@@ -171,12 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int outermostScopeDepth = int.MaxValue;
                     BoundNode outermostScope = null;
 
-                    foreach (var v in captures[lambda])
+                    foreach (var variables in capturedVariablesByLambda[lambda])
                     {
                         BoundNode curBlock = null;
                         int curBlockDepth;
 
-                        if (!variableBlock.TryGetValue(v, out curBlock))
+                        if (!variableScope.TryGetValue(variables, out curBlock))
                         {
                             // this is something that is not defined in a block, like "Me"
                             // Since it is defined outside of the method, the depth is -1
@@ -217,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         while (innermostScope != outermostScope)
                         {
                             needsParentFrame.Add(innermostScope);
-                            blockParent.TryGetValue(innermostScope, out innermostScope);
+                            scopeParent.TryGetValue(innermostScope, out innermostScope);
                         }
                     }
                 }
@@ -234,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 while (node != null)
                 {
                     result = result + 1;
-                    if (!blockParent.TryGetValue(node, out node))
+                    if (!scopeParent.TryGetValue(node, out node))
                     {
                         break;
                     }
@@ -260,18 +251,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundNode PushBlock(BoundNode node, ImmutableArray<LocalSymbol> locals)
             {
-                var previousBlock = currentBlock;
-                currentBlock = node;
-                if (currentBlock != previousBlock) // not top-level node of the method
+                // blocks are not allowed in expression lambda
+                Debug.Assert(!inExpressionLambda);
+
+                var previousBlock = currentScope;
+                currentScope = node;
+                if (currentScope != previousBlock) // not top-level node of the method
                 {
                     // (Except for the top-level block) record the parent-child block structure
-                    blockParent[currentBlock] = previousBlock;
+                    scopeParent[currentScope] = previousBlock;
                 }
 
                 foreach (var local in locals)
                 {
-                    variableBlock[local] = currentBlock;
-                    if (inExpressionLambda) declaredInsideExpressionLambda.Add(local);
+                    variableScope[local] = currentScope;
                 }
 
                 return previousBlock;
@@ -279,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void PopBlock(BoundNode previousBlock)
             {
-                currentBlock = previousBlock;
+                currentScope = previousBlock;
             }
 
             public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
@@ -336,30 +329,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)node.Symbol != null);
                 SeenLambda = true;
                 var oldParent = currentParent;
-                var oldBlock = currentBlock;
+                var oldBlock = currentScope;
                 currentParent = node.Symbol;
-                currentBlock = node.Body;
-                blockParent[currentBlock] = oldBlock;
+                currentScope = node.Body;
+                scopeParent[currentScope] = oldBlock;
                 var wasInExpressionLambda = inExpressionLambda;
                 inExpressionLambda = inExpressionLambda || node.Type.IsExpressionTree();
 
-                // for the purpose of constructing frames parameters are scoped as if they are inside the lambda block
-                foreach (var parameter in node.Symbol.Parameters)
+                if (!inExpressionLambda)
                 {
-                    variableBlock[parameter] = currentBlock;
-                    if (inExpressionLambda) declaredInsideExpressionLambda.Add(parameter);
-                }
+                    // for the purpose of constructing frames parameters are scoped as if they are inside the lambda block
+                    foreach (var parameter in node.Symbol.Parameters)
+                    {
+                        variableScope[parameter] = currentScope;
+                    }
 
-                foreach (var local in node.Body.Locals)
-                {
-                    variableBlock[local] = currentBlock;
-                    if (inExpressionLambda) declaredInsideExpressionLambda.Add(local);
+                    foreach (var local in node.Body.Locals)
+                    {
+                        variableScope[local] = currentScope;
+                    }
                 }
 
                 var result = base.VisitBlock(node.Body);
                 inExpressionLambda = wasInExpressionLambda;
                 currentParent = oldParent;
-                currentBlock = oldBlock;
+                currentScope = oldBlock;
                 return result;
             }
 
@@ -375,13 +369,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LambdaSymbol lambda = currentParent as LambdaSymbol;
                 if ((object)lambda != null && symbol.ContainingSymbol != lambda)
                 {
-                    variablesCaptured.Add(symbol);
-                    capturedSyntax.Add(symbol, syntax);
+                    capturedVariables.Add(symbol, syntax);
 
                     // mark the variable as captured in each enclosing lambda up to the variable's point of declaration.
                     for (; (object)lambda != null && symbol.ContainingSymbol != lambda; lambda = lambda.ContainingSymbol as LambdaSymbol)
                     {
-                        captures.Add(lambda, symbol);
+                        capturedVariablesByLambda.Add(lambda, symbol);
                     }
                 }
             }

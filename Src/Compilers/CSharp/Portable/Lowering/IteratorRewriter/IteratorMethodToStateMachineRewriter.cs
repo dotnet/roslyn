@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol originalMethod,
             FieldSymbol state,
             FieldSymbol current,
-            HashSet<Symbol> variablesCaptured,
+            IReadOnlySet<Symbol> variablesCaptured,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> initialProxies,
             DiagnosticBag diagnostics)
             : base(F, originalMethod, state, variablesCaptured, initialProxies, diagnostics, useFinalizerBookkeeping: false)

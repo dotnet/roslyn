@@ -16,18 +16,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory F,
             MethodSymbol originalMethod,
             FieldSymbol state,
-            HashSet<Symbol> variablesCaptured,
+            IReadOnlySet<Symbol> variablesCaptured,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             DiagnosticBag diagnostics,
             bool useFinalizerBookkeeping)
-            : base(F.CompilationState, variablesCaptured, diagnostics)
+            : base(F.CompilationState, diagnostics)
         {
             Debug.Assert(F != null);
             Debug.Assert(originalMethod != null);
             Debug.Assert(state != null);
-            Debug.Assert(variablesCaptured != null);
             Debug.Assert(nonReusableLocalProxies != null);
             Debug.Assert(diagnostics != null);
+            Debug.Assert(variablesCaptured != null);
 
             this.F = F;
             this.stateField = state;
@@ -35,12 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.useFinalizerBookkeeping = useFinalizerBookkeeping;
             this.hasFinalizerState = useFinalizerBookkeeping;
             this.originalMethod = originalMethod;
+            this.variablesCaptured = variablesCaptured;
 
             foreach (var proxy in nonReusableLocalProxies)
             {
                 this.proxies.Add(proxy.Key, proxy.Value);
             }
         }
+
 
         /// <summary>
         /// True if we need to generate the code to do the bookkeeping so we can "finalize" the state machine
@@ -117,6 +119,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private EmptyStructTypeCache emptyStructTypeCache = new EmptyStructTypeCache(null);
 
+        /// <summary>
+        /// The set of captured variables seen in the method body.
+        /// It's the minimal set of variables that have to be hoisted since their def-use arc crosses await/yield.
+        /// Other variables may be hoisted to improve debugging experience.
+        /// </summary>
+        private readonly IReadOnlySet<Symbol> variablesCaptured;
+
+        protected override bool NeedsProxy(Symbol localOrParameter)
+        {
+            Debug.Assert(localOrParameter.Kind == SymbolKind.Local || localOrParameter.Kind == SymbolKind.Parameter);
+            return variablesCaptured.Contains(localOrParameter);
+        }
+
         protected override TypeMap TypeMap
         {
             get { return ((SynthesizedContainer)F.CurrentClass).TypeMap; }
@@ -185,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // statement level by the AwaitLiftingRewriter.
             foreach (var local in node.Locals)
             {
-                Debug.Assert(!IsCaptured(local) || proxies.ContainsKey(local));
+                Debug.Assert(!NeedsProxy(local) || proxies.ContainsKey(local));
             }
 
             return base.VisitSequence(node);
@@ -208,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hoistedUserDefinedLocals = ArrayBuilder<SynthesizedFieldSymbolBase>.GetInstance();
             foreach (var local in locals)
             {
-                if (!IsCaptured(local))
+                if (!NeedsProxy(local))
                 {
                     continue;
                 }
@@ -503,14 +518,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitAssignmentOperator(node);
             }
 
-            var left = (BoundLocal)node.Left;
-            var local = left.LocalSymbol;
-            if (!IsCaptured(local))
+            var leftLocal = ((BoundLocal)node.Left).LocalSymbol;
+            if (!NeedsProxy(leftLocal))
             {
                 return base.VisitAssignmentOperator(node);
             }
 
-            if (proxies.ContainsKey(local))
+            if (proxies.ContainsKey(leftLocal))
             {
                 Debug.Assert(node.RefKind == RefKind.None);
                 return base.VisitAssignmentOperator(node);
@@ -521,12 +535,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Here we handle ref temps. By-ref synthesized variables are the target of a ref assignment operator before
             // being used in any other way.
 
-            Debug.Assert(local.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpill);
+            Debug.Assert(leftLocal.SynthesizedLocalKind == SynthesizedLocalKind.AwaitSpill);
             Debug.Assert(node.RefKind != RefKind.None);
 
             // We have an assignment to a variable that has not yet been assigned a proxy.
             // So we assign the proxy before translating the assignment.
-            return HoistRefInitialization(local, node);
+            return HoistRefInitialization(leftLocal, node);
         }
 
         /// <summary>

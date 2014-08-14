@@ -1163,8 +1163,16 @@ class Program
         yield return x;
     }
 }";
-            CompileAndVerify(source).
-                VerifyIL("Program.M", @"
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>2__current"
+                }, module.GetFieldNames("Program.<M>d__0"));
+            });
+
+            c.VerifyIL("Program.M", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1172,6 +1180,77 @@ class Program
   IL_0001:  newobj     ""Program.<M>d__0..ctor(int)""
   IL_0006:  ret
 }");
+        }
+        
+        [Fact]
+        public void HoistedParameters_Enumerable()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+struct Test
+{
+    public static IEnumerable<int> F(int x, int y, int z)
+    {
+        x = z;
+        yield return 1;
+        y = 1;
+    }
+
+    public static void Main()
+    {
+        F(1, 2, 3);
+    }
+}";
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                // consider: we don't really need to hoist "x" and "z", we could store the values of "<>3__x" and "<>3__z" to locals at the beginning of MoveNext.
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>2__current",
+                    "<>l__initialThreadId",
+                    "x",
+                    "<>3__x",
+                    "y",
+                    "<>3__y",
+                    "z",
+                    "<>3__z",
+                }, module.GetFieldNames("Test.<F>d__0"));
+            });
+        }
+
+        [Fact]
+        public void HoistedParameters_Enumerator()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+struct Test
+{
+    public static IEnumerator<int> F(int x, int y, int z)
+    {
+        x = z;
+        yield return 1;
+        y = 1;
+    }
+
+    public static void Main()
+    {
+        F(1, 2, 3);
+    }
+}";
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>2__current",
+                    "x",
+                    "y",
+                    "z",
+                }, module.GetFieldNames("Test.<F>d__0"));
+            });
         }
 
         [Fact]

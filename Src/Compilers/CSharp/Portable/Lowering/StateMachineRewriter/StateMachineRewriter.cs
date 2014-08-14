@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly SynthesizedContainer stateMachineClass;
         protected FieldSymbol stateField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
-        protected HashSet<Symbol> variablesCaptured;
+        protected IReadOnlySet<Symbol> variablesCaptured;
         protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
 
         protected StateMachineRewriter(
@@ -89,11 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // fields for the captured variables of the method
-            var captured = IteratorAndAsyncCaptureWalker.Analyze(compilationState.ModuleBuilderOpt.Compilation, method, body);
-
-            this.variablesCaptured = new HashSet<Symbol>(captured.Keys);
-
-            this.nonReusableLocalProxies = CreateNonReusableLocalProxies(captured);
+            var variablesCaptured = IteratorAndAsyncCaptureWalker.Analyze(compilationState.ModuleBuilderOpt.Compilation, method, body);
+            this.nonReusableLocalProxies = CreateNonReusableLocalProxies(variablesCaptured);
+            this.variablesCaptured = variablesCaptured;
 
             GenerateMethodImplementations();
 
@@ -101,14 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ReplaceOriginalMethod();
         }
 
-        private IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> CreateNonReusableLocalProxies(MultiDictionary<Symbol, CSharpSyntaxNode> captured)
+        private IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> CreateNonReusableLocalProxies(MultiDictionary<Symbol, CSharpSyntaxNode> variablesCaptured)
         {
             var proxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
 
             var typeMap = stateMachineClass.TypeMap;
 
             var orderedCaptured =
-                from local in captured.Keys
+                from local in variablesCaptured.Keys
                 orderby local.Name, (local.Locations.Length == 0) ? 0 : local.Locations[0].SourceSpan.Start
                 select local;
 
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // create proxies for user-defined variables and for lambda closures:
                         Debug.Assert(local.RefKind == RefKind.None);
-                        proxies.Add(local, MakeNonReusableLocalProxy(typeMap, captured, local));
+                        proxies.Add(local, MakeNonReusableLocalProxy(typeMap, variablesCaptured, local));
                     }
                 }
                 else

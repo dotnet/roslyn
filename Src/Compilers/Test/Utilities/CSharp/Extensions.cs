@@ -206,6 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return (NamespaceSymbol)symbol.GetMembers(name).Single();
         }
 
+        public static string[] GetFieldNames(this ModuleSymbol module, string qualifiedTypeName)
+        {
+            var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember(qualifiedTypeName);
+            return type.GetMembers().OfType<FieldSymbol>().Select(f => f.Name).ToArray();
+        }
+
         public static IEnumerable<CSharpAttributeData> GetAttributes(this Symbol @this, NamedTypeSymbol c)
         {
             return @this.GetAttributes().Where(a => a.AttributeClass == c);

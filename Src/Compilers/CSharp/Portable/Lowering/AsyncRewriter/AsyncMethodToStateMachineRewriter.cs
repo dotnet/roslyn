@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory F,
             FieldSymbol state,
             FieldSymbol builder,
-            HashSet<Symbol> variablesCaptured,
+            IReadOnlySet<Symbol> variablesCaptured,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             DiagnosticBag diagnostics)
             : base(F, method, state, variablesCaptured, nonReusableLocalProxies, diagnostics, useFinalizerBookkeeping: false)

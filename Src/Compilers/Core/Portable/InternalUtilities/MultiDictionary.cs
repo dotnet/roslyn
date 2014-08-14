@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -7,7 +8,7 @@ using System.Diagnostics;
 namespace Roslyn.Utilities
 {
     // Note that this is not threadsafe for concurrent reading and writing.
-    internal sealed class MultiDictionary<K, V>
+    internal sealed class MultiDictionary<K, V> : IReadOnlySet<K>
     {
         // store either a single V or an ImmutableHashSet<V>
         private readonly Dictionary<K, object> dictionary;
@@ -122,6 +123,16 @@ namespace Roslyn.Utilities
         internal void Clear()
         {
             this.dictionary.Clear();
+        }
+
+        int IReadOnlySet<K>.Count
+        {
+            get { return KeyCount; }
+        }
+
+        bool IReadOnlySet<K>.Contains(K item)
+        {
+            return ContainsKey(item);
         }
     }
 }

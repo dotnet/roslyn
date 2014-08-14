@@ -13,10 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract partial class MethodToClassRewriter : BoundTreeRewriter
     {
-        // A mapping from every lambda parameter to its corresponding method's parameter.  This map remains
-        // empty if we are performing something other than a lambda transformation (e.g. async or iterator).
-        protected readonly Dictionary<ParameterSymbol, ParameterSymbol> parameterMap = new Dictionary<ParameterSymbol, ParameterSymbol>();
-
         // For each captured variable, information about its replacement.  May be populated lazily (that is, not all
         // upfront) by subclasses.  Specifically, the async rewriter produces captured symbols for temps, including
         // ref locals, lazily.
@@ -26,11 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // their types change due to being inside of a generic method.  Otherwise we reuse the original local (even
         // though its containing method is not correct because the code is moved into another method)
         protected readonly Dictionary<LocalSymbol, LocalSymbol> localMap = new Dictionary<LocalSymbol, LocalSymbol>();
-
-        /// <summary>
-        /// The set of captured variables seen in the method body.
-        /// </summary>
-        private readonly HashSet<Symbol> variablesCaptured = new HashSet<Symbol>();
 
         // A mapping for types in the original method to types in its replacement.  This is mainly necessary
         // when the original method was generic, as type parameters in the original method are mapping into
@@ -50,23 +41,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected readonly DiagnosticBag Diagnostics;
 
-        protected MethodToClassRewriter(TypeCompilationState compilationState, HashSet<Symbol> variablesCaptured, DiagnosticBag diagnostics)
+        protected MethodToClassRewriter(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
 
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
-            this.variablesCaptured = variablesCaptured;
         }
 
-        protected bool IsCaptured(Symbol localOrParameter)
-        {
-            Debug.Assert(localOrParameter is LocalSymbol || localOrParameter is ParameterSymbol);
-            return variablesCaptured.Contains(localOrParameter);
-        }
+        protected abstract bool NeedsProxy(Symbol localOrParameter);
 
-        protected void AddLocals(ImmutableArray<LocalSymbol> locals, ArrayBuilder<LocalSymbol> newLocals)
+        protected void RewriteLocals(ImmutableArray<LocalSymbol> locals, ArrayBuilder<LocalSymbol> newLocals)
         {
             foreach (var local in locals)
             {
@@ -80,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool TryRewriteLocal(LocalSymbol local, out LocalSymbol newLocal)
         {
-            if (IsCaptured(local))
+            if (NeedsProxy(local))
             {
                 // no longer a local symbol
                 newLocal = null;
@@ -106,11 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        ImmutableArray<LocalSymbol> RewriteLocalList(ImmutableArray<LocalSymbol> locals)
+        private ImmutableArray<LocalSymbol> RewriteLocals(ImmutableArray<LocalSymbol> locals)
         {
             if (locals.IsEmpty) return locals;
             var newLocals = ArrayBuilder<LocalSymbol>.GetInstance();
-            AddLocals(locals, newLocals);
+            RewriteLocals(locals, newLocals);
             return newLocals.ToImmutableAndFree();
         }
 
@@ -120,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Yield/await aren't supported in catch block atm, but we need to rewrite the type 
                 // of the variables owned by the catch block. Note that one of these variables might be a closure frame reference.
-                var newLocals = RewriteLocalList(node.Locals);
+                var newLocals = RewriteLocals(node.Locals);
 
                 return node.Update(
                     newLocals,
@@ -135,14 +121,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            var newLocals = RewriteLocalList(node.Locals);
+            var newLocals = RewriteLocals(node.Locals);
             var newStatements = VisitList(node.Statements);
             return node.Update(newLocals, newStatements);
         }
 
         public override BoundNode VisitSequence(BoundSequence node)
         {
-            var newLocals = RewriteLocalList(node.Locals);
+            var newLocals = RewriteLocals(node.Locals);
             var newSideEffects = VisitList<BoundExpression>(node.SideEffects);
             var newValue = (BoundExpression)this.Visit(node.Value);
             var newType = this.VisitType(node.Type);
@@ -151,8 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            var newOuterLocals = RewriteLocalList(node.OuterLocals);
-            var newInnerLocals = RewriteLocalList(node.InnerLocals);
+            var newOuterLocals = RewriteLocals(node.OuterLocals);
+            var newInnerLocals = RewriteLocals(node.InnerLocals);
             BoundExpression boundExpression = (BoundExpression)this.Visit(node.BoundExpression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
             return node.Update(newOuterLocals, boundExpression, node.ConstantTargetOpt, newInnerLocals, switchSections, node.BreakLabel, node.StringEquality);
@@ -160,8 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
-            var newOuterLocals = RewriteLocalList(node.OuterLocals);
-            var newInnerLocals = RewriteLocalList(node.InnerLocals);
+            var newOuterLocals = RewriteLocals(node.OuterLocals);
+            var newInnerLocals = RewriteLocals(node.InnerLocals);
             BoundStatement initializer = (BoundStatement)this.Visit(node.Initializer);
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             BoundStatement increment = (BoundStatement)this.Visit(node.Increment);
@@ -171,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            var newLocals = RewriteLocalList(node.Locals);
+            var newLocals = RewriteLocals(node.Locals);
             BoundMultipleLocalDeclarations declarationsOpt = (BoundMultipleLocalDeclarations)this.Visit(node.DeclarationsOpt);
             BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
@@ -289,32 +275,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return wrapper;
         }
 
-        public override BoundNode VisitParameter(BoundParameter node)
+        private bool TryReplaceWithProxy(Symbol parameterOrLocal, CSharpSyntaxNode syntax, out BoundNode replacement)
         {
             CapturedSymbolReplacement proxy;
-            if (proxies.TryGetValue(node.ParameterSymbol, out proxy))
+            if (proxies.TryGetValue(parameterOrLocal, out proxy))
             {
-                return proxy.Replacement(node.Syntax, frameType => FramePointer(node.Syntax, frameType));
+                replacement = proxy.Replacement(syntax, frameType => FramePointer(syntax, frameType));
+                return true;
             }
 
-            ParameterSymbol replacementParameter;
-            if (this.parameterMap.TryGetValue(node.ParameterSymbol, out replacementParameter))
+            replacement = null;
+            return false;
+        }
+
+        public sealed override BoundNode VisitParameter(BoundParameter node)
+        {
+            BoundNode replacement;
+            if (TryReplaceWithProxy(node.ParameterSymbol, node.Syntax, out replacement))
             {
-                return new BoundParameter(node.Syntax, replacementParameter, replacementParameter.Type, node.HasErrors);
+                return replacement;
             }
 
+            // Non-captured and expression tree lambda parameters don't have a proxy.
+            return VisitUnhoistedParameter(node);
+        }
+
+        protected virtual BoundNode VisitUnhoistedParameter(BoundParameter node)
+        {
             return base.VisitParameter(node);
         }
 
-        public override BoundNode VisitLocal(BoundLocal node)
+        public sealed override BoundNode VisitLocal(BoundLocal node)
         {
-            CapturedSymbolReplacement proxy;
-            if (proxies.TryGetValue(node.LocalSymbol, out proxy))
+            BoundNode replacement;
+            if (TryReplaceWithProxy(node.LocalSymbol, node.Syntax, out replacement))
             {
-                return proxy.Replacement(node.Syntax, frameType => FramePointer(node.Syntax, frameType));
+                return replacement;
             }
 
-            Debug.Assert(!IsCaptured(node.LocalSymbol));
+            // if a local needs a proxy it should have been allocated by its declaration node.
+            Debug.Assert(!NeedsProxy(node.LocalSymbol));
+
+            return VisitUnhoistedLocal(node);
+        }
+
+        private BoundNode VisitUnhoistedLocal(BoundLocal node)
+        {
             LocalSymbol replacementLocal;
             if (this.localMap.TryGetValue(node.LocalSymbol, out replacementLocal))
             {
@@ -346,15 +352,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (leftLocal.LocalSymbol.RefKind != RefKind.None &&
                 node.RefKind != RefKind.None &&
-                IsCaptured(leftLocal.LocalSymbol))
+                NeedsProxy(leftLocal.LocalSymbol))
             {
-                Debug.Assert(!proxies.ContainsKey(leftLocal.LocalSymbol)); // we need to create the proxy at this time
+                Debug.Assert(!proxies.ContainsKey(leftLocal.LocalSymbol));
                 Debug.Assert(!IsStackAlloc(originalRight));
                 //spilling ref local variables
                 throw ExceptionUtilities.Unreachable;
             }
 
-            if (IsCaptured(leftLocal.LocalSymbol) && !proxies.ContainsKey(leftLocal.LocalSymbol))
+            if (NeedsProxy(leftLocal.LocalSymbol) && !proxies.ContainsKey(leftLocal.LocalSymbol))
             {
                 Debug.Assert(leftLocal.LocalSymbol.DeclarationKind == LocalDeclarationKind.None);
                 // spilling temp variables

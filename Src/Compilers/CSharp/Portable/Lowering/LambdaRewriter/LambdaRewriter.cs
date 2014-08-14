@@ -52,10 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the returned bound node.  For example, the caller will typically perform iterator method and
     /// asynchronous method transformations, and emit IL instructions into an assembly.
     /// </summary>
-    partial class LambdaRewriter : MethodToClassRewriter
+    sealed partial class LambdaRewriter : MethodToClassRewriter
     {
         private readonly Analysis analysis;
         private readonly MethodSymbol topLevelMethod;
+
+        // A mapping from every lambda parameter to its corresponding method's parameter.
+        private readonly Dictionary<ParameterSymbol, ParameterSymbol> parameterMap = new Dictionary<ParameterSymbol, ParameterSymbol>();
 
         // for each block with lifted (captured) variables, the corresponding frame type
         private readonly Dictionary<BoundNode, LambdaFrame> frames = new Dictionary<BoundNode, LambdaFrame>();
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
             bool assignLocals)
-            : base(compilationState, analysis.variablesCaptured, diagnostics)
+            : base(compilationState, diagnostics)
         {
             Debug.Assert(analysis != null);
             Debug.Assert(thisType != null);
@@ -132,6 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.framePointers[thisType] = thisParameterOpt;
             this.seenBaseCall = method.MethodKind != MethodKind.Constructor; // only used for ctors
             this.synthesizedFieldNameIdDispenser = 1;
+        }
+
+        protected override bool NeedsProxy(Symbol localOrParameter)
+        {
+            Debug.Assert(localOrParameter is LocalSymbol || localOrParameter is ParameterSymbol);
+            return analysis.capturedVariables.ContainsKey(localOrParameter);
         }
 
         /// <summary>
@@ -214,7 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Check that the top-level node is well-defined, in the sense that all
         /// locals that are used are defined in some enclosing scope.
         /// </summary>
-        /// <param name="node"></param>
         static partial void CheckLocalsDefined(BoundNode node);
 
         /// <summary>
@@ -224,11 +232,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol containingType = this.ContainingType;
 
-            foreach (Symbol captured in analysis.variablesCaptured)
+            foreach (Symbol captured in analysis.capturedVariables.Keys)
             {
                 BoundNode node;
-                if (!analysis.variableBlock.TryGetValue(captured, out node) ||
-                    analysis.declaredInsideExpressionLambda.Contains(captured))
+                if (!analysis.variableScope.TryGetValue(captured, out node))
                 {
                     continue;
                 }
@@ -254,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (hoistedField.Type.IsRestrictedType())
                 {
-                    foreach (CSharpSyntaxNode syntax in analysis.capturedSyntax[captured])
+                    foreach (CSharpSyntaxNode syntax in analysis.capturedVariables[captured])
                     {
                         // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
                         this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
@@ -387,12 +394,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Capture any parameters of this block.  This would typically occur
             // at the top level of a method or lambda with captured parameters.
             // TODO: speed up the following by computing it in analysis.
-            foreach (var variable in analysis.variablesCaptured)
+            foreach (var variable in analysis.capturedVariables.Keys)
             {
                 BoundNode varNode;
-                if (!analysis.variableBlock.TryGetValue(variable, out varNode) ||
-                    varNode != node ||
-                    analysis.declaredInsideExpressionLambda.Contains(variable))
+                if (!analysis.variableScope.TryGetValue(variable, out varNode) || varNode != node)
                 {
                     continue;
                 }
@@ -474,6 +479,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Visit Methods
 
+        protected override BoundNode VisitUnhoistedParameter(BoundParameter node)
+        {
+            ParameterSymbol replacementParameter;
+            if (this.parameterMap.TryGetValue(node.ParameterSymbol, out replacementParameter))
+            {
+                return new BoundParameter(node.Syntax, replacementParameter, replacementParameter.Type, node.HasErrors);
+            }
+
+            return base.VisitUnhoistedParameter(node);
+        }
+
         public override BoundNode VisitThisReference(BoundThisReference node)
         {
             // "topLevelMethod.ThisParameter == null" can occur in a delegate creation expression because the method group
@@ -530,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundSequence RewriteSequence(BoundSequence node, ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals)
         {
-            AddLocals(node.Locals, newLocals);
+            RewriteLocals(node.Locals, newLocals);
 
             foreach (var expr in node.SideEffects)
             {
@@ -559,9 +575,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected BoundBlock RewriteBlock(BoundBlock node, ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals)
+        private BoundBlock RewriteBlock(BoundBlock node, ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals)
         {
-            AddLocals(node.Locals, newLocals);
+            RewriteLocals(node.Locals, newLocals);
 
             var newStatements = ArrayBuilder<BoundStatement>.GetInstance();
 
@@ -604,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode RewriteCatch(BoundCatchBlock node, ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals)
         {
-            AddLocals(node.Locals, newLocals);
+            RewriteLocals(node.Locals, newLocals);
             var rewrittenCatchLocals = newLocals.ToImmutableAndFree();
 
             // If exception variable got lifted, IntroduceFrame will give us frame init prologue.
@@ -784,21 +800,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Move the body of the lambda to a freshly generated synthetic method on its frame.
-            bool lambdaIsStatic = analysis.captures[node.Symbol].IsEmpty();
+            bool lambdaIsStatic = analysis.capturedVariablesByLambda[node.Symbol].IsEmpty();
             var synthesizedMethod = new SynthesizedLambdaMethod(translatedLambdaContainer, topLevelMethod, node, lambdaIsStatic, CompilationState);
             if (CompilationState.Emitting)
             {
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod);
             }
 
-            foreach(var parameter in node.Symbol.Parameters)
+            foreach (var parameter in node.Symbol.Parameters)
             {
                 var ordinal = parameter.Ordinal;
                 if (lambdaIsStatic)
                 {
                     // adjust for a dummy "this" parameter at the beginning of synthesized method signature
-                    ordinal += 1;
+                    ordinal++;
                 }
+
                 parameterMap.Add(parameter, synthesizedMethod.Parameters[ordinal]);
             }
 
@@ -887,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: We require "lambdaScope != null". 
             //       We do not want to introduce a field into an actual user's class (not a synthetic frame).
             var shouldCacheInLoop = lambdaScope != null &&
-                lambdaScope != analysis.blockParent[node.Body] &&
+                lambdaScope != analysis.scopeParent[node.Body] &&
                 InLoopOrLambda(node.Syntax, lambdaScope.Syntax);
 
             if (shouldCacheForStaticMethod || shouldCacheInLoop)

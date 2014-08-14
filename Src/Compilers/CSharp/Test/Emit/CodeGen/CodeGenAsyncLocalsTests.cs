@@ -15,23 +15,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncLocalsTests : EmitMetadataTestBase
     {
-        private CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions compOptions = null)
+        private CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             SynchronizationContext.SetSynchronizationContext(null);
 
-            compOptions = compOptions ?? TestOptions.ReleaseExe;
+            options = options ?? TestOptions.ReleaseExe;
 
             IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
-            return CreateCompilationWithMscorlib45(source, options: compOptions, references: references);
+            return CreateCompilationWithMscorlib45(source, options: options, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions compOptions = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, EmitOptions emitOptions = EmitOptions.All, CSharpCompilationOptions options = null)
         {
             SynchronizationContext.SetSynchronizationContext(null);
 
-            var compilation = this.CreateCompilation(source, references: references, compOptions: compOptions);
+            var compilation = this.CreateCompilation(source, references: references, options: options);
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: emitOptions);
         }
 
@@ -43,28 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 from pair in actualLines.Zip(actualLines.Skip(1), (line1, line2) => new { line1, line2 })
                 where pair.line2.Contains("ldfld") || pair.line2.Contains("stfld")
                 select pair.line1.Trim() + Environment.NewLine + pair.line2.Trim());
-        }
-
-        [Fact]
-        public void Unhoisted_Used_Param()
-        {
-            var source = @"
-using System.Collections.Generic;
-
-struct Test
-{
-    public static IEnumerable<int> F(int x)
-    {
-        x = 2;
-        yield return 1;
-    }
-
-    public static void Main()
-    {
-        F(1);
-    }
-}";
-            CompileAndVerify(source, "");
         }
 
         [Fact]
@@ -440,7 +418,7 @@ class Test<U>
         foreach (var x in GetEnum<U>()) await F(5);
     }
 }";
-            var c = CompileAndVerify(source, expectedOutput: null, compOptions: TestOptions.ReleaseDll);
+            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll);
 
             var actual = GetFieldLoadsAndStores(c, "Test<U>.<M>d__1<S, T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext");
 
@@ -598,7 +576,7 @@ class Test
         foreach (var x in GetObjectEnum()) await F(2);
     }
 }";
-            var c = CompileAndVerify(source, expectedOutput: null, compOptions: TestOptions.ReleaseDll);
+            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll);
 
             var actual = GetFieldLoadsAndStores(c, "Test.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext");
 

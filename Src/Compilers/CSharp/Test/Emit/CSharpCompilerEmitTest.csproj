@@ -122,7 +122,7 @@
     <Compile Include="CodeGen\CodeGenConversionTests.cs" />
     <Compile Include="CodeGen\CodeGenDynamicTests.cs" />
     <Compile Include="CodeGen\CodeGenExplicitImplementationTests.cs" />
-    <Compile Include="CodeGen\CodeGenExprLambda.cs" />
+    <Compile Include="CodeGen\CodeGenExprLambdaTests.cs" />
     <Compile Include="CodeGen\CodeGenFieldInitTests.cs" />
     <Compile Include="CodeGen\CodeGenForEachTests.cs" />
     <Compile Include="CodeGen\CodeGenImplicitImplementationTests.cs" />
