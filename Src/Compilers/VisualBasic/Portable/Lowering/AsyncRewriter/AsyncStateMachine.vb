@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyBase.New(topLevelMethod,
                        GeneratedNames.MakeStateMachineTypeName(typeIndex, topLevelMethod.Name),
-                       If(typeKind = TypeKind.Class, valueTypeSymbol.BaseType, valueTypeSymbol),
+                       If(typeKind = TypeKind.Class, valueTypeSymbol.BaseTypeNoUseSiteDiagnostics, valueTypeSymbol),
                        ImmutableArray.Create(Of NamedTypeSymbol)(iAsyncStateMachineInterface))
 
             Me._constructor = New SynthesizedSimpleConstructorSymbol(Me)
