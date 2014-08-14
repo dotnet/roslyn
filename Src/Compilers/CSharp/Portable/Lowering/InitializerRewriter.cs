@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             fieldInitializers.Add(RewriteFieldInitializer(fieldInitializer));
                         }
 
-                        boundStatements.Add(new BoundBlock(scope.Syntax, scope.Locals, fieldInitializers.ToImmutableAndFree()));
+                        boundStatements.Add(new BoundBlock(scope.Syntax, scope.Locals, fieldInitializers.ToImmutableAndFree()) { WasCompilerGenerated = true });
                         break;
 
                     case BoundKind.GlobalStatementInitializer:

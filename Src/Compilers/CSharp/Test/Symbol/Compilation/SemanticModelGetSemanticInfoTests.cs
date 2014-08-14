@@ -15136,6 +15136,33 @@ struct Program(int i)
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
+        [Fact, WorkItem(998050, "DevDiv")]
+        public void Bug998050()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class BaselineLog
+{}
+
+public static BaselineLog Log
+{
+get
+{
+}
+}= new /*<bind>*/BaselineLog/*</bind>*/();
+", parseOptions: TestOptions.ExperimentalParseOptions);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
+
+            Assert.Null(semanticInfo.Type);
+
+            Assert.Equal("BaselineLog", semanticInfo.Symbol.ToDisplayString());
+            Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
         [Fact]
         public void ExprBodiedProp01()
         {

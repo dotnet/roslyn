@@ -2550,7 +2550,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (member.Kind)
             {
                 case SymbolKind.Field:
-                    diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, member.Locations[0]);
+                    if ((object)((FieldSymbol)member).AssociatedSymbol == null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, member.Locations[0]);
+                    }
                     break;
 
                 case SymbolKind.Method:

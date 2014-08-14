@@ -3316,7 +3316,7 @@ class Program
                 );
         }
 
-        [Fact(Skip = "1003200"), WorkItem(1003200)]
+        [Fact, WorkItem(1003200)]
         public void Body_01()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -3341,7 +3341,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "5").VerifyDiagnostics();
         }
 
-        [Fact(Skip = "1003200"), WorkItem(1003200)]
+        [Fact, WorkItem(1003200)]
         public void Body_02()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -3366,7 +3366,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "6").VerifyDiagnostics();
         }
 
-        [Fact(Skip = "1003200"), WorkItem(1003200)]
+        [Fact, WorkItem(1003200)]
         public void Body_03()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -3546,7 +3546,7 @@ class Program
                 );
         }
 
-        [Fact(Skip = "1003200"), WorkItem(1003200)]
+        [Fact, WorkItem(1003200)]
         public void Body_08()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -3578,7 +3578,7 @@ class Program
 5").VerifyDiagnostics();
         }
 
-        [Fact(Skip = "1003200"), WorkItem(1003200)]
+        [Fact, WorkItem(1003200)]
         public void Body_09()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -3610,7 +3610,7 @@ class Program
 5").VerifyDiagnostics();
         }
 
-        [Fact(Skip = "1003200"), WorkItem(1003200)]
+        [Fact, WorkItem(1003200)]
         public void Body_10()
         {
             var comp = CreateCompilationWithMscorlib(@"

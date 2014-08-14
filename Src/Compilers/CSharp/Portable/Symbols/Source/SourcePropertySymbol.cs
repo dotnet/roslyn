@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol explicitInterfaceType;
         private readonly ImmutableArray<PropertySymbol> explicitInterfaceImplementations;
         private readonly bool isExpressionBodied;
+        private readonly bool isAutoProperty;
 
         private SymbolCompletionState state;
         private ImmutableArray<ParameterSymbol> lazyParameters;
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasExpressionBody = arrowExpression != null;
             bool hasInitializer = !isIndexer && propertySyntax.Initializer != null;
 
-            bool generateBackingField = (!IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
+            bool notRegularProperty = (!IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
             AccessorDeclarationSyntax getSyntax = null;
             AccessorDeclarationSyntax setSyntax = null;
             if (hasAccessorList)
@@ -138,29 +139,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (accessor.Body != null)
                     {
-                        generateBackingField = false;
+                        notRegularProperty = false;
                     }
                 }
             }
             else
             {
-                generateBackingField = false;
+                notRegularProperty = false;
             }
 
             if (hasInitializer)
             {
-                CheckInitializer(hasExpressionBody, generateBackingField, location, diagnostics);
+                CheckInitializer(hasExpressionBody, notRegularProperty, location, diagnostics);
             }
 
-            if (generateBackingField)
+            if (notRegularProperty || hasInitializer)
             {
                 var hasGetSyntax = getSyntax != null;
-                if (hasGetSyntax && setSyntax != null
-                    || (hasGetSyntax && hasInitializer))
+                this.isAutoProperty = notRegularProperty && (hasGetSyntax && setSyntax != null || (hasGetSyntax && hasInitializer));
+
+                if (this.isAutoProperty || hasInitializer)
                 {
-                    //issue a diagnostic if the compiler generated attribute ctor is not found.
-                    Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(bodyBinder.Compilation,
-                    WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, diagnostics, syntax: syntax);
+                    if (this.isAutoProperty)
+                    {
+                        //issue a diagnostic if the compiler generated attribute ctor is not found.
+                        Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(bodyBinder.Compilation,
+                        WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, diagnostics, syntax: syntax);
+                    }
 
                     string fieldName = GeneratedNames.MakeBackingFieldName(this.sourceName);
                     bool isReadOnly = hasGetSyntax && setSyntax == null;
@@ -171,7 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                           hasInitializer);
                 }
 
-                Binder.CheckFeatureAvailability(location, MessageID.IDS_FeatureAutoImplementedProperties, diagnostics);
+                if (notRegularProperty)
+                {
+                    Binder.CheckFeatureAvailability(location, MessageID.IDS_FeatureAutoImplementedProperties, diagnostics);
+                }
             }
 
             PropertySymbol explicitlyImplementedProperty = null;
@@ -259,8 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                this.getMethod = CreateAccessorSymbol(getSyntax, explicitlyImplementedProperty, aliasQualifierOpt, generateBackingField, diagnostics);
-                this.setMethod = CreateAccessorSymbol(setSyntax, explicitlyImplementedProperty, aliasQualifierOpt, generateBackingField, diagnostics);
+                this.getMethod = CreateAccessorSymbol(getSyntax, explicitlyImplementedProperty, aliasQualifierOpt, notRegularProperty, diagnostics);
+                this.setMethod = CreateAccessorSymbol(setSyntax, explicitlyImplementedProperty, aliasQualifierOpt, notRegularProperty, diagnostics);
 
                 if ((getSyntax == null) || (setSyntax == null))
                 {
@@ -268,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_PropertyWithNoAccessors, location, this);
                     }
-                    else if (generateBackingField)
+                    else if (notRegularProperty)
                     {
                         var accessor = this.getMethod ?? this.setMethod;
                         if (getSyntax == null)
@@ -586,10 +594,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsAutoProperty
         {
-            get { return (object)this.backingField != null; }
+            get { return this.isAutoProperty; }
         }
 
-        // Backing field for automatically implemented property.
+        /// <summary>
+        /// Backing field for automatically implemented property, or
+        /// for a property with an initializer.
+        /// </summary>
         internal SynthesizedBackingFieldSymbol BackingField
         {
             get { return this.backingField; }

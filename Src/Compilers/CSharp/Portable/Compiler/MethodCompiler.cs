@@ -844,11 +844,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (body == null || !isPrimaryCtor)
                         {
-                        // These analyses check for diagnostics in lambdas.
-                        // Control flow analysis and implicit return insertion are unnecessary.
-                        DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
-                        DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
-                    }
+                            // These analyses check for diagnostics in lambdas.
+                            // Control flow analysis and implicit return insertion are unnecessary.
+                            DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                            DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
+                        }
                         else 
                         {
                             Debug.Assert(isPrimaryCtor);
@@ -910,13 +910,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // from the first field initializer.
                 if (this.generateDebugInfo)
                 {
-                    if ((methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) && methodSymbol.IsImplicitlyDeclared)
+                    if ((methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) && 
+                        methodSymbol.IsImplicitlyDeclared && body == null)
                     {
                         // There was no body to bind, so we didn't get anything from BindMethodBody.
                         Debug.Assert(debugImports == null);
-                        // Either there were no field initializers or we grabbed debug imports from the first one.
-                        Debug.Assert(processedInitializers.BoundInitializers.IsDefaultOrEmpty || processedInitializers.FirstDebugImports != null);
                     }
+
+                    // Either there were no field initializers or we grabbed debug imports from the first one.
+                    Debug.Assert(processedInitializers.BoundInitializers.IsDefaultOrEmpty || processedInitializers.FirstDebugImports != null);
                 }
 #endif
 
