@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
     //     In comparison to regular Dictionary on my machine:
     //        On trivial number of elements (5 or so) it is more than 2x faster.
     //        The break even count is about 120 elements for read and 55 for write operations (with unknown initial size).
-    //        At UShort.MaxValue elements, this dictionary is 6x slower to read and 4x slower 
+    //        At UShort.MaxValue elements, this dictionary is 6x slower to read and 4x slower to write
     //
     // Generally, this dictionary is a win if number of elements is small, not known beforehand or both.
     //
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis
             value = default(V);
             return false;
 
-        hasBucket:
+            hasBucket:
             if (CompareKeys(b.key, key))
             {
                 value = b.Value;
@@ -266,110 +266,198 @@ namespace Microsoft.CodeAnalysis
 
         private void Insert(int hashCode, K key, V value, bool add)
         {
-            AvlNode q = this.root;
+            AvlNode currentNode = this.root;
 
-            if (q == null)
+            if (currentNode == null)
             {
                 this.root = new AvlNode(hashCode, key, value);
                 return;
             }
 
-            AvlNode qparent = null;
-            AvlNode PrimeNode = q;
-            AvlNode PrimeNodeParent = null;
+            AvlNode currentNodeParent = null;
+            AvlNode unbalanced = currentNode;
+            AvlNode unbalancedParent = null;
 
             // ====== insert new node
-            // also make a note of the prime node and prime node's parent
-            // Prime node is important because it is the node that may need rotation 
-            // nodes on the search path from PrimeNode downwards will change balances because of the node added
-            // we need prime node's parent for rotation since we cannot have reference locals in C#
+            // also make a note of the last unbalanced node and its parent (for rotation if needed)
+            // nodes on the search path from rotation candidate downwards will change balances because of the node added
+            // unbalanced node itself will become balanced or will be rotated
+            // either way nodes above unbalanced do not change their balance
             for (; ;)
             {
                 // schedule hk read 
-                var hk = q.HashCode;
+                var hc = currentNode.HashCode;
 
-                if (q.Balance != 0)
+                if (currentNode.Balance != 0)
                 {
-                    PrimeNodeParent = qparent;
-                    PrimeNode = q;
+                    unbalancedParent = currentNodeParent;
+                    unbalanced = currentNode;
                 }
 
-                if (hk > hashCode)
+                if (hc > hashCode)
                 {
-                    if (q.Left == null)
+                    if (currentNode.Left == null)
                     {
-                        q.Left = q = new AvlNode(hashCode, key, value);
+                        currentNode.Left = currentNode = new AvlNode(hashCode, key, value);
                         break;
                     }
-                    qparent = q;
-                    q = q.Left;
+                    currentNodeParent = currentNode;
+                    currentNode = currentNode.Left;
                 }
-                else if (hk < hashCode)
+                else if (hc < hashCode)
                 {
-                    if (q.Right == null)
+                    if (currentNode.Right == null)
                     {
-                        q.Right = q = new AvlNode(hashCode, key, value);
+                        currentNode.Right = currentNode = new AvlNode(hashCode, key, value);
                         break;
                     }
-                    qparent = q;
-                    q = q.Right;
+                    currentNodeParent = currentNode;
+                    currentNode = currentNode.Right;
                 }
                 else // (p.HashCode == hashCode)
                 {
-                    this.HandleInsert(q, qparent, key, value, add);
+                    this.HandleInsert(currentNode, currentNodeParent, key, value, add);
                     return;
                 }
             }
 
-            Debug.Assert(PrimeNode != q);
+            Debug.Assert(unbalanced != currentNode);
 
-            // ====== update balances on the path from PrimeNode downwards
-            var p = PrimeNode;
+            // ====== update balances on the path from unbalanced downwards
+            var n = unbalanced;
             do
             {
-                Debug.Assert(p.HashCode != hashCode);
+                Debug.Assert(n.HashCode != hashCode);
 
-                if (p.HashCode < hashCode)
+                if (n.HashCode < hashCode)
                 {
-                    p.Balance--;
-                    p = p.Right;
+                    n.Balance--;
+                    n = n.Right;
                 }
                 else
                 {
-                    p.Balance++;
-                    p = p.Left;
+                    n.Balance++;
+                    n = n.Left;
                 }
             }
-            while (p != q);
+            while (n != currentNode);
 
-            // ====== rotate subtree at PrimeNode if needed
-            var primeBalance = PrimeNode.Balance;
-            //if (Math.Abs(primeBalance) == 2)
-            if (((primeBalance + 2) & 3) == 0)
+            // ====== rotate unbalanced node if needed
+            AvlNode rotated = null;
+            var balance = unbalanced.Balance;
+            if (balance == -2)
             {
-                var rotated = FixWithRotate(PrimeNode, primeBalance);
+                rotated = unbalanced.Right.Balance < 0 ?
+                    LeftSimple(unbalanced) :
+                    LeftComplex(unbalanced);
+            }
+            else if (balance == 2)
+            {
+                rotated = unbalanced.Left.Balance > 0 ?
+                    RightSimple(unbalanced) :
+                    RightComplex(unbalanced);
+            }
+            else
+            {
+                return;
+            }
 
-                if (PrimeNodeParent == null)
-                {
-                    this.root = rotated;
-                }
-                else if (PrimeNode == PrimeNodeParent.Left)
-                {
-                    PrimeNodeParent.Left = rotated;
-                }
-                else
-                {
-                    PrimeNodeParent.Right = rotated;
-                }
+            // ===== make parent to point to rotated
+            if (unbalancedParent == null)
+            {
+                this.root = rotated;
+            }
+            else if (unbalanced == unbalancedParent.Left)
+            {
+                unbalancedParent.Left = rotated;
+            }
+            else
+            {
+                unbalancedParent.Right = rotated;
             }
         }
 
-        private void HandleInsert(AvlNode q, AvlNode qparent, K key, V value, bool add)
+        private AvlNode LeftSimple(AvlNode unbalanced)
         {
-            Node n = q;
+            var right = unbalanced.Right;
+            unbalanced.Right = right.Left;
+            right.Left = unbalanced;
+
+            unbalanced.Balance = 0;
+            right.Balance = 0;
+            return right;
+        }
+
+        private AvlNode RightSimple(AvlNode unbalanced)
+        {
+            var left = unbalanced.Left;
+            unbalanced.Left = left.Right;
+            left.Right = unbalanced;
+
+            unbalanced.Balance = 0;
+            left.Balance = 0;
+            return left;
+        }
+
+        private AvlNode LeftComplex(AvlNode unbalanced)
+        {
+            var right = unbalanced.Right;
+            var rightLeft = right.Left;
+            right.Left = rightLeft.Right;
+            rightLeft.Right = right;
+            unbalanced.Right = rightLeft.Left;
+            rightLeft.Left = unbalanced;
+
+            var rightLeftBalance = rightLeft.Balance;
+            rightLeft.Balance = 0;
+
+            if (rightLeftBalance < 0)
+            {
+                right.Balance = 0;
+                unbalanced.Balance = 1;
+            }
+            else
+            {
+                right.Balance = (sbyte)-rightLeftBalance;
+                unbalanced.Balance = 0;
+            }
+
+            return rightLeft;
+        }
+
+        private AvlNode RightComplex(AvlNode unbalanced)
+        {
+            var left = unbalanced.Left;
+            var leftRight = left.Right;
+            left.Right = leftRight.Left;
+            leftRight.Left = left;
+            unbalanced.Left = leftRight.Right;
+            leftRight.Right = unbalanced;
+
+            var leftRightBalance = leftRight.Balance;
+            leftRight.Balance = 0;
+
+            if (leftRightBalance < 0)
+            {
+                left.Balance = 1;
+                unbalanced.Balance = 0;
+            }
+            else
+            {
+                left.Balance = 0;
+                unbalanced.Balance = (sbyte)-leftRightBalance;
+            }
+            
+            return leftRight;
+        }
+
+
+        private void HandleInsert(AvlNode node, AvlNode parent, K key, V value, bool add)
+        {
+            Node currentNode = node;
             do
             {
-                if (CompareKeys(n.key, key))
+                if (CompareKeys(currentNode.key, key))
                 {
                     if (add)
                     {
@@ -377,20 +465,20 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        n.Value = value;
+                        currentNode.Value = value;
                         return;
                     }
                 }
 
-                n = n.Next;
-            } while (n != null);
+                currentNode = currentNode.Next;
+            } while (currentNode != null);
 
-            AddNode(q, qparent, key, value);
+            AddNode(node, parent, key, value);
         }
 
-        private void AddNode(AvlNode q, AvlNode qparent, K key, V value)
+        private void AddNode(AvlNode node, AvlNode parent, K key, V value)
         {
-            AvlNodeHead head = q as AvlNodeHead;
+            AvlNodeHead head = node as AvlNodeHead;
             if (head != null)
             {
                 var newNext = new NodeLinked(key, value, head.next);
@@ -398,135 +486,28 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                var newHead = new AvlNodeHead(q.HashCode, key, value, q);
-                newHead.Balance = q.Balance;
-                newHead.Left = q.Left;
-                newHead.Right = q.Right;
+                var newHead = new AvlNodeHead(node.HashCode, key, value, node);
+                newHead.Balance = node.Balance;
+                newHead.Left = node.Left;
+                newHead.Right = node.Right;
 
-                if (qparent == null)
+                if (parent == null)
                 {
                     root = newHead;
                 }
                 else
                 {
-                    if (q == qparent.Left)
+                    if (node == parent.Left)
                     {
-                        qparent.Left = newHead;
+                        parent.Left = newHead;
                     }
                     else
                     {
-                        qparent.Right = newHead;
+                        parent.Right = newHead;
                     }
                 }
             }
         }
-
-        private static AvlNode FixWithRotate(AvlNode node, int direction)
-        {
-            if (direction > 0)
-            {
-                return FixWithRotateRight(node);
-            }
-            else
-            {
-                return FixWithRotateLeft(node);
-            }
-        }
-
-        private static AvlNode FixWithRotateLeft(AvlNode N)
-        {
-            var R = N.Right;
-            var RL = R.Left;
-
-            switch (R.Balance)
-            {
-                case -1:
-                    N.Balance = 0;
-                    R.Balance = 0;
-                    N.Right = RL;
-                    R.Left = N;
-                    return R;
-
-                case 0:
-                    N.Balance = -1;
-                    R.Balance = 1;
-                    N.Right = RL;
-                    R.Left = N;
-                    return R;
-
-                case 1:
-                    R.Left = RL.Right;
-                    N.Right = RL.Left;
-
-                    var nRLBalance = (sbyte)-RL.Balance;
-                    if (nRLBalance > 0)
-                    {
-                        R.Balance = 0;
-                        N.Balance = nRLBalance;
-                    }
-                    else
-                    {
-                        R.Balance = nRLBalance;
-                        N.Balance = 0;
-                    }
-
-                    RL.Balance = 0;
-                    RL.Right = R;
-                    RL.Left = N;
-
-                    return RL;
-            }
-
-            return null;
-        }
-
-        private static AvlNode FixWithRotateRight(AvlNode N)
-        {
-            var L = N.Left;
-            var LR = L.Right;
-
-            switch (L.Balance)
-            {
-                case 1:
-                    N.Balance = 0;
-                    L.Balance = 0;
-                    N.Left = LR;
-                    L.Right = N;
-                    return L;
-
-                case 0:
-                    N.Balance = 1;
-                    L.Balance = -1;
-                    N.Left = LR;
-                    L.Right = N;
-                    return L;
-
-                case -1:
-                    L.Right = LR.Left;
-                    N.Left = LR.Right;
-
-                    var nLRBalance = (sbyte)-LR.Balance;
-                    if (nLRBalance > 0)
-                    {
-                        L.Balance = nLRBalance;
-                        N.Balance = 0;
-                    }
-                    else
-                    {
-                        L.Balance = 0;
-                        N.Balance = nLRBalance;
-                    }
-
-                    LR.Balance = 0;
-                    LR.Left = L;
-                    LR.Right = N;
-
-                    return LR;
-            }
-
-            return null;
-        }
-
 
         public KeyCollection Keys
         {

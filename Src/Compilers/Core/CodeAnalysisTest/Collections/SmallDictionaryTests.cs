@@ -52,36 +52,47 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var ht = new SmallDictionary<int, int>();
             const int elements = 150; 
 
-            for (int i = 0; i < elements; i += 4)
+            for (int i = 0; i < elements; i += 10)
             {
                 ht.Add(i, i);
-                ht.Add(i - 1, i - 1);
+                ht.AssertBalanced();
                 ht.Add(i - 2, i - 2);
+                ht.AssertBalanced();
                 ht.Add(i - 3, i - 3);
+                ht.AssertBalanced();
+                ht.Add(i - 4, i - 4);
+                ht.AssertBalanced();
+                ht.Add(i - 6, i - 6);
+                ht.AssertBalanced();
+                ht.Add(i - 5, i - 5);
+                ht.AssertBalanced();
+                ht.Add(i - 1, i - 1);
+                ht.AssertBalanced();
+                ht.Add(i - 7, i - 7);
+                ht.AssertBalanced();
+                ht.Add(i - 8, i - 8);
+                ht.AssertBalanced();
+                ht.Add(i - 9, i - 9);
+                ht.AssertBalanced();
             }
 
-            Assert.Equal(152, ht.Count());
+            Assert.Equal(150, ht.Count());
 
-            for (int j = 0; j < 100; j++)
+            for (int i = 0; i < elements; i += 10)
             {
-                for (int i = 0; i < elements; i += 4)
-                {
-                    int v;
-                    ht.TryGetValue(i, out v);
-                    Assert.Equal(i, v);
-
-                    ht.TryGetValue(i - 1, out v);
-                    Assert.Equal(i - 1, v);
-
-                    ht.TryGetValue(i - 2, out v);
-                    Assert.Equal(i - 2, v);
-
-                    ht.TryGetValue(i - 3, out v);
-                    Assert.Equal(i - 3, v);
-                }
+                Assert.Equal(ht[i], i);
+                Assert.Equal(ht[i - 2], i - 2);
+                Assert.Equal(ht[i - 3], i - 3);
+                Assert.Equal(ht[i - 4], i - 4);
+                Assert.Equal(ht[i - 6], i - 6);
+                Assert.Equal(ht[i - 5], i - 5);
+                Assert.Equal(ht[i - 1], i - 1);
+                Assert.Equal(ht[i - 7], i - 7);
+                Assert.Equal(ht[i - 8], i - 8);
+                Assert.Equal(ht[i - 9], i - 9);
             }
 
-            foreach(var p in ht)
+            foreach (var p in ht)
             {
                 Assert.Equal(p.Key, p.Value);
             }
