@@ -230,7 +230,8 @@ Friend Module CompilationUtils
                                                         Optional includeSystemCore As Boolean = False,
                                                         Optional appendDefaultHeader As Boolean = True,
                                                         Optional parseOptions As VisualBasicParseOptions = Nothing,
-                                                        <Out> Optional ByRef ilReference As MetadataImageReference = Nothing
+                                                        <Out> Optional ByRef ilReference As MetadataImageReference = Nothing,
+                                                        <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing
     ) As VisualBasicCompilation
         Dim references As New List(Of MetadataReference)
         If includeVbRuntime Then
@@ -244,18 +245,17 @@ Friend Module CompilationUtils
             Return CreateCompilationWithMscorlibAndReferences(sources, references, options, spans, parseOptions)
         End If
 
-        ilReference = CreateReferenceFromIlCode(ilSource, appendDefaultHeader)
+        ilReference = CreateReferenceFromIlCode(ilSource, appendDefaultHeader, ilImage)
         references.Add(ilReference)
 
         Return CreateCompilationWithMscorlibAndReferences(sources, references, options, spans, parseOptions)
     End Function
 
-    Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True) As MetadataImageReference
-        Dim ilBytes As ImmutableArray(Of Byte) = Nothing
+    Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing) As MetadataImageReference
         Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource, appendDefaultHeader)
-            ilBytes = ImmutableArray.Create(Of Byte)(File.ReadAllBytes(reference.Path))
+            ilImage = ImmutableArray.Create(Of Byte)(File.ReadAllBytes(reference.Path))
         End Using
-        Return New MetadataImageReference(ilBytes)
+        Return New MetadataImageReference(ilImage)
     End Function
 
     Public Function GetUniqueName() As String
