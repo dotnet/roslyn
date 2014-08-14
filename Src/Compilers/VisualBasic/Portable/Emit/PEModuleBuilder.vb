@@ -223,8 +223,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                                     Case SymbolKind.Event
                                         AddSymbolLocation(result, member)
-                                        ' event backing fields do not show up in GetMembers
-                                        AddSymbolLocation(result, (DirectCast(member, EventSymbol)).AssociatedField)
+                                        Dim AssociatedField = (DirectCast(member, EventSymbol)).AssociatedField
+
+                                        If AssociatedField IsNot Nothing Then
+                                            ' event backing fields do not show up in GetMembers
+                                            AddSymbolLocation(result, AssociatedField)
+                                        End If
 
                                     Case Else
                                         Throw ExceptionUtilities.UnexpectedValue(member.Kind)
