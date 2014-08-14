@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -9,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string DiagnosticId = "AnalyzerDriver";
         private readonly Action<Diagnostic> addDiagnostic;
         private Compilation compilation;
-        internal Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = (e, a) => true; // should be a parameter?
+        internal Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException;
         private ImmutableArray<Task> workers;
         private ImmutableArray<Task> syntaxAnalyzers;
 
@@ -68,12 +66,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
         /// <param name="options">Options that are passed to analyzers</param>
         /// <param name="cancellationToken">a cancellation token that can be used to abort analysis</param>
-        protected AnalyzerDriver(ImmutableArray<IDiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
+        /// <param name="continueOnAnalyzerException">Delegate which is invoked when an analyzer throws an exception.
+        /// If a non-null delegate is provided and it returns true, then the exception is handled and converted into a diagnostic and driver continues with other analyzers.
+        /// Otherwise if it returns false, then the exception is not handled by the driver.
+        /// If null, then the driver always handles the exception.
+        /// </param>
+        protected AnalyzerDriver(ImmutableArray<IDiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
-            CompilationEventQueue = new AsyncQueue<CompilationEvent>();
-            DiagnosticQueue = new AsyncQueue<Diagnostic>();
-            addDiagnostic = GetDiagnosticSinkWithSuppression();
-            analyzerOptions = options;
+            this.CompilationEventQueue = new AsyncQueue<CompilationEvent>();
+            this.DiagnosticQueue = new AsyncQueue<Diagnostic>();
+            this.addDiagnostic = GetDiagnosticSinkWithSuppression();
+            this.analyzerOptions = options;
+
+            Func<Exception, IDiagnosticAnalyzer, bool> defaultExceptionHandler = (exception, analyzer) => true;
+            this.continueOnAnalyzerException = continueOnAnalyzerException ?? defaultExceptionHandler;
 
             // start the first task to drain the event queue. The first compilation event is to be handled before
             // any other ones, so we cannot have more than one event processing task until the first event has been handled.
@@ -259,9 +265,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                           defaultSeverity: DiagnosticSeverity.Error,
                           isEnabledByDefault: true);
                     addDiagnostic(Diagnostic.Create(desc, Location.None));
-#if DEBUG
-                    throw ex;
-#endif
                 }
             }
         }
@@ -544,18 +547,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // Create a info diagnostic saying that the analyzer failed
                     addDiagnostic(GetAnalyzerDiagnostic(a, oce));
-#if DEBUG
-                    throw oce;
-#endif
                 }
             }
             catch (Exception e) if (continueOnAnalyzerException(e, a))
             {
                 // Create a info diagnostic saying that the analyzer failed
                 addDiagnostic(GetAnalyzerDiagnostic(a, e));
-#if DEBUG
-                throw e;
-#endif
             }
         }
 
@@ -597,7 +594,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="getKind">A delegate that returns the language-specific kind for a given syntax node</param>
         /// <param name="options">Options that are passed to analyzers</param>
         /// <param name="cancellationToken">a cancellation token that can be used to abort analysis</param>
-        public AnalyzerDriver(ImmutableArray<IDiagnosticAnalyzer> analyzers, Func<SyntaxNode, TSyntaxKind> getKind, AnalyzerOptions options, CancellationToken cancellationToken) : base(analyzers, options, cancellationToken)
+        /// <param name="continueOnAnalyzerException">Delegate which is invoked when an analyzer throws an exception.
+        /// If a non-null delegate is provided and it returns true, then the exception is handled and converted into a diagnostic and driver continues with other analyzers.
+        /// Otherwise if it returns false, then the exception is not handled by the driver.
+        /// If null, then the driver always handles the exception.
+        /// </param>
+        public AnalyzerDriver(ImmutableArray<IDiagnosticAnalyzer> analyzers, Func<SyntaxNode, TSyntaxKind> getKind, AnalyzerOptions options, CancellationToken cancellationToken, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null) : base(analyzers, options, cancellationToken, continueOnAnalyzerException)
         {
             GetKind = getKind;
         }
@@ -885,9 +887,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // Create a info diagnostic saying that the analyzer failed
                     addDiagnostic(GetAnalyzerDiagnostic(nodeAnalyzer, e));
-#if DEBUG
-                    throw e;
-#endif
                 }
             }
 

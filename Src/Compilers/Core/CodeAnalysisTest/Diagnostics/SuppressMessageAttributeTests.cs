@@ -1137,7 +1137,7 @@ End Class
         {
             Assert.True(analyzers != null && analyzers.Length > 0, "Must specify at least one diagnostic analyzer to test suppression");
             var compilation = CreateCompilation(source, language, analyzers, rootNamespace);
-            compilation.VerifyAnalyzerDiagnostics(analyzers, diagnostics);
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: diagnostics);
         }
 
         // Generate a diagnostic on every token in the specified spans, and verify that only the specified diagnostics are not suppressed

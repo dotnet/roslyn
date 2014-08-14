@@ -426,7 +426,7 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({analyzer},
+            comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing,
                                            AnalyzerDiagnostic("XX001", <![CDATA[Public Module ThisModule]]>))
         End Sub
 
@@ -474,7 +474,7 @@ End Class
             Assert.NotNull(MyTemplate)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer},
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing,
                                            AnalyzerDiagnostic("XX001", <![CDATA[C]]>))
         End Sub
     End Class

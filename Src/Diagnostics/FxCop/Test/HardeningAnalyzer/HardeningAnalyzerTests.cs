@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.HardeningAnalyzer
             return new ExceptionThrowingSymbolAnalyzer_ThrowSymbolKindsOfInterest();
         }
 
-#if !DEBUG
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void TestTypeParameterNamesCSharp()
         {
@@ -42,12 +41,11 @@ public class Class6<TTypeParameter>
 ";
             var diagnosticsBag = DiagnosticBag.GetInstance();
             var documentsAndSpan = GetDocumentsAndSpans(new[] { source }, LanguageNames.CSharp);
-            AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, continueOnError: true);
+            AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, continueOnAnalyzerException: DiagnosticExtensions.AlwaysCatchAnalyzerExceptions);
             var diagnostics = diagnosticsBag.ToReadOnlyAndFree();
             Assert.True(diagnostics.Length > 0);
             Assert.Equal(diagnostics[0].ToString(), "info AnalyzerDriver: The Compiler Analyzer '" + GetCSharpDiagnosticAnalyzer().GetType() + "' threw an exception with message 'The method or operation is not implemented.'.");
         }
-#endif
 
 #region "Test_Class"
         internal const string RuleId = "CA1715_Test";

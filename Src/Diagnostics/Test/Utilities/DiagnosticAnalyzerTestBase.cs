@@ -293,10 +293,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return results;
         }
 
-        protected static void AnalyzeDocumentCore(IDiagnosticAnalyzer analyzer, Document document, Action<Diagnostic> addDiagnostic, TextSpan? span = null, bool continueOnError = false)
+        protected static void AnalyzeDocumentCore(IDiagnosticAnalyzer analyzer, Document document, Action<Diagnostic> addDiagnostic, TextSpan? span = null, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
-            var diagnostics = semanticModel.Compilation.GetAnalyzerDiagnostics(new[] { analyzer }, continueOnError: continueOnError);
+            var diagnostics = semanticModel.Compilation.GetAnalyzerDiagnostics(new[] { analyzer }, continueOnAnalyzerException: continueOnAnalyzerException);
             foreach (var diagnostic in diagnostics)
             {
                 if (!span.HasValue ||
