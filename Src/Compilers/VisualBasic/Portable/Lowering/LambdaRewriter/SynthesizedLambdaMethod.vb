@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim syntax As VisualBasicSyntaxNode = lambdaNode.Syntax
 
                 ' The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
-                Dim typeKind As TypeKind = If(DeclaringCompilation.Options.EnableEditAndContinue, TypeKind.Class, TypeKind.Struct)
+                Dim typeKind As TypeKind = If(DeclaringCompilation.Options.EnableEditAndContinue, TypeKind.Class, TypeKind.Structure)
 
                 Me.m_asyncStateMachineType =
                     AsyncRewriter.CreateAsyncStateMachine(

@@ -7975,7 +7975,7 @@ End Module
                 Sub(method)
                     Select Case method.Name
                         Case ".ctor"
-                            ' This is an auto-generated constructor, ignore it
+                        ' This is an auto-generated constructor, ignore it
 
                         Case "System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine"
                             Assert.Equal(Accessibility.Private, method.DeclaredAccessibility)
@@ -8130,6 +8130,52 @@ BC42356: This async method lacks 'Await' operators and so will run synchronously
 ]]></errors>)
             End Using
         End Sub
-        End Class
+
+        <WorkItem(1004348, "DevDiv")>
+        <Fact>
+        Public Sub StructureVsClass()
+            Dim source =
+<compilation name="Async">
+    <file name="a.vb">
+Imports System.Threading.Tasks
+        
+Module Module1
+
+    Sub Main()
+        Foo(123).Wait()
+    End Sub
+
+    Public Async Function Foo(a As Integer) As Task
+        Await Task.Factory.StartNew(Sub() System.Console.WriteLine(a))
+    End Function
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=Me.LatestReferences)
+            Dim options As VisualBasicCompilationOptions
+
+            options = TestOptions.ReleaseExe
+            Assert.False(options.EnableEditAndContinue)
+
+            CompileAndVerify(compilation.WithOptions(options),
+                             expectedOutput:="123",
+                             symbolValidator:=Sub(m As ModuleSymbol)
+                                                  Dim stateMachine = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Module1").GetMember(Of NamedTypeSymbol)("VB$StateMachine_0_Foo")
+                                                  Assert.Equal(TypeKind.Structure, stateMachine.TypeKind)
+                                              End Sub)
+
+            options = TestOptions.DebugExe
+            Assert.True(options.EnableEditAndContinue)
+
+            CompileAndVerify(compilation.WithOptions(options),
+                             expectedOutput:="123",
+                             symbolValidator:=Sub(m As ModuleSymbol)
+                                                  Dim stateMachine = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Module1").GetMember(Of NamedTypeSymbol)("VB$StateMachine_0_Foo")
+                                                  Assert.Equal(TypeKind.Class, stateMachine.TypeKind)
+                                              End Sub)
+        End Sub
+    End Class
 End Namespace
 

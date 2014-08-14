@@ -100,11 +100,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub InitializeStateMachine(bodyBuilder As ArrayBuilder(Of BoundStatement), frameType As NamedTypeSymbol, stateMachineLocal As LocalSymbol)
-            ' STAT:   localStateMachine = Nothing ' Initialization
-            bodyBuilder.Add(
-                Me.F.Assignment(
-                    Me.F.Local(stateMachineLocal, True),
-                    Me.F.Null(stateMachineLocal.Type)))
+            If frameType.TypeKind = TypeKind.Class Then
+                ' Dim stateMachineLocal = new AsyncImplementationClass()
+                bodyBuilder.Add(
+                    Me.F.Assignment(
+                        Me.F.Local(stateMachineLocal, True),
+                        Me.F.[New](StateMachineClass.Constructor.AsMember(frameType))))
+            Else
+                ' STAT:   localStateMachine = Nothing ' Initialization
+                bodyBuilder.Add(
+                    Me.F.Assignment(
+                        Me.F.Local(stateMachineLocal, True),
+                        Me.F.Null(stateMachineLocal.Type)))
+            End If
         End Sub
 
         Protected Overrides ReadOnly Property PreserveInitialParameterValues As Boolean
@@ -168,8 +176,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     "System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine",
                     DebugAttributes.DebuggerNonUserCodeAttribute, Accessibility.Private, False)
 
-            ' Me.builderField.SetStateMachine(sm)
-            Me.CloseMethod(
+            ' SetStateMachine Is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
+            ' If the state machine Is a class there Is no copy made And thus the initialization Is Not necessary. 
+            ' In fact it Is an error to reinitialize the builder since it already Is initialized.
+            If Me.F.CurrentType.TypeKind = TypeKind.Class Then
+                Me.F.CloseMethod(F.Return())
+            Else
+                Me.CloseMethod(
                 Me.F.Block(
                     Me.F.ExpressionStatement(
                         Me.GenerateMethodCall(
@@ -178,6 +191,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             "SetStateMachine",
                             {Me.F.Parameter(Me.F.CurrentMethod.Parameters(0))})),
                     Me.F.Return()))
+            End If
+
+            ' Constructor
+            If StateMachineClass.TypeKind = TypeKind.Class Then
+                Me.F.CurrentMethod = StateMachineClass.Constructor
+                Me.F.CloseMethod(F.Block(ImmutableArray.Create(F.BaseInitialization(), F.Return())))
+            End If
+
         End Sub
 
         Protected Overrides Function GenerateReplacementBody(stateMachineVariable As LocalSymbol, frameType As NamedTypeSymbol) As BoundStatement

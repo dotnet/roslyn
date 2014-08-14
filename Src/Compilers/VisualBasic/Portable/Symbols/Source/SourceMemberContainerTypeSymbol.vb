@@ -375,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 asyncMethods.Sort(LexicalOrderSymbolComparer.Instance)
 
                 ' The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
-                Dim typeKind As TypeKind = If(compilation.Options.EnableEditAndContinue, TypeKind.Class, TypeKind.Struct)
+                Dim typeKind As TypeKind = If(compilation.Options.EnableEditAndContinue, TypeKind.Class, TypeKind.Structure)
 
                 For i = 0 To asyncMethods.Count - 1
                     Dim method As SourceMemberMethodSymbol = asyncMethods(i)
