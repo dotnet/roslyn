@@ -187,11 +187,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 p.GetNextToken()
                 Dim node = p.ParseExpression()
                 If consumeFullText Then node = p.ConsumeUnexpectedTokens(node)
-                ' NOTE: In C#, we wrap the expression in an ExpressionStatementSyntax.  We can't do that in
-                ' VB because an array index expression wrapped in an expression statement will be bound as
-                ' an invocation.
-                Dim syntaxTree = VisualBasicSyntaxTree.Create(DirectCast(node.CreateRed(Nothing, 0), ExpressionSyntax))
-                Return DirectCast(syntaxTree.GetRoot(), ExpressionSyntax)
+                Dim statement = InternalSyntax.SyntaxFactory.PrintStatement(New InternalSyntax.PunctuationSyntax(SyntaxKind.QuestionToken, "?", Nothing, Nothing), node)
+                Dim compilationUnit = InternalSyntax.SyntaxFactory.CompilationUnit(
+                    options:=Nothing,
+                    [imports]:=Nothing,
+                    attributes:=Nothing,
+                    members:=InternalSyntax.SyntaxList.List(statement),
+                    endOfFileToken:=InternalSyntax.SyntaxFactory.EndOfFileToken)
+                Dim syntaxTree = VisualBasicSyntaxTree.Create(DirectCast(compilationUnit.CreateRed(Nothing, 0), CompilationUnitSyntax))
+                Return DirectCast(DirectCast(syntaxTree.GetRoot(), CompilationUnitSyntax).Members.Single(), PrintStatementSyntax).Expression
             End Using
         End Function
 
