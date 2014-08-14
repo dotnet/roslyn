@@ -120,6 +120,7 @@
     <Compile Include="Compilation\CompilationStage.cs" />
     <Compile Include="Compilation\ControlFlowAnalysis.cs" />
     <Compile Include="Compilation\DataFlowAnalysis.cs" />
+    <Compile Include="Compilation\DeclarationInfo.cs" />
     <Compile Include="Compilation\EmitResult.cs" />
     <Compile Include="Compilation\Extensions.cs" />
     <Compile Include="Compilation\MetadataOnlyEmitOptions.cs" />

@@ -3448,38 +3448,74 @@ _Default:
             Return False
         End Function
 
-        Protected Overrides Function DeclarationsInSpanInternal(span As TextSpan) As ImmutableArray(Of SemanticModel.DeclarationInSpan)
-            Dim builder = ArrayBuilder(Of DeclarationInSpan).GetInstance()
-            DeclarationsInSpanCore(Me.SyntaxTree.GetRoot(), span, builder)
+        Public Overrides Function GetDeclarationsInSpan(span As TextSpan, getSymbol As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DeclarationInfo)
+            Dim builder = ArrayBuilder(Of DeclarationInfo).GetInstance()
+            ComputeDeclarationsCore(Me.SyntaxTree.GetRoot(), Function(node) Not node.Span.OverlapsWith(span), getSymbol, builder, cancellationToken)
             Return builder.ToImmutable()
         End Function
 
-        Protected Overrides Function DeclarationsInNodeInternal(node As SyntaxNode) As ImmutableArray(Of SemanticModel.DeclarationInSpan)
-            Dim builder = ArrayBuilder(Of DeclarationInSpan).GetInstance()
-            DeclarationsInSpanCore(node, node.Span, builder)
+        Protected Overrides Function GetDeclarationsInNode(node As SyntaxNode, getSymbol As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DeclarationInfo)
+            Dim builder = ArrayBuilder(Of DeclarationInfo).GetInstance()
+            ComputeDeclarationsCore(node, Function(n) False, getSymbol, builder, cancellationToken)
             Return builder.ToImmutable()
         End Function
 
         Protected Overrides Function GetTopmostNodeForDiagnosticAnalysis(symbol As ISymbol, declaringSyntax As SyntaxNode) As SyntaxNode
             Select Case symbol.Kind
-                Case SymbolKind.Method, SymbolKind.Event, SymbolKind.Property
-                    Return declaringSyntax.Parent
+                Case SymbolKind.Method
+                    If TypeOf declaringSyntax Is MethodBaseSyntax Then
+                        If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is MethodBlockBaseSyntax Then
+                            Return declaringSyntax.Parent
+                        End If
+                    End If
+                Case SymbolKind.Event
+                    If TypeOf declaringSyntax Is EventStatementSyntax Then
+                        If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is EventBlockSyntax Then
+                            Return declaringSyntax.Parent
+                        End If
+                    End If
+                Case SymbolKind.Property
+                    If TypeOf declaringSyntax Is PropertyStatementSyntax Then
+                        If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is PropertyBlockSyntax Then
+                            Return declaringSyntax.Parent
+                        End If
+                    End If
                 Case SymbolKind.Field
-                    Return declaringSyntax.Parent.Parent
-                Case Else
-                    Return declaringSyntax
+                    Dim fieldDecl = declaringSyntax.FirstAncestorOrSelf(Of FieldDeclarationSyntax)()
+                    If fieldDecl IsNot Nothing Then
+                        Return fieldDecl
+                    End If
             End Select
+
+            Return declaringSyntax
         End Function
 
-        Private Sub DeclarationsInSpanCore(node As SyntaxNode, span As TextSpan, builder As ArrayBuilder(Of DeclarationInSpan))
-            If Not node.Span.OverlapsWith(span) Then Return
+        Private Shared Function GetParameterInitializers(parameterList As ParameterListSyntax) As IEnumerable(Of SyntaxNode)
+            Return If(parameterList IsNot Nothing,
+                parameterList.Parameters.Select(Function(p) p.Default),
+                SpecializedCollections.EmptyEnumerable(Of SyntaxNode))
+        End Function
+
+        Private Sub ComputeDeclarationsCore(node As SyntaxNode, shouldSkip As Func(Of SyntaxNode, Boolean), getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), cancellationToken As CancellationToken)
+            If shouldSkip(node) Then
+                Return
+            End If
+
             Select Case node.VisualBasicKind()
                 Case SyntaxKind.NamespaceBlock
                     Dim ns = CType(node, NamespaceBlockSyntax)
                     For Each decl In ns.Members
-                        DeclarationsInSpanCore(decl, span, builder)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
                     Next
-                    builder.Add(New DeclarationInSpan(ns, Nothing))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken))
+
+                    Dim name = ns.NamespaceStatement.Name
+                    While (name.Kind = SyntaxKind.QualifiedName)
+                        name = (CType(name, QualifiedNameSyntax)).Left
+                        Dim declaredSymbol = If(getSymbol, GetSymbolInfo(name, cancellationToken).Symbol, Nothing)
+                        builder.Add(New DeclarationInfo(name, ImmutableArray(Of SyntaxNode).Empty, declaredSymbol))
+                    End While
+
                     Return
                 Case SyntaxKind.ClassBlock,
                      SyntaxKind.StructureBlock,
@@ -3487,79 +3523,89 @@ _Default:
                      SyntaxKind.ModuleBlock
                     Dim t = CType(node, TypeBlockSyntax)
                     For Each decl In t.Members
-                        DeclarationsInSpanCore(decl, span, builder)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
                     Next
-                    builder.Add(New DeclarationInSpan(node, Nothing))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken))
                     Return
                 Case SyntaxKind.EnumBlock
                     Dim t = CType(node, EnumBlockSyntax)
                     For Each decl In t.Members
-                        DeclarationsInSpanCore(decl, span, builder)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
                     Next
-                    builder.Add(New DeclarationInSpan(node, Nothing))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken))
                     Return
                 Case SyntaxKind.EnumMemberDeclaration
                     Dim t = CType(node, EnumMemberDeclarationSyntax)
-                    builder.Add(New DeclarationInSpan(node, If(t.Initializer Is Nothing, Nothing, t.Initializer.Value)))
+                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, t.Initializer))
                     Return
                 Case SyntaxKind.DelegateSubStatement, SyntaxKind.DelegateFunctionStatement
                     Dim t = CType(node, DelegateStatementSyntax)
-                    builder.Add(New DeclarationInSpan(node, Nothing))
+                    Dim paramInitializers As IEnumerable(Of SyntaxNode) = GetParameterInitializers(t.ParameterList)
+                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, paramInitializers))
                     Return
                 Case SyntaxKind.EventBlock
                     Dim t = CType(node, EventBlockSyntax)
                     For Each decl In t.Accessors
-                        DeclarationsInSpanCore(decl, span, builder)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
                     Next
-                    builder.Add(New DeclarationInSpan(node, Nothing))
+                    Dim eventInitializers = GetParameterInitializers(t.EventStatement.ParameterList)
+                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, eventInitializers))
                     Return
                 Case SyntaxKind.EventStatement
                     Dim t = CType(node, EventStatementSyntax)
-                    builder.Add(New DeclarationInSpan(node, Nothing))
+                    Dim paramInitializers = GetParameterInitializers(t.ParameterList)
+                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, paramInitializers))
                     Return
                 Case SyntaxKind.FieldDeclaration
                     Dim t = CType(node, FieldDeclarationSyntax)
                     For Each decl In t.Declarators
-                        Dim initializer = If(decl.Initializer Is Nothing, Nothing, decl.Initializer.Value)
                         For Each identifier In decl.Names
-                            builder.Add(New DeclarationInSpan(identifier, initializer))
+                            builder.Add(GetDeclarationInfo(decl, getSymbol, cancellationToken, decl.Initializer))
                         Next
                     Next
                     Return
                 Case SyntaxKind.PropertyBlock
                     Dim t = CType(node, PropertyBlockSyntax)
                     For Each decl In t.Accessors
-                        DeclarationsInSpanCore(decl, span, builder)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
                     Next
-                    builder.Add(New DeclarationInSpan(node, Nothing))
+                    Dim propertyInitializers = GetParameterInitializers(t.PropertyStatement.ParameterList)
+                    Dim codeBlocks = propertyInitializers.Concat(t.PropertyStatement.Initializer)
+                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks))
+                    Return
+                Case SyntaxKind.PropertyStatement
+                    Dim t = CType(node, PropertyStatementSyntax)
+                    Dim propertyInitializers = GetParameterInitializers(t.ParameterList)
+                    Dim codeBlocks = propertyInitializers.Concat(t.Initializer)
+                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks))
                     Return
                 Case SyntaxKind.PropertyGetBlock,
                      SyntaxKind.PropertySetBlock,
                      SyntaxKind.AddHandlerBlock,
                      SyntaxKind.RemoveHandlerBlock,
-                     SyntaxKind.RaiseEventBlock
-                    Dim t = CType(node, AccessorBlockSyntax)
-                    builder.Add(New DeclarationInSpan(node, node))
-                    Return
-                Case SyntaxKind.SubBlock,
+                     SyntaxKind.RaiseEventBlock,
+                     SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
                      SyntaxKind.OperatorBlock,
                      SyntaxKind.ConstructorBlock
                     Dim t = CType(node, MethodBlockBaseSyntax)
-                    builder.Add(New DeclarationInSpan(node, node))
+                    Dim paramInitializers = GetParameterInitializers(t.Begin.ParameterList)
+                    Dim codeBlocks = paramInitializers.Concat(t.Statements)
+                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks))
                     Return
                 Case SyntaxKind.DeclareSubStatement, SyntaxKind.DeclareFunctionStatement
                     Dim t = CType(node, MethodBaseSyntax)
-                    builder.Add(New DeclarationInSpan(node, node))
+                    Dim paramInitializers = GetParameterInitializers(t.ParameterList)
+                    builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, paramInitializers))
                     Return
                 Case SyntaxKind.CompilationUnit
                     Dim t = CType(node, CompilationUnitSyntax)
                     For Each decl In t.Members
-                        DeclarationsInSpanCore(decl, span, builder)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
                     Next
                     Return
                 Case Else
-                    Return '' perhaps assert that this does Not happen? What about error cases?
+                    Return
             End Select
         End Sub
 #End Region

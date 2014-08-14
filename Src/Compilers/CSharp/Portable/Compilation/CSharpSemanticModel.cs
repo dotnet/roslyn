@@ -4545,69 +4545,100 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<ISymbol>();
         }
 
-        protected internal override ImmutableArray<DeclarationInSpan> DeclarationsInSpanInternal(TextSpan span)
+        public override ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(TextSpan span, bool getSymbol, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<DeclarationInSpan>.GetInstance();
-            DeclarationsInSpanCore(this.SyntaxTree.GetRoot(), span, builder);
+            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
+            ComputeDeclarationsCore(this.SyntaxTree.GetRoot(), node => !node.Span.OverlapsWith(span), getSymbol, builder, cancellationToken);
             return builder.ToImmutable();
         }
 
-        protected internal override ImmutableArray<DeclarationInSpan> DeclarationsInNodeInternal(SyntaxNode node)
+        protected internal override ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<DeclarationInSpan>.GetInstance();
-            DeclarationsInSpanCore(node, node.Span, builder);
+            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
+            ComputeDeclarationsCore(node, _ => false, getSymbol, builder, cancellationToken);
             return builder.ToImmutable();
         }
 
-        private void DeclarationsInSpanCore(SyntaxNode node, TextSpan span, ArrayBuilder<DeclarationInSpan> builder)
+        protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
         {
-            if (!node.Span.OverlapsWith(span)) return;
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Field:
+                    var fieldDecl = declaringSyntax.FirstAncestorOrSelf<BaseFieldDeclarationSyntax>();
+                    if (fieldDecl != null)
+                    {
+                        return fieldDecl;
+                    }
+
+                    break;
+            }
+
+            return declaringSyntax;
+        }
+
+        private void ComputeDeclarationsCore(SyntaxNode node, Func<SyntaxNode, bool> shouldSkip, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)
+        {
+            if (shouldSkip(node))
+            {
+                return;
+            }
+
             switch (node.CSharpKind())
             {
                 case SyntaxKind.NamespaceDeclaration:
                     {
                         var ns = (NamespaceDeclarationSyntax)node;
-                        foreach (var decl in ns.Members) DeclarationsInSpanCore(decl, span, builder);
-                        builder.Add(new DeclarationInSpan(ns, null));
+                        foreach (var decl in ns.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
+
+                        NameSyntax name = ns.Name;
+                        while (name.Kind == SyntaxKind.QualifiedName)
+                        {
+                            name = ((QualifiedNameSyntax)name).Left;
+                            var declaredSymbol = getSymbol ? GetSymbolInfo(name, cancellationToken).Symbol : null;
+                            builder.Add(new DeclarationInfo(name, ImmutableArray<SyntaxNode>.Empty, declaredSymbol));
+                        }
+
                         return;
                     }
+
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                     {
                         var t = (TypeDeclarationSyntax)node;
-                        foreach (var decl in t.Members) DeclarationsInSpanCore(decl, span, builder);
-                        builder.Add(new DeclarationInSpan(node, null));
+                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
                         return;
                     }
 
                 case SyntaxKind.EnumDeclaration:
                     {
                         var t = (EnumDeclarationSyntax)node;
-                        foreach (var decl in t.Members) DeclarationsInSpanCore(decl, span, builder);
-                        builder.Add(new DeclarationInSpan(node, null));
+                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
                         return;
                     }
 
                 case SyntaxKind.EnumMemberDeclaration:
                     {
                         var t = (EnumMemberDeclarationSyntax)node;
-                        builder.Add(new DeclarationInSpan(node, t.EqualsValue != null ? t.EqualsValue.Value : null));
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, t.EqualsValue));
                         return;
                     }
 
                 case SyntaxKind.DelegateDeclaration:
                     {
                         var t = (DelegateDeclarationSyntax)node;
-                        builder.Add(new DeclarationInSpan(node, null));
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
                         return;
                     }
 
                 case SyntaxKind.EventDeclaration:
                     {
                         var t = (EventDeclarationSyntax)node;
-                        foreach (var decl in t.AccessorList.Accessors) DeclarationsInSpanCore(decl, span, builder);
-                        builder.Add(new DeclarationInSpan(node, null));
+                        foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
                         return;
                     }
 
@@ -4615,7 +4646,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.FieldDeclaration:
                     {
                         var t = (BaseFieldDeclarationSyntax)node;
-                        foreach (var decl in t.Declaration.Variables) builder.Add(new DeclarationInSpan(decl, decl.Initializer != null ? decl.Initializer.Value : null));
+                        foreach (var decl in t.Declaration.Variables)
+                        {
+                            builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, decl.Initializer));
+                        }
+
                         return;
                     }
 
@@ -4624,25 +4659,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var t = (PropertyDeclarationSyntax)node;
                         if (t.AccessorList != null)
                         {
-                            foreach (var decl in t.AccessorList.Accessors) DeclarationsInSpanCore(decl, span, builder);
+                            foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
                         }
-                        if (t.ExpressionBody != null)
-                        {
-                            builder.Add(new DeclarationInSpan(t, t.ExpressionBody.Expression));
-                        }
-                        if (t.Initializer != null)
-                        {
-                            builder.Add(new DeclarationInSpan(t, t.Initializer.Value));
-                        }
-                        builder.Add(new DeclarationInSpan(node, null));
+
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, t.Initializer, t.ExpressionBody));
                         return;
                     }
 
                 case SyntaxKind.IndexerDeclaration:
                     {
                         var t = (IndexerDeclarationSyntax)node;
-                        foreach (var decl in t.AccessorList.Accessors) DeclarationsInSpanCore(decl, span, builder);
-                        builder.Add(new DeclarationInSpan(node, null));
+                        foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                        var parameterInitializers = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : null;
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, parameterInitializers));
                         return;
                     }
 
@@ -4652,7 +4681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GetAccessorDeclaration:
                     {
                         var t = (AccessorDeclarationSyntax)node;
-                        builder.Add(new DeclarationInSpan(t, t.Body));
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, t.Body));
                         return;
                     }
 
@@ -4663,19 +4692,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OperatorDeclaration:
                     {
                         var t = (BaseMethodDeclarationSyntax)node;
-                        builder.Add(new DeclarationInSpan(t, t.Body));
+                        var codeBlocks = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+                        codeBlocks = codeBlocks.Concat(t.Body);
+                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, codeBlocks));
                         return;
                     }
 
                 case SyntaxKind.CompilationUnit:
                     {
                         var t = (CompilationUnitSyntax)node;
-                        foreach (var decl in t.Members) DeclarationsInSpanCore(decl, span, builder);
+                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
                         return;
                     }
 
                 default:
-                    return; // perhaps assert that this does not happen? What about error cases?
+                    return;
             }
         }
 

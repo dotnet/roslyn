@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -868,14 +868,18 @@ namespace Microsoft.CodeAnalysis
         protected abstract PreprocessingSymbolInfo GetPreprocessingSymbolInfoCore(SyntaxNode nameSyntax);
 
         /// <summary>
-        /// Takes a Span and returns a set of declarations that overlap that span in this model's tree.
+        /// Gets the <see cref="DeclarationInfo"/> for all the declarations whose span overlaps with the given <paramref name="span"/>.
         /// </summary>
-        protected internal abstract ImmutableArray<DeclarationInSpan> DeclarationsInSpanInternal(TextSpan span);
+        /// <param name="span">Span to get declarations.</param>
+        /// <param name="getSymbol">Flag indicating whether <see cref="DeclarationInfo.DeclaredSymbol"/> should be computed for the returned declartion infos.
+        /// If false, then <see cref="DeclarationInfo.DeclaredSymbol"/> is always null.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public abstract ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(TextSpan span, bool getSymbol, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Takes a Node and returns a set of declarations that overlap the node's span.
+        /// Takes a node and returns a set of declarations that overlap the node's span.
         /// </summary>
-        protected internal abstract ImmutableArray<DeclarationInSpan> DeclarationsInNodeInternal(SyntaxNode node);
+        protected internal abstract ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken);
 
         /// <summary>
         /// Takes a Symbol and syntax for one of its declaring syntax reference and returns the topmost syntax node to be used by syntax analyzer.
@@ -884,18 +888,19 @@ namespace Microsoft.CodeAnalysis
         {
             return declaringSyntax;
         }
-        
-        protected internal struct DeclarationInSpan
+
+        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, IEnumerable<SyntaxNode> executableCodeBlocks)
         {
-            public DeclarationInSpan(SyntaxNode declaration, SyntaxNode body) : this()
-            {
-                this.Declaration = declaration;
-                this.Body = body;
-            }
+            var declaredSymbol = getSymbol ? GetDeclaredSymbolCore(node, cancellationToken) : null;
+            var codeBlocks = executableCodeBlocks == null ?
+                ImmutableArray<SyntaxNode>.Empty :
+                executableCodeBlocks.Where(c => c != null).AsImmutableOrEmpty();
+            return new DeclarationInfo(node, codeBlocks, declaredSymbol);
+        }
 
-            public SyntaxNode Declaration { get; private set; }
-
-            public SyntaxNode Body { get; private set; }
+        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, params SyntaxNode[] executableCodeBlocks)
+        {
+            return GetDeclarationInfo(node, getSymbol, cancellationToken, executableCodeBlocks.AsEnumerable());
         }
     }
 }

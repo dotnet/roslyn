@@ -216,9 +216,9 @@ namespace Microsoft.CodeAnalysis
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
         /// <paramref name="continueOnError"/> says whether the caller would like the exception thrown by the analyzers to be handled or not. If true - Handles ; False - Not handled.
         /// </summary>
-        public static bool IsDiagnosticAnalyzerSuppressed(this IDiagnosticAnalyzer analyzer, CompilationOptions options, bool continueOnError = true)
+        public static bool IsDiagnosticAnalyzerSuppressed(this IDiagnosticAnalyzer analyzer, CompilationOptions options)
         {
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options);
+            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, (e, a) => true);
         }
 
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
