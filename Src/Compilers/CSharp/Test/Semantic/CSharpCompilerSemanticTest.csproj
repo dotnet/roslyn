@@ -108,6 +108,7 @@
     <Compile Include="Semantics\ConstantTests.cs" />
     <Compile Include="Semantics\DeclarationExpressionsTests.cs" />
     <Compile Include="Semantics\DynamicTests.cs" />
+    <Compile Include="Semantics\ExpressionBodiedMemberTests.cs" />
     <Compile Include="Semantics\FieldInitializerBindingTests.cs" />
     <Compile Include="Semantics\ForEachTests.cs" />
     <Compile Include="Semantics\ForLoopErrorTests.cs" />

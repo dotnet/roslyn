@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Gets the expression-body syntax from an expression-bodied member. The
-        /// given syntax must be for an expression-bodied member.
+        /// given syntax must be for a member which could contain an expression-body.
         /// </summary>
         internal static ArrowExpressionClauseSyntax GetExpressionBodySyntax(this CSharpSyntaxNode node)
         {

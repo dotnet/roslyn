@@ -437,12 +437,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override Binder VisitPropertyDeclaration(PropertyDeclarationSyntax parent)
             {
-                return VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+                if (!LookupPosition.IsInBody(position, parent))
+                {
+                    return VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+                }
+
+                return VisitPropertyOrIndexerExpressionBody(parent);
             }
 
             public override Binder VisitIndexerDeclaration(IndexerDeclarationSyntax parent)
             {
-                return VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+                if (!LookupPosition.IsInBody(position, parent))
+                {
+                    return VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+                }
+
+                return VisitPropertyOrIndexerExpressionBody(parent);
+            }
+
+            private Binder VisitPropertyOrIndexerExpressionBody(BasePropertyDeclarationSyntax parent)
+            {
+                var key = CreateBinderCacheKey(parent, NodeUsage.AccessorBody);
+
+                Binder resultBinder;
+                if (!binderCache.TryGetValue(key, out resultBinder))
+                {
+                    resultBinder = VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+
+                    var propertySymbol = GetPropertySymbol(parent, resultBinder);
+                    var accessor = propertySymbol.GetMethod;
+                    if ((object)accessor != null)
+                    {
+                        resultBinder = new InMethodBinder(accessor, resultBinder);
+                    }
+
+                    binderCache.TryAdd(key, resultBinder);
+                }
+
+                return resultBinder;
             }
 
             private NamedTypeSymbol GetContainerType(Binder binder, CSharpSyntaxNode node)

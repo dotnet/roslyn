@@ -24,7 +24,7 @@ class C
         [Fact]
         public void Syntax02()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int P { get; } => 1;
@@ -41,7 +41,7 @@ class C
         [Fact]
         public void Syntax03()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 interface C
 {
     int P => 1;
@@ -55,7 +55,7 @@ interface C
         [Fact]
         public void Syntax04()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 abstract class C
 {
   public abstract int P => 1;
@@ -69,7 +69,7 @@ abstract class C
         [Fact]
         public void Syntax05()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
    public abstract int P => 1;
@@ -86,7 +86,7 @@ class C
         [Fact]
         public void Syntax06()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 abstract class C
 {
    abstract int P => 1;
@@ -104,7 +104,7 @@ abstract class C
         public void Syntax07()
         {
             // The '=' here parses as part of the expression body, not the property
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int P => 1 = 2;
@@ -118,7 +118,7 @@ class C
         [Fact]
         public void Syntax08()
         {
-            CreateExperimentalCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib45(@"
 interface I
 {
     int P { get; };
@@ -131,7 +131,7 @@ interface I
         [Fact]
         public void Syntax09()
         {
-            CreateExperimentalCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib45(@"
 class C
 {
     int P => 2
@@ -144,7 +144,7 @@ class C
         [Fact]
         public void Syntax10()
         {
-            CreateExperimentalCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib45(@"
 interface I
 {
     int this[int i]
@@ -163,7 +163,7 @@ interface I
         [Fact]
         public void Syntax11()
         {
-            CreateExperimentalCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib45(@"
 interface I
 {
     int this[int i];
@@ -185,7 +185,7 @@ interface I
         [Fact]
         public void Syntax12()
         {
-            CreateExperimentalCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib45(@"
 interface I
 {
     int this[int i] { get; };
@@ -199,7 +199,7 @@ interface I
         public void Syntax13()
         {
             // End the property declaration at the semicolon after the accessor list
-            CreateExperimentalCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib45(@"
 class C
 {
     int P { get; set; }; => 2;
@@ -215,7 +215,7 @@ class C
         [Fact]
         public void Syntax14()
         {
-            CreateExperimentalCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib45(@"
 class C
 {
     int this[int i] => 2
@@ -229,7 +229,7 @@ class C
         [Fact]
         public void LambdaTest01()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 using System;
 class C
 {
@@ -245,9 +245,10 @@ class C
 class C
 {
     public int P => 2 * 2;
-    public int this[int i] => P;
+    public int this[int i, int j] => i * j * P;
 }";
-            var comp = CreateExperimentalCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib45(text);
+            comp.VerifyDiagnostics();
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMember("C");
 
@@ -264,16 +265,19 @@ class C
             Assert.True(indexer.IsExpressionBodied);
             Assert.True(indexer.IsIndexer);
 
-            Assert.Equal(1, indexer.ParameterCount);
+            Assert.Equal(2, indexer.ParameterCount);
             var i = indexer.Parameters[0];
             Assert.Equal(SpecialType.System_Int32, i.Type.SpecialType);
             Assert.Equal("i", i.Name);
+            var j = indexer.Parameters[1];
+            Assert.Equal(SpecialType.System_Int32, i.Type.SpecialType);
+            Assert.Equal("j", j.Name);
         }
 
         [Fact]
         public void Override01()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class B
 {
     public virtual int P { get; set; }
@@ -286,9 +290,47 @@ class C : B
         }
 
         [Fact]
+        public void Override02()
+        {
+            CreateCompilationWithMscorlib45(@"
+class B
+{
+    public int P => 10;
+    public int this[int i] => i;
+}
+class C : B
+{
+    public override int P => 20;
+    public override int this[int i] => i * 2;
+}").VerifyDiagnostics(
+    // (10,25): error CS0506: 'C.this[int]': cannot override inherited member 'B.this[int]' because it is not marked virtual, abstract, or override
+    //     public override int this[int i] => i * 2;
+    Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "this").WithArguments("C.this[int]", "B.this[int]").WithLocation(10, 25),
+    // (9,25): error CS0506: 'C.P': cannot override inherited member 'B.P' because it is not marked virtual, abstract, or override
+    //     public override int P => 20;
+    Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "P").WithArguments("C.P", "B.P").WithLocation(9, 25));
+        }
+
+        [Fact]
+        public void Override03()
+        {
+            CreateCompilationWithMscorlib45(@"
+class B
+{
+    public virtual int P => 10;
+    public virtual int this[int i] => i;
+}
+class C : B
+{
+    public override int P => 20;
+    public override int this[int i] => i * 2;
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
         public void VoidExpression()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public void P => System.Console.WriteLine(""foo"");
@@ -301,7 +343,7 @@ class C
         [Fact]
         public void VoidExpression2()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int P => System.Console.WriteLine(""foo"");
@@ -314,7 +356,7 @@ class C
         [Fact]
         public void InterfaceImplementation01()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 interface I 
 {
     int P { get; }
@@ -359,12 +401,12 @@ class C : I, J, K
 
             prop = c.GetMember<SourcePropertySymbol>("D");
             Assert.True(prop.IsReadOnly);
-        } 
+        }
 
         [Fact]
         public void Emit01()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 abstract class A
 {
     protected abstract string Z { get; }
@@ -382,6 +424,7 @@ class C : B
     public int Q => X;
     private int R => P * Q;
     protected sealed override string Y => Z + R;
+    public int this[int i] => R + i;
 
     public static void Main()
     {
@@ -393,6 +436,7 @@ class C : B
         System.Console.WriteLine(c.R);
         System.Console.WriteLine(c.Z);
         System.Console.WriteLine(c.Y);
+        System.Console.WriteLine(c[10]);
     }
 }", options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -401,7 +445,45 @@ class C : B
 2
 8
 foo
-foo8");
+foo8
+18");
+        }
+
+        [Fact]
+        public void AccessorInheritsVisibility()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    private int P => 1;
+    private int this[int i] => i;
+}", options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            Action<ModuleSymbol> srcValidator = m =>
+            {
+                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var p = c.GetMember<PropertySymbol>("P");
+                var indexer = c.Indexers[0];
+
+                Assert.Equal(Accessibility.Private, p.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, indexer.DeclaredAccessibility);
+            };
+
+            var verifier = CompileAndVerify(comp, sourceSymbolValidator: srcValidator);
+        }
+
+        [Fact]
+        public void StaticIndexer()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    static int this[int i] => i;
+}");
+            comp.VerifyDiagnostics(
+    // (4,16): error CS0106: The modifier 'static' is not valid for this item
+    //     static int this[int i] => i;
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(4, 16));
         }
     }
 }

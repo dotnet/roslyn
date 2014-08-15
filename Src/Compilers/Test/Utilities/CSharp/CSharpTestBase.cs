@@ -420,7 +420,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string assemblyName = "",
             string sourceFileName = "")
         {
-
             var refs = new List<MetadataReference>();
             if (references != null)
             {

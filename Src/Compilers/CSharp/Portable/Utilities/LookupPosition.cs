@@ -35,6 +35,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// A position is inside a property body only if it is inside an expression body.
+        /// All block bodies for properties are part of the accessor declaration (a type
+        /// of BaseMethodDeclaration), not the property declaration.
+        /// </summary>
+        internal static bool IsInBody(int position,
+            PropertyDeclarationSyntax property)
+        {
+            var exprOpt = property.GetExpressionBodySyntax();
+            return IsInExpressionBody(position, exprOpt, property.Semicolon);
+        }
+
+        /// <summary>
+        /// A position is inside a property body only if it is inside an expression body.
+        /// All block bodies for properties are part of the accessor declaration (a type
+        /// of BaseMethodDeclaration), not the property declaration.
+        /// </summary>
+        internal static bool IsInBody(int position,
+            IndexerDeclarationSyntax indexer)
+        {
+            var exprOpt = indexer.GetExpressionBodySyntax();
+            return IsInExpressionBody(position, exprOpt, indexer.Semicolon);
+        }
+
+        /// <summary>
         /// A position is inside a body if it is inside the block or expression
         /// body. 
         ///
@@ -45,22 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static bool IsInBody(int position, BaseMethodDeclarationSyntax method)
         {
-            ArrowExpressionClauseSyntax expressionBodyOpt = null;
-            switch (method.Kind)
-            {
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    expressionBodyOpt = ((ConversionOperatorDeclarationSyntax)method).ExpressionBody;
-                    break;
-                case SyntaxKind.OperatorDeclaration:
-                    expressionBodyOpt = ((OperatorDeclarationSyntax)method).ExpressionBody;
-                    break;
-                case SyntaxKind.MethodDeclaration:
-                    expressionBodyOpt = ((MethodDeclarationSyntax)method).ExpressionBody;
-                    break;
-                default:
-                    break;
-            }
-            return IsInExpressionBody(position, expressionBodyOpt, method.SemicolonToken)
+            var exprOpt = method.GetExpressionBodySyntax();
+
+            return IsInExpressionBody(position, exprOpt, method.SemicolonToken)
                 || IsInBlock(position, method.Body);
         }
 

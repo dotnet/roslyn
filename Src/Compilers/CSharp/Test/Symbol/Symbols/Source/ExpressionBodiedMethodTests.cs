@@ -23,7 +23,7 @@ class C
         [Fact]
         public void Syntax02()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int M() {} => 1;
@@ -40,7 +40,7 @@ class C
         [Fact]
         public void Syntax03()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 interface C
 {
     int M() => 1;
@@ -54,7 +54,7 @@ interface C
         [Fact]
         public void Syntax04()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 abstract class C
 {
   public abstract int M() => 1;
@@ -68,7 +68,7 @@ abstract class C
         [Fact]
         public void Syntax05()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
    public abstract int M() => 1;
@@ -85,7 +85,7 @@ class C
         [Fact]
         public void Syntax06()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 abstract class C
 {
    abstract int M() => 1;
@@ -103,7 +103,7 @@ abstract class C
         [Fact]
         public void LambdaTest01()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 using System;
 class C
 {
@@ -123,7 +123,7 @@ class C
     public static explicit operator C(int i) => new C();
     public static C operator++(C c) => (C)c.M();
 }";
-            var comp = CreateExperimentalCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics();
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMember("C");
@@ -144,7 +144,7 @@ class C
         [Fact]
         public void Override01()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class B
 {
     public virtual int M() { return 0; }
@@ -158,7 +158,7 @@ class C : B
         [Fact]
         public void VoidExpression()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public void M() => System.Console.WriteLine(""foo"");
@@ -168,7 +168,7 @@ class C
         [Fact]
         public void VoidExpression2()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int M() => System.Console.WriteLine(""foo"");
@@ -181,7 +181,7 @@ class C
         [Fact]
         public void InterfaceImplementation01()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 interface I 
 {
     int M();
@@ -234,7 +234,7 @@ class C : I, J, K
         [Fact]
         public void Emit01()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 abstract class A
 {
     protected abstract string Z();
@@ -277,7 +277,7 @@ foo8");
         [Fact]
         public void Emit02()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public void M() { System.Console.WriteLine(""Hello""); }
