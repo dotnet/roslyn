@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
@@ -107,6 +108,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         // The current pipe stream which is waiting for connections
         private NamedPipeServerStream waitingPipeStream = null;
 
+        // The list of active connections. To avoid the need to synchronize
+        // access, items are only added or removed when a new connection
+        // comes along. At any given time, some of the items in this list may
+        // have completed but not yet removed.
+        private readonly List<Task> activeConnections = new List<Task>();
+
         /// <summary>
         /// Create a new server that listens on the given base pipe name.
         /// When a request comes in, it is dispatched on a separate thread
@@ -125,6 +132,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             this.handler = handler;
 
             this.serverDieTimeout = serverDieTimeout;
+
+            var _ = new AnalyzerWatcher(this);
         }
 
         /// <summary>
@@ -196,9 +205,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 CancelTimeoutTimerIfNecessary();
 
                 // Dispatch the new connection on the thread pool
-                // Assign to blank variable -- we want to fire & forget
-                var _ = DispatchConnection(pipeStream);
+                var newConnection = DispatchConnection(pipeStream);
                 // Connection object now owns the connected pipe. 
+
+                // Cleanup any connections that have completed, and then add
+                // the new one.
+                activeConnections.RemoveAll(t => t.IsCompleted);
+                activeConnections.Add(newConnection);
 
                 // If our timeout is 0, then we stop after the first
                 // connection. Otherwise, continue.
@@ -211,6 +224,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // Next time around the loop, create a new instance of the pipe
                 // to listen for another connection.
             }
+
+            Task.WhenAll(activeConnections).Wait();
         }
 
         /// <summary>
@@ -327,6 +342,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 StartTimeoutTimerIfNecessary();
             }
             CompilerServerLogger.Log("Removed connection {0}, {1} remaining.", connection.LoggingIdentifier, this.activeConnectionCount);
+        }
+
+        /// <summary>
+        /// Called from the <see cref="AnalyzerWatcher"/> class when an analyzer file
+        /// changes on disk.
+        /// </summary>
+        private void AnalyzerFileChanged()
+        {
+            // An analyzer file has changed on disk. Close the waiting stream, which
+            // will both prevent further connections and signal that we should shut
+            // down.
+            this.waitingPipeStream.Close();
         }
 
         /// <summary>

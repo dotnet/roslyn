@@ -15,6 +15,9 @@ using Xunit;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Immutable;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -205,7 +208,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             Dictionary<string, string> files =
                                    new Dictionary<string, string> {
-                                           { "hello.cs", 
+                                           { "hello.cs",
 @"using System;
 using System.Diagnostics;
 class Hello 
@@ -265,7 +268,7 @@ class Hello
         {
             Dictionary<string, string> files =
                                    new Dictionary<string, string> {
-                                           { "hello.cs", 
+                                           { "hello.cs",
 @"using System;
 class Hello 
 {
@@ -283,7 +286,7 @@ class Hello
         {
             Dictionary<string, string> files =
                                    new Dictionary<string, string> {
-                                           { "hello.vb", 
+                                           { "hello.vb",
 @"Imports System.Diagnostics
 
 Module Module1
@@ -303,7 +306,7 @@ End Module"}};
         {
             Dictionary<string, string> files =
                                    new Dictionary<string, string> {
-                                           { "hello.vb", 
+                                           { "hello.vb",
 @"Imports System
 
 Module Module1
@@ -322,7 +325,7 @@ End Module"}};
         {
             Dictionary<string, string> files =
                                    new Dictionary<string, string> {
-                                           { "hello.cs", 
+                                           { "hello.cs",
 @"using System;
 class Hello 
 {
@@ -346,7 +349,7 @@ class Hello
         {
             Dictionary<string, string> files =
                                    new Dictionary<string, string> {
-                                           { "hellovb.vb", 
+                                           { "hellovb.vb",
 @"Imports System
 
 Module Module1
@@ -386,7 +389,7 @@ End Class"}};
         {
             Dictionary<string, string> files =
                                    new Dictionary<string, string> {
-                                           { "hello.cs", 
+                                           { "hello.cs",
 @"using System;
 class Hello 
 {
@@ -447,7 +450,7 @@ class Hello
         {
             Dictionary<string, string> files =
                                    new Dictionary<string, string> {
-                                           { "hellovb.vb", 
+                                           { "hellovb.vb",
 @"Imports System.Diagnostics
 
 Module Module1
@@ -501,7 +504,7 @@ End Module"}};
             // Create DLL "lib.dll"
             Dictionary<string, string> files =
                                    new Dictionary<string, string> {
-                                           { "src1.vb", 
+                                           { "src1.vb",
 @"Imports System
 Public Class Library 
 
@@ -522,7 +525,7 @@ End Class
                 {
                     // Create EXE "hello1.exe"
                     files = new Dictionary<string, string> {
-                                           { "hello1.vb", 
+                                           { "hello1.vb",
 @"Imports System
 Module Module1 
     Public Sub Main()
@@ -543,7 +546,7 @@ End Module
                     {
                         // Create EXE "hello2.exe" referencing same DLL
                         files = new Dictionary<string, string> {
-                                                { "hello2.vb", 
+                                                { "hello2.vb",
 @"Imports System
 Module Module1 
 Public Sub Main()
@@ -563,7 +566,7 @@ End Module
                         // Change DLL "lib.dll" to something new.
                         files =
                                                new Dictionary<string, string> {
-                                           { "src2.vb", 
+                                           { "src2.vb",
 @"Imports System
 Public Class Library 
     Public Shared Function GetString() As String
@@ -584,7 +587,7 @@ End Class
                         {
                             // Create EXE "hello3.exe" referencing new DLL
                             files = new Dictionary<string, string> {
-                                           { "hello3.vb", 
+                                           { "hello3.vb",
 @"Imports System
 Module Module1 
     Public Sub Main()
@@ -624,7 +627,7 @@ End Module
                 // Create DLL "lib.dll"
                 Dictionary<string, string> files =
                                        new Dictionary<string, string> {
-                                           { "src1.cs", 
+                                           { "src1.cs",
 @"using System;
 public class Library 
 {
@@ -641,7 +644,7 @@ public class Library
                 {
                     // Create EXE "hello1.exe"
                     files = new Dictionary<string, string> {
-                                           { "hello1.cs", 
+                                           { "hello1.cs",
 @"using System;
 class Hello 
 {
@@ -663,7 +666,7 @@ class Hello
 
                         // Create EXE "hello2.exe" referencing same DLL
                         files = new Dictionary<string, string> {
-                                               { "hello2.cs", 
+                                               { "hello2.cs",
 @"using System;
 class Hello 
 {
@@ -682,7 +685,7 @@ class Hello
                         // Change DLL "lib.dll" to something new.
                         files =
                                                new Dictionary<string, string> {
-                                           { "src2.cs", 
+                                           { "src2.cs",
 @"using System;
 public class Library 
 {
@@ -702,7 +705,7 @@ public class Library
                         {
                             // Create EXE "hello3.exe" referencing new DLL
                             files = new Dictionary<string, string> {
-                                           { "hello3.cs", 
+                                           { "hello3.cs",
 @"using System;
 class Hello 
 {
@@ -832,7 +835,7 @@ End Module", i));
             // Return a dictionary with name and contents of all the files we want to create for the SimpleMSBuild test.
 
             return new Dictionary<string, string> {
-{ "HelloSolution.sln", 
+{ "HelloSolution.sln",
 @"
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
@@ -948,7 +951,7 @@ EndGlobal
     <Folder Include=""Properties\"" />
   </ItemGroup>
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>"}, 
+</Project>"},
 
 { "Program.cs",
 @"using System;
@@ -1142,7 +1145,7 @@ End Class
             // Return a dictionary with name and contents of all the files we want to create for the SimpleMSBuild test.
 
             return new Dictionary<string, string> {
-{"ConsoleApplication1.sln", 
+{"ConsoleApplication1.sln",
 @"
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
@@ -1176,7 +1179,7 @@ Global
 	EndGlobalSection
 EndGlobal
 "},
-{"ConsoleApplication1.vbproj", 
+{"ConsoleApplication1.vbproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
@@ -1235,7 +1238,7 @@ EndGlobal
   -->
 </Project>
 "},
-{"ConsoleApp.vb", 
+{"ConsoleApp.vb",
 @"
 Module ConsoleApp
     Sub Main()
@@ -1245,7 +1248,7 @@ Module ConsoleApp
     End Sub
 End Module
 "},
-{"assem1.csproj", 
+{"assem1.csproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
@@ -1289,7 +1292,7 @@ End Module
   -->
 </Project>
 "},
-{"Assem1.cs", 
+{"Assem1.cs",
 @"
 using System;
 using System.Collections.Generic;
@@ -1307,7 +1310,7 @@ public class AssemClass
     }
 }
 "},
-{"Mod1.vbproj", 
+{"Mod1.vbproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
@@ -1361,7 +1364,7 @@ public class AssemClass
   -->
 </Project>
 "},
-{"Mod1.vb", 
+{"Mod1.vb",
 @"
 Friend Class ModClass
     Public Shared Name As String = ""ModClass""
@@ -1383,7 +1386,7 @@ End Class
             // Create DLL "lib.dll"
             Dictionary<string, string> files =
                                    new Dictionary<string, string> {
-                                           { "src1.cs", 
+                                           { "src1.cs",
 @"
 public class Library 
 {
@@ -1403,7 +1406,7 @@ public class Library
 
             // Create EXE "hello1.exe"
             files = new Dictionary<string, string> {
-                                           { "hello1.cs", 
+                                           { "hello1.cs",
 @"using System;
 class Hello 
 {
@@ -1429,7 +1432,7 @@ class Hello
             // Create DLL "lib.dll"
             Dictionary<string, string> files =
                                    new Dictionary<string, string> {
-                                           { "src1.vb", 
+                                           { "src1.vb",
 @"Imports System
 Public Class Library 
 
@@ -1451,7 +1454,7 @@ End Class
 
             // Create EXE "hello1.exe"
             files = new Dictionary<string, string> {
-                                           { "hello1.vb", 
+                                           { "hello1.vb",
 @"Imports System
 Module Module1 
     Public Sub Main()
@@ -1593,6 +1596,55 @@ class Program
             Assert.Equal("", result.Output);
             Assert.Equal("", result.Errors);
             Assert.Equal(0, result.ExitCode);
+        }
+
+        [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
+        public void AnalyzerChangesOnDisk()
+        {
+            const string sourceText = @"using System;
+
+class Hello
+{
+    static void Main()
+    {
+        Console.WriteLine(""Hello, world.""); 
+    }
+}";
+
+            var directory = tempDirectory.CreateDirectory("AnalyzerChangesOnDisk");
+            var analyzerAssembly = directory.CreateFile("SymbolAnalyzer.dll").WriteAllBytes(TestResources.Analyzers.Analyzers.SymbolAnalyzer);
+            directory.CreateFile("hello.cs").WriteAllText(sourceText);
+            var log = directory.CreateFile("Server.log");
+
+            var environmentVars = new Dictionary<string, string>
+            {
+                { "RoslynCommandLineLogFile", log.Path }
+            };
+
+            // Run a build using the analyzer
+            var firstBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:SymbolAnalyzer.dll", directory.Path, environmentVars);
+
+            // Changes the analyzer to cause it to be reloaded
+            File.SetLastWriteTime(analyzerAssembly.Path, DateTime.Now);
+
+            // There's a race between VBCSCompiler.exe processing the file change and shutting down, and another build request
+            // coming in. In practice this is fine, but for the sake of consistency in the unit test we want to give the file
+            // change notification time to be processed before kicking of the next build.
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+
+            // Run another build using the analyzer
+            var secondBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:SymbolAnalyzer.dll", directory.Path, environmentVars);
+
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+
+            // And run a third build using the analyzer
+            var thirdBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:SymbolAnalyzer.dll", directory.Path, environmentVars);
+
+            // The output message of the analyzer includes a time stamp for when the analyzer was loaded. So if the analyzer was 
+            // reloaded (which is what we want) then the output messages of the first and second builds will be different.
+            Assert.False(firstBuildResult.Output.Equals(secondBuildResult.Output));
+            Assert.True(secondBuildResult.Output.Equals(thirdBuildResult.Output));
         }
     }
 }

@@ -76,6 +76,7 @@
     <Compile Include="CompilerServerLogger.cs" />
     <Compile Include="CSharpCompilerServer.cs" />
     <Compile Include="MetadataCache.cs" />
+    <Compile Include="ServerDispatcher.AnalyzerWatcher.cs" />
     <Compile Include="ServerDispatcher.Connection.cs" />
     <Compile Include="ServerDispatcher.cs" />
     <Compile Include="ServerDispatcher.MemoryHelper.cs" />

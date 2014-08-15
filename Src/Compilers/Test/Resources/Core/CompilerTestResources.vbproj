@@ -52,6 +52,8 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Analyzers\SymbolAnalyzer.cs" />
+    <Content Include="Analyzers\SymbolAnalyzer.dll" />
     <Content Include="AssemblyLoadTests\Alpha.cs" />
     <Content Include="AssemblyLoadTests\Alpha.dll" />
     <Content Include="AssemblyLoadTests\Beta.cs" />
@@ -398,6 +400,11 @@
     <None Include="SymbolsTests\NoPia\MissingPIAAttributes.dll" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Analyzers\Analyzers.resx">
+      <CustomToolNamespace>TestResources.Analyzers</CustomToolNamespace>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Analyzers.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="AssemblyLoadTests\AssemblyLoadTests.resx">
       <CustomToolNamespace>TestResources.AssemblyLoadTests</CustomToolNamespace>
       <Generator>PublicResXFileCodeGenerator</Generator>
@@ -583,6 +590,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analyzers\Analyzers.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Analyzers.resx</DependentUpon>
+    </Compile>
     <Compile Include="AssemblyLoadTests\AssemblyLoadTests.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
