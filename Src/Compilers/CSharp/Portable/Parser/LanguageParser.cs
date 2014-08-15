@@ -8525,7 +8525,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxToken lastTokenOfType;
                 ScanTypeFlags st = this.ScanType(out lastTokenOfType);
 
-                if (st == ScanTypeFlags.NotType || !this.IsTrueIdentifier())
+                if (st == ScanTypeFlags.NotType || !this.IsTrueIdentifier() || 
+                    this.PeekToken(1).Kind == SyntaxKind.DotToken) // It is an error for a 'Dot' to follow a Declaration Expression. 
+                                                                   // Let's not parse this code as a Declaration Expression, this gives us a better 
+                                                                   // IDE experience. 
                 {
                     return false;
                 }

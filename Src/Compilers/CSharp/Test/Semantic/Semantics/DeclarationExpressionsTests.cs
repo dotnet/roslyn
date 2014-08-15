@@ -11292,5 +11292,124 @@ class C
             TestSemanticModelAPI(compilation, diagnostics);
         }
 
+        [Fact, WorkItem(947582, "DevDiv"), WorkItem(145, "CodePlex")]
+        public void Bug947582_1()
+        {
+            var text = @"
+using System;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.Write(args
+            args.ToString();
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (10,31): error CS1003: Syntax error, ',' expected
+    //             Console.Write(args
+    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "").WithLocation(10, 31),
+    // (11,28): error CS1026: ) expected
+    //             args.ToString();
+    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(11, 28),
+    // (10,27): error CS1503: Argument 1: cannot convert from 'string[]' to 'string'
+    //             Console.Write(args
+    Diagnostic(ErrorCode.ERR_BadArgType, "args").WithArguments("1", "string[]", "string").WithLocation(10, 27)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact, WorkItem(947582, "DevDiv"), WorkItem(145, "CodePlex")]
+        public void Bug947582_2()
+        {
+            var text = @"
+using System;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            System.Console.WriteLine(Empty x.ToString());
+        }
+    }
+
+    struct Empty
+    { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (10,44): error CS1003: Syntax error, ',' expected
+    //             System.Console.WriteLine(Empty x.ToString());
+    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(10, 44),
+    // (10,38): error CS0119: 'ConsoleApplication1.Empty' is a type, which is not valid in the given context
+    //             System.Console.WriteLine(Empty x.ToString());
+    Diagnostic(ErrorCode.ERR_BadSKunknown, "Empty").WithArguments("ConsoleApplication1.Empty", "type").WithLocation(10, 38),
+    // (10,44): error CS0103: The name 'x' does not exist in the current context
+    //             System.Console.WriteLine(Empty x.ToString());
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 44),
+    // (2,1): hidden CS8019: Unnecessary using directive.
+    // using System;
+    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
+        [Fact, WorkItem(947582, "DevDiv"), WorkItem(145, "CodePlex")]
+        public void Bug947582_3()
+        {
+            var text = @"
+using System;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            System.Console.WriteLine(
+                SyntaxFactory
+                SyntaxFactory.AccessorList());
+        }
+    }
+
+    class SyntaxFactory
+    {
+        public static int AccessorList() { return 0; }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            var diagnostics = compilation.GetDiagnostics();
+            diagnostics.Verify(
+    // (11,30): error CS1003: Syntax error, ',' expected
+    //                 SyntaxFactory
+    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "").WithLocation(11, 30),
+    // (11,17): error CS0119: 'ConsoleApplication1.SyntaxFactory' is a type, which is not valid in the given context
+    //                 SyntaxFactory
+    Diagnostic(ErrorCode.ERR_BadSKunknown, "SyntaxFactory").WithArguments("ConsoleApplication1.SyntaxFactory", "type").WithLocation(11, 17),
+    // (2,1): hidden CS8019: Unnecessary using directive.
+    // using System;
+    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1)
+                );
+
+            TestSemanticModelAPI(compilation, diagnostics);
+        }
+
     }
 }
