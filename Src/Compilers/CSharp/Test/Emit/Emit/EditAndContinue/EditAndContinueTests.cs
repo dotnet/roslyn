@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -4107,7 +4104,7 @@ class C
         /// Reuse existing anonymous types.
         /// </summary>
         [WorkItem(825903, "DevDiv")]
-        [Fact(Skip = "1008057")]
+        [Fact]
         public void AnonymousTypes()
         {
             var source0 =
@@ -4150,7 +4147,8 @@ namespace M
         }
     }
 }";
-            var compOptions = TestOptions.DebugDll;
+            // Compile must be non-concurrent to ensure types are created in fixed order.
+            var compOptions = TestOptions.DebugDll.WithConcurrentBuild(false);
             var compilation0 = CreateCompilationWithMscorlib(source0, options: compOptions);
             var compilation1 = CreateCompilationWithMscorlib(source1, options: compOptions);
 
