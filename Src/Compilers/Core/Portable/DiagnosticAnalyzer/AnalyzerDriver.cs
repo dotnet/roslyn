@@ -661,7 +661,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (executeSyntaxNodeAnalyzers || executeCodeBlockAnalyzers)
             {
-                var declarationsInNode = semanticModel.GetDeclarationsInNode(syntax, getSymbol: syntax != declaringReferenceSyntax, cancellationToken: cancellationToken);
+                // We only care about the top level symbol declaration and it's immediate member declarations.
+                int? levelsToCompute = 2;
+
+                var declarationsInNode = semanticModel.GetDeclarationsInNode(syntax, getSymbol: syntax != declaringReferenceSyntax, cancellationToken: cancellationToken, levelsToCompute: levelsToCompute);
 
                 // Execute stateless syntax node analyzers.
                 if (executeSyntaxNodeAnalyzers)
