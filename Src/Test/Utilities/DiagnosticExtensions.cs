@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis
             // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
             continueOnAnalyzerException = continueOnAnalyzerException ?? DonotCatchAnalyzerExceptions;
 
-            var driver = new AnalyzerDriver<TSyntaxKind>(analyzers.ToImmutableArray(), getKind, options, default(CancellationToken), continueOnAnalyzerException);
+            var driver = new AnalyzerDriver<TSyntaxKind>(analyzers.ToImmutableArray(), getKind, options, CancellationToken.None, continueOnAnalyzerException);
             c = (TCompilation)c.WithEventQueue(driver.CompilationEventQueue);
             var discarded = c.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync().Result;
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static bool IsDiagnosticAnalyzerSuppressed(this IDiagnosticAnalyzer analyzer, CompilationOptions options)
         {
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, (e, a) => true);
+            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, (exception, throwingAnalyzer) => true);
         }
 
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)

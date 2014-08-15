@@ -3448,15 +3448,25 @@ _Default:
             Return False
         End Function
 
+        Private Shared Function InvalidLevel(level As Integer?) As Boolean
+            Return level.HasValue AndAlso level.Value <= 0
+        End Function
+
+        Private Shared Function DecrementLevel(level As Integer?) As Integer?
+            Return If(level.HasValue, level.Value - 1, level)
+        End Function
+
         Public Overrides Function GetDeclarationsInSpan(span As TextSpan, getSymbol As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DeclarationInfo)
             Dim builder = ArrayBuilder(Of DeclarationInfo).GetInstance()
-            ComputeDeclarationsCore(Me.SyntaxTree.GetRoot(), Function(node) Not node.Span.OverlapsWith(span), getSymbol, builder, cancellationToken)
+            ComputeDeclarationsCore(Me.SyntaxTree.GetRoot(),
+                                    Function(node, level) Not node.Span.OverlapsWith(span) OrElse InvalidLevel(level),
+                                    getSymbol, builder, Nothing, cancellationToken)
             Return builder.ToImmutable()
         End Function
 
-        Protected Overrides Function GetDeclarationsInNode(node As SyntaxNode, getSymbol As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DeclarationInfo)
+        Protected Overrides Function GetDeclarationsInNode(node As SyntaxNode, getSymbol As Boolean, cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing) As ImmutableArray(Of DeclarationInfo)
             Dim builder = ArrayBuilder(Of DeclarationInfo).GetInstance()
-            ComputeDeclarationsCore(node, Function(n) False, getSymbol, builder, cancellationToken)
+            ComputeDeclarationsCore(node, Function(n, level) InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken)
             Return builder.ToImmutable()
         End Function
 
@@ -3496,16 +3506,18 @@ _Default:
                 SpecializedCollections.EmptyEnumerable(Of SyntaxNode))
         End Function
 
-        Private Sub ComputeDeclarationsCore(node As SyntaxNode, shouldSkip As Func(Of SyntaxNode, Boolean), getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), cancellationToken As CancellationToken)
-            If shouldSkip(node) Then
+        Private Sub ComputeDeclarationsCore(node As SyntaxNode, shouldSkip As Func(Of SyntaxNode, Integer?, Boolean), getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), levelsToCompute As Integer?, cancellationToken As CancellationToken)
+            If shouldSkip(node, levelsToCompute) Then
                 Return
             End If
+
+            Dim newLevel = DecrementLevel(levelsToCompute)
 
             Select Case node.VisualBasicKind()
                 Case SyntaxKind.NamespaceBlock
                     Dim ns = CType(node, NamespaceBlockSyntax)
                     For Each decl In ns.Members
-                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
                     builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken))
 
@@ -3523,14 +3535,14 @@ _Default:
                      SyntaxKind.ModuleBlock
                     Dim t = CType(node, TypeBlockSyntax)
                     For Each decl In t.Members
-                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
                     builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken))
                     Return
                 Case SyntaxKind.EnumBlock
                     Dim t = CType(node, EnumBlockSyntax)
                     For Each decl In t.Members
-                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
                     builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken))
                     Return
@@ -3546,7 +3558,7 @@ _Default:
                 Case SyntaxKind.EventBlock
                     Dim t = CType(node, EventBlockSyntax)
                     For Each decl In t.Accessors
-                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
                     Dim eventInitializers = GetParameterInitializers(t.EventStatement.ParameterList)
                     builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, eventInitializers))
@@ -3567,7 +3579,7 @@ _Default:
                 Case SyntaxKind.PropertyBlock
                     Dim t = CType(node, PropertyBlockSyntax)
                     For Each decl In t.Accessors
-                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
                     Dim propertyInitializers = GetParameterInitializers(t.PropertyStatement.ParameterList)
                     Dim codeBlocks = propertyInitializers.Concat(t.PropertyStatement.Initializer)
@@ -3601,7 +3613,7 @@ _Default:
                 Case SyntaxKind.CompilationUnit
                     Dim t = CType(node, CompilationUnitSyntax)
                     For Each decl In t.Members
-                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken)
+                        ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
                     Return
                 Case Else

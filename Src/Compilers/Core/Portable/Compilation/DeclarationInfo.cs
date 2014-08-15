@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(declaredNode != null);
             Debug.Assert(!executableCodeBlocks.IsDefault);
-            Debug.Assert(executableCodeBlocks.All(n => n.Ancestors().Any(a => a == declaredNode)));
+            Debug.Assert(executableCodeBlocks.All(n => n.Ancestors().Contains(declaredNode)));
 
             this.declaredNode = declaredNode;
             this.executableCodeBlocks = executableCodeBlocks;

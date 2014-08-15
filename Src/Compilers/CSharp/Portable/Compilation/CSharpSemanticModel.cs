@@ -4544,17 +4544,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<ISymbol>();
         }
 
+        private static bool InvalidLevel(int? level)
+        {
+            return level.HasValue && level.Value <= 0;
+        }
+
+        private static int? DecrementLevel(int? level)
+        {
+            return level.HasValue ? level - 1 : level;
+        }
+
         public override ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(TextSpan span, bool getSymbol, CancellationToken cancellationToken)
         {
             var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            ComputeDeclarationsCore(this.SyntaxTree.GetRoot(), node => !node.Span.OverlapsWith(span), getSymbol, builder, cancellationToken);
+            ComputeDeclarationsCore(this.SyntaxTree.GetRoot(), 
+                (node, level) => !node.Span.OverlapsWith(span) || InvalidLevel(level), 
+                getSymbol, builder, null, cancellationToken);
             return builder.ToImmutable();
         }
 
-        protected internal override ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
+        protected internal override ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, int? levelsToCompute = null)
         {
             var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            ComputeDeclarationsCore(node, _ => false, getSymbol, builder, cancellationToken);
+            ComputeDeclarationsCore(node, (n, level) => InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken);
             return builder.ToImmutable();
         }
 
@@ -4575,19 +4587,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return declaringSyntax;
         }
 
-        private void ComputeDeclarationsCore(SyntaxNode node, Func<SyntaxNode, bool> shouldSkip, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)
+        private void ComputeDeclarationsCore(
+            SyntaxNode node, 
+            Func<SyntaxNode, int?, bool> shouldSkip,
+            bool getSymbol, 
+            ArrayBuilder<DeclarationInfo> builder, 
+            int? levelsToCompute,
+            CancellationToken cancellationToken)
         {
-            if (shouldSkip(node))
+            if (shouldSkip(node, levelsToCompute))
             {
                 return;
             }
+
+            var newLevel = DecrementLevel(levelsToCompute);
 
             switch (node.CSharpKind())
             {
                 case SyntaxKind.NamespaceDeclaration:
                     {
                         var ns = (NamespaceDeclarationSyntax)node;
-                        foreach (var decl in ns.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                        foreach (var decl in ns.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                         builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
 
                         NameSyntax name = ns.Name;
@@ -4606,7 +4626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                     {
                         var t = (TypeDeclarationSyntax)node;
-                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                         builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
                         return;
                     }
@@ -4614,7 +4634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                     {
                         var t = (EnumDeclarationSyntax)node;
-                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                         builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
                         return;
                     }
@@ -4636,7 +4656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EventDeclaration:
                     {
                         var t = (EventDeclarationSyntax)node;
-                        foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                        foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                         builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
                         return;
                     }
@@ -4658,7 +4678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var t = (PropertyDeclarationSyntax)node;
                         if (t.AccessorList != null)
                         {
-                            foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                            foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                         }
 
                         builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, t.Initializer, t.ExpressionBody));
@@ -4668,7 +4688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerDeclaration:
                     {
                         var t = (IndexerDeclarationSyntax)node;
-                        foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                        foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                         var parameterInitializers = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : null;
                         builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, parameterInitializers));
                         return;
@@ -4700,7 +4720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CompilationUnit:
                     {
                         var t = (CompilationUnitSyntax)node;
-                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, cancellationToken);
+                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                         return;
                     }
 

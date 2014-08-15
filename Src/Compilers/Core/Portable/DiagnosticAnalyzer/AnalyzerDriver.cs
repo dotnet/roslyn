@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var analyzer in analyzers.OfType<ISymbolAnalyzer>())
             {
                 // catch exceptions from SymbolKindsOfInterest
-                ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, default(CancellationToken), () =>
+                ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, CancellationToken.None, () =>
                 {
                     var kinds = analyzer.SymbolKindsOfInterest;
                     foreach (var k in kinds.Distinct())
@@ -535,24 +535,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
-        protected static void ExecuteAndCatchIfThrows(IDiagnosticAnalyzer a, Action<Diagnostic> addDiagnostic, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken, Action analyze)
+        protected static void ExecuteAndCatchIfThrows(IDiagnosticAnalyzer analyzer, Action<Diagnostic> addDiagnostic, Func<Exception, IDiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken, Action analyze)
         {
             try
             {
                 analyze();
             }
-            catch (OperationCanceledException oce) if (continueOnAnalyzerException(oce, a))
+            catch (OperationCanceledException oce) if (continueOnAnalyzerException(oce, analyzer))
             {
                 if (oce.CancellationToken != cancellationToken)
                 {
                     // Create a info diagnostic saying that the analyzer failed
-                    addDiagnostic(GetAnalyzerDiagnostic(a, oce));
+                    addDiagnostic(GetAnalyzerDiagnostic(analyzer, oce));
                 }
             }
-            catch (Exception e) if (continueOnAnalyzerException(e, a))
+            catch (Exception e) if (continueOnAnalyzerException(e, analyzer))
             {
                 // Create a info diagnostic saying that the analyzer failed
-                addDiagnostic(GetAnalyzerDiagnostic(a, e));
+                addDiagnostic(GetAnalyzerDiagnostic(analyzer, e));
             }
         }
 
@@ -719,11 +719,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    if (descendantDeclsToSkip == null)
-                    {
-                        descendantDeclsToSkip = new HashSet<SyntaxNode>();
-                    }
-
+                    descendantDeclsToSkip = descendantDeclsToSkip ?? new HashSet<SyntaxNode>();
                     descendantDeclsToSkip.Add(declInNode.DeclaredNode);
                 }
 
@@ -745,7 +741,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="codeBlockEndedAnalyzers">Stateless code block analyzers.</param>
         /// <param name="declarationsInNode">Declarations to be analyzed.</param>
         /// <param name="analyzerOptions">Analyzer options.</param>
-        /// <param name="semanticModel">SemanticModel.</param>
+        /// <param name="semanticModel">SemanticModel to be shared amongst all analyzers.</param>
         /// <param name="addDiagnostic">Delegate to add diagnostics.</param>
         /// <param name="continueOnAnalyzerException">Predicate to decide if exceptions from any analyzer should be handled or not.</param>
         /// <param name="getKind">Delegate to compute language specific syntax kind for a syntax node.</param>
@@ -778,7 +774,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (declaredSymbol != null && CanHaveExecutableCodeBlock(declaredSymbol))
                 {
                     ExecuteCodeBlockAnalyzers(codeBlockStartedAnalyzers, codeBlockEndedAnalyzers, declaredNode, declaredSymbol,
-                         executableCodeBlocks, analyzerOptions, semanticModel, addDiagnostic, continueOnAnalyzerException, getKind, cancellationToken, getAnalyzerKindsOfInterest);
+                        executableCodeBlocks, analyzerOptions, semanticModel, addDiagnostic, continueOnAnalyzerException, getKind, cancellationToken, getAnalyzerKindsOfInterest);
                 }
             }
         }

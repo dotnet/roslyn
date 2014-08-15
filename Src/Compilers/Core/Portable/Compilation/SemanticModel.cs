@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Takes a node and returns a set of declarations that overlap the node's span.
         /// </summary>
-        protected internal abstract ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken);
+        protected internal abstract ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, int? levelsToCompute = null);
 
         /// <summary>
         /// Takes a Symbol and syntax for one of its declaring syntax reference and returns the topmost syntax node to be used by syntax analyzer.
