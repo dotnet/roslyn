@@ -1597,54 +1597,5 @@ class Program
             Assert.Equal("", result.Errors);
             Assert.Equal(0, result.ExitCode);
         }
-
-        [Fact]
-        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
-        public void AnalyzerChangesOnDisk()
-        {
-            const string sourceText = @"using System;
-
-class Hello
-{
-    static void Main()
-    {
-        Console.WriteLine(""Hello, world.""); 
-    }
-}";
-
-            var directory = tempDirectory.CreateDirectory("AnalyzerChangesOnDisk");
-            var analyzerAssembly = directory.CreateFile("SymbolAnalyzer.dll").WriteAllBytes(TestResources.Analyzers.Analyzers.SymbolAnalyzer);
-            directory.CreateFile("hello.cs").WriteAllText(sourceText);
-            var log = directory.CreateFile("Server.log");
-
-            var environmentVars = new Dictionary<string, string>
-            {
-                { "RoslynCommandLineLogFile", log.Path }
-            };
-
-            // Run a build using the analyzer
-            var firstBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:SymbolAnalyzer.dll", directory.Path, environmentVars);
-
-            // Changes the analyzer to cause it to be reloaded
-            File.SetLastWriteTime(analyzerAssembly.Path, DateTime.Now);
-
-            // There's a race between VBCSCompiler.exe processing the file change and shutting down, and another build request
-            // coming in. In practice this is fine, but for the sake of consistency in the unit test we want to give the file
-            // change notification time to be processed before kicking of the next build.
-            Thread.Sleep(TimeSpan.FromSeconds(5));
-
-            // Run another build using the analyzer
-            var secondBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:SymbolAnalyzer.dll", directory.Path, environmentVars);
-
-            Thread.Sleep(TimeSpan.FromSeconds(5));
-
-            // And run a third build using the analyzer
-            var thirdBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:SymbolAnalyzer.dll", directory.Path, environmentVars);
-
-            // The output message of the analyzer includes a time stamp for when the analyzer was loaded. So if the analyzer was 
-            // reloaded (which is what we want) then the output messages of the first and second builds will be different.
-            Assert.False(firstBuildResult.Output.Equals(secondBuildResult.Output));
-            Assert.True(secondBuildResult.Output.Equals(thirdBuildResult.Output));
-        }
     }
 }
