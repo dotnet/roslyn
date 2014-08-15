@@ -1866,7 +1866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type = null;
                     }
                 }
-                else if (boundNodeForSyntacticParent is BoundDelegateCreationExpression)
+                else if ((boundNodeForSyntacticParent != null) && (boundNodeForSyntacticParent.Kind == BoundKind.DelegateCreationExpression))
                 {
                     // A delegate creation expression takes the place of a method group or anonymous function conversion.
                     var delegateCreation = (BoundDelegateCreationExpression)boundNodeForSyntacticParent;
@@ -1895,7 +1895,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             conversion = Conversion.Identity;
                             break;
                     }
-
                 }
                 else
                 {

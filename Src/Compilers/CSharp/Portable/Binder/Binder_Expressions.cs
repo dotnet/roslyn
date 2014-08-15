@@ -2503,36 +2503,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void CheckRestrictedTypeReceiver(BoundExpression expression, Compilation compilation, DiagnosticBag diagnostics)
         {
-            Debug.Assert(expression is BoundDynamicInvocation || expression is BoundCall);
             Debug.Assert(diagnostics != null);
 
             // It is never legal to box a restricted type, even if we are boxing it as the receiver
             // of a method call. When must be box? We skip boxing when the method in question is defined
             // on the restricted type or overridden by the restricted type.
-
-            BoundCall call = expression as BoundCall;
-
-            if (call != null &&
-                !call.HasAnyErrors &&
-                call.ReceiverOpt != null &&
-                (object)call.ReceiverOpt.Type != null &&
-                call.ReceiverOpt.Type.IsRestrictedType() &&
-                call.Method.ContainingType != call.ReceiverOpt.Type)
+            switch (expression.Kind)
             {
-                // error CS0029: Cannot implicitly convert type 'TypedReference' to 'object'
-                SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
-                Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
-            }
-
-            BoundDynamicInvocation dynInvoke = expression as BoundDynamicInvocation;
-            if (dynInvoke != null &&
-                !dynInvoke.HasAnyErrors &&
-                (object)dynInvoke.Expression.Type != null &&
-                dynInvoke.Expression.Type.IsRestrictedType())
-            {
-                // eg: b = typedReference.Equals(dyn);
-                // error CS1978: Cannot use an expression of type 'TypedReference' as an argument to a dynamically dispatched operation
-                Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArg, dynInvoke.Expression.Syntax, dynInvoke.Expression.Type);
+                case BoundKind.Call:
+                    {
+                        var call = (BoundCall)expression;
+                        if (!call.HasAnyErrors &&
+                            call.ReceiverOpt != null &&
+                            (object)call.ReceiverOpt.Type != null &&
+                            call.ReceiverOpt.Type.IsRestrictedType() &&
+                            call.Method.ContainingType != call.ReceiverOpt.Type)
+                        {
+                            // error CS0029: Cannot implicitly convert type 'TypedReference' to 'object'
+                            SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
+                            Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
+                        }
+                    }
+                    break;
+                case BoundKind.DynamicInvocation:
+                    {
+                        var dynInvoke = (BoundDynamicInvocation)expression;
+                        if (!dynInvoke.HasAnyErrors &&
+                            (object)dynInvoke.Expression.Type != null &&
+                            dynInvoke.Expression.Type.IsRestrictedType())
+                        {
+                            // eg: b = typedReference.Equals(dyn);
+                            // error CS1978: Cannot use an expression of type 'TypedReference' as an argument to a dynamically dispatched operation
+                            Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArg, dynInvoke.Expression.Syntax, dynInvoke.Expression.Type);
+                        }
+                    }
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
         }
 

@@ -540,7 +540,7 @@ class C
     }
 }";
 
-                var actual = ParseAndGetConstantFoldingSteps(source, node => node is BoundBinaryOperator);
+                var actual = ParseAndGetConstantFoldingSteps(source, node => node.Kind == BoundKind.BinaryOperator);
                 var expected =
 @"E.B + 1 --> 2
 2 + E.C --> 4
@@ -589,8 +589,7 @@ class C
         const U64 u64 = ~U64.C;
     }
 }";
-            var actual = ParseAndGetConstantFoldingSteps(source,
-                node => node is BoundUnaryOperator);
+            var actual = ParseAndGetConstantFoldingSteps(source, node => node.Kind == BoundKind.UnaryOperator);
             var expected =
 @"~S8.A --> -1
 ~U8.B --> 254

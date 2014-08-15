@@ -91,12 +91,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.NoteWrite(variable, value, read);
         }
 
-        override protected void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, CSharpSyntaxNode node)
+        protected override void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, CSharpSyntaxNode node)
         {
             base.CheckAssigned(expr, fieldSymbol, node);
-            if (!IsInside && node.Span.Contains(RegionSpan) && expr is BoundFieldAccess)
+            if (!IsInside && node.Span.Contains(RegionSpan) && (expr.Kind == BoundKind.FieldAccess))
             {
-                NoteReceiverRead(expr as BoundFieldAccess);
+                NoteReceiverRead((BoundFieldAccess)expr);
             }
         }
 

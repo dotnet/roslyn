@@ -1232,8 +1232,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Cases 3, 4, 6:
-            if (expr is BoundLambda || expr is UnboundLambda || (expr.ConstantValue != null) ||
-                expr.Type.GetSpecialTypeSafe() == SpecialType.System_Void)
+            if ((expr.Kind == BoundKind.Lambda) ||
+                (expr.Kind == BoundKind.UnboundLambda) ||
+                (expr.ConstantValue != null) ||
+                (expr.Type.GetSpecialTypeSafe() == SpecialType.System_Void))
             {
                 Error(diagnostics, GetStandardLvalueError(kind), node);
                 return false;
@@ -1416,11 +1418,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, GetRangeLvalueError(kind), node, queryref.RangeVariableSymbol.Name);
                 return false;
             }
-
-            // Previous submission and host object references are only constructed as member access receivers.
-            // The receiver is queried only if its containing type is a value type, which Script class and host object type are not.
-            Debug.Assert(!(expr is BoundPreviousSubmissionReference));
-            Debug.Assert(!(expr is BoundHostObjectMemberReference));
 
             // A field is a variable unless 
             // (1) it is readonly and we are not in a constructor or field initializer

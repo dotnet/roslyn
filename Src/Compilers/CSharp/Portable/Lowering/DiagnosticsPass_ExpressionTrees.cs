@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckBinaryOperator(current);
 
                 Visit(current.Right);
-                if (current.Left is BoundBinaryOperator)
+                if (current.Left.Kind == BoundKind.BinaryOperator)
                 {
                     current = (BoundBinaryOperator)current.Left;
                 }
