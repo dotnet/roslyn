@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             switch (currentToken.CSharpKind())
             {
                 case SyntaxKind.OpenBraceToken:
-                    if (!previousToken.IsParenInParenthesizedExpression())
+                    if (!previousToken.IsParenInParenthesizedExpression() && previousToken.Parent != null && !previousToken.Parent.IsKind(SyntaxKind.ArrayRankSpecifier))
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                     }
