@@ -1631,12 +1631,12 @@ class Hello
             // There's a race between VBCSCompiler.exe processing the file change and shutting down, and another build request
             // coming in. In practice this is fine, but for the sake of consistency in the unit test we want to give the file
             // change notification time to be processed before kicking of the next build.
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            Thread.Sleep(TimeSpan.FromSeconds(5));
 
             // Run another build using the analyzer
             var secondBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:SymbolAnalyzer.dll", directory.Path, environmentVars);
 
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            Thread.Sleep(TimeSpan.FromSeconds(5));
 
             // And run a third build using the analyzer
             var thirdBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:SymbolAnalyzer.dll", directory.Path, environmentVars);
