@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return updatedMethod.RenameParameters(parameterNames);
         }
 
-        public static IMethodSymbol RemoveAttributeFromParameters(
+        public static IMethodSymbol RemoveAttributeFromParametersAndReturnType(
             this IMethodSymbol method, INamedTypeSymbol attributeType,
             IList<SyntaxNode> statements = null, IList<SyntaxNode> handlesExpressions = null)
         {
@@ -178,9 +178,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             var someParameterHasAttribute = method.Parameters
-                .Where(m => m.GetAttributes().Where(a => a.AttributeClass.Equals(attributeType)).Any())
-                .Any();
-            if (!someParameterHasAttribute)
+                .Any(m => m.GetAttributes().Any(a => a.AttributeClass.Equals(attributeType)));
+
+            var returnTypeHasAttribute = method.GetReturnTypeAttributes()
+                .Any(a => a.AttributeClass.Equals(attributeType));
+
+            if (!someParameterHasAttribute && !returnTypeHasAttribute)
             {
                 return method;
             }
@@ -201,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)).ToList(),
                 statements,
                 handlesExpressions,
-                method.GetReturnTypeAttributes());
+                method.GetReturnTypeAttributes().Where(a => !a.AttributeClass.Equals(attributeType)).ToList());
         }
 
         public static bool? IsMoreSpecificThan(this IMethodSymbol method1, IMethodSymbol method2)

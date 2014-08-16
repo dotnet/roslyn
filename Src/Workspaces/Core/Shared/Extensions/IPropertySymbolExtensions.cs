@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -43,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             var someParameterHasAttribute = property.Parameters
-                .Where(p => p.GetAttributes().Where(a => a.AttributeClass.Equals(attributeType)).Any())
-                .Any();
+                .Any(p => p.GetAttributes().Any(a => a.AttributeClass.Equals(attributeType)));
             if (!someParameterHasAttribute)
             {
                 return property;
