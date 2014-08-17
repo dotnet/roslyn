@@ -20,7 +20,7 @@ namespace Roslyn.Diagnostics.Analyzers
         internal const string EmptyMethodName = "Empty";
 
         internal static readonly DiagnosticDescriptor UseEmptyEnumerableRule = new DiagnosticDescriptor(
-            "RS0001",
+            RoslynDiagnosticIds.UseEmptyEnumerableRuleId,
             RoslynDiagnosticsResources.UseEmptyEnumerableDescription,
             RoslynDiagnosticsResources.UseEmptyEnumerableMessage,
             "Performance",
@@ -29,7 +29,7 @@ namespace Roslyn.Diagnostics.Analyzers
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor UseSingletonEnumerableRule = new DiagnosticDescriptor(
-            "RS0002",
+            RoslynDiagnosticIds.UseSingletonEnumerableRuleId,
             RoslynDiagnosticsResources.UseSingletonEnumerableDescription,
             RoslynDiagnosticsResources.UseSingletonEnumerableMessage,
             "Performance",

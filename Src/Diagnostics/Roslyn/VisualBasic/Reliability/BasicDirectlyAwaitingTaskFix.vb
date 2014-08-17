@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Diagnostics.Analyzers
 
 Namespace Roslyn.Diagnostics.CodeFixes.VisualBasic
-    <ExportCodeFixProvider(DirectlyAwaitingTaskAnalyzerRule.Id, LanguageNames.VisualBasic)>
+    <ExportCodeFixProvider(RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId, LanguageNames.VisualBasic)>
     Public Class BasicDirectlyAwaitingTaskFix
         Inherits DirectlyAwaitingTaskFix(Of ExpressionSyntax)
 

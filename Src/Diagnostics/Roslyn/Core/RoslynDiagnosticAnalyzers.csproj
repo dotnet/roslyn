@@ -44,6 +44,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.CSharp" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.VisualBasic" />
+    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.VisualBasic.BasicCodeAnalysis" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes.CSharp" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes.VisualBasic" />
@@ -56,16 +57,19 @@
     <Compile Include="Reliability\DirectlyAwaitingTaskAnalyzer.cs" />
     <Compile Include="Reliability\DirectlyAwaitingTaskAnalyzerRule.cs" />
     <Compile Include="Reliability\DirectlyAwaitingTaskFix.cs" />
+    <Compile Include="RoslynDiagnosticIds.cs" />
     <Compile Include="RoslynDiagnosticsResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>RoslynDiagnosticsResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="AbstractCodeBlockAnalyzerFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="RoslynDiagnosticsResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>RoslynDiagnosticsResources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">

@@ -6,10 +6,8 @@ namespace Roslyn.Diagnostics.Analyzers
 {
     internal static class DirectlyAwaitingTaskAnalyzerRule
     {
-        public const string Id = "RS0003";
-
         public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            Id,
+            RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId,
             RoslynDiagnosticsResources.DirectlyAwaitingTaskDescription,
             RoslynDiagnosticsResources.DirectlyAwaitingTaskMessage,
             "Reliability",

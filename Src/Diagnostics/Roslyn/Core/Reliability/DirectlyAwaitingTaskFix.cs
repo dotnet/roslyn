@@ -19,7 +19,7 @@ namespace Roslyn.Diagnostics.CodeFixes
     {
         public IEnumerable<string> GetFixableDiagnosticIds()
         {
-            return new[] { DirectlyAwaitingTaskAnalyzerRule.Id };
+            return new[] { RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId };
         }
 
         public async Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)

@@ -135,4 +135,10 @@
   <data name="UseSingletonEnumerableMessage" xml:space="preserve">
     <value>Use SpecializedCollections.SingletonEnumerable&lt;T&gt;()</value>
   </data>
+  <data name="UseSiteDiagnosticsCheckerDescription" xml:space="preserve">
+    <value>Invoke the correct property to ensure correct use site diagnostics.</value>
+  </data>
+<data name="UseSiteDiagnosticsCheckerMessage" xml:space="preserve">
+    <value>Do not directly invoke the property '{0}', instead use '{0}NoUseSiteDiagnostics'.</value>
+  </data>
 </root>

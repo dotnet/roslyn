@@ -10,7 +10,7 @@ using Roslyn.Diagnostics.CodeFixes;
 
 namespace Roslyn.Diagnostics.Analyzers.CSharp.Reliability
 {
-    [ExportCodeFixProvider(DirectlyAwaitingTaskAnalyzerRule.Id, LanguageNames.CSharp)]
+    [ExportCodeFixProvider(RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId, LanguageNames.CSharp)]
     public sealed class CSharpDirectlyAwaitingTaskFix : DirectlyAwaitingTaskFix<ExpressionSyntax>
     {
         protected override ExpressionSyntax FixExpression(ExpressionSyntax expression, CancellationToken cancellationToken)
