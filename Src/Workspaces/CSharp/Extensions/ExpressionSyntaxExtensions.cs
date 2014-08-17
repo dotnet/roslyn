@@ -492,6 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsParentKind(SyntaxKind.ArrayRankSpecifier) ||
                 expression.IsParentKind(SyntaxKind.ConditionalExpression) ||
                 expression.IsParentKind(SyntaxKind.IfStatement) ||
+                expression.IsParentKind(SyntaxKind.CatchFilterClause) ||
                 expression.IsParentKind(SyntaxKind.WhileStatement) ||
                 expression.IsParentKind(SyntaxKind.DoStatement) ||
                 expression.IsParentKind(SyntaxKind.ThrowStatement) ||
