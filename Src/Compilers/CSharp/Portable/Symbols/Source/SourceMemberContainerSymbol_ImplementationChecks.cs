@@ -1005,16 +1005,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            //explicit implementations are always respected by the CLR
-            if (implementingMember.IsExplicitInterfaceImplementation())
-            {
-                return null;
-            }
-
-            MethodSymbol implementingMethodOriginalDefinition = (MethodSymbol)implementingMember.OriginalDefinition;
-
             MethodSymbol interfaceMethod = (MethodSymbol)interfaceMember;
             MethodSymbol implementingMethod = (MethodSymbol)implementingMember;
+
+            //explicit implementations are always respected by the CLR
+            foreach (MethodSymbol implemented in implementingMethod.ExplicitInterfaceImplementations)
+            {
+                if (implemented == interfaceMethod)
+                {
+                    return null;
+                }
+            }
+
+            MethodSymbol implementingMethodOriginalDefinition = implementingMethod.OriginalDefinition;
 
             bool needSynthesizedImplementation = true;
 

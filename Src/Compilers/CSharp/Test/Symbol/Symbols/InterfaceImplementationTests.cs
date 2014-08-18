@@ -2312,5 +2312,156 @@ public class Derived : Base, I
             Assert.Null(derivedType.FindImplementationForInterfaceMember(interfaceProperty)); // Used to return baseProperty, which seems wrong.
             Assert.Equal(derivedGetter, derivedType.FindImplementationForInterfaceMember(interfaceGetter));
         }
+
+        [WorkItem(943542, "DevDiv"), WorkItem(137, "CodePlex")]
+        [Fact]
+        public void Bug943542()
+        {
+            var il = @"
+.class interface public abstract auto ansi IBase
+{
+  .method public newslot specialname abstract strict virtual 
+          instance object  get_P1() cil managed
+  {
+  } // end of method IBase::get_P1
+
+  .method public newslot specialname abstract strict virtual 
+          instance void  set_P1(object Value) cil managed
+  {
+  } // end of method IBase::set_P1
+
+  .method public newslot specialname abstract strict virtual 
+          instance object  get_P2() cil managed
+  {
+  } // end of method IBase::get_P2
+
+  .method public newslot specialname abstract strict virtual 
+          instance void  set_P2(object Value) cil managed
+  {
+  } // end of method IBase::set_P2
+
+  .property instance object P1()
+  {
+    .get instance object IBase::get_P1()
+    .set instance void IBase::set_P1(object)
+  } // end of property IBase::P1
+  .property instance object P2()
+  {
+    .get instance object IBase::get_P2()
+    .set instance void IBase::set_P2(object)
+  } // end of property IBase::P2
+} // end of class IBase
+
+.class public auto ansi Base
+       extends [mscorlib]System.Object
+       implements IBase
+{
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method Base::.ctor
+
+  .method public newslot specialname strict virtual 
+          instance object  g_P1() cil managed
+  {
+    .override IBase::get_P1
+    // Code size       16 (0x10)
+    .maxstack  1
+    .locals init (object V_0)
+    IL_0000:  ldstr      ""g_P1""
+    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000a:  ldnull
+    IL_000b:  stloc.0
+    IL_000c:  br.s       IL_000e
+
+    IL_000e:  ldloc.0
+    IL_000f:  ret
+  } // end of method Base::get_P1
+
+  .method public newslot specialname strict virtual 
+          instance void  set_P1(object 'value') cil managed
+  {
+    .override IBase::set_P1
+    // Code size       11 (0xb)
+    .maxstack  8
+    IL_0000:  ldstr      ""set_P1""
+    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000a:  ret
+  } // end of method Base::set_P1
+
+  .method public newslot specialname strict virtual 
+          instance object  get_P2() cil managed
+  {
+    .override IBase::get_P2
+    // Code size       16 (0x10)
+    .maxstack  1
+    .locals init (object V_0)
+    IL_0000:  ldstr      ""get_P2""
+    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000a:  ldnull
+    IL_000b:  stloc.0
+    IL_000c:  br.s       IL_000e
+
+    IL_000e:  ldloc.0
+    IL_000f:  ret
+  } // end of method Base::get_P2
+
+  .method public newslot specialname strict virtual 
+          instance void  s_P2(object 'value') cil managed
+  {
+    .override IBase::set_P2
+    // Code size       11 (0xb)
+    .maxstack  8
+    IL_0000:  ldstr      ""s_P2""
+    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000a:  ret
+  } // end of method Base::set_P2
+
+  .property instance object P1()
+  {
+    .get instance object Base::g_P1()
+    .set instance void Base::set_P1(object)
+  } // end of property Base::P1
+  .property instance object P2()
+  {
+    .get instance object Base::get_P2()
+    .set instance void Base::s_P2(object)
+  } // end of property Base::P2
+} // end of class Base
+";
+
+            var source = @"
+interface IDerived
+{
+	object P1 {get;set;}
+	object P2 {get;set;}
+}
+
+class Derived : Base, IDerived
+{
+	static void Main()
+	{
+		object val;
+		IDerived x = new Derived();
+
+		x.P1 = null;
+		val = x.P1;
+
+		x.P2 = null;
+		val = x.P2;
+	}
+}";
+
+            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: false, expectedOutput: @"set_P1
+g_P1
+s_P2
+get_P2");
+        }
     }
 }
