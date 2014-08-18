@@ -379,12 +379,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override void VisitWhileStatement(WhileStatementSyntax node)
             {
                     return;
-                }
+            }
 
             public override void VisitDoStatement(DoStatementSyntax node)
             {
                     return;
-                }
+            }
 
             public override void VisitCatchClause(CatchClauseSyntax node)
             {
@@ -393,8 +393,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitIfStatement(IfStatementSyntax node)
             {
+                return;
+            }
+
+
+            public override void VisitBinaryExpression(BinaryExpressionSyntax node)
+            {
+                if (!IsSimpleBinaryOperator(node.Kind))
+                {
+                    base.VisitBinaryExpression(node);
                     return;
                 }
+
+                // The simple binary operators are left-associative, and expressions of the form
+                // a + b + c + d .... are relatively common in machine-generated code. The parser can handle
+                // creating a deep-on-the-left syntax tree no problem, and then we promptly blow the stack during
+                // semantic analysis. Here we build an explicit stack to handle the left-hand recursion.
+
+                var operands = ArrayBuilder<ExpressionSyntax>.GetInstance();
+
+                ExpressionSyntax current = node;
+                do
+                {
+                    var binOp = (BinaryExpressionSyntax)current;
+                    operands.Push(binOp.Right);
+                    current = binOp.Left;
+                }
+                while (IsSimpleBinaryOperator(current.Kind));
+
+                Visit(current);
+
+                while (operands.Count > 0)
+                {
+                    Visit(operands.Pop());
+                }
+
+                operands.Free();
+            }
         }
 
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)

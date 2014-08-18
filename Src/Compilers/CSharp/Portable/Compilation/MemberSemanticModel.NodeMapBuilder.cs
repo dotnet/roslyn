@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -177,7 +178,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     map.Add(current.Syntax, current);
                 }
 
-                base.Visit(current);
+                // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
+                // such as a + b + c + d ...
+                // To avoid blowing the call stack, we build an explicit stack to handle the left-hand recursion.
+                var binOp = current as BoundBinaryOperator;
+
+                if (binOp != null)
+                {
+                    var stack = ArrayBuilder<BoundExpression>.GetInstance();
+
+                    stack.Push(binOp.Right);
+                    current = binOp.Left;
+                    binOp = current as BoundBinaryOperator;
+
+                    while (binOp != null)
+                    {
+                        if (ShouldAddNode(binOp))
+                        {
+                            map.Add(binOp.Syntax, binOp);
+                        }
+
+                        stack.Push(binOp.Right);
+                        current = binOp.Left;
+                        binOp = current as BoundBinaryOperator;
+                    }
+
+                    Visit(current);
+
+                    while (stack.Count > 0)
+                    {
+                        Visit(stack.Pop());
+                    }
+
+                    stack.Free();
+                }
+                else
+                {
+                    base.Visit(current);
+                }
 
                 return null;
             }
@@ -208,6 +246,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Visit(node.Value);
                 VisitUnoptimizedForm(node);
                 return null;
+            }
+
+            public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

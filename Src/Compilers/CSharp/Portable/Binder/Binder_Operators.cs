@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: hasError);
         }
 
-        private static bool IsSimpleBinaryOperator(SyntaxKind kind)
+        protected static bool IsSimpleBinaryOperator(SyntaxKind kind)
         {
             // We deliberately exclude &&, ||, ??, etc. 
             switch (kind)

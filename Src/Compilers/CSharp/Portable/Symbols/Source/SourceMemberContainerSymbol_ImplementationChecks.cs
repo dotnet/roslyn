@@ -1009,12 +1009,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol implementingMethod = (MethodSymbol)implementingMember;
 
             //explicit implementations are always respected by the CLR
-            foreach (MethodSymbol implemented in implementingMethod.ExplicitInterfaceImplementations)
+            if (implementingMethod.ExplicitInterfaceImplementations.Contains(interfaceMethod))
             {
-                if (implemented == interfaceMethod)
-                {
-                    return null;
-                }
+                return null;
             }
 
             MethodSymbol implementingMethodOriginalDefinition = implementingMethod.OriginalDefinition;
