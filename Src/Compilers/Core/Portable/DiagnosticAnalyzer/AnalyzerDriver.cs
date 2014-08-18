@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 try
                 {
-                    await InitialWorkerAsync(analyzers, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    await InitialWorkerAsync(analyzers, this.continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
