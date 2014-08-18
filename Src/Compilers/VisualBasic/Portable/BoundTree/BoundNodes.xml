@@ -449,6 +449,7 @@
 
         <Field Name="Operand" Type="BoundExpression"/>
         <Field Name="ConversionKind" Type="ConversionKind"/>
+        <Field Name="SuppressVirtualCalls" PropertyOverrides="true" Type="Boolean"/>
         <Field Name="ConstantValueOpt" PropertyOverrides="true" Type="ConstantValue" Null="allow"/>
 
         <!-- If this is a lambda conversion which requires a stub, additional lambda 
@@ -1206,6 +1207,7 @@
 
         <Field Name="ParameterSymbol" Type="ParameterSymbol"/>
         <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
+        <Field Name="SuppressVirtualCalls" PropertyOverrides="true" Type="Boolean"/>
     </Node>
 
     <!--

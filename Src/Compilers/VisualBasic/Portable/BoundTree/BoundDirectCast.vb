@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             type As TypeSymbol,
             Optional hasErrors As Boolean = False
         )
-            Me.New(syntax, operand, conversionKind, ConstantValueOpt:=Nothing, RelaxationLambdaOpt:=Nothing, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operand, conversionKind, suppressVirtualCalls:=False, constantValueOpt:=Nothing, relaxationLambdaOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
 
         Public Sub New(
@@ -26,11 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             type As TypeSymbol,
             Optional hasErrors As Boolean = False
         )
-            Me.New(syntax, operand, conversionKind, ConstantValueOpt:=Nothing, relaxationLambdaOpt:=relaxationLambdaOpt, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operand, conversionKind, suppressVirtualCalls:=False, constantValueOpt:=Nothing, relaxationLambdaOpt:=relaxationLambdaOpt, type:=type, hasErrors:=hasErrors)
         End Sub
 
         Public Sub New(syntax As VisualBasicSyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
-            Me.New(syntax, operand, conversionKind, constantValueOpt, relaxationLambdaOpt:=Nothing, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operand, conversionKind, suppressVirtualCalls:=False, constantValueOpt:=constantValueOpt, relaxationLambdaOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
 
 #If DEBUG Then

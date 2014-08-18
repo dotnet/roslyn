@@ -717,8 +717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' 3) nonvirtual methods use "callvirt" too for the null check semantics.
                     '    3.a In some cases CanUseCallOnRefTypeReceiver returns true which means that 
                     '        null check is unnecessary and we can use "call"
-                    If receiver.Kind = BoundKind.MyBaseReference OrElse receiver.Kind = BoundKind.MyClassReference OrElse
-                                (Not method.IsMetadataVirtual AndAlso CanUseCallOnRefTypeReceiver(receiver)) Then
+                    If receiver.SuppressVirtualCalls OrElse (Not method.IsMetadataVirtual AndAlso CanUseCallOnRefTypeReceiver(receiver)) Then
                         callKind = CallKind.Call
                     Else
                         callKind = CallKind.CallVirt

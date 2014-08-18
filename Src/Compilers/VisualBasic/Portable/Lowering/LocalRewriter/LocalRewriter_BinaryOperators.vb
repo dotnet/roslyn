@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Dig through possible DirectCast conversions
                     Dim cast = DirectCast(operand, BoundDirectCast)
                     Return cast.Update(ReplaceMyGroupCollectionPropertyGetWithUnderlyingField(cast.Operand),
-                                       cast.ConversionKind, cast.ConstantValueOpt, cast.RelaxationLambdaOpt, cast.Type)
+                                       cast.ConversionKind, cast.SuppressVirtualCalls, cast.ConstantValueOpt, cast.RelaxationLambdaOpt, cast.Type)
 
                 Case BoundKind.Conversion
                     ' Dig through possible conversion. For example, in context of an expression tree it is not changed to DirectCast conversion.

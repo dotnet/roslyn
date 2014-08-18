@@ -34,6 +34,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
+        ''' Returns true if calls and delegate invocations with this
+        ''' expression as the receiver should be non-virtual calls.
+        ''' </summary>
+        Public Overridable ReadOnly Property SuppressVirtualCalls As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Does expression refer to a physical memory location that can be modified?
         ''' 
         ''' Note, Dev10 uses SXF_LVALUE flag on bound nodes to represent this concept.

@@ -759,7 +759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result As BoundExpression = RewriteLambda(lambda, VisitType(node.Type), (node.ConversionKind And ConversionKind.ConvertedToExpressionTree) <> 0)
             If inExpressionLambda Then
-                result = node.Update(result, node.ConversionKind, node.ConstantValueOpt, node.RelaxationLambdaOpt, node.Type)
+                result = node.Update(result, node.ConversionKind, node.SuppressVirtualCalls, node.ConstantValueOpt, node.RelaxationLambdaOpt, node.Type)
             End If
             Return result
         End Function

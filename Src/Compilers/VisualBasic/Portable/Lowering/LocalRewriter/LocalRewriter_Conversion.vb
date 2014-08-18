@@ -1102,7 +1102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 returnValue = MyBase.VisitDirectCast(node)
             Else
                 returnValue = node.Update(VisitExpressionNode(node.RelaxationLambdaOpt),
-                                   node.ConversionKind, node.ConstantValueOpt,
+                                   node.ConversionKind, node.SuppressVirtualCalls, node.ConstantValueOpt,
                                    relaxationLambdaOpt:=Nothing, type:=node.Type)
             End If
 
