@@ -2806,5 +2806,149 @@ Main
                 TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
+
+        [WorkItem(1006447, "DevDiv")]
+        [Fact]
+        public void Bug1006447_1()
+        {
+            const string vbSource =
+@"Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+Imports System.Text
+ 
+<ComImport>
+<Guid(""1F9C3731-6AA1-498A-AFA0-359828FCF0CE"")>
+Public Interface I
+    Property X(Optional i as Integer = 0, <CallerFilePath> Optional s As String = Nothing) As StringBuilder
+End Interface
+
+Public Class A
+    Implements I
+
+    Public Property X(Optional i as Integer = 0, Optional s As String = Nothing) As StringBuilder Implements I.X
+        Get
+            Console.WriteLine(""Get X(""""{0}"""")"", s)
+            Return New StringBuilder
+        End Get
+        Set(value As StringBuilder)
+            Console.WriteLine(""Set X(""""{0}"""")"", s)
+        End Set
+    End Property
+End Class";
+
+            var vbReference = BasicCompilationUtils.CompileToMetadata(vbSource, references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
+
+            const string csSource =
+@"using System;
+
+class C
+{
+    I P = new A();
+ 
+    static void Main()
+    {
+        new C().P.X = null;
+        new C().P.X[1] = null;
+        new C { P = { X = null } };
+        new C { P = { X = { Length = 0 } } };
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { SyntaxFactory.ParseSyntaxTree(csSource, path: @"C:\filename", encoding: Encoding.UTF8) },
+                new[] { SystemCoreRef, vbReference },
+                TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"Set X(""C:\filename"")
+Set X(""C:\filename"")
+Set X(""C:\filename"")
+Get X(""C:\filename"")
+");
+        }
+
+        [WorkItem(1006447, "DevDiv")]
+        [Fact]
+        public void Bug1006447_2()
+        {
+            const string source =
+@"using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    static void Main()
+    {
+        new C()[0] = 0;
+    }
+
+    int this[int x, [CallerMemberName] string s = null]
+    {
+        set
+        {
+            Console.WriteLine(s);
+        }
+    }
+}";
+
+            const string expected = "Main";
+
+            var compilation = CreateCompilationWithMscorlib45(
+                source,
+                new[] { SystemCoreRef },
+                TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [WorkItem(1006447, "DevDiv")]
+        [Fact]
+        public void Bug1006447_3()
+        {
+            const string vbSource =
+@"Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+<ComImport>
+<Guid(""1F9C3731-6AA1-498A-AFA0-359828FCF0CE"")>
+Public Interface I
+    ReadOnly Property [Select](<CallerMemberName> Optional s As String = Nothing) As Func(Of Func(Of Integer, Integer), String)
+End Interface
+
+Public Class A
+    Implements I
+
+    Public ReadOnly Property [Select](<CallerMemberName> Optional s As String = Nothing) As Func(Of Func(Of Integer, Integer), String) Implements I.Select
+         Get
+            Console.WriteLine(""Get Select(""""{0}"""")"", s)
+            Return Function() ""ABC""
+        End Get
+    End Property
+End Class";
+
+            var vbReference = BasicCompilationUtils.CompileToMetadata(vbSource, references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
+
+            const string csSource =
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        I x = new A();
+        Console.WriteLine(from y in x select y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(
+                csSource,
+                new[] { SystemCoreRef, vbReference },
+                TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"Get Select(""Main"")
+ABC
+");
+        }
     }
 }

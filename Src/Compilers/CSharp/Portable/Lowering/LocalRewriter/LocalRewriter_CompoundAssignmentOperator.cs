@@ -187,23 +187,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var prop = (BoundPropertyAccess)originalLHS;
 
-                        // If the property is static or is the receiver is of kind "Base" or "this", then we can just generate prop = prop + value
+                        // If the property is static or if the receiver is of kind "Base" or "this", then we can just generate prop = prop + value
                         if (prop.ReceiverOpt == null || prop.PropertySymbol.IsStatic || !NeedsTemp(prop.ReceiverOpt))
                         {
                             return prop;
                         }
 
                         Debug.Assert(prop.ReceiverOpt.Kind != BoundKind.TypeExpression);
-
-                        // Can we ever avoid storing the receiver in a temp? If the receiver is a variable then it 
-                        // might be modified by the computation of the getter, the value, or the operation. 
-                        // The receiver cannot be a null constant or constant of value type. It could be a 
-                        // constant of string type, but there are no mutable properties of a string.
-                        // Similarly, there are no mutable properties of a Type object, so the receiver
-                        // cannot be a typeof(T) expression. The only situation we know of is where we could
-                        // optimize away the temp is if the receiver is a readonly field of reference type,
-                        // we are not in a constructor, and the receiver of the *field*, if any, is also idempotent.
-                        // It doesn't seem worthwhile to pursue an optimization for this exceedingly rare case.
 
                         BoundExpression rewrittenReceiver = VisitExpression(prop.ReceiverOpt);
                         if (rewrittenReceiver.Type.IsTypeParameter() && rewrittenReceiver.Type.IsReferenceType)
