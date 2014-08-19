@@ -34,6 +34,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public static event EventHandler<AnalyzerAssemblyLoadEventArgs> AssemblyLoad;
 
+        /// <summary>
+        /// Maps from one assembly back to the assembly that requested it, if known.
+        /// </summary>
+        public static string TryGetRequestingAssemblyPath(string assemblyPath)
+        {
+            return InMemoryAssemblyLoader.TryGetRequestingAssembly(assemblyPath);
+        }
+
         public AnalyzerFileReference(string fullPath)
         {
             if (fullPath == null)

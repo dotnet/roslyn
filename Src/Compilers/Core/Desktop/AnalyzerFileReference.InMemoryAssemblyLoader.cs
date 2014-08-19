@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// Maps from an assembly full name to the directory where we found the
             /// corresponding file.
             /// </summary>
-            private static readonly Dictionary<string, string> directoriesFromAssemblyNames =
+            private static readonly Dictionary<string, string> filesFromAssemblyNames =
                 new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             /// <summary>
@@ -52,6 +52,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             private static readonly Dictionary<string, Assembly> assembliesFromNames =
                 new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
+
+            /// <summary>
+            /// Maps from the full path to an assembly to the full path of the assembly
+            /// that requested it.
+            /// </summary>
+            private static readonly Dictionary<string, string> requestingFilesFromFiles =
+                new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             /// <summary>
             /// Controls access to the loader's data structures.
@@ -97,6 +104,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            public static string TryGetRequestingAssembly(string fullPath)
+            {
+                lock (guard)
+                {
+                    string requestingAssemblyFullPath;
+                    if (requestingFilesFromFiles.TryGetValue(fullPath, out requestingAssemblyFullPath))
+                    {
+                        return requestingAssemblyFullPath;
+                    }
+
+                    return null;
+                }
+            }
+
             /// <summary>
             /// Performs the actual loading of the assembly, updates data structures, and
             /// fires the <see cref="AssemblyLoad"/> event.
@@ -106,11 +127,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 byte[] bytes = File.ReadAllBytes(fullPath);
                 Assembly assembly = Assembly.Load(bytes);
 
-                string directory = Path.GetDirectoryName(fullPath);
                 string assemblyName = assembly.FullName;
 
                 assembliesFromFiles[fullPath] = assembly;
-                directoriesFromAssemblyNames[assemblyName] = directory;
+                filesFromAssemblyNames[assemblyName] = fullPath;
                 assembliesFromNames[assemblyName] = assembly;
 
                 EventHandler<AnalyzerAssemblyLoadEventArgs> handler = AnalyzerFileReference.AssemblyLoad;
@@ -141,8 +161,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     string requestingAssemblyName = args.RequestingAssembly.FullName;
 
-                    string directoryPath;
-                    if (!directoriesFromAssemblyNames.TryGetValue(requestingAssemblyName, out directoryPath))
+                    string requestingAssemblyFullPath;
+                    if (!filesFromAssemblyNames.TryGetValue(requestingAssemblyName, out requestingAssemblyFullPath))
                     {
                         // The requesting assembly is not one of ours; don't try to satisfy the request.
                         return null;
@@ -161,9 +181,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return null;
                     }
 
+                    string directoryPath = Path.GetDirectoryName(requestingAssemblyFullPath);
                     string assemblyFullPath = Path.Combine(directoryPath, assemblyIdentity.Name + ".dll");
 
                     assembly = LoadCore(assemblyFullPath);
+
+                    requestingFilesFromFiles[assemblyFullPath] = requestingAssemblyFullPath;
 
                     return assembly;
                 }

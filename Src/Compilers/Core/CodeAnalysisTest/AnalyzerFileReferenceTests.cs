@@ -59,6 +59,16 @@ Delta: Gamma: Beta: Test B
 
             Assert.Equal(expected, actual);
 
+            var alphaDllRequestor = AnalyzerFileReference.TryGetRequestingAssemblyPath(alphaDll.Path);
+            var betaDllRequestor = AnalyzerFileReference.TryGetRequestingAssemblyPath(betaDll.Path);
+            var gammaDllRequestor = AnalyzerFileReference.TryGetRequestingAssemblyPath(gammaDll.Path);
+            var deltaDllRequestor = AnalyzerFileReference.TryGetRequestingAssemblyPath(deltaDll.Path);
+
+            Assert.Null(alphaDllRequestor);
+            Assert.Null(betaDllRequestor);
+            Assert.Equal(expected: alphaDll.Path, actual: gammaDllRequestor, comparer: StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(expected: gammaDll.Path, actual: deltaDllRequestor, comparer: StringComparer.OrdinalIgnoreCase);
+
             AnalyzerFileReference.AssemblyLoad -= handler;
         }
     }
