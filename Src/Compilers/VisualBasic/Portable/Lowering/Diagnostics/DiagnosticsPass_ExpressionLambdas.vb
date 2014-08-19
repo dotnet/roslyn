@@ -3,14 +3,7 @@
 Imports System
 Imports System.Collections.Generic
 Imports System.Diagnostics
-Imports System.Linq
-Imports System.Runtime.InteropServices
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -62,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitAnonymousTypePropertyAccess(node As BoundAnonymousTypePropertyAccess) As BoundNode
             If Me.IsInExpressionLambda Then
-                ' we do not allow anlnymous objects which use one field to initalize another one
+                ' we do not allow anonymous objects which use one field to initalize another one
                 GenerateDiagnostic(ERRID.ERR_BadAnonymousTypeForExprTree, node)
             End If
 
@@ -96,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case opKind
                     Case BinaryOperatorKind.Like,
                          BinaryOperatorKind.Concatenate
-                        'Do Nothing
+                    'Do Nothing
 
                     Case Else
                         If (node.OperatorKind And BinaryOperatorKind.Lifted) <> 0 Then

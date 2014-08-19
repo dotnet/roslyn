@@ -927,9 +927,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Associate these debug imports with all methods generated from this one.
                 compilationState.CurrentDebugImports = debugImports;
 
-                if (body != null && (object)sourceMethod != null)
+                if (body != null)
                 {
-                    // TODO: Do we need to issue warnings for non-SourceMethodSymbol methods, like synthesized ctors?
                     DiagnosticsPass.IssueDiagnostics(compilation, body, diagsForCurrentMethod, methodSymbol);
                 }
 

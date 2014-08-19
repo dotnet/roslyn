@@ -3019,12 +3019,26 @@ class Program
 {
     Expression<Func<object>> testExpr = () => null ?? new object();
 }";
-            CreateCompilationWithMscorlibAndSystemCore(text)
-                .VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
                 // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side
                 //     Expression<Func<object>> testExpr = () => null ?? new object();
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null")
-                );
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null"));
+        }
+
+        [Fact]
+        public void ExprTreePropertyInitCoalesceWithNullOnLHS()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+class C
+{
+    object P { get; }  = ((Expression<Func<object>>)(() => null ?? new object())).Compile();
+}";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side
+                //     Expression<Func<object>> testExpr = () => null ?? new object();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null"));
         }
 
         [WorkItem(544429, "DevDiv")]
