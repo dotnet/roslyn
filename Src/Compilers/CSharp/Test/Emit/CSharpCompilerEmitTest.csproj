@@ -161,8 +161,10 @@
     <Compile Include="Emit\CompilationEmitTests.cs" />
     <Compile Include="Emit\DeterministicTests.cs" />
     <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.cs" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTests.cs" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.cs" />
     <Compile Include="Emit\EditAndContinue\SymbolMatcherTests.cs" />
     <Compile Include="Emit\EditAndContinue\SynthesizedLocalsTests.cs" />
     <Compile Include="Emit\EmitCustomModifiers.cs" />

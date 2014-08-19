@@ -632,8 +632,8 @@ End Module
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, compilation1.GetMember("M.G"))))
 
                 ' "Write" should be included in string table, but "WriteLine" should not.
-                Assert.True(diff1.MetadataBlob.IsIncluded("Write"))
-                Assert.False(diff1.MetadataBlob.IsIncluded("WriteLine"))
+                Assert.True(diff1.MetadataDelta.IsIncluded("Write"))
+                Assert.False(diff1.MetadataDelta.IsIncluded("WriteLine"))
             End Using
         End Sub
 
@@ -878,7 +878,7 @@ End Class
                 Dim diff1A = compilation1A.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1A, GetLocalMap(method1A, method0), preserveLocalVariables:=True)))
-                diff1A.Result.Diagnostics.AssertTheseDiagnostics(<errors><![CDATA[
+                diff1A.EmitResult.Diagnostics.AssertTheseDiagnostics(<errors><![CDATA[
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'IA'.
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'S'.
      ]]></errors>)
@@ -956,7 +956,7 @@ End Class
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
-                diff1.Result.Diagnostics.AssertTheseDiagnostics(<errors><![CDATA[
+                diff1.EmitResult.Diagnostics.AssertTheseDiagnostics(<errors><![CDATA[
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'IB'.
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'N.IA'.
      ]]></errors>)
@@ -3957,10 +3957,10 @@ End Module
                             ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, compilation1.GetMember(Of MethodSymbol)("C.Main"))),
                             New CompilationTestData With {.SymWriterFactory = Function() New MockSymUnmanagedWriter()})
 
-                diff1.Result.Diagnostics.Verify(
+                diff1.EmitResult.Diagnostics.Verify(
                     Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments("The method or operation is not implemented."))
 
-                Assert.False(diff1.Result.Success)
+                Assert.False(diff1.EmitResult.Success)
             End Using
         End Sub
 

@@ -122,6 +122,51 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString);
         }
 
+        internal static void CheckEncLogDefinitions(MetadataReader reader, params EditAndContinueLogEntry[] rows)
+        {
+            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(IsDefinition), itemInspector: EncLogRowToString);
+        }
+
+        private static bool IsDefinition(EditAndContinueLogEntry entry)
+        {
+            TableIndex index;
+            Assert.True(MetadataTokens.TryGetTableIndex(entry.Handle.HandleType, out index));
+
+            switch (index)
+            {
+                case TableIndex.MethodDef:
+                case TableIndex.Field:
+                case TableIndex.Constant:
+                case TableIndex.GenericParam:
+                case TableIndex.GenericParamConstraint:
+                case TableIndex.Event:
+                case TableIndex.CustomAttribute:
+                case TableIndex.DeclSecurity:
+                case TableIndex.Assembly:
+                case TableIndex.MethodImpl:
+                case TableIndex.Param:
+                case TableIndex.Property:
+                case TableIndex.TypeDef:
+                case TableIndex.ExportedType:
+                case TableIndex.StandAloneSig:
+                case TableIndex.ClassLayout:
+                case TableIndex.FieldLayout:
+                case TableIndex.FieldMarshal:
+                case TableIndex.File:
+                case TableIndex.ImplMap:
+                case TableIndex.InterfaceImpl:
+                case TableIndex.ManifestResource:
+                case TableIndex.MethodSemantics:
+                case TableIndex.Module:
+                case TableIndex.NestedClass:
+                case TableIndex.EventMap:
+                case TableIndex.PropertyMap:
+                    return true;
+            }
+
+            return false;
+        }
+
         internal static void CheckEncMap(MetadataReader reader, params Handle[] handles)
         {
             AssertEx.Equal(handles, reader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString);

@@ -440,7 +440,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
         {
-            switch (this.changes.GetChange(typeDef))
+            var change = this.changes.GetChange(typeDef);
+            switch (change)
             {
                 case SymbolChange.Added:
                     this.typeDefs.Add(typeDef);
@@ -453,12 +454,21 @@ namespace Microsoft.CodeAnalysis.Emit
                         }
                     }
                     break;
+
                 case SymbolChange.Updated:
                     this.typeDefs.AddUpdated(typeDef);
                     break;
+
+                case SymbolChange.ContainsChanges:
+                    // Members changed.
+                    break;
+
                 case SymbolChange.None:
-                    // No changes to type or members.
+                    // No changes to type.
                     return;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(change);
             }
 
             uint typeIndex;

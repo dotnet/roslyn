@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     internal sealed class CompilationDifference
     {
-        public readonly ImmutableArray<byte> MetadataBlob;
-        public readonly ImmutableArray<byte> ILBlob;
+        public readonly ImmutableArray<byte> MetadataDelta;
+        public readonly ImmutableArray<byte> ILDelta;
         public readonly EmitBaseline NextGeneration;
-        public readonly Stream Pdb;
+        public readonly Stream PdbDelta;
         public readonly CompilationTestData TestData;
-        public readonly EmitResult Result;
+        public readonly EmitDifferenceResult EmitResult;
         public readonly ImmutableArray<uint> UpdatedMethods;
 
         public CompilationDifference(
@@ -35,27 +35,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Stream pdbStream, 
             EmitBaseline nextGeneration,
             CompilationTestData testData,
-            EmitResult result,
+            EmitDifferenceResult result,
             ImmutableArray<uint> methodTokens)
         {
-            this.MetadataBlob = metadata;
-            this.ILBlob = il;
-            this.Pdb = pdbStream;
+            this.MetadataDelta = metadata;
+            this.ILDelta = il;
+            this.PdbDelta = pdbStream;
             this.NextGeneration = nextGeneration;
             this.TestData = testData;
-            this.Result = result;
+            this.EmitResult = result;
             this.UpdatedMethods = methodTokens;
         }
 
         public PinnedMetadata GetMetadata()
         {
-            return new PinnedMetadata(MetadataBlob);
+            return new PinnedMetadata(MetadataDelta);
         }
 
         public void VerifyIL(
             string expectedIL)
         {
-            string actualIL = ILBlob.GetMethodIL();
+            string actualIL = ILDelta.GetMethodIL();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: null, expectedValueSourceLine: 0);
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Dictionary<int, string> sequencePointMarkers = null;
             if (methodToken != 0)
             {
-                string actualPdb = PdbToXmlConverter.DeltaPdbToXml(Pdb, new[] { methodToken });
+                string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, new[] { methodToken });
                 sequencePointMarkers = TestBase.GetSequencePointMarkers(actualPdb);
             }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void VerifyPdb(IEnumerable<uint> methodTokens, string expectedPdb)
         {
-            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(Pdb, methodTokens);
+            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, methodTokens);
             TestBase.AssertXmlEqual(expectedPdb, actualPdb);
         }
 

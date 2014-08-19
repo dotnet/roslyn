@@ -4,6 +4,7 @@ using Microsoft.Cci;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -30,6 +31,60 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public SymbolChange GetChange(IDefinition def)
         {
+            var synthesizedDef = def as ISynthesizedMethodBodyImplementationSymbol;
+            if (synthesizedDef != null)
+            {
+                Debug.Assert(synthesizedDef.Method != null);
+
+                var generator = synthesizedDef.Method;
+                var synthesizedSymbol = (ISymbol)synthesizedDef;
+
+                switch (GetChange(generator))
+                {
+                    case SymbolChange.Updated:
+                        // The generator has been updated. Some synthesized members should be reused, others updated or added.
+
+                        // The container of the synthesized symbol doesn't exist, we need to add the symbol.
+                        // This may happen e.g. for members of a state machine type when a non-iterator method is changed to an iterator.
+                        if (!this.definitionMap.DefinitionExists((IDefinition)synthesizedSymbol.ContainingType))
+                        {
+                            return SymbolChange.Added;
+                        }
+
+                        // Nothign changes in this member on an update of the generator.
+                        if (!synthesizedDef.HasMethodBodyDependency)
+                        {
+                            return SymbolChange.None;
+                        }
+
+                        if (synthesizedSymbol.Kind == SymbolKind.NamedType)
+                        {
+                            if (this.definitionMap.DefinitionExists(def))
+                            {
+                                // If the type produced from the method body existed before then its members are updated.
+                                return SymbolChange.ContainsChanges;
+                            }
+                            else
+                            {
+                                // A method was changed to a method containing a lambda, to an interator, or to an async method.
+                                // The state machine or closure class has been added.
+                                return SymbolChange.Added;
+                            }
+                        }
+
+                        // If the containing type of the synthesized symbol exists we can just reuse the existing synthesized member.
+                        return SymbolChange.Updated;
+
+                    case SymbolChange.Added:
+                        // The method has been added - add the synthesized member as well.
+                        return SymbolChange.Added;
+
+                    default:
+                        // The method had to change, otherwise the synthesized symbol wouldn't be generated
+                        throw ExceptionUtilities.Unreachable;
+                }
+            }
+
             var symbol = def as ISymbol;
             if (symbol != null)
             {
@@ -40,9 +95,9 @@ namespace Microsoft.CodeAnalysis.Emit
             // (although it may contain changed defs); otherwise, it was added.
             if (this.definitionMap.DefinitionExists(def))
             {
-                var typeDef = def as ITypeDefinition;
-                return (typeDef != null) ? SymbolChange.ContainsChanges : SymbolChange.None;
+                return (def is ITypeDefinition) ? SymbolChange.ContainsChanges : SymbolChange.None;
             }
+
             return SymbolChange.Added;
         }
 
@@ -111,6 +166,9 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// Calculate the set of changes up to top-level types. The result
         /// will be used as a filter when traversing the module.
+        /// 
+        /// Note that these changes only include user-defined source symbols, not synthesized symbols since those will be 
+        /// generated during lowering of the changed user-defined symbols.
         /// </summary>
         private static IReadOnlyDictionary<ISymbol, SymbolChange> CalculateChanges(IEnumerable<SemanticEdit> edits)
         {

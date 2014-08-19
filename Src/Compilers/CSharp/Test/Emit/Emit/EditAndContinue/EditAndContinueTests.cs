@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1494,387 +1493,6 @@ class C
         }
 
         [Fact]
-        public void Iterator()
-        {
-            var source0 =
-@"using System.Collections.Generic;
-class C
-{
-    static IEnumerable<object> F()
-    {
-        yield return 0;
-    }
-    static void M()
-    {
-    }
-}";
-            var source1 =
-@"using System.Collections.Generic;
-class C
-{
-    static IEnumerable<object> F()
-    {
-        yield return 0;
-    }
-    static IEnumerable<int> G()
-    {
-        yield return 1;
-    }
-    static void M()
-    {
-    }
-}";
-            var source2 =
-@"using System.Collections.Generic;
-class C
-{
-    static IEnumerable<object> F()
-    {
-        yield return 0;
-    }
-    static IEnumerable<int> G()
-    {
-        yield return 1;
-    }
-    static void M()
-    {
-        foreach (var i in G())
-        {
-        }
-    }
-}";
-            var source3 =
-@"using System.Collections.Generic;
-class C
-{
-    static IEnumerable<object> F()
-    {
-        yield return 0;
-    }
-    static IEnumerable<int> G()
-    {
-        yield return 2;
-    }
-    static void M()
-    {
-        foreach (var i in G())
-        {
-        }
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(Parse(source1, "a.cs"), options: TestOptions.DebugDll);
-            var compilation2 = CreateCompilationWithMscorlib(Parse(source2, "a.cs"), options: TestOptions.DebugDll);
-            var compilation3 = CreateCompilationWithMscorlib(Parse(source3, "a.cs"), options: TestOptions.DebugDll);
-
-            var bytes0 = compilation0.EmitToArray();
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.G"))));
-
-            using (var md1 = diff1.GetMetadata())
-            {
-                var reader1 = md1.Reader;
-
-                CheckEncLog(reader1,
-                    Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                    Row(17, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(18, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(19, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(20, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(21, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(22, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(23, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(24, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(25, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(26, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(27, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(28, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(29, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(21, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(22, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(23, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(24, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(25, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(26, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.PropertyMap, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                    Row(4, TableIndex.Field, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                    Row(5, TableIndex.Field, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                    Row(6, TableIndex.Field, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(17, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
-                    Row(3, TableIndex.Property, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
-                    Row(4, TableIndex.Property, EditAndContinueOperation.Default),
-                    Row(13, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                    Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                    Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                    Row(8, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(9, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(10, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(11, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(12, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(13, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(14, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default),
-                    Row(6, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
-                    Row(7, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
-                    Row(8, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
-                    Row(9, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
-                    Row(10, TableIndex.InterfaceImpl, EditAndContinueOperation.Default));
-                CheckEncMap(reader1,
-                    Handle(16, TableIndex.TypeRef),
-                    Handle(17, TableIndex.TypeRef),
-                    Handle(18, TableIndex.TypeRef),
-                    Handle(19, TableIndex.TypeRef),
-                    Handle(20, TableIndex.TypeRef),
-                    Handle(21, TableIndex.TypeRef),
-                    Handle(22, TableIndex.TypeRef),
-                    Handle(23, TableIndex.TypeRef),
-                    Handle(24, TableIndex.TypeRef),
-                    Handle(25, TableIndex.TypeRef),
-                    Handle(26, TableIndex.TypeRef),
-                    Handle(4, TableIndex.TypeDef),
-                    Handle(4, TableIndex.Field),
-                    Handle(5, TableIndex.Field),
-                    Handle(6, TableIndex.Field),
-                    Handle(12, TableIndex.MethodDef),
-                    Handle(13, TableIndex.MethodDef),
-                    Handle(14, TableIndex.MethodDef),
-                    Handle(15, TableIndex.MethodDef),
-                    Handle(16, TableIndex.MethodDef),
-                    Handle(17, TableIndex.MethodDef),
-                    Handle(18, TableIndex.MethodDef),
-                    Handle(19, TableIndex.MethodDef),
-                    Handle(20, TableIndex.MethodDef),
-                    Handle(2, TableIndex.Param),
-                    Handle(6, TableIndex.InterfaceImpl),
-                    Handle(7, TableIndex.InterfaceImpl),
-                    Handle(8, TableIndex.InterfaceImpl),
-                    Handle(9, TableIndex.InterfaceImpl),
-                    Handle(10, TableIndex.InterfaceImpl),
-                    Handle(17, TableIndex.MemberRef),
-                    Handle(18, TableIndex.MemberRef),
-                    Handle(19, TableIndex.MemberRef),
-                    Handle(20, TableIndex.MemberRef),
-                    Handle(21, TableIndex.MemberRef),
-                    Handle(22, TableIndex.MemberRef),
-                    Handle(23, TableIndex.MemberRef),
-                    Handle(24, TableIndex.MemberRef),
-                    Handle(25, TableIndex.MemberRef),
-                    Handle(26, TableIndex.MemberRef),
-                    Handle(27, TableIndex.MemberRef),
-                    Handle(28, TableIndex.MemberRef),
-                    Handle(29, TableIndex.MemberRef),
-                    Handle(12, TableIndex.CustomAttribute),
-                    Handle(13, TableIndex.CustomAttribute),
-                    Handle(14, TableIndex.CustomAttribute),
-                    Handle(15, TableIndex.CustomAttribute),
-                    Handle(16, TableIndex.CustomAttribute),
-                    Handle(17, TableIndex.CustomAttribute),
-                    Handle(18, TableIndex.CustomAttribute),
-                    Handle(19, TableIndex.CustomAttribute),
-                    Handle(4, TableIndex.StandAloneSig),
-                    Handle(5, TableIndex.StandAloneSig),
-                    Handle(6, TableIndex.StandAloneSig),
-                    Handle(2, TableIndex.PropertyMap),
-                    Handle(3, TableIndex.Property),
-                    Handle(4, TableIndex.Property),
-                    Handle(3, TableIndex.MethodSemantics),
-                    Handle(4, TableIndex.MethodSemantics),
-                    Handle(8, TableIndex.MethodImpl),
-                    Handle(9, TableIndex.MethodImpl),
-                    Handle(10, TableIndex.MethodImpl),
-                    Handle(11, TableIndex.MethodImpl),
-                    Handle(12, TableIndex.MethodImpl),
-                    Handle(13, TableIndex.MethodImpl),
-                    Handle(14, TableIndex.MethodImpl),
-                    Handle(3, TableIndex.TypeSpec),
-                    Handle(4, TableIndex.TypeSpec),
-                    Handle(2, TableIndex.AssemblyRef),
-                    Handle(2, TableIndex.NestedClass));
-            }
-
-            string actualPdb1 = PdbToXmlConverter.DeltaPdbToXml(diff1.Pdb, Enumerable.Range(1, 100).Select(rid => 0x06000000U | (uint)rid));
-
-            // TODO (tomat): bug in SymWriter.
-            // The PDB is missing debug info for G method. The info is written to the PDB but the native SymWriter 
-            // seems to ignore it. If another method is added to the class all information is written. 
-            // This happens regardless of whether we emit just the delta or full PDB.
-
-            string expectedPdb1 = @"
-<symbols>
-  <files>
-    <file id=""1"" name=""a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""6E, 19, 36, 2B, 9A, 28, AB, E3, A2, DA, EB, 51, C1, 37,  1, 10, B0, 4F, CA, 84, "" />
-  </files>
-  <methods>
-    <method token=""0x600000f"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
-          <namespace usingCount=""1"" />
-        </using>
-      </customDebugInfo>
-      <sequencepoints total=""5"">
-        <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x21"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""1"" />
-        <entry il_offset=""0x22"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""24"" file_ref=""1"" />
-        <entry il_offset=""0x34"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x3b"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""1"" />
-      </sequencepoints>
-      <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x3f"" attributes=""1"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x3f"">
-        <namespace name=""System.Collections.Generic"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x3f"" attributes=""1"" />
-      </scope>
-    </method>
-  </methods>
-</symbols>";
-
-            AssertXmlEqual(expectedPdb1, actualPdb1);
-
-            var method1M = compilation1.GetMember<MethodSymbol>("C.M");
-            var method2M = compilation2.GetMember<MethodSymbol>("C.M");
-// TODO: Not preserving iterator local.
-#if false
-            var diff2 = compilation2.EmitDifference(
-                diff1.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1M, method2M, GetLocalMap(method2M, method1M), preserveLocalVariables: true)));
-
-            var method2G = compilation2.GetMember<MethodSymbol>("C.G");
-            var method3G = compilation3.GetMember<MethodSymbol>("C.G");
-            var diff3 = compilation3.EmitDifference(
-                diff2.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method2G, method3G, GetLocalMap(method3G, method2G), preserveLocalVariables: true)));
-            diff3.VerifyIL("C.G",
-@"{
-  // Code size       12 (0xc)
-  .maxstack  1
-  .locals init (C.<G>d__0 V_0,
-  System.Collections.Generic.IEnumerable<int> V_1)
-  IL_0000:  ldc.i4.s   -2
-  IL_0002:  newobj     ""C.<G>d__0..ctor(int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloc.0
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
-  IL_000b:  ret
-}");
-#endif
-        }
-
-        [Fact]
-        public void Lambda()
-        {
-            var source0 =
-@"delegate object D();
-class C
-{
-    static object F(object o)
-    {
-        return o;
-    }
-}";
-            var source1 =
-@"delegate object D();
-class C
-{
-    static object F(object o)
-    {
-        return ((D)(() => o))();
-    }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
-            var bytes0 = compilation0.EmitToArray();
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation0.GetMember<MethodSymbol>("C.F"), compilation1.GetMember<MethodSymbol>("C.F"))));
-
-            using (var md1 = diff1.GetMetadata())
-            {
-                var reader1 = md1.Reader;
-                CheckEncLog(reader1,
-                    Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                    Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                    Row(1, TableIndex.Field, EditAndContinueOperation.Default),
-                    Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default));
-                CheckEncMap(reader1,
-                    Handle(9, TableIndex.TypeRef),
-                    Handle(10, TableIndex.TypeRef),
-                    Handle(4, TableIndex.TypeDef),
-                    Handle(1, TableIndex.Field),
-                    Handle(5, TableIndex.MethodDef),
-                    Handle(7, TableIndex.MethodDef),
-                    Handle(8, TableIndex.MethodDef),
-                    Handle(5, TableIndex.MemberRef),
-                    Handle(6, TableIndex.MemberRef),
-                    Handle(4, TableIndex.CustomAttribute),
-                    Handle(2, TableIndex.StandAloneSig),
-                    Handle(3, TableIndex.StandAloneSig),
-                    Handle(2, TableIndex.AssemblyRef),
-                    Handle(1, TableIndex.NestedClass));
-            }
-        }
-
-        [Fact]
         public void ArrayInitializer()
         {
             var source0 = @"
@@ -3342,8 +2960,8 @@ class C
                         preserveLocalVariables: true)));
 
                 // "Write" should be included in string table, but "WriteLine" should not.
-                Assert.True(diff1.MetadataBlob.IsIncluded("Write"));
-                Assert.False(diff1.MetadataBlob.IsIncluded("WriteLine"));
+                Assert.True(diff1.MetadataDelta.IsIncluded("Write"));
+                Assert.False(diff1.MetadataDelta.IsIncluded("WriteLine"));
             }
         }
 
@@ -5356,7 +4974,7 @@ class B
                 var diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.Result.Diagnostics.Verify(
+                diff1.EmitResult.Diagnostics.Verify(
                     // (10,17): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     //     static void M(object o)
                     Diagnostic(ErrorCode.ERR_EnCNoDynamicOperation, "M").WithLocation(10, 17));
@@ -5369,7 +4987,7 @@ class B
                 diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.Result.Diagnostics.Verify();
+                diff1.EmitResult.Diagnostics.Verify();
 
                 // Explicit .ctor with dynamic operations.
                 methodData0 = testData0.GetMethodData("A..ctor");
@@ -5379,7 +4997,7 @@ class B
                 diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.Result.Diagnostics.Verify(
+                diff1.EmitResult.Diagnostics.Verify(
                     // (9,5): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     //     A() { }
                     Diagnostic(ErrorCode.ERR_EnCNoDynamicOperation, "A").WithLocation(9, 5));
@@ -5392,7 +5010,7 @@ class B
                 diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.Result.Diagnostics.Verify(
+                diff1.EmitResult.Diagnostics.Verify(
                     // (5,12): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     //     static A()
                     Diagnostic(ErrorCode.ERR_EnCNoDynamicOperation, "A").WithLocation(5, 12));
@@ -5405,7 +5023,7 @@ class B
                 diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.Result.Diagnostics.Verify(
+                diff1.EmitResult.Diagnostics.Verify(
                     // (19,7): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     // class B
                     Diagnostic(ErrorCode.ERR_EnCNoDynamicOperation, "B").WithLocation(19, 7));
@@ -5418,7 +5036,7 @@ class B
                 diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.Result.Diagnostics.Verify(
+                diff1.EmitResult.Diagnostics.Verify(
                     // (19,7): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     // class B
                     Diagnostic(ErrorCode.ERR_EnCNoDynamicOperation, "B").WithLocation(19, 7));
@@ -5574,7 +5192,7 @@ public struct S
                 var diff1A = compilation1A.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1A, GetEquivalentNodesMap(method1A, method0), preserveLocalVariables: true)));
-                diff1A.Result.Diagnostics.Verify(
+                diff1A.EmitResult.Diagnostics.Verify(
                     // error CS7094: Cannot continue since the edit includes a reference to an embedded type: 'S'.
                     Diagnostic(ErrorCode.ERR_EnCNoPIAReference).WithArguments("S"),
                     // error CS7094: Cannot continue since the edit includes a reference to an embedded type: 'IA'.
@@ -5653,7 +5271,7 @@ public interface IB
                 var diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
-                diff1.Result.Diagnostics.Verify(
+                diff1.EmitResult.Diagnostics.Verify(
                     // error CS7094: Cannot continue since the edit includes a reference to an embedded type: 'N.IA'.
                     Diagnostic(ErrorCode.ERR_EnCNoPIAReference).WithArguments("N.IA"),
                     // error CS7094: Cannot continue since the edit includes a reference to an embedded type: 'IB'.
@@ -5866,11 +5484,11 @@ class C
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.Main"))),
                     new CompilationTestData { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
-                diff1.Result.Diagnostics.Verify(
+                diff1.EmitResult.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'The method or operation is not implemented.'
                     Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("The method or operation is not implemented."));
 
-                Assert.False(diff1.Result.Success);
+                Assert.False(diff1.EmitResult.Success);
             }
         }
     }
