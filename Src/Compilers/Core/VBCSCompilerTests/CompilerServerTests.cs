@@ -5,19 +5,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using System.Threading;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-
+using Microsoft.Win32;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.Win32;
-using System.Runtime.InteropServices;
-using System.Reflection;
-using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Immutable;
-using System.Threading;
+using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -49,10 +45,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             return dict;
         }
 
-        private void KillProcess(string path)
+        private List<Process> GetProcessesByFullPath(string path)
         {
+            var matchingProcesses = new List<Process>();
+
             var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(path));
-            foreach (Process p in processes)
+            foreach (var p in processes)
             {
                 int pathSize = path.Length * 2;
                 var exeNameBuffer = new StringBuilder(pathSize);
@@ -77,9 +75,27 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                                   path,
                                   StringComparison.OrdinalIgnoreCase))
                 {
-                    p.Kill();
-                    p.WaitForExit();
+                    matchingProcesses.Add(p);
                 }
+            }
+
+            return matchingProcesses;
+        }
+
+        private void KillProcess(string path)
+        {
+            foreach (var p in GetProcessesByFullPath(path))
+            {
+                p.Kill();
+                p.WaitForExit();
+            }
+        }
+
+        private void WaitForProcessExit(string path, TimeSpan interval)
+        {
+            while (GetProcessesByFullPath(path).Any())
+            {
+                Thread.Sleep(interval);
             }
         }
 
@@ -148,6 +164,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         private static string BasicCompilerClientExecutable = Path.Combine(WorkingDirectory, "vbc2.exe");
         private static string CSharpCompilerExecutable = Path.Combine(WorkingDirectory, "csc.exe");
         private static string BasicCompilerExecutable = Path.Combine(WorkingDirectory, "vbc.exe");
+        private static string MicrosoftCodeAnalysisDll = Path.Combine(WorkingDirectory, "Microsoft.CodeAnalysis.dll");
+        private static string SystemCollectionsImmutableDll = Path.Combine(WorkingDirectory, "System.Collections.Immutable.dll");
 
         // In order that the compiler server doesn't stay around and prevent future builds, we explicitly
         // kill it after each test.
@@ -1596,6 +1614,140 @@ class Program
             Assert.Equal("", result.Output);
             Assert.Equal("", result.Errors);
             Assert.Equal(0, result.ExitCode);
+        }
+
+        private Dictionary<string, string> GetAnalyzerProjectFiles()
+        {
+            return new Dictionary<string, string>()
+            {
+                {
+                    "MyAnalyzer.csproj",
+                    @"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project ToolsVersion=""14.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + BuildTaskDll + @""" />
+  <PropertyGroup>
+    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
+    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
+    <ProjectGuid>{6BD0BE3E-D565-42C2-A7DE-B7A2161BDBF8}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MyAnalyzer</RootNamespace>
+    <AssemblyName>MyAnalyzer</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include=""Microsoft.CodeAnalysis"">
+      <HintPath>" + MicrosoftCodeAnalysisDll + @"</HintPath>
+    </Reference>
+    <Reference Include=""System"" />
+    <Reference Include=""System.Collections.Immutable"">
+      <HintPath>" + SystemCollectionsImmutableDll + @"</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include=""MyAnalyzer.cs"" />
+  </ItemGroup>
+  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
+</Project>"
+                },
+                {
+                    "MyAnalyzer.cs",
+                    @"using System;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer]
+class MyAnalyzer : ISymbolAnalyzer
+{
+    internal static readonly long loadTime = DateTime.Now.Ticks;
+    internal static readonly DiagnosticDescriptor descriptor = new DiagnosticDescriptor(""MyAnalyzer01"", string.Empty, ""Analyzer loaded at: {0}"", string.Empty, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get { return ImmutableArray.Create(descriptor); }
+    }
+
+    public ImmutableArray<SymbolKind> SymbolKindsOfInterest
+    {
+        get { return ImmutableArray.Create(SymbolKind.NamedType); }
+    }
+
+    public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+    {
+        addDiagnostic(Diagnostic.Create(descriptor, symbol.Locations.First(), loadTime));
+    }
+}"
+                }
+            };
+        }
+
+        [Fact(Timeout = 2 * 60 * 1000)]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
+        public void AnalyzerChangesOnDisk()
+        {
+            const string sourceText = @"using System;
+
+class Hello
+{
+    static void Main()
+    {
+        Console.WriteLine(""Hello, world.""); 
+    }
+}";
+
+            var directory = tempDirectory.CreateDirectory("AnalyzerChangesOnDisk");
+
+            // First, build the analyzer assembly
+            string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 MyAnalyzer.csproj");
+            var result = RunCommandLineCompiler(MSBuildExecutable, arguments, directory, GetAnalyzerProjectFiles());
+
+            directory.CreateFile("hello.cs").WriteAllText(sourceText);
+            var log = directory.CreateFile("Server.log");
+
+            var environmentVars = new Dictionary<string, string>
+            {
+                { "RoslynCommandLineLogFile", log.Path }
+            };
+
+            // Run a build using the analyzer
+            var firstBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:bin\\Debug\\MyAnalyzer.dll", directory.Path, environmentVars);
+
+            // Change the analyzer to cause it to be reloaded
+            File.SetLastWriteTime(Path.Combine(directory.Path, "bin", "Debug", "MyAnalyzer.dll"), DateTime.Now);
+
+            WaitForProcessExit(CompilerServerExecutable, interval: TimeSpan.FromSeconds(1));
+
+            // Run another build using the analyzer
+            var secondBuildResult = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs /a:bin\\Debug\\MyAnalyzer.dll", directory.Path, environmentVars);
+
+            var firstBuildOutput = firstBuildResult.Output;
+            var secondBuildOutput = secondBuildResult.Output;
+
+            var assertMessage = string.Format("Output should be different, but is not.\r\n{0}:\r\n{1}\r\n{2}:\r\n{3}\r\n", nameof(firstBuildOutput), firstBuildOutput, nameof(secondBuildOutput), secondBuildOutput);
+            // The output message of the analyzer includes a time stamp for when the analyzer was loaded. So if the analyzer was 
+            // reloaded (which is what we want) then the output messages of the first and second builds will be different.
+            Assert.False(firstBuildOutput.Equals(secondBuildOutput), assertMessage);
         }
     }
 }
