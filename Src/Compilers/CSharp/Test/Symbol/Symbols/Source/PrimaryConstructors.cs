@@ -3316,7 +3316,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1003200)]
+        [Fact, WorkItem(1003200), WorkItem(1009630, "DevDiv")]
         public void Body_01()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -3339,6 +3339,15 @@ class Program
 ", options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(comp, expectedOutput: "5").VerifyDiagnostics();
+
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel semanticModel = comp.GetSemanticModel(tree);
+
+            var body = (from node in tree.GetRoot().DescendantNodes()
+                               where node.CSharpKind() == SyntaxKind.PrimaryConstructorBody 
+                               select (PrimaryConstructorBodySyntax)node).Single();
+
+            Assert.Null(semanticModel.GetDeclaredSymbol(body));
         }
 
         [Fact, WorkItem(1003200)]

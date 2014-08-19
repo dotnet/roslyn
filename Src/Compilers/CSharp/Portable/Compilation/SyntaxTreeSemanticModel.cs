@@ -1487,6 +1487,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // these declarations can contain multiple variable declarators. GetDeclaredSymbol should be called on them directly.
                         return null;
 
+                    case SyntaxKind.PrimaryConstructorBody:
+                        // This node doesn't actually declare a symbol.
+                        return null;
+
                     default:
                         return GetDeclaredNamespaceOrType(declarationSyntax) ?? GetDeclaredMemberSymbol(declarationSyntax);
                 }
