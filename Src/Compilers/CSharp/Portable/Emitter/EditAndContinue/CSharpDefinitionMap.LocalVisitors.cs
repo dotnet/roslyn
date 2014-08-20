@@ -380,8 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // previous version of the local if it had custom modifiers.
                 if (info.CustomModifiers.IsDefaultOrEmpty)
                 {
-                    var constraints = GetConstraints(info);
-                    var local = new EncLocalInfo(this.offset, (Cci.ITypeReference)info.Type, constraints, (CommonSynthesizedLocalKind)synthesizedKind, info.Signature);
+                    var local = new EncLocalInfo(this.offset, (Cci.ITypeReference)info.Type, info.Constraints, (CommonSynthesizedLocalKind)synthesizedKind, info.SignatureOpt);
                     this.locals.Add(local, slotIndex);
                 }
 

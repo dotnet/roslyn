@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CodeGen
+namespace Microsoft.CodeAnalysis
 {
     [Flags]
     internal enum LocalSlotConstraints : byte

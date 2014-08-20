@@ -1319,7 +1319,7 @@ End Class
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("B.M")
             Dim methodN = compilation0.GetMember(Of MethodSymbol)("B.N")
             Dim getLocalNamesFunc As LocalVariableNameProvider = Function(m)
-                                                                     Select Case (m)
+                                                                     Select Case MetadataTokens.GetRowNumber(m)
                                                                          Case 4
                                                                              Return GetLocalNames(method0)
                                                                          Case 5

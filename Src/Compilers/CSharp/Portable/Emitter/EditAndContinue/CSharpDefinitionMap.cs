@@ -148,10 +148,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            var previousMethod = methodEntry.PreviousMethod;
-            var methodIndex = (uint)MetadataTokens.GetRowNumber(handle);
             CSharpSymbolMatcher symbolMap;
             ImmutableArray<EncLocalInfo> previousLocals;
+
+            uint methodIndex = (uint)MetadataTokens.GetRowNumber(handle);
 
             // Check if method has changed previously. If so, we already have a map.
             if (baseline.LocalsForMethodsAddedOrChanged.TryGetValue(methodIndex, out previousLocals))
@@ -162,34 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 // Method has not changed since initial generation. Generate a map
                 // using the local names provided with the initial metadata.
-                var localNames = baseline.LocalNames(methodIndex);
+                var localNames = baseline.LocalNames(handle);
                 Debug.Assert(!localNames.IsDefault);
 
-                var localInfo = default(ImmutableArray<MetadataDecoder.LocalInfo>);
-                try
-                {
-                    Debug.Assert(this.module.HasIL);
-                    var methodBody = this.module.GetMethodBodyOrThrow(handle);
-
-                    if (!methodBody.LocalSignature.IsNil)
-                    {
-                        var signatureHandle = this.module.MetadataReader.GetLocalSignature(methodBody.LocalSignature);
-                        var signatureReader = this.module.GetMemoryReaderOrThrow(signatureHandle);
-                        localInfo = this.metadataDecoder.DecodeLocalSignatureOrThrow(ref signatureReader);
-                    }
-                    else
-                    {
-                        localInfo = ImmutableArray<MetadataDecoder.LocalInfo>.Empty;
-                    }
-                }
-                catch (UnsupportedSignatureContent)
-                {
-                }
-                catch (BadImageFormatException)
-                {
-                }
-
-                if (localInfo.IsDefault)
+                ImmutableArray<MetadataDecoder.LocalInfo> localInfo;
+                if (!metadataDecoder.TryGetLocals(handle, out localInfo))
                 {
                     // TODO: Report error that metadata is not supported.
                     return null;
@@ -200,15 +177,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // is indexed by slot, unnamed locals before the last named local will be represented
                 // as null values in the array.)
                 Debug.Assert(localInfo.Length >= localNames.Length);
-                previousLocals = GetLocalSlots(previousMethod, localNames, localInfo);
-                Debug.Assert(previousLocals.Length == localInfo.Length);
 
+                previousLocals = GetLocalSlots(methodEntry.PreviousMethod, localNames, localInfo);
+                Debug.Assert(previousLocals.Length == localInfo.Length);
                 symbolMap = this.mapToMetadata;
             }
 
             // Find declarators in previous method syntax.
             // The locals are indices into this list.
-            var previousDeclarators = LocalVariableDeclaratorsCollector.GetDeclarators(previousMethod);
+            var previousDeclarators = LocalVariableDeclaratorsCollector.GetDeclarators(methodEntry.PreviousMethod);
 
             var syntaxMap = methodEntry.SyntaxMap;
             if (syntaxMap == null)
@@ -340,17 +317,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 if (locals[i].IsDefault)
                 {
-                    locals[i] = new EncLocalInfo(localInfo[i].Signature);
+                    locals[i] = new EncLocalInfo(localInfo[i].SignatureOpt);
                 }
             }
 
             return ImmutableArray.Create(locals);
-        }
-
-        private static LocalSlotConstraints GetConstraints(MetadataDecoder.LocalInfo info)
-        {
-            return (info.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
-                (info.IsByRef ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
         }
     }
 }

@@ -134,25 +134,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Else
                 ' Method has not changed since initial generation. Generate a map
                 ' using the local names provided with the initial metadata.
-                Dim localNames As ImmutableArray(Of String) = baseline.LocalNames.Invoke(methodIndex)
+                Dim localNames As ImmutableArray(Of String) = baseline.LocalNames(handle)
                 Debug.Assert(Not localNames.IsDefault)
 
                 Dim localInfo As ImmutableArray(Of MetadataDecoder.LocalInfo) = Nothing
-                Try
-                    Debug.Assert(Me.module.HasIL)
-                    Dim methodIL As MethodBodyBlock = Me.module.GetMethodBodyOrThrow(handle)
-                    If Not methodIL.LocalSignature.IsNil Then
-                        Dim signatureHandle = Me.module.MetadataReader.GetLocalSignature(methodIL.LocalSignature)
-                        Dim signatureReader = Me.module.GetMemoryReaderOrThrow(signatureHandle)
-                        localInfo = Me.metadataDecoder.DecodeLocalSignatureOrThrow(signatureReader)
-                    Else
-                        localInfo = ImmutableArray(Of MetadataDecoder.LocalInfo).Empty
-                    End If
-                Catch ex As UnsupportedSignatureContent
-                Catch ex As BadImageFormatException
-                End Try
-
-                If localInfo.IsDefault Then
+                If Not metadataDecoder.TryGetLocals(handle, localInfo) Then
                     ' TODO: Report error that metadata is not supported.
                     Return Nothing
                 End If
@@ -286,16 +272,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Populate any remaining locals that were not matched to source.
             For i = 0 To locals.Length - 1
                 If locals(i).IsDefault Then
-                    locals(i) = New EncLocalInfo(localInfo(i).Signature)
+                    locals(i) = New EncLocalInfo(localInfo(i).SignatureOpt)
                 End If
             Next
 
             Return ImmutableArray.Create(locals)
-        End Function
-
-        Private Shared Function GetConstraints(info As MetadataDecoder.LocalInfo) As LocalSlotConstraints
-            Return If(info.IsPinned, LocalSlotConstraints.Pinned, LocalSlotConstraints.None) Or
-                If(info.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None)
         End Function
     End Class
 End Namespace

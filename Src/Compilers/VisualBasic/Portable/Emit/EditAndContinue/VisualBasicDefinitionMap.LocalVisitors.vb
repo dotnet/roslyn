@@ -375,8 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' We do not emit custom modifiers on locals so ignore the
                 ' previous version of the local if it had custom modifiers.
                 If info.CustomModifiers.IsDefaultOrEmpty Then
-                    Dim constraints = GetConstraints(info)
-                    Dim local As EncLocalInfo = New EncLocalInfo(Me.offset, CType(info.Type, Cci.ITypeReference), constraints, CType(kind, CommonSynthesizedLocalKind), info.Signature)
+                    Dim local As EncLocalInfo = New EncLocalInfo(Me.offset, CType(info.Type, Cci.ITypeReference), info.Constraints, CType(kind, CommonSynthesizedLocalKind), info.SignatureOpt)
                     Me.locals.Add(local, slot)
                     If name IsNot Nothing Then
                         Me.knownDeclaredLocals.Add(name)

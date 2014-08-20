@@ -3075,13 +3075,13 @@ class B : A<B>
             var methodN = compilation0.GetMember<MethodSymbol>("B.N");
 
             // Verify full metadata contains expected rows.
-            LocalVariableNameProvider getLocalNames = m =>
+            LocalVariableNameProvider getLocalNames = handle =>
                 {
-                    switch (m)
+                    switch (MetadataTokens.GetRowNumber(handle))
                     {
-                        case 3u:
+                        case 3:
                             return GetLocalNames(method0);
-                        case 4u:
+                        case 4:
                             return GetLocalNames(methodN);
                         default:
                             return default(ImmutableArray<string>);

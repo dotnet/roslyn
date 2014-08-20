@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -568,19 +570,34 @@ namespace Microsoft.CodeAnalysis
 
         internal struct LocalInfo
         {
-            internal readonly byte[] Signature;
+            internal readonly byte[] SignatureOpt;
             internal readonly TypeSymbol Type;
             internal readonly ImmutableArray<ModifierInfo> CustomModifiers;
-            internal readonly bool IsPinned;
-            internal readonly bool IsByRef;
+            internal readonly LocalSlotConstraints Constraints;
 
-            internal LocalInfo(byte[] signature, TypeSymbol type, ImmutableArray<ModifierInfo> customModifiers, bool isPinned, bool isByRef)
+            internal LocalInfo(TypeSymbol type, ImmutableArray<ModifierInfo> customModifiers, LocalSlotConstraints constraints, byte[] signatureOpt)
             {
-                this.Signature = signature;
+                Debug.Assert(type != null);
+
                 this.Type = type;
                 this.CustomModifiers = customModifiers;
-                this.IsPinned = isPinned;
-                this.IsByRef = isByRef;
+                this.Constraints = constraints;
+                this.SignatureOpt = signatureOpt;
+            }
+
+            internal LocalInfo WithSignature(byte[] signature)
+            {
+                return new LocalInfo(this.Type, this.CustomModifiers, this.Constraints, signature);
+            }
+
+            public bool IsByRef
+            {
+                get { return (Constraints & LocalSlotConstraints.ByRef) != 0; }
+            }
+
+            public bool IsPinned
+            {
+                get { return (Constraints & LocalSlotConstraints.Pinned) != 0; }
             }
         }
 
@@ -708,10 +725,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     signatureReader.ReadByte();
                 }
+
                 int n = (i < localCount - 1) ? (offsets[i + 1] - start) : signatureReader.RemainingBytes;
                 var signature = signatureReader.ReadBytes(n);
-                var local = locals[i];
-                locals[i] = new LocalInfo(signature, local.Type, local.CustomModifiers, local.IsPinned, local.IsByRef);
+
+                locals[i] = locals[i].WithSignature(signature);
             }
 
             return locals.ToImmutableAndFree();
@@ -724,24 +742,23 @@ namespace Microsoft.CodeAnalysis
             SignatureTypeCode typeCode;
 
             var customModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
-            bool isByRef = false;
-            bool isPinned = false;
+            var constraints = LocalSlotConstraints.None;
             TypeSymbol typeSymbol;
 
             if (typeCode == SignatureTypeCode.Pinned)
             {
-                isPinned = true;
+                constraints |= LocalSlotConstraints.Pinned;
                 typeCode = signatureReader.ReadSignatureTypeCode();
             }
 
             if (typeCode == SignatureTypeCode.ByReference)
             {
-                isByRef = true;
+                constraints |= LocalSlotConstraints.ByRef;
                 typeCode = signatureReader.ReadSignatureTypeCode();
             }
 
             // TypedReference can't be by-ref or pinned:
-            if (typeCode == SignatureTypeCode.TypedReference && (isByRef || isPinned))
+            if (typeCode == SignatureTypeCode.TypedReference && constraints != LocalSlotConstraints.None)
             {
                 typeSymbol = GetUnsupportedMetadataTypeSymbol();
             }
@@ -758,7 +775,37 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new LocalInfo(null, typeSymbol, customModifiers, isPinned, isByRef);
+            return new LocalInfo(typeSymbol, customModifiers, constraints, signatureOpt: null);
+        }
+
+        internal bool TryGetLocals(MethodHandle handle, out ImmutableArray<LocalInfo> localInfo)
+        {
+            try
+            {
+                Debug.Assert(Module.HasIL);
+                var methodBody = Module.GetMethodBodyOrThrow(handle);
+
+                if (!methodBody.LocalSignature.IsNil)
+                {
+                    var signatureHandle = Module.MetadataReader.GetLocalSignature(methodBody.LocalSignature);
+                    var signatureReader = Module.GetMemoryReaderOrThrow(signatureHandle);
+                    localInfo = DecodeLocalSignatureOrThrow(ref signatureReader);
+                }
+                else
+                {
+                    localInfo = ImmutableArray<LocalInfo>.Empty;
+                }
+            }
+            catch (UnsupportedSignatureContent)
+            {
+                return false;
+            }
+            catch (BadImageFormatException)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>

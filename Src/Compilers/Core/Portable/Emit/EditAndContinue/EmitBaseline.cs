@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    public delegate ImmutableArray<string> LocalVariableNameProvider(uint methodIndex);
+    public delegate ImmutableArray<string> LocalVariableNameProvider(MethodHandle method);
 
     // A MethodImpl entry is a pair of implementing method and implemented
     // method. However, the implemented method is a MemberRef rather
