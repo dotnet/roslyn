@@ -390,7 +390,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <System.Runtime.InteropServices.ComSourceInterfacesAttribute>
@@ -1418,7 +1418,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -1496,7 +1496,7 @@ End Class
             <a>7666AC25-855F-4534-BC55-27BF09D49D46</a>
         </System.Runtime.InteropServices.GuidAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <System.Runtime.InteropServices.ComSourceInterfacesAttribute>
@@ -1621,7 +1621,7 @@ End Class
             <a>7666AC25-855F-4534-BC55-27BF09D49D46</a>
         </System.Runtime.InteropServices.GuidAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -1702,7 +1702,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -1759,7 +1759,7 @@ End Class
             <a>7666AC25-855F-4534-BC55-27BF09D49D46</a>
         </System.Runtime.InteropServices.GuidAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -2687,7 +2687,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <System.Runtime.InteropServices.ComSourceInterfacesAttribute>
@@ -2965,7 +2965,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -3235,7 +3235,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <System.Runtime.InteropServices.ComSourceInterfacesAttribute>
@@ -3389,7 +3389,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <System.Runtime.InteropServices.ComSourceInterfacesAttribute>
@@ -3596,7 +3596,7 @@ End Namespace
     <TypeDefFlags>nested public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <System.Runtime.InteropServices.ComSourceInterfacesAttribute>
@@ -3727,7 +3727,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -3868,7 +3868,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <System.Runtime.InteropServices.ComSourceInterfacesAttribute>
@@ -4189,7 +4189,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <System.Runtime.InteropServices.ComSourceInterfacesAttribute>
@@ -4559,7 +4559,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -4751,7 +4751,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -4943,7 +4943,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -5136,7 +5136,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -5338,7 +5338,7 @@ End Class
             <a>P1</a>
         </System.Reflection.DefaultMemberAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -5554,7 +5554,7 @@ End Class
             <a>P1</a>
         </System.Reflection.DefaultMemberAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -5770,7 +5770,7 @@ End Class
             <a>P1</a>
         </System.Reflection.DefaultMemberAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -5987,7 +5987,7 @@ End Class
             <a>P1</a>
         </System.Reflection.DefaultMemberAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -6207,7 +6207,7 @@ End Class
             <a>P1</a>
         </System.Reflection.DefaultMemberAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -6381,7 +6381,7 @@ End Class
             <a>P1</a>
         </System.Reflection.DefaultMemberAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -6556,7 +6556,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -6686,7 +6686,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -6817,7 +6817,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -6928,7 +6928,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -7015,7 +7015,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -7156,7 +7156,7 @@ End Class
     <TypeDefFlags>public auto ansi</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <System.Runtime.InteropServices.ComSourceInterfacesAttribute>
@@ -7418,7 +7418,7 @@ End Class
             <a>P1</a>
         </System.Reflection.DefaultMemberAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -7550,7 +7550,7 @@ End Class
     <TypeDefFlags>public auto ansi serializable specialname</TypeDefFlags>
     <Attributes>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <System.Runtime.InteropServices.ComSourceInterfacesAttribute>
@@ -7850,7 +7850,7 @@ Imports System.Runtime.InteropServices
             <a>5D025F24-FAEA-4C2F-9EF6-C89A8FC9667F</a>
         </System.Runtime.InteropServices.GuidAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>
@@ -8009,7 +8009,7 @@ End Class
             <a>C1F1CEC8-2BDD-4AFC-8E86-FDC8DBEE951B</a>
         </System.Runtime.InteropServices.GuidAttribute>
         <System.Runtime.InteropServices.ClassInterfaceAttribute>
-            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Int16)</ctor>
+            <ctor>Sub System.Runtime.InteropServices.ClassInterfaceAttribute..ctor(classInterfaceType As System.Runtime.InteropServices.ClassInterfaceType)</ctor>
             <a>0</a>
         </System.Runtime.InteropServices.ClassInterfaceAttribute>
         <Microsoft.VisualBasic.ComClassAttribute>

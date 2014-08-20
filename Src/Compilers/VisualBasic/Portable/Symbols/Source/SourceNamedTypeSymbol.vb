@@ -2413,9 +2413,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
-                    WellKnownMember.System_Runtime_InteropServices_ClassInterfaceAttribute__ctorInt16,
+                    WellKnownMember.System_Runtime_InteropServices_ClassInterfaceAttribute__ctorClassInterfaceType,
                     ImmutableArray.Create(
-                        New TypedConstant(GetSpecialType(SpecialType.System_Int16), TypedConstantKind.Primitive, CShort(ClassInterfaceType.None)))))
+                        New TypedConstant(GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Enum, CInt(ClassInterfaceType.None)))))
 
                 Dim eventInterface As NamedTypeSymbol = m_comClassData.GetSynthesizedEventInterface()
 

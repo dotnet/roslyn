@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ' Should be able to emit ClassInterfaceAttribute.
-                Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ClassInterfaceAttribute__ctorInt16,
+                Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ClassInterfaceAttribute__ctorClassInterfaceType,
                                                                  comClass.DeclaringCompilation,
                                                                  comClass.Locations(0),
                                                                  diagnostics)

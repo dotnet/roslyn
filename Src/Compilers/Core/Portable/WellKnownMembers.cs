@@ -608,13 +608,13 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
-                // System_Runtime_InteropServices_ClassInterfaceAttribute__ctorInt16
+                // System_Runtime_InteropServices_ClassInterfaceAttribute__ctorClassInterfaceType
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)WellKnownType.System_Runtime_InteropServices_ClassInterfaceAttribute,                                 // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int16,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Runtime_InteropServices_ClassInterfaceType,
 
                 // System_Runtime_InteropServices_CoClassAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
@@ -2607,7 +2607,7 @@ namespace Microsoft.CodeAnalysis
                 "IgnoreSymbolStoreSequencePoints",          // System_Diagnostics_DebuggableAttribute_DebuggingModes__IgnoreSymbolStoreSequencePoints
                 ".ctor",                                    // System_Runtime_InteropServices_UnknownWrapper__ctor
                 ".ctor",                                    // System_Runtime_InteropServices_DispatchWrapper__ctor
-                ".ctor",                                    // System_Runtime_InteropServices_ClassInterfaceAttribute__ctorInt16
+                ".ctor",                                    // System_Runtime_InteropServices_ClassInterfaceAttribute__ctorClassInterfaceType
                 ".ctor",                                    // System_Runtime_InteropServices_CoClassAttribute__ctor
                 ".ctor",                                    // System_Runtime_InteropServices_ComAwareEventInfo__ctor
                 "AddEventHandler",                          // System_Runtime_InteropServices_ComAwareEventInfo__AddEventHandler
