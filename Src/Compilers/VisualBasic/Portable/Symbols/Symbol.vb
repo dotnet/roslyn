@@ -497,8 +497,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          SymbolKind.Event,
                          SymbolKind.Parameter,
                          SymbolKind.TypeParameter,
-                         SymbolKind.NamedType,
                          SymbolKind.ErrorType
+                        Exit Select
+
+                    Case SymbolKind.NamedType
+                        If DirectCast(Me, NamedTypeSymbol).IsSubmissionClass Then
+                            Return False
+                        End If
                         Exit Select
 
                     Case SymbolKind.Method

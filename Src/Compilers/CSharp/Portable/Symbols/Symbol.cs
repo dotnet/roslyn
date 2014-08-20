@@ -409,18 +409,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.Namespace:
                     case SymbolKind.Field:
-                    case SymbolKind.NamedType:
                     case SymbolKind.ErrorType:
                     case SymbolKind.Parameter:
                     case SymbolKind.TypeParameter:
                     case SymbolKind.Event:
                         break;
 
+                    case SymbolKind.NamedType:
+                        if (((NamedTypeSymbol)this).IsSubmissionClass)
+                        {
+                            return false;
+                        }
+                        break;
+
                     case SymbolKind.Property:
-                        if (((PropertySymbol)this).IsIndexer)
+                        var property = (PropertySymbol)this;
+                        if (property.IsIndexer || property.MustCallMethodsDirectly)
+                        {
                             return false;
-                        else if (((PropertySymbol)this).MustCallMethodsDirectly)
-                            return false;
+                        }
                         break;
 
                     case SymbolKind.Method:
@@ -457,8 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
 
                     default:
-                        Debug.Assert(false, "Unexpected symbol kind: " + this.Kind.ToString());
-                        return false;
+                        throw ExceptionUtilities.UnexpectedValue(this.Kind);
                 }
 
                 // This will eliminate backing fields for auto-props, explicit interface implementations,
