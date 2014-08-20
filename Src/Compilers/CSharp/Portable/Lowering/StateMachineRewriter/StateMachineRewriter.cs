@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -17,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly TypeCompilationState compilationState;
         protected readonly DiagnosticBag diagnostics;
         protected readonly SyntheticBoundNodeFactory F;
-        protected readonly SynthesizedContainer stateMachineClass;
+        protected readonly SynthesizedContainer stateMachineType;
+        protected readonly VariableSlotAllocator slotAllocatorOpt;
+       
         protected FieldSymbol stateField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
         protected IReadOnlySet<Symbol> variablesCaptured;
@@ -26,15 +29,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected StateMachineRewriter(
             BoundStatement body,
             MethodSymbol method,
-            SynthesizedContainer stateMachineClass,
+            SynthesizedContainer stateMachineType,
+            VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics)
         {
+            Debug.Assert(body != null);
+            Debug.Assert(method != null);
+            Debug.Assert(stateMachineType != null);
+            Debug.Assert(compilationState != null);
+            Debug.Assert(diagnostics != null);
+
             this.body = body;
             this.method = method;
-            this.stateMachineClass = stateMachineClass;
+            this.stateMachineType = stateMachineType;
+            this.slotAllocatorOpt = slotAllocatorOpt;
             this.compilationState = compilationState;
             this.diagnostics = diagnostics;
+
             this.F = new SyntheticBoundNodeFactory(method, body.Syntax, compilationState, diagnostics);
             Debug.Assert(F.CurrentClass == method.ContainingType);
             Debug.Assert(F.Syntax == body.Syntax);
@@ -79,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.body;
             }
 
-            F.OpenNestedType(stateMachineClass);
+            F.OpenNestedType(stateMachineType);
 
             GenerateControlFields();
 
@@ -104,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var proxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
 
-            var typeMap = stateMachineClass.TypeMap;
+            var typeMap = stateMachineType.TypeMap;
 
             var orderedCaptured =
                 from local in variablesCaptured.Keys
@@ -206,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             F.CurrentMethod = method;
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-            var frameType = method.IsGenericMethod ? stateMachineClass.Construct(method.TypeArguments) : stateMachineClass;
+            var frameType = method.IsGenericMethod ? stateMachineType.Construct(method.TypeArguments) : stateMachineType;
             LocalSymbol stateMachineVariable = F.SynthesizedLocal(frameType, null);
             InitializeStateMachine(bodyBuilder, frameType, stateMachineVariable);
 

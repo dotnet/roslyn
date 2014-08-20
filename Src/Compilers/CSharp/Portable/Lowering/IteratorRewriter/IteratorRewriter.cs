@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -9,17 +10,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class IteratorRewriter : StateMachineRewriter
     {
+        private readonly TypeSymbol elementType;
+
+        // true if the iterator implements IEnumerable and IEnumerable<T>,
+        // false if it implements IEnumerator and IEnumerator<T>
+        private readonly bool isEnumerable;
+
+        private FieldSymbol currentField;
+        private FieldSymbol initialThreadIdField;
+
+        private IteratorRewriter(
+            BoundStatement body,
+            MethodSymbol method,
+            bool isEnumerable,
+            IteratorStateMachine stateMachineType,
+            VariableSlotAllocator slotAllocatorOpt,
+            TypeCompilationState compilationState,
+            DiagnosticBag diagnostics)
+            : base(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+        {
+            // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
+            this.elementType = stateMachineType.ElementType;
+
+            this.isEnumerable = isEnumerable;
+        }
+
         /// <summary>
         /// Rewrite an iterator method into a state machine class.
         /// </summary>
-        /// <param name="body">The original body of the method</param>
-        /// <param name="method">The method's identity</param>
-        /// <param name="compilationState">The collection of generated methods that result from this transformation and which must be emitted</param>
-        /// <param name="diagnostics">Diagnostic bag for diagnostics.</param>
-        /// <param name="stateMachineType"></param>
         internal static BoundStatement Rewrite(
             BoundStatement body,
             MethodSymbol method,
+            VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
             out IteratorStateMachine stateMachineType)
@@ -51,31 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stateMachineType = new IteratorStateMachine(method, isEnumerable, elementType, compilationState);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
-            return new IteratorRewriter(body, method, isEnumerable, stateMachineType, compilationState, diagnostics).Rewrite();
-        }
-
-        private readonly TypeSymbol elementType;
-
-        // true if the iterator implements IEnumerable and IEnumerable<T>,
-        // false if it implements IEnumerator and IEnumerator<T>
-        private readonly bool isEnumerable;
-
-        private FieldSymbol currentField;
-        private FieldSymbol initialThreadIdField;
-
-        private IteratorRewriter(
-            BoundStatement body,
-            MethodSymbol method,
-            bool isEnumerable,
-            IteratorStateMachine iteratorClass,
-            TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
-            : base(body, method, iteratorClass, compilationState, diagnostics)
-        {
-            // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
-            this.elementType = iteratorClass.ElementType;
-
-            this.isEnumerable = isEnumerable;
+            return new IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics).Rewrite();
         }
 
         protected override bool PreserveInitialParameterValues
@@ -184,8 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var getEnumeratorGeneric = OpenMethodImplementation(IEnumerableOfElementType_GetEnumerator, debuggerHidden: true, generateDebugInfo: false, hasMethodBodyDependency: false);
 
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-            var resultVariable = F.SynthesizedLocal(stateMachineClass, null);      // iteratorClass result;
-            BoundStatement makeIterator = F.Assignment(F.Local(resultVariable), F.New(stateMachineClass.Constructor, F.Literal(0))); // result = new IteratorClass(0)
+            var resultVariable = F.SynthesizedLocal(stateMachineType, null);      // iteratorClass result;
+            BoundStatement makeIterator = F.Assignment(F.Local(resultVariable), F.New(stateMachineType.Constructor, F.Literal(0))); // result = new IteratorClass(0)
 
             var thisInitialized = F.GenerateLabel("thisInitialized");
 
@@ -266,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void GenerateConstructor(BoundExpression managedThreadId)
         {
-            F.CurrentMethod = stateMachineClass.Constructor;
+            F.CurrentMethod = stateMachineType.Constructor;
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
             bodyBuilder.Add(F.BaseInitialization());
             bodyBuilder.Add(F.Assignment(F.Field(F.This(), stateField), F.Parameter(F.CurrentMethod.Parameters[0]))); // this.state = state;
@@ -295,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(
                 F.Assignment(
                     F.Local(stateMachineLocal),
-                    F.New(stateMachineClass.Constructor.AsMember(frameType), F.Literal(initialState))));
+                    F.New(stateMachineType.Constructor.AsMember(frameType), F.Literal(initialState))));
         }
 
         protected override BoundStatement GenerateReplacementBody(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType)

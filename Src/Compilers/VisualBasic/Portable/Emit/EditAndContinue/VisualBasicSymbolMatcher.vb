@@ -9,27 +9,29 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
-    Friend NotInheritable Class SymbolMatcher
+    Friend NotInheritable Class VisualBasicSymbolMatcher
+        Inherits SymbolMatcher
+
         Private Shared ReadOnly NameComparer As StringComparer = IdentifierComparison.Comparer
 
         Private ReadOnly defs As MatchDefs
         Private ReadOnly symbols As MatchSymbols
 
-        Public Sub New(
-                      anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
+        Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
                       sourceAssembly As SourceAssemblySymbol,
                       sourceContext As EmitContext,
                       otherAssembly As SourceAssemblySymbol,
                       otherContext As EmitContext)
+
             Me.defs = New MatchDefsToSource(sourceContext, otherContext)
             Me.symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly)
         End Sub
 
-        Public Sub New(
-                      anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
+        Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
                       sourceAssembly As SourceAssemblySymbol,
                       sourceContext As EmitContext,
                       otherAssembly As PEAssemblySymbol)
+
             Me.defs = New MatchDefsToMetadata(sourceContext, otherAssembly)
             Me.symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly)
         End Sub
@@ -42,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Me.defs.VisitDef(def)
         End Function
 
-        Friend Function MapReference(reference As Cci.ITypeReference) As Cci.ITypeReference
+        Public Overrides Function MapReference(reference As Cci.ITypeReference) As Cci.ITypeReference
             Dim symbol As Symbol = TryCast(reference, Symbol)
             If symbol IsNot Nothing Then
                 Return DirectCast(Me.symbols.Visit(symbol), Cci.ITypeReference)

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -26,19 +27,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal enum SynthesizedLocalKind : short
     {
         /// <summary>
+        /// Temp variable created by the emitter.
+        /// </summary>
+        EmitterTemp = CommonSynthesizedLocalKind.EmitterTemp,
+
+        /// <summary>
         /// Temp variable created by the optimizer.
         /// </summary>
-        OptimizerTemp = -3,
+        OptimizerTemp = CommonSynthesizedLocalKind.OptimizerTemp,
 
         /// <summary>
         /// Temp variable created during lowering.
         /// </summary>
-        LoweringTemp = -2,
+        LoweringTemp = CommonSynthesizedLocalKind.LoweringTemp,
 
         /// <summary>
         /// The variable is not synthesized.
         /// </summary>
-        None = -1,
+        None = CommonSynthesizedLocalKind.None,
 
         // The following values have to match TEMP_KIND in the native compiler.
         FirstLongLived = 0,

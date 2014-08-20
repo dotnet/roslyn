@@ -36,13 +36,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             previousGeneration = EnsureInitialized(previousGeneration, metadataDecoder)
 
-            Dim matchToMetadata = New SymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, metadataAssembly)
+            Dim matchToMetadata = New VisualBasicSymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, metadataAssembly)
 
-            Dim matchToPrevious As SymbolMatcher = Nothing
+            Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
                 Dim previousAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
                 Dim previousContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag())
-                matchToPrevious = New SymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext)
+                matchToPrevious = New VisualBasicSymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext)
             End If
 
             Me.m_PreviousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
@@ -184,14 +184,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return anonymousTypes
         End Function
 
-        Friend Overrides Function CreateLocalSlotManager(method As MethodSymbol) As LocalSlotManager
-            Dim previousLocals As ImmutableArray(Of EncLocalInfo) = Nothing
-            Dim getPreviousLocalSlot As GetPreviousLocalSlot = Nothing
-            If Not m_PreviousDefinitions.TryGetPreviousLocals(m_PreviousGeneration, method, previousLocals, getPreviousLocalSlot) Then
-                previousLocals = ImmutableArray(Of EncLocalInfo).Empty
-            End If
-            Debug.Assert(getPreviousLocalSlot IsNot Nothing)
-            Return New EncLocalSlotManager(previousLocals, getPreviousLocalSlot)
+        Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol) As VariableSlotAllocator
+            Return m_PreviousDefinitions.TryCreateVariableSlotAllocator(m_PreviousGeneration, method)
         End Function
 
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)

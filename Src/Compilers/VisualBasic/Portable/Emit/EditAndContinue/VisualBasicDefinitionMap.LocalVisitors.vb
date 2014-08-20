@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -375,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' previous version of the local if it had custom modifiers.
                 If info.CustomModifiers.IsDefaultOrEmpty Then
                     Dim constraints = GetConstraints(info)
-                    Dim local As EncLocalInfo = New EncLocalInfo(Me.offset, CType(info.Type, Cci.ITypeReference), constraints, CInt(kind), info.Signature)
+                    Dim local As EncLocalInfo = New EncLocalInfo(Me.offset, CType(info.Type, Cci.ITypeReference), constraints, CType(kind, CommonSynthesizedLocalKind), info.Signature)
                     Me.locals.Add(local, slot)
                     If name IsNot Nothing Then
                         Me.knownDeclaredLocals.Add(name)
@@ -387,23 +388,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend NotInheritable Class LocalVariableDeclaratorsCollector
             Inherits LocalVariableDeclaratorsVisitor
 
-            Private ReadOnly builder As ArrayBuilder(Of VisualBasicSyntaxNode)
+            Private ReadOnly builder As ArrayBuilder(Of SyntaxNode)
 
-            Friend Shared Function GetDeclarators(method As IMethodSymbol) As ImmutableArray(Of VisualBasicSyntaxNode)
+            Friend Shared Function GetDeclarators(method As IMethodSymbol) As ImmutableArray(Of SyntaxNode)
                 Dim syntaxRefs = method.DeclaringSyntaxReferences
                 If syntaxRefs.Length = 0 Then
-                    Return ImmutableArray(Of VisualBasicSyntaxNode).Empty
+                    Return ImmutableArray(Of SyntaxNode).Empty
                 End If
                 Dim syntax As SyntaxNode = syntaxRefs(0).GetSyntax(Nothing)
                 Dim block = syntax.Parent
                 Debug.Assert(TypeOf block Is MethodBlockBaseSyntax)
 
-                Dim builder = ArrayBuilder(Of VisualBasicSyntaxNode).GetInstance()
+                Dim builder = ArrayBuilder(Of SyntaxNode).GetInstance()
                 Call New LocalVariableDeclaratorsCollector(builder).Visit(block)
                 Return builder.ToImmutableAndFree()
             End Function
 
-            Public Sub New(builder As ArrayBuilder(Of VisualBasicSyntaxNode))
+            Public Sub New(builder As ArrayBuilder(Of SyntaxNode))
                 Me.builder = builder
             End Sub
 

@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return previousGeneration;
             }
 
-            var map = new SymbolMatcher(
+            var map = new CSharpSymbolMatcher(
                 moduleBeingBuilt.GetAnonymousTypeMap(),
                 ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly,
                 new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag()),
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         private static IReadOnlyDictionary<K, V> MapDefinitions<K, V>(
-            SymbolMatcher map,
+            CSharpSymbolMatcher map,
             IReadOnlyDictionary<K, V> items)
             where K : Cci.IDefinition
         {
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         private static EncLocalInfo MapLocalInfo(
-            SymbolMatcher map,
+            CSharpSymbolMatcher map,
             EncLocalInfo localInfo)
         {
             Debug.Assert(!localInfo.IsDefault);

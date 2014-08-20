@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return previousGeneration
             End If
 
-            Dim map = New SymbolMatcher(
+            Dim map = New VisualBasicSymbolMatcher(
                 moduleBeingBuilt.GetAnonymousTypeMap(),
                 (DirectCast(previousGeneration.Compilation, VisualBasicCompilation)).SourceAssembly,
                 New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag()),
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Private Function MapDefinitions(Of K As Cci.IDefinition, V)(
-            map As SymbolMatcher,
+            map As VisualBasicSymbolMatcher,
             items As IReadOnlyDictionary(Of K, V)) As IReadOnlyDictionary(Of K, V)
 
             Dim result As New Dictionary(Of K, V)
@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Private Function MapLocalInfo(
-            map As SymbolMatcher,
+            map As VisualBasicSymbolMatcher,
             localInfo As EncLocalInfo) As EncLocalInfo
 
             Debug.Assert(Not localInfo.IsDefault)

@@ -5,6 +5,7 @@ using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -23,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Emit
             public readonly bool PreserveLocalVariables;
             public readonly Func<SyntaxNode, SyntaxNode> SyntaxMap;
         }
-
-        internal static readonly GetPreviousLocalSlot NoPreviousLocalSlot = (identity, type, constraints) => -1;
 
         protected readonly PEModule module;
         protected readonly IReadOnlyDictionary<IMethodSymbol, MethodDefinitionEntry> methodMap;
@@ -65,11 +64,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodHandle handle);
         internal abstract bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyHandle handle);
 
-        internal abstract bool TryGetPreviousLocals(
-            EmitBaseline baseline,
-            IMethodSymbol method,
-            out ImmutableArray<EncLocalInfo> previousLocals,
-            out GetPreviousLocalSlot getPreviousLocalSlot);
+        internal abstract VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method);
 
         internal abstract ImmutableArray<EncLocalInfo> GetLocalInfo(
             Cci.IMethodDefinition def,

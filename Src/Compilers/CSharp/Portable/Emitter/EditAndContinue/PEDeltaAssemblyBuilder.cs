@@ -38,14 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             previousGeneration = EnsureInitialized(previousGeneration, metadataDecoder);
 
-            var matchToMetadata = new SymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, metadataAssembly);
+            var matchToMetadata = new CSharpSymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, metadataAssembly);
 
-            SymbolMatcher matchToPrevious = null;
+            CSharpSymbolMatcher matchToPrevious = null;
             if (previousGeneration.Ordinal > 0)
             {
                 var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
                 var previousContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag());
-                matchToPrevious = new SymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext);
+                matchToPrevious = new CSharpSymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext);
             }
 
             this.previousDefinitions = new CSharpDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious);
@@ -168,16 +168,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return anonymousTypes;
         }
 
-        internal override LocalSlotManager CreateLocalSlotManager(MethodSymbol method)
+        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(IMethodSymbol method)
         {
-            ImmutableArray<EncLocalInfo> previousLocals;
-            GetPreviousLocalSlot getPreviousLocalSlot;
-            if (!this.previousDefinitions.TryGetPreviousLocals(this.previousGeneration, method, out previousLocals, out getPreviousLocalSlot))
-            {
-                previousLocals = ImmutableArray<EncLocalInfo>.Empty;
-            }
-            Debug.Assert(getPreviousLocalSlot != null);
-            return new EncLocalSlotManager(previousLocals, getPreviousLocalSlot);
+            return this.previousDefinitions.TryCreateVariableSlotAllocator(this.previousGeneration, method);
         }
 
         internal override ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()

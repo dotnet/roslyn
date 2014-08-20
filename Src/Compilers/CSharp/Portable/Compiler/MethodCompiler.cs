@@ -223,14 +223,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var scriptEntryPoint = new SynthesizedEntryPointSymbol(compilation.ScriptClass, returnType, diagnostics);
             if (moduleBeingBuilt != null && !hasDeclarationErrors && !diagnostics.HasAnyErrors())
             {
-                var compilationState = new TypeCompilationState(compilation.ScriptClass, compilation, moduleBeingBuilt);
                 var body = scriptEntryPoint.CreateBody();
 
                 var emittedBody = GenerateMethodBody(
-                    compilationState,
+                    moduleBeingBuilt,
                     scriptEntryPoint,
                     body,
                     stateMachineTypeOpt: null,
+                    variableSlotAllocatorOpt: null,
                     diagnostics: diagnostics,
                     debugDocumentProvider: null,
                     namespaceScopes: default(ImmutableArray<Cci.NamespaceScope>));
@@ -454,8 +454,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             SourceEventSymbol eventSymbol = member as SourceEventSymbol;
                             if ((object)eventSymbol != null && eventSymbol.HasAssociatedField && !eventSymbol.IsAbstract && compilationState.Emitting)
                             {
-                                CompileFieldLikeEventAccessor(eventSymbol, isAddMethod: true, compilationState: compilationState);
-                                CompileFieldLikeEventAccessor(eventSymbol, isAddMethod: false, compilationState: compilationState);
+                                CompileFieldLikeEventAccessor(eventSymbol, isAddMethod: true);
+                                CompileFieldLikeEventAccessor(eventSymbol, isAddMethod: false);
                             }
                             break;
                         }
@@ -524,12 +524,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //  Emit synthesized methods produced during lowering if any
-            CompileSynthesizedMethods(compilationState);
+            if (moduleBeingBuiltOpt != null)
+            {
+                CompileSynthesizedMethods(compilationState);
+            }
+
             compilationState.Free();
         }
 
         private void CompileSynthesizedMethods(PrivateImplementationDetails privateImplClass, DiagnosticBag diagnostics)
         {
+            Debug.Assert(moduleBeingBuiltOpt != null);
+
             TypeCompilationState compilationState = new TypeCompilationState(null, compilation, moduleBeingBuiltOpt);
             foreach (MethodSymbol method in privateImplClass.GetMethods(new EmitContext(moduleBeingBuiltOpt, null, diagnostics)))
             {
@@ -544,9 +550,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CompileSynthesizedMethods(ImmutableArray<NamedTypeSymbol> additionalTypes, DiagnosticBag diagnostics)
         {
             TypeCompilationState compilationState = new TypeCompilationState(null, compilation, moduleBeingBuiltOpt);
-            foreach (var type in additionalTypes)
+            foreach (var additionalType in additionalTypes)
             {
-                foreach (var method in type.GetMethodsToEmit())
+                foreach (var method in additionalType.GetMethodsToEmit())
                 {
                     method.GenerateMethodBody(compilationState, diagnostics);
                 }
@@ -562,6 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CompileSynthesizedMethods(TypeCompilationState compilationState)
         {
+            Debug.Assert(moduleBeingBuiltOpt != null);
+
             if (!compilationState.HasSynthesizedMethods)
             {
                 return;
@@ -569,24 +577,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var methodWithBody in compilationState.SynthesizedMethods)
             {
+                var method = methodWithBody.Method;
+                var variableSlotAllocatorOpt = moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method);
+
                 // We make sure that an asynchronous mutation to the diagnostic bag does not 
                 // confuse the method body generator by making a fresh bag and then loading
                 // any diagnostics emitted into it back into the main diagnostic bag.
                 var diagnosticsThisMethod = DiagnosticBag.GetInstance();
 
-                var method = methodWithBody.Method;
                 AsyncStateMachine stateMachineType;
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, compilationState, diagnosticsThisMethod, out stateMachineType);
+                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out stateMachineType);
 
                 MethodBody emittedBody = null;
-
                 if (!diagnosticsThisMethod.HasAnyErrors() && !globalHasErrors)
                 {
                     emittedBody = GenerateMethodBody(
-                        compilationState,
+                        moduleBeingBuiltOpt,
                         method,
                         bodyWithoutAsync,
                         stateMachineType,
+                        variableSlotAllocatorOpt,
                         diagnosticsThisMethod,
                         debugDocumentProvider,
                         GetNamespaceScopes(method, methodWithBody.DebugImports));
@@ -661,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CompileFieldLikeEventAccessor(SourceEventSymbol eventSymbol, bool isAddMethod, TypeCompilationState compilationState)
+        private void CompileFieldLikeEventAccessor(SourceEventSymbol eventSymbol, bool isAddMethod)
         {
             MethodSymbol accessor = isAddMethod ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
 
@@ -678,13 +688,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors && !hasDeclarationErrors)
                 {
                     MethodBody emittedBody = GenerateMethodBody(
-                        compilationState,
+                        moduleBeingBuiltOpt,
                         accessor,
                         boundBody,
-                        default(NamedTypeSymbol),
-                        diagnosticsThisMethod,
-                        debugDocumentProvider,
-                        default(ImmutableArray<Cci.NamespaceScope>));
+                        stateMachineTypeOpt: null,
+                        variableSlotAllocatorOpt: null,
+                        diagnostics: diagnosticsThisMethod,
+                        debugDocumentProvider: debugDocumentProvider,
+                        namespaceScopes: default(ImmutableArray<Cci.NamespaceScope>));
 
                     moduleBeingBuiltOpt.SetMethodBody(accessor, emittedBody);
                     // Definition is already in the symbol table, so don't call moduleBeingBuilt.AddCompilerGeneratedDefinition
@@ -981,13 +992,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Any errors generated below here are considered Emit diagnostics 
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
-                NamedTypeSymbol stateMachineType = null;
-                BoundStatement loweredBody = (flowAnalyzedBody == null) ? null :
-                    LowerBodyOrInitializer(methodSymbol, flowAnalyzedBody, previousSubmissionFields, compilationState, diagsForCurrentMethod, out stateMachineType);
+                bool hasBody = flowAnalyzedBody != null;
+                VariableSlotAllocator variableSlotAllocatorOpt = null;
+                NamedTypeSymbol stateMachineTypeOpt = null;
+                BoundStatement loweredBodyOpt = null;
 
-                bool hasBody = loweredBody != null;
+                if (hasBody)
+                {
+                    loweredBodyOpt = LowerBodyOrInitializer(
+                        methodSymbol,
+                        flowAnalyzedBody,
+                        previousSubmissionFields,
+                        compilationState,
+                        diagsForCurrentMethod,
+                        out stateMachineTypeOpt,
+                        out variableSlotAllocatorOpt);
 
-                hasErrors = hasErrors || (hasBody && loweredBody.HasErrors) || diagsForCurrentMethod.HasAnyErrors();
+                    Debug.Assert(loweredBodyOpt != null);
+                }
+                else
+                {
+                    loweredBodyOpt = null;
+                }
+
+                hasErrors = hasErrors || (hasBody && loweredBodyOpt.HasErrors) || diagsForCurrentMethod.HasAnyErrors();
                 SetGlobalErrorIfTrue(hasErrors);
 
                 // don't emit if the resulting method would contain initializers with errors
@@ -1001,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (methodSymbol.IsScriptConstructor)
                     {
-                        boundStatements = MethodBodySynthesizer.ConstructScriptConstructorBody(loweredBody, methodSymbol, previousSubmissionFields, compilation);
+                        boundStatements = MethodBodySynthesizer.ConstructScriptConstructorBody(loweredBodyOpt, methodSymbol, previousSubmissionFields, compilation);
                     }
                     else
                     {
@@ -1015,10 +1043,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 previousSubmissionFields,
                                 compilationState,
                                 diagsForCurrentMethod,
-                                out stateMachineType);
+                                out stateMachineTypeOpt,
+                                out variableSlotAllocatorOpt);
 
                             // initializers can't produce state machines
-                            Debug.Assert(stateMachineType == null);
+                            Debug.Assert(stateMachineTypeOpt == null);
 
                             Debug.Assert(processedInitializers.LoweredInitializers.Kind == BoundKind.StatementList);
                             Debug.Assert(!hasErrors);
@@ -1035,12 +1064,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // initializers for global code have already been included in the body
                         if (includeInitializersInBody)
                         {
-                                boundStatements = boundStatements.Concat(processedInitializers.LoweredInitializers.Statements);
-                            }
+                            boundStatements = boundStatements.Concat(processedInitializers.LoweredInitializers.Statements);
+                        }
 
                         if (hasBody)
                         {
-                            boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBody));
+                            boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBodyOpt));
                         }
                     }
 
@@ -1049,10 +1078,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
                     var emittedBody = GenerateMethodBody(
-                        compilationState,
+                        moduleBeingBuiltOpt,
                         methodSymbol,
                         boundBody,
-                        stateMachineType,
+                        stateMachineTypeOpt,
+                        variableSlotAllocatorOpt,
                         diagsForCurrentMethod,
                         debugDocumentProvider,
                         GetNamespaceScopes(methodSymbol, debugImports));
@@ -1076,10 +1106,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedSubmissionFields previousSubmissionFields,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            out NamedTypeSymbol stateMachineType)
+            out NamedTypeSymbol stateMachineTypeOpt,
+            out VariableSlotAllocator variableSlotAllocatorOpt)
         {
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
-            stateMachineType = null;
+            stateMachineTypeOpt = null;
+            variableSlotAllocatorOpt = null;
 
             if (body.HasErrors)
             {
@@ -1151,8 +1183,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return bodyWithoutLambdas;
             }
 
+            variableSlotAllocatorOpt = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method);
+
             IteratorStateMachine iteratorStateMachine;
-            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, compilationState, diagnostics, out iteratorStateMachine);
+            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, variableSlotAllocatorOpt, compilationState, diagnostics, out iteratorStateMachine);
 
             if (bodyWithoutIterators.HasErrors)
             {
@@ -1160,19 +1194,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AsyncStateMachine asyncStateMachine;
-            BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics, out asyncStateMachine);
+            BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, variableSlotAllocatorOpt, compilationState, diagnostics, out asyncStateMachine);
 
             Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
-            stateMachineType = (NamedTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
+            stateMachineTypeOpt = (NamedTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
 
             return bodyWithoutAsync;
         }
 
         private static MethodBody GenerateMethodBody(
-            TypeCompilationState compilationState,
+            PEModuleBuilder moduleBuilder,
             MethodSymbol method,
             BoundStatement block, 
             NamedTypeSymbol stateMachineTypeOpt,
+            VariableSlotAllocator variableSlotAllocatorOpt,
             DiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
             ImmutableArray<Cci.NamespaceScope> namespaceScopes)
@@ -1181,9 +1216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!diagnostics.HasAnyErrors(), "Running code generator when errors exist might be dangerous; code generator not expecting errors");
 
             bool emittingPdbs = !namespaceScopes.IsDefault;
-            var moduleBuilder = compilationState.ModuleBuilderOpt;
             var compilation = moduleBuilder.Compilation;
-            var localSlotManager = moduleBuilder.CreateLocalSlotManager(method);
+            var localSlotManager = new LocalSlotManager(variableSlotAllocatorOpt);
             var optimizations = compilation.Options.OptimizationLevel;
 
             ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations);

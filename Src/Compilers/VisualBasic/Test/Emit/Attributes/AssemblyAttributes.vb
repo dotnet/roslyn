@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 
-Public Class AssemblyAttributes
+Public Class AssemblyAttributeTests
     Inherits BasicTestBase
 
     <Fact>
@@ -625,7 +625,7 @@ end class
             validator:=Sub(peAssembly, _omitted)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
-                           Assert.Equal(AssemblyHashAlgorithm.SHA1, assembly.HashAlgorithm)
+                           Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm)
 
                            Dim file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1))
                            Assert.Equal(New Byte() {&H6C, &H9C, &H3E, &HDA, &H60, &HF, &H81, &H93, &H4A, &HC1, &HD, &H41, &HB3, &HE9, &HB2, &HB7, &H2D, &HEE, &H59, &HA8},
@@ -715,7 +715,7 @@ end class
             validator:=Sub(peAssembly, _omitted)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
-                           Assert.Equal(AssemblyHashAlgorithm.SHA1, assembly.HashAlgorithm)
+                           Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm)
 
                            Dim file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1))
                            Assert.Equal(New Byte() {&H6C, &H9C, &H3E, &HDA, &H60, &HF, &H81, &H93, &H4A, &HC1, &HD, &H41, &HB3, &HE9, &HB2, &HB7, &H2D, &HEE, &H59, &HA8},

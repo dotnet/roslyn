@@ -281,19 +281,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return result
         End Function
 
-        Friend Overridable Function CreateLocalSlotManager(method As MethodSymbol) As LocalSlotManager
-            Return New FullLocalSlotManager()
+        Friend Overridable Function TryCreateVariableSlotAllocator(method As MethodSymbol) As VariableSlotAllocator
+            Return Nothing
         End Function
 
-        Friend Overridable Function GetPreviousAnonymousTypes() As ImmutableArray(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey)
-            Return ImmutableArray(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey).Empty
+        Friend Overridable Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
+            Return ImmutableArray(Of AnonymousTypeKey).Empty
         End Function
 
         Friend Overridable Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
             Return 0
         End Function
 
-        Friend Overridable Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
+        Friend Overridable Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
             name = Nothing
             index = -1

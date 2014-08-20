@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -725,11 +726,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewrittenBody = RewriteBlock(node)
             End If
 
+            Dim slotAllocatorOpt As VariableSlotAllocator = Nothing
+
             ' Rewrite Iterator lambdas
-            Dim iteratorRewritten = IteratorRewriter.Rewrite(rewrittenBody, method, CompilationState, Diagnostics)
+            Dim iteratorRewritten = IteratorRewriter.Rewrite(rewrittenBody, method, slotAllocatorOpt, CompilationState, Diagnostics)
 
             ' Rewrite Async Lambdas
-            rewrittenBody = AsyncRewriter.Rewrite(iteratorRewritten, method, CompilationState, Diagnostics)
+            rewrittenBody = AsyncRewriter.Rewrite(iteratorRewritten, method, slotAllocatorOpt, CompilationState, Diagnostics)
 
             Return rewrittenBody
         End Function

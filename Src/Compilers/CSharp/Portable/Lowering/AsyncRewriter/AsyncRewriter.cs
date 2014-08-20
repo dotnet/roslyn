@@ -2,23 +2,45 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class AsyncRewriter : StateMachineRewriter
     {
+        private readonly AsyncMethodBuilderMemberCollection asyncMethodBuilderMemberCollection;
+        private readonly bool constructedSuccessfully;
+
+        private FieldSymbol builderField;
+
+        private AsyncRewriter(
+            BoundStatement body,
+            MethodSymbol method,
+            AsyncStateMachine stateMachineType,
+            VariableSlotAllocator variableSlotAllocatorOpt,
+            TypeCompilationState compilationState,
+            DiagnosticBag diagnostics)
+            : base(body, method, stateMachineType, variableSlotAllocatorOpt, compilationState, diagnostics)
+        {
+            try
+            {
+                constructedSuccessfully = AsyncMethodBuilderMemberCollection.TryCreate(F, method, this.stateMachineType.TypeMap, out this.asyncMethodBuilderMemberCollection);
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                constructedSuccessfully = false;
+            }
+        }
+
         /// <summary>
-        /// Rewrite an async method into a state machine class.
+        /// Rewrite an async method into a state machine type.
         /// </summary>
-        /// <param name="body">The original body of the method</param>
-        /// <param name="method">The method's identity</param>
-        /// <param name="compilationState">The collection of generated methods that result from this transformation and which must be emitted</param>
-        /// <param name="diagnostics">Diagnostic bag for diagnostics.</param>
-        /// <param name="stateMachineType"></param>
         internal static BoundStatement Rewrite(
             BoundStatement body,
             MethodSymbol method,
+            VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
             out AsyncStateMachine stateMachineType)
@@ -36,37 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stateMachineType = new AsyncStateMachine(method, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
-            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, stateMachineType, compilationState, diagnostics);
+            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
             if (!rewriter.constructedSuccessfully)
             {
                 return body;
             }
 
             return rewriter.Rewrite();
-        }
-
-        private readonly AsyncMethodBuilderMemberCollection asyncMethodBuilderMemberCollection;
-        private readonly bool constructedSuccessfully;
-
-        private FieldSymbol builderField;
-
-        private AsyncRewriter(
-            BoundStatement body,
-            MethodSymbol method,
-            AsyncStateMachine stateMachineClass,
-            TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
-            : base(body, method, stateMachineClass, compilationState, diagnostics)
-        {
-            try
-            {
-                constructedSuccessfully = AsyncMethodBuilderMemberCollection.TryCreate(F, method, this.stateMachineClass.TypeMap, out this.asyncMethodBuilderMemberCollection);
-            }
-            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
-            {
-                diagnostics.Add(ex.Diagnostic);
-                constructedSuccessfully = false;
-            }
         }
 
         protected override bool PreserveInitialParameterValues
@@ -116,9 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Constructor
-            if (stateMachineClass.TypeKind == TypeKind.Class)
+            if (stateMachineType.TypeKind == TypeKind.Class)
             {
-                F.CurrentMethod = stateMachineClass.Constructor;
+                F.CurrentMethod = stateMachineType.Constructor;
                 F.CloseMethod(F.Block(ImmutableArray.Create(F.BaseInitialization(), F.Return())));
             }
         }

@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -21,14 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits DefinitionMap
 
         Private ReadOnly metadataDecoder As MetadataDecoder
-        Private ReadOnly mapToMetadata As SymbolMatcher
-        Private ReadOnly mapToPrevious As SymbolMatcher
+        Private ReadOnly mapToMetadata As VisualBasicSymbolMatcher
+        Private ReadOnly mapToPrevious As VisualBasicSymbolMatcher
 
         Public Sub New([module] As PEModule,
                        edits As IEnumerable(Of SemanticEdit),
                        metadataDecoder As MetadataDecoder,
-                       mapToMetadata As SymbolMatcher,
-                       mapToPrevious As SymbolMatcher)
+                       mapToMetadata As VisualBasicSymbolMatcher,
+                       mapToPrevious As VisualBasicSymbolMatcher)
 
             MyBase.New([module], edits)
 
@@ -104,39 +105,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return previous IsNot Nothing
         End Function
 
-        Friend Overrides Function TryGetPreviousLocals(
-                             baseline As EmitBaseline,
-                             method As IMethodSymbol,
-                             <Out> ByRef previousLocals As ImmutableArray(Of EncLocalInfo),
-                             <Out> ByRef getPreviousLocalSlot As GetPreviousLocalSlot) As Boolean
-
-            previousLocals = Nothing
-            getPreviousLocalSlot = NoPreviousLocalSlot
-
+        Friend Overrides Function TryCreateVariableSlotAllocator(baseline As EmitBaseline, method As IMethodSymbol) As VariableSlotAllocator
             Dim handle As MethodHandle = Nothing
             If Not Me.TryGetMethodHandle(baseline, CType(method, IMethodDefinition), handle) Then
                 ' Unrecognized method. Must have been added in the current compilation.
-                Return False
+                Return Nothing
             End If
 
             Dim methodEntry As MethodDefinitionEntry = Nothing
             If Not Me.methodMap.TryGetValue(method, methodEntry) Then
                 ' Not part of changeset. No need to preserve locals.
-                Return False
+                Return Nothing
             End If
 
             If Not methodEntry.PreserveLocalVariables Then
                 ' Not necessary to preserve locals.
-                Return False
+                Return Nothing
             End If
 
             Dim previousMethod = methodEntry.PreviousMethod
             Dim methodIndex As UInteger = CUInt(MetadataTokens.GetRowNumber(handle))
-            Dim map As SymbolMatcher
+            Dim symbolMap As VisualBasicSymbolMatcher
+            Dim previousLocals As ImmutableArray(Of EncLocalInfo) = Nothing
 
             ' Check if method has changed previously. If so, we already have a map.
             If baseline.LocalsForMethodsAddedOrChanged.TryGetValue(methodIndex, previousLocals) Then
-                map = Me.mapToPrevious
+                symbolMap = Me.mapToPrevious
             Else
                 ' Method has not changed since initial generation. Generate a map
                 ' using the local names provided with the initial metadata.
@@ -160,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 If localInfo.IsDefault Then
                     ' TODO: Report error that metadata is not supported.
-                    Return False
+                    Return Nothing
                 End If
 
                 ' The signature may have more locals than names if trailing locals are unnamed.
@@ -171,30 +165,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 previousLocals = GetLocalSlots(previousMethod, localNames, localInfo)
                 Debug.Assert(previousLocals.Length = localInfo.Length)
 
-                map = Me.mapToMetadata
+                symbolMap = Me.mapToMetadata
             End If
 
             ' Find declarators in previous method syntax.
             ' The locals are indices into this list.
-            Dim previousDeclarators As ImmutableArray(Of VisualBasicSyntaxNode) = LocalVariableDeclaratorsCollector.GetDeclarators(previousMethod)
-
-            ' Create a map from declarator to declarator offset.
-            Dim previousDeclaratorToOffset = New Dictionary(Of VisualBasicSyntaxNode, Integer)()
-            For offset As Integer = 0 To previousDeclarators.Length - 1
-                previousDeclaratorToOffset.Add(previousDeclarators(offset), offset)
-            Next
-
-            ' Create a map from local info to slot.
-            Dim previousLocalInfoToSlot As Dictionary(Of EncLocalInfo, Integer) = New Dictionary(Of EncLocalInfo, Integer)()
-            For slot As Integer = 0 To previousLocals.Length - 1
-                Dim localInfo As EncLocalInfo = previousLocals(slot)
-                Debug.Assert(Not localInfo.IsDefault)
-                If localInfo.IsInvalid Then
-                    ' Unrecognized or deleted local.
-                    Continue For
-                End If
-                previousLocalInfoToSlot.Add(localInfo, slot)
-            Next
+            Dim previousDeclarators As ImmutableArray(Of SyntaxNode) = LocalVariableDeclaratorsCollector.GetDeclarators(previousMethod)
 
             Dim syntaxMap As Func(Of SyntaxNode, SyntaxNode) = methodEntry.SyntaxMap
             If syntaxMap Is Nothing Then
@@ -203,39 +179,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Debug.Assert(methodEntry.PreserveLocalVariables)
                 ' Create a map from declarator to declarator index.
 
-                Dim currentDeclarators As ImmutableArray(Of VisualBasicSyntaxNode) = LocalVariableDeclaratorsCollector.GetDeclarators(method)
+                Dim currentDeclarators As ImmutableArray(Of SyntaxNode) = LocalVariableDeclaratorsCollector.GetDeclarators(method)
                 Dim currentDeclaratorToIndex = CreateDeclaratorToIndexMap(currentDeclarators)
                 syntaxMap = Function(currentSyntax As SyntaxNode)
-                                Dim currentIndex As Integer = currentDeclaratorToIndex(DirectCast(currentSyntax, VisualBasicSyntaxNode))
+                                Dim currentIndex As Integer = currentDeclaratorToIndex(currentSyntax)
                                 Return previousDeclarators(currentIndex)
                             End Function
             End If
 
-            getPreviousLocalSlot = Function(identity As Object, typeRef As ITypeReference, constraints As LocalSlotConstraints)
-                                       Dim local = DirectCast(identity, LocalSymbol)
-                                       Dim syntaxRefs = local.DeclaringSyntaxReferences
-                                       Debug.Assert(Not syntaxRefs.IsDefault)
-
-                                       If Not syntaxRefs.IsDefaultOrEmpty Then
-                                           Dim currentSyntax As SyntaxNode = syntaxRefs(0).GetSyntax(Nothing)
-                                           Dim previousSyntax = DirectCast(syntaxMap(currentSyntax), VisualBasicSyntaxNode)
-
-                                           Dim offset As Integer = Nothing
-                                           If previousSyntax IsNot Nothing AndAlso previousDeclaratorToOffset.TryGetValue(previousSyntax, offset) Then
-                                               Dim previousType = map.MapReference(typeRef)
-                                               If previousType IsNot Nothing Then
-                                                   Dim localKey = New EncLocalInfo(offset, previousType, constraints, CInt(local.SynthesizedLocalKind), signature:=Nothing)
-                                                   Dim slot As Integer
-                                                   If previousLocalInfoToSlot.TryGetValue(localKey, slot) Then
-                                                       Return slot
-                                                   End If
-                                               End If
-                                           End If
-                                       End If
-
-                                       Return -1
-                                   End Function
-            Return True
+            Return New VariableSlotAllocator(symbolMap, syntaxMap, previousDeclarators, previousLocals)
         End Function
 
         Private Overloads Function TryGetMethodHandle(baseline As EmitBaseline, def As IMethodDefinition, <Out> ByRef handle As MethodHandle) As Boolean
@@ -266,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             ' Find declarators in current method syntax.
-            Dim declarators As ImmutableArray(Of VisualBasicSyntaxNode) = LocalVariableDeclaratorsCollector.GetDeclarators(DirectCast(methodDef, MethodSymbol))
+            Dim declarators As ImmutableArray(Of SyntaxNode) = LocalVariableDeclaratorsCollector.GetDeclarators(DirectCast(methodDef, MethodSymbol))
 
             ' Create a map from declarator to declarator index.
             Dim declaratorToIndex As IReadOnlyDictionary(Of SyntaxNode, Integer) = CreateDeclaratorToIndexMap(declarators)
@@ -282,14 +234,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim def = TryCast(localDef, LocalDefinition)
             If def IsNot Nothing Then
                 ' Local symbol will be null for short-lived temporaries.
-                Dim local = DirectCast(def.Identity, LocalSymbol)
+                Dim local = DirectCast(def.SymbolOpt, LocalSymbol)
                 If local IsNot Nothing Then
                     Dim syntaxRefs = local.DeclaringSyntaxReferences
                     Debug.Assert(Not syntaxRefs.IsDefault)
 
                     If Not syntaxRefs.IsDefaultOrEmpty Then
                         Dim syntax As SyntaxNode = syntaxRefs(0).GetSyntax()
-                        Return New EncLocalInfo(declaratorToIndex(syntax), localDef.Type, def.Constraints, CInt(local.SynthesizedLocalKind), signature)
+                        Return New EncLocalInfo(declaratorToIndex(syntax), localDef.Type, def.Constraints, CType(local.SynthesizedLocalKind, CommonSynthesizedLocalKind), signature)
                     End If
                 End If
             End If
@@ -297,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return New EncLocalInfo(signature)
         End Function
 
-        Private Shared Function CreateDeclaratorToIndexMap(declarators As ImmutableArray(Of VisualBasicSyntaxNode)) As IReadOnlyDictionary(Of SyntaxNode, Integer)
+        Private Shared Function CreateDeclaratorToIndexMap(declarators As ImmutableArray(Of SyntaxNode)) As IReadOnlyDictionary(Of SyntaxNode, Integer)
             Dim declaratorToIndex As Dictionary(Of SyntaxNode, Integer) = New Dictionary(Of SyntaxNode, Integer)()
             For i As Integer = 0 To declarators.Length - 1
                 declaratorToIndex.Add(declarators(i), i)

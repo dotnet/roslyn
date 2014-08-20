@@ -6,6 +6,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -16,22 +17,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class AsyncRewriter
         Inherits StateMachineRewriter(Of AsyncStateMachine, CapturedSymbolOrExpression)
 
-        Private _builderField As FieldSymbol
         Private ReadOnly _binder As Binder
         Private ReadOnly _asyncMethodKind As AsyncMethodKind
         Private ReadOnly _builderType As NamedTypeSymbol
         Private ReadOnly _resultType As TypeSymbol
         Private ReadOnly _stateMachineType As AsyncStateMachine
 
-        Private lastExpressionCaptureNumber As Integer = 0
+        Private _builderField As FieldSymbol
+        Private _lastExpressionCaptureNumber As Integer = 0
 
         Public Sub New(body As BoundStatement,
                        method As MethodSymbol,
+                       slotAllocatorOpt As VariableSlotAllocator,
                        asyncKind As AsyncMethodKind,
                        compilationState As TypeCompilationState,
                        diagnostics As DiagnosticBag)
 
-            MyBase.New(body, method, compilationState, diagnostics)
+            MyBase.New(body, method, slotAllocatorOpt, compilationState, diagnostics)
 
             Me._binder = CreateMethodBinder(method)
             Me._stateMachineType = DirectCast(Me.Method.GetAsyncStateMachineType(), AsyncStateMachine)
@@ -59,6 +61,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Me._stateMachineType IsNot Nothing)
         End Sub
+
+        ''' <summary>
+        ''' Rewrite an async method into a state machine class.
+        ''' </summary>
+        Friend Overloads Shared Function Rewrite(body As BoundBlock,
+                                                 method As MethodSymbol,
+                                                 slotAllocatorOpt As VariableSlotAllocator,
+                                                 compilationState As TypeCompilationState,
+                                                 diagnostics As DiagnosticBag) As BoundBlock
+
+            If body.HasErrors Then
+                Return body
+            End If
+
+            Dim asyncMethodKind As AsyncMethodKind = GetAsyncMethodKind(method)
+            If asyncMethodKind = AsyncMethodKind.None Then
+                Return body
+            End If
+
+            Dim rewriter As New AsyncRewriter(body, method, slotAllocatorOpt, asyncMethodKind, compilationState, diagnostics)
+
+            ' check if we have all the types we need
+            If rewriter.EnsureAllSymbolsAndSignature() Then
+                Return body
+            End If
+
+            Return rewriter.Rewrite()
+        End Function
 
         Friend Shared Function CreateAsyncStateMachine(method As MethodSymbol,
                                                                  typeIndex As Integer,
@@ -132,33 +162,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me._stateMachineType
             End Get
         End Property
-
-        ''' <summary>
-        ''' Rewrite an async method into a state machine class.
-        ''' </summary>
-        Friend Overloads Shared Function Rewrite(body As BoundBlock,
-                                                 method As MethodSymbol,
-                                                 compilationState As TypeCompilationState,
-                                                 diagnostics As DiagnosticBag) As BoundBlock
-
-            If body.HasErrors Then
-                Return body
-            End If
-
-            Dim asyncMethodKind As AsyncMethodKind = GetAsyncMethodKind(method)
-            If asyncMethodKind = AsyncMethodKind.None Then
-                Return body
-            End If
-
-            Dim rewriter As New AsyncRewriter(body, method, asyncMethodKind, compilationState, diagnostics)
-
-            ' check if we have all the types we need
-            If rewriter.EnsureAllSymbolsAndSignature() Then
-                Return body
-            End If
-
-            Return rewriter.Rewrite()
-        End Function
 
         Protected Overrides Sub GenerateMethodImplementations()
             ' Add IAsyncStateMachine.MoveNext()
@@ -441,12 +444,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
 lCaptureRValue:
                     Debug.Assert(Not expression.IsLValue, "Need to support LValues of type " + expression.GetType.Name)
-                    Me.lastExpressionCaptureNumber += 1
+                    Me._lastExpressionCaptureNumber += 1
                     Return New CapturedRValueExpression(
                                     Me.F.StateMachineField(
                                         expression.Type,
                                         Me.Method,
-                                        GeneratedNames.MakeStateMachineExpressionCaptureName(Me.lastExpressionCaptureNumber),
+                                        GeneratedNames.MakeStateMachineExpressionCaptureName(Me._lastExpressionCaptureNumber),
                                         Accessibility.Friend),
                                     expression)
             End Select

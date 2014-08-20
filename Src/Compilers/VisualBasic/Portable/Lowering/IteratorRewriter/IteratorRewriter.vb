@@ -1,15 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
-Imports System.Threading
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -24,16 +17,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private initialThreadIdField As FieldSymbol
 
         Public Sub New(body As BoundStatement,
-               method As MethodSymbol,
-               isEnumerable As Boolean,
-               iteratorClass As IteratorStateMachineTypeSymbol,
-               compilationState As TypeCompilationState,
-               diagnostics As DiagnosticBag)
+                       method As MethodSymbol,
+                       isEnumerable As Boolean,
+                       stateMachineType As IteratorStateMachineTypeSymbol,
+                       slotAllocatorOpt As VariableSlotAllocator,
+                       compilationState As TypeCompilationState,
+                       diagnostics As DiagnosticBag)
 
-            MyBase.New(body, method, compilationState, diagnostics)
+            MyBase.New(body, method, slotAllocatorOpt, compilationState, diagnostics)
 
             Me.isEnumerable = isEnumerable
-            Me.iteratorClass = iteratorClass
+            Me.iteratorClass = stateMachineType
 
             Dim methodReturnType = method.ReturnType
             If methodReturnType.GetArity = 0 Then
@@ -49,6 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Overloads Shared Function Rewrite(body As BoundBlock,
                                                  method As MethodSymbol,
+                                                 slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
                                                  diagnostics As DiagnosticBag) As BoundBlock
 
@@ -69,9 +64,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 elementType = DirectCast(methodReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0)
             End If
 
-            Dim iteratorClass = New IteratorStateMachineTypeSymbol(method, compilationState.GenerateTempNumber(), elementType, isEnumerable)
+            Dim stateMachineType = New IteratorStateMachineTypeSymbol(method, compilationState.GenerateTempNumber(), elementType, isEnumerable)
 
-            Dim rewriter As New IteratorRewriter(body, method, isEnumerable, iteratorClass, compilationState, diagnostics)
+            Dim rewriter As New IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
             ' check if we have all the types we need
             If rewriter.EnsureAllSymbolsAndSignature() Then

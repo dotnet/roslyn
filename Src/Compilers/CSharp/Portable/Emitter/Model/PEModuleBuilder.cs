@@ -308,9 +308,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        internal virtual LocalSlotManager CreateLocalSlotManager(MethodSymbol method)
+        internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(IMethodSymbol method)
         {
-            return new FullLocalSlotManager();
+            return null;
         }
 
         internal virtual ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -49,14 +50,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return block;
                 }
 
-                NamedTypeSymbol stateMachineType;
+                NamedTypeSymbol stateMachineTypeOpt;
+                VariableSlotAllocator variableSlotAllocatorOpt;
                 var body = MethodCompiler.LowerBodyOrInitializer(
                     method: method,
                     body: block,
                     previousSubmissionFields: null,
                     compilationState: compilationState,
                     diagnostics: diagnostics,
-                    stateMachineType: out stateMachineType);
+                    stateMachineTypeOpt: out stateMachineTypeOpt,
+                    variableSlotAllocatorOpt: out variableSlotAllocatorOpt);
 
                 return body;
             }

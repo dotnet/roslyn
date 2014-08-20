@@ -8,6 +8,7 @@ Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1120,7 +1121,7 @@ OtherExpressions:
                             key,
                             keyHash,
                             compareDelegate,
-                            Addressof SynthesizedStringSwitchHashMethod.ComputeStringHash)
+                            AddressOf SynthesizedStringSwitchHashMethod.ComputeStringHash)
 
             If keyHash IsNot Nothing Then
                 FreeTemp(keyHash)
@@ -1244,7 +1245,7 @@ OtherExpressions:
             ' See bug #11047
 
             If local.HasConstantValue Then
-                Dim compileTimeValue As MetadataConstant = _Module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics)
+                Dim compileTimeValue As MetadataConstant = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics)
                 Dim localConstantDef = New LocalConstantDefinition(name, If(local.Locations.FirstOrDefault(), Location.None), compileTimeValue)
 
                 ' If there is a name, add it to the scope.
@@ -1258,23 +1259,22 @@ OtherExpressions:
                 Return Nothing
 
             Else
-                Dim translatedType = _Module.Translate(local.Type, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics)
+                Dim translatedType = _module.Translate(local.Type, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics)
                 ' Even though we don't need the token immediately, we will need it later when signature for the local is emitted.
                 ' Also, requesting the token has side-effect of registering types used, which is critical for embedded types (NoPia, VBCore, etc).
-                _Module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, _diagnostics)
+                _module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, _diagnostics)
 
                 Dim constraints = If(local.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None)
-                Dim isCompilerGeneratedName As Boolean = local.SynthesizedLocalKind <> SynthesizedLocalKind.None
                 Debug.Assert(Not local.SynthesizedLocalKind.IsNamed(_optimizations) OrElse Not String.IsNullOrEmpty(name), "compiler generated names must be nonempty")
 
                 Dim localDef = _builder.LocalSlotManager.DeclareLocal(
-                        type:=translatedType,
-                        identity:=local,
-                        name:=name,
-                        isCompilerGenerated:=isCompilerGeneratedName,
-                        constraints:=constraints,
-                        isDynamic:=False,
-                        dynamicTransformFlags:=Nothing)
+                    type:=translatedType,
+                    symbol:=local,
+                    name:=name,
+                    synthesizedKind:=CType(local.SynthesizedLocalKind, CommonSynthesizedLocalKind),
+                    constraints:=constraints,
+                    isDynamic:=False,
+                    dynamicTransformFlags:=Nothing)
 
                 ' If there is a name, add it to the scope.
                 If name IsNot Nothing Then
@@ -1370,11 +1370,11 @@ OtherExpressions:
                 Debug.Assert(index >= 1)
                 If parsedOk Then
                     Dim fakePdbOnlyLocal = New LocalDefinition(
-                        identity:=Nothing,
-                        name:=field.Name,
+                        symbolOpt:=Nothing,
+                        nameOpt:=field.Name,
                         type:=Nothing,
                         slot:=0,
-                        isCompilerGenerated:=True,
+                        synthesizedKind:=CommonSynthesizedLocalKind.EmitterTemp,
                         constraints:=LocalSlotConstraints.None,
                         isDynamic:=False,
                         dynamicTransformFlags:=Nothing)

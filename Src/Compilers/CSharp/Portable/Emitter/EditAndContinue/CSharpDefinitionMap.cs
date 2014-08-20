@@ -21,15 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     internal sealed partial class CSharpDefinitionMap : DefinitionMap
     {
         private readonly MetadataDecoder metadataDecoder;
-        private readonly SymbolMatcher mapToMetadata;
-        private readonly SymbolMatcher mapToPrevious;
+        private readonly CSharpSymbolMatcher mapToMetadata;
+        private readonly CSharpSymbolMatcher mapToPrevious;
 
         public CSharpDefinitionMap(
             PEModule module,
             IEnumerable<SemanticEdit> edits,
             MetadataDecoder metadataDecoder,
-            SymbolMatcher mapToMetadata,
-            SymbolMatcher mapToPrevious)
+            CSharpSymbolMatcher mapToMetadata,
+            CSharpSymbolMatcher mapToPrevious)
             : base(module, edits)
         {
             Debug.Assert(mapToMetadata != null);
@@ -126,43 +126,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return previous != null;
         }
 
-        internal override bool TryGetPreviousLocals(
-            EmitBaseline baseline,
-            IMethodSymbol method,
-            out ImmutableArray<EncLocalInfo> previousLocals,
-            out GetPreviousLocalSlot getPreviousLocalSlot)
+        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method)
         {
-            previousLocals = default(ImmutableArray<EncLocalInfo>);
-            getPreviousLocalSlot = NoPreviousLocalSlot;
-
             MethodHandle handle;
             if (!this.TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method, out handle))
             {
                 // Unrecognized method. Must have been added in the current compilation.
-                return false;
+                return null;
             }
 
             MethodDefinitionEntry methodEntry;
             if (!this.methodMap.TryGetValue(method, out methodEntry))
             {
                 // Not part of changeset. No need to preserve locals.
-                return false;
+                return null;
             }
 
             if (!methodEntry.PreserveLocalVariables)
             {
                 // Not necessary to preserve locals.
-                return false;
+                return null;
             }
 
             var previousMethod = methodEntry.PreviousMethod;
             var methodIndex = (uint)MetadataTokens.GetRowNumber(handle);
-            SymbolMatcher map;
+            CSharpSymbolMatcher symbolMap;
+            ImmutableArray<EncLocalInfo> previousLocals;
 
             // Check if method has changed previously. If so, we already have a map.
             if (baseline.LocalsForMethodsAddedOrChanged.TryGetValue(methodIndex, out previousLocals))
             {
-                map = this.mapToPrevious;
+                symbolMap = this.mapToPrevious;
             }
             else
             {
@@ -198,46 +192,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if (localInfo.IsDefault)
                 {
                     // TODO: Report error that metadata is not supported.
-                    return false;
-                }
-                else
-                {
-                    // The signature may have more locals than names if trailing locals are unnamed.
-                    // (Locals in the middle of the signature may be unnamed too but since localNames
-                    // is indexed by slot, unnamed locals before the last named local will be represented
-                    // as null values in the array.)
-                    Debug.Assert(localInfo.Length >= localNames.Length);
-                    previousLocals = GetLocalSlots(previousMethod, localNames, localInfo);
-                    Debug.Assert(previousLocals.Length == localInfo.Length);
+                    return null;
                 }
 
-                map = this.mapToMetadata;
+                // The signature may have more locals than names if trailing locals are unnamed.
+                // (Locals in the middle of the signature may be unnamed too but since localNames
+                // is indexed by slot, unnamed locals before the last named local will be represented
+                // as null values in the array.)
+                Debug.Assert(localInfo.Length >= localNames.Length);
+                previousLocals = GetLocalSlots(previousMethod, localNames, localInfo);
+                Debug.Assert(previousLocals.Length == localInfo.Length);
+
+                symbolMap = this.mapToMetadata;
             }
 
             // Find declarators in previous method syntax.
             // The locals are indices into this list.
             var previousDeclarators = LocalVariableDeclaratorsCollector.GetDeclarators(previousMethod);
-
-            // Create a map from declarator to declarator offset.
-            var previousDeclaratorToOffset = new Dictionary<SyntaxNode, int>();
-            for (int offset = 0; offset < previousDeclarators.Length; offset++)
-            {
-                previousDeclaratorToOffset.Add(previousDeclarators[offset], offset);
-            }
-
-            // Create a map from local info to slot.
-            var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
-            for (int slot = 0; slot < previousLocals.Length; slot++)
-            {
-                var localInfo = previousLocals[slot];
-                Debug.Assert(!localInfo.IsDefault);
-                if (localInfo.IsInvalid)
-                {
-                    // Unrecognized or deleted local.
-                    continue;
-                }
-                previousLocalInfoToSlot.Add(localInfo, slot);
-            }
 
             var syntaxMap = methodEntry.SyntaxMap;
             if (syntaxMap == null)
@@ -245,51 +216,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // If there was no syntax map, the syntax structure has not changed,
                 // so we can map from current to previous syntax by declarator index.
                 Debug.Assert(methodEntry.PreserveLocalVariables);
+
                 // Create a map from declarator to declarator index.
                 var currentDeclarators = LocalVariableDeclaratorsCollector.GetDeclarators(method);
                 var currentDeclaratorToIndex = CreateDeclaratorToIndexMap(currentDeclarators);
+
                 syntaxMap = currentSyntax =>
                 {
-                    var currentIndex = currentDeclaratorToIndex[(CSharpSyntaxNode)currentSyntax];
+                    var currentIndex = currentDeclaratorToIndex[currentSyntax];
                     return previousDeclarators[currentIndex];
                 };
             }
 
-            getPreviousLocalSlot = (object identity, Cci.ITypeReference typeRef, LocalSlotConstraints constraints) =>
-            {
-                var local = (LocalSymbol)identity;
-                var syntaxRefs = local.DeclaringSyntaxReferences;
-                Debug.Assert(!syntaxRefs.IsDefault);
-
-                if (!syntaxRefs.IsDefaultOrEmpty)
-                {
-                    var currentSyntax = syntaxRefs[0].GetSyntax();
-                    var previousSyntax = (CSharpSyntaxNode)syntaxMap(currentSyntax);
-                    if (previousSyntax != null)
-                    {
-                        int offset;
-                        if (previousDeclaratorToOffset.TryGetValue(previousSyntax, out offset))
-                        {
-                            var previousType = map.MapReference(typeRef);
-                            if (previousType != null)
-                            {
-                                var localKey = new EncLocalInfo(offset, previousType, constraints, (int)local.SynthesizedLocalKind, signature: null);
-                                int slot;
-                                // Should report a warning if the type of the local has changed
-                                // and the previous value will be dropped. (Bug #781309.)
-                                if (previousLocalInfoToSlot.TryGetValue(localKey, out slot))
-                                {
-                                    return slot;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return -1;
-            };
-
-            return true;
+            return new VariableSlotAllocator(symbolMap, syntaxMap, previousDeclarators, previousLocals);
         }
 
         private bool TryGetMethodHandle(EmitBaseline baseline, Cci.IMethodDefinition def, out MethodHandle handle)
@@ -352,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (def != null)
             {
                 // Local symbol will be null for short-lived temporaries.
-                var local = (LocalSymbol)def.Identity;
+                var local = def.SymbolOpt;
                 if ((object)local != null)
                 {
                     var syntaxRefs = local.DeclaringSyntaxReferences;
@@ -362,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     {
                         var syntax = syntaxRefs[0].GetSyntax();
                         var offset = declaratorToIndex[syntax];
-                        return new EncLocalInfo(offset, localDef.Type, def.Constraints, (int)local.SynthesizedLocalKind, signature);
+                        return new EncLocalInfo(offset, localDef.Type, def.Constraints, def.SynthesizedLocalKind, signature);
                     }
                 }
             }

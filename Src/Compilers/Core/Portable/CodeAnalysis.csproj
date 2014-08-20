@@ -56,7 +56,6 @@
     <Compile Include="CodeGen\CompilationTestData.cs" />
     <Compile Include="CodeGen\DebugDocumentProvider.cs" />
     <Compile Include="CodeGen\EmitState.cs" />
-    <Compile Include="CodeGen\FullLocalSlotManager.cs" />
     <Compile Include="CodeGen\ILBuilder.cs" />
     <Compile Include="CodeGen\ILBuilderConversions.cs" />
     <Compile Include="CodeGen\ILBuilderEmit.cs" />
@@ -68,6 +67,7 @@
     <Compile Include="CodeGen\LocalDefinition.cs" />
     <Compile Include="CodeGen\LocalOrParameter.cs" />
     <Compile Include="CodeGen\LocalScopeManager.cs" />
+    <Compile Include="CodeGen\LocalSlotConstraints.cs" />
     <Compile Include="CodeGen\LocalSlotManager.cs" />
     <Compile Include="CodeGen\MetadataConstant.cs" />
     <Compile Include="CodeGen\MetadataCreateArray.cs" />
@@ -85,6 +85,7 @@
     <Compile Include="CodeGen\SwitchIntegralJumpTableEmitter.SwitchBucket.cs" />
     <Compile Include="CodeGen\SwitchStringJumpTableEmitter.cs" />
     <Compile Include="CodeGen\TokenMap.cs" />
+    <Compile Include="CodeGen\VariableSlotAllocator.cs" />
     <Compile Include="CodeGen\Win32Res.cs" />
     <Compile Include="Collections\ArrayBuilder.ArrayBuilderEnumerator.cs" />
     <Compile Include="Collections\ArrayBuilder.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Collections\IdentifierCollection.cs" />
     <Compile Include="Collections\ImmutableArrayExtensions.cs" />
     <Compile Include="Collections\ImmutableMemoryStream.cs" />
+    <Compile Include="Emit\EditAndContinue\SymbolMatcher.cs" />
     <Compile Include="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="Collections\KeyedStack.cs" />
     <Compile Include="Collections\OrderPreservingMultiDictionary.cs" />
@@ -202,7 +204,6 @@
     <Compile Include="Emit\EditAndContinue\EmitBaseline.cs" />
     <Compile Include="Emit\EditAndContinue\EmitDifferenceResult.cs" />
     <Compile Include="Emit\EditAndContinue\EncLocalInfo.cs" />
-    <Compile Include="Emit\EditAndContinue\EncLocalSlotManager.cs" />
     <Compile Include="Emit\EditAndContinue\IPEDeltaAssemblyBuilder.cs" />
     <Compile Include="Emit\EditAndContinue\SymbolChange.cs" />
     <Compile Include="Emit\EditAndContinue\SymbolChanges.cs" />
@@ -483,10 +484,12 @@
     <Compile Include="Symbols\NamespaceKind.cs" />
     <Compile Include="Symbols\PlatformInvokeInformation.cs" />
     <Compile Include="Symbols\RefKind.cs" />
+    <Compile Include="CodeGen\SignatureOnlyLocalDefinition.cs" />
     <Compile Include="Symbols\SymbolKind.cs" />
     <Compile Include="Symbols\SymbolKindExtensions.cs" />
     <Compile Include="Symbols\SymbolVisitor.cs" />
     <Compile Include="Symbols\SymbolVisitor`1.cs" />
+    <Compile Include="Symbols\CommonSynthesizedLocalKind.cs" />
     <Compile Include="Symbols\TypedConstant.cs" />
     <Compile Include="Symbols\TypedConstantKind.cs" />
     <Compile Include="Symbols\TypedConstantValue.cs" />

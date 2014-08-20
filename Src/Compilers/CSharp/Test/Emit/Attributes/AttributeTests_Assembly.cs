@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AssemblyAttributes : CSharpTestBase
+    public class AssemblyAttributeTests : CSharpTestBase
     {
         private readonly string NetModuleName = GetUniqueName() + ".netmodule";
 

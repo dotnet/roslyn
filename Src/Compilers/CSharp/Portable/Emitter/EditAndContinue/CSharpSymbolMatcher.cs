@@ -11,17 +11,18 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal sealed class SymbolMatcher
+    internal sealed class CSharpSymbolMatcher : SymbolMatcher
     {
         private static readonly StringComparer NameComparer = StringComparer.Ordinal;
 
         private readonly MatchDefs defs;
         private readonly MatchSymbols symbols;
 
-        public SymbolMatcher(
+        public CSharpSymbolMatcher(
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             SourceAssemblySymbol sourceAssembly,
             EmitContext sourceContext,
@@ -32,11 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             this.symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly);
         }
 
-        public SymbolMatcher(
+        public CSharpSymbolMatcher(
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             SourceAssemblySymbol sourceAssembly,
             EmitContext sourceContext,
-            Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol otherAssembly)
+            PEAssemblySymbol otherAssembly)
         {
             this.defs = new MatchDefsToMetadata(sourceContext, otherAssembly);
             this.symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly);
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return this.defs.VisitDef(def);
         }
 
-        internal ITypeReference MapReference(ITypeReference reference)
+        public override ITypeReference MapReference(ITypeReference reference)
         {
             var symbol = reference as Symbol;
             if ((object)symbol != null)
@@ -182,9 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private sealed class MatchDefsToMetadata : MatchDefs
         {
-            private readonly Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol otherAssembly;
+            private readonly PEAssemblySymbol otherAssembly;
 
-            public MatchDefsToMetadata(EmitContext sourceContext, Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol otherAssembly) :
+            public MatchDefsToMetadata(EmitContext sourceContext, PEAssemblySymbol otherAssembly) :
                 base(sourceContext)
             {
                 this.otherAssembly = otherAssembly;
@@ -199,13 +200,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             protected override IEnumerable<INestedTypeDefinition> GetNestedTypes(ITypeDefinition def)
             {
-                var type = (Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PENamedTypeSymbol)def;
+                var type = (PENamedTypeSymbol)def;
                 return type.GetTypeMembers().Cast<INestedTypeDefinition>();
             }
 
             protected override IEnumerable<IFieldDefinition> GetFields(ITypeDefinition def)
             {
-                var type = (Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PENamedTypeSymbol)def;
+                var type = (PENamedTypeSymbol)def;
                 return type.GetFieldsToEmit().Cast<IFieldDefinition>();
             }
 

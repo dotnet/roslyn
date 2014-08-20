@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class SymbolMatcherTests : EditAndContinueTestBase
     {
-        private static void MatchAll(SymbolMatcher matcher, ImmutableArray<Symbol> members, int startAt)
+        private static void MatchAll(CSharpSymbolMatcher matcher, ImmutableArray<Symbol> members, int startAt)
         {
             int n = members.Length;
             for (int i = 0; i < n; i++)
@@ -63,7 +63,7 @@ class B
 
             for (int i = 0; i < 10; i++)
             {
-                var matcher = new SymbolMatcher(
+                var matcher = new CSharpSymbolMatcher(
                     null,
                     compilation1.SourceAssembly,
                     default(EmitContext),
@@ -107,7 +107,7 @@ class B
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var matcher = new SymbolMatcher(
+            var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
                 default(EmitContext),
@@ -138,7 +138,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var matcher = new SymbolMatcher(
+            var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
                 default(EmitContext),
@@ -171,7 +171,7 @@ class C
             Assert.Equal(((PointerTypeSymbol)member1.Parameters[0].Type).CustomModifiers.Length, 1);
             Assert.Equal(((ArrayTypeSymbol)member1.ReturnType).CustomModifiers.Length, 1);
 
-            var matcher = new SymbolMatcher(
+            var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
                 default(EmitContext),

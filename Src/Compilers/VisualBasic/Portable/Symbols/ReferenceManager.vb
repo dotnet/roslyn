@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Creates a <see cref="PEAssemblySymbol"/> from specified metadata. 
             ''' </summary>
             ''' <remarks>
-            ''' Used by EnC to create symbols for emit baseline. The PE symbols are used by <see cref="SymbolMatcher"/>.
+            ''' Used by EnC to create symbols for emit baseline. The PE symbols are used by <see cref="VisualBasicSymbolMatcher"/>.
             ''' 
             ''' The assembly references listed in the metadata AssemblyRef table are matched to the resolved references 
             ''' stored on this <see cref="ReferenceManager"/>. Each AssemblyRef is matched against the assembly identities
