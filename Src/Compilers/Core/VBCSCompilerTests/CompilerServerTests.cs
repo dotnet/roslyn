@@ -1744,7 +1744,7 @@ class Hello
             var firstBuildOutput = firstBuildResult.Output;
             var secondBuildOutput = secondBuildResult.Output;
 
-            var assertMessage = string.Format("Output should be different, but is not.\r\n{0}:\r\n{1}\r\n{2}:\r\n{3}\r\n", nameof(firstBuildOutput), firstBuildOutput, nameof(secondBuildOutput), secondBuildOutput);
+            var assertMessage = string.Format("Output should be different, but is not.\r\nfirstBuildOutput:\r\n{0}\r\nsecondBuildOutput:\r\n{1}\r\n", firstBuildOutput, secondBuildOutput);
             // The output message of the analyzer includes a time stamp for when the analyzer was loaded. So if the analyzer was 
             // reloaded (which is what we want) then the output messages of the first and second builds will be different.
             Assert.False(firstBuildOutput.Equals(secondBuildOutput), assertMessage);
