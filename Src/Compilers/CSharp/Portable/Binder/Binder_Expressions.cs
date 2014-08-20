@@ -1481,13 +1481,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
-
-                        if ((object)parameter.ContainingSymbol != (object)this.ContainingMemberOrLambda && this.ContainingMemberOrLambda.Kind == SymbolKind.Method)
+                        if (parameter.RefKind != RefKind.None)
                         {
-                            // Captured in a lambda.
-                            if (parameter.RefKind != RefKind.None)
+                            var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
+                            if (((object)containingMethod != null) &&
+                                ((object)parameter.ContainingSymbol != (object)containingMethod))
                             {
-                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                                // Not expecting parameter from constructed method.
+                                Debug.Assert(!parameter.ContainingSymbol.Equals(containingMethod));
+
+                                // Captured in a lambda.
+                                if (containingMethod.MethodKind == MethodKind.AnonymousFunction) // false in EE evaluation method
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                                }
                             }
                         }
 
