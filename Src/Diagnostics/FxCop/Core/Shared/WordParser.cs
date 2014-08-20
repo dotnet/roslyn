@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         // [0-9]:       Represents the numbers 0 to 9
         // [letter]:    Represents any unicode letter
         //
-        // <words>      -> <prefix>(<word> | <junk>)+
+        // <words>      -> <prefix>(<word> | <notword>)+
         // 
-        // <junk>       -> !<word>
+        // <notword>    -> !<word>
         //
         // <prefix>     -> [char]
         //
