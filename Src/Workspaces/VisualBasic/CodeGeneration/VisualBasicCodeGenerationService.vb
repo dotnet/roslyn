@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.ComponentModel.Composition
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -9,11 +8,7 @@ Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class VisualBasicCodeGenerationService
@@ -462,11 +457,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim oldStatementIndex = oldBlockStatements.IndexOf(oldStatement)
 
             Dim statementArray = statements.OfType(Of StatementSyntax).ToArray()
-            Dim newBlockStatements =
-                If(options.BeforeThisLocation IsNot Nothing,
-                    oldBlockStatements.InsertRange(oldStatementIndex, statementArray),
-                    oldBlockStatements.InsertRange(oldStatementIndex + 1, statementArray))
-            Dim newBlock = oldBlock.ReplaceStatements(newBlockStatements)
+            Dim newBlock As SyntaxNode
+            If options.BeforeThisLocation IsNot Nothing Then
+                Dim strippedTrivia As IEnumerable(Of SyntaxTrivia) = Nothing
+                Dim newStatement = oldStatement.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(strippedTrivia)
+
+                statementArray(0) = statementArray(0).WithLeadingTrivia(strippedTrivia)
+
+                newBlock = oldBlock.ReplaceNode(oldStatement, newStatement)
+                newBlock = newBlock.ReplaceStatements(newBlock.GetExecutableBlockStatements().InsertRange(oldStatementIndex, statementArray))
+            Else
+                newBlock = oldBlock.ReplaceStatements(oldBlockStatements.InsertRange(oldStatementIndex + 1, statementArray))
+            End If
 
             Return destinationMember.ReplaceNode(oldBlock, newBlock)
         End Function
