@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundFieldAccess
 
         Public Sub New(syntax As VisualBasicSyntaxNode, receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
-            Me.New(syntax, receiverOpt, fieldSymbol, isLValue, Nothing, type, hasErrors)
+            Me.New(syntax, receiverOpt, fieldSymbol, isLValue, False, Nothing, type, hasErrors)
         End Sub
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function MakeRValue() As BoundFieldAccess
             If _IsLValue Then
-                Return Update(_ReceiverOpt, _FieldSymbol, False, Me.ConstantsInProgressOpt, Type)
+                Return Update(_ReceiverOpt, _FieldSymbol, False, Me.SuppressVirtualCalls, Me.ConstantsInProgressOpt, Type)
             End If
 
             Return Me

@@ -170,14 +170,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim fieldSymbol = value.FieldSymbol
             If fieldSymbol.IsShared AndAlso value.ReceiverOpt IsNot Nothing Then
-                Return value.Update(Nothing, fieldSymbol, value.IsLValue, value.ConstantsInProgressOpt, value.Type)
+                Return value.Update(Nothing, fieldSymbol, value.IsLValue, value.SuppressVirtualCalls, value.ConstantsInProgressOpt, value.Type)
 
             ElseIf value.ReceiverOpt Is Nothing Then
                 Return value
 
             Else
                 Dim receiver As BoundExpression = CaptureReceiver(value.ReceiverOpt, state)
-                Return value.Update(receiver, fieldSymbol, value.IsLValue, value.ConstantsInProgressOpt, value.Type)
+                Return value.Update(receiver, fieldSymbol, value.IsLValue, value.SuppressVirtualCalls, value.ConstantsInProgressOpt, value.Type)
             End If
 
         End Function

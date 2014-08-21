@@ -184,6 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Update(DirectCast(Visit(node.ReceiverOpt), BoundExpression),
                                VisitFieldSymbol(node.FieldSymbol),
                                node.IsLValue,
+                               node.SuppressVirtualCalls,
                                node.ConstantsInProgressOpt,
                                VisitType(node.Type))
         End Function

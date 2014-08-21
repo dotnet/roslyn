@@ -2727,6 +2727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 receiver,
                                                 fieldSymbol,
                                                 isLValue:=IsLValueFieldAccess(fieldSymbol, receiver),
+                                                suppressVirtualCalls:=False,
                                                 constantsInProgressOpt:=Me.ConstantFieldsInProgress,
                                                 type:=fieldAccessType,
                                                 hasErrors:=hasError OrElse fieldAccessType.IsErrorType)

@@ -298,6 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         fieldAccess = fieldAccess.Update(newReceiver,
                                                          fieldAccess.FieldSymbol,
                                                          True,
+                                                         fieldAccess.SuppressVirtualCalls,
                                                          fieldAccess.ConstantsInProgressOpt,
                                                          fieldAccess.Type)
 

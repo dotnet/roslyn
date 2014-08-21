@@ -316,6 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  rewritten.Update(spillSequence.ValueOpt,
                                                                   rewritten.FieldSymbol,
                                                                   rewritten.IsLValue,
+                                                                  rewritten.SuppressVirtualCalls,
                                                                   rewritten.ConstantsInProgressOpt,
                                                                   rewritten.Type))
             End Function
