@@ -74,6 +74,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return lazyAnalyzers.Value;
         }
 
+        public override ImmutableArray<IDiagnosticAnalyzer> GetAnalyzersForLanguage(string language)
+        {
+            if (string.IsNullOrEmpty(language))
+            {
+                throw new ArgumentException("language");
+            }
+
+            if (!lazyAnalyzers.HasValue)
+            {
+                lazyAnalyzers = MetadataCache.GetOrCreateAnalyzersFromFile(this, language);
+            }
+
+            return lazyAnalyzers.Value;
+        }
+
         public override string FullPath
         {
             get
@@ -113,24 +128,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns the <see cref="ImmutableArray{T}"/> of <see cref="IDiagnosticAnalyzer"/> defined in the given <paramref name="analyzerAssemblies"/>.
-        /// </summary>
-        public static ImmutableArray<IDiagnosticAnalyzer> GetAnalyzers(ImmutableArray<AnalyzerFileReference> analyzerAssemblies)
-        {
-            var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
-
-            foreach (var analyzerAssembly in analyzerAssemblies)
-            {
-                analyzerAssembly.AddAnalyzers(builder, diagnosticsOpt: null, messageProviderOpt: null);
-            }
-
-            return builder.ToImmutable();
-        }
-
-        /// <summary>
         /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="IDiagnosticAnalyzer"/> defined in this assembly reference.
         /// </summary>
-        internal void AddAnalyzers(ImmutableArray<IDiagnosticAnalyzer>.Builder builder, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal void AddAnalyzers(ImmutableArray<IDiagnosticAnalyzer>.Builder builder, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt, string languageOpt = null)
         {
             // We handle loading of analyzer assemblies ourselves. This allows us to avoid locking the assembly
             // file on disk.
@@ -181,10 +181,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 try
                 {
-                    if (type.GetTypeInfo().ImplementedInterfaces.Contains(typeof(IDiagnosticAnalyzer)) && type.IsDefined(typeof(DiagnosticAnalyzerAttribute)))
+                    if (type.GetTypeInfo().ImplementedInterfaces.Contains(typeof(IDiagnosticAnalyzer)))
                     {
-                        hasAnalyzers = true;
-                        builder.Add((IDiagnosticAnalyzer)Activator.CreateInstance(type));
+                        var attribute = type.GetCustomAttribute<DiagnosticAnalyzerAttribute>();
+                        if (attribute != null &&
+                            (languageOpt == null || attribute.IsSupported(languageOpt)))
+                        {
+                            hasAnalyzers = true;
+                            builder.Add((IDiagnosticAnalyzer)Activator.CreateInstance(type));
+                        }
                     }
                 }
                 catch (Exception e)

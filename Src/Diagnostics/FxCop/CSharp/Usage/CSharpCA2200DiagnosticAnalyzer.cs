@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA2200DiagnosticAnalyzer : CA2200DiagnosticAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
     {

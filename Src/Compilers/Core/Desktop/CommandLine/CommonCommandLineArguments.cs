@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
+        internal ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
         {
             var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
             foreach (var reference in AnalyzerReferences)
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis
                 var resolvedReference = ResolveAnalyzerReference(reference);
                 if (resolvedReference != null)
                 {
-                    resolvedReference.AddAnalyzers(builder, diagnostics, messageProvider);
+                    resolvedReference.AddAnalyzers(builder, diagnostics, messageProvider, language);
                 }
                 else
                 {

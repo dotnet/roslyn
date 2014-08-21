@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Reliability
     /// A thread that tries to acquire a lock on an object that has a weak identity can be blocked by a second thread in 
     /// a different application domain that has a lock on the same object. 
     /// </summary>
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA2002DiagnosticAnalyzer : CA2002DiagnosticAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
     {

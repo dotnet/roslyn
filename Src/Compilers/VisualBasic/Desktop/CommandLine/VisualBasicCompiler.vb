@@ -5,6 +5,7 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Text
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Instrumentation
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -336,6 +337,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function TryGetCompilerDiagnosticCode(diagnosticId As String, ByRef code As UInteger) As Boolean
             Return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "BC", code)
+        End Function
+
+        Protected Overrides Function ResolveAnalyzersFromArguments(diagnostics As List(Of DiagnosticInfo), messageProvider As CommonMessageProvider, touchedFiles As TouchedFileLogger) As ImmutableArray(Of IDiagnosticAnalyzer)
+            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, touchedFiles)
         End Function
     End Class
 End Namespace

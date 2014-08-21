@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -421,7 +422,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code)
         {
             return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
+        }
 
+        protected override ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
+        {
+            return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, touchedFiles);
         }
     }
 }

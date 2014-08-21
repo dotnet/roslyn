@@ -40,5 +40,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public abstract ImmutableArray<IDiagnosticAnalyzer> GetAnalyzers();
+        public abstract ImmutableArray<IDiagnosticAnalyzer> GetAnalyzersForLanguage(string language);
     }
 }

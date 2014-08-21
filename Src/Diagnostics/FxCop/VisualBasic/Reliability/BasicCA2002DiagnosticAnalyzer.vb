@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     ''' <summary>
     ''' CA2002: Do not lock on objects with weak identities
     ''' </summary>
-    <DiagnosticAnalyzer>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA2002DiagnosticAnalyzer
         Inherits CA2002DiagnosticAnalyzer

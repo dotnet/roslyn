@@ -6687,7 +6687,7 @@ End Module"
         End Sub
     End Class
 
-    <DiagnosticAnalyzer>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     MustInherit Class MockAbstractDiagnosticAnalyzer
         Implements ICompilationNestedAnalyzerFactory, ICompilationAnalyzer
 
@@ -6696,7 +6696,7 @@ End Module"
         Public MustOverride Sub AnalyzeCompilation(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), options As AnalyzerOptions, cancellationToken As CancellationToken) Implements ICompilationAnalyzer.AnalyzeCompilation
     End Class
 
-    <DiagnosticAnalyzer>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Class HiddenDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
         Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
@@ -6727,7 +6727,7 @@ End Module"
         End Sub
     End Class
 
-    <DiagnosticAnalyzer>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Class InfoDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
         Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
@@ -6759,7 +6759,7 @@ End Module"
         End Sub
     End Class
 
-    <DiagnosticAnalyzer>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Class WarningDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
         Implements ISymbolAnalyzer
@@ -6793,7 +6793,7 @@ End Module"
         End Sub
     End Class
 
-    <DiagnosticAnalyzer>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Class ErrorDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
         Implements ISyntaxNodeAnalyzer(Of SyntaxKind)

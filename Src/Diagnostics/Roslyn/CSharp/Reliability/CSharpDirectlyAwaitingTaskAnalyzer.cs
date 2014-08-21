@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers.CSharp.Reliability
 {
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class CSharpDirectlyAwaitingTaskAnalyzer : DirectlyAwaitingTaskAnalyzer<SyntaxKind>
     {
