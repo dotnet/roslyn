@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis
                 INamespaceOrTypeSymbol container,
                 bool ignoreAssemblyKey)
             {
-                var types = container.GetTypeMembers(GetName(this.metadataName), this.arity)
-                                     .Where(t => t.TypeKind == this.typeKind);
+                var types = container.GetTypeMembers(GetName(this.metadataName), this.arity);
                 var result = InstantiateTypes(compilation, ignoreAssemblyKey, types, arity, typeArgumentKeysOpt);
 
                 return this.isUnboundGenericType
@@ -61,7 +60,6 @@ namespace Microsoft.CodeAnalysis
                 var comparer = SymbolKeyComparer.GetComparer(options);
                 return
                     other.arity == this.arity &&
-                    other.typeKind == this.typeKind &&
                     Equals(options.IgnoreCase, other.metadataName, this.metadataName) &&
                     comparer.Equals(other.containerKey, this.containerKey) &&
                     SequenceEquals(other.typeArgumentKeysOpt, this.typeArgumentKeysOpt, comparer);
@@ -72,9 +70,8 @@ namespace Microsoft.CodeAnalysis
                 // TODO(cyrusn): Consider hashing the type arguments as well.
                 return
                     Hash.Combine(this.arity,
-                    Hash.Combine((int)this.typeKind,
                     Hash.Combine(GetHashCode(options.IgnoreCase, this.metadataName),
-                                 this.containerKey.GetHashCode(options))));
+                                 this.containerKey.GetHashCode(options)));
             }
         }
     }
