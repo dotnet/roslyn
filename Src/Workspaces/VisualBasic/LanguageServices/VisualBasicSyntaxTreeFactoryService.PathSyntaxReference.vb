@@ -77,8 +77,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private Function GetChildIndex(child As SyntaxNodeOrToken) As Integer
                     Dim parent As SyntaxNode = child.Parent
                     Dim index As Integer = 0
-                    For Each snot In parent.ChildNodesAndTokens()
-                        If snot = child Then
+                    For Each nodeOrToken In parent.ChildNodesAndTokens()
+                        If nodeOrToken = child Then
                             Return index
                         End If
 

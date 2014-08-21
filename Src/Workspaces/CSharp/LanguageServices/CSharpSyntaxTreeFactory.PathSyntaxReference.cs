@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parent = child.Parent;
                     int index = 0;
 
-                    foreach (var snot in parent.ChildNodesAndTokens())
+                    foreach (var nodeOrToken in parent.ChildNodesAndTokens())
                     {
-                        if (snot == child)
+                        if (nodeOrToken == child)
                         {
                             return index;
                         }
