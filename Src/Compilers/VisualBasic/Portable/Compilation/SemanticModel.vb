@@ -3472,6 +3472,18 @@ _Default:
 
         Protected Overrides Function GetTopmostNodeForDiagnosticAnalysis(symbol As ISymbol, declaringSyntax As SyntaxNode) As SyntaxNode
             Select Case symbol.Kind
+                Case SymbolKind.Namespace
+                    If TypeOf declaringSyntax Is NamespaceStatementSyntax Then
+                        If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is NamespaceBlockSyntax Then
+                            Return declaringSyntax.Parent
+                        End If
+                    End If
+                Case SymbolKind.NamedType
+                    If TypeOf declaringSyntax Is TypeStatementSyntax Then
+                        If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is TypeBlockSyntax Then
+                            Return declaringSyntax.Parent
+                        End If
+                    End If
                 Case SymbolKind.Method
                     If TypeOf declaringSyntax Is MethodBaseSyntax Then
                         If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is MethodBlockBaseSyntax Then
