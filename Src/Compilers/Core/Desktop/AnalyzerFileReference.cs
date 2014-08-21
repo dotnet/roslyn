@@ -24,10 +24,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public sealed partial class AnalyzerFileReference : AnalyzerReference
     {
         private readonly string fullPath;
+        private readonly Func<string, Assembly> getAssembly;
         private string displayName;
         private ImmutableArray<IDiagnosticAnalyzer>? lazyAnalyzers;
         private Assembly assembly;
-
+        
         /// <summary>
         /// Fired when an <see cref="Assembly"/> referred to by an <see cref="AnalyzerFileReference"/>
         /// (or a dependent <see cref="Assembly"/>) is loaded.
@@ -42,7 +43,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return InMemoryAssemblyLoader.TryGetRequestingAssembly(assemblyPath);
         }
 
-        public AnalyzerFileReference(string fullPath)
+        /// <summary>
+        /// Creates an AnalyzerFileReference with the given <paramref name="fullPath"/>.
+        /// </summary>
+        /// <param name="fullPath">Full path of the analyzer assembly.</param>
+        /// <param name="getAssembly">An optional assembly loader to override the default assembly load mechanism.</param>
+        public AnalyzerFileReference(string fullPath, Func<string, Assembly> getAssembly = null)
         {
             if (fullPath == null)
             {
@@ -62,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             lazyAnalyzers = null;
+            this.getAssembly = getAssembly;
         }
 
         public override ImmutableArray<IDiagnosticAnalyzer> GetAnalyzers()
@@ -81,12 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException("language");
             }
 
-            if (!lazyAnalyzers.HasValue)
-            {
-                lazyAnalyzers = MetadataCache.GetOrCreateAnalyzersFromFile(this, language);
-            }
-
-            return lazyAnalyzers.Value;
+            return MetadataCache.GetOrCreateAnalyzersFromFile(this, language);
         }
 
         public override string FullPath
@@ -232,7 +234,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (assembly == null)
             {
-                assembly = InMemoryAssemblyLoader.Load(fullPath);
+                assembly = getAssembly != null ?
+                    getAssembly(fullPath) :
+                    InMemoryAssemblyLoader.Load(fullPath);
             }
 
             return assembly;
