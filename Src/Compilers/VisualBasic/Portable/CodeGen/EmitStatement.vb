@@ -1264,7 +1264,8 @@ OtherExpressions:
                 ' Also, requesting the token has side-effect of registering types used, which is critical for embedded types (NoPia, VBCore, etc).
                 _module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, _diagnostics)
 
-                Dim constraints = If(local.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None)
+                Dim constraints = If(local.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None) Or
+                    If(local.IsPinned, LocalSlotConstraints.Pinned, LocalSlotConstraints.None)
                 Debug.Assert(Not local.SynthesizedLocalKind.IsNamed(_optimizations) OrElse Not String.IsNullOrEmpty(name), "compiler generated names must be nonempty")
 
                 Dim localDef = _builder.LocalSlotManager.DeclareLocal(

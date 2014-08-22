@@ -298,6 +298,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overridable ReadOnly Property IsPinned As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Public ReadOnly Property HasConstantValue As Boolean Implements ILocalSymbol.HasConstantValue
             Get
                 If Not Me.IsConst Then
