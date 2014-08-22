@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 container = binder.BindNamespaceAliasSymbol((IdentifierNameSyntax)left, diagnostics);
                 var aliasSymbol = container as AliasSymbol;
-                container = aliasSymbol != null ? aliasSymbol.Target : container;
+                if (aliasSymbol != null) container = aliasSymbol.Target;
                 if (container.Kind == SymbolKind.NamedType)
                 {
                     diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, left.Location, left);
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (left != null)
             {
                 // We use OriginalDefinition because of the unbound generic names such as List<>, Dictionary<,>.
-                container = binder.BindNamespaceOrTypeOrAliasSymbol(left, diagnostics, null, false).OriginalDefinition;
+                container = binder.BindNamespaceOrTypeSymbol(left, diagnostics, null, false).OriginalDefinition;
             }
 
             this.BindNonGenericSimpleName(right, diagnostics, null, false, (NamespaceOrTypeSymbol)container, isNameofArgument: true, symbols: symbols);

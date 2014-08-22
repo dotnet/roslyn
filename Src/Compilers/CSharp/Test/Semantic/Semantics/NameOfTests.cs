@@ -574,5 +574,22 @@ Equals
 GetHashCode
 GetType");
         }
+
+        [Fact]
+        public void TestNameofAliasMember()
+        {
+            var source = @"
+using System;
+using SCGL = System.Collections.Generic.List<int>;
+class C
+{
+    public static void Main(string[] args)
+    {
+        System.Console.WriteLine(nameof(SCGL.Contains));
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: @"Contains");
+        }
     }
 }
