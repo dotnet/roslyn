@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
 
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
 {
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA1003DiagnosticAnalyzer : CA1003DiagnosticAnalyzer
     {

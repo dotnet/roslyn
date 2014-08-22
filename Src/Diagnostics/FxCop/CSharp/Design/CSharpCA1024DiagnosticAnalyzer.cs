@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
     /// Cause:
     /// A public or protected method has a name that starts with Get, takes no parameters, and returns a value that is not an array.
     /// </summary>
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA1024DiagnosticAnalyzer : CA1024DiagnosticAnalyzer
     {

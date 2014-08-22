@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
     /// <summary>
     /// CA2213: Disposable fields should be disposed
     /// </summary>
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA2213DiagnosticAnalyzer : CA2213DiagnosticAnalyzer
     {

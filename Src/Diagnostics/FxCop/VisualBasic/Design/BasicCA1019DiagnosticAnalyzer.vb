@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
-    <DiagnosticAnalyzer>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA1019DiagnosticAnalyzer
         Inherits CA1019DiagnosticAnalyzer

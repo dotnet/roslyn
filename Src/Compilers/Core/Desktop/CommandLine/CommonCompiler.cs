@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract uint GetSqmAppID();
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
+        protected abstract ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string baseDirectory, string additionalReferencePaths)
         {
@@ -276,7 +277,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnostics = new List<DiagnosticInfo>();
-            var analyzers = Arguments.ResolveAnalyzersFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
+            var analyzers = ResolveAnalyzersFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
             if (PrintErrors(diagnostics, consoleOutput))
             {
                 return Failed;

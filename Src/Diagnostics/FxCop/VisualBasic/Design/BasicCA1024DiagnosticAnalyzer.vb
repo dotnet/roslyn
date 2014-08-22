@@ -7,7 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
-    <DiagnosticAnalyzer>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA1024DiagnosticAnalyzer
         Inherits CA1024DiagnosticAnalyzer
