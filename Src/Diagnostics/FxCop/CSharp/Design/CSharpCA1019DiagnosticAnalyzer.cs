@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
     /// Cause:
     /// In its constructor, an attribute defines arguments that do not have corresponding properties.
     /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer]
     [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA1019DiagnosticAnalyzer : CA1019DiagnosticAnalyzer
     {

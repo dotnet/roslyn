@@ -35,11 +35,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return this.analyzers;
         }
 
-        public override ImmutableArray<IDiagnosticAnalyzer> GetAnalyzersForLanguage(string language)
-        {
-            return this.analyzers;
-        }
-
         public override string FullPath
         {
             get

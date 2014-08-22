@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
-    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+    <DiagnosticAnalyzer>
     <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicSpecializedEnumerableCreationAnalyzer
         Inherits SpecializedEnumerableCreationAnalyzer

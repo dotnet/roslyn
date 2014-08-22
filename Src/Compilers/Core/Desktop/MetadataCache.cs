@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static ImmutableArray<IDiagnosticAnalyzer> GetOrCreateAnalyzersFromFile(AnalyzerFileReference analyzerReference, string langauge = null)
+        internal static ImmutableArray<IDiagnosticAnalyzer> GetOrCreateAnalyzersFromFile(AnalyzerFileReference analyzerReference)
         {
             string fullPath = analyzerReference.FullPath;
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis
 
                 // get all analyzers in the assembly:
                 var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
-                analyzerReference.AddAnalyzers(builder, null, null, langauge);
+                analyzerReference.AddAnalyzers(builder, null, null);
                 var analyzers = builder.ToImmutable();
 
                 // refresh the timestamp (the file may have changed just before we memory-mapped it):

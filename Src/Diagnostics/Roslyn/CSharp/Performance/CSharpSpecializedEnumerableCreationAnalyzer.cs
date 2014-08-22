@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers.CSharp
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer]
     [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpSpecializedEnumerableCreationAnalyzer : SpecializedEnumerableCreationAnalyzer
     {

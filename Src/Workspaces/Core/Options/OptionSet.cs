@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 if (!values.TryGetValue(optionKey, out value))
                 {
-                    value = this.service != null ? this.service.GetOption(optionKey) : optionKey.Option.DefaultValue;
+                    value = this.service.GetOption(optionKey);
                     values = values.Add(optionKey, value);
                 }
 

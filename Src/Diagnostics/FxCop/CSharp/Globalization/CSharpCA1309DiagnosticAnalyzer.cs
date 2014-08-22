@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer]
     [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA1309DiagnosticAnalyzer : CA1309DiagnosticAnalyzer
     {

@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Performance
-    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+    <DiagnosticAnalyzer>
     <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA1821DiagnosticAnalyzer
         Inherits CA1821DiagnosticAnalyzer
