@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
             Location location,
             IEnumerable<Location> additionalLocations,
             params object[] messageArgs)
-            {
+        {
             if (descriptor == null)
             {
                 throw new ArgumentNullException("descriptor");
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                 message = string.Format(message, messageArgs);
             }
 
-            return Create(descriptor.Id, descriptor.Category, message, descriptor.DefaultSeverity, descriptor.IsEnabledByDefault, warningLevel: descriptor.DefaultSeverity == DiagnosticSeverity.Warning ? 1 : 0, isWarningAsError: false, location: location ?? Location.None, additionalLocations: additionalLocations, customTags: descriptor.CustomTags);
+            return Create(descriptor.Id, descriptor.Category, message, descriptor.DefaultSeverity, descriptor.IsEnabledByDefault, warningLevel: descriptor.DefaultSeverity == DiagnosticSeverity.Warning ? 1 : 0, isWarningAsError: false, description: descriptor.Description, helpLink: descriptor.HelpLink, location: location ?? Location.None, additionalLocations: additionalLocations, customTags: descriptor.CustomTags);
         }
 
         /// <summary>
@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default</param>
         /// <param name="warningLevel">The warning level, between 1 and 4 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
         /// <param name="isWarningAsError">True if the diagnostic is a warning and should be treated as an error; otherwise false.</param>
+        /// <param name="description">An optional longer description for the diagnostic.</param>
+        /// <param name="helpLink">An optional hyperlink that provides more detailed information regarding the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
         /// <param name="additionalLocations">
         /// An optional set of additional locations related to the diagnostic.
@@ -101,6 +103,8 @@ namespace Microsoft.CodeAnalysis
             bool isEnabledByDefault,
             int warningLevel,
             bool isWarningAsError,
+            string description = null,
+            string helpLink = null,
             Location location = null,
             IEnumerable<Location> additionalLocations = null,
             IEnumerable<string> customTags = null)
@@ -120,7 +124,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException("message");
             }
 
-            return new SimpleDiagnostic(id, category, message, severity, isEnabledByDefault, warningLevel, isWarningAsError, location ?? Location.None, additionalLocations, customTags);
+            return new SimpleDiagnostic(id, category, message, description ?? string.Empty, helpLink ?? string.Empty, severity, isEnabledByDefault, warningLevel, isWarningAsError, location ?? Location.None, additionalLocations, customTags);
         }
 
         internal static Diagnostic Create(CommonMessageProvider messageProvider, int errorCode)
@@ -147,6 +151,16 @@ namespace Microsoft.CodeAnalysis
         /// Get the text of the message.
         /// </summary>
         public abstract string GetMessage(CultureInfo culture = null);
+
+        /// <summary>
+        /// Gets a longer description for the diagnostic.
+        /// </summary>
+        public abstract string Description { get; }
+
+        /// <summary>
+        /// Gets a hyperlink that provides more detailed information regarding the diagnostic.
+        /// </summary>
+        public abstract string HelpLink { get; }
 
         /// <summary>
         /// Gets the <see cref="DiagnosticSeverity"/>.

@@ -50,6 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override string Category { get { return kind; } }
 
+            public override string Description { get { return string.Empty; } }
+
+            public override string HelpLink { get { return string.Empty; } }
+
             public override Location Location { get { return location; } }
 
             internal override IReadOnlyList<object> Arguments { get { return arguments; } }

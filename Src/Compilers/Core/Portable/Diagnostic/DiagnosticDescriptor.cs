@@ -21,6 +21,16 @@ namespace Microsoft.CodeAnalysis
         public string Title { get; private set; }
 
         /// <summary>
+        /// An optional longer localizable description for the diagnostic.
+        /// </summary>
+        public string Description { get; private set; }
+
+        /// <summary>
+        /// An optional hyperlink that provides more detailed information regarding the diagnostic.
+        /// </summary>
+        public string HelpLink { get; private set; }
+
+        /// <summary>
         /// A localizable format message string, which can be passed as the first argument to <see cref="M:System.String.Format"/> when creating the diagnostic message with this descriptor.
         /// </summary>
         /// <returns></returns>
@@ -56,8 +66,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="category">The category of the diagnostic (like Design, Naming etc.). For example, for CA1001: "Microsoft.Design".</param>
         /// <param name="defaultSeverity">Default severity of the diagnostic.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default.</param>
+        /// <param name="description">An optional longer localizable description of the diagnostic.</param>
+        /// <param name="helpLink">An optional hyperlink that provides a more detailed description regarding the diagnostic.</param>
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
-        public DiagnosticDescriptor(string id, string title, string messageFormat, string category, DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, params string[] customTags)
+        public DiagnosticDescriptor(string id, string title, string messageFormat,
+            string category, DiagnosticSeverity defaultSeverity, bool isEnabledByDefault,
+            string description = null, string helpLink = null,
+            params string[] customTags)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -70,6 +85,8 @@ namespace Microsoft.CodeAnalysis
             this.MessageFormat = messageFormat;
             this.DefaultSeverity = defaultSeverity;
             this.IsEnabledByDefault = isEnabledByDefault;
+            this.Description = description ?? string.Empty;
+            this.HelpLink = helpLink ?? string.Empty;
             this.CustomTags = customTags;
         }
     }

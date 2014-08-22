@@ -56,6 +56,17 @@ namespace Microsoft.CodeAnalysis
             get { return CompilerDiagnosticCategory; }
         }
 
+        // TODO: Currently, compiler diagnostics have no description and help link. We need to add support for this.
+        public override string Description
+        {
+            get { return string.Empty; }
+        }
+
+        public override string HelpLink
+        {
+            get { return string.Empty; }
+        }
+
         internal sealed override int Code
         {
             get { return this.Info.Code; }

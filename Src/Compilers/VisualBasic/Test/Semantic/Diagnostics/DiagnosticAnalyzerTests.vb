@@ -78,6 +78,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property Description As String
+                Get
+                    Return String.Empty
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property HelpLink As String
+                Get
+                    Return String.Empty
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property Location As Location
                 Get
                     Return m_location
