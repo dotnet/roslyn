@@ -168,8 +168,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // for lambda, set alignment around braces so that users can put brace wherever they want
             if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock())
             {
-                var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
-                SetAlignmentBlockOperation(list, bracePair.Item1, bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2, option);
+                AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
+            }
+
+            // For ArrayInitializationExpression, set indent to relative to the open brace so the content is properly indented
+            if (node.IsKind(SyntaxKind.ArrayInitializerExpression) && node.Parent != null && node.Parent.IsKind(SyntaxKind.ArrayCreationExpression))
+            {
+                AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }
 
             if (node is BlockSyntax && !optionSet.GetOption(CSharpFormattingOptions.IndentBlock))
@@ -185,6 +190,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             AddIndentBlockOperation(list, bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2.GetPreviousToken(includeZeroWidth: true));
+        }
+
+        private void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, Roslyn.Utilities.ValueTuple<SyntaxToken, SyntaxToken> bracePair)
+        {
+            var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+            SetAlignmentBlockOperation(list, bracePair.Item1, bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2, option);
         }
 
         private void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
