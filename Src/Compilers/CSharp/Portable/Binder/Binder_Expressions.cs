@@ -861,13 +861,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool hasErrors;
                 // CheckSyntaxErrorsForNameOf method guarantees that the rightmost part is a IdendifierNameSyntax
-                Debug.Assert(right is IdentifierNameSyntax);
+                Debug.Assert(right.Kind == SyntaxKind.IdentifierName);
                 string rightmostIdentifier = ((IdentifierNameSyntax)right).Identifier.ValueText;
 
                 // We use TypeofBinder in order to resolve unbound generic names without any error.
                 TypeofBinder typeofBinder = new TypeofBinder(argument, this);
                 var symbols = LookupForNameofArgument(left, (IdentifierNameSyntax)right, rightmostIdentifier, diagnostics, typeofBinder, isAliasQualified, out hasErrors);
-                return new BoundNameOfOperator(node, symbols.ToImmutableAndFree(), ConstantValue.Create(rightmostIdentifier), this.GetSpecialType(SpecialType.System_String, diagnostics, node), hasErrors: hasErrors);
+                return new BoundNameOfOperator(node, symbols, ConstantValue.Create(rightmostIdentifier), this.GetSpecialType(SpecialType.System_String, diagnostics, node), hasErrors: hasErrors);
             }
             else
             {
@@ -892,9 +892,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns the list of the symbols which represent the argument of the nameof operator. Ambiguities are not an error for the nameof.
         /// </summary>
-        private ArrayBuilder<Symbol> LookupForNameofArgument(ExpressionSyntax left, IdentifierNameSyntax right, string name, DiagnosticBag diagnostics, TypeofBinder binder, bool isAliasQualified, out bool hasErrors)
+        private ImmutableArray<Symbol> LookupForNameofArgument(ExpressionSyntax left, IdentifierNameSyntax right, string name, DiagnosticBag diagnostics, TypeofBinder binder, bool isAliasQualified, out bool hasErrors)
         {
-            ArrayBuilder<Symbol> symbols = new ArrayBuilder<Symbol>();
+            ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
             Symbol container = null;
             hasErrors = false;
 
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, left.Location, left);
                     hasErrors = true;
-                    return symbols;
+                    return symbols.ToImmutableAndFree();
                 }
             }
             // If it isn't AliasQualified, we first bind the left part, and then bind the right part as a simple name.
@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 hasErrors = true;
             }
-            return symbols;
+            return symbols.ToImmutableAndFree();
         }
 
         private bool CheckUsedBeforeDeclarationIfLocal(ArrayBuilder<Symbol> symbols, ExpressionSyntax node)
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbols.Count > 0)
             {
                 var localSymbol = symbols.First() as LocalSymbol;
-                if (localSymbol != null)
+                if ((object)localSymbol != null)
                 {
                     Location localSymbolLocation = localSymbol.Locations[0];
                     return node.SyntaxTree == localSymbolLocation.SourceTree &&
