@@ -3944,17 +3944,19 @@ End Namespace
             end class
             dim module foo
             end module
-        ]]>, Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Namespace"),
-             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Class"),
-             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "End"),
-             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Namespace"),
-             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Class"),
-             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "End"),
-             Diagnostic(ERRID.ERR_NamespaceNotAtNamespace, "namespace"),
-             Diagnostic(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, "dim"),
-             Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
-             Diagnostic(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, "dim"),
-             Diagnostic(ERRID.ERR_ExpectedIdentifier, ""))
+        ]]>, Diagnostic(ERRID.ERR_ExpectedEndClass, "Class C1").WithLocation(2, 13),
+             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Namespace").WithLocation(19, 33),
+             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Class").WithLocation(20, 33),
+             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "End").WithLocation(21, 23),
+             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Namespace").WithLocation(25, 25),
+             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Class").WithLocation(26, 25),
+             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "End").WithLocation(27, 27),
+             Diagnostic(ERRID.ERR_NamespaceNotAtNamespace, "namespace").WithLocation(31, 21),
+             Diagnostic(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, "dim").WithLocation(31, 17),
+             Diagnostic(ERRID.ERR_ExpectedIdentifier, "").WithLocation(31, 30),
+             Diagnostic(ERRID.ERR_EndClassNoClass, "End Class").WithLocation(37, 13),
+             Diagnostic(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, "dim").WithLocation(40, 13),
+             Diagnostic(ERRID.ERR_ExpectedIdentifier, "").WithLocation(40, 26))
     End Sub
 
     <WorkItem(542066, "DevDiv")>

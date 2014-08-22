@@ -29,8 +29,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.NamespaceStatement
                     ' davidsch - This error check used to be in ParseDeclarations
                     'In dev10 the error was only on the keyword and not the full statement
-                    node = Parser.ReportSyntaxError(node, ERRID.ERR_NamespaceNotAtNamespace)
-                    Return New NamespaceBlockContext(DirectCast(node, StatementSyntax), Me)
+
+                    Dim reportAnError As Boolean = True
+
+                    Dim infos As DiagnosticInfo() = node.GetDiagnostics()
+
+                    If infos IsNot Nothing Then
+                        For Each info In infos
+                            Select Case info.Code
+                                Case ERRID.ERR_NamespaceNotAtNamespace, ERRID.ERR_InvInsideEndsProc
+                                    reportAnError = False
+                                    Exit For
+                            End Select
+                        Next
+                    End If
+
+                    If reportAnError Then
+                        node = Parser.ReportSyntaxError(node, ERRID.ERR_NamespaceNotAtNamespace)
+                    End If
+
+                    Dim context = Me.PrevBlock
+                    RecoverFromMissingEnd(context)
+
+                    'Let the outer context process this statement
+                    Return context.ProcessSyntax(node)
 
                 Case SyntaxKind.ModuleStatement
                     'In dev10 the error was only on the keyword and not the full statement

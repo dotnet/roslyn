@@ -641,12 +641,21 @@ BC30179: structure 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
 BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
             Public Interface Q
                              ~
+BC30481: 'Class' statement must end with a matching 'End Class'.
+        Class N1'class
+        ~~~~~~~~
 BC30179: class 'N1' and namespace 'N1' conflict in namespace 'Foo.Bar'.
         Class N1'class
               ~~
 BC30618: 'Namespace' statements can occur only at file or namespace level.
             Namespace N2
             ~~~~~~~~~~~~
+BC30280: Enum 'Wack2' must contain at least one member.
+                Enum Wack2
+                     ~~~~~
+BC30460: 'End Class' must be preceded by a matching 'Class'.
+        End Class
+        ~~~~~~~~~
 </errors>
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
@@ -722,13 +731,19 @@ BC30618: 'Namespace' statements can occur only at file or namespace level.
             Assert.Equal(TypeKind.Class, typeSymbol7.TypeKind)
 
             Dim typeSymbol8 = CompilationUtils.GetTypeSymbol(compilation, bindingsB, "b.vb", "Wack")
-            Assert.Null(typeSymbol8)
+            Assert.NotNull(typeSymbol8)
+            Assert.Equal("Foo.Bar.N2.Wack", typeSymbol8.ToTestDisplayString())
+            Assert.Equal(TypeKind.Class, typeSymbol8.TypeKind)
 
             Dim typeSymbol9 = CompilationUtils.GetEnumSymbol(compilation, bindingsB, "b.vb", "Wack2")
-            Assert.Null(typeSymbol9)
+            Assert.NotNull(typeSymbol9)
+            Assert.Equal("Foo.Bar.N2.Wack2", typeSymbol9.ToTestDisplayString())
+            Assert.Equal(TypeKind.Enum, typeSymbol9.TypeKind)
 
             Dim typeSymbol10 = CompilationUtils.GetDelegateSymbol(compilation, bindingsB, "b.vb", "Wack3")
-            Assert.Null(typeSymbol10)
+            Assert.NotNull(typeSymbol10)
+            Assert.Equal("Foo.Bar.N2.Wack3", typeSymbol10.ToTestDisplayString())
+            Assert.Equal(TypeKind.Delegate, typeSymbol10.TypeKind)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub
@@ -804,9 +819,15 @@ BC30618: 'Namespace' statements can occur only at file or namespace level.
 BC30179: class 'N4' and namespace 'N4' conflict in namespace 'Foo.Bar'.
         Class N4
               ~~
+BC30481: 'Class' statement must end with a matching 'End Class'.
+        Class Outer
+        ~~~~~~~~~~~
 BC30618: 'Namespace' statements can occur only at file or namespace level.
            Namespace N1'bad
            ~~~~~~~~~~~~
+BC30460: 'End Class' must be preceded by a matching 'Class'.
+        End Class
+        ~~~~~~~~~
     </errors>
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
@@ -847,7 +868,8 @@ BC30618: 'Namespace' statements can occur only at file or namespace level.
             Assert.Equal(nsSymbol2, nsSymbol6)
 
             Dim nsSymbol7 = GetNamespaceSymbol(compilation, bindingsB, "b.vb", "N1'bad")
-            Assert.Null(nsSymbol7)
+            Assert.NotNull(nsSymbol7)
+            Assert.Equal("Foo.Bar.N1", nsSymbol7.ToTestDisplayString())
 
             Dim nsSymbol8 = GetNamespaceSymbol(compilation, bindingsB, "b.vb", "Global.N1")
             Assert.NotNull(nsSymbol8)
@@ -970,9 +992,15 @@ BC30001: Statement is not valid in a namespace.
 
             Dim expectedParseErrors =
 <errors>
+BC30481: 'Class' statement must end with a matching 'End Class'.
+        Class Outer
+        ~~~~~~~~~~~
 BC30618: 'Namespace' statements can occur only at file or namespace level.
            Namespace N1'bad
            ~~~~~~~~~~~~
+BC30460: 'End Class' must be preceded by a matching 'Class'.
+        End Class
+        ~~~~~~~~~
 </errors>
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
@@ -1023,8 +1051,10 @@ BC30618: 'Namespace' statements can occur only at file or namespace level.
             Assert.NotNull(methSymbol7)
 
             Dim methSymbol8 = GetMethodSymbol(compilation, bindingsB, "b.vb", "Wackadoodle()", syntax)
-            Assert.Null(methSymbol8)
-
+            Assert.NotNull(methSymbol8)
+            Assert.Equal("Sub Foo.Bar.N1.Wack.Wackadoodle()", methSymbol8.ToTestDisplayString())
+            Assert.Equal(treeB.GetLineSpan(syntax.Span).StartLinePosition.Line,
+                         methSymbol8.Locations.Single().GetLineSpan().StartLinePosition.Line)
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedDeclErrors)
             CompilationUtils.AssertTheseParseDiagnostics(compilation, expectedParseErrors)

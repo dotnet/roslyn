@@ -767,7 +767,9 @@ p1 as vb$anonymous1
             End Module
         ]]>,
         <errors>
-            <error id="30618"/>
+            <error id=<%= CInt(ERRID.ERR_ExpectedEndModule) %>/>
+            <error id=<%= CInt(ERRID.ERR_NamespaceNotAtNamespace) %>/>
+            <error id=<%= CInt(ERRID.ERR_EndModuleNoModule) %>/>
         </errors>)
     End Sub
 
@@ -801,9 +803,38 @@ p1 as vb$anonymous1
                 End Module
             ]]>,
             <errors>
-                <error id="30481"/>
-                <error id="30618"/>
-                <error id="30626"/>
+                <error id=<%= CInt(ERRID.ERR_ExpectedEndModule) %>/>
+                <error id=<%= CInt(ERRID.ERR_NamespaceNotAtNamespace) %>/>
+                <error id=<%= CInt(ERRID.ERR_ExpectedEndNamespace) %>/>
+                <error id=<%= CInt(ERRID.ERR_ExpectedEndClass) %>/>
+                <error id=<%= CInt(ERRID.ERR_EndModuleNoModule) %>/>
+            </errors>)
+    End Sub
+
+    <Fact>
+    Public Sub NamespaceOutOfPlace()
+        ParseAndVerify(<![CDATA[
+                Module Module1
+                    Class C1
+                        Namespace N1
+            ]]>,
+            <errors>
+                <error id="30625" message="'Module' statement must end with a matching 'End Module'." start="17" end="31"/>
+                <error id="30481" message="'Class' statement must end with a matching 'End Class'." start="52" end="60"/>
+                <error id="30618" message="'Namespace' statements can occur only at file or namespace level." start="85" end="97"/>
+                <error id="30626" message="'Namespace' statement must end with a matching 'End Namespace'." start="85" end="97"/>
+            </errors>)
+
+        ParseAndVerify(<![CDATA[
+                Module Module1
+                    Sub S1()
+                        Namespace N1
+            ]]>,
+            <errors>
+                <error id="30625" message="'Module' statement must end with a matching 'End Module'." start="17" end="31"/>
+                <error id="30026" message="'End Sub' expected." start="52" end="60"/>
+                <error id="30289" message="Statement cannot appear within a method body. End of method assumed." start="85" end="97"/>
+                <error id="30626" message="'Namespace' statement must end with a matching 'End Namespace'." start="85" end="97"/>
             </errors>)
     End Sub
 
