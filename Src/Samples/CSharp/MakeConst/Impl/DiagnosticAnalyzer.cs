@@ -34,8 +34,7 @@ namespace MakeConstCS
 {
     // Implementing syntax node analyzer because the make const diagnostics in one method body are not dependent on the contents of other method bodies.
 
-    [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class DiagnosticAnalyzer : ISyntaxNodeAnalyzer<SyntaxKind>
     {
         public const string MakeConstDiagnosticId = "MakeConstCS";

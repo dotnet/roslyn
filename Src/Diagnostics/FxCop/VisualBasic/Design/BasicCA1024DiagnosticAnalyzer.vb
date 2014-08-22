@@ -8,7 +8,6 @@ Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA1024DiagnosticAnalyzer
         Inherits CA1024DiagnosticAnalyzer
 

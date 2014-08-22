@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA2200DiagnosticAnalyzer
         Inherits CA2200DiagnosticAnalyzer
         Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
@@ -56,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
         End Sub
 
         Private Shared Function IsCaughtLocalThrown(semanticModel As SemanticModel, catchStatement As CatchStatementSyntax, throwExpression As ExpressionSyntax) As Boolean
-            Dim local = TryCast(semanticModel.GetSymbolInfo(throwExpression).Symbol, ILocalSymbol)
+            Dim local = TryCast(SemanticModel.GetSymbolInfo(throwExpression).Symbol, ILocalSymbol)
             If local Is Nothing OrElse local.Locations.Length = 0 Then
                 Return False
             End If

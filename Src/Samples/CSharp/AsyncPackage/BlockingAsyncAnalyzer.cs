@@ -13,8 +13,7 @@ namespace AsyncPackage
     /// methods are used and then checks if synchronous code is used within the method.
     /// A codefix will then change that synchronous code to its asynchronous counterpart.
     /// </summary>
-    [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class BlockingAsyncAnalyzer : ISyntaxNodeAnalyzer<SyntaxKind>
     {
         internal const string BlockingAsyncId = "Async006";

@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    <ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA2213DiagnosticAnalyzer
         Inherits CA2213DiagnosticAnalyzer
 
@@ -38,11 +37,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
                         ' NOTE: This cannot be optimized based on memberAccess.Name because a given method
                         ' may be an explicit interface implementation of IDisposable.Dispose.
                         Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
-                        Dim methodSymbol = TryCast(semanticModel.GetSymbolInfo(memberAccess.Name).Symbol, IMethodSymbol)
+                        Dim methodSymbol = TryCast(SemanticModel.GetSymbolInfo(memberAccess.Name).Symbol, IMethodSymbol)
                         If methodSymbol IsNot Nothing AndAlso
                             (methodSymbol.MetadataName = Dispose OrElse methodSymbol.ExplicitInterfaceImplementations.Any(Function(m) m.MetadataName = Dispose)) Then
                             Dim exp = RemoveParentheses(memberAccess.Expression)
-                            Dim fieldSymbol = TryCast(semanticModel.GetSymbolInfo(exp).Symbol, IFieldSymbol)
+                            Dim fieldSymbol = TryCast(SemanticModel.GetSymbolInfo(exp).Symbol, IFieldSymbol)
                             If fieldSymbol IsNot Nothing Then
                                 NoteFieldDisposed(fieldSymbol)
                             End If
@@ -51,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
                     Case SyntaxKind.UsingStatement
                         Dim usingStatementExpression = RemoveParentheses(DirectCast(node, UsingStatementSyntax).Expression)
                         If usingStatementExpression IsNot Nothing Then
-                            Dim fieldSymbol = TryCast(semanticModel.GetSymbolInfo(usingStatementExpression).Symbol, IFieldSymbol)
+                            Dim fieldSymbol = TryCast(SemanticModel.GetSymbolInfo(usingStatementExpression).Symbol, IFieldSymbol)
                             If fieldSymbol IsNot Nothing Then
                                 NoteFieldDisposed(fieldSymbol)
                             End If

@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Roslyn.Diagnostics.Analyzers.CSharp
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpSpecializedEnumerableCreationAnalyzer : SpecializedEnumerableCreationAnalyzer
     {
         protected override AbstractCodeBlockStartedAnalyzer GetCodeBlockStartedAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)

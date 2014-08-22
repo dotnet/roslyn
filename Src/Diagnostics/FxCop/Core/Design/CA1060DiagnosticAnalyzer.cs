@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// CA1060 - Move P/Invokes to native methods class
     /// </summary>
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA1060DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleId = "CA1060";

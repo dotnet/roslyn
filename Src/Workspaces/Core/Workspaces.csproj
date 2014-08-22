@@ -358,8 +358,6 @@
     <Compile Include="Workspace\Host\Caching\CacheOptions.cs" />
     <Compile Include="Workspace\Host\Caching\CostBasedCache.Nested.cs" />
     <Compile Include="Workspace\Host\Caching\CostBasedCache_Logging.cs" />
-    <Compile Include="Workspace\Host\Mef\DiagnosticProviderMetadata.cs" />
-    <Compile Include="Diagnostics\ExportDiagnosticAnalyzerAttribute.cs" />
     <Compile Include="Differencing\Edit.cs" />
     <Compile Include="Differencing\EditKind.cs" />
     <Compile Include="Differencing\EditScript.cs">

@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
     /// instance that invokes the method has not executed. 
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA2214DiagnosticAnalyzer : CA2214DiagnosticAnalyzer
     {
         protected override IDiagnosticAnalyzer GetCodeBlockEndedAnalyzer(IMethodSymbol constructorSymbol)

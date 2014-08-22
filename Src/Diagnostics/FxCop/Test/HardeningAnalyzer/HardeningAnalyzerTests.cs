@@ -64,7 +64,6 @@ public class Class6<TTypeParameter>
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(InterfaceRule, TypeParameterRule);
 
         [DiagnosticAnalyzer]
-        [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
         internal class ExceptionThrowingSymbolAnalyzer_ThrowSymbolKindsOfInterest : ISymbolAnalyzer
         {
             public ImmutableArray<SymbolKind> SymbolKindsOfInterest

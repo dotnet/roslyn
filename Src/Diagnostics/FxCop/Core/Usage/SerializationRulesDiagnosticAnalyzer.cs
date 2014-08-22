@@ -12,7 +12,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class SerializationRulesDiagnosticAnalyzer : ICompilationNestedAnalyzerFactory
     {
         // Implement serialization constructors

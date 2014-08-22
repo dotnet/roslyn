@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// CA1012: Abstract classes should not have public constructors
     /// </summary>
     [DiagnosticAnalyzer]
-    [ExportDiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA1012DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleId = "CA1012";

@@ -29,8 +29,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Text
 
-<DiagnosticAnalyzer>
-<ExportDiagnosticAnalyzer(LanguageNames.VisualBasic)>
+<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Class DiagnosticAnalyzer
     ' Implementing syntax node analyzer because the make const diagnostics in one method body are not dependent on the contents of other method bodies.
     Implements ISyntaxNodeAnalyzer(Of SyntaxKind)

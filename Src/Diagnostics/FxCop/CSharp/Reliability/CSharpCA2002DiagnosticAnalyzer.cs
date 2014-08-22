@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Reliability
     /// a different application domain that has a lock on the same object. 
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    [ExportDiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpCA2002DiagnosticAnalyzer : CA2002DiagnosticAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
     {
         private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create<SyntaxKind>(SyntaxKind.LockStatement);
