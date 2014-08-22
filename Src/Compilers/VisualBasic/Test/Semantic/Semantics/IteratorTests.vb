@@ -907,6 +907,35 @@ Object
 ]]>)
         End Sub
 
+        <Fact(), WorkItem(1006315, "DevDiv")>
+        Public Sub BadAsyncSingleLineLambda()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                    <compilation>
+                        <file name="a.vb">
+                            <![CDATA[
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+Module Program
+    Function E() As IEnumerable(Of Integer)
+        Return Nothing
+    End Function
+    Sub Main(args As String())
+        Dim x As Func(Of IEnumerable(Of Integer)) = Iterator Function() E()
+    End Sub
+End Module
+]]>
+                        </file>
+                    </compilation>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC36947: Single-line lambdas cannot have the 'Iterator' modifier. Use a multiline lambda instead.
+        Dim x As Func(Of IEnumerable(Of Integer)) = Iterator Function() E()
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+        End Sub
+
     End Class
 
 End Namespace

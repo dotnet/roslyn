@@ -1527,6 +1527,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                           header,
                                                           ParseExpression())
                 value = AdjustTriviaForMissingTokens(value)
+                If header.Modifiers.Any(SyntaxKind.IteratorKeyword) Then
+                    value = Parser.ReportSyntaxError(value, ERRID.ERR_BadIteratorExpressionLambda)
+                End If
 
                 Debug.Assert(_context Is lambdaContext)
                 _context = lambdaContext.PrevBlock

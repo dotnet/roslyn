@@ -44,6 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             If reportRequiresSingleStatement Then
                 lambdaExpr = Parser.ReportSyntaxError(lambdaExpr, ERRID.ERR_SubRequiresSingleStatement)
+            ElseIf header.Kind = SyntaxKind.FunctionLambdaHeader AndAlso header.Modifiers.Any(SyntaxKind.IteratorKeyword) Then
+                lambdaExpr = Parser.ReportSyntaxError(lambdaExpr, ERRID.ERR_BadIteratorExpressionLambda)
             End If
 
             FreeStatements()

@@ -224,7 +224,7 @@ End Module]]>.Value)
         Assert.Equal(1, yieldStatements.Count)
 
     End Sub
-
+    
     <Fact>
     Public Sub ParseIteratorLambdas()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -240,11 +240,6 @@ Module Program
         ' both Iterator and Yield will parse correctly in this case.
         Dim slIteratorSub1 = Iterator Sub() Yield t1
 
-        ' A single-line Iterator Function lambda will parse but no Yield statement can/will parse
-        ' Because single-line Function lambdas must have a single expression as their body and
-        ' Yield statements aren't expression. 
-        Dim slIteratorFunction1 = Iterator Function() Yield (t2)
-
         ' Again, the binder will need to report this as an error but Iterator and Yield will parse here.
         Dim mlIteratorSub = Iterator Sub()
                                 Yield t1
@@ -259,20 +254,17 @@ End Module]]>)
 
         Dim lambdas = tree.GetRoot().DescendantNodes.OfType(Of LambdaExpressionSyntax)().ToArray()
 
-        Assert.Equal(4, lambdas.Count)
-        Assert.Equal(2, lambdas.Count(Function(l) SyntaxFacts.IsSingleLineLambdaExpression(l.Kind)))
+        Assert.Equal(3, lambdas.Count)
+        Assert.Equal(1, lambdas.Count(Function(l) SyntaxFacts.IsSingleLineLambdaExpression(l.Kind)))
         Assert.Equal(2, lambdas.Count(Function(l) SyntaxFacts.IsMultiLineLambdaExpression(l.Kind)))
 
         ' Dim slIteratorSub1 = Iterator Sub() Yield t1
         Assert.Equal(SyntaxKind.YieldStatement, CType(lambdas(0), SingleLineLambdaExpressionSyntax).Body.Kind)
 
-        ' Dim slIteratorFunction1 = Iterator Function() Yield (t2)
-        Assert.Equal(1, lambdas(1).DescendantNodes.OfType(Of IdentifierNameSyntax).Where(Function(id) id.Identifier.ValueText.Equals("Yield")).Count)
-
-        Dim yieldStatements = lambdas(2).DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
+        Dim yieldStatements = lambdas(1).DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
         Assert.Equal(1, yieldStatements.Count)
 
-        yieldStatements = lambdas(3).DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
+        yieldStatements = lambdas(2).DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
         Assert.Equal(1, yieldStatements.Count)
     End Sub
 
