@@ -2611,7 +2611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         queryClause: queryClause);
                 }
 
-                return CreateBadCall(node, methodGroup.Name, methodGroup.Receiver,
+                return CreateBadCall(node, methodGroup.Name, invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0] ? null : methodGroup.Receiver,
                     GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null));
             }
 
@@ -2718,6 +2718,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, code, node);
                 gotError = true;
             }
+
+            Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
 
             if ((object)delegateTypeOpt != null)
             {
