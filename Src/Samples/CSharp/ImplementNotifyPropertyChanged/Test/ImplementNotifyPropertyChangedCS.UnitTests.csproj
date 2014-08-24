@@ -46,10 +46,6 @@
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.CSharp.Workspaces.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Features">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Features.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <ProjectReference Include="..\..\..\Shared\UnitTestFramework\UnitTestFramework.csproj">
       <Project>{d571f126-f0b6-487e-bb79-e91eaee46f4f}</Project>
       <Name>UnitTestFramework</Name>

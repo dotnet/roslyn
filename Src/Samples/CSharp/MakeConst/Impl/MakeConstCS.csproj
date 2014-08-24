@@ -29,10 +29,6 @@
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Features">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Features.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
   </ItemGroup>
   <PropertyGroup>
     <NonShipping>true</NonShipping>

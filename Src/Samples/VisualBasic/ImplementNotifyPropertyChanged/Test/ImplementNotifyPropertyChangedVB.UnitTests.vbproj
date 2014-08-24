@@ -34,10 +34,6 @@
       <Project>{D571F126-F0B6-487E-BB79-E91EAEE46F4F}</Project>
       <Name>UnitTestFramework</Name>
     </ProjectReference>
-    <Reference Include="Microsoft.CodeAnalysis.Features">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Features.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="Microsoft.CodeAnalysis">
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.dll</HintPath>
       <Private>false</Private>
@@ -48,10 +44,6 @@
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces">
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.EditorFeatures">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.EditorFeatures.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <ProjectReference Include="..\Impl\ImplementNotifyPropertyChangedVB.vbproj">

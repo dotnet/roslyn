@@ -33,10 +33,6 @@
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Features">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Features.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Collections.Immutable">

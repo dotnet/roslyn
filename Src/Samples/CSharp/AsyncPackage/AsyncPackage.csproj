@@ -82,10 +82,6 @@
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.CSharp.Workspaces.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Features">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Features.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="Microsoft.CodeAnalysis.VisualBasic">
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
       <Private>false</Private>

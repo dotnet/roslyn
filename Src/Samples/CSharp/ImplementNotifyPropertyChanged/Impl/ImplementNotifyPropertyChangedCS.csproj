@@ -18,10 +18,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <Reference Include="Microsoft.CodeAnalysis.Features">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Features.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="Microsoft.CodeAnalysis">
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.dll</HintPath>
       <Private>false</Private>

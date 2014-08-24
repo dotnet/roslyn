@@ -77,14 +77,6 @@
       <HintPath>(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.LanguageServices.CSharp">
-      <HintPath>(VSLOutDir)\Microsoft.VisualStudio.LanguageServices.CSharp.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.LanguageServices.VisualBasic">
-      <HintPath>(VSLOutDir)\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable">
       <SpecificVersion>False</SpecificVersion>
