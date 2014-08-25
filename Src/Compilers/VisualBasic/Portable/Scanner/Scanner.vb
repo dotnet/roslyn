@@ -80,6 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private ReadOnly _wsTable As CachingFactory(Of TriviaKey, SyntaxTrivia) = _wsTablePool.Allocate
 
+        Private ReadOnly _isScanningForExpressionCompiler As Boolean
+
         Private _isDisposed As Boolean
 
         Private Function GetScratch() As StringBuilder
@@ -92,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
 #Region "Public interface"
-        Friend Sub New(textToScan As SourceText, options As VisualBasicParseOptions)
+        Friend Sub New(textToScan As SourceText, options As VisualBasicParseOptions, Optional isScanningForExpressionCompiler As Boolean = False)
             Debug.Assert(textToScan IsNot Nothing)
 
             _lineBufferOffset = 0
@@ -102,6 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _options = options
 
             _scannerPreprocessorState = New PreprocessorState(GetPreprocessorConstants(options))
+            _isScanningForExpressionCompiler = isScanningForExpressionCompiler
         End Sub
         Friend Sub Dispose() Implements IDisposable.Dispose
             If Not _isDisposed Then
@@ -1501,6 +1504,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MakeLessThanToken(precedingTrivia, charIsFullWidth)
         End Function
 
+        ''' <remarks>
+        ''' Not intended for use in Expression Compiler scenarios.
+        ''' </remarks>
         Friend Shared Function IsIdentifier(spelling As String) As Boolean
             Dim spellingLength As Integer = spelling.Length
             If spellingLength = 0 Then
@@ -1508,7 +1514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Dim c = spelling(0)
-            If IsIdentifierStartCharacter(c) Then
+            If SyntaxFacts.IsIdentifierStartCharacter(c) Then
                 '  SPEC: ... Visual Basic identifiers conform to the Unicode Standard Annex 15 with one 
                 '  SPEC:     exception: identifiers may begin with an underscore (connector) character. 
                 '  SPEC:     If an identifier begins with an underscore, it must contain at least one other 
@@ -2614,6 +2620,10 @@ baddate:
                 Return Array.IndexOf(kinds, kind) >= 0
             End If
             Return False
+        End Function
+
+        Private Function IsIdentifierStartCharacter(c As Char) As Boolean
+            Return (_isScanningForExpressionCompiler AndAlso c = "$"c) OrElse SyntaxFacts.IsIdentifierStartCharacter(c)
         End Function
     End Class
 End Namespace

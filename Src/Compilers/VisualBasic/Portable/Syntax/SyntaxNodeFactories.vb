@@ -181,21 +181,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
-        ''' TODO (acasey): pseudo-locals, etc
         Public Shared Function ParseDebuggerExpression(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As ExpressionSyntax
-            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
-                p.GetNextToken()
-                Dim node = p.ParseExpression()
-                If consumeFullText Then node = p.ConsumeUnexpectedTokens(node)
-                Dim statement = InternalSyntax.SyntaxFactory.PrintStatement(New InternalSyntax.PunctuationSyntax(SyntaxKind.QuestionToken, "?", Nothing, Nothing), node)
-                Dim compilationUnit = InternalSyntax.SyntaxFactory.CompilationUnit(
-                    options:=Nothing,
-                    [imports]:=Nothing,
-                    attributes:=Nothing,
-                    members:=InternalSyntax.SyntaxList.List(statement),
-                    endOfFileToken:=InternalSyntax.SyntaxFactory.EndOfFileToken)
-                Dim syntaxTree = VisualBasicSyntaxTree.Create(DirectCast(compilationUnit.CreateRed(Nothing, 0), CompilationUnitSyntax))
-                Return DirectCast(DirectCast(syntaxTree.GetRoot(), CompilationUnitSyntax).Members.Single(), PrintStatementSyntax).Expression
+            Using scanner As New InternalSyntax.Scanner(MakeSourceText(text, offset), VisualBasicParseOptions.Default, isScanningForExpressionCompiler:=True) ' NOTE: Default options should be enough
+                Using p = New InternalSyntax.Parser(scanner)
+                    p.GetNextToken()
+                    Dim node = p.ParseExpression()
+                    If consumeFullText Then node = p.ConsumeUnexpectedTokens(node)
+                    Dim statement = InternalSyntax.SyntaxFactory.PrintStatement(New InternalSyntax.PunctuationSyntax(SyntaxKind.QuestionToken, "?", Nothing, Nothing), node)
+                    Dim compilationUnit = InternalSyntax.SyntaxFactory.CompilationUnit(
+                        options:=Nothing,
+                        [imports]:=Nothing,
+                        attributes:=Nothing,
+                        members:=InternalSyntax.SyntaxList.List(statement),
+                        endOfFileToken:=InternalSyntax.SyntaxFactory.EndOfFileToken)
+                    Dim syntaxTree = VisualBasicSyntaxTree.Create(DirectCast(compilationUnit.CreateRed(Nothing, 0), CompilationUnitSyntax))
+                    Return DirectCast(DirectCast(syntaxTree.GetRoot(), CompilationUnitSyntax).Members.Single(), PrintStatementSyntax).Expression
+                End Using
             End Using
         End Function
 

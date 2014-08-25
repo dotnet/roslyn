@@ -1068,19 +1068,22 @@ namespace Roslyn.Test.MetadataUtilities
             writer.WriteLine();
         }
 
-        public void VisualizeMethodBody(MethodBodyBlock body, MethodHandle generationHandle, int generation)
+        public void VisualizeMethodBody(MethodBodyBlock body, MethodHandle generationHandle, int generation, bool emitHeader = true)
         {
-            VisualizeMethodBody(body, (MethodHandle)GetAggregateHandle(generationHandle, generation));
+            VisualizeMethodBody(body, (MethodHandle)GetAggregateHandle(generationHandle, generation), emitHeader);
         }
 
-        public void VisualizeMethodBody(MethodBodyBlock body, MethodHandle methodHandle)
+        public void VisualizeMethodBody(MethodBodyBlock body, MethodHandle methodHandle, bool emitHeader = true)
         {
             StringBuilder builder = new StringBuilder();
 
             // TODO: Inspect EncLog to find a containing type and display qualified name.
             var method = GetMethod(methodHandle);
-            builder.AppendFormat("Method {0} (0x{1:X8})", Literal(method.Name), MetadataTokens.GetToken(methodHandle));
-            builder.AppendLine();
+            if (emitHeader)
+            {
+                builder.AppendFormat("Method {0} (0x{1:X8})", Literal(method.Name), MetadataTokens.GetToken(methodHandle));
+                builder.AppendLine();
+            }
 
             // TODO: decode signature
             if (!body.LocalSignature.IsNil)
