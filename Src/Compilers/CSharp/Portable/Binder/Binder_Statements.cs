@@ -3178,7 +3178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is not legal because it is a delegate-creation-expression and not an
             // object-creation-expression, but of course we don't know that syntactically.
 
-            if (expression.Kind == BoundKind.DelegateCreationExpression)
+            if (expression.Kind == BoundKind.DelegateCreationExpression || expression.Kind == BoundKind.NameOfOperator)
             {
                 return false;
             }

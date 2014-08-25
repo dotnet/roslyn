@@ -7578,9 +7578,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var type = this.ParseTypeName();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
-            if (closeParen.IsMissing)
+            if (type.ContainsDiagnostics || closeParen.IsMissing)
             {
-                // If the argument is not parsed as a TypeSyntax, the current token is not CloseParenToken. 
+                // The argument is not parsed as a TypeSyntax, or the following token is not CloseParenToken. 
                 // In this case, come back to the reset point and parse it as an invocation expression.
                 this.Reset(ref resetPoint);
                 result = syntaxFactory.InvocationExpression(identifier, this.ParseParenthesizedArgumentList());
