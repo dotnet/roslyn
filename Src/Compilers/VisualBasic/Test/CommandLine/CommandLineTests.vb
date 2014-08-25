@@ -1730,6 +1730,16 @@ a.vb
             CleanupAllGeneratedFiles(file6.Path)
         End Sub
 
+        <WorkItem(948285, "DevDiv")>
+        <Fact>
+        Public Sub Recurse_SimpleTests3()
+            Dim folder = Temp.CreateDirectory()
+            Dim outWriter = New StringWriter()
+            Dim exitCode = New MockVisualBasicCompiler(Nothing, folder.Path, {"/nologo", "/t:exe", "/out:abc.exe"}).Run(outWriter, Nothing)
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC2008: no input sources specified", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
+        End Sub
+
         <Fact>
         Public Sub Reference_SimpleTests()
             Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/nostdlib", "/vbruntime-", "/r:a", "/REFERENCE:b,,,,c", "a.vb"}, _baseDirectory)
