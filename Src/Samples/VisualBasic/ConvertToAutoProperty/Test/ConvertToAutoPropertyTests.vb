@@ -24,7 +24,6 @@ Imports ConvertToAutoPropertyVB
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.UnitTestFramework
 Imports Xunit
