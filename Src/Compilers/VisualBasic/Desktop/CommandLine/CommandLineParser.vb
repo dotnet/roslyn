@@ -987,7 +987,7 @@ lVbRuntimePlus:
                     AddDiagnostic(diagnostics, ERRID.WRN_BadSwitch, arg)
                 Next
 
-                If Not IsInteractive AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() Then
+                If Not IsInteractive AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() AndAlso outputKind.IsApplication Then
                     ' VB displays help when there is nothing specified on the command line
                     If flattenedArgs.Any Then
                         AddDiagnostic(diagnostics, ERRID.ERR_NoSources)
