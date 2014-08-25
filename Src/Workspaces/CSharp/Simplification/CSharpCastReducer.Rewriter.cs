@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -57,7 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             var reparsedAncestor = SyntaxFactory.ParseExpression(reducedAncestor.ToFullString());
                             if (reparsedAncestor != null && !reparsedAncestor.IsEquivalentTo(reducedAncestor))
                             {
-                                return SyntaxFactory.ParenthesizedExpression(reducedNode);
+                                return SyntaxFactory.ParenthesizedExpression(reducedNode)
+                                    .WithAdditionalAnnotations(Simplifier.Annotation);
                             }
                         }
                     }
