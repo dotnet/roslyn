@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2890,6 +2891,42 @@ struct S
             Assert.NotNull(speculativeModel);
 
             var info = speculativeModel.GetSymbolInfo(attributeSyntax.Name);
+        }
+
+        [WorkItem(1015557)]
+        [Fact(Skip = "1015557")]
+        public void GetSpeculativeSymbolInfoForGenericNameInCref()
+        {
+            var tree = CSharpSyntaxTree.ParseText(@"using System.Collections.Generic;
+class Program
+{
+    /// <summary>
+    /// <see cref=""System.Collections.Generic.List{T}.Contains(T)""/>
+    /// </summary>
+    static void Main()
+    {
+    }
+}", CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilationWithMscorlib(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var crefSyntax = root.DescendantNodes(descendIntoTrivia: true).OfType<QualifiedCrefSyntax>().Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var symbolInfo = semanticModel.GetSymbolInfo(crefSyntax.FindNode(new TextSpan(91, 34)));
+            var oldSymbol = symbolInfo.Symbol;
+            Assert.NotNull(oldSymbol);
+            Assert.Equal(SymbolKind.NamedType, oldSymbol.Kind);
+            Assert.Equal("System.Collections.Generic.List<T>", oldSymbol.ToTestDisplayString());
+
+            var speculatedName = (GenericNameSyntax)SyntaxFactory.GenericName("List{T}");
+            var speculativeSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, speculatedName, SpeculativeBindingOption.BindAsExpression);
+            var newSymbol = speculativeSymbolInfo.Symbol;
+            Assert.NotNull(newSymbol);
+            Assert.Equal(SymbolKind.NamedType, newSymbol.Kind);
+            Assert.Equal("System.Collections.Generic.List<T>", newSymbol.ToTestDisplayString());
+
+            Assert.False(((NamedTypeSymbol)newSymbol).TypeArguments.Single().IsErrorType());
+            Assert.True(newSymbol.Equals(oldSymbol));
         }
 
         [WorkItem(823791, "DevDiv")]
