@@ -69,22 +69,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> WrappingIgnoreSpacesAroundVariableDeclaration = new Option<bool>(SpacingFeatureName, "WrappingIgnoreSpacesAroundVariableDeclaration", defaultValue: false);
+        public static readonly Option<bool> SpacesIgnoreAroundVariableDeclaration = new Option<bool>(SpacingFeatureName, "SpacesIgnoreAroundVariableDeclaration", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> SpaceBeforeOpenSquare = new Option<bool>(SpacingFeatureName, "SpaceBeforeOpenSquare", defaultValue: false);
+        public static readonly Option<bool> SpaceBeforeOpenSquareBracket = new Option<bool>(SpacingFeatureName, "SpaceBeforeOpenSquareBracket", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> SpaceBetweenEmptySquares = new Option<bool>(SpacingFeatureName, "SpaceBetweenEmptySquares", defaultValue: false);
+        public static readonly Option<bool> SpaceBetweenEmptySquareBrackets = new Option<bool>(SpacingFeatureName, "SpaceBetweenEmptySquareBrackets", defaultValue: false);
 
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> SpaceWithinSquares = new Option<bool>(SpacingFeatureName, "SpaceWithinSquares", defaultValue: false);
+        public static readonly Option<bool> SpaceWithinSquareBrackets = new Option<bool>(SpacingFeatureName, "SpaceWithinSquareBrackets", defaultValue: false);
 
 #if MEF
         [ExportOption]
@@ -234,25 +234,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
     public enum LabelPositionOptions
     {
-        // Placed in the Zeroth column of the text editor
+        /// Placed in the Zeroth column of the text editor
         LeftMost,
 
-        // Placed at one less indent to the current context
+        /// Placed at one less indent to the current context
         OneLess,
 
-        // Placed at the same indent as the current context
+        /// Placed at the same indent as the current context
         NoIndent
     }
 
     public enum BinaryOperatorSpacingOptions
     {
-        // Single Spacing
+        /// Single Spacing
         Single,
 
-        // Ignore Formatting
+        /// Ignore Formatting
         Ignore,
 
-        // Remove Spacing
+        /// Remove Spacing
         Remove
     }
 }

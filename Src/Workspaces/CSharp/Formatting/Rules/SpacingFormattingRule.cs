@@ -116,19 +116,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // For spacing Before Square Braces
             if (currentKind == SyntaxKind.OpenBracketToken && HasFormattableBracketParent(currentToken))
             {
-                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBeforeOpenSquare);
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBeforeOpenSquareBracket);
             }
 
             // For spacing empty square braces
             if (previousKind == SyntaxKind.OpenBracketToken && currentKind == SyntaxKind.OmittedArraySizeExpressionToken && HasFormattableBracketParent(previousToken))
             {
-                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptySquares);
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets);
             }
 
             // For spacing square brackets within
             if (previousKind == SyntaxKind.OpenBracketToken && HasFormattableBracketParent(previousToken))
             {
-                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquares);
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
             }
             else if (currentKind == SyntaxKind.CloseBracketToken && HasFormattableBracketParent(currentToken))
             {
@@ -139,12 +139,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     {
                         // int []: added spacing operation on open [
                         // int[1], int[,]: need spacing operation
-                        return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquares);
+                        return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
                     }
                 }
                 else
                 {
-                    return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquares);
+                    return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
                 }
             }
 
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node.IsKind(SyntaxKind.FieldDeclaration) || node.IsKind(SyntaxKind.EventDeclaration) ||
                 node.IsKind(SyntaxKind.EventFieldDeclaration) || node.IsKind(SyntaxKind.LocalDeclarationStatement))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.WrappingIgnoreSpacesAroundVariableDeclaration))
+                if (optionSet.GetOption(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration))
                 {
                     var firstToken = node.GetFirstToken(includeZeroWidth: true);
                     var lastToken = node.GetLastToken(includeZeroWidth: true);

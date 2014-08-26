@@ -5241,7 +5241,7 @@ class Program
     int[ ] x;
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBetweenEmptySquares, true } };
+            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, true } };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -5260,7 +5260,7 @@ class Program
     int [] x;
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBeforeOpenSquare, true } };
+            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBeforeOpenSquareBracket, true } };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -5279,7 +5279,7 @@ class Program
     int[ 3 ] x;
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceWithinSquares, true } };
+            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceWithinSquareBrackets, true } };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -5407,7 +5407,7 @@ class Program
         public void IgnoreSpacesInDeclarationStatementEnabled()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.WrappingIgnoreSpacesAroundVariableDeclaration, true);
+            changingOptions.Add(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true);
             var code = @"
 class Program
 {
