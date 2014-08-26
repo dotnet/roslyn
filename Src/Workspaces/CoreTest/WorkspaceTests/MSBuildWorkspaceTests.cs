@@ -666,6 +666,19 @@ class C1
             });
         }
 
+#if !MSBUILD12
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenSolution_WithUnrecognizedProjectFileExtension_Fails()
+        {
+            // proves that for solution open, project type guid and extension are both necessary
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"TestSolution.sln", GetResourceText("TestSolution_CSharp_UnknownProjectExtension.sln"))
+                .WithFile(@"CSharpProject\CSharpProject.noproj", GetResourceText("CSharpProject_CSharpProject.csproj")));
+
+            var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
+            Assert.Equal(0, solution.ProjectIds.Count);
+        }
+#else
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenSolution_WithUnrecognizedProjectFileExtension_Succeeds()
         {
@@ -677,6 +690,7 @@ class C1
             var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
             Assert.Equal(1, solution.ProjectIds.Count);
         }
+#endif
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenSolution_WithUnrecognizedProjectTypeGuidButRecognizedExtension_Succeeds()
@@ -2122,7 +2136,7 @@ class C1
             var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "531283"), Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(531283, "DevDiv")]
         public void TestOpenSolution_SolutionFileHasMissingEndProject()
         {
