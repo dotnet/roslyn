@@ -43,6 +43,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return New ModifiedComplexTrivia(Me.OptionSet, Me, line, space)
             End Function
 
+            Protected Overrides Function CreateComplexTrivia(line As Integer, space As Integer, indentation As Integer) As TriviaData
+                ' We cannot always choose indentation over space because sometimes the complex trivia may contain some text, which
+                ' are part of the leadingTrivia of the following token, in the same line as the following token.
+                ' Case :
+                ' _
+                ' : Imports
+                ' In the above case, the indentation of the Imports token will be '0' but since it contains the colontrivia we cannot take the
+                ' new indentation.
+
+                ' if given indentation is negative, and actual formatting shows that we can touch the last line (space == 0)
+                ' then, keep the negative indentation.
+                Return New ModifiedComplexTrivia(Me.OptionSet, Me, line, If(space = 0 AndAlso indentation < 0, indentation, space))
+            End Function
+
             Protected Overrides Function Format(context As FormattingContext,
                                                 formattingRules As ChainedFormattingRules,
                                                 lines As Integer,

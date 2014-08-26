@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             protected abstract void ExtractLineAndSpace(string text, out int lines, out int spaces);
             protected abstract TriviaData CreateComplexTrivia(int line, int space);
+            protected abstract TriviaData CreateComplexTrivia(int line, int space, int indentation);
             protected abstract TriviaDataWithList<TTrivia> Format(FormattingContext context, ChainedFormattingRules formattingRules, int lines, int spaces, CancellationToken cancellationToken);
             protected abstract bool ContainsSkippedTokensOrText(TriviaList list);
 
@@ -184,9 +185,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 int spaces;
                 ExtractLineAndSpace(triviaString, out lineBreaks, out spaces);
 
-                // if given indentation is negative, and actual formatting shows that we can touch the last line (space == 0)
-                // then, keep the negative indentation.
-                return CreateComplexTrivia(lineBreaks, (spaces == 0 && indentation < 0) ? indentation : spaces);
+                return CreateComplexTrivia(lineBreaks, spaces, indentation);
             }
 
             private string CreateString(TriviaDataWithList<TTrivia> triviaData, CancellationToken cancellationToken)

@@ -94,6 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return LineColumnRule.PreserveLinesWithDefaultIndentation(lines: 0);
                 }
 
+                if (existingWhitespaceBetween.Lines > 0 && existingWhitespaceBetween.Spaces != this.Spaces)
+                {
+                    return LineColumnRule.PreserveWithGivenSpaces(spaces: this.Spaces);
+                }
+
                 return LineColumnRule.Preserve();
             }
 

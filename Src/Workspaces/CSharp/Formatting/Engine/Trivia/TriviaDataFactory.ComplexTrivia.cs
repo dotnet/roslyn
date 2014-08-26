@@ -45,6 +45,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             protected override TriviaData CreateComplexTrivia(int line, int space)
             {
+                return CreateModifiedComplexTrivia(line, space);
+            }
+
+            protected override TriviaData CreateComplexTrivia(int line, int space, int indentation)
+            {
+                return CreateModifiedComplexTrivia(line, space);
+            }
+
+            private TriviaData CreateModifiedComplexTrivia(int line, int space)
+            {
                 return new ModifiedComplexTrivia(this.OptionSet, this, line, space);
             }
 
