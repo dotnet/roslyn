@@ -8,10 +8,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+#if !MSBUILD12
+using Microsoft.Build.Construction;
+#endif
+
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -366,6 +369,60 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             VersionStamp version = default(VersionStamp);
+
+#if !MSBUILD12
+            Microsoft.Build.Construction.SolutionFile solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(absoluteSolutionPath);
+            var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
+            var invalidProjects = new List<ProjectInSolution>();
+
+            // seed loaders from known project types
+            using (this.dataGuard.DisposableWait())
+            {
+                foreach (var project in solutionFile.ProjectsInOrder)
+                {
+                    var projectAbsolutePath = TryGetAbsolutePath(project.AbsolutePath, reportMode);
+                    if (projectAbsolutePath != null)
+                    {
+                        var extension = Path.GetExtension(projectAbsolutePath);
+                        extension = extension.StartsWith(".") ? extension.Substring(1) : extension;
+
+                        var loader = ProjectFileLoader.GetLoaderForProjectFileExtension(this, extension);
+                        if (loader != null)
+                        {
+                            this.projectPathToLoaderMap[projectAbsolutePath] = loader;
+                        }
+                    }
+                    else
+                    {
+                        invalidProjects.Add(project);
+                    }
+                }
+            }
+
+            // a list to accumulate all the loaded projects
+            var loadedProjects = new List<ProjectInfo>();
+
+            // load all the projects
+            foreach (var project in solutionFile.ProjectsInOrder)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!invalidProjects.Contains(project))
+                {
+                    var projectAbsolutePath = TryGetAbsolutePath(project.AbsolutePath, reportMode);
+                    if (projectAbsolutePath != null)
+                    {
+                        IProjectFileLoader loader;
+                        if (TryGetLoaderFromProjectPath(projectAbsolutePath, reportMode, out loader))
+                        {
+                            // projects get added to 'loadedProjects' as side-effect
+                            // never perfer metadata when loading solution, all projects get loaded if they can.
+                            var tmp = await GetOrLoadProjectAsync(projectAbsolutePath, loader, preferMetadata: false, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        }
+                    }
+                }
+            }
+#else
             SolutionFile solutionFile = null;
 
             using (var reader = new StreamReader(absoluteSolutionPath))
@@ -416,6 +473,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                 }
             }
+#endif
 
             // construct workspace from loaded project infos
             this.OnSolutionAdded(SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects));
@@ -458,6 +516,30 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             // unreachable
             return null;
+        }
+
+        private string TryGetAbsolutePath(string path, ReportMode mode)
+        {
+            try
+            {
+                path = Path.GetFullPath(path);
+            }
+            catch (Exception)
+            {
+                ReportFailure(mode, string.Format(WorkspacesResources.InvalidProjectFilePath, path));
+                return null;
+            }
+
+            if (!File.Exists(path))
+            {
+                ReportFailure(
+                    mode,
+                    string.Format(WorkspacesResources.ProjectFileNotFound, path),
+                    msg => new FileNotFoundException(msg));
+                return null;
+            }
+
+            return path;
         }
 
         private void UpdateReferencesAfterAdd()
@@ -763,9 +845,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return null;
         }
-    #endregion
+#endregion
 
-    #region Apply Changes
+#region Apply Changes
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             switch (feature)
@@ -970,5 +1052,5 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
     }
-    #endregion
+#endregion
 }
