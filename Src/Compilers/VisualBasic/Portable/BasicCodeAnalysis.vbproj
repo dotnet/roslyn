@@ -989,7 +989,9 @@
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
   <PropertyGroup Label="Post Build Events">
+    <!-- This post build step is not required as we have a Roslyn analyzer doing these checks now: BasicUseSiteDiagnosticsCheckEnforcerAnalyzer
     <PostBuildEvent>"$(ProjectDir)UseSiteDiagnosticsCheckEnforcer\Run.bat" "$(OutDir)" "$(TargetFileName)" "$(TargetPath)" "$(ProjectDir)" "$(IldasmPath)"</PostBuildEvent>
+    -->
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
