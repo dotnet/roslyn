@@ -1440,7 +1440,7 @@ End Module
             <![CDATA[{
   // Code size       89 (0x59)
   .maxstack  6
-  .locals init (Integer V_0, //VB$CurrentLine
+  .locals init (Integer V_0,
   System.Exception V_1) //ex
   .try
 {

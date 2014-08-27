@@ -43,7 +43,7 @@ Dispose
 {
   // Code size       23 (0x17)
   .maxstack  2
-  .locals init (MyManagedClass V_0) //VB$Using
+  .locals init (MyManagedClass V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldind.ref
   IL_0002:  stloc.0
@@ -97,7 +97,7 @@ End Class
 {
   // Code size       20 (0x14)
   .maxstack  1
-  .locals init (MyManagedClass V_0) //VB$Using
+  .locals init (MyManagedClass V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       "Function C1.N() As MyManagedClass"
   IL_0006:  stloc.0
@@ -140,7 +140,7 @@ End Class
 {
   // Code size       20 (0x14)
   .maxstack  1
-  .locals init (Object V_0) //VB$Using
+  .locals init (Object V_0)
   IL_0000:  ldnull
   IL_0001:  stloc.0
   .try
@@ -192,7 +192,7 @@ End Class
 {
   // Code size       19 (0x13)
   .maxstack  1
-  .locals init (MyManagedClass V_0) //VB$Using
+  .locals init (MyManagedClass V_0)
   IL_0000:  newobj     "Sub MyManagedClass..ctor()"
   IL_0005:  stloc.0
   .try
@@ -325,8 +325,8 @@ End Class
   // Code size       33 (0x21)
   .maxstack  1
   .locals init (cls1 V_0, //o1
-  cls1 V_1, //VB$Using
-  cls1 V_2) //VB$Using
+  cls1 V_1,
+  cls1 V_2)
   IL_0000:  newobj     "Sub cls1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -390,23 +390,22 @@ End Structure
 {
   // Code size       26 (0x1a)
   .maxstack  1
-  .locals init (s1 V_0,
-  s1 V_1) //VB$Using
+  .locals init (s1 V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "s1"
   IL_0008:  ldloc.0
-  IL_0009:  stloc.1
+  IL_0009:  stloc.0
   .try
-{
-  IL_000a:  br.s       IL_000a
-}
+  {
+    IL_000a:  br.s       IL_000a
+  }
   finally
-{
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  constrained. "s1"
-  IL_0014:  callvirt   "Sub System.IDisposable.Dispose()"
-  IL_0019:  endfinally
-}
+  {
+    IL_000c:  ldloca.s   V_0
+    IL_000e:  constrained. "s1"
+    IL_0014:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0019:  endfinally
+  }
 }
 ]]>)
 
@@ -844,7 +843,7 @@ Dispose]]>).VerifyIL("Program.Main", <![CDATA[
   // Code size       43 (0x2b)
   .maxstack  1
   .locals init (MyManagedClass V_0, //obj
-  MyManagedClass V_1) //VB$Using
+  MyManagedClass V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "MyManagedClass"
   IL_0008:  ldloc.0
@@ -1129,7 +1128,7 @@ End Class
 {
   // Code size       21 (0x15)
   .maxstack  1
-  .locals init (MyManagedClass V_0) //VB$Using
+  .locals init (MyManagedClass V_0)
   IL_0000:  ldnull
   IL_0001:  stloc.0
   .try
@@ -1187,7 +1186,7 @@ Dispose]]>).VerifyIL("Program.Main", <![CDATA[
 {
   // Code size       40 (0x28)
   .maxstack  1
-  .locals init (MyManagedClass V_0) //VB$Using
+  .locals init (MyManagedClass V_0)
   IL_0000:  newobj     "Sub MyManagedClass..ctor()"
   IL_0005:  stloc.0
   .try
@@ -1255,7 +1254,7 @@ Catch]]>).VerifyIL("Program.Main", <![CDATA[
   // Code size       59 (0x3b)
   .maxstack  1
   .locals init (MyManagedClass V_0, //x
-  MyManagedClass V_1) //VB$Using
+  MyManagedClass V_1)
   IL_0000:  newobj     "Sub MyManagedClass..ctor()"
   IL_0005:  stloc.0
   .try
@@ -1379,8 +1378,8 @@ End Module
   .maxstack  7
   .locals init (Object V_0, //o2
   strd V_1,
-  Object V_2, //VB$Using
-  Object V_3) //VB$Using
+  Object V_2,
+  Object V_3)
   IL_0000:  ldc.i4.0
   IL_0001:  stsfld     "strd.disposed_s As Integer"
   IL_0006:  ldloca.s   V_1

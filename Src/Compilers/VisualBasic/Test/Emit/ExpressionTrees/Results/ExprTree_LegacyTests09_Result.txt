@@ -105,16 +105,16 @@ Lambda(
     Coalesce(
       MemberAccess(
         Constant(
-          Form1+_Closure$__3`1[Form1+Class2]
-          type: Form1+_Closure$__3`1[Form1+Class2]
+          Form1+_Closure$__2`1[Form1+Class2]
+          type: Form1+_Closure$__2`1[Form1+Class2]
         )
         -> $VB$Local_y
         type: Form1+Class2
       )
       MemberAccess(
         Constant(
-          Form1+_Closure$__3`1[Form1+Class2]
-          type: Form1+_Closure$__3`1[Form1+Class2]
+          Form1+_Closure$__2`1[Form1+Class2]
+          type: Form1+_Closure$__2`1[Form1+Class2]
         )
         -> $VB$Local_c1
         type: Form1+Class1
@@ -152,16 +152,16 @@ Lambda(
     Coalesce(
       MemberAccess(
         Constant(
-          Form1+_Closure$__3`1[Form1+Class2]
-          type: Form1+_Closure$__3`1[Form1+Class2]
+          Form1+_Closure$__2`1[Form1+Class2]
+          type: Form1+_Closure$__2`1[Form1+Class2]
         )
         -> $VB$Local_y
         type: Form1+Class2
       )
       MemberAccess(
         Constant(
-          Form1+_Closure$__3`1[Form1+Class2]
-          type: Form1+_Closure$__3`1[Form1+Class2]
+          Form1+_Closure$__2`1[Form1+Class2]
+          type: Form1+_Closure$__2`1[Form1+Class2]
         )
         -> $VB$Local_c1
         type: Form1+Class1
@@ -199,8 +199,8 @@ Lambda(
     Coalesce(
       MemberAccess(
         Constant(
-          Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
-          type: Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+          Form1+_Closure$__4`2[Form1+Class2,Form1+Class2]
+          type: Form1+_Closure$__4`2[Form1+Class2,Form1+Class2]
         )
         -> $VB$Local_z1
         type: Form1+Class2
@@ -209,8 +209,8 @@ Lambda(
         Convert(
           MemberAccess(
             Constant(
-              Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
-              type: Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+              Form1+_Closure$__4`2[Form1+Class2,Form1+Class2]
+              type: Form1+_Closure$__4`2[Form1+Class2,Form1+Class2]
             )
             -> $VB$Local_z2
             type: Form1+Class2
@@ -231,8 +231,8 @@ Lambda(
     Coalesce(
       MemberAccess(
         Constant(
-          Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
-          type: Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+          Form1+_Closure$__4`2[Form1+Class2,Form1+Class2]
+          type: Form1+_Closure$__4`2[Form1+Class2,Form1+Class2]
         )
         -> $VB$Local_z1
         type: Form1+Class2
@@ -241,8 +241,8 @@ Lambda(
         Convert(
           MemberAccess(
             Constant(
-              Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
-              type: Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+              Form1+_Closure$__4`2[Form1+Class2,Form1+Class2]
+              type: Form1+_Closure$__4`2[Form1+Class2,Form1+Class2]
             )
             -> $VB$Local_z2
             type: Form1+Class2

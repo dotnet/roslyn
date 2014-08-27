@@ -25,35 +25,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.m_isMe = isMeParameter
         End Sub
 
-        Public Shared Function Create(frame As LambdaFrame, captured As Symbol) As LambdaCapturedVariable
+        Public Shared Function Create(frame As LambdaFrame, captured As Symbol, ByRef uniqueId As Integer) As LambdaCapturedVariable
             Debug.Assert(TypeOf captured Is LocalSymbol OrElse TypeOf captured Is ParameterSymbol)
 
-            Dim fieldName = GetCapturedVariableFieldName(captured)
+            Dim fieldName = GetCapturedVariableFieldName(captured, uniqueId)
             Dim type = GetCapturedVariableFieldType(frame, captured)
 
             Return New LambdaCapturedVariable(frame, captured, type, fieldName, IsMe(captured))
         End Function
 
-        Public Shared Function GetCapturedVariableFieldName(captured As Symbol) As String
-            Dim name As String
-
+        Public Shared Function GetCapturedVariableFieldName(captured As Symbol, ByRef uniqueId As Integer) As String
             ' captured symbol is either a local or parameter.
             Dim local = TryCast(captured, LocalSymbol)
-
-            If local IsNot Nothing Then
-                ' it is a local variable
-                name = If(local.IsCompilerGenerated,
-                          StringConstants.LiftedNonLocalPrefix & captured.Name,
-                          StringConstants.LiftedLocalPrefix & captured.Name)
-            Else
-                ' it must be a parameter
-                Dim parameter = DirectCast(captured, ParameterSymbol)
-                name = If(parameter.IsMe,
-                          StringConstants.LiftedMeName,
-                          StringConstants.LiftedLocalPrefix & captured.Name)
+            If local IsNot Nothing AndAlso local.IsCompilerGenerated Then
+                Return StringConstants.LiftedNonLocalPrefix & If(local.SynthesizedLocalKind.IsLongLived(), GeneratedNames.MakeLocalName(local.SynthesizedLocalKind, local.Type, uniqueId), Nothing)
             End If
 
-            Return name
+            Dim parameter = TryCast(captured, ParameterSymbol)
+            If parameter IsNot Nothing AndAlso parameter.IsMe Then
+                Return StringConstants.LiftedMeName
+            End If
+
+            Return StringConstants.LiftedLocalPrefix & captured.Name
         End Function
 
         Public Shared Function GetCapturedVariableFieldType(frame As LambdaFrame, captured As Symbol) As TypeSymbol

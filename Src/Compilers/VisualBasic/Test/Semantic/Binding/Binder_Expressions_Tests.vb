@@ -1828,7 +1828,7 @@ End Module
   IL_002c:  ldarg.0
   IL_002d:  call       "Function Module1.Test.get_Color() As Module1.Color"
   IL_0032:  stfld      "Module1.Test._Closure$__1.$VB$NonLocal_ As Module1.Color"
-  IL_0037:  ldftn      "Sub Module1.Test._Closure$__1._Lambda$__5()"
+  IL_0037:  ldftn      "Sub Module1.Test._Closure$__1._Lambda$__4()"
   IL_003d:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0042:  callvirt   "Sub System.Action.Invoke()"
   IL_0047:  ret

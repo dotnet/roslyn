@@ -36,8 +36,8 @@ End Module
 {
   // Code size       85 (0x55)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1) //VB$ResumeTarget
+  .locals init (Integer V_0,
+                Integer V_1)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -185,8 +185,8 @@ End Module
 {
   // Code size       85 (0x55)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1) //VB$ResumeTarget
+  .locals init (Integer V_0,
+                Integer V_1)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -269,8 +269,8 @@ End Module
 {
   // Code size      101 (0x65)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1) //VB$ResumeTarget
+  .locals init (Integer V_0,
+                Integer V_1)
   .try
 {
   IL_0000:  ldc.i4.1
@@ -356,9 +356,9 @@ End Module
 {
   // Code size      139 (0x8b)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  ldc.i4.1
@@ -602,9 +602,9 @@ End Module
 {
   // Code size      165 (0xa5)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  ldc.i4.1
@@ -716,9 +716,9 @@ End Module
 {
   // Code size      162 (0xa2)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  ldc.i4.1
@@ -829,8 +829,8 @@ End Module
 {
   // Code size       78 (0x4e)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1) //VB$ResumeTarget
+  .locals init (Integer V_0,
+                Integer V_1)
   .try
 {
   IL_0000:  ldc.i4.1
@@ -930,8 +930,8 @@ End Class
 {
   // Code size       91 (0x5b)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1) //VB$ResumeTarget
+  .locals init (Integer V_0,
+                Integer V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       "Sub Object..ctor()"
   .try
@@ -985,8 +985,8 @@ End Class
 {
   // Code size       97 (0x61)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1) //VB$ResumeTarget
+  .locals init (Integer V_0,
+                Integer V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String) As Integer"
@@ -1042,8 +1042,8 @@ End Class
 {
   // Code size       92 (0x5c)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1) //VB$ResumeTarget
+  .locals init (Integer V_0,
+                Integer V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  call       "Sub Base..ctor(Integer)"
@@ -1342,9 +1342,9 @@ End Module
   // Code size      112 (0x70)
   .maxstack  3
   .locals init (Integer V_0, //Main
-  Integer V_1, //VB$ActiveHandler
-  Integer V_2, //VB$ResumeTarget
-  Integer V_3) //VB$CurrentStatement
+                Integer V_1,
+                Integer V_2,
+                Integer V_3)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -3714,10 +3714,10 @@ End Module
 {
   // Code size      183 (0xb7)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  Integer V_3)
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                Integer V_3)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -4122,10 +4122,10 @@ End Module
 {
   // Code size      220 (0xdc)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  Integer V_3)
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                Integer V_3)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -4659,9 +4659,9 @@ End Module
             <![CDATA[{
   // Code size      208 (0xd0)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -5741,9 +5741,9 @@ End Module
             <![CDATA[{
   // Code size      201 (0xc9)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -6586,9 +6586,9 @@ End Module
             <![CDATA[{
   // Code size      204 (0xcc)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -7033,10 +7033,10 @@ End Module
 {
   // Code size      315 (0x13b)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  System.Collections.IEnumerator V_3) //VB$ForEachEnumerator
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                System.Collections.IEnumerator V_3)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -7951,10 +7951,10 @@ End Module
             <![CDATA[{
   // Code size      268 (0x10c)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  System.Collections.IEnumerator V_3) //VB$ForEachEnumerator
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                System.Collections.IEnumerator V_3)
   .try
 {
   IL_0000:  ldc.i4.1
@@ -8110,10 +8110,10 @@ End Module
 {
   // Code size      199 (0xc7)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  System.Collections.IEnumerator V_3) //VB$ForEachEnumerator
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                System.Collections.IEnumerator V_3)
   .try
 {
   IL_0000:  ldc.i4.1
@@ -9737,11 +9737,11 @@ End Module
             <![CDATA[{
   // Code size      302 (0x12e)
   .maxstack  6
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  Object V_3, //VB$LoopObject
-  Object V_4) //i
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                Object V_3,
+                Object V_4) //i
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -10469,12 +10469,12 @@ End Module
             <![CDATA[{
   // Code size      317 (0x13d)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  String V_3, //VB$ForEachArray
-  Integer V_4, //VB$ForEachArrayIndex
-  Char V_5) //c
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                String V_3,
+                Integer V_4,
+                Char V_5) //c
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -13099,10 +13099,10 @@ End Module
             <![CDATA[{
   // Code size      330 (0x14a)
   .maxstack  4
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  System.Exception V_3) //ex
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                System.Exception V_3) //ex
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -14991,9 +14991,9 @@ End Module
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size       87 (0x57)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  String V_2) //sPath
+  .locals init (Integer V_0,
+                Integer V_1,
+                String V_2) //sPath
   .try
 {
   IL_0000:  ldstr      ""
@@ -15077,9 +15077,9 @@ End Module
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size       87 (0x57)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  String V_2) //sPath
+  .locals init (Integer V_0,
+                Integer V_1,
+                String V_2) //sPath
   .try
 {
   IL_0000:  ldstr      ""
@@ -15223,8 +15223,8 @@ End Module
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      184 (0xb8)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1) //VB$ResumeTarget
+  .locals init (Integer V_0,
+                Integer V_1)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -15344,8 +15344,8 @@ End Module
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      163 (0xa3)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1) //VB$ResumeTarget
+  .locals init (Integer V_0,
+                Integer V_1)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -15524,9 +15524,9 @@ End Module
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      151 (0x97)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -15627,9 +15627,9 @@ End Module
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      151 (0x97)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -15731,9 +15731,9 @@ End Module
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      166 (0xa6)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -16402,9 +16402,9 @@ End Module
             compilationVerifier.VerifyIL("Module1.GotoMinus0", <![CDATA[{
   // Code size      189 (0xbd)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -16528,9 +16528,9 @@ End Module
             compilationVerifier.VerifyIL("Module1.GotoMinus0", <![CDATA[{
   // Code size      187 (0xbb)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -16675,10 +16675,10 @@ Foo
             compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[{
   // Code size      298 (0x12a)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  Integer V_3) //IiNDEX
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                Integer V_3) //IiNDEX
   .try
 {
   IL_0000:  ldc.i4.1
@@ -16865,10 +16865,10 @@ Foo]]>)
 {
   // Code size      298 (0x12a)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  Integer V_3) //IiNDEX
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                Integer V_3) //IiNDEX
   .try
 {
   IL_0000:  ldc.i4.1
@@ -17043,9 +17043,9 @@ After 2 Exception]]>)
             compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[{
   // Code size      261 (0x105)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2) //VB$CurrentStatement
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -17369,12 +17369,12 @@ End Module
 {
   // Code size      206 (0xce)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  LockClass V_3, //lock
-  Object V_4, //VB$Lock
-  Boolean V_5) //VB$LockTaken
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                LockClass V_3, //lock
+                Object V_4,
+                Boolean V_5)
   .try
 {
   IL_0000:  ldc.i4.1
@@ -17516,12 +17516,12 @@ End Module
 {
   // Code size      197 (0xc5)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  LockClass V_3, //lock
-  Object V_4, //VB$Lock
-  Boolean V_5) //VB$LockTaken
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                LockClass V_3, //lock
+                Object V_4,
+                Boolean V_5)
   .try
 {
   IL_0000:  ldc.i4.1
@@ -18079,10 +18079,10 @@ After Case]]>)
             CompilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      315 (0x13b)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
-  Object V_3)
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                Object V_3)
   .try
 {
   IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"

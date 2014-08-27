@@ -70,19 +70,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             End Sub
 
-            Friend Shared Function IsSynthetic(symbol As Symbol) As Boolean
-                ' TODO: this matches C# implementation, but may need to be revised according to VB semantics
-
-                ' Special Case: There's logic in the EE to recognize locals that have been captured by a lambda
-                ' and would have been hoisted for the state machine.  Basically, we just hoist the local containing
-                ' the instance of the lambda closure class as if it were user-created, rather than a compiler temp.
-                ' The upshot is that an entry is created for a pseudo-local with a double-mangled name (hoisting
-                ' mangling wrapping closure mangling, e.g. $VB$ResumableLocal_$VB$Closure_4$1).
-                Dim name As String = symbol.Name
-                Return Not (SyntaxFacts.IsValidIdentifier(name) AndAlso symbol.Locations.Length > 0 AndAlso symbol.CanBeReferencedByName) AndAlso
-                       Not (name IsNot Nothing AndAlso name.StartsWith(StringConstants.ClosureVariablePrefix))
-            End Function
-
             ''' <summary>
             ''' Implementation-specific name for labels to mark state machine resume points.
             ''' </summary>
@@ -184,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim proxyFields = ArrayBuilder(Of FieldSymbol).GetInstance()
                 For Each local In locals
-                    If Not IsSynthetic(local) Then
+                    If local.SynthesizedLocalKind = SynthesizedLocalKind.None OrElse local.SynthesizedLocalKind = SynthesizedLocalKind.LambdaDisplayClass Then
                         Dim proxy As TProxy = Nothing
                         If Proxies.TryGetValue(local, proxy) Then
                             Me.AddProxyFieldsForStateMachineScope(proxy, proxyFields)

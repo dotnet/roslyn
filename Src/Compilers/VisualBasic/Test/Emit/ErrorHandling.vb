@@ -244,10 +244,10 @@ End Module
     {
       // Code size      155 (0x9b)
       .maxstack  3
-      .locals init (Integer V_0, //VB$ActiveHandler
-      Integer V_1, //VB$ResumeTarget
-      Integer V_2, //VB$CurrentStatement
-      Integer V_3) //VB$CurrentLine
+      .locals init (Integer V_0,
+      Integer V_1,
+      Integer V_2,
+      Integer V_3)
       .try
     {
       IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -918,12 +918,12 @@ End]]>)
 {
   // Code size      251 (0xfb)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ActiveHandler
-  Integer V_1, //VB$ResumeTarget
-  Integer V_2, //VB$CurrentStatement
+  .locals init (Integer V_0,
+  Integer V_1,
+  Integer V_2,
   LockClass V_3, //lock
-  Object V_4, //VB$Lock
-  Boolean V_5) //VB$LockTaken
+  Object V_4,
+  Boolean V_5)
   .try
 {
   IL_0000:  ldc.i4.1

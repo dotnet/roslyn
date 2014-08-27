@@ -344,23 +344,23 @@ Inside Using.
 {
   // Code size       29 (0x1d)
   .maxstack  1
-  .locals init (MyDisposable V_0) //VB$Using
+  .locals init (MyDisposable V_0)
   IL_0000:  newobj     "Sub MyDisposable..ctor()"
   IL_0005:  stloc.0
   .try
-{
-  IL_0006:  ldstr      "Inside Using."
-  IL_000b:  call       "Sub System.Console.WriteLine(String)"
-  IL_0010:  leave.s    IL_001c
-}
+  {
+    IL_0006:  ldstr      "Inside Using."
+    IL_000b:  call       "Sub System.Console.WriteLine(String)"
+    IL_0010:  leave.s    IL_001c
+  }
   finally
-{
-  IL_0012:  ldloc.0
-  IL_0013:  brfalse.s  IL_001b
-  IL_0015:  ldloc.0
-  IL_0016:  callvirt   "Sub System.IDisposable.Dispose()"
-  IL_001b:  endfinally
-}
+  {
+    IL_0012:  ldloc.0
+    IL_0013:  brfalse.s  IL_001b
+    IL_0015:  ldloc.0
+    IL_0016:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_001b:  endfinally
+  }
   IL_001c:  ret
 }
 ]]>)
@@ -401,22 +401,22 @@ Inside Using.
 {
   // Code size       35 (0x23)
   .maxstack  1
-  .locals init (MyDisposable V_0) //VB$Using
+  .locals init (MyDisposable V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "MyDisposable"
   .try
-{
-  IL_0008:  ldstr      "Inside Using."
-  IL_000d:  call       "Sub System.Console.WriteLine(String)"
-  IL_0012:  leave.s    IL_0022
-}
+  {
+    IL_0008:  ldstr      "Inside Using."
+    IL_000d:  call       "Sub System.Console.WriteLine(String)"
+    IL_0012:  leave.s    IL_0022
+  }
   finally
-{
-  IL_0014:  ldloca.s   V_0
-  IL_0016:  constrained. "MyDisposable"
-  IL_001c:  callvirt   "Sub System.IDisposable.Dispose()"
-  IL_0021:  endfinally
-}
+  {
+    IL_0014:  ldloca.s   V_0
+    IL_0016:  constrained. "MyDisposable"
+    IL_001c:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0021:  endfinally
+  }
   IL_0022:  ret
 }
 ]]>)

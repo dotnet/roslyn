@@ -303,7 +303,7 @@ End Module
   IL_0026:  dup
   IL_0027:  ldloc.0
   IL_0028:  stfld      "Program._Closure$__1.$VB$NonLocal_ As <generated method>"
-  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Integer)"
+  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__4(Integer)"
   IL_0033:  newobj     "Sub System.Action(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0038:  ldc.i4.2
   IL_0039:  callvirt   "Sub System.Action(Of Integer).Invoke(Integer)"
@@ -323,7 +323,7 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+            verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
             <![CDATA[
 {
   // Code size       18 (0x12)
@@ -448,7 +448,7 @@ End Module
   IL_0026:  dup
   IL_0027:  ldloc.0
   IL_0028:  stfld      "Program._Closure$__1.$VB$NonLocal_ As <generated method>"
-  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Object)"
+  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__4(Object)"
   IL_0033:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_0038:  ldc.i4.2
   IL_0039:  box        "Integer"
@@ -468,7 +468,7 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+            verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
             <![CDATA[
 {
   // Code size       18 (0x12)
@@ -590,7 +590,7 @@ End Module
   IL_0026:  dup
   IL_0027:  ldloc.0
   IL_0028:  stfld      "Program._Closure$__1.$VB$NonLocal_ As <generated method>"
-  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Object)"
+  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__4(Object)"
   IL_0033:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_0038:  ldc.i4.2
   IL_0039:  box        "Integer"
@@ -610,7 +610,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
                 <![CDATA[
 {
     // Code size       18 (0x12)
@@ -678,7 +678,7 @@ End Module
   IL_0026:  dup
   IL_0027:  ldloc.0
   IL_0028:  stfld      "Program._Closure$__1.$VB$NonLocal_ As <generated method>"
-  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Object)"
+  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__4(Object)"
   IL_0033:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_0038:  ldc.i4.2
   IL_0039:  box        "Integer"
@@ -698,7 +698,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
                 <![CDATA[
 {
     // Code size       18 (0x12)
@@ -766,7 +766,7 @@ End Module
   IL_0026:  dup
   IL_0027:  ldloc.0
   IL_0028:  stfld      "Program._Closure$__1.$VB$NonLocal_ As <generated method>"
-  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Object)"
+  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__4(Object)"
   IL_0033:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_0038:  ldc.i4.2
   IL_0039:  box        "Integer"
@@ -786,7 +786,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
                 <![CDATA[
 {
     // Code size       18 (0x12)
@@ -855,7 +855,7 @@ End Module
   IL_0026:  dup
   IL_0027:  ldloc.0
   IL_0028:  stfld      "Program._Closure$__1.$VB$NonLocal_ As <generated method>"
-  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Object)"
+  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__4(Object)"
   IL_0033:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_0038:  ldc.i4.2
   IL_0039:  box        "Integer"
@@ -875,7 +875,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
                 <![CDATA[
 {
     // Code size       18 (0x12)
@@ -1091,7 +1091,7 @@ End Module
   IL_0026:  dup
   IL_0027:  ldloc.0
   IL_0028:  stfld      "Program._Closure$__1.$VB$NonLocal_ As <generated method>"
-  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__5()"
+  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__4()"
   IL_0033:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0038:  callvirt   "Sub System.Action.Invoke()"
   IL_003d:  ret
@@ -1110,7 +1110,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
                 <![CDATA[
 {
   // Code size       13 (0xd)
@@ -1237,7 +1237,7 @@ End Module
   IL_0026:  dup
   IL_0027:  ldloc.0
   IL_0028:  stfld      "Program._Closure$__1.$VB$NonLocal_ As <generated method>"
-  IL_002d:  ldftn      "Function Program._Closure$__1._Lambda$__5() As Integer"
+  IL_002d:  ldftn      "Function Program._Closure$__1._Lambda$__4() As Integer"
   IL_0033:  newobj     "Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0038:  callvirt   "Function System.Func(Of Integer).Invoke() As Integer"
   IL_003d:  call       "Sub System.Console.WriteLine(Integer)"
@@ -1256,7 +1256,7 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+            verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
             <![CDATA[
 {
   // Code size       17 (0x11)
@@ -1395,7 +1395,7 @@ End Module
   IL_0026:  dup
   IL_0027:  ldloc.0
   IL_0028:  stfld      "Program._Closure$__1.$VB$NonLocal_ As <generated method>"
-  IL_002d:  ldftn      "Function Program._Closure$__1._Lambda$__5() As Object"
+  IL_002d:  ldftn      "Function Program._Closure$__1._Lambda$__4() As Object"
   IL_0033:  newobj     "Sub System.Func(Of Object)..ctor(Object, System.IntPtr)"
   IL_0038:  callvirt   "Function System.Func(Of Object).Invoke() As Object"
   IL_003d:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
@@ -1414,7 +1414,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
                 <![CDATA[
 {
   // Code size       17 (0x11)
@@ -1622,7 +1622,7 @@ End Module
   IL_0026:  dup
   IL_0027:  ldloc.0
   IL_0028:  stfld      "Program._Closure$__1.$VB$NonLocal_ As <generated method>"
-  IL_002d:  ldftn      "Function Program._Closure$__1._Lambda$__5(Integer) As Integer"
+  IL_002d:  ldftn      "Function Program._Closure$__1._Lambda$__4(Integer) As Integer"
   IL_0033:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_0038:  ldc.i4.s   13
   IL_003a:  callvirt   "Function System.Func(Of Integer, Integer).Invoke(Integer) As Integer"
@@ -1641,7 +1641,7 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+            verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
             <![CDATA[
 {
   // Code size       12 (0xc)
@@ -1856,7 +1856,7 @@ End Module
   // Code size       76 (0x4c)
   .maxstack  3
   .locals init (VB$AnonymousDelegate_0(Of Object) V_0, //d
-  String V_1) //x2
+                String V_1) //x2
   IL_0000:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "Program._ClosureCache$__3 As <generated method>"
@@ -1871,7 +1871,7 @@ End Module
   IL_0026:  dup
   IL_0027:  ldloc.0
   IL_0028:  stfld      "Program._Closure$__1.$VB$NonLocal_ As <generated method>"
-  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__5(ByRef String)"
+  IL_002d:  ldftn      "Sub Program._Closure$__1._Lambda$__4(ByRef String)"
   IL_0033:  newobj     "Sub d1..ctor(Object, System.IntPtr)"
   IL_0038:  ldstr      "1"
   IL_003d:  stloc.1
@@ -1899,7 +1899,7 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+            verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
             <![CDATA[
 {
   // Code size       25 (0x19)

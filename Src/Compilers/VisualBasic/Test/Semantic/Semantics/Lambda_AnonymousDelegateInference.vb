@@ -579,11 +579,11 @@ End Module
   IL_0015:  stfld      "Program._Closure$__1.$VB$Local_y3 As Integer"
   IL_001a:  dup
   IL_001b:  ldc.i4.1
-  IL_001c:  callvirt   "Sub Program._Closure$__1._Lambda$__3(Integer)"
+  IL_001c:  callvirt   "Sub Program._Closure$__1._Lambda$__2(Integer)"
   IL_0021:  dup
   IL_0022:  ldc.i4.2
-  IL_0023:  callvirt   "Sub Program._Closure$__1._Lambda$__4(Integer)"
-  IL_0028:  callvirt   "Function Program._Closure$__1._Lambda$__5() As Integer"
+  IL_0023:  callvirt   "Sub Program._Closure$__1._Lambda$__3(Integer)"
+  IL_0028:  callvirt   "Function Program._Closure$__1._Lambda$__4() As Integer"
   IL_002d:  call       "Sub System.Console.WriteLine(Integer)"
   IL_0032:  ret
 }

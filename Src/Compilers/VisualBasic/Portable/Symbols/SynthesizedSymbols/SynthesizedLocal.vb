@@ -1,18 +1,19 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
+    <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
     Friend Class SynthesizedLocal
         Inherits LocalSymbol
 
         Private ReadOnly m_kind As SynthesizedLocalKind
         Private ReadOnly m_isByRef As Boolean
-        Private ReadOnly m_Name As String
         Private ReadOnly m_syntax As StatementSyntax
 
         Friend Sub New(container As Symbol, type As TypeSymbol, kind As SynthesizedLocalKind, Optional syntax As StatementSyntax = Nothing, Optional isByRef As Boolean = False)
@@ -21,16 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me.m_kind = kind
             Me.m_syntax = syntax
             Me.m_isByRef = isByRef
-            Me.m_Name = GeneratedNames.GenerateTempName(kind)
-        End Sub
-
-        Friend Sub New(container As Symbol, type As TypeSymbol, kind As SynthesizedLocalKind, index As Integer)
-            MyBase.New(container, LocalDeclarationKind.None, type)
-
-            Me.m_kind = kind
-            Me.m_syntax = Nothing
-            Me.m_isByRef = False
-            Me.m_Name = GeneratedNames.GenerateTempName(kind, type, index)
         End Sub
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -59,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_Name
+                Return Nothing
             End Get
         End Property
 
@@ -74,6 +65,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return m_kind
             End Get
         End Property
+
+        Private Function GetDebuggerDisplay() As String
+            Dim builder As New StringBuilder()
+
+            builder.Append(If(m_kind = SynthesizedLocalKind.None, "<temp>", m_kind.ToString()))
+            builder.Append(" ")
+            builder.Append(Me.Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
+
+            Return builder.ToString()
+        End Function
     End Class
 
 End Namespace

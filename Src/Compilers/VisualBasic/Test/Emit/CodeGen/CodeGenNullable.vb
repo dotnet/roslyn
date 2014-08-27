@@ -3945,9 +3945,9 @@ End Class
   // Code size      289 (0x121)
   .maxstack  3
   .locals init (UInteger? V_0, //l
-  UInteger? V_1, //VB$ForLimit
-  UInteger? V_2, //VB$ForStep
-  Boolean V_3, //VB$LoopDirection
+  UInteger? V_1,
+  UInteger? V_2,
+  Boolean V_3,
   UInteger? V_4, //x
   Long? V_5,
   Long V_6,
@@ -4093,9 +4093,9 @@ End Class
   // Code size      248 (0xf8)
   .maxstack  3
   .locals init (Integer? V_0, //x
-  Integer? V_1, //VB$ForLimit
-  Integer? V_2, //VB$ForStep
-  Boolean V_3, //VB$LoopDirection
+  Integer? V_1,
+  Integer? V_2,
+  Boolean V_3,
   Integer? V_4,
   Boolean? V_5)
   IL_0000:  ldloca.s   V_0
@@ -4237,9 +4237,9 @@ step
 {
   // Code size      220 (0xdc)
   .maxstack  3
-  .locals init (Decimal? V_0, //VB$ForLimit
-  Decimal? V_1, //VB$ForStep
-  Boolean V_2, //VB$LoopDirection
+  .locals init (Decimal? V_0,
+  Decimal? V_1,
+  Boolean V_2,
   Decimal? V_3, //x
   Decimal? V_4)
   IL_0000:  call       "Function MyClass1.Init() As Integer"

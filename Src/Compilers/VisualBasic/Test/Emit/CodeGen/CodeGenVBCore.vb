@@ -3076,8 +3076,8 @@ End Module
 {
   // Code size       29 (0x1d)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldsfld     "Module1.SyncObj As Object"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0

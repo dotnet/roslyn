@@ -7,11 +7,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class IteratorRewriter
-        Inherits StateMachineRewriter(Of IteratorStateMachineTypeSymbol, FieldSymbol)
+        Inherits StateMachineRewriter(Of IteratorStateMachine, FieldSymbol)
 
         Private ReadOnly elementType As TypeSymbol
         Private ReadOnly isEnumerable As Boolean
-        Private ReadOnly iteratorClass As IteratorStateMachineTypeSymbol
+        Private ReadOnly iteratorClass As IteratorStateMachine
 
         Private currentField As FieldSymbol
         Private initialThreadIdField As FieldSymbol
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(body As BoundStatement,
                        method As MethodSymbol,
                        isEnumerable As Boolean,
-                       stateMachineType As IteratorStateMachineTypeSymbol,
+                       stateMachineType As IteratorStateMachine,
                        slotAllocatorOpt As VariableSlotAllocator,
                        compilationState As TypeCompilationState,
                        diagnostics As DiagnosticBag)
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 elementType = DirectCast(methodReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0)
             End If
 
-            Dim stateMachineType = New IteratorStateMachineTypeSymbol(method, compilationState.GenerateTempNumber(), elementType, isEnumerable)
+            Dim stateMachineType = New IteratorStateMachine(method, compilationState.GenerateTempNumber(), elementType, isEnumerable)
 
             Dim rewriter As New IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property StateMachineClass As IteratorStateMachineTypeSymbol
+        Protected Overrides ReadOnly Property StateMachineClass As IteratorStateMachine
             Get
                 Return iteratorClass
             End Get

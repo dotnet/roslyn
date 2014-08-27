@@ -2623,7 +2623,7 @@ End Class
 {
   // Code size       34 (0x22)
   .maxstack  1
-  .locals init (System.Collections.IEnumerator V_0) //VB$ForEachEnumerator
+  .locals init (System.Collections.IEnumerator V_0)
   IL_0000:  ldarg.0
   IL_0001:  callvirt   "Function System.Array.GetEnumerator() As System.Collections.IEnumerator"
   IL_0006:  stloc.0
@@ -2837,9 +2837,9 @@ o
 {
   // Code size       43 (0x2b)
   .maxstack  2
-  .locals init (String V_0, //VB$ForEachArray
-  Integer V_1, //VB$ForEachArrayIndex
-  Char V_2) //x
+  .locals init (String V_0,
+                Integer V_1,
+                Char V_2) //x
   IL_0000:  ldstr      "Heallo!"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
@@ -3726,7 +3726,7 @@ End Class
 {
   // Code size       37 (0x25)
   .maxstack  2
-  .locals init (Custom.CustomEnumerator V_0) //VB$ForEachEnumerator
+  .locals init (Custom.CustomEnumerator V_0)
   IL_0000:  ldnull
   IL_0001:  callvirt   "Function Custom.GetEnumerator() As Custom.CustomEnumerator"
   IL_0006:  stloc.0

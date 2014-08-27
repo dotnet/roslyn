@@ -379,8 +379,8 @@ Lambda(
           Call(
             MemberAccess(
               Constant(
-                Form1+_Closure$__26
-                type: Form1+_Closure$__26
+                Form1+_Closure$__1
+                type: Form1+_Closure$__1
               )
               -> $VB$Local_P1
               type: System.Xml.Linq.XElement
@@ -435,8 +435,8 @@ Lambda(
         method: System.String get_AttributeValue(System.Collections.Generic.IEnumerable`1[System.Xml.Linq.XElement], System.Xml.Linq.XName) in My.InternalXmlHelper (
           MemberAccess(
             Constant(
-              Form1+_Closure$__26
-              type: Form1+_Closure$__26
+              Form1+_Closure$__1
+              type: Form1+_Closure$__1
             )
             -> $VB$Local_P2
             type: System.Collections.Generic.IEnumerable`1[System.Xml.Linq.XElement]
@@ -474,8 +474,8 @@ Lambda(
           Call(
             MemberAccess(
               Constant(
-                Form1+_Closure$__26
-                type: Form1+_Closure$__26
+                Form1+_Closure$__1
+                type: Form1+_Closure$__1
               )
               -> $VB$Local_P3
               type: System.Xml.Linq.XElement
@@ -530,8 +530,8 @@ Lambda(
         method: System.Collections.Generic.IEnumerable`1[System.Xml.Linq.XElement] Elements[XElement](System.Collections.Generic.IEnumerable`1[System.Xml.Linq.XElement], System.Xml.Linq.XName) in System.Xml.Linq.Extensions (
           MemberAccess(
             Constant(
-              Form1+_Closure$__26
-              type: Form1+_Closure$__26
+              Form1+_Closure$__1
+              type: Form1+_Closure$__1
             )
             -> $VB$Local_P4
             type: System.Collections.Generic.IEnumerable`1[System.Xml.Linq.XElement]
@@ -923,8 +923,8 @@ Lambda(
       Call(
         MemberAccess(
           Constant(
-            Form1+_Closure$__26
-            type: Form1+_Closure$__26
+            Form1+_Closure$__1
+            type: Form1+_Closure$__1
           )
           -> $VB$Local_P5
           type: System.Xml.Linq.XElement
@@ -963,8 +963,8 @@ Lambda(
           Call(
             MemberAccess(
               Constant(
-                Form1+_Closure$__26
-                type: Form1+_Closure$__26
+                Form1+_Closure$__1
+                type: Form1+_Closure$__1
               )
               -> $VB$Local_P5
               type: System.Xml.Linq.XElement
@@ -1206,8 +1206,8 @@ Lambda(
       Call(
         MemberAccess(
           Constant(
-            Form1+_Closure$__26
-            type: Form1+_Closure$__26
+            Form1+_Closure$__1
+            type: Form1+_Closure$__1
           )
           -> $VB$Local_P6
           type: System.Xml.Linq.XElement
@@ -1243,8 +1243,8 @@ Lambda(
       Call(
         MemberAccess(
           Constant(
-            Form1+_Closure$__26
-            type: Form1+_Closure$__26
+            Form1+_Closure$__1
+            type: Form1+_Closure$__1
           )
           -> $VB$Local_P6
           type: System.Xml.Linq.XElement
@@ -1280,8 +1280,8 @@ Lambda(
       Call(
         MemberAccess(
           Constant(
-            Form1+_Closure$__26
-            type: Form1+_Closure$__26
+            Form1+_Closure$__1
+            type: Form1+_Closure$__1
           )
           -> $VB$Local_P6
           type: System.Xml.Linq.XElement
@@ -1618,11 +1618,11 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
                     -> $VB$NonLocal_VB$t_array$L2
                     type: System.String[]
@@ -1630,11 +1630,11 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
                     -> $VB$NonLocal_VB$t_array$L3
                     type: System.Xml.Linq.XNamespace[]
@@ -1642,13 +1642,13 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
-                    -> $VB$NonLocal_VB$t_ref$L1
+                    -> $VB$NonLocal_VB$t_ref$L4
                     type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
                   )
                   New(
@@ -1715,11 +1715,11 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
                     -> $VB$NonLocal_VB$t_array$L2
                     type: System.String[]
@@ -1727,11 +1727,11 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
                     -> $VB$NonLocal_VB$t_array$L3
                     type: System.Xml.Linq.XNamespace[]
@@ -1739,13 +1739,13 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
-                    -> $VB$NonLocal_VB$t_ref$L1
+                    -> $VB$NonLocal_VB$t_ref$L4
                     type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
                   )
                   New(
@@ -1812,11 +1812,11 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
                     -> $VB$NonLocal_VB$t_array$L2
                     type: System.String[]
@@ -1824,11 +1824,11 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
                     -> $VB$NonLocal_VB$t_array$L3
                     type: System.Xml.Linq.XNamespace[]
@@ -1836,13 +1836,13 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
-                    -> $VB$NonLocal_VB$t_ref$L1
+                    -> $VB$NonLocal_VB$t_ref$L4
                     type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
                   )
                   New(
@@ -1939,13 +1939,13 @@ Lambda(
               MemberAccess(
                 MemberAccess(
                   Constant(
-                    Form1+_Closure$__26
-                    type: Form1+_Closure$__26
+                    Form1+_Closure$__1
+                    type: Form1+_Closure$__1
                   )
-                  -> $VB$NonLocal_$VB$Closure_28
-                  type: Form1+_Closure$__27
+                  -> $VB$NonLocal_$VB$Closure_27
+                  type: Form1+_Closure$__2
                 )
-                -> $VB$NonLocal_VB$t_ref$L1
+                -> $VB$NonLocal_VB$t_ref$L4
                 type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
               )
               type: System.Object
@@ -1988,11 +1988,11 @@ Lambda(
                 MemberAccess(
                   MemberAccess(
                     Constant(
-                      Form1+_Closure$__26
-                      type: Form1+_Closure$__26
+                      Form1+_Closure$__1
+                      type: Form1+_Closure$__1
                     )
-                    -> $VB$NonLocal_$VB$Closure_28
-                    type: Form1+_Closure$__27
+                    -> $VB$NonLocal_$VB$Closure_27
+                    type: Form1+_Closure$__2
                   )
                   -> $VB$NonLocal_VB$t_array$L5
                   type: System.String[]
@@ -2000,11 +2000,11 @@ Lambda(
                 MemberAccess(
                   MemberAccess(
                     Constant(
-                      Form1+_Closure$__26
-                      type: Form1+_Closure$__26
+                      Form1+_Closure$__1
+                      type: Form1+_Closure$__1
                     )
-                    -> $VB$NonLocal_$VB$Closure_28
-                    type: Form1+_Closure$__27
+                    -> $VB$NonLocal_$VB$Closure_27
+                    type: Form1+_Closure$__2
                   )
                   -> $VB$NonLocal_VB$t_array$L6
                   type: System.Xml.Linq.XNamespace[]
@@ -2012,19 +2012,19 @@ Lambda(
                 MemberAccess(
                   MemberAccess(
                     Constant(
-                      Form1+_Closure$__26
-                      type: Form1+_Closure$__26
+                      Form1+_Closure$__1
+                      type: Form1+_Closure$__1
                     )
-                    -> $VB$NonLocal_$VB$Closure_28
-                    type: Form1+_Closure$__27
+                    -> $VB$NonLocal_$VB$Closure_27
+                    type: Form1+_Closure$__2
                   )
-                  -> $VB$NonLocal_VB$t_ref$L4
+                  -> $VB$NonLocal_VB$t_ref$L7
                   type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
                 )
                 MemberAccess(
                   Constant(
-                    Form1+_Closure$__26
-                    type: Form1+_Closure$__26
+                    Form1+_Closure$__1
+                    type: Form1+_Closure$__1
                   )
                   -> $VB$Local_P7
                   type: System.Object
@@ -2069,13 +2069,13 @@ Lambda(
               MemberAccess(
                 MemberAccess(
                   Constant(
-                    Form1+_Closure$__26
-                    type: Form1+_Closure$__26
+                    Form1+_Closure$__1
+                    type: Form1+_Closure$__1
                   )
-                  -> $VB$NonLocal_$VB$Closure_28
-                  type: Form1+_Closure$__27
+                  -> $VB$NonLocal_$VB$Closure_27
+                  type: Form1+_Closure$__2
                 )
-                -> $VB$NonLocal_VB$t_ref$L4
+                -> $VB$NonLocal_VB$t_ref$L7
                 type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
               )
               type: System.Object
@@ -2119,11 +2119,11 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
                     -> $VB$NonLocal_VB$t_array$L8
                     type: System.String[]
@@ -2131,11 +2131,11 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
                     -> $VB$NonLocal_VB$t_array$L9
                     type: System.Xml.Linq.XNamespace[]
@@ -2143,13 +2143,13 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
-                    -> $VB$NonLocal_VB$t_ref$L7
+                    -> $VB$NonLocal_VB$t_ref$L10
                     type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
                   )
                   New(
@@ -2251,13 +2251,13 @@ Lambda(
               MemberAccess(
                 MemberAccess(
                   Constant(
-                    Form1+_Closure$__26
-                    type: Form1+_Closure$__26
+                    Form1+_Closure$__1
+                    type: Form1+_Closure$__1
                   )
-                  -> $VB$NonLocal_$VB$Closure_28
-                  type: Form1+_Closure$__27
+                  -> $VB$NonLocal_$VB$Closure_27
+                  type: Form1+_Closure$__2
                 )
-                -> $VB$NonLocal_VB$t_ref$L7
+                -> $VB$NonLocal_VB$t_ref$L10
                 type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
               )
               type: System.Object
@@ -2301,11 +2301,11 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
                     -> $VB$NonLocal_VB$t_array$L11
                     type: System.String[]
@@ -2313,11 +2313,11 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
                     -> $VB$NonLocal_VB$t_array$L12
                     type: System.Xml.Linq.XNamespace[]
@@ -2325,13 +2325,13 @@ Lambda(
                   MemberAccess(
                     MemberAccess(
                       Constant(
-                        Form1+_Closure$__26
-                        type: Form1+_Closure$__26
+                        Form1+_Closure$__1
+                        type: Form1+_Closure$__1
                       )
-                      -> $VB$NonLocal_$VB$Closure_28
-                      type: Form1+_Closure$__27
+                      -> $VB$NonLocal_$VB$Closure_27
+                      type: Form1+_Closure$__2
                     )
-                    -> $VB$NonLocal_VB$t_ref$L10
+                    -> $VB$NonLocal_VB$t_ref$L13
                     type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
                   )
                   Invoke(
@@ -2439,13 +2439,13 @@ Lambda(
               MemberAccess(
                 MemberAccess(
                   Constant(
-                    Form1+_Closure$__26
-                    type: Form1+_Closure$__26
+                    Form1+_Closure$__1
+                    type: Form1+_Closure$__1
                   )
-                  -> $VB$NonLocal_$VB$Closure_28
-                  type: Form1+_Closure$__27
+                  -> $VB$NonLocal_$VB$Closure_27
+                  type: Form1+_Closure$__2
                 )
-                -> $VB$NonLocal_VB$t_ref$L10
+                -> $VB$NonLocal_VB$t_ref$L13
                 type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
               )
               type: System.Object
@@ -2506,11 +2506,11 @@ Lambda(
                         MemberAccess(
                           MemberAccess(
                             Constant(
-                              Form1+_Closure$__26
-                              type: Form1+_Closure$__26
+                              Form1+_Closure$__1
+                              type: Form1+_Closure$__1
                             )
-                            -> $VB$NonLocal_$VB$Closure_28
-                            type: Form1+_Closure$__27
+                            -> $VB$NonLocal_$VB$Closure_27
+                            type: Form1+_Closure$__2
                           )
                           -> $VB$NonLocal_VB$t_array$L14
                           type: System.String[]
@@ -2518,11 +2518,11 @@ Lambda(
                         MemberAccess(
                           MemberAccess(
                             Constant(
-                              Form1+_Closure$__26
-                              type: Form1+_Closure$__26
+                              Form1+_Closure$__1
+                              type: Form1+_Closure$__1
                             )
-                            -> $VB$NonLocal_$VB$Closure_28
-                            type: Form1+_Closure$__27
+                            -> $VB$NonLocal_$VB$Closure_27
+                            type: Form1+_Closure$__2
                           )
                           -> $VB$NonLocal_VB$t_array$L15
                           type: System.Xml.Linq.XNamespace[]
@@ -2530,13 +2530,13 @@ Lambda(
                         MemberAccess(
                           MemberAccess(
                             Constant(
-                              Form1+_Closure$__26
-                              type: Form1+_Closure$__26
+                              Form1+_Closure$__1
+                              type: Form1+_Closure$__1
                             )
-                            -> $VB$NonLocal_$VB$Closure_28
-                            type: Form1+_Closure$__27
+                            -> $VB$NonLocal_$VB$Closure_27
+                            type: Form1+_Closure$__2
                           )
-                          -> $VB$NonLocal_VB$t_ref$L13
+                          -> $VB$NonLocal_VB$t_ref$L16
                           type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
                         )
                         Call(
@@ -2689,37 +2689,37 @@ Lambda(
                         MemberAccess(
                           MemberAccess(
                             Constant(
-                              Form1+_Closure$__26
-                              type: Form1+_Closure$__26
+                              Form1+_Closure$__1
+                              type: Form1+_Closure$__1
                             )
-                            -> $VB$NonLocal_$VB$Closure_28
-                            type: Form1+_Closure$__27
+                            -> $VB$NonLocal_$VB$Closure_27
+                            type: Form1+_Closure$__2
                           )
-                          -> $VB$NonLocal_VB$t_array$L16
+                          -> $VB$NonLocal_VB$t_array$L17
                           type: System.String[]
                         )
                         MemberAccess(
                           MemberAccess(
                             Constant(
-                              Form1+_Closure$__26
-                              type: Form1+_Closure$__26
+                              Form1+_Closure$__1
+                              type: Form1+_Closure$__1
                             )
-                            -> $VB$NonLocal_$VB$Closure_28
-                            type: Form1+_Closure$__27
+                            -> $VB$NonLocal_$VB$Closure_27
+                            type: Form1+_Closure$__2
                           )
-                          -> $VB$NonLocal_VB$t_array$L17
+                          -> $VB$NonLocal_VB$t_array$L18
                           type: System.Xml.Linq.XNamespace[]
                         )
                         MemberAccess(
                           MemberAccess(
                             Constant(
-                              Form1+_Closure$__26
-                              type: Form1+_Closure$__26
+                              Form1+_Closure$__1
+                              type: Form1+_Closure$__1
                             )
-                            -> $VB$NonLocal_$VB$Closure_28
-                            type: Form1+_Closure$__27
+                            -> $VB$NonLocal_$VB$Closure_27
+                            type: Form1+_Closure$__2
                           )
-                          -> $VB$NonLocal_VB$t_ref$L13
+                          -> $VB$NonLocal_VB$t_ref$L16
                           type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
                         )
                         Call(
@@ -2940,13 +2940,13 @@ Lambda(
               MemberAccess(
                 MemberAccess(
                   Constant(
-                    Form1+_Closure$__26
-                    type: Form1+_Closure$__26
+                    Form1+_Closure$__1
+                    type: Form1+_Closure$__1
                   )
-                  -> $VB$NonLocal_$VB$Closure_28
-                  type: Form1+_Closure$__27
+                  -> $VB$NonLocal_$VB$Closure_27
+                  type: Form1+_Closure$__2
                 )
-                -> $VB$NonLocal_VB$t_ref$L13
+                -> $VB$NonLocal_VB$t_ref$L16
                 type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
               )
               type: System.Object
@@ -3037,11 +3037,11 @@ Lambda(
                           MemberAccess(
                             MemberAccess(
                               Constant(
-                                Form1+_Closure$__26
-                                type: Form1+_Closure$__26
+                                Form1+_Closure$__1
+                                type: Form1+_Closure$__1
                               )
-                              -> $VB$NonLocal_$VB$Closure_28
-                              type: Form1+_Closure$__27
+                              -> $VB$NonLocal_$VB$Closure_27
+                              type: Form1+_Closure$__2
                             )
                             -> $VB$NonLocal_VB$t_array$L19
                             type: System.String[]
@@ -3049,11 +3049,11 @@ Lambda(
                           MemberAccess(
                             MemberAccess(
                               Constant(
-                                Form1+_Closure$__26
-                                type: Form1+_Closure$__26
+                                Form1+_Closure$__1
+                                type: Form1+_Closure$__1
                               )
-                              -> $VB$NonLocal_$VB$Closure_28
-                              type: Form1+_Closure$__27
+                              -> $VB$NonLocal_$VB$Closure_27
+                              type: Form1+_Closure$__2
                             )
                             -> $VB$NonLocal_VB$t_array$L20
                             type: System.Xml.Linq.XNamespace[]
@@ -3061,13 +3061,13 @@ Lambda(
                           MemberAccess(
                             MemberAccess(
                               Constant(
-                                Form1+_Closure$__26
-                                type: Form1+_Closure$__26
+                                Form1+_Closure$__1
+                                type: Form1+_Closure$__1
                               )
-                              -> $VB$NonLocal_$VB$Closure_28
-                              type: Form1+_Closure$__27
+                              -> $VB$NonLocal_$VB$Closure_27
+                              type: Form1+_Closure$__2
                             )
-                            -> $VB$NonLocal_VB$t_ref$L18
+                            -> $VB$NonLocal_VB$t_ref$L21
                             type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
                           )
                           Call(
@@ -3307,37 +3307,37 @@ Lambda(
                           MemberAccess(
                             MemberAccess(
                               Constant(
-                                Form1+_Closure$__26
-                                type: Form1+_Closure$__26
+                                Form1+_Closure$__1
+                                type: Form1+_Closure$__1
                               )
-                              -> $VB$NonLocal_$VB$Closure_28
-                              type: Form1+_Closure$__27
+                              -> $VB$NonLocal_$VB$Closure_27
+                              type: Form1+_Closure$__2
                             )
-                            -> $VB$NonLocal_VB$t_array$L21
+                            -> $VB$NonLocal_VB$t_array$L22
                             type: System.String[]
                           )
                           MemberAccess(
                             MemberAccess(
                               Constant(
-                                Form1+_Closure$__26
-                                type: Form1+_Closure$__26
+                                Form1+_Closure$__1
+                                type: Form1+_Closure$__1
                               )
-                              -> $VB$NonLocal_$VB$Closure_28
-                              type: Form1+_Closure$__27
+                              -> $VB$NonLocal_$VB$Closure_27
+                              type: Form1+_Closure$__2
                             )
-                            -> $VB$NonLocal_VB$t_array$L22
+                            -> $VB$NonLocal_VB$t_array$L23
                             type: System.Xml.Linq.XNamespace[]
                           )
                           MemberAccess(
                             MemberAccess(
                               Constant(
-                                Form1+_Closure$__26
-                                type: Form1+_Closure$__26
+                                Form1+_Closure$__1
+                                type: Form1+_Closure$__1
                               )
-                              -> $VB$NonLocal_$VB$Closure_28
-                              type: Form1+_Closure$__27
+                              -> $VB$NonLocal_$VB$Closure_27
+                              type: Form1+_Closure$__2
                             )
-                            -> $VB$NonLocal_VB$t_ref$L18
+                            -> $VB$NonLocal_VB$t_ref$L21
                             type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
                           )
                           Call(
@@ -3560,13 +3560,13 @@ Lambda(
               MemberAccess(
                 MemberAccess(
                   Constant(
-                    Form1+_Closure$__26
-                    type: Form1+_Closure$__26
+                    Form1+_Closure$__1
+                    type: Form1+_Closure$__1
                   )
-                  -> $VB$NonLocal_$VB$Closure_28
-                  type: Form1+_Closure$__27
+                  -> $VB$NonLocal_$VB$Closure_27
+                  type: Form1+_Closure$__2
                 )
-                -> $VB$NonLocal_VB$t_ref$L18
+                -> $VB$NonLocal_VB$t_ref$L21
                 type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
               )
               type: System.Object
@@ -3686,11 +3686,11 @@ Lambda(
                           MemberAccess(
                             MemberAccess(
                               Constant(
-                                Form1+_Closure$__26
-                                type: Form1+_Closure$__26
+                                Form1+_Closure$__1
+                                type: Form1+_Closure$__1
                               )
-                              -> $VB$NonLocal_$VB$Closure_28
-                              type: Form1+_Closure$__27
+                              -> $VB$NonLocal_$VB$Closure_27
+                              type: Form1+_Closure$__2
                             )
                             -> $VB$NonLocal_VB$t_array$L24
                             type: System.String[]
@@ -3698,11 +3698,11 @@ Lambda(
                           MemberAccess(
                             MemberAccess(
                               Constant(
-                                Form1+_Closure$__26
-                                type: Form1+_Closure$__26
+                                Form1+_Closure$__1
+                                type: Form1+_Closure$__1
                               )
-                              -> $VB$NonLocal_$VB$Closure_28
-                              type: Form1+_Closure$__27
+                              -> $VB$NonLocal_$VB$Closure_27
+                              type: Form1+_Closure$__2
                             )
                             -> $VB$NonLocal_VB$t_array$L25
                             type: System.Xml.Linq.XNamespace[]
@@ -3710,13 +3710,13 @@ Lambda(
                           MemberAccess(
                             MemberAccess(
                               Constant(
-                                Form1+_Closure$__26
-                                type: Form1+_Closure$__26
+                                Form1+_Closure$__1
+                                type: Form1+_Closure$__1
                               )
-                              -> $VB$NonLocal_$VB$Closure_28
-                              type: Form1+_Closure$__27
+                              -> $VB$NonLocal_$VB$Closure_27
+                              type: Form1+_Closure$__2
                             )
-                            -> $VB$NonLocal_VB$t_ref$L23
+                            -> $VB$NonLocal_VB$t_ref$L26
                             type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
                           )
                           Call(
@@ -3939,13 +3939,13 @@ Lambda(
               MemberAccess(
                 MemberAccess(
                   Constant(
-                    Form1+_Closure$__26
-                    type: Form1+_Closure$__26
+                    Form1+_Closure$__1
+                    type: Form1+_Closure$__1
                   )
-                  -> $VB$NonLocal_$VB$Closure_28
-                  type: Form1+_Closure$__27
+                  -> $VB$NonLocal_$VB$Closure_27
+                  type: Form1+_Closure$__2
                 )
-                -> $VB$NonLocal_VB$t_ref$L23
+                -> $VB$NonLocal_VB$t_ref$L26
                 type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
               )
               type: System.Object

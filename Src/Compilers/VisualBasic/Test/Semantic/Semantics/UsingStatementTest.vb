@@ -234,8 +234,8 @@ End Module
 {
   // Code size       59 (0x3b)
   .maxstack  1
-  .locals init (Object V_0, //VB$Using
-  Object V_1) //VB$Using
+  .locals init (Object V_0,
+                Object V_1)
   IL_0000:  ldnull
   IL_0001:  stloc.0
   .try

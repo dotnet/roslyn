@@ -7323,8 +7323,8 @@ End Module
 {
   // Code size       91 (0x5b)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ForLimit
-  Integer V_1) //VB$ForStep
+  .locals init (Integer V_0,
+  Integer V_1)
   IL_0000:  ldc.i4.3
   IL_0001:  stsfld     "M1.p1 As Integer"
   IL_0006:  ldsfld     "M1.p1 As Integer"
@@ -9744,8 +9744,8 @@ AEC
 {
   // Code size       55 (0x37)
   .maxstack  2
-  .locals init (Object() V_0, //VB$ForEachArray
-  Integer V_1) //VB$ForEachArrayIndex
+  .locals init (Object() V_0,
+  Integer V_1)
   IL_0000:  newobj     "Sub C..ctor()"
   IL_0005:  callvirt   "Function Object.GetType() As System.Type"
   IL_000a:  ldc.i4.0
@@ -11372,13 +11372,12 @@ End Module
             VerifyIL("Module1.getTypes",
             <![CDATA[
 {
-  // Code size      118 (0x76)
+  // Code size      116 (0x74)
   .maxstack  6
   .locals init (System.Array V_0, //types
                 System.Array V_1, //arr
                 Integer V_2, //i
-                Integer V_3,
-                Integer V_4) //VB$ForLimit
+                Integer V_3)
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
@@ -11405,35 +11404,35 @@ End Module
   IL_003e:  callvirt   "Function System.Array.get_Length() As Integer"
   IL_0043:  ldc.i4.1
   IL_0044:  sub.ovf
-  IL_0045:  stloc.s    V_4
-  IL_0047:  ldc.i4.0
-  IL_0048:  stloc.2
-  IL_0049:  br.s       IL_006f
-  IL_004b:  ldloc.1
-  IL_004c:  ldc.i4.2
-  IL_004d:  newarr     "Object"
-  IL_0052:  dup
-  IL_0053:  ldc.i4.0
-  IL_0054:  ldloc.2
-  IL_0055:  box        "Integer"
-  IL_005a:  stelem.ref
-  IL_005b:  dup
-  IL_005c:  ldc.i4.1
-  IL_005d:  ldloc.0
-  IL_005e:  ldloc.2
-  IL_005f:  callvirt   "Function System.Array.GetValue(Integer) As Object"
-  IL_0064:  stelem.ref
-  IL_0065:  ldnull
-  IL_0066:  call       "Sub Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateIndexSet(Object, Object(), String())"
-  IL_006b:  ldloc.2
-  IL_006c:  ldc.i4.1
-  IL_006d:  add.ovf
-  IL_006e:  stloc.2
-  IL_006f:  ldloc.2
-  IL_0070:  ldloc.s    V_4
-  IL_0072:  ble.s      IL_004b
-  IL_0074:  ldloc.1
-  IL_0075:  ret
+  IL_0045:  stloc.3
+  IL_0046:  ldc.i4.0
+  IL_0047:  stloc.2
+  IL_0048:  br.s       IL_006e
+  IL_004a:  ldloc.1
+  IL_004b:  ldc.i4.2
+  IL_004c:  newarr     "Object"
+  IL_0051:  dup
+  IL_0052:  ldc.i4.0
+  IL_0053:  ldloc.2
+  IL_0054:  box        "Integer"
+  IL_0059:  stelem.ref
+  IL_005a:  dup
+  IL_005b:  ldc.i4.1
+  IL_005c:  ldloc.0
+  IL_005d:  ldloc.2
+  IL_005e:  callvirt   "Function System.Array.GetValue(Integer) As Object"
+  IL_0063:  stelem.ref
+  IL_0064:  ldnull
+  IL_0065:  call       "Sub Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateIndexSet(Object, Object(), String())"
+  IL_006a:  ldloc.2
+  IL_006b:  ldc.i4.1
+  IL_006c:  add.ovf
+  IL_006d:  stloc.2
+  IL_006e:  ldloc.2
+  IL_006f:  ldloc.3
+  IL_0070:  ble.s      IL_004a
+  IL_0072:  ldloc.1
+  IL_0073:  ret
 }
 ]]>)
         End Sub

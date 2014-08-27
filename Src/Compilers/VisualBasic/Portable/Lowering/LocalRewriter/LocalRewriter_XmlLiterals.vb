@@ -274,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateTempLocalInExpressionLambda(syntax As VisualBasicSyntaxNode, type As TypeSymbol, expr As BoundExpression) As BoundLocal
-            Dim local As New SynthesizedLocal(Me.topMethod, type, SynthesizedLocalKind.XmlInExpressionLambda, Me.compilationState.GenerateTempNumber)
+            Dim local As New SynthesizedLocal(Me.topMethod, type, SynthesizedLocalKind.XmlInExpressionLambda)
             Dim boundLocal = New BoundLocal(syntax, local, type)
             Me.xmlFixupData.AddLocal(local, New BoundAssignmentOperator(syntax, boundLocal, expr, suppressObjectClone:=True, type:=type))
             Return boundLocal.MakeRValue()

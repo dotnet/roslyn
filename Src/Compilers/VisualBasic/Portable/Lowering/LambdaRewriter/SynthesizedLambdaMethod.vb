@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        tempNumber As Integer,
                        diagnostics As DiagnosticBag)
 
-            MyBase.New(lambdaNode.Syntax, containingType, StringConstants.LAMBDA_PREFIX & tempNumber, isShared)
+            MyBase.New(lambdaNode.Syntax, containingType, GeneratedNames.MakeLambdaMethodName(tempNumber), isShared)
             Me.m_lambda = lambdaNode.LambdaSymbol
             Me.m_isShared = isShared
             Me.m_locations = ImmutableArray.Create(Of Location)(lambdaNode.Syntax.GetLocation())

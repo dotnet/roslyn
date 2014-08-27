@@ -2808,7 +2808,7 @@ End Module
   IL_0005:  dup
   IL_0006:  ldc.i4.1
   IL_0007:  stfld      "Program._Closure$__1.$VB$Local_val As Integer"
-  IL_000c:  ldftn      "Sub Program._Closure$__1._Lambda$__3(Integer)"
+  IL_000c:  ldftn      "Sub Program._Closure$__1._Lambda$__2(Integer)"
   IL_0012:  newobj     "Sub System.Action(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0017:  ldc.i4.2
   IL_0018:  callvirt   "Sub System.Action(Of Integer).Invoke(Integer)"
@@ -2816,7 +2816,7 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__3",
+            verifier.VerifyIL("Program._Closure$__1._Lambda$__2",
             <![CDATA[
 {
   // Code size       13 (0xd)
@@ -2824,12 +2824,12 @@ End Module
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  box        "Integer"
-  IL_0007:  call       "Sub Program._Closure$__1._Lambda$__4(Object)"
+  IL_0007:  call       "Sub Program._Closure$__1._Lambda$__3(Object)"
   IL_000c:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__4",
+            verifier.VerifyIL("Program._Closure$__1._Lambda$__3",
             <![CDATA[
 {
   // Code size       28 (0x1c)

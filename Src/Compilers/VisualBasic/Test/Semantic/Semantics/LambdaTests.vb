@@ -1927,13 +1927,13 @@ Done.
   IL_000c:  dup
   IL_000d:  ldarg.1
   IL_000e:  stfld      "PropertyPathBindingItem._Closure$__1.$VB$Local_currentIndex As Integer"
-  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1._Lambda$__4(Object)"
+  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1._Lambda$__3(Object)"
   IL_0019:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1._Lambda$__4",
+            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1._Lambda$__3",
             <![CDATA[
 {
   // Code size       23 (0x17)
@@ -2030,7 +2030,7 @@ End Class
   IL_0029:  ldarg.0
   IL_002a:  ldfld      "PropertyPathBindingItem._DestinationBinding As OnePropertyPathBinding"
   IL_002f:  ldarg.0
-  IL_0030:  ldftn      "Function PropertyPathBindingItem._Lambda$__6(Integer, EqualityWeakReference) As System.Action(Of Object)"
+  IL_0030:  ldftn      "Function PropertyPathBindingItem._Lambda$__5(Integer, EqualityWeakReference) As System.Action(Of Object)"
   IL_0036:  newobj     "Sub OnChangeDelegateFactoryDelegate..ctor(Object, System.IntPtr)"
   IL_003b:  ldnull
   IL_003c:  callvirt   "Sub OnePropertyPathBinding.Bind(OnChangeDelegateFactoryDelegate, OnBindLastItem)"
@@ -2050,13 +2050,13 @@ End Class
   IL_000c:  dup
   IL_000d:  ldarg.1
   IL_000e:  stfld      "PropertyPathBindingItem._Closure$__1.$VB$Local_currentIndex As Integer"
-  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1._Lambda$__5(Object)"
+  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1._Lambda$__4(Object)"
   IL_0019:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__6",
+            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__5",
             <![CDATA[
 {
   // Code size       31 (0x1f)
@@ -2068,13 +2068,13 @@ End Class
   IL_000c:  dup
   IL_000d:  ldarg.1
   IL_000e:  stfld      "PropertyPathBindingItem._Closure$__2.$VB$Local_currentIndex As Integer"
-  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__2._Lambda$__8(Object)"
+  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__2._Lambda$__6(Object)"
   IL_0019:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1._Lambda$__5",
+            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1._Lambda$__4",
             <![CDATA[
 {
   // Code size       23 (0x17)
@@ -2089,7 +2089,7 @@ End Class
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Closure$__2._Lambda$__8",
+            verifier.VerifyIL("PropertyPathBindingItem._Closure$__2._Lambda$__6",
             <![CDATA[
 {
   // Code size       23 (0x17)

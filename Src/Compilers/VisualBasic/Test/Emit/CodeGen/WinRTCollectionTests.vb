@@ -110,7 +110,7 @@ b
   .locals init (Windows.Data.Json.JsonArray V_0, //jsonArray
   Windows.Data.Json.JsonValue V_1, //a
   Windows.Data.Json.JsonValue V_2, //b
-  System.Collections.Generic.IEnumerator(Of Windows.Data.Json.IJsonValue) V_3) //VB$ForEachEnumerator
+  System.Collections.Generic.IEnumerator(Of Windows.Data.Json.IJsonValue) V_3)
   IL_0000:  newobj     "Sub Windows.Data.Json.JsonArray..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldstr      "a"
@@ -2513,17 +2513,17 @@ End Class
   // Code size     1496 (0x5d8)
   .maxstack  4
   .locals init (Windows.Languages.WinRTTest.IVectorIntIVectorViewIntIMapIntIntIMapViewIntInt V_0, //v
-  Integer() V_1, //arr
-  Integer V_2, //count
-  Integer V_3, //index
-  Boolean V_4, //isReadOnly
-  Integer V_5, //val
-  Integer V_6, //outVal
-  Boolean V_7, //success
-  Boolean V_8, //contains
-  Boolean V_9, //remove
-  Boolean V_10, //rez2
-  System.Collections.Generic.IEnumerator(Of Integer) V_11) //VB$ForEachEnumerator
+                Integer() V_1, //arr
+                Integer V_2, //count
+                Integer V_3, //index
+                Boolean V_4, //isReadOnly
+                Integer V_5, //val
+                Integer V_6, //outVal
+                Boolean V_7, //success
+                Boolean V_8, //contains
+                Boolean V_9, //remove
+                Boolean V_10, //rez2
+                System.Collections.Generic.IEnumerator(Of Integer) V_11)
   IL_0000:  newobj     "Sub Windows.Languages.WinRTTest.IVectorIntIVectorViewIntIMapIntIntIMapViewIntInt..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -2605,35 +2605,35 @@ End Class
   IL_00cf:  ldc.i4.0
   IL_00d0:  stloc.3
   .try
-{
-  IL_00d1:  ldloc.0
-  IL_00d2:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)"
-  IL_00d7:  stloc.s    V_11
-  IL_00d9:  br.s       IL_00f7
-  IL_00db:  ldloc.s    V_11
-  IL_00dd:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
-  IL_00e2:  ldloc.3
-  IL_00e3:  ldc.i4.1
-  IL_00e4:  add.ovf
-  IL_00e5:  stloc.3
-  IL_00e6:  box        "Integer"
-  IL_00eb:  ldloc.3
-  IL_00ec:  box        "Integer"
-  IL_00f1:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
-  IL_00f6:  pop
-  IL_00f7:  ldloc.s    V_11
-  IL_00f9:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
-  IL_00fe:  brtrue.s   IL_00db
-  IL_0100:  leave.s    IL_010e
-}
+  {
+    IL_00d1:  ldloc.0
+    IL_00d2:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_00d7:  stloc.s    V_11
+    IL_00d9:  br.s       IL_00f7
+    IL_00db:  ldloc.s    V_11
+    IL_00dd:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
+    IL_00e2:  ldloc.3
+    IL_00e3:  ldc.i4.1
+    IL_00e4:  add.ovf
+    IL_00e5:  stloc.3
+    IL_00e6:  box        "Integer"
+    IL_00eb:  ldloc.3
+    IL_00ec:  box        "Integer"
+    IL_00f1:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
+    IL_00f6:  pop
+    IL_00f7:  ldloc.s    V_11
+    IL_00f9:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+    IL_00fe:  brtrue.s   IL_00db
+    IL_0100:  leave.s    IL_010e
+  }
   finally
-{
-  IL_0102:  ldloc.s    V_11
-  IL_0104:  brfalse.s  IL_010d
-  IL_0106:  ldloc.s    V_11
-  IL_0108:  callvirt   "Sub System.IDisposable.Dispose()"
-  IL_010d:  endfinally
-}
+  {
+    IL_0102:  ldloc.s    V_11
+    IL_0104:  brfalse.s  IL_010d
+    IL_0106:  ldloc.s    V_11
+    IL_0108:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_010d:  endfinally
+  }
   IL_010e:  ldloc.3
   IL_010f:  box        "Integer"
   IL_0114:  ldc.i4.1
@@ -3078,16 +3078,16 @@ End Class
   // Code size     1378 (0x562)
   .maxstack  5
   .locals init (Windows.Languages.WinRTTest.IVectorStructIVectorViewStructIMapIntStructIMapViewIntStruct V_0, //v
-  Windows.Languages.WinRTTest.UserDefinedStruct V_1, //ud
-  Windows.Languages.WinRTTest.UserDefinedStruct() V_2, //arr
-  Integer V_3, //count
-  Integer V_4, //index
-  Boolean V_5, //isReadOnly
-  Windows.Languages.WinRTTest.UserDefinedStruct V_6, //outVal
-  Boolean V_7, //success
-  Boolean V_8, //contains
-  Windows.Languages.WinRTTest.UserDefinedStruct V_9,
-  System.Collections.Generic.IEnumerator(Of Windows.Languages.WinRTTest.UserDefinedStruct) V_10) //VB$ForEachEnumerator
+                Windows.Languages.WinRTTest.UserDefinedStruct V_1, //ud
+                Windows.Languages.WinRTTest.UserDefinedStruct() V_2, //arr
+                Integer V_3, //count
+                Integer V_4, //index
+                Boolean V_5, //isReadOnly
+                Windows.Languages.WinRTTest.UserDefinedStruct V_6, //outVal
+                Boolean V_7, //success
+                Boolean V_8, //contains
+                Windows.Languages.WinRTTest.UserDefinedStruct V_9,
+                System.Collections.Generic.IEnumerator(Of Windows.Languages.WinRTTest.UserDefinedStruct) V_10)
   IL_0000:  newobj     "Sub Windows.Languages.WinRTTest.IVectorStructIVectorViewStructIMapIntStructIMapViewIntStruct..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_9
@@ -3171,36 +3171,36 @@ End Class
   IL_00e5:  ldc.i4.0
   IL_00e6:  stloc.s    V_4
   .try
-{
-  IL_00e8:  ldloc.0
-  IL_00e9:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Windows.Languages.WinRTTest.UserDefinedStruct).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Windows.Languages.WinRTTest.UserDefinedStruct)"
-  IL_00ee:  stloc.s    V_10
-  IL_00f0:  br.s       IL_0116
-  IL_00f2:  ldloc.s    V_10
-  IL_00f4:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Windows.Languages.WinRTTest.UserDefinedStruct).get_Current() As Windows.Languages.WinRTTest.UserDefinedStruct"
-  IL_00f9:  ldloc.s    V_4
-  IL_00fb:  ldc.i4.1
-  IL_00fc:  add.ovf
-  IL_00fd:  stloc.s    V_4
-  IL_00ff:  ldfld      "Windows.Languages.WinRTTest.UserDefinedStruct.Id As UInteger"
-  IL_0104:  box        "UInteger"
-  IL_0109:  ldloc.s    V_4
-  IL_010b:  box        "Integer"
-  IL_0110:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
-  IL_0115:  pop
-  IL_0116:  ldloc.s    V_10
-  IL_0118:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
-  IL_011d:  brtrue.s   IL_00f2
-  IL_011f:  leave.s    IL_012d
-}
+  {
+    IL_00e8:  ldloc.0
+    IL_00e9:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Windows.Languages.WinRTTest.UserDefinedStruct).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Windows.Languages.WinRTTest.UserDefinedStruct)"
+    IL_00ee:  stloc.s    V_10
+    IL_00f0:  br.s       IL_0116
+    IL_00f2:  ldloc.s    V_10
+    IL_00f4:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Windows.Languages.WinRTTest.UserDefinedStruct).get_Current() As Windows.Languages.WinRTTest.UserDefinedStruct"
+    IL_00f9:  ldloc.s    V_4
+    IL_00fb:  ldc.i4.1
+    IL_00fc:  add.ovf
+    IL_00fd:  stloc.s    V_4
+    IL_00ff:  ldfld      "Windows.Languages.WinRTTest.UserDefinedStruct.Id As UInteger"
+    IL_0104:  box        "UInteger"
+    IL_0109:  ldloc.s    V_4
+    IL_010b:  box        "Integer"
+    IL_0110:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
+    IL_0115:  pop
+    IL_0116:  ldloc.s    V_10
+    IL_0118:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+    IL_011d:  brtrue.s   IL_00f2
+    IL_011f:  leave.s    IL_012d
+  }
   finally
-{
-  IL_0121:  ldloc.s    V_10
-  IL_0123:  brfalse.s  IL_012c
-  IL_0125:  ldloc.s    V_10
-  IL_0127:  callvirt   "Sub System.IDisposable.Dispose()"
-  IL_012c:  endfinally
-}
+  {
+    IL_0121:  ldloc.s    V_10
+    IL_0123:  brfalse.s  IL_012c
+    IL_0125:  ldloc.s    V_10
+    IL_0127:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_012c:  endfinally
+  }
   IL_012d:  ldloc.s    V_4
   IL_012f:  box        "Integer"
   IL_0134:  ldc.i4.1
@@ -3723,7 +3723,7 @@ End Class
   .locals init (Windows.Languages.WinRTTest.ISimpleInterfaceImpl V_0, //v
   Integer() V_1, //arr
   Integer V_2, //index
-  System.Collections.Generic.IEnumerator(Of Integer) V_3) //VB$ForEachEnumerator
+  System.Collections.Generic.IEnumerator(Of Integer) V_3)
   IL_0000:  newobj     "Sub Windows.Languages.WinRTTest.ISimpleInterfaceImpl..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -4229,7 +4229,7 @@ End Class
 {
   // Code size      226 (0xe2)
   .maxstack  6
-  .locals init (AllMembers._Closure$__1 V_0, //$VB$Closure_2
+  .locals init (AllMembers._Closure$__1 V_0, //$VB$Closure_1
   System.Linq.Expressions.ParameterExpression V_1,
   System.Exception V_2) //e
   IL_0000:  newobj     "Sub AllMembers._Closure$__1..ctor()"
@@ -4400,8 +4400,8 @@ End Class
 {
   // Code size      448 (0x1c0)
   .maxstack  4
-  .locals init (AllMembers._Closure$__1 V_0, //$VB$Closure_2
-  System.ArgumentException V_1) //e
+  .locals init (AllMembers._Closure$__1 V_0, //$VB$Closure_1
+                System.ArgumentException V_1) //e
   IL_0000:  newobj     "Sub AllMembers._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -4439,18 +4439,18 @@ End Class
   IL_0062:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-864782BF337E3DBC1A27023D5C0C065C80F17087"
   IL_0067:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_006c:  ldloc.0
-  IL_006d:  ldftn      "Function AllMembers._Closure$__1._Lambda$__3(Integer) As Boolean"
+  IL_006d:  ldftn      "Function AllMembers._Closure$__1._Lambda$__2(Integer) As Boolean"
   IL_0073:  newobj     "Sub System.Func(Of Integer, Boolean)..ctor(Object, System.IntPtr)"
   IL_0078:  call       "Function System.Linq.Enumerable.Where(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)"
-  IL_007d:  ldsfld     "AllMembers._ClosureCache$__5 As System.Func(Of Integer, Integer)"
+  IL_007d:  ldsfld     "AllMembers._ClosureCache$__4 As System.Func(Of Integer, Integer)"
   IL_0082:  brfalse.s  IL_008b
-  IL_0084:  ldsfld     "AllMembers._ClosureCache$__5 As System.Func(Of Integer, Integer)"
+  IL_0084:  ldsfld     "AllMembers._ClosureCache$__4 As System.Func(Of Integer, Integer)"
   IL_0089:  br.s       IL_009d
   IL_008b:  ldnull
-  IL_008c:  ldftn      "Function AllMembers._Lambda$__4(Object, Integer) As Integer"
+  IL_008c:  ldftn      "Function AllMembers._Lambda$__3(Object, Integer) As Integer"
   IL_0092:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_0097:  dup
-  IL_0098:  stsfld     "AllMembers._ClosureCache$__5 As System.Func(Of Integer, Integer)"
+  IL_0098:  stsfld     "AllMembers._ClosureCache$__4 As System.Func(Of Integer, Integer)"
   IL_009d:  call       "Function System.Linq.Enumerable.Select(Of Integer, Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Integer)) As System.Collections.Generic.IEnumerable(Of Integer)"
   IL_00a2:  call       "Function System.Linq.Enumerable.ToList(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As System.Collections.Generic.List(Of Integer)"
   IL_00a7:  ldloc.0
@@ -4485,25 +4485,25 @@ End Class
   IL_0100:  pop
   IL_0101:  ldloc.0
   IL_0102:  ldfld      "AllMembers._Closure$__1.$VB$Local_v As Windows.Languages.WinRTTest.IVectorInt"
-  IL_0107:  ldsfld     "AllMembers._ClosureCache$__7 As System.Func(Of Integer, Boolean)"
+  IL_0107:  ldsfld     "AllMembers._ClosureCache$__6 As System.Func(Of Integer, Boolean)"
   IL_010c:  brfalse.s  IL_0115
-  IL_010e:  ldsfld     "AllMembers._ClosureCache$__7 As System.Func(Of Integer, Boolean)"
+  IL_010e:  ldsfld     "AllMembers._ClosureCache$__6 As System.Func(Of Integer, Boolean)"
   IL_0113:  br.s       IL_0127
   IL_0115:  ldnull
-  IL_0116:  ldftn      "Function AllMembers._Lambda$__6(Object, Integer) As Boolean"
+  IL_0116:  ldftn      "Function AllMembers._Lambda$__5(Object, Integer) As Boolean"
   IL_011c:  newobj     "Sub System.Func(Of Integer, Boolean)..ctor(Object, System.IntPtr)"
   IL_0121:  dup
-  IL_0122:  stsfld     "AllMembers._ClosureCache$__7 As System.Func(Of Integer, Boolean)"
+  IL_0122:  stsfld     "AllMembers._ClosureCache$__6 As System.Func(Of Integer, Boolean)"
   IL_0127:  call       "Function System.Linq.Enumerable.Where(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)"
-  IL_012c:  ldsfld     "AllMembers._ClosureCache$__9 As System.Func(Of Integer, Integer)"
+  IL_012c:  ldsfld     "AllMembers._ClosureCache$__8 As System.Func(Of Integer, Integer)"
   IL_0131:  brfalse.s  IL_013a
-  IL_0133:  ldsfld     "AllMembers._ClosureCache$__9 As System.Func(Of Integer, Integer)"
+  IL_0133:  ldsfld     "AllMembers._ClosureCache$__8 As System.Func(Of Integer, Integer)"
   IL_0138:  br.s       IL_014c
   IL_013a:  ldnull
-  IL_013b:  ldftn      "Function AllMembers._Lambda$__8(Object, Integer) As Integer"
+  IL_013b:  ldftn      "Function AllMembers._Lambda$__7(Object, Integer) As Integer"
   IL_0141:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_0146:  dup
-  IL_0147:  stsfld     "AllMembers._ClosureCache$__9 As System.Func(Of Integer, Integer)"
+  IL_0147:  stsfld     "AllMembers._ClosureCache$__8 As System.Func(Of Integer, Integer)"
   IL_014c:  call       "Function System.Linq.Enumerable.Select(Of Integer, Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Integer)) As System.Collections.Generic.IEnumerable(Of Integer)"
   IL_0151:  call       "Function System.Linq.Enumerable.ToList(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As System.Collections.Generic.List(Of Integer)"
   IL_0156:  ldloc.0
@@ -4519,30 +4519,30 @@ End Class
   IL_0178:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
   IL_017d:  pop
   .try
-{
-  IL_017e:  ldstr      "Dev11:205875"
-  IL_0183:  call       "Sub System.Console.WriteLine(String)"
-  IL_0188:  ldc.i4.0
-  IL_0189:  box        "Boolean"
-  IL_018e:  ldc.i4.0
-  IL_018f:  box        "Boolean"
-  IL_0194:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
-  IL_0199:  pop
-  IL_019a:  leave.s    IL_01bf
-}
+  {
+    IL_017e:  ldstr      "Dev11:205875"
+    IL_0183:  call       "Sub System.Console.WriteLine(String)"
+    IL_0188:  ldc.i4.0
+    IL_0189:  box        "Boolean"
+    IL_018e:  ldc.i4.0
+    IL_018f:  box        "Boolean"
+    IL_0194:  call       "Function AllMembers.ValidateValue(Object, Object) As Boolean"
+    IL_0199:  pop
+    IL_019a:  leave.s    IL_01bf
+  }
   catch System.ArgumentException
-{
-  IL_019c:  dup
-  IL_019d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_01a2:  stloc.1
-  IL_01a3:  ldstr      "TestLINQ"
-  IL_01a8:  call       "Sub System.Console.WriteLine(String)"
-  IL_01ad:  ldloc.1
-  IL_01ae:  callvirt   "Function System.ArgumentException.get_Message() As String"
-  IL_01b3:  call       "Sub System.Console.WriteLine(String)"
-  IL_01b8:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_01bd:  leave.s    IL_01bf
-}
+  {
+    IL_019c:  dup
+    IL_019d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_01a2:  stloc.1
+    IL_01a3:  ldstr      "TestLINQ"
+    IL_01a8:  call       "Sub System.Console.WriteLine(String)"
+    IL_01ad:  ldloc.1
+    IL_01ae:  callvirt   "Function System.ArgumentException.get_Message() As String"
+    IL_01b3:  call       "Sub System.Console.WriteLine(String)"
+    IL_01b8:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_01bd:  leave.s    IL_01bf
+  }
   IL_01bf:  ret
 }
 ]]>.Value)

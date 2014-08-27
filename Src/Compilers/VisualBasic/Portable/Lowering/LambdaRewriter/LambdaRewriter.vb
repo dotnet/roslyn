@@ -65,6 +65,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' "This" in the context of current method.
         Private currentFrameThis As ParameterSymbol
 
+        ' ID dispenser for field names of frame references.
+        Private synthesizedFieldNameIdDispenser As Integer
+
         ' The symbol (field or local) holding the innermost frame. 
         ' Needed in case inner frame needs to reference outer frame.
         Private innermostFramePointer As Symbol
@@ -104,6 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Me.currentFrameThis = method.MeParameter
+            Me.synthesizedFieldNameIdDispenser = 1
         End Sub
 
         ''' <summary>
@@ -200,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                Dim proxy = LambdaCapturedVariable.Create(frame, captured)
+                Dim proxy = LambdaCapturedVariable.Create(frame, captured, synthesizedFieldNameIdDispenser)
                 Proxies.Add(captured, proxy)
                 If CompilationState.ModuleBuilderOpt IsNot Nothing Then
                     frame.m_captured_locals.Add(proxy)
@@ -361,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         Optional origLambda As LambdaSymbol = Nothing) As BoundNode
 
             Dim frameType As NamedTypeSymbol = ConstructFrameType(frame, currentTypeParameters)
-            Dim framePointer = New SynthesizedLocal(Me._topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, CompilationState.GenerateTempNumber())
+            Dim framePointer = New SynthesizedLocal(Me._topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass)
 
             CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
             Dim prologue = ArrayBuilder(Of BoundExpression).GetInstance()
@@ -390,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Proxies.TryGetValue(innermostFramePointer, oldInnermostFrameProxy)
 
                 If _analysis.needsParentFrame.Contains(node) Then
-                    Dim capturedFrame = LambdaCapturedVariable.Create(frame, innermostFramePointer)
+                    Dim capturedFrame = LambdaCapturedVariable.Create(frame, innermostFramePointer, synthesizedFieldNameIdDispenser)
                     Dim frameParent = capturedFrame.AsMember(frameType)
                     Dim left As BoundExpression = New BoundFieldAccess(syntaxNode,
                                                                        New BoundLocal(syntaxNode, framePointer, frameType),

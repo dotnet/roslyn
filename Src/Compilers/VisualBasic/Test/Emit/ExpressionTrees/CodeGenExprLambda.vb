@@ -3553,8 +3553,8 @@ Lambda(
         ConvertChecked(
           MemberAccess(
             Constant(
-              Form1+Class1+_Closure$__3
-              type: Form1+Class1+_Closure$__3
+              Form1+Class1+_Closure$__2
+              type: Form1+Class1+_Closure$__2
             )
             -> $VB$Local_t
             type: System.String
@@ -3879,8 +3879,8 @@ Lambda(
       )
       MemberAccess(
         Constant(
-          Form1+Class2`1+_Closure$__3[System.Int32]
-          type: Form1+Class2`1+_Closure$__3[System.Int32]
+          Form1+Class2`1+_Closure$__2[System.Int32]
+          type: Form1+Class2`1+_Closure$__2[System.Int32]
         )
         -> $VB$Local_t1
         type: System.Object
@@ -6259,7 +6259,7 @@ End Module
 {
   // Code size       88 (0x58)
   .maxstack  5
-  .locals init (Module1._Closure$__1 V_0, //$VB$Closure_2
+  .locals init (Module1._Closure$__1 V_0, //$VB$Closure_1
   System.Linq.Expressions.ParameterExpression V_1)
   IL_0000:  newobj     "Sub Module1._Closure$__1..ctor()"
   IL_0005:  stloc.0

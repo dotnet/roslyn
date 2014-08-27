@@ -457,8 +457,8 @@
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter_Conversion.vb" />
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter_UnaryOperator.vb" />
     <Compile Include="Lowering\IteratorRewriter\IteratorRewriter.IteratorMethodToClassRewriter.vb" />
-    <Compile Include="Lowering\IteratorRewriter\IteratorRewriter.IteratorStateMachineTypeSymbol.vb" />
     <Compile Include="Lowering\IteratorRewriter\IteratorRewriter.vb" />
+    <Compile Include="Lowering\IteratorRewriter\IteratorStateMachine.vb" />
     <Compile Include="Lowering\LambdaRewriter\LambdaCapturedVariable.vb" />
     <Compile Include="Lowering\LambdaRewriter\LambdaFrame.vb" />
     <Compile Include="Lowering\LambdaRewriter\LambdaFrameConstructor.vb" />

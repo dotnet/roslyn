@@ -175,12 +175,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Shared Function GenerateTempName(kind As SynthesizedLocalKind) As String
-            Select Case kind
+        Friend Shared Function MakeLocalName(kind As SynthesizedLocalKind, type As TypeSymbol, ByRef index As Integer) As String
+            Debug.Assert(kind.IsLongLived())
 
-                Case SynthesizedLocalKind.LoweringTemp,
-                     SynthesizedLocalKind.None
-                    Return Nothing
+            Select Case kind
+                Case SynthesizedLocalKind.XmlInExpressionLambda
+                    index += 1
+                    Return SynthesizedLocalNamePrefix & type.GetNativeCompilerVType() & "$L" & index
+                Case SynthesizedLocalKind.LambdaDisplayClass
+                    'TODO: VB10 adds line/column numbers in hex here. Not sure if that is important or always meaningful.
+                    index += 1
+                    Return StringConstants.ClosureVariablePrefix & index
 
                 Case SynthesizedLocalKind.Lock
                     Return StringConstants.SynthesizedLocalKindLock
@@ -221,26 +226,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return StringConstants.OnErrorCurrentStatement
                 Case SynthesizedLocalKind.OnErrorCurrentLine
                     Return StringConstants.OnErrorCurrentLine
-
             End Select
 
             Throw ExceptionUtilities.UnexpectedValue(kind)
         End Function
 
         Private Const SynthesizedLocalNamePrefix As String = "VB$"
-
-        Friend Shared Function GenerateTempName(kind As SynthesizedLocalKind, type As TypeSymbol, index As Integer) As String
-            Select Case kind
-                Case SynthesizedLocalKind.XmlInExpressionLambda
-                    Return SynthesizedLocalNamePrefix & type.GetNativeCompilerVType() & "$L" & index
-
-                Case SynthesizedLocalKind.LambdaDisplayClass
-                    'TODO: VB10 adds line/column numbers in hex here. Not sure if that is important or always meaningful.
-                    Return StringConstants.ClosureVariablePrefix & index
-            End Select
-
-            Throw ExceptionUtilities.UnexpectedValue(kind)
-        End Function
 
         Friend Shared Function TryParseLocalName(name As String, ByRef kind As SynthesizedLocalKind, ByRef uniqueId As Integer) As Boolean
 
@@ -299,6 +290,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return False
             End Select
             Return True
+        End Function
+
+        Friend Shared Function MakeLambdaMethodName(index As Integer) As String
+            Return StringConstants.LAMBDA_PREFIX & index
+        End Function
+
+        Friend Shared Function MakeLambdaDisplayClassName(index As Integer) As String
+            Return StringConstants.ClosureClassPrefix & index
         End Function
     End Class
 

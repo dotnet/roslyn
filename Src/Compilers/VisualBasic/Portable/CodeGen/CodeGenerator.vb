@@ -25,6 +25,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' <summary> Current enclosing Catch block if there is any. </summary>
         Private _currentCatchBlock As BoundCatchBlock = Nothing
 
+        ' unique id for generated local names
+        Private _uniqueId As Integer
+
         ' label used when when return is emitted in a form of store/goto
         Private Shared ReadOnly ReturnLabel As New Object
 

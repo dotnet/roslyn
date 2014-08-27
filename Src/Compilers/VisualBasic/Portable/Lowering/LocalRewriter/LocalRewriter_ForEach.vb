@@ -353,6 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As BoundStatement
             ' Dim collectionCopy As C = c
             Dim expressionType = initExpression.Type
+            Debug.Assert(kind.IsLongLived())
             Dim collectionCopy = New SynthesizedLocal(Me.currentMethodOrLambda, expressionType, kind, syntaxNode)
             locals.Add(collectionCopy)
             boundLocal = New BoundLocal(syntaxNode, collectionCopy, expressionType)

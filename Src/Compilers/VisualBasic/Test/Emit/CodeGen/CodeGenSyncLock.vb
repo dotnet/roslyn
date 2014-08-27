@@ -36,8 +36,8 @@ Inside SyncLock.
 {
   // Code size       44 (0x2c)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldtoken    "C1"
   IL_0005:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
   IL_000a:  stloc.0
@@ -94,7 +94,7 @@ End Class
 {
   // Code size       37 (0x25)
   .maxstack  1
-  .locals init (Object V_0) //VB$Lock
+  .locals init (Object V_0)
   IL_0000:  ldtoken    "C1"
   IL_0005:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
   IL_000a:  stloc.0
@@ -149,8 +149,8 @@ Inside SyncLock.
 {
   // Code size       54 (0x36)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  newobj     "Sub C1..ctor()"
   IL_0005:  isinst     "T"
   IL_000a:  unbox.any  "T"
@@ -207,8 +207,8 @@ Inside SyncLock.
 {
   // Code size       50 (0x32)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  newobj     "Sub Object..ctor()"
   IL_0005:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_000a:  stloc.0
@@ -290,8 +290,8 @@ End Class
 {
   // Code size       31 (0x1f)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldnull
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
@@ -342,8 +342,8 @@ End Interface
 {
   // Code size       29 (0x1d)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  call       "Function M1.Foo() As I1"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
@@ -387,8 +387,8 @@ End Class
 {
   // Code size       35 (0x23)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldsfld     "Program.Key As Object"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -436,8 +436,8 @@ End Class
 {
   // Code size       36 (0x24)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldnull
   IL_0001:  ldftn      "Sub Program.PM(Integer)"
   IL_0007:  newobj     "Sub D..ctor(Object, System.IntPtr)"
@@ -483,8 +483,8 @@ End Class
 {
   // Code size       31 (0x1f)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.0
@@ -532,8 +532,8 @@ End Class
 {
   // Code size       42 (0x2a)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldarg.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
@@ -581,8 +581,8 @@ End Class
 {
   // Code size       25 (0x19)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.0
@@ -625,8 +625,8 @@ End Class
 {
   // Code size       29 (0x1d)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldstr      "abc"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
@@ -673,10 +673,10 @@ End Class
   // Code size       71 (0x47)
   .maxstack  2
   .locals init (Object V_0, //syncroot
-  Object V_1, //VB$Lock
-  Boolean V_2, //VB$LockTaken
-  Object V_3, //VB$Lock
-  Boolean V_4) //VB$LockTaken
+  Object V_1,
+  Boolean V_2,
+  Object V_3,
+  Boolean V_4)
   IL_0000:  newobj     "Sub Object..ctor()"
   IL_0005:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_000a:  stloc.0
@@ -747,10 +747,10 @@ End Class
   // Code size       72 (0x48)
   .maxstack  2
   .locals init (Object V_0, //syncroot
-  Object V_1, //VB$Lock
-  Boolean V_2, //VB$LockTaken
-  Object V_3, //VB$Lock
-  Boolean V_4) //VB$LockTaken
+  Object V_1,
+  Boolean V_2,
+  Object V_3,
+  Boolean V_4)
   IL_0000:  newobj     "Sub Object..ctor()"
   IL_0005:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_000a:  stloc.0
@@ -824,8 +824,8 @@ End Module
 {
   // Code size       51 (0x33)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1, //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1,
   System.Exception V_2) //ex
   .try
 {
@@ -890,8 +890,8 @@ End Module
 {
   // Code size       44 (0x2c)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   .try
 {
   .try
@@ -959,8 +959,8 @@ End Class
   // Code size       65 (0x41)
   .maxstack  3
   .locals init (String V_0,
-  Object V_1, //VB$Lock
-  Boolean V_2) //VB$LockTaken
+  Object V_1,
+  Boolean V_2)
   IL_0000:  ldstr      ""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -1078,8 +1078,8 @@ End Class
 {
   // Code size       72 (0x48)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   .try
 {
   IL_0000:  ldarg.0
@@ -1141,8 +1141,8 @@ End Module
 {
   // Code size       29 (0x1d)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldsfld     "Module1.SyncObj As Object"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
@@ -1187,8 +1187,8 @@ End Module
 {
   // Code size       35 (0x23)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldsfld     "Module1.SyncObj As Object"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -1242,8 +1242,8 @@ End Class
 {
   // Code size       39 (0x27)
   .maxstack  2
-  .locals init (Object V_0, //VB$Lock
-  Boolean V_1) //VB$LockTaken
+  .locals init (Object V_0,
+  Boolean V_1)
   IL_0000:  ldsfld     "Module1.x As T1"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0

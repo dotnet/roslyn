@@ -2373,7 +2373,7 @@ End Module
     </file>
 </compilation>,
 expectedOutput:=<![CDATA[3]]>).
-            VerifyIL("Program._Closure$__1._Lambda$__3",
+            VerifyIL("Program._Closure$__1._Lambda$__2",
             <![CDATA[
 {
   // Code size      134 (0x86)

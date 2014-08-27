@@ -155,7 +155,7 @@ expectedOutput:="").
   .locals init (Module1.S() V_0, //x
   Integer V_1, //dummy
   Integer V_2, //i
-  Module1.S& V_3) //VB$With
+  Module1.S& V_3)
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "Module1.S"
   IL_0007:  stloc.0
@@ -302,7 +302,7 @@ expectedOutput:="System.String: abc|cba").
 {
   // Code size       56 (0x38)
   .maxstack  3
-  .locals init (String V_0) //VB$With
+  .locals init (String V_0)
   IL_0000:  ldstr      "abc|"
   IL_0005:  ldstr      "cba"
   IL_000a:  callvirt   "Function String.ToString() As String"
@@ -347,7 +347,7 @@ expectedOutput:="System.String: #3").
 {
   // Code size       62 (0x3e)
   .maxstack  4
-  .locals init (String V_0) //VB$With
+  .locals init (String V_0)
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "String"
   IL_0007:  dup
@@ -396,7 +396,7 @@ expectedOutput:="System.Int32").
 {
   // Code size       24 (0x18)
   .maxstack  1
-  .locals init (Integer V_0) //VB$With
+  .locals init (Integer V_0)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
@@ -433,7 +433,7 @@ expectedOutput:="System.Int32").
 {
   // Code size       28 (0x1c)
   .maxstack  1
-  .locals init (Integer V_0) //VB$With
+  .locals init (Integer V_0)
   IL_0000:  call       "Function Program.get_IntProp() As Integer"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -677,13 +677,13 @@ expectedOutput:="123").
   IL_000c:  dup
   IL_000d:  ldc.i4.s   123
   IL_000f:  stfld      "C2._Closure$__1.$VB$Local_val As Integer"
-  IL_0014:  ldftn      "Sub C2._Closure$__1._Lambda$__3()"
+  IL_0014:  ldftn      "Sub C2._Closure$__1._Lambda$__2()"
   IL_001a:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001f:  callvirt   "Sub System.Action.Invoke()"
   IL_0024:  ret
 }
 ]]>).
-            VerifyIL("C2._Closure$__1._Lambda$__3",
+            VerifyIL("C2._Closure$__1._Lambda$__2",
             <![CDATA[
 {
   // Code size       39 (0x27)
@@ -733,7 +733,7 @@ expectedOutput:="Program+SSS").
 {
   // Code size       26 (0x1a)
   .maxstack  2
-  .locals init (Program.SSS V_0) //VB$With
+  .locals init (Program.SSS V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  call       "Sub Program.SSS..ctor(Integer)"
@@ -780,7 +780,7 @@ expectedOutput:="Program+SSS").
 {
   // Code size       34 (0x22)
   .maxstack  2
-  .locals init (Program.SSS V_0) //VB$With
+  .locals init (Program.SSS V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  call       "Sub Program.SSS..ctor(Integer)"
@@ -829,7 +829,7 @@ expectedOutput:="12").
 {
   // Code size       47 (0x2f)
   .maxstack  2
-  .locals init (C2.SSS V_0) //VB$With
+  .locals init (C2.SSS V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "C2.SSS"
   IL_0008:  ldloca.s   V_0
@@ -1224,7 +1224,7 @@ expectedOutput:="System.DateTime").
 {
   // Code size       38 (0x26)
   .maxstack  1
-  .locals init (T V_0) //VB$With
+  .locals init (T V_0)
   IL_0000:  call       "Public Shared Property Get TProp() As T"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
@@ -1267,7 +1267,7 @@ expectedOutput:="System.DateTime").
 {
   // Code size       38 (0x26)
   .maxstack  1
-  .locals init (T V_0) //VB$With
+  .locals init (T V_0)
   IL_0000:  call       "Function System.Activator.CreateInstance(Of T)() As T"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
@@ -1356,8 +1356,8 @@ expectedOutput:="System.DateTime0").
 {
   // Code size       80 (0x50)
   .maxstack  2
-  .locals init (T() V_0, //VB$With
-  Integer V_1) //VB$With
+  .locals init (T() V_0,
+  Integer V_1)
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "T"
   IL_0007:  stloc.0
@@ -1412,7 +1412,7 @@ expectedOutput:="123text").
 {
   // Code size       50 (0x32)
   .maxstack  2
-  .locals init (VB$AnonymousType_0(Of Integer, String) V_0) //VB$With
+  .locals init (VB$AnonymousType_0(Of Integer, String) V_0)
   IL_0000:  ldc.i4.1
   IL_0001:  ldstr      "text"
   IL_0006:  newobj     "Sub VB$AnonymousType_0(Of Integer, String)..ctor(Integer, String)"
@@ -1796,7 +1796,7 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !").
 {
   // Code size       62 (0x3e)
   .maxstack  2
-  .locals init (C2._Closure$__1 V_0) //$VB$Closure_2
+  .locals init (C2._Closure$__1 V_0) //$VB$Closure_1
   IL_0000:  newobj     "Sub C2._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -1809,7 +1809,7 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !").
   IL_001a:  ldc.i4.1
   IL_001b:  stfld      "C2.ABC.A As Integer"
   IL_0020:  ldloc.0
-  IL_0021:  ldftn      "Sub C2._Closure$__1._Lambda$__3()"
+  IL_0021:  ldftn      "Sub C2._Closure$__1._Lambda$__2()"
   IL_0027:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_002c:  callvirt   "Sub System.Action.Invoke()"
   IL_0031:  ldarg.0
@@ -1820,7 +1820,7 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !").
 }
 
 ]]>).
-            VerifyIL("C2._Closure$__1._Lambda$__3",
+            VerifyIL("C2._Closure$__1._Lambda$__2",
             <![CDATA[
 {
   // Code size       42 (0x2a)
@@ -1890,15 +1890,15 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !").
   .locals init (VB$AnonymousDelegate_0(Of C2.ABC) V_0) //b
   IL_0000:  ldarg.0
   IL_0001:  initobj    "C2"
-  IL_0007:  ldsfld     "C2._ClosureCache$__5 As <generated method>"
+  IL_0007:  ldsfld     "C2._ClosureCache$__4 As <generated method>"
   IL_000c:  brfalse.s  IL_0015
-  IL_000e:  ldsfld     "C2._ClosureCache$__5 As <generated method>"
+  IL_000e:  ldsfld     "C2._ClosureCache$__4 As <generated method>"
   IL_0013:  br.s       IL_0027
   IL_0015:  ldnull
   IL_0016:  ldftn      "Function C2._Lambda$__2(Object) As C2.ABC"
   IL_001c:  newobj     "Sub VB$AnonymousDelegate_0(Of C2.ABC)..ctor(Object, System.IntPtr)"
   IL_0021:  dup
-  IL_0022:  stsfld     "C2._ClosureCache$__5 As <generated method>"
+  IL_0022:  stsfld     "C2._ClosureCache$__4 As <generated method>"
   IL_0027:  stloc.0
   IL_0028:  ldarg.0
   IL_0029:  ldloc.0
@@ -1921,14 +1921,14 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !").
   IL_0017:  ldc.i4.1
   IL_0018:  stfld      "C2.ABC.A As Integer"
   IL_001d:  dup
-  IL_001e:  ldftn      "Sub C2._Closure$__1._Lambda$__4()"
+  IL_001e:  ldftn      "Sub C2._Closure$__1._Lambda$__3()"
   IL_0024:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0029:  callvirt   "Sub System.Action.Invoke()"
   IL_002e:  ldfld      "C2._Closure$__1.$VB$Local_x As C2.ABC"
   IL_0033:  ret
 }
 ]]>).
-            VerifyIL("C2._Closure$__1._Lambda$__4",
+            VerifyIL("C2._Closure$__1._Lambda$__3",
             <![CDATA[
 {
   // Code size       42 (0x2a)
@@ -2024,7 +2024,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?").
   IL_0043:  ldfld      "C2.ABC.A As Integer"
   IL_0048:  stfld      "C2._Closure$__1.$VB$NonLocal_VB$With As Integer"
   IL_004d:  dup
-  IL_004e:  ldftn      "Sub C2._Closure$__1._Lambda$__3()"
+  IL_004e:  ldftn      "Sub C2._Closure$__1._Lambda$__2()"
   IL_0054:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_0059:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_005e:  ldnull
@@ -2038,7 +2038,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?").
   IL_0076:  ret
 }
 ]]>).
-            VerifyIL("C2._Closure$__1._Lambda$__3",
+            VerifyIL("C2._Closure$__1._Lambda$__2",
             <![CDATA[
 {
   // Code size       66 (0x42)
@@ -2052,24 +2052,24 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?").
   IL_0011:  ldc.i4.2
   IL_0012:  stfld      "C2.ABC.A As Integer"
   IL_0017:  ldarg.0
-  IL_0018:  ldfld      "C2._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_0018:  ldfld      "C2._Closure$__1._ClosureCache$__4 As System.Action"
   IL_001d:  brfalse.s  IL_0027
   IL_001f:  ldarg.0
-  IL_0020:  ldfld      "C2._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_0020:  ldfld      "C2._Closure$__1._ClosureCache$__4 As System.Action"
   IL_0025:  br.s       IL_003c
   IL_0027:  ldarg.0
   IL_0028:  ldarg.0
-  IL_0029:  ldftn      "Sub C2._Closure$__1._Lambda$__4()"
+  IL_0029:  ldftn      "Sub C2._Closure$__1._Lambda$__3()"
   IL_002f:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0034:  dup
   IL_0035:  stloc.0
-  IL_0036:  stfld      "C2._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_0036:  stfld      "C2._Closure$__1._ClosureCache$__4 As System.Action"
   IL_003b:  ldloc.0
   IL_003c:  callvirt   "Sub System.Action.Invoke()"
   IL_0041:  ret
 }
 ]]>).
-            VerifyIL("C2._Closure$__1._Lambda$__4",
+            VerifyIL("C2._Closure$__1._Lambda$__3",
             <![CDATA[
 {
   // Code size       64 (0x40)
@@ -2205,7 +2205,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?").
   IL_0012:  dup
   IL_0013:  ldstr      "?"
   IL_0018:  stfld      "C2._Closure$__1.$VB$Local_sss As String"
-  IL_001d:  ldftn      "Sub C2._Closure$__1._Lambda$__3()"
+  IL_001d:  ldftn      "Sub C2._Closure$__1._Lambda$__2()"
   IL_0023:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_0028:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_002d:  ldarg.0
@@ -2215,7 +2215,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?").
   IL_0039:  ret
 }
 ]]>).
-            VerifyIL("C2._Closure$__1._Lambda$__3",
+            VerifyIL("C2._Closure$__1._Lambda$__2",
             <![CDATA[
 {
   // Code size       60 (0x3c)
@@ -2227,24 +2227,24 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?").
   IL_000b:  ldc.i4.2
   IL_000c:  stfld      "C2.ABC.A As Integer"
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      "C2._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_0012:  ldfld      "C2._Closure$__1._ClosureCache$__4 As System.Action"
   IL_0017:  brfalse.s  IL_0021
   IL_0019:  ldarg.0
-  IL_001a:  ldfld      "C2._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_001a:  ldfld      "C2._Closure$__1._ClosureCache$__4 As System.Action"
   IL_001f:  br.s       IL_0036
   IL_0021:  ldarg.0
   IL_0022:  ldarg.0
-  IL_0023:  ldftn      "Sub C2._Closure$__1._Lambda$__4()"
+  IL_0023:  ldftn      "Sub C2._Closure$__1._Lambda$__3()"
   IL_0029:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_002e:  dup
   IL_002f:  stloc.0
-  IL_0030:  stfld      "C2._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_0030:  stfld      "C2._Closure$__1._ClosureCache$__4 As System.Action"
   IL_0035:  ldloc.0
   IL_0036:  callvirt   "Sub System.Action.Invoke()"
   IL_003b:  ret
 }
 ]]>).
-            VerifyIL("C2._Closure$__1._Lambda$__4",
+            VerifyIL("C2._Closure$__1._Lambda$__3",
             <![CDATA[
 {
   // Code size       53 (0x35)
@@ -2317,15 +2317,15 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?").
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  initobj    "C2"
-  IL_0007:  ldsfld     "C2._ClosureCache$__5 As <generated method>"
+  IL_0007:  ldsfld     "C2._ClosureCache$__4 As <generated method>"
   IL_000c:  brfalse.s  IL_0015
-  IL_000e:  ldsfld     "C2._ClosureCache$__5 As <generated method>"
+  IL_000e:  ldsfld     "C2._ClosureCache$__4 As <generated method>"
   IL_0013:  br.s       IL_0027
   IL_0015:  ldnull
   IL_0016:  ldftn      "Sub C2._Lambda$__2(Object)"
   IL_001c:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_0021:  dup
-  IL_0022:  stsfld     "C2._ClosureCache$__5 As <generated method>"
+  IL_0022:  stsfld     "C2._ClosureCache$__4 As <generated method>"
   IL_0027:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_002c:  ldarg.0
   IL_002d:  ldsfld     "C2.ARR As C2.ABC"
@@ -2345,13 +2345,13 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?").
   IL_0010:  ldsflda    "C2.ARR As C2.ABC"
   IL_0015:  ldc.i4.2
   IL_0016:  stfld      "C2.ABC.A As Integer"
-  IL_001b:  ldftn      "Sub C2._Closure$__1._Lambda$__4()"
+  IL_001b:  ldftn      "Sub C2._Closure$__1._Lambda$__3()"
   IL_0021:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0026:  callvirt   "Sub System.Action.Invoke()"
   IL_002b:  ret
 }
 ]]>).
-            VerifyIL("C2._Closure$__1._Lambda$__4",
+            VerifyIL("C2._Closure$__1._Lambda$__3",
             <![CDATA[
 {
   // Code size       41 (0x29)
@@ -2486,7 +2486,7 @@ End Structure    </file>
 {
   // Code size       16 (0x10)
   .maxstack  1
-  .locals init (Struct V_0) //VB$With
+  .locals init (Struct V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "Struct"
   IL_0008:  ldloca.s   V_0
@@ -2942,7 +2942,7 @@ End Class
     </file>
 </compilation>, expectedOutput:="0").
             VerifyDiagnostics().
-            VerifyIL("Clazz._Closure$__1._Lambda$__4",
+            VerifyIL("Clazz._Closure$__1._Lambda$__3",
             <![CDATA[
 {
   // Code size       26 (0x1a)
@@ -3092,7 +3092,7 @@ End Structure
 {
   // Code size       89 (0x59)
   .maxstack  3
-  .locals init (Clazz._Closure$__1 V_0) //$VB$Closure_2
+  .locals init (Clazz._Closure$__1 V_0) //$VB$Closure_1
   IL_0000:  newobj     "Sub Clazz._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -3114,7 +3114,7 @@ End Structure
   IL_0036:  ldstr      " "
   IL_003b:  call       "Sub System.Console.Write(String)"
   IL_0040:  ldloc.0
-  IL_0041:  ldftn      "Sub Clazz._Closure$__1._Lambda$__3()"
+  IL_0041:  ldftn      "Sub Clazz._Closure$__1._Lambda$__2()"
   IL_0047:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_004c:  callvirt   "Sub System.Action.Invoke()"
   IL_0051:  ldloc.0
@@ -3123,7 +3123,7 @@ End Structure
   IL_0058:  ret
 }
 ]]>).
-            VerifyIL("Clazz._Closure$__1._Lambda$__3",
+            VerifyIL("Clazz._Closure$__1._Lambda$__2",
             <![CDATA[
 {
   // Code size       33 (0x21)
@@ -3180,7 +3180,7 @@ End Structure
 {
   // Code size       89 (0x59)
   .maxstack  3
-  .locals init (Clazz._Closure$__1 V_0) //$VB$Closure_2
+  .locals init (Clazz._Closure$__1 V_0) //$VB$Closure_1
   IL_0000:  newobj     "Sub Clazz._Closure$__1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -3202,7 +3202,7 @@ End Structure
   IL_0036:  ldstr      " "
   IL_003b:  call       "Sub System.Console.Write(String)"
   IL_0040:  ldloc.0
-  IL_0041:  ldftn      "Sub Clazz._Closure$__1._Lambda$__3()"
+  IL_0041:  ldftn      "Sub Clazz._Closure$__1._Lambda$__2()"
   IL_0047:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_004c:  callvirt   "Sub System.Action.Invoke()"
   IL_0051:  ldloc.0
@@ -3211,7 +3211,7 @@ End Structure
   IL_0058:  ret
 }
 ]]>).
-            VerifyIL("Clazz._Closure$__1._Lambda$__3",
+            VerifyIL("Clazz._Closure$__1._Lambda$__2",
             <![CDATA[
 {
   // Code size       33 (0x21)
@@ -3280,9 +3280,9 @@ End Structure
 {
   // Code size      154 (0x9a)
   .maxstack  3
-  .locals init (Clazz V_0, //VB$With
-  Clazz V_1, //VB$With
-  Clazz._Closure$__1 V_2) //$VB$Closure_2
+  .locals init (Clazz V_0,
+  Clazz V_1,
+  Clazz._Closure$__1 V_2) //$VB$Closure_1
   IL_0000:  ldarg.1
   IL_0001:  ldarg.2
   IL_0002:  ldc.i4.5
@@ -3312,7 +3312,7 @@ End Structure
   IL_0058:  call       "Sub System.Console.Write(String)"
   IL_005d:  ldstr      "*"
   IL_0062:  ldloc.2
-  IL_0063:  ldftn      "Function Clazz._Closure$__1._Lambda$__3(Char) As String"
+  IL_0063:  ldftn      "Function Clazz._Closure$__1._Lambda$__2(Char) As String"
   IL_0069:  newobj     "Sub System.Func(Of Char, String)..ctor(Object, System.IntPtr)"
   IL_006e:  call       "Function System.Linq.Enumerable.Select(Of Char, String)(System.Collections.Generic.IEnumerable(Of Char), System.Func(Of Char, String)) As System.Collections.Generic.IEnumerable(Of String)"
   IL_0073:  call       "Function System.Linq.Enumerable.FirstOrDefault(Of String)(System.Collections.Generic.IEnumerable(Of String)) As String"
@@ -3327,7 +3327,7 @@ End Structure
   IL_0099:  ret
 }
 ]]>).
-            VerifyIL("Clazz._Closure$__1._Lambda$__3",
+            VerifyIL("Clazz._Closure$__1._Lambda$__2",
             <![CDATA[
 {
   // Code size       22 (0x16)

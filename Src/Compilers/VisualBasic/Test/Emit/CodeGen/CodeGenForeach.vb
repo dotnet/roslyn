@@ -38,8 +38,8 @@ two
 {
   // Code size       46 (0x2e)
   .maxstack  4
-  .locals init (String() V_0, //VB$ForEachArray
-  Integer V_1) //VB$ForEachArrayIndex
+  .locals init (String() V_0,
+  Integer V_1)
   IL_0000:  ldc.i4.2
   IL_0001:  newarr     "String"
   IL_0006:  dup
@@ -93,8 +93,8 @@ End Class
 {
   // Code size       37 (0x25)
   .maxstack  3
-  .locals init (Integer() V_0, //VB$ForEachArray
-                Integer V_1) //VB$ForEachArrayIndex
+  .locals init (Integer() V_0,
+                Integer V_1)
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
@@ -145,8 +145,8 @@ End Class
 {
   // Code size       42 (0x2a)
   .maxstack  4
-  .locals init (Long() V_0, //VB$ForEachArray
-  Integer V_1) //VB$ForEachArrayIndex
+  .locals init (Long() V_0,
+  Integer V_1)
   IL_0000:  ldc.i4.2
   IL_0001:  newarr     "Long"
   IL_0006:  dup
@@ -202,8 +202,8 @@ End Class
 {
   // Code size       43 (0x2b)
   .maxstack  4
-  .locals init (Long() V_0, //VB$ForEachArray
-  Integer V_1) //VB$ForEachArrayIndex
+  .locals init (Long() V_0,
+  Integer V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     "Long"
   IL_0006:  dup
@@ -252,8 +252,8 @@ End Class
 {
   // Code size       34 (0x22)
   .maxstack  4
-  .locals init (Integer() V_0, //VB$ForEachArray
-  Integer V_1) //VB$ForEachArrayIndex
+  .locals init (Integer() V_0,
+  Integer V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
@@ -309,8 +309,8 @@ End Class
 {
   // Code size       30 (0x1e)
   .maxstack  4
-  .locals init (Integer() V_0, //VB$ForEachArray
-  Integer V_1) //VB$ForEachArrayIndex
+  .locals init (Integer() V_0,
+  Integer V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
@@ -359,7 +359,7 @@ End Structure
   // Code size       77 (0x4d)
   .maxstack  2
   .locals init (S V_0,
-  System.Collections.IEnumerator V_1, //VB$ForEachEnumerator
+  System.Collections.IEnumerator V_1,
   S V_2)
   .try
 {
@@ -438,7 +438,7 @@ End Class
 {
   // Code size       52 (0x34)
   .maxstack  1
-  .locals init (System.Collections.IEnumerator V_0) //VB$ForEachEnumerator
+  .locals init (System.Collections.IEnumerator V_0)
   .try
 {
   IL_0000:  ldnull
@@ -629,7 +629,7 @@ End Class
 {
   // Code size       98 (0x62)
   .maxstack  5
-  .locals init (System.Collections.IEnumerator V_0) //VB$ForEachEnumerator
+  .locals init (System.Collections.IEnumerator V_0)
   IL_0000:  ldc.i4.3
   IL_0001:  ldc.i4.2
   IL_0002:  newobj     "Integer(*,*)..ctor"
@@ -770,9 +770,9 @@ End Class
   // Code size      141 (0x8d)
   .maxstack  3
   .locals init (System.Collections.Generic.Dictionary(Of Integer, Integer) V_0, //s
-  System.Collections.Generic.Dictionary(Of Integer, Integer).Enumerator V_1, //VB$ForEachEnumerator
+  System.Collections.Generic.Dictionary(Of Integer, Integer).Enumerator V_1,
   System.Collections.Generic.KeyValuePair(Of Integer, Integer) V_2, //pair
-  System.Collections.Generic.Dictionary(Of Integer, Integer).Enumerator V_3, //VB$ForEachEnumerator
+  System.Collections.Generic.Dictionary(Of Integer, Integer).Enumerator V_3,
   System.Collections.Generic.KeyValuePair(Of Integer, Integer) V_4) //pair
   IL_0000:  newobj     "Sub System.Collections.Generic.Dictionary(Of Integer, Integer)..ctor()"
   IL_0005:  stloc.0
@@ -928,7 +928,7 @@ End Class
 {
   // Code size       99 (0x63)
   .maxstack  3
-  .locals init (System.Collections.Generic.IEnumerator(Of String) V_0) //VB$ForEachEnumerator
+  .locals init (System.Collections.Generic.IEnumerator(Of String) V_0)
   .try
   {
     IL_0000:  ldc.i4.3
@@ -1026,7 +1026,7 @@ End Class
 {
   // Code size       41 (0x29)
   .maxstack  1
-  .locals init (System.Collections.Generic.IEnumerator(Of Integer) V_0) //VB$ForEachEnumerator
+  .locals init (System.Collections.Generic.IEnumerator(Of Integer) V_0)
   .try
 {
   IL_0000:  newobj     "Sub Gen(Of Integer)..ctor()"
@@ -1107,7 +1107,7 @@ End Class
 {
   // Code size       33 (0x21)
   .maxstack  1
-  .locals init (MyCollection.MyEnumerator V_0) //VB$ForEachEnumerator
+  .locals init (MyCollection.MyEnumerator V_0)
   IL_0000:  newobj     "Sub MyCollection..ctor()"
   IL_0005:  callvirt   "Function MyCollection.GetEnumerator() As MyCollection.MyEnumerator"
   IL_000a:  stloc.0
@@ -1163,7 +1163,7 @@ End Class
 {
   // Code size       33 (0x21)
   .maxstack  1
-  .locals init (Enumerator V_0) //VB$ForEachEnumerator
+  .locals init (Enumerator V_0)
   IL_0000:  newobj     "Sub Enumerable..ctor()"
   IL_0005:  call       "Function Enumerable.GetEnumerator() As Enumerator"
   IL_000a:  stloc.0
@@ -1214,7 +1214,7 @@ End Class
 {
   // Code size       65 (0x41)
   .maxstack  1
-  .locals init (System.Collections.IEnumerator V_0) //VB$ForEachEnumerator
+  .locals init (System.Collections.IEnumerator V_0)
   .try
 {
   IL_0000:  newobj     "Sub Enumerable..ctor()"
@@ -1290,7 +1290,7 @@ End Structure
 {
   // Code size       51 (0x33)
   .maxstack  1
-  .locals init (Enumerator V_0) //VB$ForEachEnumerator
+  .locals init (Enumerator V_0)
   .try
 {
   IL_0000:  newobj     "Sub Enumerable..ctor()"
@@ -1359,7 +1359,7 @@ End Structure
 {
   // Code size       35 (0x23)
   .maxstack  1
-  .locals init (Enumerator V_0) //VB$ForEachEnumerator
+  .locals init (Enumerator V_0)
   IL_0000:  newobj     "Sub Enumerable..ctor()"
   IL_0005:  call       "Function Enumerable.GetEnumerator() As Enumerator"
   IL_000a:  stloc.0
@@ -1416,7 +1416,7 @@ End Structure
 {
   // Code size       35 (0x23)
   .maxstack  1
-  .locals init (Enumerator V_0) //VB$ForEachEnumerator
+  .locals init (Enumerator V_0)
   IL_0000:  newobj     "Sub Enumerable..ctor()"
   IL_0005:  call       "Function Enumerable.GetEnumerator() As Enumerator"
   IL_000a:  stloc.0
@@ -1464,7 +1464,7 @@ End Structure
 {
   // Code size       79 (0x4f)
   .maxstack  1
-  .locals init (System.Collections.IEnumerator V_0, //VB$ForEachEnumerator
+  .locals init (System.Collections.IEnumerator V_0,
   Enumerable V_1)
   .try
 {
@@ -1532,7 +1532,7 @@ End Structure
 {
   // Code size       72 (0x48)
   .maxstack  1
-  .locals init (System.Collections.IEnumerator V_0, //VB$ForEachEnumerator
+  .locals init (System.Collections.IEnumerator V_0,
   Enumerable V_1)
   .try
 {
@@ -1615,7 +1615,7 @@ End Class
 {
   // Code size       45 (0x2d)
   .maxstack  1
-  .locals init (Enumerator V_0) //VB$ForEachEnumerator
+  .locals init (Enumerator V_0)
   .try
 {
   IL_0000:  newobj     "Sub Enumerable..ctor()"
@@ -1684,7 +1684,7 @@ End Class
 {
   // Code size       33 (0x21)
   .maxstack  1
-  .locals init (Enumerator V_0) //VB$ForEachEnumerator
+  .locals init (Enumerator V_0)
   IL_0000:  newobj     "Sub Enumerable..ctor()"
   IL_0005:  call       "Function Enumerable.GetEnumerator() As Enumerator"
   IL_000a:  stloc.0
@@ -1778,8 +1778,8 @@ End Class
 {
   // Code size       65 (0x41)
   .maxstack  1
-  .locals init (AbstractEnumerator V_0, //VB$ForEachEnumerator
-  AbstractEnumerator V_1) //VB$ForEachEnumerator
+  .locals init (AbstractEnumerator V_0,
+  AbstractEnumerator V_1)
   IL_0000:  newobj     "Sub Enumerable1..ctor()"
   IL_0005:  call       "Function Enumerable1.GetEnumerator() As AbstractEnumerator"
   IL_000a:  stloc.0
@@ -1854,9 +1854,9 @@ End Class
 {
   // Code size       79 (0x4f)
   .maxstack  3
-  .locals init (Enumerator V_0, //VB$ForEachEnumerator
+  .locals init (Enumerator V_0,
   Integer V_1, //x
-  Enumerator V_2, //VB$ForEachEnumerator
+  Enumerator V_2,
   Integer V_3) //y
   IL_0000:  newobj     "Sub Enumerable..ctor()"
   IL_0005:  call       "Function Enumerable.GetEnumerator() As Enumerator"
@@ -1932,7 +1932,7 @@ c
 {
   // Code size       56 (0x38)
   .maxstack  1
-  .locals init (System.Collections.Generic.List(Of String).Enumerator V_0) //VB$ForEachEnumerator
+  .locals init (System.Collections.Generic.List(Of String).Enumerator V_0)
   .try
 {
   IL_0000:  newobj     "Sub B..ctor()"
@@ -2061,7 +2061,7 @@ End Structure
 {
   // Code size       79 (0x4f)
   .maxstack  1
-  .locals init (System.Collections.IEnumerator V_0, //VB$ForEachEnumerator
+  .locals init (System.Collections.IEnumerator V_0,
   Enumerable V_1)
   .try
 {
@@ -2142,7 +2142,7 @@ End Structure
   // Code size       58 (0x3a)
   .maxstack  1
   .locals init (Enumerable V_0, //e
-  Enumerator V_1) //VB$ForEachEnumerator
+  Enumerator V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "Enumerable"
   IL_0008:  ldloc.0
@@ -2218,7 +2218,7 @@ End Structure
   // Code size       92 (0x5c)
   .maxstack  1
   .locals init (Enumerable V_0, //e
-  System.Collections.IEnumerator V_1) //VB$ForEachEnumerator
+  System.Collections.IEnumerator V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "Enumerable"
   IL_0008:  ldloc.0
@@ -2295,7 +2295,7 @@ End Class
   // Code size       80 (0x50)
   .maxstack  1
   .locals init (Custom(Of S) V_0, //myCustomCollection
-  S V_1) //VB$ForEachEnumerator
+  S V_1)
   IL_0000:  ldnull
   IL_0001:  stloc.0
   .try
@@ -2368,7 +2368,7 @@ End Class
   // Code size       72 (0x48)
   .maxstack  1
   .locals init (Custom(Of S) V_0, //myCustomCollection
-  S V_1) //VB$ForEachEnumerator
+  S V_1)
   IL_0000:  ldnull
   IL_0001:  stloc.0
   .try
@@ -2444,7 +2444,7 @@ End Class
 {
   // Code size       66 (0x42)
   .maxstack  1
-  .locals init (System.Collections.IEnumerator V_0) //VB$ForEachEnumerator
+  .locals init (System.Collections.IEnumerator V_0)
   .try
 {
   IL_0000:  ldarg.0
@@ -2598,9 +2598,9 @@ End Module
   .maxstack  3
   .locals init (System.Collections.Generic.List(Of System.Action) V_0, //actions
   System.Collections.Generic.List(Of Integer) V_1, //values
-  System.Collections.Generic.List(Of Integer).Enumerator V_2, //VB$ForEachEnumerator
-  m1._Closure$__1 V_3, //$VB$Closure_2
-  System.Collections.Generic.List(Of System.Action).Enumerator V_4) //VB$ForEachEnumerator
+  System.Collections.Generic.List(Of Integer).Enumerator V_2,
+  m1._Closure$__1 V_3, //$VB$Closure_1
+  System.Collections.Generic.List(Of System.Action).Enumerator V_4)
   IL_0000:  newobj     "Sub System.Collections.Generic.List(Of System.Action)..ctor()"
   IL_0005:  stloc.0
   IL_0006:  newobj     "Sub System.Collections.Generic.List(Of Integer)..ctor()"
@@ -2629,7 +2629,7 @@ End Module
   IL_0039:  stfld      "m1._Closure$__1.$VB$Local_i As Integer"
   IL_003e:  ldloc.0
   IL_003f:  ldloc.3
-  IL_0040:  ldftn      "Sub m1._Closure$__1._Lambda$__3()"
+  IL_0040:  ldftn      "Sub m1._Closure$__1._Lambda$__2()"
   IL_0046:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_004b:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0050:  ldloca.s   V_2
@@ -2706,15 +2706,15 @@ End Module
   // Code size       93 (0x5d)
   .maxstack  4
   .locals init (System.Action() V_0, //x
-  Integer() V_1, //VB$ForEachArray
-  Integer V_2, //VB$ForEachArrayIndex
-  m1._Closure$__2 V_3, //$VB$Closure_5
+  Integer() V_1,
+  Integer V_2,
+  m1._Closure$__2 V_3, //$VB$Closure_1
   Integer V_4) //i
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "System.Action"
   IL_0007:  stloc.0
   IL_0008:  newobj     "Sub m1._Closure$__1..ctor()"
-  IL_000d:  callvirt   "Function m1._Closure$__1._Lambda$__4() As Integer()"
+  IL_000d:  callvirt   "Function m1._Closure$__1._Lambda$__3() As Integer()"
   IL_0012:  stloc.1
   IL_0013:  ldc.i4.0
   IL_0014:  stloc.2
@@ -2731,7 +2731,7 @@ End Module
   IL_0028:  ldloc.3
   IL_0029:  ldfld      "m1._Closure$__2.$VB$Local_i As Integer"
   IL_002e:  ldloc.3
-  IL_002f:  ldftn      "Sub m1._Closure$__2._Lambda$__6()"
+  IL_002f:  ldftn      "Sub m1._Closure$__2._Lambda$__4()"
   IL_0035:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_003a:  stelem.ref
   IL_003b:  ldloc.2
@@ -2806,11 +2806,11 @@ End Module
   // Code size      166 (0xa6)
   .maxstack  4
   .locals init (System.Action() V_0, //x
-  Integer V_1, //j
-  Integer V_2,
-  System.Collections.Generic.IEnumerator(Of Integer) V_3, //VB$ForEachEnumerator
-  m1._Closure$__1 V_4, //$VB$Closure_4
-  Integer V_5) //i
+                Integer V_1, //j
+                Integer V_2,
+                System.Collections.Generic.IEnumerator(Of Integer) V_3,
+                m1._Closure$__1 V_4, //$VB$Closure_1
+                Integer V_5) //i
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "System.Action"
   IL_0007:  stloc.0
@@ -2818,49 +2818,49 @@ End Module
   IL_0009:  stloc.1
   IL_000a:  nop
   .try
-{
-  IL_000b:  ldsfld     "m1._ClosureCache$__3 As <generated method>"
-  IL_0010:  brfalse.s  IL_0019
-  IL_0012:  ldsfld     "m1._ClosureCache$__3 As <generated method>"
-  IL_0017:  br.s       IL_002b
-  IL_0019:  ldnull
-  IL_001a:  ldftn      "Function m1._Lambda$__2(Object, Object) As System.Collections.Generic.IEnumerable(Of Integer)"
-  IL_0020:  newobj     "Sub VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
-  IL_0025:  dup
-  IL_0026:  stsfld     "m1._ClosureCache$__3 As <generated method>"
-  IL_002b:  ldloc.2
-  IL_002c:  box        "Integer"
-  IL_0031:  callvirt   "Function VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer)).Invoke(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
-  IL_0036:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)"
-  IL_003b:  stloc.3
-  IL_003c:  br.s       IL_006a
-  IL_003e:  ldloc.s    V_4
-  IL_0040:  newobj     "Sub m1._Closure$__1..ctor(m1._Closure$__1)"
-  IL_0045:  stloc.s    V_4
-  IL_0047:  ldloc.s    V_4
-  IL_0049:  ldloc.3
-  IL_004a:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
-  IL_004f:  stfld      "m1._Closure$__1.$VB$Local_i As Integer"
-  IL_0054:  ldloc.0
-  IL_0055:  ldloc.s    V_4
-  IL_0057:  ldfld      "m1._Closure$__1.$VB$Local_i As Integer"
-  IL_005c:  ldloc.s    V_4
-  IL_005e:  ldftn      "Sub m1._Closure$__1._Lambda$__5()"
-  IL_0064:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_0069:  stelem.ref
-  IL_006a:  ldloc.3
-  IL_006b:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
-  IL_0070:  brtrue.s   IL_003e
-  IL_0072:  leave.s    IL_007e
-}
+  {
+    IL_000b:  ldsfld     "m1._ClosureCache$__3 As <generated method>"
+    IL_0010:  brfalse.s  IL_0019
+    IL_0012:  ldsfld     "m1._ClosureCache$__3 As <generated method>"
+    IL_0017:  br.s       IL_002b
+    IL_0019:  ldnull
+    IL_001a:  ldftn      "Function m1._Lambda$__2(Object, Object) As System.Collections.Generic.IEnumerable(Of Integer)"
+    IL_0020:  newobj     "Sub VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
+    IL_0025:  dup
+    IL_0026:  stsfld     "m1._ClosureCache$__3 As <generated method>"
+    IL_002b:  ldloc.2
+    IL_002c:  box        "Integer"
+    IL_0031:  callvirt   "Function VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer)).Invoke(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
+    IL_0036:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_003b:  stloc.3
+    IL_003c:  br.s       IL_006a
+    IL_003e:  ldloc.s    V_4
+    IL_0040:  newobj     "Sub m1._Closure$__1..ctor(m1._Closure$__1)"
+    IL_0045:  stloc.s    V_4
+    IL_0047:  ldloc.s    V_4
+    IL_0049:  ldloc.3
+    IL_004a:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
+    IL_004f:  stfld      "m1._Closure$__1.$VB$Local_i As Integer"
+    IL_0054:  ldloc.0
+    IL_0055:  ldloc.s    V_4
+    IL_0057:  ldfld      "m1._Closure$__1.$VB$Local_i As Integer"
+    IL_005c:  ldloc.s    V_4
+    IL_005e:  ldftn      "Sub m1._Closure$__1._Lambda$__4()"
+    IL_0064:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+    IL_0069:  stelem.ref
+    IL_006a:  ldloc.3
+    IL_006b:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+    IL_0070:  brtrue.s   IL_003e
+    IL_0072:  leave.s    IL_007e
+  }
   finally
-{
-  IL_0074:  ldloc.3
-  IL_0075:  brfalse.s  IL_007d
-  IL_0077:  ldloc.3
-  IL_0078:  callvirt   "Sub System.IDisposable.Dispose()"
-  IL_007d:  endfinally
-}
+  {
+    IL_0074:  ldloc.3
+    IL_0075:  brfalse.s  IL_007d
+    IL_0077:  ldloc.3
+    IL_0078:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_007d:  endfinally
+  }
   IL_007e:  ldc.i4.1
   IL_007f:  stloc.s    V_5
   IL_0081:  ldloc.0
@@ -2932,10 +2932,10 @@ End Module
   .maxstack  3
   .locals init (System.Collections.Generic.List(Of System.Action) V_0, //lambdas
   Integer V_1, //y
-  Object() V_2, //VB$ForEachArray
-  Integer V_3, //VB$ForEachArrayIndex
-  m1._Closure$__2 V_4, //$VB$Closure_5
-  System.Collections.Generic.List(Of System.Action).Enumerator V_5) //VB$ForEachEnumerator
+  Object() V_2,
+  Integer V_3,
+  m1._Closure$__2 V_4, //$VB$Closure_1
+  System.Collections.Generic.List(Of System.Action).Enumerator V_5)
   IL_0000:  newobj     "Sub System.Collections.Generic.List(Of System.Action)..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -2946,7 +2946,7 @@ End Module
   IL_0013:  dup
   IL_0014:  ldfld      "m1._Closure$__1.$VB$NonLocal_ As Integer"
   IL_0019:  box        "Integer"
-  IL_001e:  callvirt   "Function m1._Closure$__1._Lambda$__4(Object) As Object()"
+  IL_001e:  callvirt   "Function m1._Closure$__1._Lambda$__3(Object) As Object()"
   IL_0023:  stloc.2
   IL_0024:  ldc.i4.0
   IL_0025:  stloc.3
@@ -2962,7 +2962,7 @@ End Module
   IL_003b:  stfld      "m1._Closure$__2.$VB$Local_x As Integer"
   IL_0040:  ldloc.0
   IL_0041:  ldloc.s    V_4
-  IL_0043:  ldftn      "Sub m1._Closure$__2._Lambda$__6()"
+  IL_0043:  ldftn      "Sub m1._Closure$__2._Lambda$__4()"
   IL_0049:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_004e:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0053:  ldloc.3
@@ -2975,15 +2975,15 @@ End Module
   IL_005a:  conv.i4
   IL_005b:  blt.s      IL_0028
   IL_005d:  ldloc.0
-  IL_005e:  ldsfld     "m1._ClosureCache$__8 As System.Action"
+  IL_005e:  ldsfld     "m1._ClosureCache$__6 As System.Action"
   IL_0063:  brfalse.s  IL_006c
-  IL_0065:  ldsfld     "m1._ClosureCache$__8 As System.Action"
+  IL_0065:  ldsfld     "m1._ClosureCache$__6 As System.Action"
   IL_006a:  br.s       IL_007e
   IL_006c:  ldnull
-  IL_006d:  ldftn      "Sub m1._Lambda$__7(Object)"
+  IL_006d:  ldftn      "Sub m1._Lambda$__5(Object)"
   IL_0073:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0078:  dup
-  IL_0079:  stsfld     "m1._ClosureCache$__8 As System.Action"
+  IL_0079:  stsfld     "m1._ClosureCache$__6 As System.Action"
   IL_007e:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0083:  ldloc.1
   IL_0084:  ldc.i4.1
@@ -3044,7 +3044,7 @@ End Class
   // Code size       84 (0x54)
   .maxstack  3
   .locals init (Object V_0, //o
-                System.Collections.IEnumerator V_1) //VB$ForEachEnumerator
+                System.Collections.IEnumerator V_1)
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Integer"
   IL_0006:  dup

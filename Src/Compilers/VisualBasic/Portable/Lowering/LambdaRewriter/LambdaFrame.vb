@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             copyConstructor As Boolean,
             tempNumber As Integer
         )
-            MyBase.New(enclosingMethod, StringConstants.ClosureClassPrefix & tempNumber, containingType, ImmutableArray(Of NamedTypeSymbol).Empty)
+            MyBase.New(enclosingMethod, GeneratedNames.MakeLambdaDisplayClassName(tempNumber), containingType, ImmutableArray(Of NamedTypeSymbol).Empty)
 
             Me.m_containingSymbol = containingType
 

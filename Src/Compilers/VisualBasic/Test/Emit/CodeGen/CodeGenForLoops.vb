@@ -57,8 +57,8 @@ End Class
   // Code size       73 (0x49)
   .maxstack  3
   .locals init (Integer() V_0, //myarray
-  Integer V_1, //VB$ForLimit
-  Integer V_2, //VB$ForStep
+  Integer V_1,
+  Integer V_2,
   Integer V_3) //i
   IL_0000:  ldc.i4.2
   IL_0001:  newarr     "Integer"
@@ -130,8 +130,8 @@ End Class
 {
   // Code size       97 (0x61)
   .maxstack  2
-  .locals init (Double V_0, //VB$ForStep
-  Boolean V_1, //VB$LoopDirection
+  .locals init (Double V_0,
+  Boolean V_1,
   Double V_2) //i
   IL_0000:  ldc.r8     1.1
   IL_0009:  stloc.0
@@ -197,8 +197,8 @@ End Class
   // Code size       92 (0x5c)
   .maxstack  2
   .locals init (Byte V_0, //s
-  Decimal V_1, //VB$ForStep
-  Boolean V_2, //VB$LoopDirection
+  Decimal V_1,
+  Boolean V_2,
   Decimal V_3) //i
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
@@ -272,9 +272,9 @@ End Class
   // Code size       99 (0x63)
   .maxstack  2
   .locals init (Byte V_0, //s
-  Decimal V_1, //VB$ForLimit
-  Decimal V_2, //VB$ForStep
-  Boolean V_3, //VB$LoopDirection
+  Decimal V_1,
+  Decimal V_2,
+  Boolean V_3,
   Decimal V_4) //i
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
@@ -350,8 +350,8 @@ End Class
 {
   // Code size       97 (0x61)
   .maxstack  2
-  .locals init (Double V_0, //VB$ForStep
-  Boolean V_1, //VB$LoopDirection
+  .locals init (Double V_0,
+  Boolean V_1,
   Double V_2) //i
   IL_0000:  ldc.r8     -1.1
   IL_0009:  stloc.0
@@ -425,7 +425,7 @@ End Class
   Object V_1, //initValue
   Object V_2, //limit
   Object V_3, //stp
-  Object V_4) //VB$LoopObject
+  Object V_4)
   IL_0000:  ldc.i4.0
   IL_0001:  box        "Integer"
   IL_0006:  stloc.1
@@ -919,7 +919,7 @@ End Class
   // Code size       52 (0x34)
   .maxstack  6
   .locals init (Integer V_0, //x
-  Object V_1, //VB$LoopObject
+  Object V_1,
   Object V_2) //J
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
@@ -972,7 +972,7 @@ End Class
   // Code size       50 (0x32)
   .maxstack  6
   .locals init (Integer V_0, //x
-  Object V_1, //VB$LoopObject
+  Object V_1,
   Object V_2) //J
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
@@ -1021,7 +1021,7 @@ End Class
 {
   // Code size       48 (0x30)
   .maxstack  6
-  .locals init (Object V_0, //VB$LoopObject
+  .locals init (Object V_0,
   Object V_1) //J
   IL_0000:  ldloc.1
   IL_0001:  ldc.i4.0
@@ -1070,7 +1070,7 @@ End Class
 {
   // Code size       67 (0x43)
   .maxstack  6
-  .locals init (Object V_0, //VB$LoopObject
+  .locals init (Object V_0,
   Object V_1, //IntCounter
   Object V_2)
   IL_0000:  ldloc.1
@@ -1164,7 +1164,7 @@ End Class
   .locals init (Object V_0, //ObjStart
   Object V_1, //ObjEndProp
   Object V_2, //ObjStep
-  Object V_3, //VB$LoopObject
+  Object V_3,
   Object V_4) //Idx
   IL_0000:  ldc.i4.1
   IL_0001:  box        "Integer"
@@ -1436,8 +1436,8 @@ End Class
 {
   // Code size       39 (0x27)
   .maxstack  3
-  .locals init (Integer V_0, //VB$ForLimit
-  Integer V_1, //VB$ForStep
+  .locals init (Integer V_0,
+  Integer V_1,
   Integer V_2) //x
   IL_0000:  ldloc.2
   IL_0001:  ldc.i4.s   20
@@ -1536,7 +1536,7 @@ End Class
   // Code size       28 (0x1c)
   .maxstack  2
   .locals init (Integer V_0, //x
-  Integer V_1, //VB$ForLimit
+  Integer V_1,
   Integer V_2) //J
   IL_0000:  ldc.i4.5
   IL_0001:  stloc.0
@@ -1778,9 +1778,9 @@ c
 {
   // Code size      175 (0xaf)
   .maxstack  3
-  .locals init (Program.e1? V_0, //VB$ForLimit
-  Program.e1? V_1, //VB$ForStep
-  Boolean V_2, //VB$LoopDirection
+  .locals init (Program.e1? V_0,
+  Program.e1? V_1,
+  Boolean V_2,
   Program.e1? V_3, //i
   Program.e1? V_4)
   IL_0000:  ldc.i4.0
@@ -1890,7 +1890,7 @@ End Module
 {
   // Code size       35 (0x23)
   .maxstack  3
-  .locals init (Program.e1 V_0, //VB$ForStep
+  .locals init (Program.e1 V_0,
   Program.e1 V_1) //i
   IL_0000:  call       "Function Program.foo() As Program.e1"
   IL_0005:  stloc.0
@@ -1955,7 +1955,7 @@ End Module
 {
   // Code size       23 (0x17)
   .maxstack  2
-  .locals init (Program.e1 V_0, //VB$ForStep
+  .locals init (Program.e1 V_0,
   Program.e1 V_1) //i
   IL_0000:  call       "Function Program.foo() As Program.e1"
   IL_0005:  stloc.0

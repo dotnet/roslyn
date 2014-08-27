@@ -1231,7 +1231,6 @@ OtherExpressions:
         End Sub
 
         Private Function DefineLocal(local As LocalSymbol, syntaxNode As VisualBasicSyntaxNode) As LocalDefinition
-            Dim name As String = local.Name
             Dim specType = local.Type.SpecialType
 
             ' We're treating constants of type Decimal and DateTime as local here to not create a new instance for each time
@@ -1246,13 +1245,9 @@ OtherExpressions:
 
             If local.HasConstantValue Then
                 Dim compileTimeValue As MetadataConstant = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics)
-                Dim localConstantDef = New LocalConstantDefinition(name, If(local.Locations.FirstOrDefault(), Location.None), compileTimeValue)
-
-                ' If there is a name, add it to the scope.
-                If name IsNot Nothing Then
-                    ' Reference in the scope for debugging purpose
-                    _builder.AddLocalConstantToScope(localConstantDef)
-                End If
+                Dim localConstantDef = New LocalConstantDefinition(local.Name, If(local.Locations.FirstOrDefault(), Location.None), compileTimeValue)
+                ' Reference in the scope for debugging purpose
+                _builder.AddLocalConstantToScope(localConstantDef)
                 Return Nothing
 
             ElseIf Me.IsStackLocal(local) Then
@@ -1266,6 +1261,7 @@ OtherExpressions:
 
                 Dim constraints = If(local.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None) Or
                     If(local.IsPinned, LocalSlotConstraints.Pinned, LocalSlotConstraints.None)
+                Dim name As String = GetLocalDebugName(local)
                 Debug.Assert(Not local.SynthesizedLocalKind.IsNamed(_optimizations) OrElse Not String.IsNullOrEmpty(name), "compiler generated names must be nonempty")
 
                 Dim localDef = _builder.LocalSlotManager.DeclareLocal(
@@ -1288,11 +1284,28 @@ OtherExpressions:
 
         End Function
 
+        Private Function GetLocalDebugName(local As LocalSymbol) As String
+            If local.Name IsNot Nothing Then
+                Debug.Assert(local.SynthesizedLocalKind = SynthesizedLocalKind.None)
+                Return local.Name
+            End If
+
+            If HasDebugName(local) Then
+                Return GeneratedNames.MakeLocalName(local.SynthesizedLocalKind, local.Type, _uniqueId)
+            End If
+
+            Return Nothing
+        End Function
+
+        Private Function HasDebugName(local As LocalSymbol) As Boolean
+            Return local.Name IsNot Nothing OrElse local.SynthesizedLocalKind.IsNamed(Me._optimizations)
+        End Function
+
         Private Sub FreeLocal(temp As LocalSymbol)
             'TODO: releasing locals with name NYI.
             'NOTE: VB considers named local's extent to be whole method 
             '      so releasing them may just not be possible.
-            If temp.Name Is Nothing AndAlso Not Me.IsStackLocal(temp) Then
+            If Not HasDebugName(temp) AndAlso Not Me.IsStackLocal(temp) Then
                 _builder.LocalSlotManager.FreeLocal(temp)
             End If
         End Sub
