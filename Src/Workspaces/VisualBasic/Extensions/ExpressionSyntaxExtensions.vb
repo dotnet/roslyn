@@ -1045,8 +1045,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return False
         End Function
 
-        Private Function InsideCrefReference(name As ExpressionSyntax) As Boolean
-            Return name.Ancestors().Any(Function(n) n.IsKind(SyntaxKind.XmlCrefAttribute))
+        Private Function InsideCrefReference(expr As ExpressionSyntax) As Boolean
+            Dim crefAttribute = expr.FirstAncestorOrSelf(Of XmlCrefAttributeSyntax)()
+            Return crefAttribute IsNot Nothing
         End Function
 
         Private Function PreferPredefinedTypeKeywordInMemberAccess(memberAccess As ExpressionSyntax, optionSet As OptionSet) As Boolean
