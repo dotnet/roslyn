@@ -752,15 +752,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
         }
 
+        private static bool InsideCrefReference(ExpressionSyntax name)
+        {
+            return name.Ancestors().Any(n => n.IsKind(SyntaxKind.XmlCrefAttribute));
+        }
+
         private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, OptionSet optionSet)
         {
-            return name.Parent != null && !(name.Parent is MemberAccessExpressionSyntax) &&
+            return (name.Parent != null) && !(name.Parent is MemberAccessExpressionSyntax) && !InsideCrefReference(name) &&
                 optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.CSharp);
         }
 
         private static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax memberAccess, OptionSet optionSet)
         {
-            return memberAccess.Parent != null && memberAccess.Parent is MemberAccessExpressionSyntax &&
+            return (((memberAccess.Parent != null) && (memberAccess.Parent is MemberAccessExpressionSyntax)) || InsideCrefReference(memberAccess)) &&
                 optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp);
         }
 

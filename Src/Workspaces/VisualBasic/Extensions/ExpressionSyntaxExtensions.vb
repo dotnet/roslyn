@@ -1045,12 +1045,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return False
         End Function
 
+        Private Function InsideCrefReference(name As ExpressionSyntax) As Boolean
+            Return name.Ancestors().Any(Function(n) n.IsKind(SyntaxKind.XmlCrefAttribute))
+        End Function
+
         Private Function PreferPredefinedTypeKeywordInMemberAccess(memberAccess As ExpressionSyntax, optionSet As OptionSet) As Boolean
-            Return memberAccess.Parent IsNot Nothing AndAlso TypeOf memberAccess.Parent Is MemberAccessExpressionSyntax AndAlso optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic)
+            Return (((memberAccess.Parent IsNot Nothing) AndAlso (TypeOf memberAccess.Parent Is MemberAccessExpressionSyntax)) OrElse
+                    (InsideCrefReference(memberAccess) AndAlso Not memberAccess.IsLeftSideOfQualifiedName)) AndAlso ' Bug 1012713: Compiler has a bug due to which it doesn't support <PredefinedType>.Member inside crefs (i.e. Sytem.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't support simplifying types names like System.Int32.MaxValue to Integer.MaxValue.
+                   optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic)
         End Function
 
         Private Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
-            Return name.Parent IsNot Nothing AndAlso TypeOf name.Parent IsNot MemberAccessExpressionSyntax AndAlso optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic)
+            Return (name.Parent IsNot Nothing) AndAlso (TypeOf name.Parent IsNot MemberAccessExpressionSyntax) AndAlso (Not InsideCrefReference(name)) AndAlso
+                   optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic)
         End Function
 
         <Extension>
@@ -1259,9 +1266,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                     Dim aliasInfo = semanticModel.GetAliasInfo(name, cancellationToken)
                     If nameHasNoAlias AndAlso aliasInfo Is Nothing Then
-                        If Not InsideCrefReference(name) AndAlso
-                           (PreferPredefinedTypeKeywordInDeclarations(name, optionSet) OrElse
-                            PreferPredefinedTypeKeywordInMemberAccess(name, optionSet)) Then
+                        If PreferPredefinedTypeKeywordInDeclarations(name, optionSet) OrElse
+                           PreferPredefinedTypeKeywordInMemberAccess(name, optionSet) Then
                             Dim type = semanticModel.GetTypeInfo(name).Type
                             If type IsNot Nothing Then
                                 Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
@@ -1346,11 +1352,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken)
-        End Function
-
-        Private Function InsideCrefReference(name As NameSyntax) As Boolean
-            Return name.IsParentKind(SyntaxKind.CrefReference) OrElse
-            (name.Parent IsNot Nothing AndAlso name.Parent.IsParentKind(SyntaxKind.CrefReference))
         End Function
 
         Private Function TryReduceAttributeSuffix(

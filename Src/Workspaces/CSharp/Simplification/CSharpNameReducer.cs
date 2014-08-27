@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var crefSyntax = (QualifiedCrefSyntax)node;
                 CrefSyntax crefReplacement;
 
-                if (!crefSyntax.TryReduceOrSimplifyExplicitName(semanticModel, out crefReplacement, out issueSpan, cancellationToken))
+                if (!crefSyntax.TryReduceOrSimplifyExplicitName(semanticModel, out crefReplacement, out issueSpan, optionSet, cancellationToken))
                 {
                     return node;
                 }

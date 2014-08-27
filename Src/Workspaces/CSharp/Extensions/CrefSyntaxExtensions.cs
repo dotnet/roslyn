@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SemanticModel semanticModel,
             out CrefSyntax replacementNode,
             out TextSpan issueSpan,
+            OptionSet optionSet,
             CancellationToken cancellationToken)
         {
             replacementNode = null;
@@ -30,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var memberCref = qualifiedCrefSyntax.Member;
 
             // Currently we are dealing with only the NameMemberCrefs
-            if (memberCref.CSharpKind() == SyntaxKind.NameMemberCref)
+            if (optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp) &&
+                (memberCref.CSharpKind() == SyntaxKind.NameMemberCref))
             {
                 var nameMemberCref = ((NameMemberCrefSyntax)memberCref).Name;
                 var symbolInfo = semanticModel.GetSymbolInfo(nameMemberCref);
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             replacementNode = crefSyntax.CopyAnnotationsTo(replacementNode);
 
                             // we want to show the whole name expression as unnecessary
-                            issueSpan = crefSyntax.Span; 
+                            issueSpan = crefSyntax.Span;
 
                             return true;
                         }
