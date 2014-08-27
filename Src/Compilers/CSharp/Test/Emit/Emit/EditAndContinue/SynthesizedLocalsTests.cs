@@ -356,72 +356,70 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             diff1.VerifyIL("C.M",
 @"
 {
-  // Code size       86 (0x56)
+  // Code size       83 (0x53)
   .maxstack  2
   .locals init (char* V_0, //p
-           [unchanged] V_1,
-           pinned int& V_2, //q
-           [unchanged] V_3,
-           char* V_4, //r
-           [unchanged] V_5,
-           pinned string V_6, //CS$519$0000
-           int[] V_7,
-           pinned string V_8) //CS$519$0001
-  IL_0000:  nop       
-  IL_0001:  ldarg.0   
+                [unchanged] V_1,
+                pinned int& V_2, //q
+                [unchanged] V_3,
+                char* V_4, //r
+                [unchanged] V_5,
+                pinned string V_6, //CS$519$0000
+                int[] V_7,
+                pinned string V_8) //CS$519$0001
+  IL_0000:  nop
+  IL_0001:  ldarg.0
   IL_0002:  stloc.s    V_6
   IL_0004:  ldloc.s    V_6
-  IL_0006:  conv.i    
-  IL_0007:  stloc.0   
-  IL_0008:  ldloc.s    V_6
-  IL_000a:  conv.i    
-  IL_000b:  brfalse.s  IL_0015
-  IL_000d:  ldloc.0   
-  IL_000e:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0013:  add       
-  IL_0014:  stloc.0   
-  IL_0015:  nop       
-  IL_0016:  ldarg.1   
-  IL_0017:  dup       
-  IL_0018:  stloc.s    V_7
-  IL_001a:  brfalse.s  IL_0022
-  IL_001c:  ldloc.s    V_7
-  IL_001e:  ldlen     
-  IL_001f:  conv.i4   
-  IL_0020:  brtrue.s   IL_0027
-  IL_0022:  ldc.i4.0  
-  IL_0023:  conv.u    
-  IL_0024:  stloc.2   
-  IL_0025:  br.s       IL_0030
-  IL_0027:  ldloc.s    V_7
-  IL_0029:  ldc.i4.0  
-  IL_002a:  ldelema    ""int""
-  IL_002f:  stloc.2   
-  IL_0030:  nop       
-  IL_0031:  nop       
-  IL_0032:  ldc.i4.0  
-  IL_0033:  conv.u    
-  IL_0034:  stloc.2   
-  IL_0035:  ldarg.0   
-  IL_0036:  stloc.s    V_8
-  IL_0038:  ldloc.s    V_8
-  IL_003a:  conv.i    
-  IL_003b:  stloc.s    V_4
-  IL_003d:  ldloc.s    V_8
-  IL_003f:  conv.i    
-  IL_0040:  brfalse.s  IL_004c
-  IL_0042:  ldloc.s    V_4
-  IL_0044:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0049:  add       
-  IL_004a:  stloc.s    V_4
-  IL_004c:  nop       
-  IL_004d:  nop       
-  IL_004e:  ldnull    
-  IL_004f:  stloc.s    V_8
-  IL_0051:  nop       
-  IL_0052:  ldnull    
-  IL_0053:  stloc.s    V_6
-  IL_0055:  ret       
+  IL_0006:  conv.i
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  brfalse.s  IL_0013
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0011:  add
+  IL_0012:  stloc.0
+  IL_0013:  nop
+  IL_0014:  ldarg.1
+  IL_0015:  dup
+  IL_0016:  stloc.s    V_7
+  IL_0018:  brfalse.s  IL_0020
+  IL_001a:  ldloc.s    V_7
+  IL_001c:  ldlen
+  IL_001d:  conv.i4
+  IL_001e:  brtrue.s   IL_0025
+  IL_0020:  ldc.i4.0
+  IL_0021:  conv.u
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_002e
+  IL_0025:  ldloc.s    V_7
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldelema    ""int""
+  IL_002d:  stloc.2
+  IL_002e:  nop
+  IL_002f:  nop
+  IL_0030:  ldc.i4.0
+  IL_0031:  conv.u
+  IL_0032:  stloc.2
+  IL_0033:  ldarg.0
+  IL_0034:  stloc.s    V_8
+  IL_0036:  ldloc.s    V_8
+  IL_0038:  conv.i
+  IL_0039:  stloc.s    V_4
+  IL_003b:  ldloc.s    V_4
+  IL_003d:  brfalse.s  IL_0049
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0046:  add
+  IL_0047:  stloc.s    V_4
+  IL_0049:  nop
+  IL_004a:  nop
+  IL_004b:  ldnull
+  IL_004c:  stloc.s    V_8
+  IL_004e:  nop
+  IL_004f:  ldnull
+  IL_0050:  stloc.s    V_6
+  IL_0052:  ret
 }");
         }
 
@@ -472,135 +470,130 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M",
-@"{
-  // Code size      180 (0xb4)
+@"
+{
+  // Code size      172 (0xac)
   .maxstack  2
   .locals init (char* V_0, //p1
-           char* V_1, //p2
-           [unchanged] V_2,
-           [unchanged] V_3,
-           char* V_4, //p1
-           char* V_5, //p3
-           char* V_6, //p2
-           [unchanged] V_7,
-           [unchanged] V_8,
-           [unchanged] V_9,
-           char* V_10, //p4
-           [unchanged] V_11,
-           pinned string V_12, //CS$519$0000
-           pinned string V_13, //CS$519$0001
-           pinned string V_14, //CS$519$0002
-           pinned string V_15, //CS$519$0003
-           pinned string V_16, //CS$519$0004
-           pinned string V_17) //CS$519$0005
-  IL_0000:  nop       
-  IL_0001:  ldarg.0   
+                char* V_1, //p2
+                [unchanged] V_2,
+                [unchanged] V_3,
+                char* V_4, //p1
+                char* V_5, //p3
+                char* V_6, //p2
+                [unchanged] V_7,
+                [unchanged] V_8,
+                [unchanged] V_9,
+                char* V_10, //p4
+                [unchanged] V_11,
+                pinned string V_12, //CS$519$0000
+                pinned string V_13, //CS$519$0001
+                pinned string V_14, //CS$519$0002
+                pinned string V_15, //CS$519$0003
+                pinned string V_16, //CS$519$0004
+                pinned string V_17) //CS$519$0005
+  IL_0000:  nop
+  IL_0001:  ldarg.0
   IL_0002:  stloc.s    V_12
   IL_0004:  ldloc.s    V_12
-  IL_0006:  conv.i    
-  IL_0007:  stloc.0   
-  IL_0008:  ldloc.s    V_12
-  IL_000a:  conv.i    
-  IL_000b:  brfalse.s  IL_0015
-  IL_000d:  ldloc.0   
-  IL_000e:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0013:  add       
-  IL_0014:  stloc.0   
-  IL_0015:  ldarg.1   
-  IL_0016:  stloc.s    V_13
-  IL_0018:  ldloc.s    V_13
-  IL_001a:  conv.i    
-  IL_001b:  stloc.1   
-  IL_001c:  ldloc.s    V_13
-  IL_001e:  conv.i    
-  IL_001f:  brfalse.s  IL_0029
-  IL_0021:  ldloc.1   
-  IL_0022:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0027:  add       
-  IL_0028:  stloc.1   
-  IL_0029:  nop       
-  IL_002a:  ldloc.0   
-  IL_002b:  ldloc.1   
-  IL_002c:  ldind.u2  
-  IL_002d:  stind.i2  
-  IL_002e:  nop       
-  IL_002f:  ldnull    
-  IL_0030:  stloc.s    V_12
-  IL_0032:  ldnull    
-  IL_0033:  stloc.s    V_13
-  IL_0035:  ldarg.0   
-  IL_0036:  stloc.s    V_14
-  IL_0038:  ldloc.s    V_14
-  IL_003a:  conv.i    
-  IL_003b:  stloc.s    V_4
-  IL_003d:  ldloc.s    V_14
-  IL_003f:  conv.i    
-  IL_0040:  brfalse.s  IL_004c
-  IL_0042:  ldloc.s    V_4
-  IL_0044:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0049:  add       
-  IL_004a:  stloc.s    V_4
-  IL_004c:  ldarg.2   
-  IL_004d:  stloc.s    V_15
-  IL_004f:  ldloc.s    V_15
-  IL_0051:  conv.i    
-  IL_0052:  stloc.s    V_5
-  IL_0054:  ldloc.s    V_15
-  IL_0056:  conv.i    
-  IL_0057:  brfalse.s  IL_0063
-  IL_0059:  ldloc.s    V_5
-  IL_005b:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0060:  add       
-  IL_0061:  stloc.s    V_5
-  IL_0063:  ldarg.3   
-  IL_0064:  stloc.s    V_16
-  IL_0066:  ldloc.s    V_16
-  IL_0068:  conv.i    
-  IL_0069:  stloc.s    V_6
-  IL_006b:  ldloc.s    V_16
-  IL_006d:  conv.i    
-  IL_006e:  brfalse.s  IL_007a
-  IL_0070:  ldloc.s    V_6
-  IL_0072:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0077:  add       
-  IL_0078:  stloc.s    V_6
-  IL_007a:  nop       
-  IL_007b:  ldloc.s    V_4
-  IL_007d:  ldloc.s    V_6
-  IL_007f:  ldind.u2  
-  IL_0080:  stind.i2  
-  IL_0081:  ldloc.s    V_6
-  IL_0083:  ldloc.s    V_5
-  IL_0085:  ldind.u2  
-  IL_0086:  stind.i2  
-  IL_0087:  ldarg.1   
-  IL_0088:  stloc.s    V_17
-  IL_008a:  ldloc.s    V_17
-  IL_008c:  conv.i    
-  IL_008d:  stloc.s    V_10
-  IL_008f:  ldloc.s    V_17
-  IL_0091:  conv.i    
-  IL_0092:  brfalse.s  IL_009e
-  IL_0094:  ldloc.s    V_10
-  IL_0096:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_009b:  add       
-  IL_009c:  stloc.s    V_10
-  IL_009e:  nop       
-  IL_009f:  ldloc.s    V_5
-  IL_00a1:  ldloc.s    V_10
-  IL_00a3:  ldind.u2  
-  IL_00a4:  stind.i2  
-  IL_00a5:  nop       
-  IL_00a6:  ldnull    
-  IL_00a7:  stloc.s    V_17
-  IL_00a9:  nop       
-  IL_00aa:  ldnull    
-  IL_00ab:  stloc.s    V_14
-  IL_00ad:  ldnull    
-  IL_00ae:  stloc.s    V_15
-  IL_00b0:  ldnull    
-  IL_00b1:  stloc.s    V_16
-  IL_00b3:  ret       
+  IL_0006:  conv.i
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  brfalse.s  IL_0013
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0011:  add
+  IL_0012:  stloc.0
+  IL_0013:  ldarg.1
+  IL_0014:  stloc.s    V_13
+  IL_0016:  ldloc.s    V_13
+  IL_0018:  conv.i
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brfalse.s  IL_0025
+  IL_001d:  ldloc.1
+  IL_001e:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0023:  add
+  IL_0024:  stloc.1
+  IL_0025:  nop
+  IL_0026:  ldloc.0
+  IL_0027:  ldloc.1
+  IL_0028:  ldind.u2
+  IL_0029:  stind.i2
+  IL_002a:  nop
+  IL_002b:  ldnull
+  IL_002c:  stloc.s    V_12
+  IL_002e:  ldnull
+  IL_002f:  stloc.s    V_13
+  IL_0031:  ldarg.0
+  IL_0032:  stloc.s    V_14
+  IL_0034:  ldloc.s    V_14
+  IL_0036:  conv.i
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldloc.s    V_4
+  IL_003b:  brfalse.s  IL_0047
+  IL_003d:  ldloc.s    V_4
+  IL_003f:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0044:  add
+  IL_0045:  stloc.s    V_4
+  IL_0047:  ldarg.2
+  IL_0048:  stloc.s    V_15
+  IL_004a:  ldloc.s    V_15
+  IL_004c:  conv.i
+  IL_004d:  stloc.s    V_5
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  brfalse.s  IL_005d
+  IL_0053:  ldloc.s    V_5
+  IL_0055:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_005a:  add
+  IL_005b:  stloc.s    V_5
+  IL_005d:  ldarg.3
+  IL_005e:  stloc.s    V_16
+  IL_0060:  ldloc.s    V_16
+  IL_0062:  conv.i
+  IL_0063:  stloc.s    V_6
+  IL_0065:  ldloc.s    V_6
+  IL_0067:  brfalse.s  IL_0073
+  IL_0069:  ldloc.s    V_6
+  IL_006b:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0070:  add
+  IL_0071:  stloc.s    V_6
+  IL_0073:  nop
+  IL_0074:  ldloc.s    V_4
+  IL_0076:  ldloc.s    V_6
+  IL_0078:  ldind.u2
+  IL_0079:  stind.i2
+  IL_007a:  ldloc.s    V_6
+  IL_007c:  ldloc.s    V_5
+  IL_007e:  ldind.u2
+  IL_007f:  stind.i2
+  IL_0080:  ldarg.1
+  IL_0081:  stloc.s    V_17
+  IL_0083:  ldloc.s    V_17
+  IL_0085:  conv.i
+  IL_0086:  stloc.s    V_10
+  IL_0088:  ldloc.s    V_10
+  IL_008a:  brfalse.s  IL_0096
+  IL_008c:  ldloc.s    V_10
+  IL_008e:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0093:  add
+  IL_0094:  stloc.s    V_10
+  IL_0096:  nop
+  IL_0097:  ldloc.s    V_5
+  IL_0099:  ldloc.s    V_10
+  IL_009b:  ldind.u2
+  IL_009c:  stind.i2
+  IL_009d:  nop
+  IL_009e:  ldnull
+  IL_009f:  stloc.s    V_17
+  IL_00a1:  nop
+  IL_00a2:  ldnull
+  IL_00a3:  stloc.s    V_14
+  IL_00a5:  ldnull
+  IL_00a6:  stloc.s    V_15
+  IL_00a8:  ldnull
+  IL_00a9:  stloc.s    V_16
+  IL_00ab:  ret
 }
 ");
         }

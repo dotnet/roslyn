@@ -1739,7 +1739,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol exprType = rewrittenExpr.Type;
 
             // Don't even call this method if the expression isn't nullable.
-            Debug.Assert((object)exprType == null || exprType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T || !exprType.IsValueType);
+            Debug.Assert(
+                (object)exprType == null || 
+                exprType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T || 
+                !exprType.IsValueType ||
+                exprType.IsPointerType());
 
             TypeSymbol boolType = this.compilation.GetSpecialType(SpecialType.System_Boolean);
 

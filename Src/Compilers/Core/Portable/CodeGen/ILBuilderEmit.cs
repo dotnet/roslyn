@@ -406,8 +406,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // As in ILGENREC::dumpLocal
             // CONSIDER: this is somewhat C# specific - it might be better to incorporate this
             // into the bound tree as a conversion to int.
-            // VSADOV: we do not expect fixed locals to be used for anything other than unmanaged 
-            // interop workaround so we will always convert them into native ints as soon as they are loaded.
+            // VSADOV: pinned locals are used in C# to represent pointers in "fixed" statements.
+            // in the user's code they are used as pointers (*), however in their implementation
+            // they hold pinned references (O or &) to the fixed data so they need to be converted 
+            // them to unmanaged pointer type when loaded.
             if (local.IsPinned)
             {
                 EmitOpCode(ILOpCode.Conv_i);

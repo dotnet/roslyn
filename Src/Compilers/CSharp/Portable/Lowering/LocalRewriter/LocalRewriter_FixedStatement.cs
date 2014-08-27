@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement localInit = AddLocalDeclarationSequencePointIfNecessary(declarator, localSymbol, 
                 factory.Assignment(factory.Local(localSymbol), convertedStringTemp));
 
-            BoundExpression notNullCheck = MakeNullCheck(factory.Syntax, factory.Local(stringTemp), BinaryOperatorKind.NotEqual);
+            BoundExpression notNullCheck = MakeNullCheck(factory.Syntax, factory.Local(localSymbol), BinaryOperatorKind.NotEqual);
             BoundExpression helperCall;
 
             MethodSymbol offsetMethod;
