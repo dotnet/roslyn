@@ -57,6 +57,9 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\DecimalUtilities.cs">
       <Link>InternalUtilities\DecimalUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentId.cs">
+      <Link>InternalUtilities\DocumentationCommentId.cs</Link>
+    </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentXmlNames.cs">
       <Link>InternalUtilities\DocumentationCommentXmlNames.cs</Link>
     </Compile>
@@ -791,7 +794,6 @@
     <Compile Include="Workspace\CommandLineProject.cs" />
     <Compile Include="Workspace\CustomWorkspace.cs" />
     <Compile Include="Utilities\Documentation\DeferredDocumentationProvider.cs" />
-    <Compile Include="Utilities\Documentation\DocumentationCommentId.cs" />
     <Compile Include="Utilities\Documentation\XmlDocumentationProvider.cs" />
     <Compile Include="Workspace\DocumentEventArgs.cs" />
     <Compile Include="Workspace\FileTextLoader.cs" />

@@ -716,9 +716,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // Might be a field declaration statement with multiple fields declared.
                     // Adjust syntax node for analysis to be just the field (except for the first field so that we don't skip nodes common to all fields).
-                    if (declInNode.DeclaredSymbol == declaredSymbol && !first)
+                    if (declInNode.DeclaredSymbol == declaredSymbol)
                     {
-                        declaredNode = declInNode.DeclaredNode;
+                        if (!first)
+                        {
+                            declaredNode = declInNode.DeclaredNode;
+                        }
+
                         continue;
                     }
 

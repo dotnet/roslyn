@@ -19,7 +19,10 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(declaredNode != null);
             Debug.Assert(!executableCodeBlocks.IsDefault);
-            Debug.Assert(executableCodeBlocks.All(n => n.Ancestors().Contains(declaredNode)));
+
+            // TODO: Below assert has been commented out as is not true for VB field decls where multiple variables can share same initializer.
+            // Declared node is the identifier, which doesn't contain the initializer. Can we tweak the assert somehow to handle this case?
+            // Debug.Assert(executableCodeBlocks.All(n => n.Ancestors().Contains(declaredNode)));
 
             this.declaredNode = declaredNode;
             this.executableCodeBlocks = executableCodeBlocks;

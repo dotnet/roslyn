@@ -37,17 +37,19 @@ namespace Microsoft.CodeAnalysis
 
         private static ListPool<ISymbol> symbolListPool = new ListPool<ISymbol>();
         private static ListPool<INamespaceOrTypeSymbol> namespaceOrTypeListPool = new ListPool<INamespaceOrTypeSymbol>();
+        internal static string SuppressionPrefix = "~";
 
         /// <summary>
         /// Creates an id string used by external documenation comment files to identify declarations
         /// of types, namespaces, methods, properties, etc.
         /// </summary>
-        public static string CreateDeclarationId(ISymbol symbol)
+        public static string CreateDeclarationId(ISymbol symbol, string prefixOpt = null)
         {
             var builder = new StringBuilder();
             var generator = new DeclarationGenerator(builder);
             generator.Visit(symbol);
-            return builder.ToString();
+            var idString = builder.ToString();
+            return prefixOpt != null ? prefixOpt + idString : idString;
         }
 
         /// <summary>
@@ -70,11 +72,38 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets all declaration symbols that match the declaration id string
         /// </summary>
-        public static IEnumerable<ISymbol> GetSymbolsForDeclarationId(string id, Compilation compilation)
+        public static IEnumerable<ISymbol> GetSymbolsForDeclarationId(string id, Compilation compilation, string prefixOpt = null)
         {
-            var results = new List<ISymbol>();
-            Parser.ParseDeclaredSymbolId(id, compilation, results);
+            List<ISymbol> results;
+            TryGetSymbolsForDeclarationId(id, compilation, out results, prefixOpt);
             return results;
+        }
+
+        /// <summary>
+        /// Try get all declaration symbols that match the declaration id string
+        /// </summary>
+        public static bool TryGetSymbolsForDeclarationId(string id, Compilation compilation, out List<ISymbol> results, string prefixOpt = null)
+        {
+            results = new List<ISymbol>();
+            id = HandlePrefix(id, prefixOpt);
+            return Parser.ParseDeclaredSymbolId(id, compilation, results);
+        }
+
+        private static string HandlePrefix(string id, string prefixOpt)
+        {
+            if (prefixOpt != null)
+            {
+                if (id == null || !id.StartsWith(prefixOpt))
+                {
+                    return null;
+                }
+                else
+                {
+                    return id.Substring(prefixOpt.Length);
+                }
+            }
+
+            return id;
         }
 
         /// <summary>
@@ -253,7 +282,7 @@ namespace Microsoft.CodeAnalysis
 
                 public override bool VisitEvent(IEventSymbol symbol)
                 {
-                    if (this.Visit(symbol.Type))
+                    if (this.Visit(symbol.ContainingSymbol))
                     {
                         this.builder.Append(".");
                     }
@@ -1369,7 +1398,7 @@ namespace Microsoft.CodeAnalysis
                 return (index >= id.Length) ? '\0' : id[index];
             }
 
-            private static readonly char[] nameDelimiters = new char[] { ':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`' };
+            private static readonly char[] nameDelimiters = new char[] { ':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`', '~' };
 
             private static string ParseName(string id, ref int index)
             {

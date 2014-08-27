@@ -3584,7 +3584,7 @@ _Default:
                     Dim t = CType(node, FieldDeclarationSyntax)
                     For Each decl In t.Declarators
                         For Each identifier In decl.Names
-                            builder.Add(GetDeclarationInfo(decl, getSymbol, cancellationToken, decl.Initializer))
+                            builder.Add(GetDeclarationInfo(identifier, getSymbol, cancellationToken, decl.Initializer))
                         Next
                     Next
                     Return

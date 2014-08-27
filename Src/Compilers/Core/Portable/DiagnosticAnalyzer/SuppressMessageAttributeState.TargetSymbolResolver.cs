@@ -44,6 +44,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
+                // Try to parse the name as declaration ID generated from symbol's documentation comment Id.
+                List<ISymbol> docIdResults;
+                if (DocumentationCommentId.TryGetSymbolsForDeclarationId(this.name, this.compilation, out docIdResults, DocumentationCommentId.SuppressionPrefix))
+                {
+                    foreach (var result in docIdResults)
+                    {
+                        results.Add(result);
+                    }
+                    
+                    return;
+                }
+
                 // Parse 'e:' prefix used by FxCop to differentiate between event and non-event symbols of the same name.
                 bool isEvent = false;
                 if (this.name.Length >= 2 && this.name[0] == 'e' && this.name[1] == ':')

@@ -4674,7 +4674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var t = (BaseFieldDeclarationSyntax)node;
                         foreach (var decl in t.Declaration.Variables)
                         {
-                            builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, decl.Initializer));
+                            builder.Add(GetDeclarationInfo(decl, getSymbol, cancellationToken, decl.Initializer));
                         }
 
                         return;
