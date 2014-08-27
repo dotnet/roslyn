@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.parameters = MakeParameters(compilation, unboundLambda, delegateParameters);
         }
 
-        private LambdaSymbol(
+        public LambdaSymbol(
             Symbol containingSymbol,
             ImmutableArray<ParameterSymbol> parameters,
             TypeSymbol returnType,

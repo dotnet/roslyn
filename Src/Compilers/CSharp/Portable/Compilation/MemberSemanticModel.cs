@@ -225,7 +225,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (unexpectedAnonymousFunction != null)
             {
-                binder = new ExecutableCodeBinder(unexpectedAnonymousFunction, ErrorMethodSymbol.UnknownMethod, binder);
+                binder = new ExecutableCodeBinder(unexpectedAnonymousFunction, 
+                                                  new LambdaSymbol(binder.ContainingMemberOrLambda,
+                                                                   ImmutableArray<ParameterSymbol>.Empty,
+                                                                   ErrorTypeSymbol.UnknownResultType,
+                                                                   unexpectedAnonymousFunction.Kind == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda,
+                                                                   unexpectedAnonymousFunction,
+                                                                   isSynthesized:false,
+                                                                   isAsync:false), 
+                                                  binder);
             }
 
             if (typeOfArgument != null && typeOfEncounteredBeforeUnexpectedAnonymousFunction)

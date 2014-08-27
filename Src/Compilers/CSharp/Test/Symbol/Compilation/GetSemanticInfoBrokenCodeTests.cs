@@ -265,6 +265,37 @@ class C
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
         }
 
+        [WorkItem(1014561, "DevDiv")]
+        [Fact]
+        public void Bug1014561()
+        {
+            var source = @"
+
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+{
+        public class DeclarationCompletionProvider : AbstractCompletionProvider
+        {
+            public overrasync Task<CompletionItemGroup> GetGroupAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                    return new CompletionItemGroup(
+                        items: names.Select(n => new CompletionItem(this, n, textChangeSpan)).AsImmutable());
+                }
+
+                return null;
+            }
+
+        }
+    }
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var identifierSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "CompletionItem").Single();
+
+            var info = model.GetSymbolInfo(identifierSyntax); //Used to throw
+        }
+
         [WorkItem(754405, "DevDiv")]
         [Fact]
         public void MissingNullableType()
