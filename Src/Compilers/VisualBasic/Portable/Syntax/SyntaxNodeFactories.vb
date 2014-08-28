@@ -180,9 +180,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Parse a debugger expression (e.g. possibly including pseudo-variables).
         ''' </summary>
         ''' <param name="text">The input string</param>
-        ''' <param name="offset">The starting offset in the string</param>
-        Friend Shared Function ParseDebuggerExpression(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As ExpressionSyntax
-            Using scanner As New InternalSyntax.Scanner(MakeSourceText(text, offset), VisualBasicParseOptions.Default, isScanningForExpressionCompiler:=True) ' NOTE: Default options should be enough
+        Friend Shared Function ParseDebuggerExpression(text As SourceText, Optional consumeFullText As Boolean = True) As ExpressionSyntax
+            Using scanner As New InternalSyntax.Scanner(text, VisualBasicParseOptions.Default, isScanningForExpressionCompiler:=True) ' NOTE: Default options should be enough
                 Using p = New InternalSyntax.Parser(scanner)
                     p.GetNextToken()
                     Dim node = p.ParseExpression()

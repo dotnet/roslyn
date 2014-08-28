@@ -309,8 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a new syntax tree from a syntax node and with
-        /// text that should correspond to the syntax node.
+        /// Creates a new syntax tree from a syntax node with text that should correspond to the syntax node.
         /// </summary>
         internal static SyntaxTree Create(CSharpSyntaxNode root, SourceText text)
         {
