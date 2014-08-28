@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     /// <summary>
-    /// Options for controlling the code produced by the <see cref="ICodeGenerationService"/>.
+    /// Options for controlling the code produced by the <see cref="CodeGenerator"/>.
     /// </summary>
     public class CodeGenerationOptions
     {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// preferred if it comes from the same SyntaxTree as this location.  If there is no
         /// such part, then any part may be used for generation.
         /// 
-        /// This option is not necessary if 'AfterThisLocation' or 'BeforeThisLocation' are
+        /// This option is not necessary if <see cref="AfterThisLocation"/> or <see cref="BeforeThisLocation"/> are
         /// provided.
         /// </summary>
         public Location ContextLocation { get; private set; }
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// placed.  Code will be generated after this location if the location is valid in the type
         /// or symbol being generated into, and it is possible to generate the code after it.
         /// 
-        /// If this option is provided, neither 'ContextLocation' nor 'BeforeThisLocation' are
+        /// If this option is provided, neither <see cref="ContextLocation"/> nor <see cref="BeforeThisLocation"/> are
         /// needed.
         /// </summary>
         public Location AfterThisLocation { get; private set; }
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// placed.  Code will be generated before this location if the location is valid in the type
         /// or symbol being generated into, and it is possible to generate the code after it. 
         /// 
-        /// If this option is provided, neither 'ContextLocation' nor 'AfterThisLocation' are
+        /// If this option is provided, neither <see cref="ContextLocation"/> nor <see cref="AfterThisLocation"/> are
         /// needed.
         /// </summary>
         public Location BeforeThisLocation { get; private set; }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         /// <summary>
         /// True if, when adding a System import, the import should be placed above non-System
-        /// imports.  Defaults to true.  Only used if AddImports is true.
+        /// imports.  Defaults to true.  Only used if <see cref="AddImports"/> is true.
         /// </summary>
         public bool PlaceSystemNamespaceFirst { get; private set; }
 
@@ -141,9 +141,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool autoInsertionLocation = true,
             bool reuseSyntax = false)
         {
-            CheckLocation(contextLocation, "contextLocation");
-            CheckLocation(afterThisLocation, "afterThisLocation");
-            CheckLocation(beforeThisLocation, "beforeThisLocation");
+            CheckLocation(contextLocation, nameof(contextLocation));
+            CheckLocation(afterThisLocation, nameof(afterThisLocation));
+            CheckLocation(beforeThisLocation, nameof(beforeThisLocation));
 
             this.ContextLocation = contextLocation;
             this.AfterThisLocation = afterThisLocation;
