@@ -111,7 +111,7 @@ void LogTime()
 
 void LogWin32Error(LPCWSTR message)
 {
-	LogFormatted(L"Win32 Error Code %X during %s", GetLastError(), message);
+	LogFormatted(L"Win32 Error Code %X during %ws", GetLastError(), message);
 }
 
 void Exit(int exitCode)

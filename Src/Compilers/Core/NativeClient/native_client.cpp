@@ -255,7 +255,7 @@ void SetupDevDivEnvironment()
 // Start a new server process with the given executable name,
 // and return the process id of the process. On error, return
 // zero.
-DWORD CreateNewServerProcess(LPTSTR executablePath)
+DWORD CreateNewServerProcess(LPCWSTR executablePath)
 {
     STARTUPINFO startupInfo;
     PROCESS_INFORMATION processInfo;
@@ -276,17 +276,24 @@ DWORD CreateNewServerProcess(LPTSTR executablePath)
     // If this is not devdiv, no environment variables will be changed
     SetupDevDivEnvironment();
 
-	auto dir = make_unique<TCHAR[]>(_MAX_DIR);
+	auto driveLetter = make_unique<wchar_t[]>(_MAX_DRIVE);
+	auto dirWithoutDrive = make_unique<wchar_t[]>(_MAX_DIR);
 
 	errno_t err;
-	if ((err = _tsplitpath_s(executablePath,
-							 nullptr, 0,
-							 dir.get(), _MAX_DIR,
-							 nullptr, 0,
-							 nullptr, 0)))
+	if ((err = _wsplitpath_s(executablePath,
+						     driveLetter.get(), _MAX_DRIVE,
+						     dirWithoutDrive.get(), _MAX_DIR,
+						     nullptr, 0,
+						     nullptr, 0)))
 	{
 		FailFormatted(L"Couldn't split the process executable path: %d", err);
 	}
+
+	auto dir = wstring(driveLetter.get());
+	dir.append(dirWithoutDrive.get());
+	auto dirCstr = dir.c_str();
+
+	LogFormatted(L"Creating process with directory %ws", dirCstr);
 
     success = CreateProcess(executablePath, 
         NULL, // command line,
@@ -295,7 +302,7 @@ DWORD CreateNewServerProcess(LPTSTR executablePath)
         FALSE, // don't inherit handles
         NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT,
         NULL, // Inherit environment
-        dir.get(), // The process should run in the directory the executable is located
+        dirCstr, // The process should run in the directory the executable is located
         &startupInfo,
         &processInfo);
 
