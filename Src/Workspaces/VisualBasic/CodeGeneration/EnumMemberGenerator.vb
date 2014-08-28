@@ -2,16 +2,13 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend Class EnumMemberGenerator
-        Inherits AbstractVisualBasicCodeGenerator
+    Friend Module EnumMemberGenerator
 
-        Friend Shared Function AddEnumMemberTo(
+        Friend Function AddEnumMemberTo(
             destination As EnumBlockSyntax,
             enumMember As IFieldSymbol,
             options As CodeGenerationOptions) As EnumBlockSyntax
@@ -32,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                WithEndEnumStatement(If(destination.EndEnumStatement.IsMissing, SyntaxFactory.EndEnumStatement(), destination.EndEnumStatement))
         End Function
 
-        Public Shared Function GenerateEnumMemberDeclaration(enumMember As IFieldSymbol,
+        Public Function GenerateEnumMemberDeclaration(enumMember As IFieldSymbol,
                                                              enumDeclarationOpt As EnumBlockSyntax,
                                                              options As CodeGenerationOptions) As EnumMemberDeclarationSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of EnumMemberDeclarationSyntax)(enumMember, options)
@@ -47,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(member, enumMember, options))
         End Function
 
-        Private Shared Function CreateEnumMemberValue(destinationOpt As EnumBlockSyntax, enumMember As IFieldSymbol) As ExpressionSyntax
+        Private Function CreateEnumMemberValue(destinationOpt As EnumBlockSyntax, enumMember As IFieldSymbol) As ExpressionSyntax
             Dim valueOpt =
                 If(TypeOf enumMember.ConstantValue Is IConvertible,
                     CType(IntegerUtilities.ToInt64(enumMember.ConstantValue), Long?),
@@ -130,5 +127,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 enumMember.ConstantValue,
                 canUseFieldReference:=True)
         End Function
-    End Class
+    End Module
 End Namespace

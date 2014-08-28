@@ -1,21 +1,14 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend Class FieldGenerator
-        Inherits AbstractVisualBasicCodeGenerator
+    Friend Module FieldGenerator
 
-        Private Overloads Shared Function LastField(Of TDeclaration As SyntaxNode)(
+        Private Function LastField(Of TDeclaration As SyntaxNode)(
             members As SyntaxList(Of TDeclaration),
             fieldDeclaration As FieldDeclarationSyntax) As TDeclaration
             Dim lastConst = members.Where(Function(m) TypeOf m Is FieldDeclarationSyntax AndAlso
@@ -27,10 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             ' Place a field after the last field, or after the last const.
-            Return If(LastField(members), lastConst)
+            Return If(VisualBasicCodeGenerationHelpers.LastField(members), lastConst)
         End Function
 
-        Friend Shared Function AddFieldTo(destination As CompilationUnitSyntax,
+        Friend Function AddFieldTo(destination As CompilationUnitSyntax,
                             field As IFieldSymbol,
                             options As CodeGenerationOptions,
                             availableIndices As IList(Of Boolean)) As CompilationUnitSyntax
@@ -41,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return destination.WithMembers(members)
         End Function
 
-        Friend Shared Function AddFieldTo(destination As TypeBlockSyntax,
+        Friend Function AddFieldTo(destination As TypeBlockSyntax,
                                     field As IFieldSymbol,
                                     options As CodeGenerationOptions,
                                     availableIndices As IList(Of Boolean)) As TypeBlockSyntax
@@ -55,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return FixTerminators(destination.WithMembers(members))
         End Function
 
-        Public Shared Function GenerateFieldDeclaration(field As IFieldSymbol,
+        Public Function GenerateFieldDeclaration(field As IFieldSymbol,
                                                         destination As CodeGenerationDestination,
                                                         options As CodeGenerationOptions) As FieldDeclarationSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of ModifiedIdentifierSyntax)(field, options)
@@ -86,16 +79,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(EnsureLastElasticTrivia(fieldDeclaration), field, options))
         End Function
 
-        Private Shared Function GenerateEqualsValue(field As IFieldSymbol) As EqualsValueSyntax
+        Private Function GenerateEqualsValue(field As IFieldSymbol) As EqualsValueSyntax
             If field.HasConstantValue Then
                 Dim canUseFieldReference = field.Type IsNot Nothing AndAlso Not field.Type.Equals(field.ContainingType)
-                Return SyntaxFactory.EqualsValue(GenerateExpression(field.Type, field.ConstantValue, canUseFieldReference))
+                Return SyntaxFactory.EqualsValue(ExpressionGenerator.GenerateExpression(field.Type, field.ConstantValue, canUseFieldReference))
             End If
 
             Return Nothing
         End Function
 
-        Private Shared Function GenerateModifiers(field As IFieldSymbol,
+        Private Function GenerateModifiers(field As IFieldSymbol,
                                                   destination As CodeGenerationDestination,
                                                   options As CodeGenerationOptions) As SyntaxTokenList
             Dim tokens = New List(Of SyntaxToken)()
@@ -123,5 +116,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Return SyntaxFactory.TokenList(tokens)
         End Function
-    End Class
+    End Module
 End Namespace

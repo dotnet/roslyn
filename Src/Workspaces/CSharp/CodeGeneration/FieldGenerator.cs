@@ -3,15 +3,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-    internal class FieldGenerator : AbstractCSharpCodeGenerator
+    internal static class FieldGenerator
     {
         private static MemberDeclarationSyntax LastField(
             SyntaxList<MemberDeclarationSyntax> members,
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             // Place a field after the last field, or after the last const.
-            return LastField(members) ?? lastConst;
+            return CSharpCodeGenerationHelpers.LastField(members) ?? lastConst;
         }
 
         internal static CompilationUnitSyntax AddFieldTo(
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (field.HasConstantValue)
             {
                 var canUseFieldReference = field.Type != null && !field.Type.Equals(field.ContainingType);
-                return SyntaxFactory.EqualsValueClause(GenerateExpression(field.Type, field.ConstantValue, canUseFieldReference));
+                return SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(field.Type, field.ConstantValue, canUseFieldReference));
             }
 
             return null;

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-    internal abstract partial class AbstractCSharpCodeGenerator : AbstractCodeGenerator
+    internal static class CSharpCodeGenerationHelpers
     {
-        protected static TDeclarationSyntax ConditionallyAddFormattingAnnotationTo<TDeclarationSyntax>(
+        public static TDeclarationSyntax ConditionallyAddFormattingAnnotationTo<TDeclarationSyntax>(
             TDeclarationSyntax result,
             SyntaxList<MemberDeclarationSyntax> members) where TDeclarationSyntax : MemberDeclarationSyntax
         {
@@ -59,17 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        protected static ExpressionSyntax GenerateExpression(TypedConstant typedConstant)
-        {
-            return new ExpressionGenerator().GenerateExpression(typedConstant);
-        }
-
-        protected static ExpressionSyntax GenerateExpression(ITypeSymbol type, object value, bool canUseFieldReference)
-        {
-            return new ExpressionGenerator().GenerateExpression(type, value, canUseFieldReference);
-        }
-
-        protected static TypeDeclarationSyntax AddMembersTo(
+        public static TypeDeclarationSyntax AddMembersTo(
             TypeDeclarationSyntax destination, SyntaxList<MemberDeclarationSyntax> members)
         {
             destination = ReplaceUnterminatedConstructs(destination);
@@ -140,37 +131,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return token;
         }
         
-        protected static MemberDeclarationSyntax FirstMember(SyntaxList<MemberDeclarationSyntax> members)
+        public static MemberDeclarationSyntax FirstMember(SyntaxList<MemberDeclarationSyntax> members)
         {
             return members.FirstOrDefault();
         }
 
-        protected static MemberDeclarationSyntax FirstMethod(SyntaxList<MemberDeclarationSyntax> members)
+        public static MemberDeclarationSyntax FirstMethod(SyntaxList<MemberDeclarationSyntax> members)
         {
             return members.FirstOrDefault(m => m is MethodDeclarationSyntax);
         }
 
-        protected static MemberDeclarationSyntax LastField(SyntaxList<MemberDeclarationSyntax> members)
+        public static MemberDeclarationSyntax LastField(SyntaxList<MemberDeclarationSyntax> members)
         {
             return members.LastOrDefault(m => m is FieldDeclarationSyntax);
         }
 
-        protected static MemberDeclarationSyntax LastConstructor(SyntaxList<MemberDeclarationSyntax> members)
+        public static MemberDeclarationSyntax LastConstructor(SyntaxList<MemberDeclarationSyntax> members)
         {
             return members.LastOrDefault(m => m is ConstructorDeclarationSyntax);
         }
 
-        protected static MemberDeclarationSyntax LastMethod(SyntaxList<MemberDeclarationSyntax> members)
+        public static MemberDeclarationSyntax LastMethod(SyntaxList<MemberDeclarationSyntax> members)
         {
             return members.LastOrDefault(m => m is MethodDeclarationSyntax);
         }
 
-        protected static MemberDeclarationSyntax LastOperator(SyntaxList<MemberDeclarationSyntax> members)
+        public static MemberDeclarationSyntax LastOperator(SyntaxList<MemberDeclarationSyntax> members)
         {
             return members.LastOrDefault(m => m is OperatorDeclarationSyntax || m is ConversionOperatorDeclarationSyntax);
         }
 
-        protected static SyntaxList<TDeclaration> Insert<TDeclaration>(
+        public static SyntaxList<TDeclaration> Insert<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
             CodeGenerationOptions options,
@@ -188,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declarationList.Insert(index, declaration);
         }
 
-        protected static int GetInsertionIndex<TDeclaration>(
+        public static int GetInsertionIndex<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
             CodeGenerationOptions options,
@@ -310,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 : contextTree.GetRoot(cancellationToken).FindToken(contextLocation.SourceSpan.Start).Parent;
         }
 
-        protected static ExplicitInterfaceSpecifierSyntax GenerateExplicitInterfaceSpecifier(
+        public static ExplicitInterfaceSpecifierSyntax GenerateExplicitInterfaceSpecifier(
             IEnumerable<ISymbol> implementations)
         {
             var implementation = implementations.FirstOrDefault();
@@ -328,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.ExplicitInterfaceSpecifier(name);
         }
 
-        protected static CodeGenerationDestination GetDestination(TypeDeclarationSyntax destination)
+        public static CodeGenerationDestination GetDestination(TypeDeclarationSyntax destination)
         {
             if (destination != null)
             {
@@ -346,12 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return CodeGenerationDestination.Unspecified;
         }
 
-        protected override SyntaxGenerator GetSyntaxGenerator()
-        {
-            return new CSharpSyntaxGenerator();
-        }
-
-        protected static TSyntaxNode ConditionallyAddDocumentationCommentTo<TSyntaxNode>(
+        public static TSyntaxNode ConditionallyAddDocumentationCommentTo<TSyntaxNode>(
             TSyntaxNode node,
             ISymbol symbol,
             CodeGenerationOptions options,

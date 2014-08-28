@@ -5,23 +5,20 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-    internal partial class ExpressionGenerator : AbstractCSharpCodeGenerator
+    internal static class ExpressionGenerator
     {
-        internal new ExpressionSyntax GenerateExpression(
+        internal static ExpressionSyntax GenerateExpression(
             TypedConstant typedConstant)
         {
             switch (typedConstant.Kind)
@@ -52,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
         }
 
-        internal new ExpressionSyntax GenerateExpression(
+        internal static ExpressionSyntax GenerateExpression(
             ITypeSymbol type,
             object value,
             bool canUseFieldReference)
@@ -69,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (type.TypeKind == TypeKind.Enum && value != null)
             {
                 var enumType = (INamedTypeSymbol)type;
-                return (ExpressionSyntax)CreateEnumConstantValue(enumType, value);
+                return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.CreateEnumConstantValue(enumType, value);
             }
 
             return GenerateNonEnumValueExpression(type, value, canUseFieldReference);

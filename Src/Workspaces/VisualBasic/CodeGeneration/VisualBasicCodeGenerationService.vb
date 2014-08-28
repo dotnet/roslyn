@@ -579,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Overloads Shared Function UpdateDeclarationAccessibility(modifiersList As SyntaxTokenList, newAccesibility As Accessibility, options As CodeGenerationOptions) As SyntaxTokenList
             Dim newModifierTokens = New List(Of SyntaxToken)()
-            AbstractVisualBasicCodeGenerator.AddAccessibilityModifiers(newAccesibility, newModifierTokens, CodeGenerationDestination.Unspecified, options, Accessibility.NotApplicable)
+            VisualBasicCodeGenerationHelpers.AddAccessibilityModifiers(newAccesibility, newModifierTokens, CodeGenerationDestination.Unspecified, options, Accessibility.NotApplicable)
             If newModifierTokens.Count = 0 Then
                 Return modifiersList
             End If

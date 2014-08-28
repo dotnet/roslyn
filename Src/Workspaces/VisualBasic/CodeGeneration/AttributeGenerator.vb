@@ -3,13 +3,13 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend Class AttributeGenerator
-        Inherits AbstractVisualBasicCodeGenerator
+    Friend Module AttributeGenerator
 
-        Public Shared Function GenerateAttributeBlocks(attributes As ImmutableArray(Of AttributeData), options As CodeGenerationOptions, Optional target As SyntaxToken? = Nothing) As SyntaxList(Of AttributeListSyntax)
+        Public Function GenerateAttributeBlocks(attributes As ImmutableArray(Of AttributeData), options As CodeGenerationOptions, Optional target As SyntaxToken? = Nothing) As SyntaxList(Of AttributeListSyntax)
             If Not attributes.Any() Then
                 Return Nothing
             End If
@@ -17,12 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.List(Of AttributeListSyntax)(attributes.OrderBy(Function(a) a.AttributeClass.Name).Select(Function(a) GenerateAttributeBlock(a, options, target)))
         End Function
 
-        Private Shared Function GenerateAttributeBlock(attribute As AttributeData, options As CodeGenerationOptions, target As SyntaxToken?) As AttributeListSyntax
+        Private Function GenerateAttributeBlock(attribute As AttributeData, options As CodeGenerationOptions, target As SyntaxToken?) As AttributeListSyntax
             Return SyntaxFactory.AttributeList(
                 SyntaxFactory.SingletonSeparatedList(GenerateAttribute(attribute, options, target)))
         End Function
 
-        Private Shared Function GenerateAttribute(attribute As AttributeData, options As CodeGenerationOptions, target As SyntaxToken?) As AttributeSyntax
+        Private Function GenerateAttribute(attribute As AttributeData, options As CodeGenerationOptions, target As SyntaxToken?) As AttributeSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForAttribute(Of AttributeSyntax)(attribute, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                            GenerateArgumentList(attribute))
         End Function
 
-        Private Shared Function GenerateArgumentList(attribute As AttributeData) As ArgumentListSyntax
+        Private Function GenerateArgumentList(attribute As AttributeData) As ArgumentListSyntax
             If attribute.ConstructorArguments.Length = 0 AndAlso attribute.NamedArguments.Length = 0 Then
                 Return Nothing
             End If
@@ -48,5 +48,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Return SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))
         End Function
-    End Class
+    End Module
 End Namespace

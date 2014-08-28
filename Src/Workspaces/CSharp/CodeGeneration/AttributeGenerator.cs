@@ -1,23 +1,19 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-    internal class AttributeGenerator : AbstractCSharpCodeGenerator
+    internal static class AttributeGenerator
     {
         public static SyntaxList<AttributeListSyntax> GenerateAttributeLists(
             ImmutableArray<AttributeData> attributes,
@@ -78,12 +74,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var arguments = new List<AttributeArgumentSyntax>();
             arguments.AddRange(attribute.ConstructorArguments.Select(c =>
-                SyntaxFactory.AttributeArgument(GenerateExpression(c))));
+                SyntaxFactory.AttributeArgument(ExpressionGenerator.GenerateExpression(c))));
 
             arguments.AddRange(attribute.NamedArguments.Select(kvp =>
                 SyntaxFactory.AttributeArgument(
                     SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(kvp.Key)), null,
-                    GenerateExpression(kvp.Value))));
+                    ExpressionGenerator.GenerateExpression(kvp.Value))));
 
             return SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(arguments));
         }

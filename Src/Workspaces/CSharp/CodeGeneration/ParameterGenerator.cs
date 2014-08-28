@@ -3,19 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-    internal class ParameterGenerator : AbstractCSharpCodeGenerator
+    internal static class ParameterGenerator
     {
         public static ParameterListSyntax GenerateParameterList(
             ImmutableArray<IParameterSymbol> parameterDefinitions,
@@ -139,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IParameterSymbol parameter,
             object value)
         {
-            return GenerateExpression(parameter.Type, value, canUseFieldReference: true);
+            return ExpressionGenerator.GenerateExpression(parameter.Type, value, canUseFieldReference: true);
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributes(

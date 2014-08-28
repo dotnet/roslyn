@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Partial Class ExpressionGenerator
+    Partial Module ExpressionGenerator
         Private Enum StringPieceKind
             Normal
             NonPrintable
@@ -26,5 +26,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Tab
             VeriticalTab
         End Enum
-    End Class
+    End Module
 End Namespace

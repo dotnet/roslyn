@@ -83,8 +83,8 @@
     <Compile Include="Classification\Worker_Preprocesser.cs" />
     <Compile Include="CodeCleanup\CSharpCodeCleanerService.cs" />
     <Compile Include="CodeCleanup\CSharpCodeCleanerServiceFactory.cs" />
-    <Compile Include="CodeGeneration\AbstractCSharpCodeGenerator.cs" />
-    <Compile Include="CodeGeneration\AbstractCSharpCodeGenerator_Constants.cs" />
+    <Compile Include="CodeGeneration\CSharpCodeGenerationHelpers.cs" />
+    <Compile Include="CodeGeneration\CSharpFlagsEnumGenerator.cs" />
     <Compile Include="CodeGeneration\ArgumentGenerator.cs" />
     <Compile Include="CodeGeneration\AttributeGenerator.cs" />
     <Compile Include="CodeGeneration\ConstructorGenerator.cs" />

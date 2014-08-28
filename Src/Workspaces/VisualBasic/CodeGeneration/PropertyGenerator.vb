@@ -1,26 +1,20 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend Class PropertyGenerator
-        Inherits AbstractVisualBasicCodeGenerator
+    Friend Module PropertyGenerator
 
-        Private Shared Function LastPropertyOrField(Of TDeclaration As SyntaxNode)(
+        Private Function LastPropertyOrField(Of TDeclaration As SyntaxNode)(
                 members As SyntaxList(Of TDeclaration)) As TDeclaration
             Dim lastProperty = members.LastOrDefault(Function(m) m.VisualBasicKind = SyntaxKind.PropertyBlock OrElse m.VisualBasicKind = SyntaxKind.PropertyStatement)
             Return If(lastProperty, LastField(members))
         End Function
 
-        Friend Shared Function AddPropertyTo(destination As CompilationUnitSyntax,
+        Friend Function AddPropertyTo(destination As CompilationUnitSyntax,
                             [property] As IPropertySymbol,
                             options As CodeGenerationOptions,
                             availableIndices As IList(Of Boolean)) As CompilationUnitSyntax
@@ -32,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return destination.WithMembers(SyntaxFactory.List(members))
         End Function
 
-        Friend Shared Function AddPropertyTo(destination As TypeBlockSyntax,
+        Friend Function AddPropertyTo(destination As TypeBlockSyntax,
                                     [property] As IPropertySymbol,
                                     options As CodeGenerationOptions,
                                     availableIndices As IList(Of Boolean)) As TypeBlockSyntax
@@ -46,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return FixTerminators(destination.WithMembers(members))
         End Function
 
-        Public Shared Function GeneratePropertyDeclaration([property] As IPropertySymbol,
+        Public Function GeneratePropertyDeclaration([property] As IPropertySymbol,
                                                            destination As CodeGenerationDestination,
                                                            options As CodeGenerationOptions) As StatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)([property], options)
@@ -61,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     ConditionallyAddDocumentationCommentTo(declaration, [property], options)))
         End Function
 
-        Private Shared Function GeneratePropertyDeclarationWorker([property] As IPropertySymbol,
+        Private Function GeneratePropertyDeclarationWorker([property] As IPropertySymbol,
                                                                   destination As CodeGenerationDestination,
                                                                   options As CodeGenerationOptions) As StatementSyntax
 
@@ -100,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 endPropertyStatement:=SyntaxFactory.EndPropertyStatement())
         End Function
 
-        Private Shared Function GeneratePropertyParameterList([property] As IPropertySymbol, options As CodeGenerationOptions) As ParameterListSyntax
+        Private Function GeneratePropertyParameterList([property] As IPropertySymbol, options As CodeGenerationOptions) As ParameterListSyntax
             If [property].Parameters.IsDefault OrElse [property].Parameters.Length = 0 Then
                 Return Nothing
             End If
@@ -108,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return ParameterGenerator.GenerateParameterList([property].Parameters, options)
         End Function
 
-        Private Shared Function GenerateAccessorList([property] As IPropertySymbol,
+        Private Function GenerateAccessorList([property] As IPropertySymbol,
                                                      destination As CodeGenerationDestination,
                                                      options As CodeGenerationOptions) As SyntaxList(Of AccessorBlockSyntax)
             Dim accessors = New List(Of AccessorBlockSyntax) From {
@@ -119,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.List(accessors.WhereNotNull())
         End Function
 
-        Private Shared Function GenerateAccessor([property] As IPropertySymbol,
+        Private Function GenerateAccessor([property] As IPropertySymbol,
                                                  accessor As IMethodSymbol,
                                                  isGetter As Boolean,
                                                  destination As CodeGenerationDestination,
@@ -147,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Shared Function GenerateAccessorStatements(accessor As IMethodSymbol) As SyntaxList(Of StatementSyntax)
+        Private Function GenerateAccessorStatements(accessor As IMethodSymbol) As SyntaxList(Of StatementSyntax)
             Dim statementsOpt = CodeGenerationMethodInfo.GetStatements(accessor)
             If statementsOpt IsNot Nothing Then
                 Return SyntaxFactory.List(statementsOpt.OfType(Of StatementSyntax))
@@ -156,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Shared Function GenerateAccessorModifiers([property] As IPropertySymbol,
+        Private Function GenerateAccessorModifiers([property] As IPropertySymbol,
                                                            accessor As IMethodSymbol,
                                                            destination As CodeGenerationDestination,
                                                            options As CodeGenerationOptions) As SyntaxTokenList
@@ -170,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TokenList(modifiers)
         End Function
 
-        Private Shared Function GenerateModifiers([property] As IPropertySymbol,
+        Private Function GenerateModifiers([property] As IPropertySymbol,
                                                   destination As CodeGenerationDestination,
                                                   options As CodeGenerationOptions,
                                                   parameterList As ParameterListSyntax) As SyntaxTokenList
@@ -224,17 +218,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TokenList(tokens)
         End Function
 
-        Private Shared Function IsRequired(parameter As ParameterSyntax) As Boolean
+        Private Function IsRequired(parameter As ParameterSyntax) As Boolean
             Return parameter.Modifiers.Count = 0 OrElse
                 parameter.Modifiers.Any(SyntaxKind.ByValKeyword) OrElse
                 parameter.Modifiers.Any(SyntaxKind.ByRefKeyword)
         End Function
 
-        Private Shared Function GenerateAsClause([property] As IPropertySymbol, options As CodeGenerationOptions) As AsClauseSyntax
+        Private Function GenerateAsClause([property] As IPropertySymbol, options As CodeGenerationOptions) As AsClauseSyntax
             Dim attributes = If([property].GetMethod IsNot Nothing,
                                 AttributeGenerator.GenerateAttributeBlocks([property].GetMethod.GetReturnTypeAttributes(), options),
                                 Nothing)
             Return SyntaxFactory.SimpleAsClause(attributes, [property].Type.GenerateTypeSyntax())
         End Function
-    End Class
+    End Module
 End Namespace

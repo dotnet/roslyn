@@ -1,21 +1,16 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
-    Friend Class NamespaceGenerator
-        Inherits AbstractVisualBasicCodeGenerator
+    Friend Module NamespaceGenerator
 
-        Public Shared Function AddNamespaceTo(service As ICodeGenerationService,
+        Public Function AddNamespaceTo(service As ICodeGenerationService,
                                     destination As CompilationUnitSyntax,
                                     [namespace] As INamespaceSymbol,
                                     options As CodeGenerationOptions,
@@ -29,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return destination.WithMembers(members)
         End Function
 
-        Public Shared Function AddNamespaceTo(service As ICodeGenerationService,
+        Public Function AddNamespaceTo(service As ICodeGenerationService,
                                     destination As NamespaceBlockSyntax,
                                     [namespace] As INamespaceSymbol,
                                     options As CodeGenerationOptions,
@@ -43,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return destination.WithMembers(members)
         End Function
 
-        Public Shared Function GenerateNamespaceDeclaration(service As ICodeGenerationService, [namespace] As INamespaceSymbol, options As CodeGenerationOptions) As SyntaxNode
+        Public Function GenerateNamespaceDeclaration(service As ICodeGenerationService, [namespace] As INamespaceSymbol, options As CodeGenerationOptions) As SyntaxNode
             Dim name As String = Nothing
             Dim innermostNamespace As INamespaceSymbol = Nothing
             options = If(options, CodeGenerationOptions.Default)
@@ -58,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return AddCleanupAnnotationsTo(declaration)
         End Function
 
-        Public Shared Function UpdateCompilationUnitOrNamespaceDeclaration(service As ICodeGenerationService,
+        Public Function UpdateCompilationUnitOrNamespaceDeclaration(service As ICodeGenerationService,
                                                                            declaration As SyntaxNode,
                                                                            newMembers As IList(Of ISymbol),
                                                                            options As CodeGenerationOptions,
@@ -68,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return AddCleanupAnnotationsTo(declaration)
         End Function
 
-        Private Shared Function GetDeclarationSyntaxWithoutMembers([namespace] As INamespaceSymbol, innermostNamespace As INamespaceSymbol, name As String, options As CodeGenerationOptions) As SyntaxNode
+        Private Function GetDeclarationSyntaxWithoutMembers([namespace] As INamespaceSymbol, innermostNamespace As INamespaceSymbol, name As String, options As CodeGenerationOptions) As SyntaxNode
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of SyntaxNode)([namespace], options)
             If reusableSyntax Is Nothing Then
                 Return GenerateNamespaceDeclarationWorker(name, innermostNamespace)
@@ -77,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return RemoveAllMembers(reusableSyntax)
         End Function
 
-        Private Shared Function RemoveAllMembers(declaration As SyntaxNode) As SyntaxNode
+        Private Function RemoveAllMembers(declaration As SyntaxNode) As SyntaxNode
             Select Case declaration.VisualBasicKind
                 Case SyntaxKind.CompilationUnit
                     Return DirectCast(declaration, CompilationUnitSyntax).WithMembers(Nothing)
@@ -88,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Private Shared Function GenerateNamespaceDeclarationWorker(name As String, [namespace] As INamespaceSymbol) As SyntaxNode
+        Private Function GenerateNamespaceDeclarationWorker(name As String, [namespace] As INamespaceSymbol) As SyntaxNode
             If name = String.Empty Then
                 Return SyntaxFactory.CompilationUnit().WithImports(GenerateImportsStatements([namespace]))
             Else
@@ -97,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Shared Function GenerateImportsStatements([namespace] As INamespaceSymbol) As SyntaxList(Of ImportsStatementSyntax)
+        Private Function GenerateImportsStatements([namespace] As INamespaceSymbol) As SyntaxList(Of ImportsStatementSyntax)
             Dim statements =
                 CodeGenerationNamespaceInfo.GetImports([namespace]).
                                             Select(AddressOf GenerateImportsStatement).
@@ -106,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return If(statements.Count = 0, Nothing, SyntaxFactory.List(statements))
         End Function
 
-        Private Shared Function GenerateImportsStatement(import As ISymbol) As ImportsStatementSyntax
+        Private Function GenerateImportsStatement(import As ISymbol) As ImportsStatementSyntax
             If TypeOf import Is IAliasSymbol Then
                 Dim [alias] = DirectCast(import, IAliasSymbol)
                 Dim name = GenerateName([alias].Target)
@@ -127,12 +122,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return Nothing
         End Function
 
-        Private Shared Function GenerateName(symbol As INamespaceOrTypeSymbol) As NameSyntax
+        Private Function GenerateName(symbol As INamespaceOrTypeSymbol) As NameSyntax
             If TypeOf symbol Is ITypeSymbol Then
                 Return TryCast(DirectCast(symbol, ITypeSymbol).GenerateTypeSyntax(), NameSyntax)
             Else
                 Return SyntaxFactory.ParseName(symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
             End If
         End Function
-    End Class
+    End Module
 End Namespace

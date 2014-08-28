@@ -1,21 +1,13 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend Class OperatorGenerator
-        Inherits AbstractVisualBasicCodeGenerator
+    Friend Module OperatorGenerator
 
-        Friend Shared Function AddOperatorTo(destination As TypeBlockSyntax,
+        Friend Function AddOperatorTo(destination As TypeBlockSyntax,
                             method As IMethodSymbol,
                             options As CodeGenerationOptions,
                             availableIndices As IList(Of Boolean)) As TypeBlockSyntax
@@ -27,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return FixTerminators(destination.WithMembers(members))
         End Function
 
-        Public Shared Function GenerateOperatorDeclaration(method As IMethodSymbol,
+        Public Function GenerateOperatorDeclaration(method As IMethodSymbol,
                                                          destination As CodeGenerationDestination,
                                                          options As CodeGenerationOptions) As StatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(method, options)
@@ -42,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     ConditionallyAddDocumentationCommentTo(declaration, method, options)))
         End Function
 
-        Private Shared Function GenerateOperatorDeclarationWorker(method As IMethodSymbol,
+        Private Function GenerateOperatorDeclarationWorker(method As IMethodSymbol,
                                                                 destination As CodeGenerationDestination,
                                                                 options As CodeGenerationOptions) As StatementSyntax
             Dim operatorSyntaxKind = SyntaxFacts.GetOperatorKind(method.MetadataName)
@@ -69,5 +61,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 statements:=StatementGenerator.GenerateStatements(method),
                 end:=SyntaxFactory.EndOperatorStatement())
         End Function
-    End Class
+    End Module
 End Namespace

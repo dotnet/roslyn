@@ -1,20 +1,15 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
-    Friend Class NamedTypeGenerator
-        Inherits AbstractVisualBasicCodeGenerator
+    Friend Module NamedTypeGenerator
 
-        Public Shared Function AddNamedTypeTo(service As ICodeGenerationService,
+        Public Function AddNamedTypeTo(service As ICodeGenerationService,
                                     destination As TypeBlockSyntax,
                                     namedType As INamedTypeSymbol,
                                     options As CodeGenerationOptions,
@@ -24,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return FixTerminators(destination.WithMembers(members))
         End Function
 
-        Public Shared Function AddNamedTypeTo(service As ICodeGenerationService,
+        Public Function AddNamedTypeTo(service As ICodeGenerationService,
                                     destination As NamespaceBlockSyntax,
                                     namedType As INamedTypeSymbol,
                                     options As CodeGenerationOptions,
@@ -34,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return destination.WithMembers(members)
         End Function
 
-        Public Shared Function AddNamedTypeTo(service As ICodeGenerationService,
+        Public Function AddNamedTypeTo(service As ICodeGenerationService,
                                     destination As CompilationUnitSyntax,
                                     namedType As INamedTypeSymbol,
                                     options As CodeGenerationOptions,
@@ -44,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return destination.WithMembers(members)
         End Function
 
-        Public Shared Function GenerateNamedTypeDeclaration(service As ICodeGenerationService,
+        Public Function GenerateNamedTypeDeclaration(service As ICodeGenerationService,
                                     namedType As INamedTypeSymbol,
                                     options As CodeGenerationOptions) As StatementSyntax
             options = If(options, CodeGenerationOptions.Default)
@@ -58,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options))
         End Function
 
-        Public Shared Function UpdateNamedTypeDeclaration(service As ICodeGenerationService,
+        Public Function UpdateNamedTypeDeclaration(service As ICodeGenerationService,
                                                           declaration As StatementSyntax,
                                                           newMembers As IList(Of ISymbol),
                                                           options As CodeGenerationOptions,
@@ -68,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return AddCleanupAnnotationsTo(declaration)
         End Function
 
-        Private Shared Function GetDeclarationSyntaxWithoutMembers(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
+        Private Function GetDeclarationSyntaxWithoutMembers(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
             Dim reusableDeclarationSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(namedType, options)
             If reusableDeclarationSyntax Is Nothing Then
                 Return GenerateNamedTypeDeclarationWorker(namedType, options)
@@ -77,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return RemoveAllMembers(reusableDeclarationSyntax)
         End Function
 
-        Private Shared Function RemoveAllMembers(declaration As StatementSyntax) As StatementSyntax
+        Private Function RemoveAllMembers(declaration As StatementSyntax) As StatementSyntax
             Select Case declaration.VisualBasicKind
                 Case SyntaxKind.EnumBlock
                     Return DirectCast(declaration, EnumBlockSyntax).WithMembers(Nothing)
@@ -90,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Private Shared Function GenerateNamedTypeDeclarationWorker(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
+        Private Function GenerateNamedTypeDeclarationWorker(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
             ' TODO(cyrusn): Support enums/delegates.
             If namedType.TypeKind = TypeKind.Enum Then
                 Return GenerateEnumDeclaration(namedType, options)
@@ -131,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return typeDeclaration
         End Function
 
-        Private Shared Function GenerateDelegateDeclaration(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
+        Private Function GenerateDelegateDeclaration(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
             Dim invokeMethod = namedType.DelegateInvokeMethod
             Return SyntaxFactory.DelegateStatement(
                 kind:=If(invokeMethod.ReturnsVoid, SyntaxKind.DelegateSubStatement, SyntaxKind.DelegateFunctionStatement),
@@ -145,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                              SyntaxFactory.SimpleAsClause(invokeMethod.ReturnType.GenerateTypeSyntax())))
         End Function
 
-        Private Shared Function GenerateEnumDeclaration(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
+        Private Function GenerateEnumDeclaration(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax
             Dim underlyingType =
                 If(namedType.EnumUnderlyingType IsNot Nothing AndAlso namedType.EnumUnderlyingType.SpecialType <> SpecialType.System_Int32,
                    SyntaxFactory.SimpleAsClause(namedType.EnumUnderlyingType.GenerateTypeSyntax()),
@@ -158,11 +153,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     underlyingType))
         End Function
 
-        Private Overloads Shared Function GenerateAttributes(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As SyntaxList(Of AttributeListSyntax)
+        Private Function GenerateAttributes(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As SyntaxList(Of AttributeListSyntax)
             Return AttributeGenerator.GenerateAttributeBlocks(namedType.GetAttributes(), options)
         End Function
 
-        Private Shared Function GenerateModifiers(namedType As INamedTypeSymbol) As SyntaxTokenList
+        Private Function GenerateModifiers(namedType As INamedTypeSymbol) As SyntaxTokenList
             Dim tokens = New List(Of SyntaxToken)
 
             Select Case namedType.DeclaredAccessibility
@@ -195,29 +190,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TokenList(tokens)
         End Function
 
-        Private Overloads Shared Function GenerateTypeParameterList(namedType As INamedTypeSymbol) As TypeParameterListSyntax
+        Private Function GenerateTypeParameterList(namedType As INamedTypeSymbol) As TypeParameterListSyntax
             Return TypeParameterGenerator.GenerateTypeParameterList(namedType.TypeParameters)
         End Function
 
-        Private Shared Function GenerateInheritsStatements(namedType As INamedTypeSymbol) As SyntaxList(Of InheritsStatementSyntax)
+        Private Function GenerateInheritsStatements(namedType As INamedTypeSymbol) As SyntaxList(Of InheritsStatementSyntax)
             If namedType.TypeKind = TypeKind.Struct OrElse
                namedType.BaseType Is Nothing OrElse
                namedType.BaseType.SpecialType = SpecialType.System_Object Then
                 Return Nothing
             End If
 
-            Return SyntaxFactory.SingletonList(Of InheritsStatementSyntax)(
+            Return SyntaxFactory.SingletonList(
                 SyntaxFactory.InheritsStatement(types:=SyntaxFactory.SingletonSeparatedList(namedType.BaseType.GenerateTypeSyntax())))
         End Function
 
-        Private Shared Function GenerateImplementsStatements(namedType As INamedTypeSymbol) As SyntaxList(Of ImplementsStatementSyntax)
+        Private Function GenerateImplementsStatements(namedType As INamedTypeSymbol) As SyntaxList(Of ImplementsStatementSyntax)
             If namedType.Interfaces.Length = 0 Then
                 Return Nothing
             End If
 
             Dim types = namedType.Interfaces.Select(Function(t) t.GenerateTypeSyntax())
             Dim typeNodes = SyntaxFactory.SeparatedList(types)
-            Return SyntaxFactory.SingletonList(Of ImplementsStatementSyntax)(SyntaxFactory.ImplementsStatement(types:=typeNodes))
+            Return SyntaxFactory.SingletonList(SyntaxFactory.ImplementsStatement(types:=typeNodes))
         End Function
-    End Class
+    End Module
 End Namespace

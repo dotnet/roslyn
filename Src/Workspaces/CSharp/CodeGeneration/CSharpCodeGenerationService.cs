@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxTokenList UpdateDeclarationAccessibility(SyntaxTokenList modifiersList, Accessibility newAccesibility, CodeGenerationOptions options)
         {
             var newModifierTokens = new List<SyntaxToken>();
-            AbstractCSharpCodeGenerator.AddAccessibilityModifiers(newAccesibility, newModifierTokens, options, Accessibility.NotApplicable);
+            CSharpCodeGenerationHelpers.AddAccessibilityModifiers(newAccesibility, newModifierTokens, options, Accessibility.NotApplicable);
             if (newModifierTokens.Count == 0)
             {
                 return modifiersList;

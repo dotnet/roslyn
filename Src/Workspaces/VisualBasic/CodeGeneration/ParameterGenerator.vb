@@ -2,12 +2,12 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class ParameterGenerator
-        Inherits AbstractVisualBasicCodeGenerator
 
         Public Shared Function GenerateParameterList(parameterDefinitions As ImmutableArray(Of IParameterSymbol), options As CodeGenerationOptions) As ParameterListSyntax
             Return GenerateParameterList(DirectCast(parameterDefinitions, IList(Of IParameterSymbol)), options)
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Shared Function GenerateEqualsValue(parameter As IParameterSymbol, seenOptional As Boolean) As EqualsValueSyntax
             If parameter.HasExplicitDefaultValue OrElse parameter.IsOptional OrElse seenOptional Then
                 Return SyntaxFactory.EqualsValue(
-                    New ExpressionGenerator().GenerateExpression(
+                    ExpressionGenerator.GenerateExpression(
                         parameter.Type,
                         If(parameter.HasExplicitDefaultValue, parameter.ExplicitDefaultValue, Nothing),
                         canUseFieldReference:=True))

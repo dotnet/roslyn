@@ -3,20 +3,20 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Partial Friend MustInherit Class AbstractVisualBasicCodeGenerator
-        Inherits AbstractCodeGenerator
+    Module VisualBasicCodeGenerationHelpers
 
-        Friend Shared Sub AddAccessibilityModifiers(accessibility As Accessibility,
+        Friend Sub AddAccessibilityModifiers(accessibility As Accessibility,
                                                        tokens As IList(Of SyntaxToken),
                                                        destination As CodeGenerationDestination,
                                                        options As CodeGenerationOptions,
                                                        nonStructureAccessibility As Accessibility)
             options = If(options, CodeGenerationOptions.Default)
             If Not options.GenerateDefaultAccessibility Then
-                If destination = CodeGenerationDestination.StructType AndAlso accessibility = accessibility.Public Then
+                If destination = CodeGenerationDestination.StructType AndAlso accessibility = Accessibility.Public Then
                     Return
                 End If
 
@@ -26,19 +26,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Select Case accessibility
-                Case accessibility.Public
+                Case Accessibility.Public
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
 
-                Case accessibility.Protected
+                Case Accessibility.Protected
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
 
-                Case accessibility.Private
+                Case Accessibility.Private
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
 
-                Case accessibility.ProtectedAndInternal, accessibility.Internal
+                Case Accessibility.ProtectedAndInternal, Accessibility.Internal
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
 
-                Case accessibility.ProtectedOrInternal
+                Case Accessibility.ProtectedOrInternal
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
 
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         End Sub
 
-        Protected Shared Function InsertAtIndex(members As SyntaxList(Of StatementSyntax),
+        Public Function InsertAtIndex(members As SyntaxList(Of StatementSyntax),
                                                 member As StatementSyntax,
                                                 index As Integer) As SyntaxList(Of StatementSyntax)
             Dim result = New List(Of StatementSyntax)(members)
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.List(result)
         End Function
 
-        Protected Shared Function GenerateImplementsClause(explicitInterfaceOpt As ISymbol) As ImplementsClauseSyntax
+        Public Function GenerateImplementsClause(explicitInterfaceOpt As ISymbol) As ImplementsClauseSyntax
             If explicitInterfaceOpt IsNot Nothing AndAlso explicitInterfaceOpt.ContainingType IsNot Nothing Then
                 Dim type = explicitInterfaceOpt.ContainingType.GenerateTypeSyntax()
 
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return Nothing
         End Function
 
-        Protected Shared Function EnsureLastElasticTrivia(Of T As StatementSyntax)(statement As T) As T
+        Public Function EnsureLastElasticTrivia(Of T As StatementSyntax)(statement As T) As T
             Dim lastToken = statement.GetLastToken(includeZeroWidth:=True)
             If lastToken.TrailingTrivia.Any(Function(trivia) trivia.IsElastic()) Then
                 Return statement
@@ -81,31 +81,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return statement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
         End Function
 
-        Protected Shared Function FirstMember(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
+        Public Function FirstMember(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
             Return members.FirstOrDefault()
         End Function
 
-        Protected Shared Function FirstMethod(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
+        Public Function FirstMethod(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
             Return members.LastOrDefault(Function(m) TypeOf m Is MethodBlockBaseSyntax OrElse TypeOf m Is MethodStatementSyntax)
         End Function
 
-        Protected Shared Function LastField(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
+        Public Function LastField(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
             Return members.LastOrDefault(Function(m) m.VisualBasicKind = SyntaxKind.FieldDeclaration)
         End Function
 
-        Protected Shared Function LastConstructor(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
+        Public Function LastConstructor(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
             Return members.LastOrDefault(Function(m) m.VisualBasicKind = SyntaxKind.ConstructorBlock OrElse m.VisualBasicKind = SyntaxKind.SubNewStatement)
         End Function
 
-        Protected Shared Function LastMethod(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
+        Public Function LastMethod(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
             Return members.LastOrDefault(Function(m) TypeOf m Is MethodBlockBaseSyntax OrElse TypeOf m Is MethodStatementSyntax)
         End Function
 
-        Protected Shared Function LastOperator(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
+        Public Function LastOperator(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
             Return members.LastOrDefault(Function(m) m.VisualBasicKind = SyntaxKind.OperatorBlock OrElse m.VisualBasicKind = SyntaxKind.OperatorStatement)
         End Function
 
-        Private Shared Function AfterDeclaration(Of TDeclaration As SyntaxNode)(
+        Private Function AfterDeclaration(Of TDeclaration As SyntaxNode)(
             declarationList As SyntaxList(Of TDeclaration),
             options As CodeGenerationOptions,
             [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                    End Function
         End Function
 
-        Private Shared Function BeforeDeclaration(Of TDeclaration As SyntaxNode)(
+        Private Function BeforeDeclaration(Of TDeclaration As SyntaxNode)(
             declarationList As SyntaxList(Of TDeclaration),
             options As CodeGenerationOptions,
              [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                    End Function
         End Function
 
-        Protected Shared Function Insert(Of TDeclaration As SyntaxNode)(
+        Public Function Insert(Of TDeclaration As SyntaxNode)(
             declarationList As SyntaxList(Of TDeclaration),
             declaration As TDeclaration,
             options As CodeGenerationOptions,
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declarationList.Insert(index, declaration)
         End Function
 
-        Private Shared Function GetInsertionIndex(Of TDeclaration As SyntaxNode)(
+        Private Function GetInsertionIndex(Of TDeclaration As SyntaxNode)(
             declarationList As SyntaxList(Of TDeclaration),
             declaration As TDeclaration,
             options As CodeGenerationOptions,
@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declarationList.Count
         End Function
 
-        Protected Shared Function GetDestination(destination As TypeBlockSyntax) As CodeGenerationDestination
+        Public Function GetDestination(destination As TypeBlockSyntax) As CodeGenerationDestination
             If destination IsNot Nothing Then
                 Select Case destination.VisualBasicKind
                     Case SyntaxKind.ClassBlock
@@ -253,11 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return CodeGenerationDestination.Unspecified
         End Function
 
-        Protected Overrides Function GetSyntaxGenerator() As SyntaxGenerator
-            Return New VisualBasicSyntaxGenerator()
-        End Function
-
-        Protected Shared Function ConditionallyAddDocumentationCommentTo(Of TSyntaxNode As SyntaxNode)(
+        Public Function ConditionallyAddDocumentationCommentTo(Of TSyntaxNode As SyntaxNode)(
             node As TSyntaxNode,
             symbol As ISymbol,
             options As CodeGenerationOptions,
@@ -274,13 +270,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                             node)
             Return result
         End Function
-
-        Protected Shared Function GenerateExpression(typedConstant As TypedConstant) As ExpressionSyntax
-            Return New ExpressionGenerator().GenerateExpression(typedConstant)
-        End Function
-
-        Protected Shared Function GenerateExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As ExpressionSyntax
-            Return New ExpressionGenerator().GenerateExpression(type, value, canUseFieldReference)
-        End Function
-    End Class
+    End Module
 End Namespace

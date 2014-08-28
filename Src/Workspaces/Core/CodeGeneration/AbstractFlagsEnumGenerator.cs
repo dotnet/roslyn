@@ -10,13 +10,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal abstract partial class AbstractCodeGenerator : IComparer<ValueTuple<IFieldSymbol, ulong>>
+    internal abstract class AbstractFlagsEnumGenerator : IComparer<ValueTuple<IFieldSymbol, ulong>>
     {
         protected abstract SyntaxGenerator GetSyntaxGenerator();
         protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object constantValue);
         protected abstract bool IsValidName(INamedTypeSymbol enumType, string name);
 
-        protected SyntaxNode CreateEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
+        internal SyntaxNode CreateEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
             // Code copied from System.Enum.
             var isFlagsEnum = IsFlagsEnum(enumType);

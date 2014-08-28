@@ -1,20 +1,15 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
+Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend Class EventGenerator
-        Inherits AbstractVisualBasicCodeGenerator
+    Friend Module EventGenerator
 
-        Private Shared Function AfterMember(
+        Private Function AfterMember(
                 members As SyntaxList(Of StatementSyntax),
                 eventDeclaration As StatementSyntax) As StatementSyntax
             If eventDeclaration.VisualBasicKind = SyntaxKind.EventStatement Then
@@ -34,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return Nothing
         End Function
 
-        Private Shared Function BeforeMember(
+        Private Function BeforeMember(
                 members As SyntaxList(Of StatementSyntax),
                 eventDeclaration As StatementSyntax) As StatementSyntax
             ' If it's a field style event, then it goes before everything else if we don't have any
@@ -47,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return FirstMethod(members)
         End Function
 
-        Friend Shared Function AddEventTo(destination As TypeBlockSyntax,
+        Friend Function AddEventTo(destination As TypeBlockSyntax,
                                     [event] As IEventSymbol,
                                     options As CodeGenerationOptions,
                                     availableIndices As IList(Of Boolean)) As TypeBlockSyntax
@@ -62,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return FixTerminators(destination.WithMembers(members))
         End Function
 
-        Public Shared Function GenerateEventDeclaration([event] As IEventSymbol,
+        Public Function GenerateEventDeclaration([event] As IEventSymbol,
                                                  destination As CodeGenerationDestination,
                                                  options As CodeGenerationOptions) As DeclarationStatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([event], options)
@@ -75,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, [event], options))
         End Function
 
-        Private Shared Function GenerateEventDeclarationWorker([event] As IEventSymbol,
+        Private Function GenerateEventDeclarationWorker([event] As IEventSymbol,
                                                        destination As CodeGenerationDestination,
                                                        options As CodeGenerationOptions) As DeclarationStatementSyntax
             ' TODO(cyrusn): Handle Add/Remove/Raise events
@@ -111,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Shared Function GenerateModifiers([event] As IEventSymbol,
+        Private Function GenerateModifiers([event] As IEventSymbol,
                                                   destination As CodeGenerationDestination,
                                                   options As CodeGenerationOptions) As SyntaxTokenList
             Dim tokens = New List(Of SyntaxToken)()
@@ -131,17 +126,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TokenList(tokens)
         End Function
 
-        Private Shared Function GenerateAsClause([event] As IEventSymbol) As SimpleAsClauseSyntax
+        Private Function GenerateAsClause([event] As IEventSymbol) As SimpleAsClauseSyntax
             ' TODO: Someday support events without as clauses (with parameter lists instead)
             Return SyntaxFactory.SimpleAsClause([event].Type.GenerateTypeSyntax())
         End Function
 
-        Private Shared Function RemoveOptionalOrParamArray(parameter As IParameterSymbol) As IParameterSymbol
+        Private Function RemoveOptionalOrParamArray(parameter As IParameterSymbol) As IParameterSymbol
             If Not parameter.IsOptional AndAlso Not parameter.IsParams Then
                 Return parameter
             Else
                 Return CodeGenerationSymbolFactory.CreateParameterSymbol(parameter.GetAttributes(), parameter.RefKind, isParams:=False, type:=parameter.Type, name:=parameter.Name, hasDefaultValue:=False)
             End If
         End Function
-    End Class
+    End Module
 End Namespace

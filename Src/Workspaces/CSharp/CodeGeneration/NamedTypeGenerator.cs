@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-    internal class NamedTypeGenerator : AbstractCSharpCodeGenerator
+    internal static class NamedTypeGenerator
     {
         public static TypeDeclarationSyntax AddNamedTypeTo(
             ICodeGenerationService service,

@@ -16,8 +16,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-    internal abstract partial class AbstractCSharpCodeGenerator
+    internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
     {
+        internal static readonly CSharpFlagsEnumGenerator Instance = new CSharpFlagsEnumGenerator();
+        private static readonly SyntaxGenerator GeneratorInstance = new CSharpSyntaxGenerator();
+
+        private CSharpFlagsEnumGenerator()
+        {
+        }
+
         protected override SyntaxNode CreateExplicitlyCastedLiteralValue(
             INamedTypeSymbol enumType,
             SpecialType underlyingSpecialType,
@@ -35,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var factory = new CSharpSyntaxGenerator();
             return factory.CastExpression(enumType, expression);
+        }
+
+        protected override SyntaxGenerator GetSyntaxGenerator()
+        {
+            return GeneratorInstance;
         }
 
         protected override bool IsValidName(INamedTypeSymbol enumType, string name)

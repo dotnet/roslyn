@@ -12,7 +12,15 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Partial Friend MustInherit Class AbstractVisualBasicCodeGenerator
+    Friend Class VisualBasicFlagsEnumGenerator
+        Inherits AbstractFlagsEnumGenerator
+
+        Public Shared ReadOnly Instance As VisualBasicFlagsEnumGenerator = New VisualBasicFlagsEnumGenerator
+        Private Shared ReadOnly SyntaxGeneratorInstance As SyntaxGenerator = New VisualBasicSyntaxGenerator
+
+        Private Sub New()
+        End Sub
+
         Protected Overrides Function CreateExplicitlyCastedLiteralValue(enumType As INamedTypeSymbol,
                                                                         underlyingSpecialType As SpecialType,
                                                                         constantValue As Object) As SyntaxNode
@@ -25,6 +33,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Dim factory = New VisualBasicSyntaxGenerator()
             Return factory.ConvertExpression(enumType, expression)
+        End Function
+
+        Protected Overrides Function GetSyntaxGenerator() As SyntaxGenerator
+            Return SyntaxGeneratorInstance
         End Function
 
         Protected Overrides Function IsValidName(enumType As INamedTypeSymbol, name As String) As Boolean

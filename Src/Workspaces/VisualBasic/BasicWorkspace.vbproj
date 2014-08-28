@@ -100,8 +100,8 @@
     <Compile Include="CodeCleanup\Providers\RemoveUnnecessaryLineContinuationCodeCleanupProvider.vb" />
     <Compile Include="CodeCleanup\VisualBasicCodeCleanerService.vb" />
     <Compile Include="CodeCleanup\VisualBasicCodeCleanerServiceFactory.vb" />
-    <Compile Include="CodeGeneration\AbstractVisualBasicCodeGenerator.vb" />
-    <Compile Include="CodeGeneration\AbstractVisualBasicCodeGenerator_Constants.vb" />
+    <Compile Include="CodeGeneration\VisualBasicCodeGenerationHelpers.vb" />
+    <Compile Include="CodeGeneration\VisualBasicFlagsEnumGenerator.vb" />
     <Compile Include="CodeGeneration\ArgumentGenerator.vb" />
     <Compile Include="CodeGeneration\AttributeGenerator.vb" />
     <Compile Include="CodeGeneration\ConstructorGenerator.vb" />
