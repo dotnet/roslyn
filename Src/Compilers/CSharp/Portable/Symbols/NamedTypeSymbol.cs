@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var typeArgument in result)
             {
-                ((TypeSymbol)typeArgument.OriginalDefinition).AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                typeArgument.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             }
 
             return result;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeSymbol TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var result = TypeArgumentsNoUseSiteDiagnostics[index];
-            ((TypeSymbol)result.OriginalDefinition).AddUseSiteDiagnostics(ref useSiteDiagnostics);
+            result.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             return result;
         }
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void SetKnownToHaveNoDeclaredBaseCycles()
         {
-            if (!this.hasNoBaseCycles) this.hasNoBaseCycles = true;
+            this.hasNoBaseCycles = true;
         }
 
         /// <summary>
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // ignores custom modifiers.
             if (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object)
             {
-                return (int)Microsoft.CodeAnalysis.SpecialType.System_Object;
+                return (int)SpecialType.System_Object;
             }
 
             // OriginalDefinition must be object-equivalent.
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // if ignoring dynamic, then treat dynamic the same as the type 'object'
             if (ignoreDynamic &&
                 t2.TypeKind == TypeKind.DynamicType &&
-                this.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object)
+                this.SpecialType == SpecialType.System_Object)
             {
                 return true;
             }
@@ -601,8 +601,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // CONSIDER: original definitions are not unique for missing metadata type
             // symbols.  Therefore this code may not behave correctly if 'this' is List<int>
-            // where List'1 is a missing metadata type symbol, and other is similarly List<int>
-            // but for a reference-distinct List'1.
+            // where List`1 is a missing metadata type symbol, and other is similarly List<int>
+            // but for a reference-distinct List`1.
             if (((object)this == (object)thisOriginalDefinition) ||
                 ((object)other == (object)otherOriginalDefinition) ||
                 (thisOriginalDefinition != otherOriginalDefinition))
@@ -660,7 +660,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="typeArguments">The immediate type arguments to be replaced for type
         /// parameters in the type.</param>
-        /// <returns></returns>
         public NamedTypeSymbol Construct(params TypeSymbol[] typeArguments)
         {
             return Construct(typeArguments.AsImmutableOrNull(), false);
@@ -671,7 +670,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="typeArguments">The immediate type arguments to be replaced for type
         /// parameters in the type.</param>
-        /// <returns></returns>
         public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments)
         {
             return Construct(typeArguments, false);
@@ -681,7 +679,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns a constructed type given its type arguments.
         /// </summary>
         /// <param name="typeArguments"></param>
-        /// <returns></returns>
         public NamedTypeSymbol Construct(IEnumerable<TypeSymbol> typeArguments)
         {
             return Construct(typeArguments.AsImmutableOrNull(), false);
@@ -711,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException("typeArguments");
             }
 
-            if (arguments.Any(NamedTypeSymbol.TypeSymbolIsNullFunction))
+            if (arguments.Any(TypeSymbolIsNullFunction))
             {
                 throw new ArgumentException(CSharpResources.TypeArgumentCannotBeNull, "typeArguments");
             }
@@ -721,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentException(CSharpResources.WrongNumberOfTypeArguments, "typeArguments");
             }
 
-            Debug.Assert(!unbound || arguments.All(NamedTypeSymbol.TypeSymbolIsErrorType));
+            Debug.Assert(!unbound || arguments.All(TypeSymbolIsErrorType));
 
             if (ConstructedNamedTypeSymbol.TypeParametersMatchTypeArguments(this.TypeParameters, arguments))
             {
@@ -1036,15 +1033,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Declaration security information associated with this type, or null if there is none.
         /// </summary>
-        internal abstract IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation();
+        internal abstract IEnumerable<Cci.SecurityAttribute> GetSecurityInformation();
 
         /// <summary>
-        /// Returns a sequence of preprocessor symbols specified in <see cref="T:ConditionalAttribute"/> applied on this symbol, or null if there are none.
+        /// Returns a sequence of preprocessor symbols specified in <see cref="ConditionalAttribute"/> applied on this symbol, or null if there are none.
         /// </summary>
         internal abstract ImmutableArray<string> GetAppliedConditionalSymbols();
 
         /// <summary>
-        /// If CoClassAttribute was applied to the type and the attribute argument is a valid named type argument, i.e. accessible class type, then it returns the type symbol for the argument.
+        /// If <see cref="CoClassAttribute"/> was applied to the type and the attribute argument is a valid named type argument, i.e. accessible class type, then it returns the type symbol for the argument.
         /// Otherwise, returns null.
         /// </summary>
         /// <remarks>

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -2468,9 +2468,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //      ...
                     // * If the type parameters of F were substituted in the step above, their constraints are satisfied.
                     // * If F is a static method, the method group must have resulted from a simple-name, a member-access through a type, 
-                    //   or a member-access whose receiver can�t be classified as a type or value until after overload resolution (see �7.6.4.1). 
+                    //   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1). 
                     // * If F is an instance method, the method group must have resulted from a simple-name, a member-access through a variable or value, 
-                    //   or a member-access whose receiver can�t be classified as a type or value until after overload resolution (see �7.6.4.1).
+                    //   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1).
 
                     if (!MemberGroupFinalValidationAccessibilityChecks(methodGroup.ReceiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: false) &&
                         (methodGroup.TypeArgumentsOpt.IsDefault || result.Member.CheckConstraints(this.Conversions, syntax, this.Compilation, candidateDiagnostics)))
@@ -3452,8 +3452,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             boundExpression = BadExpression(
                                 expression,
                                 LookupResultKind.Empty,
-                                ImmutableArray.Create<Symbol>(boundExpression.ExpressionSymbol),
-                                ImmutableArray.Create<BoundExpression>(boundExpression));
+                                ImmutableArray.Create(boundExpression.ExpressionSymbol),
+                                ImmutableArray.Create(boundExpression));
                         }
 
                         exprBuilder.Add(boundExpression);
@@ -4470,7 +4470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC:    an expression or an object initializer or collection initializer.
                 // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (7.17.1) to the field or property.
 
-                // SPEC VIOLATION:  Native compiler also allows initialization of fieldlike events in object initializers, so we allow it as well.
+                // SPEC VIOLATION:  Native compiler also allows initialization of field-like events in object initializers, so we allow it as well.
 
                 boundMember = BindInstanceMemberAccess(
                     node: memberName,
@@ -6108,7 +6108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void BindMemberAccessReportError(BoundMethodGroup node, DiagnosticBag diagnostics)
         {
             var nameSyntax = node.NameSyntax;
-            var syntax = node.MemberAccessExpressionSyntax ?? (CSharpSyntaxNode)nameSyntax;
+            var syntax = node.MemberAccessExpressionSyntax ?? nameSyntax;
             this.BindMemberAccessReportError(syntax, nameSyntax, node.Name, node.ReceiverOpt, node.LookupError, diagnostics);
         }
 
@@ -6193,7 +6193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindMemberAccessBadResult(BoundMethodGroup node)
         {
             var nameSyntax = node.NameSyntax;
-            var syntax = node.MemberAccessExpressionSyntax ?? (CSharpSyntaxNode)nameSyntax;
+            var syntax = node.MemberAccessExpressionSyntax ?? nameSyntax;
             return this.BindMemberAccessBadResult(syntax, node.Name, node.ReceiverOpt, node.LookupError, StaticCast<Symbol>.From(node.Methods), node.ResultKind);
         }
 
@@ -6240,7 +6240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(
                 node,
                 lookupKind,
-                (object)symbolOpt == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create<Symbol>(symbolOpt),
+                (object)symbolOpt == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(symbolOpt),
                 boundLeft == null ? ImmutableArray<BoundNode>.Empty : ImmutableArray.Create<BoundNode>(boundLeft),
                 GetNonMethodMemberType(symbolOpt));
         }

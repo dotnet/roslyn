@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC:    An expression E is an attribute-argument-expression if all of the following statements are true:
-            // SPEC:    1) The type of E is an attribute parameter type (�17.1.3).
+            // SPEC:    1) The type of E is an attribute parameter type (§17.1.3).
             // SPEC:    2) At compile-time, the value of Expression can be resolved to one of the following:
             // SPEC:        a) A constant value.
             // SPEC:        b) A System.Type object.

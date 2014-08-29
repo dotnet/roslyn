@@ -7,11 +7,7 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -880,13 +876,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodMustReturnVoid, location);
             }
             else if (IsPartial && !ContainingType.IsInterface && 0 != (DeclarationModifiers &
-                    (CSharp.DeclarationModifiers.AccessibilityMask & ~CSharp.DeclarationModifiers.Private |
-                    CSharp.DeclarationModifiers.Virtual |
-                    CSharp.DeclarationModifiers.Abstract |
-                    CSharp.DeclarationModifiers.Override |
-                    CSharp.DeclarationModifiers.New |
-                    CSharp.DeclarationModifiers.Sealed |
-                    CSharp.DeclarationModifiers.Extern)))
+                    (DeclarationModifiers.AccessibilityMask & ~DeclarationModifiers.Private |
+                     DeclarationModifiers.Virtual |
+                     DeclarationModifiers.Abstract |
+                     DeclarationModifiers.Override |
+                     DeclarationModifiers.New |
+                     DeclarationModifiers.Sealed |
+                     DeclarationModifiers.Extern)))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
             }

@@ -1269,18 +1269,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (first.Kind == SymbolKind.NamedType && second.Kind == SymbolKind.NamedType)
                         {
-                            // ErrorCode.ERR_SameFullNameAggAgg: The type '{1}' exists in both '{0}' and '{2}'
-                            info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameAggAgg, originalSymbols,
-                                new object[] { first.ContainingAssembly, first, second.ContainingAssembly });
-
-                            // Do not report this error if the first is declared in source and the second is declared in added module,
-                            // we already reported declaration error about this name collision.
-                            // Do not report this error if both are declared in added modules,
-                            // we will report assembly level declaration error about this name collision.
-                            if (secondBest.IsFromAddedModule)
+                            if (first.OriginalDefinition == second.OriginalDefinition)
                             {
-                                Debug.Assert(best.IsFromCompilation);
-                                reportError = false;
+                                // We imported different generic instantiations of the same generic type
+                                // and have an ambiguous reference to a type nested in it
+                                reportError = true;
+
+                                // '{0}' is an ambiguous reference between '{1}' and '{2}'
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
+                                    new object[] { where, first, second });
+                            }
+                            else
+                            {
+                                // ErrorCode.ERR_SameFullNameAggAgg: The type '{1}' exists in both '{0}' and '{2}'
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameAggAgg, originalSymbols,
+                                    new object[] { first.ContainingAssembly, first, second.ContainingAssembly });
+
+                                // Do not report this error if the first is declared in source and the second is declared in added module,
+                                // we already reported declaration error about this name collision.
+                                // Do not report this error if both are declared in added modules,
+                                // we will report assembly level declaration error about this name collision.
+                                if (secondBest.IsFromAddedModule)
+                                {
+                                    Debug.Assert(best.IsFromCompilation);
+                                    reportError = false;
+                                }
                             }
                         }
                         else if (first.Kind == SymbolKind.Namespace && second.Kind == SymbolKind.NamedType)

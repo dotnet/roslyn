@@ -123,7 +123,7 @@ public class A
             var compilation1 = CreateCompilationWithMscorlib(source1);
             compilation1.VerifyDiagnostics(
                 // (4,22): error CS0110: The evaluation of the constant value for 'A.x' involves a circular definition
-                Diagnostic(CSharp.ErrorCode.ERR_CircConstValue, "x").WithArguments("A.x"));
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("A.x"));
 
             string source2 = @"
 public class B

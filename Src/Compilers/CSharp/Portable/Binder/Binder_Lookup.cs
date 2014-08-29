@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentType = currentType.GetNextBaseTypeNoUseSiteDiagnostics(basesBeingResolved, this.Compilation, ref visited);
                 if ((object)currentType != null)
                 {
-                    ((TypeSymbol)currentType.OriginalDefinition).AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                    currentType.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
                 }
             }
 
