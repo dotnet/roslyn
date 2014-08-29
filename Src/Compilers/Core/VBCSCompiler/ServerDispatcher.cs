@@ -254,7 +254,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                     Connection connection = new Connection(pipeStream, handler);
 
-                    await connection.ServeConnection().ConfigureAwait(false);
+                    try
+                    {
+                        await connection.ServeConnection().ConfigureAwait(false);
+                    }
+                    catch (ObjectDisposedException e)
+                    {
+                        // If the client closes the pipe while we're reading or writing
+                        // we'll get an object disposed exception on the pipe
+                        // Log the failure and continue
+                        CompilerServerLogger.Log(
+                            "Client pipe closed: received exception " + e.Message);
+                    }
 
                     // The connection should be finished
                     ConnectionCompleted(connection);

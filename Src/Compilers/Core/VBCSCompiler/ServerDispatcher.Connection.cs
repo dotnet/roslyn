@@ -41,7 +41,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             /// </summary>
             public Connection(NamedPipeServerStream pipeStream, IRequestHandler handler)
             {
-                this.LoggingIdentifier = pipeStream.SafePipeHandle.DangerousGetHandle().ToInt32();
+                try
+                {
+                    this.LoggingIdentifier = pipeStream.SafePipeHandle.DangerousGetHandle().ToInt32();
+                }
+                catch (Exception e)
+                {
+                    // We shouldn't fail just because we don't have a good logging identifier
+                    this.LoggingIdentifier = new Random().Next();
+                    Log("Exception {0} while setting logging identifier; setting to {1}",
+                        e.Message, this.LoggingIdentifier);
+                }
                 this.pipeStream = pipeStream;
                 this.handler = handler;
             }
