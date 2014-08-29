@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -494,8 +490,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckNewModifier(Symbol symbol, bool isNew, DiagnosticBag diagnostics)
         {
-            //for error cases
+            // for error cases
             if ((object)this.BaseTypeNoUseSiteDiagnostics == null)
+            {
+                return;
+            }
+
+            // Do not give warnings about missing 'new' modifier for impicitly declared members,
+            // e.g. backing fields for auto-properties
+            if (symbol.IsImplicitlyDeclared)
             {
                 return;
             }
@@ -907,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return true;
                     }
                 default:
-                    Debug.Assert(false, String.Format("Unexpected accessibility {0}", (object)hidingMember.DeclaredAccessibility));
+                    Debug.Assert(false, string.Format("Unexpected accessibility {0}", hidingMember.DeclaredAccessibility));
                     break;
             }
             return false;

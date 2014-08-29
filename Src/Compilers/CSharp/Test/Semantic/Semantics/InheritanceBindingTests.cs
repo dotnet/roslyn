@@ -7326,5 +7326,22 @@ class A<T> : global::T
             var comp2 = CompileAndVerifyDiagnostics(text2, expectedErrors2, comp1);
             return comp2;
         }
+
+        [Fact]
+        [WorkItem(1016693, "DevDiv")]
+        public void Bug1016693()
+        {
+            const string source = @"
+public class A
+{
+    public virtual int P { get; set; }
+
+    public class B : A
+    {
+        public override int P { get; set; }
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
     }
 }
