@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -81,48 +81,64 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     ? SyntaxKind.TrueLiteralExpression
                     : SyntaxKind.FalseLiteralExpression);
             }
-
-            if (value is string)
+            else if (value is string)
             {
-                var valueString = CSharp.SymbolDisplay.FormatLiteral((string)value, quote: true);
+                var valueString = SymbolDisplay.FormatLiteral((string)value, quote: true);
                 return SyntaxFactory.LiteralExpression(
                     SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(valueString, (string)value));
             }
-
-            if (value is char)
+            else if (value is char)
             {
                 var charValue = (char)value;
-                var literal = CSharp.SymbolDisplay.FormatLiteral(charValue, quote: true);
+                var literal = SymbolDisplay.FormatLiteral(charValue, quote: true);
                 return SyntaxFactory.LiteralExpression(
                     SyntaxKind.CharacterLiteralExpression, SyntaxFactory.Literal(literal, charValue));
             }
-
-            if (value is sbyte || value is short || value is int || value is long ||
-                value is byte || value is ushort || value is uint || value is ulong)
+            else if (value is sbyte)
             {
-                var suffix = DetermineSuffix(type, value);
-                return GenerateIntegralLiteralExpression(type, value, suffix, canUseFieldReference);
+                return GenerateLiteralExpression(type, (sbyte)value, LiteralSpecialValues.SByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
             }
-
-            if (value is float)
+            else if (value is short)
             {
-                var suffix = DetermineSuffix(type, value);
-                return GenerateSingleLiteralExpression(type, (float)value, suffix, canUseFieldReference);
+                return GenerateLiteralExpression(type, (short)value, LiteralSpecialValues.Int16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
             }
-
-            if (value is double)
+            else if (value is int)
             {
-                var suffix = DetermineSuffix(type, value);
-                return GenerateDoubleLiteralExpression(type, (double)value, suffix, canUseFieldReference);
+                return GenerateLiteralExpression(type, (int)value, LiteralSpecialValues.Int32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
             }
-
-            if (value is decimal)
+            else if (value is long)
             {
-                var suffix = DetermineSuffix(type, value);
-                return GenerateDecimalLiteralExpression(type, value, suffix, canUseFieldReference);
+                return GenerateLiteralExpression(type, (long)value, LiteralSpecialValues.Int64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
             }
-
-            if (type == null || type.IsReferenceType || type.IsPointerType())
+            else if (value is byte)
+            {
+                return GenerateLiteralExpression(type, (byte)value, LiteralSpecialValues.ByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, (int)v));
+            }
+            else if (value is ushort)
+            {
+                return GenerateLiteralExpression(type, (ushort)value, LiteralSpecialValues.UInt16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, (uint)v));
+            }
+            else if (value is uint)
+            {
+                return GenerateLiteralExpression(type, (uint)value, LiteralSpecialValues.UInt32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
+            }
+            else if (value is ulong)
+            {
+                return GenerateLiteralExpression(type, (ulong)value, LiteralSpecialValues.UInt64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
+            }
+            else if (value is float)
+            {
+                return GenerateSingleLiteralExpression(type, (float)value, canUseFieldReference);
+            }
+            else if (value is double)
+            {
+                return GenerateDoubleLiteralExpression(type, (double)value, canUseFieldReference);
+            }
+            else if (value is decimal)
+            {
+                return GenerateLiteralExpression(type, (decimal)value,  LiteralSpecialValues.DecimalSpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
+            }
+            else if (type == null || type.IsReferenceType || type.IsPointerType())
             {
                 return GenerateNullLiteral();
             }
@@ -188,115 +204,62 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return string.Empty;
         }
 
-        private static ExpressionSyntax GenerateDecimalLiteralExpression(
-            ITypeSymbol type, object value, string suffix, bool canUseFieldReference)
-        {
-            // don't use field references for simple values
-            decimal m = (decimal)value;
-            if (m != decimal.MaxValue && m != decimal.MinValue)
-            {
-                canUseFieldReference = false;
-            }
-
-            if (canUseFieldReference)
-            {
-                var constants = value.GetType().GetFields(BindingFlags.Public | BindingFlags.Static).Where(f => f.IsInitOnly);
-                var result = GenerateFieldReference(type, value, constants);
-
-                if (result != null)
-                {
-                    return result;
-                }
-            }
-
-            var literal = ((IFormattable)value).ToString(null, CultureInfo.InvariantCulture) + suffix;
-            return GenerateLiteralExpression(value, literal);
-        }
-
-        private static ExpressionSyntax GenerateIntegralLiteralExpression(
-            ITypeSymbol type, object value, string suffix, bool canUseFieldReference)
-        {
-            // If it's the constant value 0, and the type of the value matches the type we want for 
-            // this context, then we can just emit the literal 0 here.  We don't want to emit things 
-            // like UInteger.MinValue.
-            if (value != null && IntegerUtilities.ToUInt64(value) == 0 && (type == null || TypesMatch(type, value)))
-            {
-                if (TypesMatch(type, value))
-                {
-                    return GenerateLiteralExpression(0, "0");
-                }
-                else if (type == null)
-                {
-                    canUseFieldReference = false;
-                }
-            }
-
-            var constants = canUseFieldReference ? value.GetType().GetFields(BindingFlags.Public | BindingFlags.Static).Where(f => f.IsLiteral) : null;
-            return GenerateLiteralExpression(type, value, constants, null, suffix, canUseFieldReference);
-        }
-
-        private static ExpressionSyntax GenerateDoubleLiteralExpression(ITypeSymbol type, double value, string suffix, bool canUseFieldReference)
+        private static ExpressionSyntax GenerateDoubleLiteralExpression(ITypeSymbol type, double value, bool canUseFieldReference)
         {
             if (!canUseFieldReference)
             {
                 if (double.IsNaN(value))
                 {
                     return SyntaxFactory.BinaryExpression(SyntaxKind.DivideExpression,
-                        GenerateLiteralExpression(0.0, "0.0"),
-                        GenerateLiteralExpression(0.0, "0.0"));
+                        GenerateDoubleLiteralExpression(null, 0.0, false),
+                        GenerateDoubleLiteralExpression(null, 0.0, false));
                 }
                 else if (double.IsPositiveInfinity(value))
                 {
                     return SyntaxFactory.BinaryExpression(SyntaxKind.DivideExpression,
-                        GenerateLiteralExpression(1.0, "1.0"),
-                        GenerateLiteralExpression(0.0, "0.0"));
+                        GenerateDoubleLiteralExpression(null, 1.0, false),
+                        GenerateDoubleLiteralExpression(null, 0.0, false));
                 }
                 else if (double.IsNegativeInfinity(value))
                 {
                     return SyntaxFactory.BinaryExpression(SyntaxKind.DivideExpression,
-                        SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, GenerateLiteralExpression(1.0, "1.0")),
-                        GenerateLiteralExpression(0.0, "0.0"));
+                        SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, GenerateDoubleLiteralExpression(null, 1.0, false)),
+                        GenerateDoubleLiteralExpression(null, 0.0, false));
                 }
             }
 
-            return GenerateFloatLiteralExpression(type, value, suffix, canUseFieldReference);
+            return GenerateLiteralExpression(type, value, LiteralSpecialValues.DoubleSpecialValues, "R", canUseFieldReference, SyntaxFactory.Literal);
         }
 
-        private static ExpressionSyntax GenerateSingleLiteralExpression(ITypeSymbol type, float value, string suffix, bool canUseFieldReference)
+        private static ExpressionSyntax GenerateSingleLiteralExpression(ITypeSymbol type, float value, bool canUseFieldReference)
         {
             if (!canUseFieldReference)
             {
                 if (float.IsNaN(value))
                 {
                     return SyntaxFactory.BinaryExpression(SyntaxKind.DivideExpression,
-                        GenerateLiteralExpression(0.0F, "0.0F"),
-                        GenerateLiteralExpression(0.0F, "0.0F"));
+                        GenerateSingleLiteralExpression(null, 0.0F, false),
+                        GenerateSingleLiteralExpression(null, 0.0F, false));
                 }
                 else if (float.IsPositiveInfinity(value))
                 {
                     return SyntaxFactory.BinaryExpression(SyntaxKind.DivideExpression,
-                        GenerateLiteralExpression(1.0F, "1.0F"),
-                        GenerateLiteralExpression(0.0F, "0.0F"));
+                        GenerateSingleLiteralExpression(null, 1.0F, false),
+                        GenerateSingleLiteralExpression(null, 0.0F, false));
                 }
                 else if (float.IsNegativeInfinity(value))
                 {
                     return SyntaxFactory.BinaryExpression(SyntaxKind.DivideExpression,
-                        SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, GenerateLiteralExpression(1.0F, "1.0F")),
-                        GenerateLiteralExpression(0.0F, "0.0F"));
+                        SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, GenerateSingleLiteralExpression(null, 1.0F, false)),
+                        GenerateSingleLiteralExpression(null, 0.0F, false));
                 }
             }
 
-            return GenerateFloatLiteralExpression(type, value, suffix, canUseFieldReference);
+            return GenerateLiteralExpression(type, value, LiteralSpecialValues.SingleSpecialValues, "R", canUseFieldReference, SyntaxFactory.Literal);
         }
 
-        private static ExpressionSyntax GenerateFloatLiteralExpression(ITypeSymbol type, object value, string suffix, bool canUseFieldReference)
-        {
-            var constants = value.GetType().GetFields(BindingFlags.Public | BindingFlags.Static).Where(f => f.IsLiteral);
-            return GenerateLiteralExpression(type, value, constants, "R", suffix, canUseFieldReference);
-        }
-
-        private static ExpressionSyntax GenerateLiteralExpression(
-            ITypeSymbol type, object value, IEnumerable<FieldInfo> constants, string formatString, string suffix, bool canUseFieldReference)
+        private static ExpressionSyntax GenerateLiteralExpression<T>(
+            ITypeSymbol type, T value, IEnumerable<KeyValuePair<T, string>> constants, string formatString, bool canUseFieldReference, Func<string, T, SyntaxToken> tokenFactory)
         {
             if (canUseFieldReference)
             {
@@ -307,31 +270,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
+            var suffix = DetermineSuffix(type, value);
             var stringValue = ((IFormattable)value).ToString(formatString, CultureInfo.InvariantCulture) + suffix;
-
-            return GenerateLiteralExpression(value, stringValue);
-        }
-
-        private static ExpressionSyntax GenerateLiteralExpression(object value, string stringValue)
-        {
-            var overload = typeof(SyntaxFactory).GetMethod("Literal", new[] { typeof(string), value.GetType() });
             return SyntaxFactory.LiteralExpression(
-                SyntaxKind.NumericLiteralExpression, (SyntaxToken)overload.Invoke(null, new[] { stringValue, value }));
+               SyntaxKind.NumericLiteralExpression, tokenFactory(stringValue, value));
         }
 
-        private static ExpressionSyntax GenerateFieldReference(ITypeSymbol type, object value, IEnumerable<FieldInfo> constants)
+        private static ExpressionSyntax GenerateFieldReference<T>(ITypeSymbol type, T value, IEnumerable<KeyValuePair<T, string>> constants)
         {
             foreach (var constant in constants)
             {
-                if (constant.GetValue(null).Equals(value))
+                if (constant.Key.Equals(value))
                 {
-                    var memberAccess = GenerateMemberAccess("System", constant.DeclaringType.Name);
+                    var memberAccess = GenerateMemberAccess("System", typeof(T).Name);
                     if (type != null && !(type is IErrorTypeSymbol))
                     {
                         memberAccess = memberAccess.WithAdditionalAnnotations(SpecialTypeAnnotation.Create(type.SpecialType));
                     }
 
-                    var result = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, memberAccess, SyntaxFactory.IdentifierName(constant.Name));
+                    var result = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, memberAccess, SyntaxFactory.IdentifierName(constant.Value));
                     return result.WithAdditionalAnnotations(Simplifier.Annotation);
                 }
             }
@@ -357,11 +314,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             result = result.WithAdditionalAnnotations(Simplifier.Annotation);
             return result;
-        }
-
-        private static IEnumerable<FieldInfo> GetConstants<TStructure>()
-        {
-            return typeof(TStructure).GetFields(BindingFlags.Public | BindingFlags.Static).Where(f => f.IsLiteral);
         }
     }
 }

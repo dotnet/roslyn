@@ -315,6 +315,7 @@
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
     <Compile Include="CodeGeneration\ICodeGenerationService.cs" />
     <Compile Include="CodeGeneration\INamedTypeSymbolExtensions.cs" />
+    <Compile Include="CodeGeneration\LiteralSpecialValues.cs" />
     <Compile Include="CodeGeneration\SyntaxGenerator.cs" />
     <Compile Include="CodeGeneration\SymbolModifiers.cs" />
     <Compile Include="CodeGeneration\Symbols\CodeGenerationAbstractMethodSymbol.cs" />

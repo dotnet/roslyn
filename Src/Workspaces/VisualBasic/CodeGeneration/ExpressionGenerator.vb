@@ -1,21 +1,11 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports System.Globalization
-Imports System.Linq
-Imports System.Reflection
-Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
-Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Partial Friend Module ExpressionGenerator
@@ -75,27 +65,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ElseIf TypeOf value Is Char Then
                 Return GenerateCharLiteralExpression(DirectCast(value, Char))
             ElseIf TypeOf value Is SByte Then
-                Return GenerateIntegralLiteralExpression(Of SByte)(type, SpecialType.System_SByte, value, canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_SByte, value, canUseFieldReference, LiteralSpecialValues.SByteSpecialValues)
             ElseIf TypeOf value Is Short Then
-                Return GenerateIntegralLiteralExpression(Of Short)(type, SpecialType.System_Int16, value, canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int16, value, canUseFieldReference, LiteralSpecialValues.Int16SpecialValues)
             ElseIf TypeOf value Is Integer Then
-                Return GenerateIntegralLiteralExpression(Of Integer)(type, SpecialType.System_Int32, value, canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int32, value, canUseFieldReference, LiteralSpecialValues.Int32SpecialValues)
             ElseIf TypeOf value Is Long Then
                 Return GenerateLongLiteralExpression(type, DirectCast(value, Long), canUseFieldReference)
             ElseIf TypeOf value Is Byte Then
-                Return GenerateIntegralLiteralExpression(Of Byte)(type, SpecialType.System_Byte, value, canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Byte, value, canUseFieldReference, LiteralSpecialValues.ByteSpecialValues)
             ElseIf TypeOf value Is UShort Then
-                Return GenerateIntegralLiteralExpression(Of UShort)(type, SpecialType.System_UInt16, value, canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_UInt16, value, canUseFieldReference, LiteralSpecialValues.UInt16SpecialValues)
             ElseIf TypeOf value Is UInteger Then
-                Return GenerateIntegralLiteralExpression(Of UInteger)(type, SpecialType.System_UInt32, value, canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_UInt32, value, canUseFieldReference, LiteralSpecialValues.UInt32SpecialValues)
             ElseIf TypeOf value Is ULong Then
-                Return GenerateIntegralLiteralExpression(Of ULong)(type, SpecialType.System_UInt64, value, canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_UInt64, value, canUseFieldReference, LiteralSpecialValues.UInt64SpecialValues)
             ElseIf TypeOf value Is Single Then
                 Return GenerateSingleLiteralExpression(type, DirectCast(value, Single), canUseFieldReference)
             ElseIf TypeOf value Is Double Then
                 Return GenerateDoubleLiteralExpression(type, DirectCast(value, Double), canUseFieldReference)
             ElseIf TypeOf value Is Decimal Then
-                Return GenerateDecimalLiteralExpression(type, value, canUseFieldReference)
+                Return GenerateDecimalLiteralExpression(type, DirectCast(value, Decimal), canUseFieldReference)
             ElseIf TypeOf value Is DateTime Then
                 Return GenerateDateLiteralExpression(DirectCast(value, DateTime))
             Else
@@ -166,28 +156,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return invocation.WithAdditionalAnnotations(Simplifier.Annotation)
         End Function
 
-        Private Function GetConstants(Of TStructure)() As IEnumerable(Of FieldInfo)
-            Return GetType(TStructure).GetFields(BindingFlags.Public Or BindingFlags.Static).Where(Function(f) f.IsLiteral)
-        End Function
-
-        Private Function GenerateIntegralLiteralExpression(Of TStructure As Structure)(type As ITypeSymbol,
-                                                                                              specialType As SpecialType,
-                                                                                              value As Object,
-                                                                                              canUseFieldReference As Boolean) As ExpressionSyntax
-            ' If it's the constant value 0, and the type of the value matches the type we want for 
-            ' this context, then we can just emit the literal 0 here.  We don't want to emit things 
-            ' like UInteger.MinValue.
-            If value IsNot Nothing AndAlso IntegerUtilities.ToUInt64(value) = 0 Then
-                If TypesMatch(type, value) Then
-                    Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
-                        "0", LiteralBase.Decimal, TypeCharacter.None, 0))
-                ElseIf type Is Nothing Then
-                    canUseFieldReference = False
-                End If
-            End If
+        Private Function GenerateIntegralLiteralExpression(Of TStructure)(type As ITypeSymbol,
+                                                                          specialType As SpecialType,
+                                                                          value As Object,
+                                                                          canUseFieldReference As Boolean,
+                                                                          specialValues As IEnumerable(Of KeyValuePair(Of TStructure, String))) As ExpressionSyntax
 
             If canUseFieldReference Then
-                Dim field = GenerateFieldReference(Of TStructure)(specialType, value)
+                Dim field = GenerateFieldReference(specialType, value, specialValues)
                 If field IsNot Nothing Then
                     Return field
                 End If
@@ -212,10 +188,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function GenerateLongLiteralExpression(type As ITypeSymbol,
-                                                              value As Long,
-                                                              canUseFieldReference As Boolean) As ExpressionSyntax
+                                                       value As Long,
+                                                       canUseFieldReference As Boolean) As ExpressionSyntax
             If canUseFieldReference OrElse value > Long.MinValue Then
-                Return GenerateIntegralLiteralExpression(Of Long)(type, SpecialType.System_Int64, value, canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int64, value, canUseFieldReference, LiteralSpecialValues.Int64SpecialValues)
             End If
 
             ' We have to special case how Long.MinValue is printed when we can't refer to the 
@@ -293,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 End If
             End If
 
-            Return GenerateFloatLiteralExpression(Of Double)(type, SpecialType.System_Double, value, canUseFieldReference)
+            Return GenerateFloatLiteralExpression(type, SpecialType.System_Double, value, canUseFieldReference, LiteralSpecialValues.DoubleSpecialValues)
         End Function
 
         Private Function GenerateSingleLiteralExpression(type As ITypeSymbol,
@@ -315,15 +291,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 End If
             End If
 
-            Return GenerateFloatLiteralExpression(Of Single)(type, SpecialType.System_Single, value, canUseFieldReference)
+            Return GenerateFloatLiteralExpression(type, SpecialType.System_Single, value, canUseFieldReference, LiteralSpecialValues.SingleSpecialValues)
         End Function
 
-        Private Function GenerateFloatLiteralExpression(Of TStructure As Structure)(type As ITypeSymbol,
-                                                                                           specialType As SpecialType,
-                                                                                           value As Object,
-                                                                                           canUseFieldReference As Boolean) As ExpressionSyntax
+        Private Function GenerateFloatLiteralExpression(Of TStructure)(type As ITypeSymbol,
+                                                                       specialType As SpecialType,
+                                                                       value As Object,
+                                                                       canUseFieldReference As Boolean,
+                                                                       specialValues As IEnumerable(Of KeyValuePair(Of TStructure, String))) As ExpressionSyntax
             If canUseFieldReference Then
-                Dim field = GenerateFieldReference(Of TStructure)(specialType, value)
+                Dim field = GenerateFieldReference(specialType, value, specialValues)
                 If field IsNot Nothing Then
                     Return field
                 End If
@@ -357,16 +334,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return GenerateChrWExpression(c)
         End Function
 
-        Private Function GenerateDecimalLiteralExpression(type As ITypeSymbol, value As Object, canUseFieldReference As Boolean) As ExpressionSyntax
-            ' don't use field references for simple values
-            Dim m As Decimal = CType(value, Decimal)
-            If m <> Decimal.MaxValue AndAlso m <> Decimal.MinValue Then
-                canUseFieldReference = False
-            End If
-
+        Private Function GenerateDecimalLiteralExpression(type As ITypeSymbol, value As Decimal, canUseFieldReference As Boolean) As ExpressionSyntax
             If canUseFieldReference Then
-                Dim constants = GetType(Decimal).GetFields(BindingFlags.Public Or BindingFlags.Static).Where(Function(f) f.IsInitOnly)
-                Dim field = GenerateFieldReference(Of Decimal)(SpecialType.System_Decimal, value, constants)
+                Dim field = GenerateFieldReference(SpecialType.System_Decimal, value, LiteralSpecialValues.DecimalSpecialValues)
                 If field IsNot Nothing Then
                     Return field
                 End If
@@ -376,8 +346,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim suffix As String = String.Empty
             DetermineSuffix(type, value, typeSuffix, suffix)
 
-            Dim literal = DirectCast(value, IFormattable).ToString(Nothing, CultureInfo.InvariantCulture) & suffix
-            Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.DecimalLiteralToken(literal, typeSuffix, DirectCast(value, Decimal)))
+            Dim literal = value.ToString(Nothing, CultureInfo.InvariantCulture) & suffix
+            Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.DecimalLiteralToken(literal, typeSuffix, value))
         End Function
 
         Private Function AddSpecialTypeAnnotation(type As SpecialType, expression As MemberAccessExpressionSyntax) As MemberAccessExpressionSyntax
@@ -388,18 +358,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return expression
         End Function
 
-        Private Function GenerateFieldReference(Of TStructure)(type As SpecialType, value As Object) As MemberAccessExpressionSyntax
-            Dim constants = GetConstants(Of TStructure)()
-            Return GenerateFieldReference(Of TStructure)(type, value, constants)
-        End Function
-
         Private Function GenerateFieldReference(Of TStructure)(type As SpecialType,
-                                                                    value As Object,
-                                                                    fields As IEnumerable(Of FieldInfo)) As MemberAccessExpressionSyntax
-            For Each field In fields
-                If field.GetValue(Nothing).Equals(value) Then
+                                                               value As Object,
+                                                               specialValues As IEnumerable(Of KeyValuePair(Of TStructure, String))) As MemberAccessExpressionSyntax
+            For Each specialValue In specialValues
+                If specialValue.Key.Equals(value) Then
                     Dim memberAccess = AddSpecialTypeAnnotation(type, GenerateMemberAccessExpression("System", GetType(TStructure).Name))
-                    Return SyntaxFactory.SimpleMemberAccessExpression(memberAccess, SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName(field.Name)) _
+                    Return SyntaxFactory.SimpleMemberAccessExpression(memberAccess, SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName(specialValue.Value)) _
                         .WithAdditionalAnnotations(Simplifier.Annotation)
                 End If
             Next
