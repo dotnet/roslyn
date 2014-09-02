@@ -39,14 +39,18 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                              FxCopDiagnosticCategory.Design,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: true,
+                                                                             description: FxCopRulesResources.MarkEnumsWithFlagsDescription,
+                                                                             helpLink: "http://msdn.microsoft.com/library/ms182159.aspx",
                                                                              customTags: DiagnosticCustomTags.Microsoft);
 
         internal static DiagnosticDescriptor Rule2217 = new DiagnosticDescriptor(RuleIdDoNotMarkEnumsWithFlags,
                                                                              FxCopRulesResources.DoNotMarkEnumsWithFlags,
                                                                              FxCopRulesResources.DoNotMarkEnumsWithFlagsMessage,
-                                                                             FxCopDiagnosticCategory.Design,
+                                                                             FxCopDiagnosticCategory.Usage,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: true,
+                                                                             description: FxCopRulesResources.DoNotMarkEnumsWithFlagsDescription,
+                                                                             helpLink: "http://msdn.microsoft.com/library/ms182335.aspx",
                                                                              customTags: DiagnosticCustomTags.Microsoft);
 
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(Rule1027, Rule2217);

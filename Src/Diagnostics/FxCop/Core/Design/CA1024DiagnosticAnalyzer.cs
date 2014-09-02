@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
+                                                                         description: FxCopRulesResources.UsePropertiesWhereAppropriateDescription,
+                                                                         helpLink: "http://msdn.microsoft.com/library/ms182181.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
         private const string GetHashCodeName = "GetHashCode";
         private const string GetEnumeratorName = "GetEnumerator";

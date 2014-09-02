@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
+                                                                         description: FxCopRulesResources.ImplementSerializationConstructorDescription,
+                                                                         helpLink: "http://msdn.microsoft.com/library/ms182343.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         // Mark ISerializable types with SerializableAttribute
@@ -32,6 +34,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
+                                                                         description: FxCopRulesResources.MarkISerializableTypesWithAttributeDescription,
+                                                                         helpLink: "http://msdn.microsoft.com/library/ms182350.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         // Mark all non-serializable fields
@@ -42,6 +46,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
+                                                                         description: FxCopRulesResources.MarkAllNonSerializableFieldsDescription,
+                                                                         helpLink: "http://msdn.microsoft.com/library/ms182349.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(RuleCA2229, RuleCA2235, RuleCA2237);

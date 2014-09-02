@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
                                                                          FxCopDiagnosticCategory.Performance,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
+                                                                         description: FxCopRulesResources.RemoveEmptyFinalizersDescription,
+                                                                         helpLink: "http://msdn.microsoft.com/library/bb264476.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
                                                                          FxCopDiagnosticCategory.Reliability,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
+                                                                         helpLink: "http://msdn.microsoft.com/library/ms182290.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

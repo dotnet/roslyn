@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
+                                                                         description: FxCopRulesResources.OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription,
+                                                                         helpLink: "http://msdn.microsoft.com/library/ms182359.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

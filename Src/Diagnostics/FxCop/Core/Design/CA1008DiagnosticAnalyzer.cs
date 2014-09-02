@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                        FxCopDiagnosticCategory.Design,
                                                                        DiagnosticSeverity.Warning,
                                                                        isEnabledByDefault: true,
+                                                                       description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
+                                                                       helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                        customTags: DiagnosticCustomTags.Microsoft);
 
         internal static DiagnosticDescriptor RuleMultipleZero = new DiagnosticDescriptor(RuleId,
@@ -50,6 +52,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                FxCopDiagnosticCategory.Design,
                                                                DiagnosticSeverity.Warning,
                                                                isEnabledByDefault: true,
+                                                               description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
+                                                               helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                customTags: DiagnosticCustomTags.Microsoft);
 
         internal static DiagnosticDescriptor RuleNoZero = new DiagnosticDescriptor(RuleId,
@@ -58,6 +62,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                FxCopDiagnosticCategory.Design,
                                                                DiagnosticSeverity.Warning,
                                                                isEnabledByDefault: true,
+                                                               description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
+                                                               helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                customTags: DiagnosticCustomTags.Microsoft);
 
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(RuleRename, RuleMultipleZero, RuleNoZero);

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: true,
+                                                                                      helpLink: "http://msdn.microsoft.com/library/ms182243.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);
 
         internal static readonly DiagnosticDescriptor TypeParameterRule = new DiagnosticDescriptor(RuleId,
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: true,
+                                                                                      helpLink: "http://msdn.microsoft.com/library/ms182243.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);
 
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(InterfaceRule, TypeParameterRule);
