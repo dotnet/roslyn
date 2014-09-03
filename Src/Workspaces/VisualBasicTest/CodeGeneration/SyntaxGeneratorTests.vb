@@ -1,4 +1,5 @@
-﻿Imports Microsoft.CodeAnalysis.CodeGeneration
+﻿Imports System.Globalization
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -67,17 +68,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGeneration
 
             VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(0D), "0D")
             VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(0.00D), "0.00D")
-            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(CDec("1.00")), "1.00D")
-            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(CDec("-1.00")), "-1.00D")
-            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(CDec("1.0000000000")), "1.0000000000D")
-            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(CDec("0.000000")), "0.000000D")
-            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(CDec("0.0000000")), "0.0000000D")
+            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(Decimal.Parse("1.00", CultureInfo.InvariantCulture)), "1.00D")
+            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(Decimal.Parse("-1.00", CultureInfo.InvariantCulture)), "-1.00D")
+            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(Decimal.Parse("1.0000000000", CultureInfo.InvariantCulture)), "1.0000000000D")
+            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(Decimal.Parse("0.000000", CultureInfo.InvariantCulture)), "0.000000D")
+            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(Decimal.Parse("0.0000000", CultureInfo.InvariantCulture)), "0.0000000D")
             VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(1000000000D), "1000000000D")
             VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(123456789.123456789D), "123456789.123456789D")
-            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(CDec("1E-28")), "0.0000000000000000000000000001D")
-            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(CDec("0E-28")), "0.0000000000000000000000000000D")
-            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(CDec("1E-29")), "0.0000000000000000000000000000D")
-            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(CDec("-1E-29")), "0.0000000000000000000000000000D")
+            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(Decimal.Parse("1E-28", NumberStyles.Any, CultureInfo.InvariantCulture)), "0.0000000000000000000000000001D")
+            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(Decimal.Parse("0E-28", NumberStyles.Any, CultureInfo.InvariantCulture)), "0.0000000000000000000000000000D")
+            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(Decimal.Parse("1E-29", NumberStyles.Any, CultureInfo.InvariantCulture)), "0.0000000000000000000000000000D")
+            VerifySyntax(Of LiteralExpressionSyntax)(g.LiteralExpression(Decimal.Parse("-1E-29", NumberStyles.Any, CultureInfo.InvariantCulture)), "0.0000000000000000000000000000D")
             VerifySyntax(Of MemberAccessExpressionSyntax)(g.LiteralExpression(Decimal.MinValue), "Global.System.Decimal.MinValue")
             VerifySyntax(Of MemberAccessExpressionSyntax)(g.LiteralExpression(Decimal.MaxValue), "Global.System.Decimal.MaxValue")
 
