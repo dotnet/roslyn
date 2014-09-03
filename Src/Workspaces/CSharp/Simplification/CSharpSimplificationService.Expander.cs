@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     memberOptions:
                         SymbolDisplayMemberOptions.IncludeContainingType,
                     localOptions: SymbolDisplayLocalOptions.IncludeType,
-                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.ExpandNullable,
                     typeQualificationStyle:
                         SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     memberOptions:
                         SymbolDisplayMemberOptions.IncludeContainingType,
                     localOptions: SymbolDisplayLocalOptions.IncludeType,
-                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.ExpandNullable,
                     typeQualificationStyle:
                         SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
