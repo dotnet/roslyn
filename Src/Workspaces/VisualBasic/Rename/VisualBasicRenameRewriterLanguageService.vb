@@ -941,6 +941,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             If nodeToSpeculate Is Nothing Then
                 If syntax.IsKind(SyntaxKind.CrefReference) Then
                     nodeToSpeculate = DirectCast(syntax, CrefReferenceSyntax).Name
+                ElseIf syntax.IsKind(SyntaxKind.TypeConstraint) Then
+                    nodeToSpeculate = DirectCast(syntax, TypeConstraintSyntax).Type
                 Else
                     Return Nothing
                 End If

@@ -1124,6 +1124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     nodeToSpeculate = ((QualifiedCrefSyntax)node).Container;
                 }
+                else if (node.IsKind(SyntaxKind.TypeConstraint))
+                {
+                    nodeToSpeculate = ((TypeConstraintSyntax)node).Type;
+                }
                 else
                 {
                     return null;

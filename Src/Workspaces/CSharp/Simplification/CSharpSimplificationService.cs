@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     node is FieldDeclarationSyntax ||
                     node is StatementSyntax ||
                     node is CrefSyntax ||
-                    node is XmlNameAttributeSyntax)
+                    node is XmlNameAttributeSyntax ||
+                    node is TypeConstraintSyntax)
                 {
                     var rewriter = new Expander(semanticModel, expandInsideNode, expandParameter, cancellationToken, annotationForReplacedAliasIdentifier);
                     return rewriter.Visit(node);
