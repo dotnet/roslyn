@@ -290,19 +290,23 @@ namespace Microsoft.CodeAnalysis
 
         public virtual int GetLeadingTriviaWidth()
         {
-            return this.GetFirstTerminal().GetLeadingTriviaWidth();
+            return this.FullWidth != 0? 
+                this.GetFirstTerminal().GetLeadingTriviaWidth() :
+                0;
         }
 
         public virtual int GetTrailingTriviaWidth()
         {
-            return this.GetLastTerminal().GetTrailingTriviaWidth();
+            return this.FullWidth != 0?
+                this.GetLastTerminal().GetTrailingTriviaWidth() :
+                0;
         }
 
         public bool HasLeadingTrivia
         {
             get
             {
-                return this.GetLeadingTriviaWidth() > 0;
+                return this.GetLeadingTriviaWidth() != 0;
             }
         }
 
@@ -310,7 +314,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.GetTrailingTriviaWidth() > 0;
+                return this.GetTrailingTriviaWidth() != 0;
             }
         }
         #endregion
@@ -585,16 +589,18 @@ namespace Microsoft.CodeAnalysis
 
             do
             {
+                GreenNode firstChild = null;
                 for (int i = 0, n = node.SlotCount; i < n; i++)
                 {
                     var child = node.GetSlot(i);
                     if (child != null)
                     {
-                        node = child;
+                        firstChild = child;
                         break;
                     }
                 }
-            } while (node.slotCount != 0);
+                node = firstChild;
+            } while (node != null && node.slotCount != 0);
 
             return node;
         }
@@ -605,16 +611,18 @@ namespace Microsoft.CodeAnalysis
 
             do
             {
+                GreenNode lastChild = null;
                 for (int i = node.SlotCount - 1; i >= 0; i--)
                 {
                     var child = node.GetSlot(i);
                     if (child != null)
                     {
-                        node = child;
+                        lastChild = child;
                         break;
                     }
                 }
-            } while (node.slotCount != 0);
+                node = lastChild;
+            } while (node != null && node.slotCount != 0);
 
             return node;
         }

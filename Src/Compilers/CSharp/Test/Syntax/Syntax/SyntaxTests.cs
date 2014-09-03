@@ -146,5 +146,14 @@ void foo()
         {
             var t = SyntaxFactory.AccessorDeclaration(SyntaxKind.UnknownAccessorDeclaration);
         }
+
+        [Fact]
+        public void TestBug991510()
+        {
+            var section = SyntaxFactory.SwitchSection();
+            var span = section.Span;
+            Assert.Equal(default(TextSpan), span);
+        }
+
     }
 }
