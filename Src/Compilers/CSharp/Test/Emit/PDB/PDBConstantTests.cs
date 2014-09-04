@@ -180,14 +180,14 @@ class C
         <entry il_offset=""0x6b"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6f"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6f"" attributes=""0"" />
         <constant name=""x"" value=""1"" type=""Int32"" />
         <constant name=""y"" value=""2"" type=""Int32"" />
         <local name=""CS$4$0001"" il_index=""3"" il_start=""0x5d"" il_end=""0x6b"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x6f"">
         <namespace name=""System.Collections.Generic"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6f"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x6f"" attributes=""0"" />
         <scope startOffset=""0x21"" endOffset=""0x6f"">
           <constant name=""x"" value=""1"" type=""Int32"" />
           <scope startOffset=""0x2b"" endOffset=""0x4d"">

@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
-    internal enum CommonSynthesizedLocalKind
+    internal enum CommonSynthesizedLocalKind : short
     {
         /// <summary>
         /// Temp variable created by the emitter.

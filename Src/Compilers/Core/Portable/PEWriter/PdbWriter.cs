@@ -29,6 +29,9 @@ namespace Microsoft.Cci
 
     internal sealed class PdbWriter : IDisposable
     {
+        internal const uint HiddenLocalAttributesValue = 1u;
+        internal const uint DefaultLocalAttributesValue = 0u;
+
         private static Type lazyCorSymWriterSxSType;
 
         private readonly ComStreamWrapper stream;
@@ -266,7 +269,7 @@ namespace Microsoft.Cci
                 if (!peWriter.IsLocalNameTooLong(scopeLocal))
                 {
                     Debug.Assert(scopeLocal.SlotIndex >= 0);
-                    DefineLocalVariable((uint)scopeLocal.SlotIndex, scopeLocal.Name, scopeLocal.IsCompilerGenerated, localSignatureToken);
+                    DefineLocalVariable((uint)scopeLocal.SlotIndex, scopeLocal.Name, scopeLocal.PdbAttributes, localSignatureToken);
                 }
             }
         }
@@ -623,10 +626,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private void DefineLocalVariable(uint index, string name, bool isCompilerGenerated, uint localVariablesSignatureToken)
+        private void DefineLocalVariable(uint index, string name, uint attributes, uint localVariablesSignatureToken)
         {
             const uint ADDR_IL_OFFSET = 1;
-            uint attributes = isCompilerGenerated ? 1u : 0u;
             try
             {
                 this.symWriter.DefineLocalVariable2(name, attributes, localVariablesSignatureToken, ADDR_IL_OFFSET, index, 0, 0, 0, 0);

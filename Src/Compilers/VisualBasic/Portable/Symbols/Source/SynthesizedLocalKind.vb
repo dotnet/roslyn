@@ -1,20 +1,22 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Friend Enum SynthesizedLocalKind As Short
-        LoweringTemp = -2
-        None = -1       ' not a temp or a regular nameless temp, i.e., it is not synthesized.
+        LoweringTemp = CommonSynthesizedLocalKind.LoweringTemp
+        None = CommonSynthesizedLocalKind.None       ' not a temp or a regular nameless temp, i.e., it is not synthesized.
         FirstLongLived = 0
+
+        ''' <summary>
+        ''' Values greater than or equal to <see cref="FirstIgnoredByExpressionCompiler"/> and
+        ''' less than or equal to <see cref="LastIgnoredByExpressionCompiler"/> should be flagged
+        ''' so that they will be ignored by the expression compiler.
+        ''' </summary>
+        FirstIgnoredByExpressionCompiler = 0
+
         Lock = 2
         [Using]
         ForEachEnumerator
@@ -31,10 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         'TODO:
         ' degenerate select key (can we EnC when stopped on case?)
 
-        StateMachineReturnValue
-        StateMachineException
-        StateMachineCachedState
-
         ' XmlInExpressionLambda locals are always lifted and must have distinct names.
         XmlInExpressionLambda
 
@@ -43,6 +41,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         OnErrorResumeTarget
         OnErrorCurrentStatement
         OnErrorCurrentLine
+
+        ''' <summary>
+        ''' Values greater than or equal to <see cref="FirstIgnoredByExpressionCompiler"/> and
+        ''' less than or equal to <see cref="LastIgnoredByExpressionCompiler"/> should be flagged
+        ''' so that they will be ignored by the expression compiler.
+        ''' </summary>
+        LastIgnoredByExpressionCompiler = OnErrorCurrentLine
+
+        StateMachineReturnValue
+        StateMachineException
+        StateMachineCachedState
 
         LambdaDisplayClass ' Local variable that holds on the display class instance
     End Enum
@@ -68,6 +77,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case Else
                     Return False
             End Select
+        End Function
+
+        <Extension>
+        Friend Function PdbAttributes(ByVal kind As SynthesizedLocalKind) As UInteger
+            Return If(SynthesizedLocalKind.FirstIgnoredByExpressionCompiler <= kind AndAlso kind <= SynthesizedLocalKind.LastIgnoredByExpressionCompiler,
+                Cci.PdbWriter.HiddenLocalAttributesValue,
+                Cci.PdbWriter.DefaultLocalAttributesValue)
         End Function
     End Module
 

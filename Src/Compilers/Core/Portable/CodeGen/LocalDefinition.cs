@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         //True if the variable was not declared in source.
         private readonly CommonSynthesizedLocalKind synthesizedKind;
 
+        /// <see cref="Cci.ILocalDefinition.PdbAttributes"/>.
+        private readonly uint pdbAttributes;
+
         //Gives the synthesized dynamic attributes of the local definition
         private readonly ImmutableArray<TypedConstant> dynamicTransformFlags;
 
@@ -50,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <param name="slot">Slot position in the signature.</param>
         /// <param name="dynamicTransformFlags">Contains the synthesized dynamic attributes of the local</param>
         /// <param name="synthesizedKind">Synthesized local kind.</param>
+        /// <param name="pdbAttributes">Value to emit in the attributes field in the PDB.</param>
         /// <param name="constraints">Specifies whether slot type should have pinned modifier and whether slot should have byref constraint.</param>
         /// <param name="isDynamic">Specifies if the type is Dynamic.</param>
         public LocalDefinition(
@@ -58,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.ITypeReference type,
             int slot,
             CommonSynthesizedLocalKind synthesizedKind,
+            uint pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags)
@@ -67,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.type = type;
             this.slot = slot;
             this.synthesizedKind = synthesizedKind;
+            this.pdbAttributes = pdbAttributes;
             this.dynamicTransformFlags = dynamicTransformFlags;
             this.constraints = constraints;
             this.isDynamic = isDynamic;
@@ -144,9 +150,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return this.isDynamic; }
         }
 
-        public bool IsCompilerGenerated
+        public uint PdbAttributes
         {
-            get { return this.synthesizedKind != CommonSynthesizedLocalKind.None; }
+            get { return this.pdbAttributes; }
         }
 
         public CommonSynthesizedLocalKind SynthesizedLocalKind

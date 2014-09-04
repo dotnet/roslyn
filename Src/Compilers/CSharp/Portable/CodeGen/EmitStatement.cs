@@ -1299,6 +1299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 symbol: local,
                 name: name,
                 synthesizedKind: (CommonSynthesizedLocalKind)local.SynthesizedLocalKind,
+                pdbAttributes: local.SynthesizedLocalKind.PdbAttributes(),
                 constraints: constraints,
                 isDynamic: isDynamicSourceLocal,
                 dynamicTransformFlags: transformFlags);

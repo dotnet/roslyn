@@ -260,9 +260,17 @@ namespace Microsoft.Cci
         bool IsDynamic { get; }
 
         /// <summary>
-        /// True if the local was not declared in source.
+        /// Each local has an attributes field in the PDB.  To match the native compiler,
+        /// we emit "1" for locals that should definitely not bind in the debugger and "0"
+        /// for all other locals.
         /// </summary>
-        bool IsCompilerGenerated { get; }
+        /// <remarks>
+        /// A value of "1" is a sufficient, but not a necessary, condition for hiding the
+        /// local in the debugger.  Locals with value "0" may also be hidden.
+        /// 
+        /// Hidden locals must still be emitted because they participate in evaluation.
+        /// </remarks>
+        uint PdbAttributes { get; }
 
         /// <summary>
         /// Should return the synthesized dynamic attributes of the local definition if any. Else null.

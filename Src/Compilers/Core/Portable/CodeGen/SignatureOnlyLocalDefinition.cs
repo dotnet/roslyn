@@ -37,12 +37,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        // The placeholder local is marked as compiler-generated
-        // so it will be excluded from the PDB and debugger if not
-        // replaced by a valid local in DeclareLocalInternal.
-        public bool IsCompilerGenerated
+        /// <remarks>
+        /// This temp is not interesting to the expression compiler.  However, it 
+        /// may be replaced by an interesting local in a later stage.
+        /// </remarks>
+        public uint PdbAttributes
         {
-            get { return true; }
+            get { return Cci.PdbWriter.HiddenLocalAttributesValue; }
         }
 
         public bool IsDynamic

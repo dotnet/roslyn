@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return this.isDynamic; }
         }
 
-        public bool IsCompilerGenerated
+        public uint PdbAttributes
         {
-            get { return false; }
+            get { return Cci.PdbWriter.DefaultLocalAttributesValue; }
         }
 
         public ImmutableArray<TypedConstant> DynamicTransformFlags

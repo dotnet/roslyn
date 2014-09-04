@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ILocalSymbol symbol,
             string name,
             CommonSynthesizedLocalKind synthesizedKind,
+            uint pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags)
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             if ((name != null) || !FreeSlots.TryPop(new LocalSignature(type, constraints), out local))
             {
-                local = this.DeclareLocalImpl(type, symbol, name, synthesizedKind, constraints, isDynamic, dynamicTransformFlags);
+                local = this.DeclareLocalImpl(type, symbol, name, synthesizedKind, pdbAttributes, constraints, isDynamic, dynamicTransformFlags);
             }
 
             LocalMap.Add(symbol, local);
@@ -173,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     symbolOpt: null,
                     nameOpt: null,
                     synthesizedKind: CommonSynthesizedLocalKind.EmitterTemp,
+                    pdbAttributes: Cci.PdbWriter.HiddenLocalAttributesValue,
                     constraints: constraints,
                     isDynamic: false,
                     dynamicTransformFlags: dynamicTransformFlags);
@@ -182,13 +184,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         private LocalDefinition DeclareLocalImpl(
-           Cci.ITypeReference type,
-           ILocalSymbol symbolOpt,
-           string nameOpt,
-           CommonSynthesizedLocalKind synthesizedKind,
-           LocalSlotConstraints constraints,
-           bool isDynamic,
-           ImmutableArray<TypedConstant> dynamicTransformFlags)
+            Cci.ITypeReference type,
+            ILocalSymbol symbolOpt,
+            string nameOpt,
+            CommonSynthesizedLocalKind synthesizedKind,
+            uint pdbAttributes,
+            LocalSlotConstraints constraints,
+            bool isDynamic,
+            ImmutableArray<TypedConstant> dynamicTransformFlags)
         {
             if (lazyAllLocals == null)
             {
@@ -211,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         type,
                         slot,
                         synthesizedKind,
+                        pdbAttributes,
                         constraints,
                         isDynamic,
                         dynamicTransformFlags);
@@ -226,6 +230,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 type: type,
                 slot: this.lazyAllLocals.Count,
                 synthesizedKind: synthesizedKind,
+                pdbAttributes: pdbAttributes,
                 constraints: constraints,
                 isDynamic: isDynamic,
                 dynamicTransformFlags: dynamicTransformFlags);

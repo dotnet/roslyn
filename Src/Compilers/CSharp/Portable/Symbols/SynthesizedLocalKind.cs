@@ -50,6 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         FirstLongLived = 0,
 
         /// <summary>
+        /// Values greater than or equal to <see cref="FirstIgnoredByExpressionCompiler"/> and
+        /// less than or equal to <see cref="LastIgnoredByExpressionCompiler"/> should be flagged
+        /// so that they will be ignored by the expression compiler.
+        /// </summary>
+        FirstIgnoredByExpressionCompiler = 0,
+
+        /// <summary>
         /// Variable holding on the object being locked while the execution is within the block of the <see cref="LockStatementSyntax"/>.
         /// </summary>
         Lock = 2,
@@ -80,6 +87,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         FixedString = ForEachArrayLimit0 + 256,
 
+        /// <summary>
+        /// Values greater than or equal to <see cref="FirstIgnoredByExpressionCompiler"/> and
+        /// less than or equal to <see cref="LastIgnoredByExpressionCompiler"/> should be flagged
+        /// so that they will be ignored by the expression compiler.
+        /// </summary>
+        LastIgnoredByExpressionCompiler = LockTaken - 1,
+
         // The values below have no corresponding TEMP_KIND.
 
         /// <summary>
@@ -89,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Local variable used to cache a delegate that is used in inner block (possibly a loop), 
-        /// and can be reused for all iterations fo the loop.
+        /// and can be reused for all iterations of the loop.
         /// </summary>
         CachedAnonymousMethodDelegate = 521,
 
@@ -150,6 +164,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     return false;
             }
+        }
+
+        public static uint PdbAttributes(this SynthesizedLocalKind kind)
+        {
+            return (SynthesizedLocalKind.FirstIgnoredByExpressionCompiler <= kind && kind <= SynthesizedLocalKind.LastIgnoredByExpressionCompiler)
+                ? Cci.PdbWriter.HiddenLocalAttributesValue
+                : Cci.PdbWriter.DefaultLocalAttributesValue;
         }
     }
 }

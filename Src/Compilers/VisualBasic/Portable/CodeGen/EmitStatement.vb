@@ -1269,6 +1269,7 @@ OtherExpressions:
                     symbol:=local,
                     name:=name,
                     synthesizedKind:=CType(local.SynthesizedLocalKind, CommonSynthesizedLocalKind),
+                    pdbAttributes:=local.SynthesizedLocalKind.PdbAttributes(),
                     constraints:=constraints,
                     isDynamic:=False,
                     dynamicTransformFlags:=Nothing)
@@ -1389,6 +1390,7 @@ OtherExpressions:
                         type:=Nothing,
                         slot:=0,
                         synthesizedKind:=CommonSynthesizedLocalKind.EmitterTemp,
+                        pdbAttributes:=Cci.PdbWriter.DefaultLocalAttributesValue,
                         constraints:=LocalSlotConstraints.None,
                         isDynamic:=False,
                         dynamicTransformFlags:=Nothing)

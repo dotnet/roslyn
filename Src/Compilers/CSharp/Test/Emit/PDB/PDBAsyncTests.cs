@@ -148,19 +148,19 @@ class Driver
         <entry il_offset=""0x10b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x118"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x118"" attributes=""0"" />
         <local name=""dc2"" il_index=""1"" il_start=""0x16"" il_end=""0xe9"" attributes=""0"" />
         <local name=""rez2"" il_index=""2"" il_start=""0x16"" il_end=""0xe9"" attributes=""0"" />
-        <local name=""CS$530$0001"" il_index=""3"" il_start=""0x3f"" il_end=""0xb6"" attributes=""1"" />
+        <local name=""CS$530$0001"" il_index=""3"" il_start=""0x3f"" il_end=""0xb6"" attributes=""0"" />
         <local name=""CS$4$0002"" il_index=""7"" il_start=""0xb6"" il_end=""0xc0"" attributes=""1"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x118"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x118"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x118"" attributes=""0"" />
         <scope startOffset=""0x16"" endOffset=""0xe9"">
           <local name=""dc2"" il_index=""1"" il_start=""0x16"" il_end=""0xe9"" attributes=""0"" />
           <local name=""rez2"" il_index=""2"" il_start=""0x16"" il_end=""0xe9"" attributes=""0"" />
           <scope startOffset=""0x3f"" endOffset=""0xb6"">
-            <local name=""CS$530$0001"" il_index=""3"" il_start=""0x3f"" il_end=""0xb6"" attributes=""1"" />
+            <local name=""CS$530$0001"" il_index=""3"" il_start=""0x3f"" il_end=""0xb6"" attributes=""0"" />
           </scope>
           <scope startOffset=""0xb6"" endOffset=""0xc0"">
             <local name=""CS$4$0002"" il_index=""7"" il_start=""0xb6"" il_end=""0xc0"" attributes=""1"" />
@@ -184,12 +184,12 @@ class Driver
         <entry il_offset=""0xa7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb5"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xb5"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb5"" attributes=""0"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xb5"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0xb5"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb5"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xb5"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb5"" attributes=""0"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0xb5"" attributes=""0"" />
       </scope>
       <async-info>
         <kickoff-method declaringType=""TestCase"" methodName=""&lt;Run&gt;b__0"" parameterNames="""" />
@@ -313,10 +313,10 @@ namespace ConsoleApplication1
         <entry il_offset=""0xa3"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb0"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb0"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0xb0"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb0"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xb0"" attributes=""0"" />
       </scope>
       <async-info catch-IL-offset=""0x84"">
         <kickoff-method declaringType=""ConsoleApplication1.Program"" methodName=""QBar"" parameterNames="""" />
@@ -351,21 +351,21 @@ namespace ConsoleApplication1
         <entry il_offset=""0x138"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x146"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x146"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x146"" attributes=""0"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x146"" attributes=""0"" />
         <local name=""z"" il_index=""2"" il_start=""0x49"" il_end=""0xe4"" attributes=""0"" />
         <local name=""newInt"" il_index=""3"" il_start=""0x57"" il_end=""0xe4"" attributes=""0"" />
-        <local name=""CS$530$0002"" il_index=""4"" il_start=""0x58"" il_end=""0xd6"" attributes=""1"" />
+        <local name=""CS$530$0002"" il_index=""4"" il_start=""0x58"" il_end=""0xd6"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x146"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x146"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x146"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x146"" attributes=""0"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x146"" attributes=""0"" />
         <scope startOffset=""0x49"" endOffset=""0xe4"">
           <local name=""z"" il_index=""2"" il_start=""0x49"" il_end=""0xe4"" attributes=""0"" />
           <scope startOffset=""0x57"" endOffset=""0xe4"">
             <local name=""newInt"" il_index=""3"" il_start=""0x57"" il_end=""0xe4"" attributes=""0"" />
             <scope startOffset=""0x58"" endOffset=""0xd6"">
-              <local name=""CS$530$0002"" il_index=""4"" il_start=""0x58"" il_end=""0xd6"" attributes=""1"" />
+              <local name=""CS$530$0002"" il_index=""4"" il_start=""0x58"" il_end=""0xd6"" attributes=""0"" />
             </scope>
           </scope>
         </scope>
@@ -415,16 +415,16 @@ class TestCase
         <entry il_offset=""0x24c"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x259"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x259"" attributes=""0"" />
         <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x22a"" attributes=""0"" />
-        <local name=""CS$530$0001"" il_index=""2"" il_start=""0x1a"" il_end=""0x21a"" attributes=""1"" />
+        <local name=""CS$530$0001"" il_index=""2"" il_start=""0x1a"" il_end=""0x21a"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x259"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x259"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x259"" attributes=""0"" />
         <scope startOffset=""0x19"" endOffset=""0x22a"">
           <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x22a"" attributes=""0"" />
           <scope startOffset=""0x1a"" endOffset=""0x21a"">
-            <local name=""CS$530$0001"" il_index=""2"" il_start=""0x1a"" il_end=""0x21a"" attributes=""1"" />
+            <local name=""CS$530$0001"" il_index=""2"" il_start=""0x1a"" il_end=""0x21a"" attributes=""0"" />
           </scope>
         </scope>
       </scope>
@@ -499,10 +499,10 @@ class C
         <entry il_offset=""0x1ed"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1fa"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1fa"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x1fa"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1fa"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x1fa"" attributes=""0"" />
       </scope>
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""b"" />
@@ -577,13 +577,13 @@ class C
         <entry il_offset=""0xd4"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xe1"" attributes=""1"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb1"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xe1"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb1"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0xe1"">
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xe1"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0xe1"" attributes=""0"" />
         <scope startOffset=""0x16"" endOffset=""0xb1"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb1"" attributes=""1"" />
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb1"" attributes=""0"" />
         </scope>
       </scope>
       <async-info>
@@ -655,12 +655,12 @@ class C
         <entry il_offset=""0x2a6"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2b3"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2b3"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x2b3"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2b3"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x2b3"" attributes=""0"" />
       </scope>
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""o"" />
@@ -717,13 +717,13 @@ class C
         <entry il_offset=""0x245"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x252"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x252"" attributes=""0"" />
         <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x222"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x252"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x252"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x252"" attributes=""0"" />
         <scope startOffset=""0x19"" endOffset=""0x222"">
           <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x222"" attributes=""0"" />
         </scope>
@@ -942,20 +942,20 @@ class C
         <entry il_offset=""0x105"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x113"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x113"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x113"" attributes=""0"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x113"" attributes=""0"" />
         <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xe2"" attributes=""0"" />
-        <local name=""CS$530$0002"" il_index=""4"" il_start=""0x37"" il_end=""0xaa"" attributes=""1"" />
+        <local name=""CS$530$0002"" il_index=""4"" il_start=""0x37"" il_end=""0xaa"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x113"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x113"" attributes=""1"" />
-        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x113"" attributes=""1"" />
+        <local name=""CS$524$0000"" il_index=""0"" il_start=""0x0"" il_end=""0x113"" attributes=""0"" />
+        <local name=""CS$523$0001"" il_index=""1"" il_start=""0x0"" il_end=""0x113"" attributes=""0"" />
         <scope startOffset=""0x16"" endOffset=""0xe2"">
           <local name=""x"" il_index=""2"" il_start=""0x16"" il_end=""0xe2"" attributes=""0"" />
           <scope startOffset=""0x37"" endOffset=""0xaa"">
-            <local name=""CS$530$0002"" il_index=""4"" il_start=""0x37"" il_end=""0xaa"" attributes=""1"" />
+            <local name=""CS$530$0002"" il_index=""4"" il_start=""0x37"" il_end=""0xaa"" attributes=""0"" />
           </scope>
         </scope>
       </scope>
