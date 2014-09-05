@@ -28,11 +28,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
                 Dim notInheritableKeyword = SyntaxFactory.Token(SyntaxKind.NotInheritableKeyword).WithAdditionalAnnotations(Formatter.Annotation)
                 Dim newClassStatement = classStatement.AddModifiers(notInheritableKeyword)
                 Dim newRoot = root.ReplaceNode(classStatement, newClassStatement)
-                Return {CodeAction.Create(String.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classStatement.Identifier.Text), document.WithSyntaxRoot(newRoot))}
+                Return {New MyCodeAction(String.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classStatement.Identifier.Text), document.WithSyntaxRoot(newRoot))}
             End If
 
             Return Nothing
         End Function
 
+        Private Class MyCodeAction
+            Inherits CodeAction.DocumentChangeAction
+
+            Public Sub New(title As String, newDocument As Document)
+                MyBase.New(title, Function(c) Task.FromResult(newDocument))
+            End Sub
+        End Class
     End Class
 End Namespace

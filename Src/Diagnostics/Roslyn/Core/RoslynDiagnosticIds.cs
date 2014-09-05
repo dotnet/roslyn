@@ -6,5 +6,6 @@
         public const string UseSingletonEnumerableRuleId = "RS0002";
         public const string DirectlyAwaitingTaskAnalyzerRuleId = "RS003";
         public const string UseSiteDiagnosticsCheckerRuleId = "RS004";
+        public const string DontUseCodeActionCreateRuleId = "RS005";
     }
 }

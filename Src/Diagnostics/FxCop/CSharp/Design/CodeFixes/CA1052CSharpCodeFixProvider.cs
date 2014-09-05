@@ -34,10 +34,18 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
                 var newDeclaration = classDeclaration.AddModifiers(staticKeyword);
                 var newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
                 return SpecializedCollections.SingletonEnumerable(
-                    CodeAction.Create(string.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classDeclaration.Identifier.Text), document.WithSyntaxRoot(newRoot)));
+                    new MyCodeAction(string.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classDeclaration.Identifier.Text), document.WithSyntaxRoot(newRoot)));
             }
 
             return null;
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Document newDocument) :
+                base(title, c => Task.FromResult(newDocument))
+            {
+            }
         }
     }
 }

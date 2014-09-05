@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             // Fix 1: Add a NonSerialized attribute to the field
             var fieldNode = GetFieldDeclarationNode(nodeToFix);
             if (fieldNode != null)
-            { 
+            {
                 var attr = CodeGenerationSymbolFactory.CreateAttributeData(WellKnownTypes.NonSerializedAttribute(model.Compilation));
                 var newNode = CodeGenerator.AddAttributes(fieldNode, document.Project.Solution.Workspace, SpecializedCollections.SingletonEnumerable(attr)).WithAdditionalAnnotations(Formatting.Formatter.Annotation);
                 var newDocument = document.WithSyntaxRoot(root.ReplaceNode(fieldNode, newNode));
-                var codeAction = CodeAction.Create(FxCopFixersResources.AddNonSerializedAttribute, newDocument);
+                var codeAction = new MyDocumentCodeAction(FxCopFixersResources.AddNonSerializedAttribute, newDocument);
                 actions = SpecializedCollections.SingletonEnumerable(codeAction);
 
                 // Fix 2: If the type of the field is defined in source, then add the serializable attribute to the type.
@@ -46,13 +46,29 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                     var documentContainingNode = document.Project.Solution.GetDocument(typeDeclNode.SyntaxTree);
                     var docRoot = await documentContainingNode.GetSyntaxRootAsync(cancellationToken);
                     var newDocumentContainingNode = documentContainingNode.WithSyntaxRoot(docRoot.ReplaceNode(typeDeclNode, newTypeDeclNode));
-                    var typeCodeAction = CodeAction.Create(FxCopFixersResources.AddSerializableAttribute, newDocumentContainingNode.Project.Solution);
+                    var typeCodeAction = new MySolutionCodeAction(FxCopFixersResources.AddSerializableAttribute, newDocumentContainingNode.Project.Solution);
 
                     actions = actions.Concat(typeCodeAction);
                 }
             }
 
             return actions;
+        }
+
+        private class MyDocumentCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyDocumentCodeAction(string title, Document newDocument) :
+                base(title, c => Task.FromResult(newDocument))
+            {
+            }
+        }
+
+        private class MySolutionCodeAction : CodeAction.SolutionChangeAction
+        {
+            public MySolutionCodeAction(string title, Solution newSolution) :
+                base(title, c => Task.FromResult(newSolution))
+            {
+            }
         }
     }
 }

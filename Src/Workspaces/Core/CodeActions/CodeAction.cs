@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new DocumentChangeAction(description, (ct) => Task.FromResult(changedDocument));
         }
 
-        private sealed class DocumentChangeAction : CodeAction
+        internal class DocumentChangeAction : CodeAction
         {
             private readonly string title;
             private readonly Func<CancellationToken, Task<Document>> createChangedDocument;
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new SolutionChangeAction(description, (ct) => Task.FromResult(changedSolution));
         }
 
-        private sealed class SolutionChangeAction : CodeAction
+        internal class SolutionChangeAction : CodeAction
         {
             private readonly string title;
             private readonly Func<CancellationToken, Task<Solution>> createChangedSolution;

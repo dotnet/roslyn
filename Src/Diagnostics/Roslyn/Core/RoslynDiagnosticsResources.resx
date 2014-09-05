@@ -123,6 +123,12 @@
   <data name="DirectlyAwaitingTaskMessage" xml:space="preserve">
     <value>Do not directly await a Task without calling ConfigureAwait</value>
   </data>
+  <data name="DontUseCodeActionCreateDescription" xml:space="preserve">
+    <value>Do not use generic CodeAction.Create to create CodeAction</value>
+  </data>
+  <data name="DontUseCodeActionCreateMessage" xml:space="preserve">
+    <value>Consider creating unique code action type per different fix. it will help us to see how each code action is used. otherwise, we will only see bunch of generic code actions being used.</value>
+  </data>
   <data name="UseEmptyEnumerableDescription" xml:space="preserve">
     <value>Use SpecializedCollections.EmptyEnumerable&lt;T&gt;()</value>
   </data>
@@ -138,7 +144,7 @@
   <data name="UseSiteDiagnosticsCheckerDescription" xml:space="preserve">
     <value>Invoke the correct property to ensure correct use site diagnostics.</value>
   </data>
-<data name="UseSiteDiagnosticsCheckerMessage" xml:space="preserve">
+  <data name="UseSiteDiagnosticsCheckerMessage" xml:space="preserve">
     <value>Do not directly invoke the property '{0}', instead use '{0}NoUseSiteDiagnostics'.</value>
   </data>
 </root>

@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -17,6 +15,9 @@ namespace Roslyn.Diagnostics.CodeFixes
 {
     public abstract class DirectlyAwaitingTaskFix<TExpressionSyntax> : ICodeFixProvider where TExpressionSyntax : SyntaxNode
     {
+        protected abstract TExpressionSyntax FixExpression(TExpressionSyntax syntaxNode, CancellationToken cancellationToken);
+        protected abstract string FalseLiteralString { get; }
+
         public IEnumerable<string> GetFixableDiagnosticIds()
         {
             return new[] { RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId };
@@ -37,7 +38,8 @@ namespace Roslyn.Diagnostics.CodeFixes
 
                 if (expression != null)
                 {
-                    yield return CodeAction.Create("Append .ConfigureAwait(" + FalseLiteralString + ")",
+                    yield return new MyCodeAction(
+                        "Append .ConfigureAwait(" + FalseLiteralString + ")",
                         c => GetFix(document, root, expression, c));
                 }
             }
@@ -53,7 +55,12 @@ namespace Roslyn.Diagnostics.CodeFixes
             return Simplifier.ReduceAsync(fixedDocument, fixedExpression.FullSpan, cancellationToken: cancellationToken);
         }
 
-        protected abstract TExpressionSyntax FixExpression(TExpressionSyntax syntaxNode, CancellationToken cancellationToken);
-        protected abstract string FalseLiteralString { get; }
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
+                base(title, createChangedDocument)
+            {
+            }
+        }
     }
 }

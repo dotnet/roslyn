@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                
+
                 var nodeToFix = root.FindNode(diagnostic.Location.SourceSpan);
 
                 var newDocument = await GetUpdatedDocumentAsync(document, model, root, nodeToFix, diagnostic.Id, cancellationToken).ConfigureAwait(false);
@@ -37,11 +37,19 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
                 if (newDocument != document)
                 {
                     var codeFixDescription = GetCodeFixDescription(diagnostic.Id);
-                    actions = actions.Concat(CodeAction.Create(codeFixDescription, newDocument));
+                    actions = actions.Concat(new MyCodeAction(codeFixDescription, newDocument));
                 }
             }
 
             return actions;
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Document newDocument) :
+                base(title, c => Task.FromResult(newDocument))
+            {
+            }
         }
     }
 }
