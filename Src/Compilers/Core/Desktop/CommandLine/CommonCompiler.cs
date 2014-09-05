@@ -290,6 +290,17 @@ namespace Microsoft.CodeAnalysis
             AnalyzerDriver analyzerDriver;
             compilation = AnalyzerDriver.AttachAnalyzerDriverToCompilation(compilation, analyzers, out analyzerDriver, analyzerOptions, cancellationToken);
 
+            // Print the diagnostics produced during the parsing stage and exit if there were any errors.
+            if (PrintErrors(compilation.GetParseDiagnostics(), consoleOutput))
+            {
+                return Failed;
+            }
+
+            if (PrintErrors(compilation.GetDeclarationDiagnostics(), consoleOutput))
+            {
+                return Failed;
+            }
+
             EmitResult emitResult;
 
             // EDMAURER: Don't yet know if there are method body errors. don't overwrite

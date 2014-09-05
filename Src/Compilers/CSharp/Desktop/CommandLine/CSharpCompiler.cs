@@ -170,17 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WithXmlReferenceResolver(xmlFileResolver).
                     WithSourceReferenceResolver(sourceFileResolver));
 
-            // Print the diagnostics produced during the parsing stage and exit if there were any errors.
-            if (PrintErrors(compilation.GetParseDiagnostics(), consoleOutput))
-            {
-                return null;
-            }
-
-            if (PrintErrors(compilation.GetDeclarationDiagnostics(), consoleOutput))
-            {
-                return null;
-            }
-
             return compilation;
         }
 
@@ -416,6 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                containing assembly binding settings
 /moduleassemblyname:<string>   Name of the assembly which this module will be 
                                a part of
+/modulename:<string>           Specify the name of the source module
 ");
         }
 

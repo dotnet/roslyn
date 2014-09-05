@@ -139,14 +139,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithXmlReferenceResolver(xmlFileResolver).
                      WithSourceReferenceResolver(sourceFileResolver))
 
-            If PrintErrors(result.GetParseDiagnostics(), consoleOutput) Then
-                Return Nothing
-            End If
-
-            If PrintErrors(result.GetDeclarationDiagnostics(), consoleOutput) Then
-                Return Nothing
-            End If
-
             Return result
         End Function
 
