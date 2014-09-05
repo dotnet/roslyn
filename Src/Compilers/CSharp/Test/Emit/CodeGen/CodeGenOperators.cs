@@ -4528,9 +4528,9 @@ class test<T> where T : c0
 1");
             compilation.VerifyIL("test<T>.Repro1(T)", @"
 {
-  // Code size       62 (0x3e)
+  // Code size       80 (0x50)
   .maxstack  4
-  .locals init (c0 V_0)
+  .locals init (T& V_0)
   IL_0000:  ldarg.0
   IL_0001:  box        ""T""
   IL_0006:  dup
@@ -4538,25 +4538,29 @@ class test<T> where T : c0
   IL_000c:  ldc.i4.1
   IL_000d:  add
   IL_000e:  stfld      ""int c0.x""
-  IL_0013:  ldarg.0
-  IL_0014:  box        ""T""
-  IL_0019:  dup
-  IL_001a:  callvirt   ""int c0.P1.get""
-  IL_001f:  ldc.i4.1
-  IL_0020:  add
-  IL_0021:  callvirt   ""void c0.P1.set""
-  IL_0026:  ldarg.0
-  IL_0027:  box        ""T""
-  IL_002c:  stloc.0
-  IL_002d:  ldloc.0
-  IL_002e:  ldc.i4.1
-  IL_002f:  ldloc.0
-  IL_0030:  ldc.i4.1
-  IL_0031:  callvirt   ""int c0.this[int].get""
+  IL_0013:  ldarga.s   V_0
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  constrained. ""T""
+  IL_001e:  callvirt   ""int c0.P1.get""
+  IL_0023:  ldc.i4.1
+  IL_0024:  add
+  IL_0025:  constrained. ""T""
+  IL_002b:  callvirt   ""void c0.P1.set""
+  IL_0030:  ldarga.s   V_0
+  IL_0032:  stloc.0
+  IL_0033:  ldloc.0
+  IL_0034:  ldc.i4.1
+  IL_0035:  ldloc.0
   IL_0036:  ldc.i4.1
-  IL_0037:  add
-  IL_0038:  callvirt   ""void c0.this[int].set""
-  IL_003d:  ret
+  IL_0037:  constrained. ""T""
+  IL_003d:  callvirt   ""int c0.this[int].get""
+  IL_0042:  ldc.i4.1
+  IL_0043:  add
+  IL_0044:  constrained. ""T""
+  IL_004a:  callvirt   ""void c0.this[int].set""
+  IL_004f:  ret
 }
 ").VerifyIL("test<T>.Repro2(T)", @"
 {

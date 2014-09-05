@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // receiver is generic and method must come from the base or an interface or a generic constraint
                     // if the receiver is actually a value type it would need to be boxed.
                     // let .constrained sort this out. 
-                    callKind = receiverType.IsReferenceType ?
+                    callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
                                 CallKind.CallVirt :
                                 CallKind.ConstrainedCallVirt;
 
@@ -1370,6 +1370,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             FreeOptTemp(tempOpt);
+        }
+
+        // returns true when receiver is already a ref.
+        // in such cases calling through a ref could be preferred over 
+        // calling through indirectly loaded value.
+        private bool IsRef(BoundExpression receiver)
+        {
+            switch (receiver.Kind)
+            {
+                case BoundKind.Local:
+                    return ((BoundLocal)receiver).LocalSymbol.RefKind != RefKind.None;
+
+                case BoundKind.Parameter:
+                    return ((BoundParameter)receiver).ParameterSymbol.RefKind != RefKind.None;
+
+                case BoundKind.Dup:
+                    return ((BoundDup)receiver).RefKind != RefKind.None;
+
+                case BoundKind.Sequence:
+                    return IsRef(((BoundSequence)receiver).Value);
+            }
+
+            return false;
         }
 
         private static int GetCallStackBehavior(BoundCall call)

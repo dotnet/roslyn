@@ -4484,60 +4484,66 @@ class B
             compilation.VerifyIL("B.M2<T>(T)",
 @"
 {
-  // Code size      130 (0x82)
+  // Code size      164 (0xa4)
   .maxstack  4
   .locals init (int V_0,
-  I V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  box        ""T""
-  IL_0006:  dup
-  IL_0007:  callvirt   ""int I.P.get""
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
-  IL_000e:  ldc.i4.1
-  IL_000f:  add
-  IL_0010:  callvirt   ""void I.P.set""
-  IL_0015:  ldarg.0
-  IL_0016:  box        ""T""
-  IL_001b:  dup
-  IL_001c:  ldc.i4.0
-  IL_001d:  callvirt   ""int I.this[int].get""
-  IL_0022:  stloc.0
-  IL_0023:  ldc.i4.0
-  IL_0024:  ldloc.0
-  IL_0025:  ldc.i4.1
-  IL_0026:  add
-  IL_0027:  callvirt   ""void I.this[int].set""
-  IL_002c:  ldarg.0
-  IL_002d:  box        ""T""
-  IL_0032:  dup
-  IL_0033:  callvirt   ""int I.P.get""
-  IL_0038:  ldc.i4.2
-  IL_0039:  add
-  IL_003a:  callvirt   ""void I.P.set""
-  IL_003f:  ldarg.0
-  IL_0040:  box        ""T""
-  IL_0045:  stloc.1
-  IL_0046:  ldloc.1
-  IL_0047:  ldc.i4.0
-  IL_0048:  ldloc.1
-  IL_0049:  ldc.i4.0
-  IL_004a:  callvirt   ""int I.this[int].get""
-  IL_004f:  ldc.i4.2
-  IL_0050:  add
-  IL_0051:  callvirt   ""void I.this[int].set""
-  IL_0056:  ldstr      ""{0}, {1}""
-  IL_005b:  ldarg.0
-  IL_005c:  box        ""T""
-  IL_0061:  callvirt   ""int I.P.get""
-  IL_0066:  box        ""int""
-  IL_006b:  ldarg.0
-  IL_006c:  box        ""T""
-  IL_0071:  ldc.i4.0
-  IL_0072:  callvirt   ""int I.this[int].get""
-  IL_0077:  box        ""int""
-  IL_007c:  call       ""void System.Console.WriteLine(string, object, object)""
-  IL_0081:  ret
+                T& V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  dup
+  IL_0003:  constrained. ""T""
+  IL_0009:  callvirt   ""int I.P.get""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  add
+  IL_0012:  constrained. ""T""
+  IL_0018:  callvirt   ""void I.P.set""
+  IL_001d:  ldarga.s   V_0
+  IL_001f:  dup
+  IL_0020:  ldc.i4.0
+  IL_0021:  constrained. ""T""
+  IL_0027:  callvirt   ""int I.this[int].get""
+  IL_002c:  stloc.0
+  IL_002d:  ldc.i4.0
+  IL_002e:  ldloc.0
+  IL_002f:  ldc.i4.1
+  IL_0030:  add
+  IL_0031:  constrained. ""T""
+  IL_0037:  callvirt   ""void I.this[int].set""
+  IL_003c:  ldarga.s   V_0
+  IL_003e:  stloc.1
+  IL_003f:  ldloc.1
+  IL_0040:  ldloc.1
+  IL_0041:  constrained. ""T""
+  IL_0047:  callvirt   ""int I.P.get""
+  IL_004c:  ldc.i4.2
+  IL_004d:  add
+  IL_004e:  constrained. ""T""
+  IL_0054:  callvirt   ""void I.P.set""
+  IL_0059:  ldarga.s   V_0
+  IL_005b:  stloc.1
+  IL_005c:  ldloc.1
+  IL_005d:  ldc.i4.0
+  IL_005e:  ldloc.1
+  IL_005f:  ldc.i4.0
+  IL_0060:  constrained. ""T""
+  IL_0066:  callvirt   ""int I.this[int].get""
+  IL_006b:  ldc.i4.2
+  IL_006c:  add
+  IL_006d:  constrained. ""T""
+  IL_0073:  callvirt   ""void I.this[int].set""
+  IL_0078:  ldstr      ""{0}, {1}""
+  IL_007d:  ldarg.0
+  IL_007e:  box        ""T""
+  IL_0083:  callvirt   ""int I.P.get""
+  IL_0088:  box        ""int""
+  IL_008d:  ldarg.0
+  IL_008e:  box        ""T""
+  IL_0093:  ldc.i4.0
+  IL_0094:  callvirt   ""int I.this[int].get""
+  IL_0099:  box        ""int""
+  IL_009e:  call       ""void System.Console.WriteLine(string, object, object)""
+  IL_00a3:  ret
 }
 ");
             compilation.VerifyIL("B.M3<T>(T)",
