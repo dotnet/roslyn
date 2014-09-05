@@ -973,6 +973,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Leading &apos;?&apos; can only appear inside a &apos;With&apos; statement, but not inside an object member initializer..
+        '''</summary>
+        Friend ReadOnly Property ERR_BadConditionalWithRef() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadConditionalWithRef", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; is not valid on a constant declaration..
         '''</summary>
         Friend ReadOnly Property ERR_BadConstFlags1() As String
@@ -1681,6 +1690,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_ByRefParamInExpressionTree() As String
             Get
                 Return ResourceManager.GetString("ERR_ByRefParamInExpressionTree", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; cannot be made nullable..
+        '''</summary>
+        Friend ReadOnly Property ERR_CannotBeMadeNullable1() As String
+            Get
+                Return ResourceManager.GetString("ERR_CannotBeMadeNullable1", resourceCulture)
             End Get
         End Property
         
@@ -7977,6 +7995,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_NullableTypeInferenceNotSupported() As String
             Get
                 Return ResourceManager.GetString("ERR_NullableTypeInferenceNotSupported", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to A null propagating operator cannot be converted into an expression tree..
+        '''</summary>
+        Friend ReadOnly Property ERR_NullPropagatingOpInExpressionTree() As String
+            Get
+                Return ResourceManager.GetString("ERR_NullPropagatingOpInExpressionTree", resourceCulture)
             End Get
         End Property
         

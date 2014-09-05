@@ -340,7 +340,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          (node.Kind = SyntaxKind.DictionaryAccessExpression) OrElse
                          (node.Kind = SyntaxKind.XmlAttributeAccessExpression) OrElse
                          (node.Kind = SyntaxKind.XmlElementAccessExpression) OrElse
-                         (node.Kind = SyntaxKind.XmlDescendantAccessExpression))
+                         (node.Kind = SyntaxKind.XmlDescendantAccessExpression) OrElse
+                         (node.Kind = SyntaxKind.ConditionalAccessExpression))
 
             Me.EnsureExpressionAndPlaceholder()
             ' NOTE: In case the call above produced diagnostics they were stored in 
@@ -368,6 +369,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function TryBindOmittedLeftForDictionaryAccess(node As MemberAccessExpressionSyntax,
                                                                            accessingBinder As Binder,
                                                                            diagnostics As DiagnosticBag) As BoundExpression
+            PrepareBindingOfOmittedLeft(node, diagnostics, accessingBinder)
+            Return Me._withBlockInfo.ExpressionPlaceholder
+        End Function
+
+        Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression
             PrepareBindingOfOmittedLeft(node, diagnostics, accessingBinder)
             Return Me._withBlockInfo.ExpressionPlaceholder
         End Function

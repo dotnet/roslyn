@@ -139,6 +139,7 @@
     <Compile Include="Binding\Binder.vb" />
     <Compile Include="Binding\Binder_AnonymousTypes.vb" />
     <Compile Include="Binding\Binder_Attributes.vb" />
+    <Compile Include="Binding\Binder_ConditionalAccess.vb" />
     <Compile Include="Binding\Binder_Constraints.vb" />
     <Compile Include="Binding\Binder_Conversions.vb" />
     <Compile Include="Binding\Binder_Delegates.vb" />
@@ -474,6 +475,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_BinaryOperators.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Block.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Call.vb" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_ConditionalAccess.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ConditionalExpressions.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Constant.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Continue.vb" />

@@ -5310,7 +5310,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Expression.Opcodes.CallOrIndex" />
       </node-kind>
 
-      <child name="Expression" kind="@ExpressionSyntax">
+      <child name="Expression" optional="true" kind="@ExpressionSyntax">
         <description>The target of the call or index expression.</description>
         <lm-equiv name="Target"></lm-equiv>
         <native-equiv name="Target"></native-equiv>
@@ -9064,6 +9064,27 @@ Unify Enum declarations with other block type declarations.
       <child name="StartQuoteToken" kind="DoubleQuoteToken|SingleQuoteToken"></child>
       <child name="Reference" kind="@IdentifierNameSyntax"/>
       <child name="EndQuoteToken" kind="DoubleQuoteToken|SingleQuoteToken"></child>
+    </node-structure>
+
+    <node-structure name="ConditionalAccessExpressionSyntax" parent="ExpressionSyntax">
+      <description>
+        ExpressionSyntax node representing the object conditionally accessed.
+      </description>
+      
+      <grammar>ConditionalAccessExpression</grammar>
+
+      <node-kind name="ConditionalAccessExpression">
+      </node-kind>
+
+      <child name="Expression" optional="true" kind="@ExpressionSyntax">
+        <description>The expression on the left-hand-side of the "?".</description>
+      </child>
+      <child name="QuestionMarkToken" kind="QuestionToken">
+        <description>"?" token.</description>
+      </child>
+      <child name="WhenNotNull" kind="DictionaryAccessExpression|SimpleMemberAccessExpression|XmlElementAccessExpression|XmlDescendantAccessExpression|XmlAttributeAccessExpression|InvocationExpression|ConditionalAccessExpression">
+        <description>ExpressionSyntax node representing the access expression to be executed when the object is not null."</description>
+      </child>
     </node-structure>
 
     <!--********************

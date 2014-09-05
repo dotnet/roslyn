@@ -182,6 +182,7 @@
     <Compile Include="Semantics\AsyncAwait.vb" />
     <Compile Include="Semantics\BinaryOperators.vb" />
     <Compile Include="Semantics\CompoundAssignment.vb" />
+    <Compile Include="Semantics\ConditionalAccessTests.vb" />
     <Compile Include="Semantics\ConditionalExpressionsTests.vb" />
     <Compile Include="Semantics\Conversions.vb" />
     <Compile Include="Semantics\Conversions_AnonymousDelegates.vb" />

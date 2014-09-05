@@ -1076,7 +1076,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ParseDeclarationStatement()
 
                 Case SyntaxKind.QuestionToken
-                    Return ParsePrintStatement()
+
+                    If CanStartConsequenceExpression(Me.PeekToken(1).Kind, qualified:=False) Then
+                        Return ParseAssignmentOrInvocationStatement()
+                    Else
+                        Return ParsePrintStatement()
+                    End If
 
                 Case Else
                     If CanFollowStatement(CurrentToken) Then

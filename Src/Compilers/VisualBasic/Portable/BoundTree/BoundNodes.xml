@@ -1709,4 +1709,11 @@
     <Field Name="LengthOpt" Type="BoundExpression" Null="allow" />
     <Field Name="Source" Type="BoundExpression" Null="disallow" />
   </Node>
+
+  <Node Name="BoundConditionalAccess" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="Placeholder" Type="BoundValuePlaceholderBase"/>
+    <Field Name="AccessExpression" Type="BoundExpression"/>
+  </Node>
 </Tree>

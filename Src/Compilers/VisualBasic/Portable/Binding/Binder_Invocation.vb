@@ -56,7 +56,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function IsConstructorCallAllowed(invocationExpression As InvocationExpressionSyntax, boundMemberGroup As BoundMethodOrPropertyGroup) As Boolean
             If Me.ContainingMember.Kind = SymbolKind.Method AndAlso DirectCast(Me.ContainingMember, MethodSymbol).MethodKind = MethodKind.Constructor Then
                 ' (a) we are in an instance constructor body
-                If IsTheCallTheFirstStatementOfTheConstructorBody(invocationExpression) Then
+
+                Dim node As VisualBasicSyntaxNode = invocationExpression.Parent
+                If node Is Nothing OrElse (node.Kind <> SyntaxKind.CallStatement AndAlso node.Kind <> SyntaxKind.ExpressionStatement) Then
+                    Return False
+                End If
+
+                Dim nodeParent As VisualBasicSyntaxNode = node.Parent
+                If nodeParent Is Nothing OrElse nodeParent.Kind <> SyntaxKind.ConstructorBlock Then
+                    Return False
+                End If
+
+                If DirectCast(nodeParent, ConstructorBlockSyntax).Statements(0) Is node Then
                     ' (b) call statement we are binding is 'the first' statement of the constructor
                     Dim receiver As BoundExpression = boundMemberGroup.ReceiverOpt
 
@@ -70,21 +81,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return False
-        End Function
-
-        Private Function IsTheCallTheFirstStatementOfTheConstructorBody(invocationExpression As InvocationExpressionSyntax) As Boolean
-
-            Dim node As VisualBasicSyntaxNode = invocationExpression.Parent
-            If node Is Nothing OrElse (node.Kind <> SyntaxKind.CallStatement AndAlso node.Kind <> SyntaxKind.ExpressionStatement) Then
-                Return False
-            End If
-
-            Dim nodeParent As VisualBasicSyntaxNode = node.Parent
-            If nodeParent Is Nothing OrElse nodeParent.Kind <> SyntaxKind.ConstructorBlock Then
-                Return False
-            End If
-
-            Return DirectCast(nodeParent, ConstructorBlockSyntax).Statements(0) Is node
         End Function
 
         Friend Class ConstructorCallArgumentsBinder
@@ -155,7 +151,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindInvocationExpression(node As InvocationExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
 
             ' Set "IsInvocationsOrAddressOf" to prevent binding to return value variable.
-            Dim target = BindExpression(node.Expression, diagnostics:=diagnostics, isInvocationOrAddressOf:=True, isOperandOfConditionalBranch:=False, eventContext:=False)
+            Dim target As BoundExpression
+
+            If node.Expression Is Nothing Then
+                ' Must be conditional case
+                Dim conditionalAccess As ConditionalAccessExpressionSyntax = node.GetCorrespondingConditionalAccessExpression()
+
+                If conditionalAccess IsNot Nothing Then
+                    target = GetConditionalAccessReceiver(conditionalAccess)
+                Else
+                    target = ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_Syntax).MakeCompilerGenerated()
+                End If
+            Else
+                target = BindExpression(node.Expression, diagnostics:=diagnostics, isInvocationOrAddressOf:=True, isOperandOfConditionalBranch:=False, eventContext:=False)
+            End If
 
             ' If 'target' is a bound constructor group, we need to do special checks and special processing of arguments.
             If target.Kind = BoundKind.MethodGroup Then
@@ -283,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If delegateInvoke IsNot Nothing Then
                         Dim methodGroup = New BoundMethodGroup(
-                            node.Expression,
+                            If(node.Expression, node),
                             Nothing,
                             ImmutableArray.Create(Of MethodSymbol)(delegateInvoke),
                             LookupResultKind.Good,
@@ -292,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Return BindInvocationExpression(
                             node,
-                            node.Expression,
+                            If(node.Expression, node),
                             ExtractTypeCharacter(node.Expression),
                             methodGroup,
                             boundArguments,
@@ -327,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not target.HasErrors Then
                     ' Bind to the default property group.
-                    Dim defaultPropertyGroup As BoundExpression = BindDefaultPropertyGroup(node.Expression, target, diagnostics)
+                    Dim defaultPropertyGroup As BoundExpression = BindDefaultPropertyGroup(If(node.Expression, node), target, diagnostics)
 
                     If defaultPropertyGroup IsNot Nothing Then
                         Debug.Assert(defaultPropertyGroup.Kind = BoundKind.PropertyGroup OrElse
@@ -361,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf Not target.HasErrors Then
                 ' "Expression is not a method."
                 Dim diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedProcedure)
-                ReportDiagnostic(diagnostics, node.Expression, diagInfo)
+                ReportDiagnostic(diagnostics, If(node.Expression, node), diagInfo)
             End If
 
             Return GenerateBadExpression(node, target, boundArguments)
@@ -390,6 +399,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim tmpDiagnostics = DiagnosticBag.GetInstance()
                 Dim result As BoundExpression = Nothing
+
+                Debug.Assert(node.Expression IsNot Nothing)
 
                 ' NOTE: when binding without arguments, we pass node.Expression as the first parameter 
                 ' so that the new bound node references it instead of invocation expression
@@ -468,7 +479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return BindInvocationExpression(
                 node,
-                node.Expression,
+                If(node.Expression, group.Syntax),
                 typeChar,
                 group,
                 boundArguments,
@@ -1269,7 +1280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
             ElseIf node.VisualBasicKind = SyntaxKind.InvocationExpression Then
-                result = DirectCast(node, InvocationExpressionSyntax).Expression
+                result = If(DirectCast(node, InvocationExpressionSyntax).Expression, node)
             Else
                 Return node.GetLocation()
             End If
@@ -3113,6 +3124,16 @@ ProduceBoundNode:
         ''' </summary>
         Private Shared Function IsCallStatementContext(node As InvocationExpressionSyntax) As Boolean
             Dim parent As VisualBasicSyntaxNode = node.Parent
+
+            ' Dig through conditional access
+            If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.ConditionalAccessExpression Then
+                Dim conditional = DirectCast(parent, ConditionalAccessExpressionSyntax)
+
+                If conditional.WhenNotNull Is node Then
+                    parent = conditional.Parent
+                End If
+            End If
+
             Return parent IsNot Nothing AndAlso (parent.Kind = SyntaxKind.CallStatement OrElse parent.Kind = SyntaxKind.ExpressionStatement)
         End Function
 

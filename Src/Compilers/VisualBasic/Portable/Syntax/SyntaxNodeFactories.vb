@@ -1039,5 +1039,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #End Region
 
+        Public Shared Function InvocationExpression(expression As ExpressionSyntax) As InvocationExpressionSyntax
+            Return InvocationExpression(expression, Nothing)
+        End Function
+
     End Class
 End Namespace

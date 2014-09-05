@@ -465,6 +465,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_NoDefaultNotExtend1, StringConstants.AnonymousTypeName)
                 Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
             End Function
+
+            Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression
+                Return Nothing
+            End Function
 #End Region
 
         End Class

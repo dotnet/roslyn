@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim memberSyntax As VisualBasicSyntaxNode
             Dim invocationSyntax = TryCast(node, InvocationExpressionSyntax)
             If invocationSyntax IsNot Nothing Then
-                memberSyntax = invocationSyntax.Expression
+                memberSyntax = If(invocationSyntax.Expression, group.Syntax)
             Else
                 memberSyntax = node
             End If

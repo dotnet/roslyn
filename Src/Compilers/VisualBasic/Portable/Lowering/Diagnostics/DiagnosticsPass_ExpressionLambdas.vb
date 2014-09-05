@@ -361,6 +361,14 @@ lSelect:
             Return MyBase.VisitLateMemberAccess(node)
         End Function
 
+        Public Overrides Function VisitConditionalAccess(node As BoundConditionalAccess) As BoundNode
+            If Me.IsInExpressionLambda Then
+                GenerateDiagnostic(ERRID.ERR_NullPropagatingOpInExpressionTree, node)
+            End If
+
+            Return MyBase.VisitConditionalAccess(node)
+        End Function
+
         Private Sub GenerateExpressionTreeNotSupportedDiagnostic(node As BoundNode)
             GenerateDiagnostic(ERRID.ERR_ExpressionTreeNotSupported, node)
         End Sub

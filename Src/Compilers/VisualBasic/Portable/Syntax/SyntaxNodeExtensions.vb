@@ -174,9 +174,110 @@ TryAgain:
                         End Select
                     End If
 
+                    ' TODO
+                    'Case SyntaxKind.ConditionalAccessExpression
             End Select
 
             Return Nothing
+        End Function
+
+        <Extension>
+        Friend Function GetCorrespondingConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
+            Dim access As VisualBasicSyntaxNode = node
+            Dim parent As VisualBasicSyntaxNode = access.Parent
+
+            While parent IsNot Nothing
+                Select Case parent.Kind
+                    Case SyntaxKind.DictionaryAccessExpression,
+                         SyntaxKind.SimpleMemberAccessExpression
+
+                        If DirectCast(parent, MemberAccessExpressionSyntax).Expression IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case SyntaxKind.XmlElementAccessExpression,
+                         SyntaxKind.XmlDescendantAccessExpression,
+                         SyntaxKind.XmlAttributeAccessExpression
+
+                        If DirectCast(parent, XmlMemberAccessExpressionSyntax).Base IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case SyntaxKind.InvocationExpression
+
+                        If DirectCast(parent, InvocationExpressionSyntax).Expression IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case SyntaxKind.ConditionalAccessExpression
+
+                        Dim conditional = DirectCast(parent, ConditionalAccessExpressionSyntax)
+                        If conditional.WhenNotNull Is access Then
+                            Return conditional
+                        ElseIf conditional.Expression IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case Else
+                        Return Nothing
+                End Select
+
+                access = parent
+                parent = access.Parent
+            End While
+
+            Return Nothing
+        End Function
+
+        <Extension>
+        Friend Function GetLeafAccess(conditionalAccess As ConditionalAccessExpressionSyntax) As ExpressionSyntax
+            Dim access As ExpressionSyntax = conditionalAccess.WhenNotNull
+
+            Do
+                Select Case access.Kind
+                    Case SyntaxKind.DictionaryAccessExpression,
+                         SyntaxKind.SimpleMemberAccessExpression
+
+                        Dim memberAccess = DirectCast(access, MemberAccessExpressionSyntax)
+                        If memberAccess.Expression Is Nothing Then
+                            Return memberAccess
+                        Else
+                            access = memberAccess.Expression
+                        End If
+
+                    Case SyntaxKind.XmlElementAccessExpression,
+                         SyntaxKind.XmlDescendantAccessExpression,
+                         SyntaxKind.XmlAttributeAccessExpression
+
+                        Dim memberAccess = DirectCast(access, XmlMemberAccessExpressionSyntax)
+                        If memberAccess.Base Is Nothing Then
+                            Return memberAccess
+                        Else
+                            access = memberAccess.Base
+                        End If
+
+                    Case SyntaxKind.InvocationExpression
+
+                        Dim invocation = DirectCast(access, InvocationExpressionSyntax)
+                        If invocation.Expression Is Nothing Then
+                            Return invocation
+                        Else
+                            access = invocation.Expression
+                        End If
+
+                    Case SyntaxKind.ConditionalAccessExpression
+
+                        access = DirectCast(access, ConditionalAccessExpressionSyntax).Expression
+
+                        If access Is Nothing Then
+                            ' Must be a syntax error
+                            Return Nothing
+                        End If
+
+                    Case Else
+                        Return Nothing
+                End Select
+            Loop
         End Function
 
         ''' <summary>

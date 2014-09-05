@@ -120,9 +120,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
+        Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression
+            Return Nothing
+        End Function
+
         Protected Friend Overrides Function TryBindOmittedLeftForXmlMemberAccess(node As XmlMemberAccessExpressionSyntax,
                                                                                  diagnostics As DiagnosticBag,
                                                                                  accessingBinder As Binder) As BoundExpression
+            Return Nothing
+        End Function
+
+        Protected Overrides Function TryGetConditionalAccessReceiver(node As ConditionalAccessExpressionSyntax) As BoundExpression
             Return Nothing
         End Function
 

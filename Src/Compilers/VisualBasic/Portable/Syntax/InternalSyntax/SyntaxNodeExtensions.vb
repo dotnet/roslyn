@@ -693,6 +693,8 @@ TryAgain:
                         End Select
                     End If
 
+                    ' TODO
+                    'Case SyntaxKind.ConditionalAccessExpression
             End Select
 
             Return Nothing

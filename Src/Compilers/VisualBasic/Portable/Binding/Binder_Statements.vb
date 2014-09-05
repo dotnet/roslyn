@@ -2520,8 +2520,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundExpression As BoundExpression
 
             Select Case expression.Kind
-                Case SyntaxKind.InvocationExpression
+                Case SyntaxKind.InvocationExpression,
+                     SyntaxKind.ConditionalAccessExpression
                     boundExpression = BindInvocationExpressionAsStatement(expression, diagnostics)
+
                 Case SyntaxKind.AwaitExpression
                     boundExpression = BindAwait(DirectCast(expression, AwaitExpressionSyntax), diagnostics, bindAsStatement:=True)
                 Case Else
@@ -2530,11 +2532,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     boundExpression = BindRValue(expression, diagnostics)
             End Select
 
+            WarnOnUnobservedCallThatReturnsAnAwaitable(statement, boundExpression, diagnostics)
+
+            Return New BoundExpressionStatement(statement, boundExpression)
+        End Function
+
+        Private Sub WarnOnUnobservedCallThatReturnsAnAwaitable(statement As ExpressionStatementSyntax, boundExpression As BoundExpression, diagnostics As DiagnosticBag)
+            If boundExpression.Kind = BoundKind.ConditionalAccess Then
+                WarnOnUnobservedCallThatReturnsAnAwaitable(statement, DirectCast(boundExpression, BoundConditionalAccess).AccessExpression, diagnostics)
+                Return
+            End If
+
             If Not boundExpression.HasErrors AndAlso
-               Not boundExpression.Kind = BoundKind.AwaitOperator AndAlso
-               Not boundExpression.Type.IsErrorType() AndAlso
-               Not boundExpression.Type.IsVoidType() AndAlso
-               Not boundExpression.Type.IsObjectType() Then
+                           Not boundExpression.Kind = BoundKind.AwaitOperator AndAlso
+                           Not boundExpression.Type.IsErrorType() AndAlso
+                           Not boundExpression.Type.IsVoidType() AndAlso
+                           Not boundExpression.Type.IsObjectType() Then
 
                 ' Check if we should warn for an unobserved call that returns an awaitable value.
 
@@ -2585,9 +2598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, statement, ERRID.WRN_UnobservedAwaitableExpression)
                 End If
             End If
-
-            Return New BoundExpressionStatement(statement, boundExpression)
-        End Function
+        End Sub
 
         Private Function IsOrInheritsFromOrImplementsInterface(derivedType As TypeSymbol, interfaceType As WellKnownType, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             Dim type As NamedTypeSymbol = Compilation.GetWellKnownType(interfaceType)
@@ -2607,8 +2618,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindInvocationExpressionAsStatement(expression As ExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
-            Dim boundInvocation As BoundExpression = BindExpression(expression, diagnostics)
+            Return ReclassifyInvocationExpressionAsStatement(BindExpression(expression, diagnostics), diagnostics)
+        End Function
 
+        Private Function ReclassifyInvocationExpressionAsStatement(boundInvocation As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
             Select Case boundInvocation.Kind
                 Case BoundKind.PropertyAccess
                     boundInvocation = MakeRValue(boundInvocation, diagnostics)
@@ -2633,6 +2646,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ReportDiagnostic(diagnostics, boundInvocation.Syntax, ERRID.ERR_PropertyAccessIgnored)
                     End If
+
+                Case BoundKind.ConditionalAccess
+                    Debug.Assert(boundInvocation.Type Is Nothing)
+                    Dim conditionalAccess = DirectCast(boundInvocation, BoundConditionalAccess)
+                    boundInvocation = conditionalAccess.Update(conditionalAccess.Receiver,
+                                                               conditionalAccess.Placeholder,
+                                                               ReclassifyInvocationExpressionAsStatement(conditionalAccess.AccessExpression, diagnostics),
+                                                               GetSpecialType(SpecialType.System_Void, conditionalAccess.Syntax, diagnostics))
             End Select
 
             Return boundInvocation

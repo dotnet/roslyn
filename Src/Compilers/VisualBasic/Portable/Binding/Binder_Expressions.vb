@@ -236,6 +236,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.AwaitExpression
                     Return BindAwait(DirectCast(node, AwaitExpressionSyntax), diagnostics)
 
+                Case SyntaxKind.ConditionalAccessExpression
+                    Return BindConditionalAccessExpression(DirectCast(node, ConditionalAccessExpressionSyntax), diagnostics)
+
                 Case Else
                     ' e.g. SyntaxKind.MidExpression is handled elsewhere
                     ' NOTE: There were too many "else" cases to justify listing them explicitly and throwing on
@@ -722,7 +725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case TypeKind.Structure
                     Return ERRID.ERR_StructureNotExpression1
 
-                    ' TODO Modules??
+                ' TODO Modules??
 
                 Case Else
                     Return ERRID.ERR_TypeNotExpression1
@@ -735,10 +738,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
            diagnostics As DiagnosticBag
         ) As BoundExpression
 
-            If expr.Kind = BoundKind.Parenthesized AndAlso Not expr.IsNothingLiteral() Then
-                Dim parenthesized = DirectCast(expr, BoundParenthesized)
-                Dim enclosed As BoundExpression = MakeValue(parenthesized.Expression, diagnostics)
-                Return parenthesized.Update(enclosed, enclosed.Type)
+            If expr.Kind = BoundKind.Parenthesized Then
+                If Not expr.IsNothingLiteral() Then
+                    Dim parenthesized = DirectCast(expr, BoundParenthesized)
+                    Dim enclosed As BoundExpression = MakeValue(parenthesized.Expression, diagnostics)
+                    Return parenthesized.Update(enclosed, enclosed.Type)
+                End If
+            ElseIf expr.Kind = BoundKind.ConditionalAccess AndAlso expr.Type Is Nothing Then
+                Dim conditionalAccess = DirectCast(expr, BoundConditionalAccess)
+                Dim access As BoundExpression = Me.MakeRValue(conditionalAccess.AccessExpression, diagnostics)
+
+                Dim resultType As TypeSymbol = access.Type
+
+                If Not resultType.IsErrorType() Then
+                    If resultType.IsValueType Then
+                        If Not resultType.IsNullableType() Then
+                            resultType = GetSpecialType(SpecialType.System_Nullable_T, expr.Syntax, diagnostics).Construct(resultType)
+                        End If
+                    ElseIf Not resultType.IsReferenceType Then
+                        ' Access cannot have unconstrained generic type
+                        ReportDiagnostic(diagnostics, access.Syntax, ERRID.ERR_CannotBeMadeNullable1, resultType)
+                        resultType = ErrorTypeSymbol.UnknownResultType
+                    End If
+                End If
+
+                Return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.Placeholder, access, resultType)
             End If
 
             expr = ReclassifyAsValue(expr, diagnostics)
@@ -891,7 +915,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case propertyAccess.AccessKind
                     Case PropertyAccessKind.Get
-                        ' Nothing to do.
+                    ' Nothing to do.
 
                     Case PropertyAccessKind.Unknown
                         Debug.Assert(propertyAccess.PropertySymbol.IsReadable)
@@ -906,7 +930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case expr.GetLateBoundAccessKind()
                     Case LateBoundAccessKind.Get
-                        ' Nothing to do.
+                    ' Nothing to do.
 
                     Case LateBoundAccessKind.Unknown
                         expr = expr.SetLateBoundAccessKind(LateBoundAccessKind.Get)
@@ -1882,6 +1906,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return False
                         End If
 
+                    Case SyntaxKind.ConditionalAccessExpression
+                        Dim conditionalAccess = DirectCast(parent, ConditionalAccessExpressionSyntax)
+
+                        If conditionalAccess.Expression Is nameSyntax Then
+                            Dim leaf As ExpressionSyntax = conditionalAccess.GetLeafAccess()
+
+                            If leaf IsNot Nothing AndAlso
+                               (leaf.Kind = SyntaxKind.SimpleMemberAccessExpression OrElse leaf.Kind = SyntaxKind.InvocationExpression) Then
+                                Return False
+                            End If
+                        End If
+
                     Case SyntaxKind.CatchStatement
                         If DirectCast(parent, CatchStatementSyntax).IdentifierName Is nameSyntax Then
                             Return False
@@ -2085,7 +2121,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '       or WithStatementBinder (to be created)) should handle binding of such expression
 
                 Dim wholeMemberAccessExpressionBound As Boolean = False
-                boundLeft = Me.TryBindOmittedLeftForMemberAccess(node, diagnostics, Me, wholeMemberAccessExpressionBound)
+
+                Dim conditionalAccess As ConditionalAccessExpressionSyntax = node.GetCorrespondingConditionalAccessExpression()
+
+                If conditionalAccess IsNot Nothing Then
+                    boundLeft = GetConditionalAccessReceiver(conditionalAccess)
+                Else
+                    boundLeft = Me.TryBindOmittedLeftForMemberAccess(node, diagnostics, Me, wholeMemberAccessExpressionBound)
+                End If
 
                 If boundLeft Is Nothing Then
                     Debug.Assert(Not wholeMemberAccessExpressionBound)
@@ -3198,7 +3241,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Spec 11.7: "If an exclamation point is specified with no expression, the
                 ' expression from the immediately containing With statement is assumed.
                 ' If there is no containing With statement, a compile-time error occurs."
-                left = TryBindOmittedLeftForDictionaryAccess(node, Me, diagnostics)
+
+                Dim conditionalAccess As ConditionalAccessExpressionSyntax = node.GetCorrespondingConditionalAccessExpression()
+
+                If conditionalAccess IsNot Nothing Then
+                    left = GetConditionalAccessReceiver(conditionalAccess)
+                Else
+                    left = TryBindOmittedLeftForDictionaryAccess(node, Me, diagnostics)
+                End If
 
                 If left Is Nothing Then
                     ' Didn't find binder that can handle member access with omitted left part
@@ -3305,6 +3355,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case TypeKind.Structure
                     ' "Structure '{0}' cannot be indexed because it has no default property."
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_StructureNoDefault1, type)
+                Case TypeKind.Error
+                    ' We should have reported an error elsewhere.
                 Case Else
                     ' "'{0}' cannot be indexed because it has no default property."
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_InterfaceNoDefault1, type)
@@ -3517,7 +3569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If parent Is Nothing Then
-                Debug.Assert(false, "Did not found a NamedArgumentSyntax where one should have been")
+                Debug.Assert(False, "Did not found a NamedArgumentSyntax where one should have been")
                 Return argumentExpression.GetFirstToken() ' since we use this for error reporting, this gives us something close, anyway.
             Else
                 Return parent.IdentifierName.Identifier
@@ -4419,7 +4471,7 @@ lElseClause:
                              ERRID.ERR_UseOfObsoletePropertyAccessor3,
                              ERRID.ERR_UseOfObsoleteSymbolNoMessage1,
                              ERRID.ERR_UseOfObsoleteSymbol2
-                            ' ignore
+                        ' ignore
 
                         Case Else
                             Return True
@@ -4445,5 +4497,6 @@ lElseClause:
 
             Return ErrorFactory.ErrorInfo(ERRID.ERR_BadAwaitNotInAsyncMethodOrLambda)
         End Function
+
     End Class
 End Namespace

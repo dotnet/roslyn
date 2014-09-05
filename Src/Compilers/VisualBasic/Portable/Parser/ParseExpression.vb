@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.OpenParenToken
                     term = ParseParenthesizedExpression()
 
-                    'XML
+                'XML
                 Case SyntaxKind.LessThanToken,
                      SyntaxKind.LessThanQuestionToken,
                      SyntaxKind.BeginCDataToken,
@@ -382,12 +382,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     term = ParseLambda(parseModifiers:=False)
 
                 Case Else
-                    If BailIfFirstTokenRejected Then
-                        Return Nothing
-                    End If
 
-                    term = InternalSyntaxFactory.MissingExpression()
-                    term = ReportSyntaxError(term, ERRID.ERR_ExpectedExpression)
+                    If start.Kind = SyntaxKind.QuestionToken AndAlso CanStartConsequenceExpression(Me.PeekToken(1).Kind, qualified:=False) Then
+                        ' This looks like ?. or ?! 
+
+                        Dim qToken = DirectCast(start, PunctuationSyntax)
+                        AssertLanguageFeature(ERRID.FEATUREID_NullPropagatingOperator, qToken)
+
+                        GetNextToken()
+                        term = SyntaxFactory.ConditionalAccessExpression(term, qToken, ParsePostFixExpression(RedimOrNewParent, term:=Nothing))
+                    Else
+                        If BailIfFirstTokenRejected Then
+                            Return Nothing
+                        End If
+
+                        term = InternalSyntaxFactory.MissingExpression()
+                        term = ReportSyntaxError(term, ERRID.ERR_ExpectedExpression)
+                    End If
             End Select
 
             Debug.Assert(term IsNot Nothing)
@@ -398,39 +409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' Valid suffixes are ".", "!", and "(". Everything else is considered
                 ' to end the term.
 
-                Do
-                    Dim [Next] As SyntaxToken = CurrentToken
-
-                    ' Dev10#670442 - you can't apply invocation parentheses directly to a single-line sub lambda,
-                    ' nor DotQualified/BangDictionaryLookup
-                    Dim isAfterSingleLineSub As Boolean = term.Kind = SyntaxKind.SingleLineSubLambdaExpression
-
-                    If [Next].Kind = SyntaxKind.DotToken Then
-                        If isAfterSingleLineSub Then
-                            term = ReportSyntaxError(term, ERRID.ERR_SubRequiresParenthesesDot)
-                        End If
-
-                        term = ParseQualifiedExpr(term)
-
-                    ElseIf [Next].Kind = SyntaxKind.ExclamationToken Then
-                        If isAfterSingleLineSub Then
-                            term = ReportSyntaxError(term, ERRID.ERR_SubRequiresParenthesesBang)
-                        End If
-
-                        term = ParseQualifiedExpr(term)
-
-                    ElseIf [Next].Kind = SyntaxKind.OpenParenToken Then
-                        If isAfterSingleLineSub Then
-                            term = ReportSyntaxError(term, ERRID.ERR_SubRequiresParenthesesLParen)
-                        End If
-
-                        term = ParseParenthesizedQualifier(term, RedimOrNewParent)
-                    Else
-                        ' We're done with the term.
-                        Exit Do
-                    End If
-                Loop
-
+                term = ParsePostFixExpression(RedimOrNewParent, term)
             End If
 
             If CurrentToken IsNot Nothing AndAlso CurrentToken.Kind = SyntaxKind.QuestionToken Then
@@ -439,6 +418,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Return term
+        End Function
+
+        Private Function ParsePostFixExpression(RedimOrNewParent As Boolean, term As ExpressionSyntax) As ExpressionSyntax
+            Do
+                Dim [Next] As SyntaxToken = CurrentToken
+
+                ' Dev10#670442 - you can't apply invocation parentheses directly to a single-line sub lambda,
+                ' nor DotQualified/BangDictionaryLookup
+                Dim isAfterSingleLineSub As Boolean = term IsNot Nothing AndAlso term.Kind = SyntaxKind.SingleLineSubLambdaExpression
+
+                If [Next].Kind = SyntaxKind.DotToken Then
+                    If isAfterSingleLineSub Then
+                        term = ReportSyntaxError(term, ERRID.ERR_SubRequiresParenthesesDot)
+                    End If
+
+                    term = ParseQualifiedExpr(term)
+
+                ElseIf [Next].Kind = SyntaxKind.ExclamationToken Then
+                    If isAfterSingleLineSub Then
+                        term = ReportSyntaxError(term, ERRID.ERR_SubRequiresParenthesesBang)
+                    End If
+
+                    term = ParseQualifiedExpr(term)
+
+                ElseIf [Next].Kind = SyntaxKind.OpenParenToken Then
+                    If isAfterSingleLineSub Then
+                        term = ReportSyntaxError(term, ERRID.ERR_SubRequiresParenthesesLParen)
+                    End If
+
+                    term = ParseParenthesizedQualifier(term, RedimOrNewParent)
+
+                ElseIf [Next].Kind = SyntaxKind.QuestionToken AndAlso CanStartConsequenceExpression(Me.PeekToken(1).Kind, qualified:=True) Then
+                    ' This looks like ?. ?! or ?(
+
+                    Dim qToken = DirectCast([Next], PunctuationSyntax)
+                    AssertLanguageFeature(ERRID.FEATUREID_NullPropagatingOperator, qToken)
+
+                    GetNextToken()
+
+                    If isAfterSingleLineSub Then
+                        Select Case CurrentToken.Kind
+                            Case SyntaxKind.DotToken
+                                term = ReportSyntaxError(term, ERRID.ERR_SubRequiresParenthesesDot)
+                            Case SyntaxKind.ExclamationToken
+                                term = ReportSyntaxError(term, ERRID.ERR_SubRequiresParenthesesBang)
+                            Case SyntaxKind.OpenParenToken
+                                term = ReportSyntaxError(term, ERRID.ERR_SubRequiresParenthesesLParen)
+                            Case Else
+                                Throw ExceptionUtilities.Unreachable
+                        End Select
+                    End If
+
+                    term = SyntaxFactory.ConditionalAccessExpression(term, qToken, ParsePostFixExpression(RedimOrNewParent, term:=Nothing))
+                Else
+                    ' We're done with the term.
+                    Exit Do
+                End If
+            Loop
+
+            Return term
+        End Function
+
+        Private Function CanStartConsequenceExpression(kind As SyntaxKind, qualified As Boolean) As Boolean
+            Return kind = SyntaxKind.DotToken OrElse kind = SyntaxKind.ExclamationToken OrElse (qualified AndAlso kind = SyntaxKind.OpenParenToken)
         End Function
 
         Private Shared Function TokenContainsFullWidthChars(tk As SyntaxToken) As Boolean
@@ -1163,7 +1206,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Expression* .Parser::ParseParenthesizedQualifier( [ _In_ Token* Start ] [ _In_ ParseTree::Expression* Term ] [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseParenthesizedQualifier(Term As ExpressionSyntax, Optional RedimOrNewParent As Boolean = False) As ExpressionSyntax
-            Debug.Assert(Term IsNot Nothing)
             ' Because parentheses are used for array indexing, parameter passing, and array
             ' declaring (via the Redim statement), there is some ambiguity about how to handle
             ' a parenthesized list that begins with an expression. The most general case is to

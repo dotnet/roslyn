@@ -566,7 +566,7 @@ nextm:
             Return Block(boundCondGoto, thenClause, [Goto](afterif), Label(alt), elseClause, Label(afterif))
         End Function
 
-        Public Function TernaryConditionalExpression(condition As BoundExpression, ifTrue As BoundExpression, ifFalse As BoundExpression) As BoundExpression
+        Public Function TernaryConditionalExpression(condition As BoundExpression, ifTrue As BoundExpression, ifFalse As BoundExpression) As BoundTernaryConditionalExpression
             Debug.Assert(ifTrue IsNot Nothing)
             Debug.Assert(ifFalse IsNot Nothing)
             Return New BoundTernaryConditionalExpression(Me.Syntax, condition, ifTrue, ifFalse, Nothing, ifTrue.Type).MakeCompilerGenerated()
@@ -586,7 +586,7 @@ nextm:
         Public Function [DirectCast](expression As BoundExpression, type As TypeSymbol) As BoundDirectCast
             Debug.Assert(expression IsNot Nothing)
             Debug.Assert(Not expression.IsNothingLiteral) ' Not supported yet
-            Debug.Assert(expression.Type.IsReferenceType) 'Others are not supported yet
+            Debug.Assert(expression.Type.IsReferenceType OrElse expression.Type.IsTypeParameter()) 'Others are not supported yet
             Debug.Assert(type.IsReferenceType) 'Others are not supported yet
             Debug.Assert(Not expression.Type.IsErrorType)
             Debug.Assert(Not type.IsErrorType)
@@ -924,6 +924,13 @@ nextm:
         Public Function ReferenceIsNothing(operand As BoundExpression) As BoundBinaryOperator
             Debug.Assert(operand.Type.IsReferenceType)
             Dim boundNode = Binary(BinaryOperatorKind.Is, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), operand, Me.Null(operand.Type))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        Public Function ReferenceIsNotNothing(operand As BoundExpression) As BoundBinaryOperator
+            Debug.Assert(operand.Type.IsReferenceType)
+            Dim boundNode = Binary(BinaryOperatorKind.IsNot, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), operand, Me.Null(operand.Type))
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function

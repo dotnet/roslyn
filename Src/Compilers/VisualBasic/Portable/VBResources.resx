@@ -4535,4 +4535,13 @@
   <data name="ERR_ExpectedWarningKeyword" xml:space="preserve">
     <value>'Warning' expected.</value>
   </data>
+  <data name="ERR_CannotBeMadeNullable1" xml:space="preserve">
+    <value>'{0}' cannot be made nullable.</value>
+  </data>
+  <data name="ERR_BadConditionalWithRef" xml:space="preserve">
+    <value>Leading '?' can only appear inside a 'With' statement, but not inside an object member initializer.</value>
+  </data>
+  <data name="ERR_NullPropagatingOpInExpressionTree" xml:space="preserve">
+    <value>A null propagating operator cannot be converted into an expression tree.</value>
+  </data>
 </root>

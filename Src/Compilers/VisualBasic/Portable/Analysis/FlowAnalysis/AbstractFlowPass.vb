@@ -697,7 +697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case BoundKind.Parameter, BoundKind.MeReference, BoundKind.MyClassReference, BoundKind.MyBaseReference
-                    ' no need for it to be previously assigned: it is on the left.
+                ' no need for it to be previously assigned: it is on the left.
 
                 Case BoundKind.FieldAccess
                     VisitFieldAccessInternal(DirectCast(node, BoundFieldAccess))
@@ -1398,6 +1398,27 @@ lUnsplitAndFinish:
                 VisitRvalue(node.ElseExpression)
                 Me.SetState(savedState)
             End If
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitConditionalAccess(node As BoundConditionalAccess) As BoundNode
+            VisitRvalue(node.Receiver)
+
+            If node.Receiver.IsConstant Then
+                If node.Receiver.ConstantValueOpt.IsNothing Then
+                    Dim savedState As LocalState = Me.State.Clone()
+                    SetUnreachable()
+                    VisitRvalue(node.AccessExpression)
+                    Me.SetState(savedState)
+                Else
+                    VisitRvalue(node.AccessExpression)
+                End If
+            Else
+                Dim savedState As LocalState = Me.State.Clone()
+                VisitRvalue(node.AccessExpression)
+                IntersectWith(Me.State, savedState)
+            End If
+
             Return Nothing
         End Function
 

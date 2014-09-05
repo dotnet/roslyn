@@ -738,7 +738,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindXmlMemberAccessReceiver(syntax As XmlMemberAccessExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
             If syntax.Base Is Nothing Then
-                Dim receiver = TryBindOmittedLeftForXmlMemberAccess(syntax, diagnostics, Me)
+                Dim receiver As BoundExpression
+
+                Dim conditionalAccess As ConditionalAccessExpressionSyntax = syntax.GetCorrespondingConditionalAccessExpression()
+
+                If conditionalAccess IsNot Nothing Then
+                    receiver = GetConditionalAccessReceiver(conditionalAccess)
+                Else
+                    receiver = TryBindOmittedLeftForXmlMemberAccess(syntax, diagnostics, Me)
+                End If
+
                 If receiver Is Nothing Then
                     Return ReportDiagnosticAndProduceBadExpression(diagnostics, syntax, ERRID.ERR_BadWithRef)
                 End If

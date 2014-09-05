@@ -959,5 +959,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return m_receiver
         End Function
 
+        Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression
+            Return Nothing
+        End Function
     End Class
 End Namespace

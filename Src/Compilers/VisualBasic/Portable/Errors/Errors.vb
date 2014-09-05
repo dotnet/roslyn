@@ -1655,6 +1655,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_InvalidFormatSpecifier = 37237
 
+        ERR_CannotBeMadeNullable1 = 37238
+        ERR_BadConditionalWithRef = 37239
+        ERR_NullPropagatingOpInExpressionTree = 37240
+
         ERR_LastPlusOne
 
 
@@ -1898,7 +1902,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATUREID_CollectionInitializers = 55004
         FEATUREID_SubLambdas = 55005
         FEATUREID_ArrayLiterals = 55006
-        FEATUREID_Last = 55006
+        FEATUREID_NullPropagatingOperator = 55007
+        FEATUREID_Last = 55007
 
         ' Adding diagnostic arguments from resx file, TO DO: ASSIGN IDS
         IDS_FunctionReturnType
