@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1711,7 +1710,7 @@ class C
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "long.MinValue / (-1)"));
 
             var actual = ParseAndGetConstantFoldingSteps(source);
-            var expected = 
+            var expected =
 @"int.MinValue % (-1) --> 0
 int.MinValue --> -2147483648
 -1 --> -1
@@ -1896,17 +1895,17 @@ class Program
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,17): error CS0220: The operation overflows at compile time in checked mode
-                //         int r = int.MaxValue + 1;
+                    // (6,17): error CS0220: The operation overflows at compile time in checked mode
+                    //         int r = int.MaxValue + 1;
                     Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1"),
-                // (9,17): error CS0220: The operation overflows at compile time in checked mode
-                //         r = int.MaxValue + 1;
+                    // (9,17): error CS0220: The operation overflows at compile time in checked mode
+                    //         r = int.MaxValue + 1;
                     Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1"),
-                // (17,13): error CS0220: The operation overflows at compile time in checked mode
-                //         r = int.MaxValue + 1;
+                    // (17,13): error CS0220: The operation overflows at compile time in checked mode
+                    //         r = int.MaxValue + 1;
                     Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1"),
-                // (25,20): error CS0220: The operation overflows at compile time in checked mode
-                //         r = M1(int.MaxValue + 1);
+                    // (25,20): error CS0220: The operation overflows at compile time in checked mode
+                    //         r = M1(int.MaxValue + 1);
                     Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1"));
         }
 
@@ -2639,8 +2638,37 @@ class MyClass
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
+
+        // We used to return constant zero in unchecked conversion from a floating-point type to an integral type
+        // in a constant expression if the value being converted is not within the target type.
+        // The C# spec says that in this case the result of the conversion is an unspecified value of the destination type.
+        // Zero is a perfectly valid unspecified value, so that behavior was formally correct.
+        // But it did not agree with the behavior of the native C# compiler, that apparently returned a value that
+        // would resulted from a runtime conversion with normal CLR overflow behavior.
+        // To avoid breaking programs that might accidentally rely on that unspecified behavior
+        // we now match the native compiler behavior, and we are going to keep this behavior for compatibility.
+        [Fact, WorkItem(1020273, "DevDiv")]
+        public void Bug1020273()
+        {
+            string source = @"
+using System;
+ 
+class Program
+{
+    static void Main()
+    {
+        double aslocal = 65535.17567;
+        Console.WriteLine(""As local: {0}"", unchecked((short)aslocal));
+        Console.WriteLine(""Inline  : {0}"", unchecked((short)65535.17567));
     }
-    
+}";
+            string expectedOutput = @"As local: -1
+Inline  : -1";
+
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+    }
+
     internal sealed class BoundTreeSequencer : BoundTreeWalker
     {
         public static IEnumerable<BoundNode> GetNodes(BoundNode root)

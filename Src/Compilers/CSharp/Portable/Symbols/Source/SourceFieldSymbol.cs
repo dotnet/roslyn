@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract Location ErrorLocation {  get; }
+        internal abstract Location ErrorLocation { get; }
 
         /// <summary>
         /// Gets the syntax list of custom attributes applied on the symbol.
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (obsoleteData != null)
                 {
                     arguments.GetOrCreateData<CommonFieldEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
-                    }
+                }
 
                 return boundAttribute;
             }
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!inProgress.IsEmpty)
-        {
+            {
                 // Add this field as a dependency of the original field, and
                 // return Unset. The outer GetConstantValue caller will call
                 // this method again after evaluating any dependencies.
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableHashSet<SourceFieldSymbolWithSyntaxReference> dependencies;
             var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
-                var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = DiagnosticBag.GetInstance();
             value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
 
             // Only persist if there are no dependencies and the calculation
@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 dependencies = ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty.Union(builder);
             }
 
-                    diagnostics.Free();
+            diagnostics.Free();
             builder.Free();
             return dependencies;
         }
@@ -689,14 +689,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.GetLazyConstantValue(earlyDecodingWellKnownAttributes) != Microsoft.CodeAnalysis.ConstantValue.Unset)
             {
                 return;
-                }
+            }
 
             var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
             var diagnostics = DiagnosticBag.GetInstance();
             if (startsCycle)
-                {
+            {
                 diagnostics.Add(ErrorCode.ERR_CircConstValue, this.location, this);
-                }
+            }
 
             var value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
             this.SetLazyConstantValue(
@@ -704,14 +704,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 earlyDecodingWellKnownAttributes,
                 diagnostics,
                 startsCycle);
-                diagnostics.Free();
+            diagnostics.Free();
             builder.Free();
         }
 
         private ConstantValue GetLazyConstantValue(bool earlyDecodingWellKnownAttributes)
         {
             return earlyDecodingWellKnownAttributes ? this.lazyConstantEarlyDecodingValue : this.lazyConstantValue;
-            }
+        }
 
         private void SetLazyConstantValue(
             ConstantValue value,

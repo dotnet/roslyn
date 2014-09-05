@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 this.ReportModifiersDiagnostics(diagnostics);
             }
-            }
+        }
 
         protected sealed override DeclarationModifiers Modifiers
-            {
+        {
             get
             {
                 return modifiers;
@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                    // '{0}': a volatile field cannot be of the type '{1}'
-                    diagnostics.Add(ErrorCode.ERR_VolatileStruct, this.ErrorLocation, this, type);
-                }
+                // '{0}': a volatile field cannot be of the type '{1}'
+                diagnostics.Add(ErrorCode.ERR_VolatileStruct, this.ErrorLocation, this, type);
+            }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (!this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))

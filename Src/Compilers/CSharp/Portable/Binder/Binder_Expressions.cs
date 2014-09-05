@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Generates a new BoundBadExpression with no known type, and the given bound children.
+        /// Generates a new <see cref="BoundBadExpression"/> with no known type, and the given bound children.
         /// </summary>
         private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, params BoundNode[] childNodes)
         {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Generates a new BoundBadExpression with no known type, given lookup resultKind and the given bound children.
+        /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookup resultKind and the given bound children.
         /// </summary>
         protected BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind lookupResultKind, params BoundNode[] childNodes)
         {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Generates a new BoundBadExpression with no known type, given lookupResultKind and given symbols for GetSemanticInfo API,
+        /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookupResultKind and given symbols for GetSemanticInfo API,
         /// and the given bound children.
         /// </summary>
         private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, params BoundNode[] childNodes)
@@ -117,12 +117,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(syntax,
                 resultKind,
                 symbols,
-                ImmutableArray.Create<BoundNode>(childNodes),
+                ImmutableArray.Create(childNodes),
                 CreateErrorType());
         }
 
         /// <summary>
-        /// Generates a new BoundBadExpression with no known type, given lookupResultKind and given symbols for GetSemanticInfo API,
+        /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookupResultKind and given symbols for GetSemanticInfo API,
         /// and the given bound children.
         /// </summary>
         private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundExpression> childNodes)
@@ -139,10 +139,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returned bound expression is guaranteed to have a non-null type, except when <paramref name="expr"/> is an unbound lambda.
         /// If <paramref name="expr"/> already has errors and meets the above type requirements, then it is returned unchanged.
         /// Otherwise, if <paramref name="expr"/> is a BoundBadExpression, then it is updated with the <paramref name="resultKind"/> and non-null type.
-        /// Otherwise, a new BoundBadExpression wrapping <paramref name="expr"/> is returned. 
+        /// Otherwise, a new <see cref="BoundBadExpression"/> wrapping <paramref name="expr"/> is returned. 
         /// </summary>
         /// <remarks>
-        /// Returned expression need not be a BoundBadExpression, but is guaranteed to have HasErrors set to true.
+        /// Returned expression need not be a <see cref="BoundBadExpression"/>, but is guaranteed to have HasErrors set to true.
         /// </remarks>
         private BoundExpression ToBadExpression(BoundExpression expr, LookupResultKind resultKind = LookupResultKind.Empty)
         {
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind the expression and verify the expression matches the combination of lvalue and
         /// rvalue requirements given by valueKind. If the expression was bound successfully, but
-        /// did not meet the requirements, the return value will be a BoundBadExpression that
+        /// did not meet the requirements, the return value will be a <see cref="BoundBadExpression"/> that
         /// (typically) wraps the subexpression.
         /// </summary>
         internal BoundExpression BindValue(ExpressionSyntax node, DiagnosticBag diagnostics, BindValueKind valueKind)
@@ -1811,9 +1811,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCast(CastExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            // TODO: I added this with enough implementation to get numeric conversions to work.
-            // Needs to be fleshed out a lot, i think.
-
             BoundExpression operand = this.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             TypeSymbol targetType = this.BindType(node.Type, diagnostics);
 
@@ -2966,7 +2963,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="syntax">Syntax node</param>
         /// <param name="nameString">Plain text name</param>
-        /// <returns></returns>
         private static NameSyntax GetNameSyntax(CSharpSyntaxNode syntax, out string nameString)
         {
             nameString = string.Empty;
@@ -3697,10 +3693,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 error = true;
             }
 
-            return new BoundArrayCreation(nonNullSyntax, sizes, initializer, type, hasErrors: error) { WasCompilerGenerated = !hasCreationSyntax &&
-                (initSyntax.Parent == null ||
-                initSyntax.Parent.Kind != SyntaxKind.EqualsValueClause ||
-                ((EqualsValueClauseSyntax)initSyntax.Parent).Value != initSyntax) };
+            return new BoundArrayCreation(nonNullSyntax, sizes, initializer, type, hasErrors: error)
+            {
+                WasCompilerGenerated = !hasCreationSyntax &&
+                    (initSyntax.Parent == null ||
+                    initSyntax.Parent.Kind != SyntaxKind.EqualsValueClause ||
+                    ((EqualsValueClauseSyntax)initSyntax.Parent).Value != initSyntax)
+            };
         }
 
         private BoundExpression BindStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)

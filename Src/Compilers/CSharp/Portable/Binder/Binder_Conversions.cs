@@ -1040,7 +1040,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case ConstantValueTypeDiscriminator.Single:
                     case ConstantValueTypeDiscriminator.Double:
-                        double doubleValue = CheckConstantBounds(destinationType, value.DoubleValue) ? value.DoubleValue : 0D;
+                        // This code used to invoke CheckConstantBounds and return constant zero if the value is not within the target type.
+                        // The C# spec says that in this case the result of the conversion is an unspecified value of the destination type.
+                        // Zero is a perfectly valid unspecified value, so that behavior was formally correct.
+                        // But it did not agree with the behavior of the native C# compiler, that apparently returned a value that
+                        // would resulted from a runtime conversion with normal CLR overflow behavior.
+                        // To avoid breaking programs that might accidentally rely on that unspecified behavior
+                        // we now removed that check and just allow conversion to overflow.
+                        double doubleValue = value.DoubleValue;
                         switch (destinationType)
                         {
                             case SpecialType.System_Byte: return (byte)doubleValue;
